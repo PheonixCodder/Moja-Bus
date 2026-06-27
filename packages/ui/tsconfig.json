@@ -1,0 +1,12 @@
+{
+  "extends": "@moja/typescript/next.json",
+  "compilerOptions": {
+    "paths": {
+      "#components/*": ["./src/components/*"],
+      "#hooks/*": ["./src/hooks/*"],
+      "#lib/*": ["./src/lib/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules"]
+}

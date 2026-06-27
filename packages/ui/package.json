@@ -1,0 +1,42 @@
+{
+  "name": "@moja/ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "imports": {
+    "#components/*": "./src/components/*.tsx",
+    "#hooks/*": "./src/hooks/*.ts",
+    "#lib/*": "./src/lib/*.ts"
+  },
+  "exports": {
+    "./globals.css": "./src/styles/globals.css",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./lib/*": "./src/lib/*.ts"
+  },
+  "scripts": {
+    "build": "echo \"No build configured for @moja/ui\"",
+    "lint": "biome check components.json package.json src",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests configured for @moja/ui\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.34.4",
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.561.0",
+    "radix-ui": "^1.4.4",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@moja/typescript": "workspace:*",
+    "@types/react": "^19",
+    "typescript": "^6.0.3"
+  }
+}

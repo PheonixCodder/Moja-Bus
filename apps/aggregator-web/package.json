@@ -1,0 +1,30 @@
+{
+  "name": "aggregator-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check app components.json next.config.ts package.json postcss.config.mjs tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests configured for aggregator-web\"",
+    "format": "biome format --write ."
+  },
+  "dependencies": {
+    "@moja/ui": "workspace:*",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.1",
+    "@moja/typescript": "workspace:*",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

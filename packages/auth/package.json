@@ -1,0 +1,17 @@
+{
+  "name": "@moja/auth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo \"No build configured for @moja/auth\"",
+    "lint": "biome check .",
+    "typecheck": "echo \"No TypeScript sources configured for @moja/auth\"",
+    "test": "echo \"No tests configured for @moja/auth\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.34.4"
+}
