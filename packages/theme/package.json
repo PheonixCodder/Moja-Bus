@@ -1,0 +1,18 @@
+{
+  "name": "@moja/theme",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared design tokens for Moja Buss web and mobile apps.",
+  "exports": {
+    "./global.css": "./global.css",
+    "./tokens": "./tokens.ts"
+  },
+  "dependencies": {
+    "react-native": "0.85.3"
+  },
+  "files": [
+    "global.css",
+    "tokens.ts"
+  ]
+}
