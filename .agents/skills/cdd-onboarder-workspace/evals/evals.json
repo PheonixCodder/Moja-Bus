@@ -1,0 +1,23 @@
+{
+  "skill_name": "cdd-onboarder",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I want to set up the context system for a new Next.js dashboard app called SaaSify. It's a SaaS dashboard that helps small business owners track their sales metrics and customer invoices. The tech stack is Next.js, Prisma, PostgreSQL, and Tailwind. We want to use Stripe for payments and PostHog for analytics. We have 3 development phases: Phase 1 (Foundation: Auth, DB schema, Home layout), Phase 2 (Billing & Invoices: Stripe checkout, billing dashboard), and Phase 3 (Analytics: Charts, metrics stats). Please run the onboarder and generate all 9 context files.",
+      "expected_output": "9 context files in context/ directory, and AGENTS.md updated.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Let's initialize the context files for a mobile-first web app called FeedLoop. It is a social platform for localized community boards where neighbors can post updates and events. Tech stack: React (Vite), Tailwind, Firebase (auth, firestore, storage). Visual design: HSL tailored warm colors, dark mode default, rounded-lg border radius. Spacing should be tight and compact. Please configure the context system.",
+      "expected_output": "9 context files in context/ directory, and AGENTS.md updated.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Onboard a new e-commerce project called ShopBloom. It sells artisanal plants. Stack: Next.js App Router, Supabase, Tailwind, Shadcn UI. Let's document our libraries: Supabase client/server helper, Stripe. Code standards: strict TypeScript, functional components, camelCase for variables and snake_case for tables. Design: HSL forest green theme, clean margins (px-6, py-4), rounded-md borders. Set up context.",
+      "expected_output": "9 context files in context/ directory, and AGENTS.md updated.",
+      "files": []
+    }
+  ]
+}
