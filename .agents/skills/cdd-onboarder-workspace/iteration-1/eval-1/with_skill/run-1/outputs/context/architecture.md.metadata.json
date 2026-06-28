@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_OTHER",
+  "summary":  "FeedLoop Architecture context file detailing technical stack, directory mapping, Firestore schema, and invariants.",
+  "updatedAt":  "2026-06-13T18:20:45.507961Z"
+}

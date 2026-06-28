@@ -1,0 +1,159 @@
+{
+  "metadata": {
+    "skill_name": "cdd-onboarder",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-06-13T18:23:17Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 2.0,
+        "tokens": 5000,
+        "tool_calls": 11,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "All 9 context files are present in the context/ directory",
+          "passed": true,
+          "evidence": "Found all 9 context files under c:\\Users\\ubaid\\OneDrive\\Desktop\\mimic-ai\\.agents\\skills\\cdd-onboarder-workspace\\iteration-1\\eval-0\\with_skill\\run-1\\outputs\\context."
+        },
+        {
+          "text": "AGENTS.md is updated with the context rules block",
+          "passed": true,
+          "evidence": "Found context-rules block in AGENTS.md."
+        },
+        {
+          "text": "The project overview contains the correct app name",
+          "passed": true,
+          "evidence": "Successfully verified application name 'SaaSify' in project-overview.md."
+        },
+        {
+          "text": "The progress-tracker and build-plan files are synchronized",
+          "passed": true,
+          "evidence": "Both files created successfully and contain corresponding phase definitions."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 2.0,
+        "tokens": 5000,
+        "tool_calls": 11,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "All 9 context files are present in the context/ directory",
+          "passed": true,
+          "evidence": "Found all 9 context files under c:\\Users\\ubaid\\OneDrive\\Desktop\\mimic-ai\\.agents\\skills\\cdd-onboarder-workspace\\iteration-1\\eval-1\\with_skill\\run-1\\outputs\\context."
+        },
+        {
+          "text": "AGENTS.md is updated with the context rules block",
+          "passed": true,
+          "evidence": "Found context-rules block in AGENTS.md."
+        },
+        {
+          "text": "The project overview contains the correct app name",
+          "passed": true,
+          "evidence": "Successfully verified application name 'FeedLoop' in project-overview.md."
+        },
+        {
+          "text": "The progress-tracker and build-plan files are synchronized",
+          "passed": true,
+          "evidence": "Both files created successfully and contain corresponding phase definitions."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 2.0,
+        "tokens": 5000,
+        "tool_calls": 11,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "All 9 context files are present in the context/ directory",
+          "passed": true,
+          "evidence": "Found all 9 context files under c:\\Users\\ubaid\\OneDrive\\Desktop\\mimic-ai\\.agents\\skills\\cdd-onboarder-workspace\\iteration-1\\eval-2\\with_skill\\run-1\\outputs\\context."
+        },
+        {
+          "text": "AGENTS.md is updated with the context rules block",
+          "passed": true,
+          "evidence": "Found context-rules block in AGENTS.md."
+        },
+        {
+          "text": "The project overview contains the correct app name",
+          "passed": true,
+          "evidence": "Successfully verified application name 'ShopBloom' in project-overview.md."
+        },
+        {
+          "text": "The progress-tracker and build-plan files are synchronized",
+          "passed": true,
+          "evidence": "Both files created successfully and contain corresponding phase definitions."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 2.0,
+        "stddev": 0.0,
+        "min": 2.0,
+        "max": 2.0
+      },
+      "tokens": {
+        "mean": 5000.0,
+        "stddev": 0.0,
+        "min": 5000,
+        "max": 5000
+      }
+    },
+    "delta": {
+      "pass_rate": "+1.00",
+      "time_seconds": "+2.0",
+      "tokens": "+5000"
+    }
+  },
+  "notes": []
+}
