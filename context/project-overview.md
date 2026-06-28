@@ -1,7 +1,7 @@
 # Project Overview
 
 ## About the Project
-Moja Bus is a digital intercity travel platform for Cote d'Ivoire. The v1 product has three active surfaces: passenger web, passenger mobile, and operator/admin web.
+Moja Ride is a digital intercity travel platform for Cote d'Ivoire. The v1 product has three active surfaces: passenger web, passenger mobile, and operator/admin web.
 
 ## The Problem It Solves
 Long-distance road travel is still fragmented, physical, and manual. Passengers cannot reliably see schedules, seat availability, or prices ahead of time. Operators rely on paper logs and local workflows that leak inventory and revenue. Staff and drivers need a shared system that works even when connectivity is weak.
@@ -12,11 +12,8 @@ Long-distance road travel is still fragmented, physical, and manual. Passengers 
 - Future staff users who may later receive dedicated agent or driver tools, but not in v1.
 
 ## Pages and Surfaces
-- `operator-web/` - operator/admin dashboard for onboarding, fleet, routes, schedules, manifests, sales, and finance.
-- `aggregator-web/` - passenger web for public search, comparison, booking, payment, and history.
-- `traveler-app/` - passenger mobile app for search, seat selection, checkout, wallet, and offline tickets.
-- `agent-app/` - deferred legacy staff surface, not part of v1 product scope.
-- `driver-app/` - deferred legacy staff surface, not part of v1 product scope.
+- `web/` - passenger web for public search, comparison, booking, payment, and history, operator/admin dashboard for onboarding, fleet, routes, schedules, manifests, sales, and finance..
+- `app/` - passenger mobile app for search, seat selection, checkout, wallet, and offline tickets.
 - `apps/api/` - server API, auth, persistence, payments, notifications, and shared business rules.
 
 ## Navigation

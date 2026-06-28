@@ -4,7 +4,7 @@
 - Project: Moja Bus
 - Context scaffold: created
 - Current product identity: intercity travel marketplace for Cote d'Ivoire
-- Phase direction: operator first, then traveler booking, then deferred staff modules
+- Phase direction: operator first, then traveler booking
 - Product scope: 3 active apps - passenger web, passenger mobile, operator/admin web
 - Placeholder brand palette: teal primary with gold accent
 - Shared shadcn UI now lives in `packages/ui` and mirrors the `demo-ui` component set for the monorepo apps
@@ -13,7 +13,6 @@
 - Passenger web should support search and booking
 - Operator web includes operator and admin controls
 - Passenger mobile keeps the full booking flow with offline ticket access
-- Agent and driver are deferred legacy modules
 - Notifications use Expo push plus SMS fallback
 - Aggregator-web now mirrors the demo-ui dashboard shell under `/dashboard` and uses nested section pages for search, bookings, tickets, and settings
 
@@ -26,8 +25,8 @@
 - Updated recommendation direction: adopt Better Auth in `apps/api` as the single auth server and mirror the `demo-ui` flow in `apps/aggregator-web` and `apps/traveler-app` rather than building a second custom auth stack.
 - Implemented the Better Auth rollout for traveler web and mobile:
   - `apps/api` now mounts Better Auth on the Express backend with email/password, Google social login, and OTP-based email verification.
-  - `apps/aggregator-web` now has login, signup, verify-email, forgot-password, reset-password, and dashboard flows.
-  - `apps/traveler-app` now has native Google SDK + ID token login, email/password auth, verify-email, password reset, and dashboard routes.
+  - `apps/web` now has login, signup, verify-email, forgot-password, reset-password, and dashboard flows.
+  - `apps/app` now has native Google SDK + ID token login, email/password auth, verify-email, password reset, and dashboard routes.
   - Email verification is required for email/password signup/login.
 - Existing Google and email/password accounts are linked by email when possible.
 - `apps/aggregator-web` now imports the shared shadcn UI from `packages/ui` instead of a local app copy.

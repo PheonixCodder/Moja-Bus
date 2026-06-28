@@ -1,16 +1,17 @@
 # UI Tokens
 
 ## Colors
-- Primary: teal placeholder for the platform's main action color.
-- Accent: gold placeholder for emphasis, highlights, and status accents.
-- Background: neutral light surfaces for web and mobile.
-- Foreground: dark neutral text for readability.
+- Primary: #ee237c (pink/magenta) for the platform's main action color, buttons, and accents.
+- Primary Foreground: #ffffff (white) for text on primary backgrounds.
+- Accent: neutral grays for emphasis and status accents.
+- Background: neutral light surfaces (#ffffff) for web and mobile.
+- Foreground: dark neutral text (#171717) for readability.
 - Border and muted surfaces: soft gray neutrals.
 - Destructive: red for errors and destructive actions.
-- Note: these colors are temporary placeholders and should be replaced when final branding is approved.
 
 ## Typography
-- Use a clean sans-serif baseline.
+- Primary Font: Montserrat from Google Fonts for all text.
+- Use a clean sans-serif baseline with Montserrat as the primary typeface.
 - Keep heading hierarchy restrained and functional.
 - Use readable text sizes for dense operational interfaces and mobile booking flows.
 

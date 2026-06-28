@@ -8,7 +8,7 @@ Build visible UI first with mock data, then wire behavior behind it. Every phase
 ### Phase 1 - Foundation
 - [x] Context system and workspace rules
 - [x] Shared auth/session foundation
-- [x] Shared theme and cross-platform UI baseline
+- [x] Shared theme and cross-platform UI baseline (Primary: #ee237c, Font: Montserrat)
 - [ ] Search domain contract and API client shape
 - [ ] Passenger web shell and passenger mobile shell alignment
 
@@ -28,12 +28,7 @@ Build visible UI first with mock data, then wire behavior behind it. Every phase
 - [ ] Booking history and notifications
 - [ ] Offline ticket access and local storage
 
-### Phase 4 - Deferred Staff Modules
-- [ ] Agent walk-in sales and offline sync
-- [ ] Driver trip assignment and QR check-in
-- [ ] Driver status and incident reporting
-
-### Phase 5 - Hardening
+### Phase 4 - Hardening
 - [ ] SMS fallback
 - [ ] Push notifications
 - [ ] Error handling and observability
@@ -43,5 +38,4 @@ Build visible UI first with mock data, then wire behavior behind it. Every phase
 - Foundation: 5 items
 - Operator Core: 6 items
 - Traveler Core: 6 items
-- Deferred Staff Modules: 3 items
 - Hardening: 4 items

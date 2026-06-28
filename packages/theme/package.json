@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Shared design tokens for Moja Buss web and mobile apps.",
+  "description": "Shared design tokens for Moja Ride web and mobile apps.",
   "exports": {
     "./global.css": "./global.css",
     "./tokens": "./tokens.ts"

@@ -25,6 +25,10 @@ function collectTrustedOrigins(baseUrl: string): string[] {
   if (process.env["NODE_ENV"] === "development") {
     origins.add("exp://");
     origins.add("exp://**");
+    // Add specific Expo dev server origins
+    origins.add("http://192.168.100.3:8081");
+    origins.add("http://localhost:8081");
+    origins.add("http://127.0.0.1:8081");
   }
 
   return [...origins];
