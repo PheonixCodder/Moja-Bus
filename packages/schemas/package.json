@@ -2,16 +2,32 @@
   "name": "@moja/schemas",
   "version": "1.0.0",
   "private": true,
-  "description": "",
-  "main": "index.js",
+  "type": "module",
+  "description": "Shared domain contracts and value objects for Moja Buss workspaces.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./auth": "./src/auth.ts",
+    "./booking": "./src/booking.ts",
+    "./fleet": "./src/fleet.ts",
+    "./payments": "./src/payments.ts",
+    "./search": "./src/search.ts",
+    "./sync": "./src/sync.ts",
+    "./tracking": "./src/tracking.ts"
+  },
+  "files": [
+    "src",
+    "tsconfig.json"
+  ],
   "scripts": {
     "build": "echo \"No build configured for @moja/schemas\"",
-    "lint": "biome check .",
-    "typecheck": "echo \"No TypeScript sources configured for @moja/schemas\"",
+    "lint": "biome check package.json tsconfig.json src",
+    "typecheck": "tsc --noEmit",
     "test": "echo \"No tests configured for @moja/schemas\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.34.4"
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@moja/typescript": "workspace:*"
+  }
 }

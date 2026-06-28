@@ -2,16 +2,28 @@
   "name": "@moja/db",
   "version": "1.0.0",
   "private": true,
-  "description": "",
-  "main": "index.js",
+  "type": "module",
+  "description": "Shared Prisma client access for Moja Buss workspaces.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "tsconfig.json"
+  ],
   "scripts": {
     "build": "echo \"No build configured for @moja/db\"",
-    "lint": "biome check .",
-    "typecheck": "echo \"No TypeScript sources configured for @moja/db\"",
+    "lint": "biome check package.json tsconfig.json src",
+    "typecheck": "tsc --noEmit",
     "test": "echo \"No tests configured for @moja/db\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.34.4"
+  "dependencies": {
+    "@moja/config": "workspace:*",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@moja/typescript": "workspace:*"
+  }
 }

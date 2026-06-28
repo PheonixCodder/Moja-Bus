@@ -1,12 +1,18 @@
 {
   "extends": "@moja/typescript/next.json",
   "compilerOptions": {
+    
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "react-phone-number-input": ["./node_modules/react-phone-number-input"],
+      "react-phone-number-input/flags": [
+        "./node_modules/react-phone-number-input/flags"
+      ]
     }
   },
   "include": [
     "next-env.d.ts",
+    "**/*.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
