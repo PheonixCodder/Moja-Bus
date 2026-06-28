@@ -5,8 +5,9 @@
       "#components/*": ["./src/components/*"],
       "#hooks/*": ["./src/hooks/*"],
       "#lib/*": ["./src/lib/*"]
-    }
+    },
+    "noImplicitAny": false
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

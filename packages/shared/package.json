@@ -2,16 +2,22 @@
   "name": "@moja/shared",
   "version": "1.0.0",
   "private": true,
-  "description": "",
-  "main": "index.js",
+  "type": "module",
+  "description": "Pure shared utilities for Moja Buss workspaces.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "tsconfig.json"
+  ],
   "scripts": {
     "build": "echo \"No build configured for @moja/shared\"",
-    "lint": "biome check .",
-    "typecheck": "echo \"No TypeScript sources configured for @moja/shared\"",
+    "lint": "biome check package.json tsconfig.json src",
+    "typecheck": "tsc --noEmit",
     "test": "echo \"No tests configured for @moja/shared\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.34.4"
+  "devDependencies": {
+    "@moja/typescript": "workspace:*"
+  }
 }

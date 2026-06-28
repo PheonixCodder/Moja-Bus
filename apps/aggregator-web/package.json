@@ -12,8 +12,12 @@
     "format": "biome format --write ."
   },
   "dependencies": {
+    "better-auth": "^1.6.20",
     "@moja/ui": "workspace:*",
     "next": "16.2.9",
+    "lucide-react": "^0.561.0",
+    "react-phone-number-input": "^3.4.14",
+    "sonner": "^2.0.7",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
