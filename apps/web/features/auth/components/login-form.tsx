@@ -12,13 +12,15 @@ import { getAuthErrorMessage } from "@/features/auth/lib/auth-errors";
 
 type LoginFormProps = {
   errorCode?: string | undefined;
+  userType?: "passenger" | "operator";
 };
 
-export function LoginForm({ errorCode }: LoginFormProps) {
+export function LoginForm({ errorCode, userType = "passenger" }: LoginFormProps) {
   const { isPending, signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const isPassenger = userType === "passenger";
   const errorMessage = getAuthErrorMessage(errorCode);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -28,13 +30,16 @@ export function LoginForm({ errorCode }: LoginFormProps) {
 
   return (
     <AuthCard
-      title="Welcome back"
-      description="Sign in to your Moja Ride passenger account"
+      title={isPassenger ? "Welcome back" : "Welcome back to Business"}
+      description={isPassenger 
+        ? "Sign in to your Moja Ride passenger account" 
+        : "Sign in to your Moja Ride operator account"
+      }
       footer={
         <>
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="ml-1 font-medium text-primary">
-            Sign up
+          <Link href={isPassenger ? "/signup" : "/operator/signup"} className="ml-1 font-medium text-primary">
+            {isPassenger ? "Sign up" : "Register Business"}
           </Link>
         </>
       }
@@ -48,13 +53,13 @@ export function LoginForm({ errorCode }: LoginFormProps) {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{isPassenger ? "Email" : "Work email"}</Label>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder={isPassenger ? "you@example.com" : "your.work@email.com"}
             autoComplete="email"
             required
             disabled={isPending}
@@ -65,7 +70,7 @@ export function LoginForm({ errorCode }: LoginFormProps) {
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
             <Link
-              href="/forgot-password"
+              href={isPassenger ? "/forgot-password" : "/operator/forgot-password"}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Forgot password?

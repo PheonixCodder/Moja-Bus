@@ -30,6 +30,7 @@ function loadAllowedOrigins(options: CreateApiAppOptions): string[] {
   ]);
 
   // Add Expo and mobile app origins in development
+  if (process.env["NODE_ENV"] === "development" ){
     origins.push(
       "exp://*",
       "http://192.168.100.3:8081",
@@ -37,6 +38,7 @@ function loadAllowedOrigins(options: CreateApiAppOptions): string[] {
       "http://127.0.0.1:8081",
       "travelerapp://"
     );
+  }
 
   return origins;
 }

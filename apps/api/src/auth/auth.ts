@@ -82,9 +82,13 @@ export const auth = betterAuth({
   database: prismaAdapter(getPrismaClient(), {
     provider: "postgresql",
   }),
+  emailVerification: {
+    autoSignInAfterVerification: true,
+  },
+
   emailAndPassword: {
     enabled: true,
-    autoSignIn: false,
+    autoSignIn: true,
     requireEmailVerification: true,
   },
   account: {
@@ -103,15 +107,21 @@ export const auth = betterAuth({
         required: false,
         input: true,
       },
+      workEmail: {
+        type: "string",
+        required: false,
+        input: true,
+      },
       role: {
-        type: userRoleValues,
+        type: userRoleValues as any,
         defaultValue: "TRAVELER",
-        input: false,
+        input: true,
       },
     },
   },
   trustedOrigins: collectTrustedOrigins(resolveBaseUrl()),
   plugins: [
+    nextCookies(),
     emailOTP({
       sendVerificationOnSignUp: true,
       overrideDefaultEmailVerification: true,
@@ -127,7 +137,6 @@ export const auth = betterAuth({
         await sendAuthOtp({ email, otp, type: type as AuthOtpType });
       },
     }),
-    nextCookies(),
   ],
 });
 

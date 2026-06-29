@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,28 +9,95 @@ datasource db {
   provider = "postgresql"
 }
 
+// ============================================
+// ENUMS
+// ============================================
+
 enum UserRole {
   TRAVELER
   OPERATOR
   ADMIN
 }
 
+enum BusinessType {
+  SOLE_PROPRIETORSHIP
+  LLC
+  CORPORATION
+  PARTNERSHIP
+  COOPERATIVE
+  OTHER
+}
+
+enum CompanyStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  VERIFIED
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum DocumentType {
+  BUSINESS_REGISTRATION_CERTIFICATE
+  TAX_CLEARANCE_CERTIFICATE
+  BUSINESS_LICENSE
+  TRANSPORT_OPERATING_PERMIT
+  INSURANCE_CERTIFICATE
+  AUTHORIZED_REPRESENTATIVE_LETTER
+  BANK_STATEMENT
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum StaffRole {
+  OWNER
+  ADMIN
+  MANAGER
+  OPERATIONS
+  FINANCE
+  SUPPORT
+  DRIVER
+}
+
+// ============================================
+// AUTHENTICATION MODELS (Existing)
+// ============================================
+
 model User {
   id            String         @id
   fullName      String
-  email         String
+  email         String         @unique
   emailVerified Boolean        @default(false)
   image         String?
   phone         String?        @unique
   role          UserRole       @default(TRAVELER)
+
+  // Operator registration fields
+  workEmail     String?        @unique
+  workPhone     String?
+
   passwordHash  String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  refreshTokens RefreshToken[]
 
-  @@unique([email])
+  // Relations
+  sessions           Session[]
+  accounts           Account[]
+  refreshTokens      RefreshToken[]
+  operatorProfile    Operator?
+  passengerProfile   PassengerProfile?
+
+  // Admin verification actions performed by this user
+  verificationsPerformed CompanyDocument[] @relation("DocumentReviewedBy")
+  companiesVerified      Company[]         @relation("CompanyVerifiedBy")
+  bankAccountsVerified   BankAccount[]     @relation("BankAccountVerifiedBy")
+
   @@index([role])
   @@map("user")
 }
@@ -81,15 +151,272 @@ model Verification {
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
-  userId    String
-  tokenHash String   @unique
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+// ============================================
+// OPERATOR REGISTRATION MODELS
+// ============================================
+
+model Company {
+  id                   String         @id @default(cuid())
+  name                 String
+  slug                 String         @unique
+  email                String         @unique
+  phone                String         @unique
+  website              String?
+  description          String?
+  businessType         BusinessType   @default(SOLE_PROPRIETORSHIP)
+  registrationNumber   String         @unique
+  taxId                String         @unique
+  yearEstablished      Int?
+  logoUrl              String?
+  estimatedStaffSize   Int
+
+  // Status & Verification
+  status               CompanyStatus @default(DRAFT)
+  verifiedAt           DateTime?
+  // Proper FK relation — no free-text admin ID string
+  verifiedById         String?
+  verifiedBy           User?         @relation("CompanyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  rejectionReason      String?
+
+  // Verification Progress Tracking
+  verificationChecklist Json? @default("{}")
+  registrationProgress  Json? @default("{}")
+
+  // Relations
+  locations            CompanyLocation[]  @relation("CompanyLocations")
+  documents            CompanyDocument[]
+  bankAccount          BankAccount?
+  operators            Operator[]
+
+  // Future relations (stubs — do NOT query these until the domain is built)
+  // STUB: fleet, routes, bookings, reviews added in Phase 2/3
+  fleet                Bus[]
+  routes               Route[]
+  bookings             Booking[]
+  reviews              Review[]
+
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([registrationNumber])
+  @@index([taxId])
+  @@map("company")
+}
+
+model CompanyLocation {
+  id               String   @id @default(cuid())
+  companyId        String
+  company          Company  @relation("CompanyLocations", fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Location Details
+  name             String
+  addressLine1     String
+  addressLine2     String?
+  city             String
+  state            String?
+  postalCode       String?
+  country          String   @default("Cote d'Ivoire")
+  latitude         Float?
+  longitude        Float?
+
+  // Contact
+  phone            String
+  managerName      String?
+  managerPhone     String?
+  managerEmail     String?
+
+  // Operational
+  isPrimary        Boolean  @default(false)
+  operatingHours   Json?    // e.g. {"mon-fri": "8:00-18:00", "sat": "9:00-17:00"}
+  isActive         Boolean  @default(true)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([city])
+  @@index([isPrimary])
+  @@map("company_location")
+}
+
+model CompanyDocument {
+  id             String         @id @default(cuid())
+  companyId      String
+  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Document Details
+  type           DocumentType
+  fileName       String
+  fileUrl        String         // S3/Cloudflare URL
+  fileSize       Int            // Bytes
+  mimeType       String         // application/pdf, image/jpeg, etc.
+
+  // Verification — proper FK to User
+  status         DocumentStatus @default(PENDING)
+  reviewedById   String?
+  reviewedBy     User?          @relation("DocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt     DateTime?
+  notes          String?
+
+  // Expiry (for permits, insurance)
+  expiresAt      DateTime?
+  reminderSentAt DateTime?
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([companyId])
+  @@index([type])
+  @@index([status])
+  @@map("company_document")
+}
+
+model BankAccount {
+  id          String   @id @default(cuid())
+  companyId   String   @unique
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Bank Details
+  bankName      String
+  // NOT globally unique — account numbers are unique per bank, not across all banks.
+  // Uniqueness is enforced at the service layer when needed.
+  accountNumber String
+  accountName   String   // Must match company name
+  branch        String?
+  swiftCode     String?
+  iban          String?
+
+  // Verification — proper FK to User
+  isVerified              Boolean   @default(false)
+  verifiedAt              DateTime?
+  verifiedById            String?
+  verifiedBy              User?     @relation("BankAccountVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verificationDocumentId  String?   // Link to CompanyDocument
+
+  // Status
+  isActive Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@map("bank_account")
+}
+
+model Operator {
+  id        String @id @default(cuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Company Link
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Role & Status
+  role       StaffRole @default(OWNER)
+  isActive   Boolean   @default(true)
+  isVerified Boolean   @default(false)
+
+  // Personal Details
+  dateOfBirth          DateTime?
+  nationalIdNumber     String?
+  nationalIdType       String?   // passport | national_id | driver_license
+  nationalIdDocumentId String?   // Link to CompanyDocument
+
+  // Contact
+  personalPhone         String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+
+  // Profile
+  profilePhotoUrl String?
+  jobTitle        String?
+
+  // Timestamps
+  joinedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, companyId])
+  @@index([companyId])
+  @@index([userId])
+  @@index([role])
+  @@map("operator")
+}
+
+// ============================================
+// FUTURE DOMAIN MODELS (Phase 2/3 stubs)
+// These tables exist for FK relations only.
+// Do NOT add business logic against them until
+// the corresponding phase is being built.
+// ============================================
+
+// STUB: expanded in Phase 3
+model Bus {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bus")
+}
+
+// STUB: expanded in Phase 2
+model Route {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("route")
+}
+
+// STUB: expanded in Phase 3
+model Booking {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("booking")
+}
+
+// STUB: expanded in Phase 6
+model Review {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("review")
+}
+
+// STUB: expanded in Phase 3/4
+model PassengerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("passenger_profile")
 }

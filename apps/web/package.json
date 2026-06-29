@@ -12,14 +12,17 @@
     "format": "biome format --write ."
   },
   "dependencies": {
-    "better-auth": "^1.6.20",
     "@moja/ui": "workspace:*",
-    "next": "16.2.9",
+    "@types/react-dropzone": "^5.1.0",
+    "@types/react-phone-number-input": "^3.1.37",
+    "better-auth": "^1.6.20",
     "lucide-react": "^0.561.0",
-    "react-phone-number-input": "^3.4.14",
-    "sonner": "^2.0.7",
+    "next": "16.2.9",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-dropzone": "^15.0.0",
+    "react-phone-number-input": "^3.4.14",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
