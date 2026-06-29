@@ -1,7 +1,8 @@
 {
   "extends": "@moja/typescript/next.json",
   "compilerOptions": {
-    
+    "declaration": false,
+    "composite": false,
     "paths": {
       "@/*": ["./*"],
       "react-phone-number-input": ["./node_modules/react-phone-number-input"],
