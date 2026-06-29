@@ -290,8 +290,7 @@ export function useAuth() {
 
             // Read the live session to get the actual role — don't guess from the URL.
             const { data: sessionData } = await authClient.getSession();
-            const role = (sessionData as any)?.user?.role as UserRole | undefined;
-            console.log(sessionData.user)
+            const role = (sessionData)?.user?.role as UserRole | undefined;
             const redirectPath =
                 role === "OPERATOR" || role === "ADMIN"
                     ? "/dashboard/operator/onboarding/company"
