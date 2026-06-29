@@ -36,7 +36,3 @@
 ## Notifications
 - Default to Expo push notifications plus SMS fallback.
 - Treat SMS as the reliability backstop when data is weak or unavailable.
-
-## Deferred Staff Apps
-- Agent and driver apps remain in the repo as deferred surfaces, but they are not part of the 3-app v1 product context.
-- If they return later, treat them as separate mobile modules with their own contracts and offline rules.

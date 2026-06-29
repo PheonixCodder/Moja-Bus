@@ -8,8 +8,6 @@ datasource db {
 
 enum UserRole {
   TRAVELER
-  AGENT
-  DRIVER
   OPERATOR
   ADMIN
 }

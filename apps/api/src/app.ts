@@ -20,11 +20,25 @@ function loadAllowedOrigins(options: CreateApiAppOptions): string[] {
     return options.allowedOrigins;
   }
 
-  return getCsvEnv("ALLOWED_ORIGINS", process.env, [
+  const origins = getCsvEnv("ALLOWED_ORIGINS", process.env, [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:19006",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:19006",
   ]);
+
+  // Add Expo and mobile app origins in development
+    origins.push(
+      "exp://*",
+      "http://192.168.100.3:8081",
+      "http://localhost:8081",
+      "http://127.0.0.1:8081",
+      "travelerapp://"
+    );
+
+  return origins;
 }
 
 export function createApiApp(options: CreateApiAppOptions = {}): Express {
@@ -34,7 +48,28 @@ export function createApiApp(options: CreateApiAppOptions = {}): Express {
   app.use(helmet());
   app.use(
     cors({
-      origin: loadAllowedOrigins(options),
+      origin: (origin, callback) => {
+        const allowedOrigins = loadAllowedOrigins(options);
+        // Allow requests without origin (mobile apps, same-origin requests)
+        if (!origin) {
+          return callback(null, true);
+        }
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        // Check for wildcard matches (e.g., exp://*)
+        const originMatches = allowedOrigins.some((allowedOrigin) => {
+          if (allowedOrigin.endsWith("*")) {
+            const prefix = allowedOrigin.slice(0, -1);
+            return origin.startsWith(prefix);
+          }
+          return false;
+        });
+        if (originMatches) {
+          return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+      },
       credentials: true,
     }),
   );
