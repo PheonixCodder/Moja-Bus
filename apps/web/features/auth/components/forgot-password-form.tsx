@@ -9,38 +9,48 @@ import { Label } from "@moja/ui/components/ui/label";
 import { AuthCard } from "./auth-card";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 
-export function ForgotPasswordForm() {
+type ForgotPasswordFormProps = {
+  userType?: "passenger" | "operator";
+};
+
+export function ForgotPasswordForm({ userType = "passenger" }: ForgotPasswordFormProps) {
   const { isPending, forgotPassword } = useAuth();
   const [email, setEmail] = useState("");
   const router = useRouter();
+
+  const isPassenger = userType === "passenger";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const result = await forgotPassword(email);
     if (result.success) {
-      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
+      const resetPath = userType === "operator" ? "/operator/reset-password" : "/reset-password";
+      router.push(`${resetPath}?email=${encodeURIComponent(email)}`);
     }
   }
 
   return (
     <AuthCard
       title="Reset your password"
-      description="Enter the email tied to your Moja Ride account and we’ll send a reset code."
+      description={isPassenger 
+        ? "Enter your email and we will send a reset code." 
+        : "Enter your work email and we will send a reset code."
+      }
       footer={
-        <Link href="/login" className="font-medium text-primary">
+        <Link href={isPassenger ? "/login" : "/operator/login"} className="font-medium text-primary">
           Back to sign in
         </Link>
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{isPassenger ? "Email address" : "Work email address"}</Label>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder={isPassenger ? "you@example.com" : "your.work@email.com"}
             autoComplete="email"
             required
             disabled={isPending}

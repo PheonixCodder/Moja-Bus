@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui
 import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
 import { PageHeader } from "@/features/dashboard/components/page-header";
 import { SessionsPanel } from "@/features/dashboard/components/sessions-panel";
-import type { User } from "@/lib/auth-client";
+import type { CustomUser } from "@/lib/auth-client";
 import { getUser } from "@/lib/auth-server";
 
 const stats = [

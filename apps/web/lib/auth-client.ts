@@ -7,6 +7,24 @@ type ClientOptions = {
   plugins: [ReturnType<typeof emailOTPClient>];
 };
 
+// Custom types for our extended user and session
+export interface CustomUser {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  email: string;
+  emailVerified: boolean;
+  name: string;
+  image?: string | null;
+  role: "TRAVELER" | "OPERATOR" | "ADMIN";
+  phone?: string;
+  workEmail?: string;
+}
+
+export interface CustomSession {
+  user: CustomUser;
+  expiresAt: Date;
+}
 
 const baseURL = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:4000";
 export const authClient: ReactAuthClient<ClientOptions> = createAuthClient({
@@ -18,7 +36,7 @@ export const authClient: ReactAuthClient<ClientOptions> = createAuthClient({
         required: false,
       },
       role: {
-        type: ["TRAVELER", "AGENT", "DRIVER", "OPERATOR", "ADMIN"] as
+        type: ["TRAVELER", "OPERATOR", "ADMIN"] as
           const,
         defaultValue: "TRAVELER",
       },

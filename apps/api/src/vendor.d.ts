@@ -1,6 +1,4 @@
-declare module "better-auth" {
-  export function betterAuth(config: any): any;
-}
+
 
 declare module "better-auth/adapters/prisma" {
   export function prismaAdapter(...args: any[]): any;

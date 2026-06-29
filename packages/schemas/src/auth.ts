@@ -2,8 +2,6 @@ import { z } from "zod";
 
 export const userRoleValues = [
   "TRAVELER",
-  "AGENT",
-  "DRIVER",
   "OPERATOR",
   "ADMIN",
 ] as const;
@@ -13,8 +11,6 @@ export type UserRole = z.infer<typeof userRoleSchema>;
 
 export const registerRoleValues = [
   "TRAVELER",
-  "AGENT",
-  "DRIVER",
   "OPERATOR",
 ] as const;
 
