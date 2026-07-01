@@ -9,4 +9,7 @@ This workspace uses Context-Driven Development. Before executing any task:
 5. Follow `context/build-plan.md`, and update `context/progress-tracker.md` and `context/ui-registry.md` as work lands.
 
 When you touch UI, platform, or library-specific code, check the relevant context sections first. Do not invent new structure when the context already defines one.
+
+# Language Rule
+- All user interface text, notifications, alerts, tooltips, form fields, and documentation must be written strictly in **English**. Do not use French or any other languages under any circumstances.
 <!-- END:context-rules -->
