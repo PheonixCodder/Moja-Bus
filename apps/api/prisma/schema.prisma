@@ -19,6 +19,12 @@ enum UserRole {
   ADMIN
 }
 
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
 enum BusinessType {
   SOLE_PROPRIETORSHIP
   LLC
@@ -62,7 +68,6 @@ enum StaffRole {
   OPERATIONS
   FINANCE
   SUPPORT
-  DRIVER
 }
 
 // ============================================
@@ -90,13 +95,18 @@ model User {
   sessions           Session[]
   accounts           Account[]
   refreshTokens      RefreshToken[]
-  operatorProfile    Operator?
+  operatorProfiles   Operator[]
   passengerProfile   PassengerProfile?
 
   // Admin verification actions performed by this user
   verificationsPerformed CompanyDocument[] @relation("DocumentReviewedBy")
   companiesVerified      Company[]         @relation("CompanyVerifiedBy")
   bankAccountsVerified   BankAccount[]     @relation("BankAccountVerifiedBy")
+
+  // Staff & Activity relations
+  sentInvitations        StaffInvitation[] @relation("InvitedBy")
+  acceptedInvitations    StaffInvitation[] @relation("AcceptedBy")
+  activityLogs           ActivityLog[]
 
   @@index([role])
   @@map("user")
@@ -196,15 +206,19 @@ model Company {
   registrationProgress  Json? @default("{}")
 
   // Relations
-  locations            CompanyLocation[]  @relation("CompanyLocations")
+  locations            CompanyLocation[]    @relation("CompanyLocations")
   documents            CompanyDocument[]
   bankAccount          BankAccount?
   operators            Operator[]
+  invitations          StaffInvitation[]
+  activityLogs         ActivityLog[]
 
-  // Future relations (stubs — do NOT query these until the domain is built)
-  // STUB: fleet, routes, bookings, reviews added in Phase 2/3
+  // Fleet & Operations
   fleet                Bus[]
+  layoutTemplates      SeatLayoutTemplate[] @relation("CompanyLayoutTemplates")
   routes               Route[]
+  schedules            Schedule[]
+  trips                Trip[]
   bookings             Booking[]
   reviews              Review[]
 
@@ -218,41 +232,7 @@ model Company {
   @@map("company")
 }
 
-model CompanyLocation {
-  id               String   @id @default(cuid())
-  companyId        String
-  company          Company  @relation("CompanyLocations", fields: [companyId], references: [id], onDelete: Cascade)
-
-  // Location Details
-  name             String
-  addressLine1     String
-  addressLine2     String?
-  city             String
-  state            String?
-  postalCode       String?
-  country          String   @default("Cote d'Ivoire")
-  latitude         Float?
-  longitude        Float?
-
-  // Contact
-  phone            String
-  managerName      String?
-  managerPhone     String?
-  managerEmail     String?
-
-  // Operational
-  isPrimary        Boolean  @default(false)
-  operatingHours   Json?    // e.g. {"mon-fri": "8:00-18:00", "sat": "9:00-17:00"}
-  isActive         Boolean  @default(true)
-
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  @@index([companyId])
-  @@index([city])
-  @@index([isPrimary])
-  @@map("company_location")
-}
+// CompanyLocation is defined further below with full terminal + city support
 
 model CompanyDocument {
   id             String         @id @default(cuid())
@@ -320,7 +300,7 @@ model BankAccount {
 
 model Operator {
   id        String @id @default(cuid())
-  userId    String @unique
+  userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Company Link
@@ -328,9 +308,18 @@ model Operator {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Role & Status
-  role       StaffRole @default(OWNER)
-  isActive   Boolean   @default(true)
-  isVerified Boolean   @default(false)
+  role       StaffRole      @default(OWNER)
+  status     OperatorStatus @default(ACTIVE)
+  isActive   Boolean        @default(true)
+  isVerified Boolean        @default(false)
+  deletedAt  DateTime?
+
+  // Onboarding status and tracking
+  onboardingStatus      OnboardingStatus @default(NOT_STARTED)
+  onboardingCurrentStep String           @default("company")
+  onboardingStartedAt   DateTime?
+  onboardingLastStepAt  DateTime?
+  onboardingCompletedAt DateTime?
 
   // Personal Details
   dateOfBirth          DateTime?
@@ -360,42 +349,524 @@ model Operator {
 }
 
 // ============================================
-// FUTURE DOMAIN MODELS (Phase 2/3 stubs)
-// These tables exist for FK relations only.
-// Do NOT add business logic against them until
-// the corresponding phase is being built.
+// ENUMS — FLEET & OPERATIONS
 // ============================================
 
-// STUB: expanded in Phase 3
-model Bus {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum BusStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  RETIRED
+}
 
+enum SeatType {
+  PASSENGER_WINDOW
+  PASSENGER_AISLE
+  PASSENGER_MIDDLE
+  DRIVER_AREA
+  EMPTY_SPACE
+}
+
+enum SeatClass {
+  ECONOMY
+  STANDARD
+  VIP
+}
+
+enum RouteStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum RecurrenceType {
+  DAILY
+  WEEKDAYS
+  WEEKENDS
+  CUSTOM
+}
+
+enum ExceptionType {
+  CANCELLED
+  EXTRA_SERVICE
+  MODIFIED
+}
+
+enum ExceptionReason {
+  HOLIDAY_ISLAMIC
+  HOLIDAY_CHRISTIAN
+  HOLIDAY_NATIONAL
+  STRIKE
+  WEATHER
+  MAINTENANCE
+  OPERATIONAL
+  OTHER
+}
+
+enum FareType {
+  FIXED
+  PROMO
+  HOLIDAY_SURGE
+  EARLY_BIRD
+}
+
+enum TripStatus {
+  SCHEDULED
+  BOARDING
+  DEPARTED
+  ARRIVED
+  CANCELLED
+  DELAYED
+}
+
+enum SeatStatus {
+  AVAILABLE
+  HELD
+  BOOKED
+  BLOCKED
+}
+
+// ============================================
+// CITIES (Platform-seeded — Côte d'Ivoire only)
+// ============================================
+
+model City {
+  id         String  @id @default(cuid())
+  name       String  // French (official language of CI)
+  nameEn     String? // Optional English for future use
+  region     String  // e.g. "Vallée du Bandama"
+  district   String  // e.g. "Savanes"
+  latitude   Float?
+  longitude  Float?
+  isActive   Boolean @default(true)
+  isMajorHub Boolean @default(false) // Abidjan, Bouaké, Yamoussoukro, etc.
+
+  locations  CompanyLocation[]
+
+  @@unique([name])
+  @@index([isActive])
+  @@map("city")
+}
+
+// ============================================
+// COMPANY LOCATION (extended — terminal promotion)
+// ============================================
+// CompanyLocation already holds operator depots from onboarding.
+// Adding cityId FK + isTerminal flag promotes a location to a
+// bookable passenger terminal without a separate model.
+
+model CompanyLocation {
+  id               String   @id @default(cuid())
+  companyId        String
+  company          Company  @relation("CompanyLocations", fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Link to canonical CI city
+  cityId           String?
+  cityRelation     City?    @relation(fields: [cityId], references: [id])
+
+  // Terminal promotion — operator checks this in the dashboard
+  isTerminal       Boolean  @default(false)
+
+  // Location Details
+  name             String
+  addressLine1     String
+  addressLine2     String?
+  city             String?  // Keep the original field name as optional to avoid data loss warning
+  state            String?
+  postalCode       String?
+  country          String   @default("Cote d'Ivoire")
+  latitude         Float?
+  longitude        Float?
+
+  // Contact
+  phone            String
+  managerName      String?
+  managerPhone     String?
+  managerEmail     String?
+
+  // Operational
+  isPrimary        Boolean  @default(false)
+  operatingHours   Json?
+  isActive         Boolean  @default(true)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Route relations
+  originRoutes     Route[]       @relation("RouteOriginTerminal")
+  destRoutes       Route[]       @relation("RouteDestTerminal")
+  waypoints        RouteWaypoint[]
+  tripStops        TripStop[]
+
+  @@index([companyId])
+  @@index([cityId])
+  @@index([isTerminal])
+  @@index([isPrimary])
+  @@map("company_location")
+}
+
+// ============================================
+// FLEET — BUS TYPE & SEAT LAYOUT TEMPLATES
+// ============================================
+
+model BusType {
+  id          String  @id @default(cuid())
+  name        String  // "Toyota Coaster", "Yutong ZK6107", "Mercedes Sprinter"
+  description String?
+  isActive    Boolean @default(true)
+
+  layoutTemplates SeatLayoutTemplate[]
+  buses           Bus[]
+
+  @@unique([name])
+  @@map("bus_type")
+}
+
+model SeatLayoutTemplate {
+  id         String   @id @default(cuid())
+  busTypeId  String
+  busType    BusType  @relation(fields: [busTypeId], references: [id])
+
+  // null = platform default; set = operator custom layout
+  companyId  String?
+  company    Company? @relation("CompanyLayoutTemplates", fields: [companyId], references: [id])
+
+  name       String   // "Coaster Standard 22", "Coach VIP 18", "Coach 2+2 45"
+  totalSeats Int
+  rows       Int
+  columns    Int
+  hasAC      Boolean  @default(false)
+  hasWifi    Boolean  @default(false)
+  hasToilet  Boolean  @default(false)
+  hasLuggage Boolean  @default(true)
+
+  seatTemplates SeatTemplate[]
+  buses         Bus[]
+
+  @@index([busTypeId])
+  @@index([companyId])
+  @@map("seat_layout_template")
+}
+
+model SeatTemplate {
+  id         String   @id @default(cuid())
+  layoutId   String
+  layout     SeatLayoutTemplate @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+
+  row        Int
+  col        Int
+  deck       Int      @default(1)
+  label      String   // "1A", "1B", "2A" — shown to operators and passengers
+  seatType   SeatType @default(PASSENGER_WINDOW)
+  isBookable Boolean  @default(true)
+
+  @@index([layoutId])
+  @@map("seat_template")
+}
+
+// ============================================
+// FLEET — BUS & SEATS
+// ============================================
+
+model Bus {
+  id                String     @id @default(cuid())
+  companyId         String
+  company           Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  busTypeId         String
+  busType           BusType    @relation(fields: [busTypeId], references: [id])
+  layoutTemplateId  String
+  layoutTemplate    SeatLayoutTemplate @relation(fields: [layoutTemplateId], references: [id])
+
+  registrationPlate String     @unique
+  internalName      String?    // "Bus Alpha", operator's own reference
+  manufactureYear   Int?
+  status            BusStatus  @default(ACTIVE)
+  notes             String?
+
+  seats             Seat[]
+  trips             Trip[]
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([companyId])
+  @@index([status])
   @@map("bus")
 }
 
-// STUB: expanded in Phase 2
-model Route {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Seat {
+  id         String   @id @default(cuid())
+  busId      String
+  bus        Bus      @relation(fields: [busId], references: [id], onDelete: Cascade)
 
+  row        Int
+  col        Int
+  deck       Int      @default(1)
+  label      String   // "1A", "2B" — copied from SeatTemplate, operator can rename
+  seatType   SeatType
+  isActive   Boolean  @default(true) // false = blocked/damaged
+
+  tripSeats  TripSeat[]
+
+  @@index([busId])
+  @@map("seat")
+}
+
+// ============================================
+// ROUTES & WAYPOINTS
+// ============================================
+
+model Route {
+  id                 String          @id @default(cuid())
+  companyId          String
+  company            Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name               String          // "Abidjan – Bouaké Express"
+
+  originTerminalId   String
+  originTerminal     CompanyLocation @relation("RouteOriginTerminal", fields: [originTerminalId], references: [id])
+
+  destTerminalId     String
+  destTerminal       CompanyLocation @relation("RouteDestTerminal", fields: [destTerminalId], references: [id])
+
+  distanceKm         Float?
+  estimatedMinutes   Int?
+
+  status             RouteStatus     @default(DRAFT)
+
+  waypoints          RouteWaypoint[]
+  schedules          Schedule[]
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([companyId])
+  @@index([status])
+  @@index([originTerminalId])
+  @@index([destTerminalId])
   @@map("route")
 }
 
-// STUB: expanded in Phase 3
+model RouteWaypoint {
+  id                     String          @id @default(cuid())
+  routeId                String
+  route                  Route           @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  terminalId             String
+  terminal               CompanyLocation @relation(fields: [terminalId], references: [id])
+
+  stopOrder              Int     // 0 = origin, 1..N-1 = intermediate, N = destination
+  arrivalOffsetMinutes   Int     // minutes after origin departure: arrive at this stop
+  departureOffsetMinutes Int     // minutes after origin departure: leave this stop
+  distanceFromOriginKm   Float?
+  isPickup               Boolean @default(true)  // passengers can board here
+  isDropoff              Boolean @default(true)  // passengers can alight here
+
+  @@index([routeId])
+  @@index([terminalId])
+  @@unique([routeId, stopOrder])
+  @@map("route_waypoint")
+}
+
+// ============================================
+// SCHEDULES — TEMPLATES + CALENDAR
+// ============================================
+
+model Schedule {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  routeId       String
+  route         Route    @relation(fields: [routeId], references: [id])
+
+  name          String?  // "Morning Express", "Night Service"
+  departureTime String   // "06:00" — HH:mm, CI timezone is UTC+0 (no DST)
+  isActive      Boolean  @default(true)
+
+  // Bus NOT assigned here — assigned per Trip
+  calendar      ServiceCalendar?
+  exceptions    ServiceException[]
+  fares         Fare[]
+  trips         Trip[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([routeId])
+  @@index([isActive])
+  @@map("schedule")
+}
+
+model ServiceCalendar {
+  id         String   @id @default(cuid())
+  scheduleId String   @unique
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  monday     Boolean  @default(false)
+  tuesday    Boolean  @default(false)
+  wednesday  Boolean  @default(false)
+  thursday   Boolean  @default(false)
+  friday     Boolean  @default(false)
+  saturday   Boolean  @default(false)
+  sunday     Boolean  @default(false)
+
+  validFrom  DateTime
+  validUntil DateTime? // null = runs indefinitely
+
+  @@map("service_calendar")
+}
+
+model ServiceException {
+  id         String          @id @default(cuid())
+  scheduleId String
+  schedule   Schedule        @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  date       DateTime        // the specific date affected (date only, time ignored)
+  type       ExceptionType
+  reason     ExceptionReason @default(OPERATIONAL)
+  notes      String?
+
+  @@index([scheduleId])
+  @@index([date])
+  @@map("service_exception")
+}
+
+// ============================================
+// FARES (extensible from v1)
+// ============================================
+
+model Fare {
+  id            String   @id @default(cuid())
+  scheduleId    String
+  schedule      Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  type          FareType  @default(FIXED)
+  seatClass     SeatClass
+
+  // Which segment this price covers (by waypoint stopOrder indices)
+  // 0 → N = full route. 2 → N = board at intermediate stop 2.
+  fromStopOrder Int       @default(0)
+  toStopOrder   Int
+
+  priceXOF      Int       // price in CFA Francs — always XOF for CI
+  validFrom     DateTime?
+  validUntil    DateTime?
+  isActive      Boolean   @default(true)
+
+  @@index([scheduleId])
+  @@index([type])
+  @@map("fare")
+}
+
+// ============================================
+// TRIPS — THE OPERATIONAL ENTITY
+// ============================================
+
+model Trip {
+  id                 String     @id @default(cuid())
+  scheduleId         String
+  schedule           Schedule   @relation(fields: [scheduleId], references: [id])
+  companyId          String
+  company            Company    @relation(fields: [companyId], references: [id])
+
+  // Bus assigned PER TRIP — not per schedule (maintenance/swap support)
+  busId              String
+  bus                Bus        @relation(fields: [busId], references: [id])
+
+
+
+  // Schedule-derived but stored immutably on trip creation
+  departureDate      DateTime   // full timestamp: 2025-08-15T06:00:00Z
+
+  // Operational tracking
+  estimatedArrival   DateTime?
+  actualDeparture    DateTime?
+  actualArrival      DateTime?
+  delayMinutes       Int?
+  gate               String?    // physical bay/gate at origin terminal
+  status             TripStatus @default(SCHEDULED)
+  cancelReason       String?
+  notes              String?
+
+  // Route snapshot frozen at trip creation — protects historical bookings
+  // if the route is later edited or deleted
+  routeSnapshotJson  Json
+
+  totalSeats         Int
+  bookedSeats        Int        @default(0)
+
+  tripStops          TripStop[]
+  seats              TripSeat[]
+  bookings           Booking[]
+
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@index([companyId])
+  @@index([scheduleId])
+  @@index([busId])
+  @@index([status])
+  @@index([departureDate])
+  @@map("trip")
+}
+
+// TripStops — instantiated from RouteWaypoints when a trip is created.
+// Search queries these for intermediate boarding (Daloa → Man on an Abidjan → Man bus).
+
+model TripStop {
+  id                 String          @id @default(cuid())
+  tripId             String
+  trip               Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  terminalId         String
+  terminal           CompanyLocation @relation(fields: [terminalId], references: [id])
+
+  stopOrder          Int
+  scheduledArrival   DateTime?       // computed from departureDate + arrivalOffset
+  scheduledDeparture DateTime?       // computed from departureDate + departureOffset
+  actualArrival      DateTime?
+  actualDeparture    DateTime?
+  isPickup           Boolean         @default(true)
+  isDropoff          Boolean         @default(true)
+
+  @@unique([tripId, stopOrder])
+  @@index([tripId])
+  @@index([terminalId])
+  @@map("trip_stop")
+}
+
+model TripSeat {
+  id        String     @id @default(cuid())
+  tripId    String
+  trip      Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  seatId    String
+  seat      Seat       @relation(fields: [seatId], references: [id])
+
+  status    SeatStatus @default(AVAILABLE)
+  heldUntil DateTime?  // soft hold expiry (~10 min checkout window)
+  bookingId String?    // populated when BOOKED
+
+  @@unique([tripId, seatId])
+  @@index([tripId])
+  @@index([status])
+  @@map("trip_seat")
+}
+
+// ============================================
+// FUTURE DOMAIN STUBS
+// ============================================
+
 model Booking {
   id        String   @id @default(cuid())
   companyId String
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([companyId])
+  @@index([tripId])
   @@map("booking")
 }
 
@@ -419,4 +890,56 @@ model PassengerProfile {
   updatedAt DateTime @updatedAt
 
   @@map("passenger_profile")
+}
+
+model StaffInvitation {
+  id           String           @id @default(cuid())
+  email        String
+  role         StaffRole        @default(OPERATIONS)
+  jobTitle     String?
+  message      String?
+  companyId    String
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  token        String           @unique
+  expiresAt    DateTime
+  status       InvitationStatus @default(PENDING)
+  invitedById  String
+  invitedBy    User             @relation("InvitedBy", fields: [invitedById], references: [id])
+  acceptedById String?
+  acceptedBy   User?            @relation("AcceptedBy", fields: [acceptedById], references: [id])
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([companyId])
+  @@index([email])
+  @@index([token])
+  @@map("staff_invitation")
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String
+  description String
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([userId])
+  @@map("activity_log")
+}
+
+enum OperatorStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
 }

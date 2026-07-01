@@ -10,6 +10,13 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth/auth.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { createHealthRouter } from "./routes/health.js";
+import { createOperatorRouter } from "./routes/operator.js";
+import { createFleetRouter } from "./routes/fleet.js";
+import { createRoutesRouter } from "./routes/routes-waypoints.js";
+import { createSchedulesRouter } from "./routes/schedules.js";
+import { createTripsRouter } from "./routes/trips.js";
+import { createStaffRouter } from "./routes/staff.js";
+import { createInvitationsRouter } from "./routes/invitations.js";
 
 export interface CreateApiAppOptions {
   allowedOrigins?: string[];
@@ -30,13 +37,13 @@ function loadAllowedOrigins(options: CreateApiAppOptions): string[] {
   ]);
 
   // Add Expo and mobile app origins in development
-  if (process.env["NODE_ENV"] === "development" ){
+  if (process.env["NODE_ENV"] === "development") {
     origins.push(
       "exp://*",
       "http://192.168.100.3:8081",
       "http://localhost:8081",
       "http://127.0.0.1:8081",
-      "travelerapp://"
+      "travelerapp://",
     );
   }
 
@@ -81,6 +88,13 @@ export function createApiApp(options: CreateApiAppOptions = {}): Express {
   app.use(express.urlencoded({ extended: true }));
 
   app.use("/api/v1", createHealthRouter());
+  app.use("/api/v1", createOperatorRouter());
+  app.use("/api/v1", createFleetRouter());
+  app.use("/api/v1", createRoutesRouter());
+  app.use("/api/v1", createSchedulesRouter());
+  app.use("/api/v1", createTripsRouter());
+  app.use("/api/v1", createStaffRouter());
+  app.use("/api/v1", createInvitationsRouter());
 
   app.use(errorHandler);
 

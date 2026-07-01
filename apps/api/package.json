@@ -11,20 +11,21 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/auth/auth.test.ts",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.34.4",
   "dependencies": {
-    "better-auth": "^1.6.20",
     "@moja/config": "workspace:*",
     "@moja/db": "workspace:*",
     "@moja/schemas": "workspace:*",
     "@moja/shared": "workspace:*",
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^3.0.3",
+    "better-auth": "^1.6.20",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -39,12 +40,13 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@moja/typescript": "workspace:*",
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
-    "@moja/typescript": "workspace:*",
     "@types/node": "^26.0.1",
+    "@types/node-cron": "^3.0.11",
     "prisma": "^7.8.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

@@ -1,5 +1,3 @@
-
-
 declare module "better-auth/adapters/prisma" {
   export function prismaAdapter(...args: any[]): any;
 }

@@ -35,7 +35,9 @@ function collectTrustedOrigins(baseUrl: string): string[] {
 }
 
 function resolveBaseUrl(): string {
-  return getOptionalEnv("BETTER_AUTH_URL", process.env) ?? "http://localhost:4000";
+  return (
+    getOptionalEnv("BETTER_AUTH_URL", process.env) ?? "http://localhost:4000"
+  );
 }
 
 type GoogleProfile = {
@@ -49,7 +51,10 @@ type GoogleProfile = {
 function resolveGoogleProvider() {
   const webClientId = getOptionalEnv("GOOGLE_WEB_CLIENT_ID", process.env);
   const iosClientId = getOptionalEnv("GOOGLE_IOS_CLIENT_ID", process.env);
-  const androidClientId = getOptionalEnv("GOOGLE_ANDROID_CLIENT_ID", process.env);
+  const androidClientId = getOptionalEnv(
+    "GOOGLE_ANDROID_CLIENT_ID",
+    process.env,
+  );
   const clientSecret = getOptionalEnv("GOOGLE_CLIENT_SECRET", process.env);
 
   if (!webClientId || !iosClientId || !androidClientId || !clientSecret) {
@@ -65,7 +70,10 @@ function resolveGoogleProvider() {
       mapProfileToUser: (profile: GoogleProfile) => {
         const profileName =
           profile.name ??
-          [profile.given_name, profile.family_name].filter(Boolean).join(" ").trim();
+          [profile.given_name, profile.family_name]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
         const fallbackName = profile.email?.split("@")[0] ?? "Traveler";
 
         return {
