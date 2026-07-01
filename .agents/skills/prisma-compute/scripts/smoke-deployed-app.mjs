@@ -108,7 +108,9 @@ function parseStatuses(raw) {
   return raw.split(",").map((part) => {
     const trimmed = part.trim();
     if (trimmed.includes("-")) {
-      const [start, end] = trimmed.split("-").map((value) => parsePositiveInt(value, "--status"));
+      const [start, end] = trimmed
+        .split("-")
+        .map((value) => parsePositiveInt(value, "--status"));
       if (start > end) fail(`Invalid status range: ${trimmed}`);
       return { start, end };
     }
@@ -132,14 +134,22 @@ function validateUrl(rawUrl, allowLocalhost) {
     return { ok: false, error: "URL must use http or https" };
   }
   if (!allowLocalhost && isLoopbackHost(url.hostname)) {
-    return { ok: false, error: "URL points to localhost/loopback; use the public deployment URL" };
+    return {
+      ok: false,
+      error: "URL points to localhost/loopback; use the public deployment URL",
+    };
   }
   return { ok: true, url };
 }
 
 function isLoopbackHost(hostname) {
   const host = hostname.toLowerCase();
-  return host === "localhost" || host === "::1" || host === "[::1]" || /^127\./.test(host);
+  return (
+    host === "localhost" ||
+    host === "::1" ||
+    host === "[::1]" ||
+    /^127\./.test(host)
+  );
 }
 
 async function smokeOne(rawUrl, options) {
@@ -176,7 +186,9 @@ async function fetchOnce(url, options, attempt) {
       signal: controller.signal,
     });
     const body = await response.text();
-    const missingText = options.expectedText.filter((expected) => !body.includes(expected));
+    const missingText = options.expectedText.filter(
+      (expected) => !body.includes(expected),
+    );
     const statusOk = statusAllowed(response.status, options.statuses);
     return {
       url: url.href,
@@ -211,10 +223,12 @@ function printHuman(results) {
     console.log(`\n${result.ok ? "OK" : "FAIL"} ${result.url}`);
     console.log(`attempts: ${result.attempts}`);
     if (result.status) console.log(`status: ${result.status}`);
-    if (result.finalUrl && result.finalUrl !== result.url) console.log(`finalUrl: ${result.finalUrl}`);
+    if (result.finalUrl && result.finalUrl !== result.url)
+      console.log(`finalUrl: ${result.finalUrl}`);
     if (result.contentType) console.log(`contentType: ${result.contentType}`);
     if (typeof result.bytes === "number") console.log(`bytes: ${result.bytes}`);
-    if (result.missingText?.length) console.log(`missingText: ${result.missingText.join(", ")}`);
+    if (result.missingText?.length)
+      console.log(`missingText: ${result.missingText.join(", ")}`);
     if (result.error) console.log(`error: ${result.error}`);
     if (result.snippet) console.log(`snippet: ${result.snippet}`);
   }

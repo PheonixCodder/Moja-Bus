@@ -1,5 +1,5 @@
 {
-  "artifactType":  "ARTIFACT_TYPE_OTHER",
-  "summary":  "FeedLoop Progress Tracker initialized with current status and complete task list mapping back to the build plan.",
-  "updatedAt":  "2026-06-13T18:21:11.771967800Z"
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "FeedLoop Progress Tracker initialized with current status and complete task list mapping back to the build plan.",
+  "updatedAt": "2026-06-13T18:21:11.771967800Z"
 }

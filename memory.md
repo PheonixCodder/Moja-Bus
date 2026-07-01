@@ -1,33 +1,31 @@
 # Memory
 
 ## Current Working State
-- Project: Moja Bus
-- Context scaffold: created
-- Current product identity: intercity travel marketplace for Cote d'Ivoire
-- Phase direction: operator first, then traveler booking
+- Project: Moja Ride
+- Context scaffold: created and updated
+- Current product identity: intercity bus marketplace + operator ERP for Côte d'Ivoire
+- Phase direction: operator onboarding first, then traveler booking and search
 - Product scope: 3 active apps - passenger web, passenger mobile, operator/admin web
-- Placeholder brand palette: teal primary with gold accent
-- Shared shadcn UI now lives in `packages/ui` and mirrors the `demo-ui` component set for the monorepo apps
+- Brand palette: primary pink/magenta (`#ee237c`) with Montserrat font
+- Shared shadcn UI now lives in `packages/ui` and is integrated with workspace applications
 
 ## Recent Decisions
-- Passenger web should support search and booking
-- Operator web includes operator and admin controls
-- Passenger mobile keeps the full booking flow with offline ticket access
-- Notifications use Expo push plus SMS fallback
-- Aggregator-web now mirrors the demo-ui dashboard shell under `/dashboard` and uses nested section pages for search, bookings, tickets, and settings
+- Consolidated operator onboarding from 7 route-based pages to a single canonical `/dashboard/operator/onboarding` page.
+- Tracked operator onboarding lifecycle using the database (on the `Operator` model) with status enum (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`).
+- Secured operator dashboard `/dashboard/operator` and onboarding route `/dashboard/operator/onboarding` using Next.js server-side page guards.
+- Cleaned up the folder structures by moving onboarding components, API calls, hooks, and views into a separated feature module `apps/web/features/operator`.
+- Removed old route-based page files and components.
 
 ## Next Step
-- Define and build the search domain context and implementation plan
+- Implement the passenger search API endpoint (`GET /api/v1/trips/search`) and build the web and mobile passenger search UIs (Phase 2 Discovery & Search).
 
 ## Session Note
-- Confirmed the app is an intercity travel marketplace for Cote d'Ivoire with passenger web, passenger mobile, and operator/admin web as the active v1 surfaces.
-- Current auth state: `apps/api` has custom phone/password JWT auth only; `apps/aggregator-web` and `apps/traveler-app` are still starter shells with no real auth flow wired in yet.
-- Updated recommendation direction: adopt Better Auth in `apps/api` as the single auth server and mirror the `demo-ui` flow in `apps/aggregator-web` and `apps/traveler-app` rather than building a second custom auth stack.
-- Implemented the Better Auth rollout for traveler web and mobile:
-  - `apps/api` now mounts Better Auth on the Express backend with email/password, Google social login, and OTP-based email verification.
-  - `apps/web` now has login, signup, verify-email, forgot-password, reset-password, and dashboard flows.
-  - `apps/app` now has native Google SDK + ID token login, email/password auth, verify-email, password reset, and dashboard routes.
-  - Email verification is required for email/password signup/login.
-- Existing Google and email/password accounts are linked by email when possible.
-- `apps/aggregator-web` now imports the shared shadcn UI from `packages/ui` instead of a local app copy.
-- Aggregator-web auth copy now says Moja Bus and includes the shared Google social login component.
+- Replaced all legacy Select components across all operator views (onboarding, fleet, schedules, dispatcher trips, terminals) with searchable Combobox components.
+- Upgraded onboarding locations step city field to query CI cities dynamically from the database and updated the backend routes and Zod schemas to map and save `cityId`.
+- Upgraded the schedule wizard date picker inputs to use Popover-based shadcn Calendars (`@moja/ui/components/ui/calendar`).
+- Unified workspace formatting using Biome and verified successful TS typecheck builds.
+- Fixed 5 critical database mutation discrepancies (methods, paths, properties, and date/enum validation schemas) between the web client and backend API.
+- Completely removed placeholder Driver assignments/IDs from the Trip database table, models, schemas, and UI (saving layout DRIVER_AREA).
+- Implemented a Stripe/Vercel-style Company Settings (Control Center) view and routes supporting Profile forms, bank details, compliance document cards (decoupled upload adapter), a vertical verification pipeline, and a Company Health progress card.
+- Mounted settings page at `/dashboard/operator/settings` and integrated a real-time verification status badge into the operator sidebar header.
+

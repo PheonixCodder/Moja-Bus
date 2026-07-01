@@ -88,9 +88,18 @@ const checks = [
     args: ["app", "deploy", "--framework", "__invalid__", "--no-interactive"],
     expectedExitCode: 2,
     probes: [
-      ["allows nestjs framework", /Allowed choices are .*nestjs|nextjs, nuxt, astro, hono, nestjs, tanstack-start, bun/i],
-      ["published package does not allow custom framework yet", /Allowed choices are (?:(?!custom).)*$/is],
-      ["does not allow svelte framework", /Allowed choices are (?:(?!svelte).)*$/is],
+      [
+        "allows nestjs framework",
+        /Allowed choices are .*nestjs|nextjs, nuxt, astro, hono, nestjs, tanstack-start, bun/i,
+      ],
+      [
+        "published package does not allow custom framework yet",
+        /Allowed choices are (?:(?!custom).)*$/is,
+      ],
+      [
+        "does not allow svelte framework",
+        /Allowed choices are (?:(?!svelte).)*$/is,
+      ],
     ],
   },
   {
@@ -126,8 +135,14 @@ const checks = [
     args: ["app", "build", "--build-type", "__invalid__", "--no-interactive"],
     expectedExitCode: 2,
     probes: [
-      ["allows nestjs build type", /Allowed choices are .*nestjs|auto, bun, nextjs, nuxt, astro, nestjs, tanstack-start/i],
-      ["published package does not allow custom build type yet", /Allowed choices are (?:(?!custom).)*$/is],
+      [
+        "allows nestjs build type",
+        /Allowed choices are .*nestjs|auto, bun, nextjs, nuxt, astro, nestjs, tanstack-start/i,
+      ],
+      [
+        "published package does not allow custom build type yet",
+        /Allowed choices are (?:(?!custom).)*$/is,
+      ],
     ],
   },
   {
@@ -219,9 +234,18 @@ const sourceChecks = [
       {
         path: "docs/product/command-spec.md",
         probes: [
-          ["documents custom deploy framework", /--framework <[^>]*custom[^>]*>/],
-          ["documents config region", /config `region` applies only when the resolved app does not exist yet/i],
-          ["documents build.entrypoint", /`build\.entrypoint` is the built artifact entrypoint/i],
+          [
+            "documents custom deploy framework",
+            /--framework <[^>]*custom[^>]*>/,
+          ],
+          [
+            "documents config region",
+            /config `region` applies only when the resolved app does not exist yet/i,
+          ],
+          [
+            "documents build.entrypoint",
+            /`build\.entrypoint` is the built artifact entrypoint/i,
+          ],
         ],
       },
       {
@@ -250,7 +274,10 @@ const sourceChecks = [
         path: "sdk/src/compute-client.ts",
         probes: [
           ["deploy options use appName", /appName\?: string/],
-          ["deploy result uses deploymentEndpointDomain", /deploymentEndpointDomain: string/],
+          [
+            "deploy result uses deploymentEndpointDomain",
+            /deploymentEndpointDomain: string/,
+          ],
         ],
       },
       {
@@ -281,7 +308,10 @@ const sourceChecks = [
       {
         path: "services/build-runner/build-jobs/runBuild.ts",
         probes: [
-          ["wires preview branch database", /preview branch has a Prisma schema and no DATABASE_URL/i],
+          [
+            "wires preview branch database",
+            /preview branch has a Prisma schema and no DATABASE_URL/i,
+          ],
         ],
       },
     ],
@@ -363,15 +393,23 @@ function firstUsefulLines(output) {
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
-    .filter((line) => /(auth workspace|--workspace|--deploy|--framework|--entry|--http-port|--env|--branch|--role|--project|--create-project|--prod|--build-type|--port|--confirm|Allowed choices|app deploy|app build|app run|app domain|app show-deploy|app remove|project env|env update|branch list|git connect|database create|database connection|prisma\.compute\.ts|App target|\[app\]|\[id-or-name\]|version|deployment|region|custom|create-prisma|hono|elysia|nest|svelte|next|nuxt|astro|tanstack|bun)/i.test(line))
+    .filter((line) =>
+      /(auth workspace|--workspace|--deploy|--framework|--entry|--http-port|--env|--branch|--role|--project|--create-project|--prod|--build-type|--port|--confirm|Allowed choices|app deploy|app build|app run|app domain|app show-deploy|app remove|project env|env update|branch list|git connect|database create|database connection|prisma\.compute\.ts|App target|\[app\]|\[id-or-name\]|version|deployment|region|custom|create-prisma|hono|elysia|nest|svelte|next|nuxt|astro|tanstack|bun)/i.test(
+        line,
+      ),
+    )
     .slice(0, 12);
 }
 
 function printResult(result) {
   const { check } = result;
   console.log(`\n## ${check.label}`);
-  console.log(`command: ${runnerCommand().command} ${runnerCommand().argsForPackage(check.packageName, check.args).join(" ")}`);
-  console.log(`status: ${result.ok ? "ok" : `failed (${result.exitCode ?? "spawn error"})`}`);
+  console.log(
+    `command: ${runnerCommand().command} ${runnerCommand().argsForPackage(check.packageName, check.args).join(" ")}`,
+  );
+  console.log(
+    `status: ${result.ok ? "ok" : `failed (${result.exitCode ?? "spawn error"})`}`,
+  );
   if (check.expectedExitCode !== undefined) {
     console.log(`expected exit: ${check.expectedExitCode}`);
   }
@@ -513,8 +551,12 @@ function printSourceResult(result) {
 console.log("# Prisma Compute CLI Surface");
 console.log(`runner: ${runnerCommand().command}`);
 console.log("Set PRISMA_COMPUTE_RUNNER=bunx to use bunx instead of npx.");
-console.log("Set PRISMA_CREATE_PRISMA_PACKAGE to test another create-prisma tag or local package.");
-console.log("Set PRISMA_CLI_REPO, PROJECT_COMPUTE_REPO, or PDP_CONTROL_PLANE_REPO to audit local source repos.");
+console.log(
+  "Set PRISMA_CREATE_PRISMA_PACKAGE to test another create-prisma tag or local package.",
+);
+console.log(
+  "Set PRISMA_CLI_REPO, PROJECT_COMPUTE_REPO, or PDP_CONTROL_PLANE_REPO to audit local source repos.",
+);
 
 let hasFailure = false;
 for (const check of checks) {
