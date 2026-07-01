@@ -40,7 +40,9 @@ export function SocialLogin() {
           disabled={isLoading}
           onClick={() => handleOAuth("google")}
         >
-          {pendingProvider === "google" ? "Redirecting..." : "Continue with Google"}
+          {pendingProvider === "google"
+            ? "Redirecting..."
+            : "Continue with Google"}
         </Button>
       </div>
     </div>

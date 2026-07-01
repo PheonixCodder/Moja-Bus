@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { PageHeader } from "@/features/dashboard/components/page-header";
 
 export default function BookingsPage() {
@@ -10,7 +16,8 @@ export default function BookingsPage() {
           <CardHeader>
             <CardTitle>Bookings</CardTitle>
             <CardDescription>
-              Confirmed trips, pending payments, and ticket changes will show here.
+              Confirmed trips, pending payments, and ticket changes will show
+              here.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-text-secondary">

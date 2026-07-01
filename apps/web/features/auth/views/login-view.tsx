@@ -16,13 +16,18 @@ export function LoginView({ errorCode }: LoginViewProps) {
           </span>
         </h1>
         <p className="text-sm text-muted-foreground max-w-md">
-          Welcome back! Sign in to search routes, book trips, and manage your travel.
+          Welcome back! Sign in to search routes, book trips, and manage your
+          travel.
         </p>
       </div>
       <LoginForm errorCode={errorCode} />
       <p className="text-xs text-muted-foreground">
-        Are you a transport operator? {
-          <Link href="/operator/login" className="font-medium text-primary hover:underline">
+        Are you a transport operator?{" "}
+        {
+          <Link
+            href="/operator/login"
+            className="font-medium text-primary hover:underline"
+          >
             Sign in to Business Portal
           </Link>
         }

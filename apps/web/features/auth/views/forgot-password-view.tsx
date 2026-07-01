@@ -5,7 +5,9 @@ type ForgotPasswordViewProps = {
   userType?: "passenger" | "operator";
 };
 
-export function ForgotPasswordView({ userType = "passenger" }: ForgotPasswordViewProps) {
+export function ForgotPasswordView({
+  userType = "passenger",
+}: ForgotPasswordViewProps) {
   const isPassenger = userType === "passenger";
 
   return (
@@ -18,16 +20,18 @@ export function ForgotPasswordView({ userType = "passenger" }: ForgotPasswordVie
           </span>
         </h1>
         <p className="text-sm text-muted-foreground max-w-md">
-          {isPassenger 
-            ? "Forgot your password? We'll send a reset code to your email." 
-            : "Reset your business account password. We'll send a code to your work email."
-          }
+          {isPassenger
+            ? "Forgot your password? We'll send a reset code to your email."
+            : "Reset your business account password. We'll send a code to your work email."}
         </p>
       </div>
       <ForgotPasswordForm userType={userType} />
       <p className="text-xs text-muted-foreground">
         {isPassenger ? "Remember your password? " : "Remember your password? "}
-        <Link href={isPassenger ? "/login" : "/operator/login"} className="font-medium text-primary hover:underline">
+        <Link
+          href={isPassenger ? "/login" : "/operator/login"}
+          className="font-medium text-primary hover:underline"
+        >
           Sign in
         </Link>
       </p>

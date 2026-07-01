@@ -1,6 +1,11 @@
 import { BusFront, CalendarDays, Ticket, Bookmark } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
 import { PageHeader } from "@/features/dashboard/components/page-header";
 import { SessionsPanel } from "@/features/dashboard/components/sessions-panel";

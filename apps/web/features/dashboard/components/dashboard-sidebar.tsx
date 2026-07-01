@@ -16,8 +16,28 @@ import {
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { cn } from "@moja/ui/lib/utils";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@moja/ui/components/ui/dropdown-menu";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, SidebarTrigger, useSidebar } from "@moja/ui/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@moja/ui/components/ui/dropdown-menu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
+} from "@moja/ui/components/ui/sidebar";
 import type { User } from "@/lib/auth-client";
 
 interface MenuItem {
@@ -43,7 +63,8 @@ function NavSection({ label, items, pathname }: NavSectionProps) {
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
-            const isActive = pathname === item.url || pathname.startsWith(`${item.url}/`);
+            const isActive =
+              pathname === item.url || pathname.startsWith(`${item.url}/`);
 
             return (
               <SidebarMenuItem key={item.title}>
@@ -54,14 +75,14 @@ function NavSection({ label, items, pathname }: NavSectionProps) {
                     "h-9 rounded-md border border-transparent px-3 py-2 text-[13px] font-medium tracking-tight transition-colors duration-150",
                     "text-text-secondary hover:bg-bg-elevated hover:text-text-primary",
                     isActive &&
-                    "border-neon/20 bg-neon/5 text-neon hover:bg-neon/5 hover:text-neon"
+                      "border-neon/20 bg-neon/5 text-neon hover:bg-neon/5 hover:text-neon",
                   )}
                   render={
                     <Link href={item.url}>
                       <item.icon
                         className={cn(
                           "size-4 shrink-0",
-                          isActive ? "text-neon" : "text-text-muted"
+                          isActive ? "text-neon" : "text-text-muted",
                         )}
                       />
                       <span>{item.title}</span>
@@ -81,7 +102,6 @@ interface DashboardSidebarProps {
   user: User | null;
 }
 
-
 export function DashboardSidebar({ user }: DashboardSidebarProps) {
   const pathname = usePathname();
   const sidebar = useSidebar();
@@ -100,22 +120,25 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
 
   const userInitials = user?.name
     ? user.name
-      .split(" ")
-      .map((part: string) => part[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
+        .split(" ")
+        .map((part: string) => part[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "MB";
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-bg-surface">
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-border bg-bg-surface"
+    >
       <SidebarHeader className="flex flex-col gap-4 px-3 pt-4">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
           <div
             className={cn(
               "flex h-9 w-9 items-center justify-center overflow-hidden transition-all duration-300 ease-in-out",
               sidebar.state === "collapsed" &&
-              "group cursor-pointer rounded-md hover:bg-bg-elevated"
+                "group cursor-pointer rounded-md hover:bg-bg-elevated",
             )}
           >
             {sidebar.state === "collapsed" ? (
@@ -124,13 +147,13 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                   className={cn(
                     "flex h-full items-center justify-center p-0 text-text-muted transition-all duration-300 ease-in-out",
                     "w-0 scale-90 opacity-0 group-hover:w-full group-hover:scale-100 group-hover:opacity-100",
-                    "hover:text-text-primary"
+                    "hover:text-text-primary",
                   )}
                 />
                 <BusFront
                   className={cn(
                     "size-5 shrink-0 text-neon transition-all duration-300 ease-in-out",
-                    "group-hover:w-0 group-hover:scale-75 group-hover:opacity-0"
+                    "group-hover:w-0 group-hover:scale-75 group-hover:opacity-0",
                   )}
                 />
               </>
@@ -152,7 +175,11 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
 
       <SidebarContent className="px-0">
         <NavSection items={mainMenuItems} pathname={pathname} />
-        <NavSection label="Account" items={otherMenuItems} pathname={pathname} />
+        <NavSection
+          label="Account"
+          items={otherMenuItems}
+          pathname={pathname}
+        />
       </SidebarContent>
 
       <div className="mx-3 my-2 border-b border-border border-dashed" />
@@ -166,7 +193,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                   "flex h-9 w-full items-center gap-2 rounded-md border border-border bg-bg-elevated px-2",
                   "outline-none transition-colors duration-150 hover:border-border-strong",
                   "focus-visible:ring-2 focus-visible:ring-neon",
-                  "group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+                  "group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
                 )}
                 title={user?.name ?? "Account"}
               >

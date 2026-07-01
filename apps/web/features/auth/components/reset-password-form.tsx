@@ -19,7 +19,10 @@ type ResetPasswordFormProps = {
   userType?: "passenger" | "operator";
 };
 
-export function ResetPasswordForm({ email, userType = "passenger" }: ResetPasswordFormProps) {
+export function ResetPasswordForm({
+  email,
+  userType = "passenger",
+}: ResetPasswordFormProps) {
   const { isPending, resetPassword } = useAuth();
   const isPassenger = userType === "passenger";
   const [otp, setOtp] = useState("");
@@ -50,14 +53,17 @@ export function ResetPasswordForm({ email, userType = "passenger" }: ResetPasswo
   return (
     <AuthCard
       title={isPassenger ? "Set a new password" : "Set a new business password"}
-      description={isPassenger 
-        ? "Enter the code from your email and choose a new password." 
-        : "Enter the code from your work email and set a new password."
+      description={
+        isPassenger
+          ? "Enter the code from your email and choose a new password."
+          : "Enter the code from your work email and set a new password."
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label>{isPassenger ? "Verification code" : "Work email verification code"}</Label>
+          <Label>
+            {isPassenger ? "Verification code" : "Work email verification code"}
+          </Label>
           <div className="flex justify-center">
             <InputOTP
               maxLength={6}
@@ -81,28 +87,44 @@ export function ResetPasswordForm({ email, userType = "passenger" }: ResetPasswo
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">{isPassenger ? "New password" : "New business password"}</Label>
+          <Label htmlFor="password">
+            {isPassenger ? "New password" : "New business password"}
+          </Label>
           <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={isPassenger ? "Enter your new password" : "Enter your new business password"}
+            placeholder={
+              isPassenger
+                ? "Enter your new password"
+                : "Enter your new business password"
+            }
             autoComplete="new-password"
             required
             disabled={isPending}
           />
-          <p className="text-xs text-muted-foreground">Must be at least 8 characters long</p>
+          <p className="text-xs text-muted-foreground">
+            Must be at least 8 characters long
+          </p>
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="confirm-password">{isPassenger ? "Confirm new password" : "Confirm new business password"}</Label>
+          <Label htmlFor="confirm-password">
+            {isPassenger
+              ? "Confirm new password"
+              : "Confirm new business password"}
+          </Label>
           <Input
             id="confirm-password"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder={isPassenger ? "Confirm your new password" : "Confirm your new business password"}
+            placeholder={
+              isPassenger
+                ? "Confirm your new password"
+                : "Confirm your new business password"
+            }
             autoComplete="new-password"
             required
             disabled={isPending}
@@ -112,9 +134,18 @@ export function ResetPasswordForm({ email, userType = "passenger" }: ResetPasswo
         <Button
           type="submit"
           className="w-full"
-          disabled={isPending || otp.length !== 6 || password !== confirmPassword || password.length < 8}
+          disabled={
+            isPending ||
+            otp.length !== 6 ||
+            password !== confirmPassword ||
+            password.length < 8
+          }
         >
-          {isPending ? "Updating..." : isPassenger ? "Update password" : "Update business password"}
+          {isPending
+            ? "Updating..."
+            : isPassenger
+              ? "Update password"
+              : "Update business password"}
         </Button>
       </form>
     </AuthCard>

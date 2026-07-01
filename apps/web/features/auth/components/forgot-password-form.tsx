@@ -13,7 +13,9 @@ type ForgotPasswordFormProps = {
   userType?: "passenger" | "operator";
 };
 
-export function ForgotPasswordForm({ userType = "passenger" }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm({
+  userType = "passenger",
+}: ForgotPasswordFormProps) {
   const { isPending, forgotPassword } = useAuth();
   const [email, setEmail] = useState("");
   const router = useRouter();
@@ -24,7 +26,10 @@ export function ForgotPasswordForm({ userType = "passenger" }: ForgotPasswordFor
     event.preventDefault();
     const result = await forgotPassword(email);
     if (result.success) {
-      const resetPath = userType === "operator" ? "/operator/reset-password" : "/reset-password";
+      const resetPath =
+        userType === "operator"
+          ? "/operator/reset-password"
+          : "/reset-password";
       router.push(`${resetPath}?email=${encodeURIComponent(email)}`);
     }
   }
@@ -32,25 +37,33 @@ export function ForgotPasswordForm({ userType = "passenger" }: ForgotPasswordFor
   return (
     <AuthCard
       title="Reset your password"
-      description={isPassenger 
-        ? "Enter your email and we will send a reset code." 
-        : "Enter your work email and we will send a reset code."
+      description={
+        isPassenger
+          ? "Enter your email and we will send a reset code."
+          : "Enter your work email and we will send a reset code."
       }
       footer={
-        <Link href={isPassenger ? "/login" : "/operator/login"} className="font-medium text-primary">
+        <Link
+          href={isPassenger ? "/login" : "/operator/login"}
+          className="font-medium text-primary"
+        >
           Back to sign in
         </Link>
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">{isPassenger ? "Email address" : "Work email address"}</Label>
+          <Label htmlFor="email">
+            {isPassenger ? "Email address" : "Work email address"}
+          </Label>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={isPassenger ? "you@example.com" : "your.work@email.com"}
+            placeholder={
+              isPassenger ? "you@example.com" : "your.work@email.com"
+            }
             autoComplete="email"
             required
             disabled={isPending}

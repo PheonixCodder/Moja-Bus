@@ -12,14 +12,18 @@ export function SignupView() {
           </span>
         </h1>
         <p className="text-sm text-muted-foreground max-w-md">
-          Join thousands of travelers. Create your passenger account to search routes, 
-          book trips, and manage your bookings in one place.
+          Join thousands of travelers. Create your passenger account to search
+          routes, book trips, and manage your bookings in one place.
         </p>
       </div>
       <SignupForm role="TRAVELER" />
       <p className="text-xs text-muted-foreground">
-        Are you a transport operator? {
-          <Link href="/operator/signup" className="font-medium text-primary hover:underline">
+        Are you a transport operator?{" "}
+        {
+          <Link
+            href="/operator/signup"
+            className="font-medium text-primary hover:underline"
+          >
             Register as Business
           </Link>
         }

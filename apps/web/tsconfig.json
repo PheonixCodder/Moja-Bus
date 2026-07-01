@@ -2,6 +2,7 @@
   "extends": "@moja/typescript/next.json",
   "compilerOptions": {
     "declaration": false,
+    "declarationMap": false,
     "composite": false,
     "paths": {
       "@/*": ["./*"],

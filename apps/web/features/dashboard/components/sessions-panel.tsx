@@ -7,7 +7,9 @@ export function SessionsPanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-text-primary">Upcoming trips</h2>
+        <h2 className="text-lg font-semibold text-text-primary">
+          Upcoming trips
+        </h2>
         <Link
           href="/dashboard/bookings"
           className="inline-flex items-center rounded-md border border-border bg-transparent px-3 py-1.5 text-sm text-text-secondary transition-colors duration-150 hover:border-border-strong hover:text-text-primary"

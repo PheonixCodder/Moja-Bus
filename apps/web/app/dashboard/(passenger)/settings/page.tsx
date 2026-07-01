@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { PageHeader } from "@/features/dashboard/components/page-header";
 
 export default function SettingsPage() {

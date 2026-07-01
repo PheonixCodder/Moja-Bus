@@ -5,7 +5,9 @@ type OperatorResetPasswordViewProps = {
   email: string;
 };
 
-export function OperatorResetPasswordView({ email }: OperatorResetPasswordViewProps) {
+export function OperatorResetPasswordView({
+  email,
+}: OperatorResetPasswordViewProps) {
   return (
     <div className="flex w-full flex-col items-center gap-8">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -16,13 +18,18 @@ export function OperatorResetPasswordView({ email }: OperatorResetPasswordViewPr
           </span>
         </h1>
         <p className="text-sm text-muted-foreground max-w-md">
-          Enter the code we sent to your work email and set a new password for your business account.
+          Enter the code we sent to your work email and set a new password for
+          your business account.
         </p>
       </div>
       <ResetPasswordForm email={email} userType="operator" />
       <p className="text-xs text-muted-foreground">
-        Didn't receive a code? {
-          <Link href="/operator/forgot-password" className="font-medium text-primary hover:underline">
+        Didn't receive a code?{" "}
+        {
+          <Link
+            href="/operator/forgot-password"
+            className="font-medium text-primary hover:underline"
+          >
             Resend code
           </Link>
         }

@@ -10,7 +10,9 @@ export const metadata = {
   title: "Business Sign In - Moja Ride",
 };
 
-export default async function OperatorLoginPage({ searchParams }: LoginPageProps) {
+export default async function OperatorLoginPage({
+  searchParams,
+}: LoginPageProps) {
   await redirectIfOperatorAuthenticated();
 
   const params = await searchParams;

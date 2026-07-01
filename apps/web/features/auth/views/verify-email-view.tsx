@@ -6,7 +6,10 @@ type VerifyEmailViewProps = {
   userType?: "passenger" | "operator";
 };
 
-export function VerifyEmailView({ email, userType = "passenger" }: VerifyEmailViewProps) {
+export function VerifyEmailView({
+  email,
+  userType = "passenger",
+}: VerifyEmailViewProps) {
   const isPassenger = userType === "passenger";
 
   return (
@@ -19,16 +22,19 @@ export function VerifyEmailView({ email, userType = "passenger" }: VerifyEmailVi
           </span>
         </h1>
         <p className="text-sm text-muted-foreground max-w-md">
-          {isPassenger 
-            ? "One last step - verify your email address to complete your passenger account setup." 
-            : "Verify your work email to complete your operator account registration."
-          }
+          {isPassenger
+            ? "One last step - verify your email address to complete your passenger account setup."
+            : "Verify your work email to complete your operator account registration."}
         </p>
       </div>
       <VerifyEmailForm email={email} userType={userType} />
       <p className="text-xs text-muted-foreground">
-        Didn't receive a code? Check your spam folder or {
-          <Link href={isPassenger ? "/signup" : "/operator/signup"} className="font-medium text-primary hover:underline">
+        Didn't receive a code? Check your spam folder or{" "}
+        {
+          <Link
+            href={isPassenger ? "/signup" : "/operator/signup"}
+            className="font-medium text-primary hover:underline"
+          >
             try again
           </Link>
         }

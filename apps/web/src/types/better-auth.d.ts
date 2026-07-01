@@ -1,9 +1,9 @@
 declare module "better-auth" {
   interface User {
-    role: "TRAVELER" | "AGENT" | "DRIVER" | "OPERATOR" | "ADMIN";
+    role: "TRAVELER" | "OPERATOR" | "ADMIN";
     phone?: string;
   }
-  
+
   interface Session {
     user: User;
   }

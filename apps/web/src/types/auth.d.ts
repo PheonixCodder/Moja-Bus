@@ -13,7 +13,7 @@ declare module "better-auth" {
     role: "TRAVELER" | "OPERATOR" | "ADMIN";
     phone?: string;
   }
-  
+
   interface Session {
     user: User;
     expiresAt: Date;

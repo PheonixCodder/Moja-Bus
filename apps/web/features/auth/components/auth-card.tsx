@@ -14,7 +14,12 @@ type AuthCardProps = {
   footer?: React.ReactNode;
 };
 
-export function AuthCard({ title, description, children, footer }: AuthCardProps) {
+export function AuthCard({
+  title,
+  description,
+  children,
+  footer,
+}: AuthCardProps) {
   return (
     <Card className="w-full max-w-md rounded-2xl">
       <CardHeader>
@@ -30,5 +35,3 @@ export function AuthCard({ title, description, children, footer }: AuthCardProps
     </Card>
   );
 }
-
-

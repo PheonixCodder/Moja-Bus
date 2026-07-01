@@ -18,7 +18,10 @@ type VerifyEmailFormProps = {
   userType?: "passenger" | "operator";
 };
 
-export function VerifyEmailForm({ email, userType = "passenger" }: VerifyEmailFormProps) {
+export function VerifyEmailForm({
+  email,
+  userType = "passenger",
+}: VerifyEmailFormProps) {
   const { isPending, verifyEmail } = useAuth();
   const [otp, setOtp] = useState("");
   const [isResending, setIsResending] = useState(false);
@@ -30,7 +33,7 @@ export function VerifyEmailForm({ email, userType = "passenger" }: VerifyEmailFo
 
     if (!email) {
       toast.error(
-          "Your email address is missing. Please go back and sign up again.",
+        "Your email address is missing. Please go back and sign up again.",
       );
       return;
     }
@@ -66,73 +69,73 @@ export function VerifyEmailForm({ email, userType = "passenger" }: VerifyEmailFo
   }
 
   return (
-      <AuthCard
-          title={isPassenger ? "Verify your email" : "Verify your work email"}
-          description={
-            email
-                ? `Enter the 6-digit code we sent to ${email}.`
-                : isPassenger
-                    ? "Enter the 6-digit code we sent to your inbox."
-                    : "Enter the 6-digit code we sent to your work email."
-          }
-      >
-        {!email && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-              No email address found. Please{" "}
-              <a
-                  href={isPassenger ? "/signup" : "/operator/signup"}
-                  className="font-medium underline"
-              >
-                go back and sign up again
-              </a>
-              .
-            </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="flex justify-center">
-            <InputOTP
-                maxLength={6}
-                value={otp}
-                onChange={setOtp}
-                disabled={isPending || !email}
-            >
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-              </InputOTPGroup>
-              <InputOTPSeparator />
-              <InputOTPGroup>
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-          </div>
-
-          <Button
-              type="submit"
-              className="w-full"
-              disabled={isPending || otp.length !== 6 || !email}
+    <AuthCard
+      title={isPassenger ? "Verify your email" : "Verify your work email"}
+      description={
+        email
+          ? `Enter the 6-digit code we sent to ${email}.`
+          : isPassenger
+            ? "Enter the 6-digit code we sent to your inbox."
+            : "Enter the 6-digit code we sent to your work email."
+      }
+    >
+      {!email && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          No email address found. Please{" "}
+          <a
+            href={isPassenger ? "/signup" : "/operator/signup"}
+            className="font-medium underline"
           >
-            {isPending
-                ? "Verifying…"
-                : isPassenger
-                    ? "Verify email"
-                    : "Verify work email"}
-          </Button>
+            go back and sign up again
+          </a>
+          .
+        </div>
+      )}
 
-          <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              disabled={isResending || !email}
-              onClick={handleResend}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex justify-center">
+          <InputOTP
+            maxLength={6}
+            value={otp}
+            onChange={setOtp}
+            disabled={isPending || !email}
           >
-            {isResending ? "Sending…" : "Resend code"}
-          </Button>
-        </form>
-      </AuthCard>
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isPending || otp.length !== 6 || !email}
+        >
+          {isPending
+            ? "Verifying…"
+            : isPassenger
+              ? "Verify email"
+              : "Verify work email"}
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full"
+          disabled={isResending || !email}
+          onClick={handleResend}
+        >
+          {isResending ? "Sending…" : "Resend code"}
+        </Button>
+      </form>
+    </AuthCard>
   );
 }

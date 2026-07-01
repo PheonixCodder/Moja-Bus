@@ -21,8 +21,12 @@ export function OperatorLoginView({ errorCode }: OperatorLoginViewProps) {
       </div>
       <LoginForm errorCode={errorCode} userType="operator" />
       <p className="text-xs text-muted-foreground">
-        Are you a passenger? {
-          <Link href="/login" className="font-medium text-primary hover:underline">
+        Are you a passenger?{" "}
+        {
+          <Link
+            href="/login"
+            className="font-medium text-primary hover:underline"
+          >
             Sign in to Passenger Portal
           </Link>
         }

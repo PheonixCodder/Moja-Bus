@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { PageHeader } from "@/features/dashboard/components/page-header";
 
 export default function SearchPage() {
@@ -14,7 +20,8 @@ export default function SearchPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-text-secondary">
-            This section is wired into the dashboard shell and ready for trip search UI.
+            This section is wired into the dashboard shell and ready for trip
+            search UI.
           </CardContent>
         </Card>
       </div>

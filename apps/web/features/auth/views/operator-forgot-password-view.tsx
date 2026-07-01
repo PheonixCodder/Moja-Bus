@@ -12,13 +12,18 @@ export function OperatorForgotPasswordView() {
           </span>
         </h1>
         <p className="text-sm text-muted-foreground max-w-md">
-          Reset your business account password. We will send a code to your work email.
+          Reset your business account password. We will send a code to your work
+          email.
         </p>
       </div>
       <ForgotPasswordForm userType="operator" />
       <p className="text-xs text-muted-foreground">
-        Remember your password? {
-          <Link href="/operator/login" className="font-medium text-primary hover:underline">
+        Remember your password?{" "}
+        {
+          <Link
+            href="/operator/login"
+            className="font-medium text-primary hover:underline"
+          >
             Sign in
           </Link>
         }

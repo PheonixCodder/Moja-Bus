@@ -17,7 +17,10 @@ type SignupFormProps = {
   userType?: "passenger" | "operator";
 };
 
-export function SignupForm({ role = "TRAVELER", userType = "passenger" }: SignupFormProps) {
+export function SignupForm({
+  role = "TRAVELER",
+  userType = "passenger",
+}: SignupFormProps) {
   const { isPending, signUp } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,42 +33,49 @@ export function SignupForm({ role = "TRAVELER", userType = "passenger" }: Signup
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    
+
     if (!acceptTerms) {
       toast.error("Please accept the terms and conditions");
       return;
     }
-    
+
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
-    
+
     if (password.length < 8) {
       toast.error("Password must be at least 8 characters long");
       return;
     }
-    
+
     await signUp(fullName, email, password, phone, role);
   }
 
   return (
     <AuthCard
-      title={isPassenger ? "Create your passenger account" : "Create your operator account"}
-      description={isPassenger 
-        ? "Join Moja Ride and start booking your trips today."
-        : "Register as a transport operator to manage your business."
+      title={
+        isPassenger
+          ? "Create your passenger account"
+          : "Create your operator account"
+      }
+      description={
+        isPassenger
+          ? "Join Moja Ride and start booking your trips today."
+          : "Register as a transport operator to manage your business."
       }
       footer={
         <>
           Already have an account?{" "}
-          <Link href={isPassenger ? "/login" : "/operator/login"} className="ml-1 font-medium text-primary">
+          <Link
+            href={isPassenger ? "/login" : "/operator/login"}
+            className="ml-1 font-medium text-primary"
+          >
             Sign in
           </Link>
         </>
       }
-      >
-
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="fullName">Full name</Label>
@@ -148,12 +158,18 @@ export function SignupForm({ role = "TRAVELER", userType = "passenger" }: Signup
             onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
             disabled={isPending}
           />
-          <Label htmlFor="terms" className="text-xs text-muted-foreground cursor-pointer">
-            I accept the {
+          <Label
+            htmlFor="terms"
+            className="text-xs text-muted-foreground cursor-pointer"
+          >
+            I accept the{" "}
+            {
               <Link href="/terms" className="text-primary hover:underline">
                 Terms and Conditions
               </Link>
-            } and {
+            }{" "}
+            and{" "}
+            {
               <Link href="/privacy" className="text-primary hover:underline">
                 Privacy Policy
               </Link>
@@ -166,7 +182,6 @@ export function SignupForm({ role = "TRAVELER", userType = "passenger" }: Signup
         </Button>
       </form>
       <SocialLogin />
-
     </AuthCard>
   );
 }

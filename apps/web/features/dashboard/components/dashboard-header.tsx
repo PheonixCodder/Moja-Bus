@@ -11,7 +11,6 @@ interface DashboardViewProps {
 }
 
 export function DashboardHeader({ user }: DashboardViewProps) {
-
   const firstName = user?.name?.split(" ")[0] ?? null;
 
   return (

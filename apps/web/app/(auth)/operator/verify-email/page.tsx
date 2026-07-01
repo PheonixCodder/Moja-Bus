@@ -8,7 +8,9 @@ export const metadata = {
   title: "Verify Business Email - Moja Ride",
 };
 
-export default async function OperatorVerifyEmailPage({ searchParams }: VerifyEmailPageProps) {
+export default async function OperatorVerifyEmailPage({
+  searchParams,
+}: VerifyEmailPageProps) {
   const params = await searchParams;
 
   return <OperatorVerifyEmailView email={params.email} />;

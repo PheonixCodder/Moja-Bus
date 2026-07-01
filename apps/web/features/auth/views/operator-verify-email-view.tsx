@@ -5,7 +5,9 @@ type OperatorVerifyEmailViewProps = {
   email?: string | undefined;
 };
 
-export function OperatorVerifyEmailView({ email }: OperatorVerifyEmailViewProps) {
+export function OperatorVerifyEmailView({
+  email,
+}: OperatorVerifyEmailViewProps) {
   return (
     <div className="flex w-full flex-col items-center gap-8">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -21,8 +23,12 @@ export function OperatorVerifyEmailView({ email }: OperatorVerifyEmailViewProps)
       </div>
       <VerifyEmailForm email={email} userType="operator" />
       <p className="text-xs text-muted-foreground">
-        Didn't receive a code? Check your spam folder or {
-          <Link href="/operator/signup" className="font-medium text-primary hover:underline">
+        Didn't receive a code? Check your spam folder or{" "}
+        {
+          <Link
+            href="/operator/signup"
+            className="font-medium text-primary hover:underline"
+          >
             try again
           </Link>
         }
