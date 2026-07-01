@@ -32,6 +32,12 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "93f53fd1c0352d3d7ec17b8f73d7351bf76f4821e55d123c9d2abc2c53ba48e4"
     },
+    "nuqs": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/nuqs/SKILL.md",
+      "computedHash": "bd5d248d0d6d41e337f35d8b834defb9b6feffd47c9966e334c78ac29314b9cf"
+    },
     "organization-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",

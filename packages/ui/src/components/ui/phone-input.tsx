@@ -29,40 +29,40 @@ type PhoneInputProps = Omit<
     onChange?: (value: RPNInput.Value) => void;
   };
 
-const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
-  React.forwardRef<React.ElementRef<typeof RPNInput.default>, PhoneInputProps>(
-    ({ className, onChange, value, country, ...props }, ref) => {
-      const CountrySelectComponent: React.ElementType = country
-        ? FixedCountrySelect
-        : CountrySelect;
+const PhoneInput = React.forwardRef<
+  React.ElementRef<typeof RPNInput.default>,
+  PhoneInputProps
+>(({ className, onChange, value, country, ...props }, ref) => {
+  const CountrySelectComponent: React.ElementType = country
+    ? FixedCountrySelect
+    : CountrySelect;
 
-      return (
-        <RPNInput.default
-          ref={ref}
-          className={cn("flex", className)}
-          flagComponent={FlagComponent}
-          countrySelectComponent={CountrySelectComponent}
-          inputComponent={InputComponent}
-          smartCaret={false}
-          value={value || undefined}
-          /**
-           * Handles the onChange event.
-           *
-           * react-phone-number-input might trigger the onChange event as undefined
-           * when a valid phone number is not entered. To prevent this,
-           * the value is coerced to an empty string.
-           *
-           * @param {E164Number | undefined} value - The entered value
-           */
-          onChange={(value: RPNInput.Value | undefined) =>
-            onChange?.(value || ("" as RPNInput.Value))
-          }
-          country={country}
-          {...props}
-        />
-      );
-    },
+  return (
+    <RPNInput.default
+      ref={ref}
+      className={cn("flex", className)}
+      flagComponent={FlagComponent}
+      countrySelectComponent={CountrySelectComponent}
+      inputComponent={InputComponent}
+      smartCaret={false}
+      value={value || undefined}
+      /**
+       * Handles the onChange event.
+       *
+       * react-phone-number-input might trigger the onChange event as undefined
+       * when a valid phone number is not entered. To prevent this,
+       * the value is coerced to an empty string.
+       *
+       * @param {E164Number | undefined} value - The entered value
+       */
+      onChange={(value: RPNInput.Value | undefined) =>
+        onChange?.(value || ("" as RPNInput.Value))
+      }
+      country={country as any}
+      {...props}
+    />
   );
+});
 PhoneInput.displayName = "PhoneInput";
 
 const InputComponent = React.forwardRef<
@@ -105,24 +105,25 @@ const CountrySelect = ({
         open && setSearchValue("");
       }}
     >
-      <PopoverTrigger render={
-        <Button
+      <PopoverTrigger
+        render={
+          <Button
             variant="outline"
             className="flex gap-1 rounded-e-none rounded-s-lg border-r-0 px-3 focus:z-10"
             disabled={disabled}
-        />
-      }
+          />
+        }
       >
-          <FlagComponent
-            country={selectedCountry}
-            countryName={selectedCountry}
-          />
-          <ChevronDownIcon
-            className={cn(
-              "-mr-2 size-4 opacity-50",
-              disabled ? "hidden" : "opacity-100",
-            )}
-          />
+        <FlagComponent
+          country={selectedCountry}
+          countryName={selectedCountry}
+        />
+        <ChevronDownIcon
+          className={cn(
+            "-mr-2 size-4 opacity-50",
+            disabled ? "hidden" : "opacity-100",
+          )}
+        />
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
         <Command>
@@ -184,9 +185,7 @@ const FixedCountrySelect = ({
       disabled
     >
       <FlagComponent country={selectedCountry} countryName={countryName} />
-      <span className="text-sm font-medium">
-        {countryName}
-      </span>
+      <span className="text-sm font-medium">{countryName}</span>
       <span className="text-sm text-foreground/50">
         {`+${RPNInput.getCountryCallingCode(selectedCountry)}`}
       </span>
@@ -231,7 +230,7 @@ const FlagComponent = ({ country, countryName }: RPNInput.FlagProps) => {
 
   return (
     <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/20 [&_svg:not([class*='size-'])]:size-full">
-      {Flag && <Flag title={countryName} />}
+      {Flag && <Flag {...({ title: countryName } as any)} />}
     </span>
   );
 };

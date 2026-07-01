@@ -1,18 +1,11 @@
 import { z } from "zod";
 
-export const userRoleValues = [
-  "TRAVELER",
-  "OPERATOR",
-  "ADMIN",
-] as const;
+export const userRoleValues = ["TRAVELER", "OPERATOR", "ADMIN"] as const;
 
 export const userRoleSchema = z.enum(userRoleValues);
 export type UserRole = z.infer<typeof userRoleSchema>;
 
-export const registerRoleValues = [
-  "TRAVELER",
-  "OPERATOR",
-] as const;
+export const registerRoleValues = ["TRAVELER", "OPERATOR"] as const;
 
 export const registerRoleSchema = z.enum(registerRoleValues);
 export type RegisterRole = z.infer<typeof registerRoleSchema>;

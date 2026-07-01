@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "description": "Shared domain contracts and value objects for Moja Buss workspaces.",
   "exports": {
     ".": "./src/index.ts",
@@ -12,7 +14,8 @@
     "./payments": "./src/payments.ts",
     "./search": "./src/search.ts",
     "./sync": "./src/sync.ts",
-    "./tracking": "./src/tracking.ts"
+    "./tracking": "./src/tracking.ts",
+    "./operator": "./src/operator.ts"
   },
   "files": [
     "src",
