@@ -1,4 +1,10 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  ViewStyle,
+} from "react-native";
 
 import { Colors, Spacing } from "@/constants/theme";
 
@@ -35,13 +41,27 @@ export function AuthButton({
     >
       {isPending ? (
         <>
-          <ActivityIndicator color={isSecondary ? Colors.dark.text : Colors.dark.primaryForeground} />
-          <Text style={[styles.label, isSecondary ? styles.secondaryLabel : styles.primaryLabel]}>
+          <ActivityIndicator
+            color={
+              isSecondary ? Colors.dark.text : Colors.dark.primaryForeground
+            }
+          />
+          <Text
+            style={[
+              styles.label,
+              isSecondary ? styles.secondaryLabel : styles.primaryLabel,
+            ]}
+          >
             {pendingLabel ?? label}
           </Text>
         </>
       ) : (
-        <Text style={[styles.label, isSecondary ? styles.secondaryLabel : styles.primaryLabel]}>
+        <Text
+          style={[
+            styles.label,
+            isSecondary ? styles.secondaryLabel : styles.primaryLabel,
+          ]}
+        >
           {label}
         </Text>
       )}

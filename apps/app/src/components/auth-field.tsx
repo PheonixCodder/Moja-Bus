@@ -1,4 +1,10 @@
-import { type TextInputProps, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  type TextInputProps,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import { Colors, Spacing } from "@/constants/theme";
 
@@ -7,7 +13,12 @@ type AuthFieldProps = TextInputProps & {
   helperText?: string;
 };
 
-export function AuthField({ label, helperText, style, ...props }: AuthFieldProps) {
+export function AuthField({
+  label,
+  helperText,
+  style,
+  ...props
+}: AuthFieldProps) {
   return (
     <View style={styles.group}>
       <Text style={styles.label}>{label}</Text>

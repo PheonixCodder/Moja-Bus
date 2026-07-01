@@ -1,4 +1,3 @@
-
 declare module "@better-auth/expo/client" {
   export function expoClient(...args: any[]): any;
 }

@@ -45,7 +45,9 @@ export default function SignupScreen() {
       description="Set up your passenger profile once, verify your email, and reuse the same account on web and mobile."
       footer={
         <View style={{ gap: Spacing.three }}>
-          <Text style={{ color: Colors.dark.textSecondary, textAlign: "center" }}>
+          <Text
+            style={{ color: Colors.dark.textSecondary, textAlign: "center" }}
+          >
             Already have an account?
           </Text>
           <AuthButton
@@ -94,7 +96,11 @@ export default function SignupScreen() {
               padding: Spacing.four,
             }}
           >
-            <Text style={{ color: Colors.dark.primaryForeground, lineHeight: 20 }}>{message}</Text>
+            <Text
+              style={{ color: Colors.dark.primaryForeground, lineHeight: 20 }}
+            >
+              {message}
+            </Text>
           </View>
         ) : null}
 

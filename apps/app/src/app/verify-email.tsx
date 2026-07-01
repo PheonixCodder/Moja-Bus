@@ -45,7 +45,9 @@ export default function VerifyEmailScreen() {
       description="We sent a verification code to your email address. Use it here to activate the account."
       footer={
         <View style={{ gap: Spacing.three }}>
-          <Text style={{ color: Colors.dark.textSecondary, textAlign: "center" }}>
+          <Text
+            style={{ color: Colors.dark.textSecondary, textAlign: "center" }}
+          >
             Need a different account?
           </Text>
           <AuthButton
@@ -86,7 +88,11 @@ export default function VerifyEmailScreen() {
               padding: Spacing.four,
             }}
           >
-            <Text style={{ color: Colors.dark.primaryForeground, lineHeight: 20 }}>{message}</Text>
+            <Text
+              style={{ color: Colors.dark.primaryForeground, lineHeight: 20 }}
+            >
+              {message}
+            </Text>
           </View>
         ) : null}
 

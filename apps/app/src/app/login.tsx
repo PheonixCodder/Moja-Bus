@@ -19,7 +19,8 @@ export default function LoginScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [isEmailPending, setIsEmailPending] = useState(false);
   const [isGooglePending, setIsGooglePending] = useState(false);
-  const { data: session, isPending: isSessionPending } = authClient.useSession();
+  const { data: session, isPending: isSessionPending } =
+    authClient.useSession();
 
   // Redirect to dashboard if already logged in
   if (!isSessionPending && session?.user) {
@@ -61,7 +62,9 @@ export default function LoginScreen() {
       // If we're still here, manually navigate
       router.replace("/dashboard");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Google sign in failed.");
+      setMessage(
+        error instanceof Error ? error.message : "Google sign in failed.",
+      );
     } finally {
       setIsGooglePending(false);
     }
@@ -79,7 +82,10 @@ export default function LoginScreen() {
 
       if (error?.message) {
         const lowerMessage = error.message.toLowerCase();
-        if (lowerMessage.includes("verify") || lowerMessage.includes("verification")) {
+        if (
+          lowerMessage.includes("verify") ||
+          lowerMessage.includes("verification")
+        ) {
           router.push(`/verify-email?email=${encodeURIComponent(email)}`);
         }
 
@@ -100,7 +106,9 @@ export default function LoginScreen() {
       description="Use Google for the fastest sign in, or log in with your email and password."
       footer={
         <View style={{ gap: Spacing.three }}>
-          <Text style={{ color: Colors.dark.textSecondary, textAlign: "center" }}>
+          <Text
+            style={{ color: Colors.dark.textSecondary, textAlign: "center" }}
+          >
             New traveler?
           </Text>
           <AuthButton
@@ -126,7 +134,13 @@ export default function LoginScreen() {
             gap: Spacing.three,
           }}
         >
-          <View style={{ flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.1)" }} />
+          <View
+            style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: "rgba(255,255,255,0.1)",
+            }}
+          />
           <Text
             style={{
               color: Colors.dark.textSecondary,
@@ -137,7 +151,13 @@ export default function LoginScreen() {
           >
             Or email
           </Text>
-          <View style={{ flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.1)" }} />
+          <View
+            style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: "rgba(255,255,255,0.1)",
+            }}
+          />
         </View>
 
         <View style={{ gap: Spacing.four }}>
@@ -172,7 +192,9 @@ export default function LoginScreen() {
           >
             <Text style={{ color: "#fde68a", lineHeight: 20 }}>{message}</Text>
             <Text
-              onPress={() => router.push(`/verify-email?email=${encodeURIComponent(email)}`)}
+              onPress={() =>
+                router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+              }
               style={{
                 marginTop: Spacing.two,
                 color: Colors.dark.text,

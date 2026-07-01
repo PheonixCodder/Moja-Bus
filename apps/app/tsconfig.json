@@ -1,16 +1,9 @@
 {
-  "extends": [
-    "expo/tsconfig.base",
-    "@moja/typescript/react-native.json"
-  ],
+  "extends": ["expo/tsconfig.base", "@moja/typescript/react-native.json"],
   "compilerOptions": {
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/assets/*": [
-        "./assets/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/assets/*": ["./assets/*"]
     }
   },
   "include": [

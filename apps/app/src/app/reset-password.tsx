@@ -54,7 +54,9 @@ export default function ResetPasswordScreen() {
       description="Enter the reset code and choose a new password for the traveler account."
       footer={
         <View style={{ gap: Spacing.three }}>
-          <Text style={{ color: Colors.dark.textSecondary, textAlign: "center" }}>
+          <Text
+            style={{ color: Colors.dark.textSecondary, textAlign: "center" }}
+          >
             Need another code?
           </Text>
           <AuthButton
@@ -110,7 +112,11 @@ export default function ResetPasswordScreen() {
               padding: Spacing.four,
             }}
           >
-            <Text style={{ color: Colors.dark.primaryForeground, lineHeight: 20 }}>{message}</Text>
+            <Text
+              style={{ color: Colors.dark.primaryForeground, lineHeight: 20 }}
+            >
+              {message}
+            </Text>
           </View>
         ) : null}
 

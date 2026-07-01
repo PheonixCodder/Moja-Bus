@@ -41,7 +41,9 @@ export default function ForgotPasswordScreen() {
       description="We will send a one-time code to your inbox so you can create a fresh password."
       footer={
         <View style={{ gap: Spacing.three }}>
-          <Text style={{ color: Colors.dark.textSecondary, textAlign: "center" }}>
+          <Text
+            style={{ color: Colors.dark.textSecondary, textAlign: "center" }}
+          >
             Remembered your password?
           </Text>
           <AuthButton
@@ -73,7 +75,11 @@ export default function ForgotPasswordScreen() {
               padding: Spacing.four,
             }}
           >
-            <Text style={{ color: Colors.dark.primaryForeground, lineHeight: 20 }}>{message}</Text>
+            <Text
+              style={{ color: Colors.dark.primaryForeground, lineHeight: 20 }}
+            >
+              {message}
+            </Text>
           </View>
         ) : null}
 

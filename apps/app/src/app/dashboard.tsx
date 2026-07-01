@@ -59,14 +59,23 @@ export default function DashboardScreen() {
           gap: Spacing.four,
         }}
       >
-        <Text style={{ color: Colors.dark.textSecondary, textTransform: "uppercase", letterSpacing: 2.4 }}>
+        <Text
+          style={{
+            color: Colors.dark.textSecondary,
+            textTransform: "uppercase",
+            letterSpacing: 2.4,
+          }}
+        >
           Traveler dashboard
         </Text>
-        <Text style={{ color: Colors.dark.text, fontSize: 30, fontWeight: "700" }}>
+        <Text
+          style={{ color: Colors.dark.text, fontSize: 30, fontWeight: "700" }}
+        >
           Welcome back, {session.user.name}.
         </Text>
         <Text style={{ color: Colors.dark.textSecondary, lineHeight: 23 }}>
-          Your traveler account is now authenticated against the shared Express backend.
+          Your traveler account is now authenticated against the shared Express
+          backend.
         </Text>
 
         <View style={{ gap: Spacing.two }}>
