@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
-import type { CustomUser } from "@/lib/auth-client";
 
 type UserRole = "TRAVELER" | "OPERATOR" | "ADMIN";
 
@@ -59,7 +58,7 @@ export function useAuth() {
       }
 
       // Better Auth returns { user, session } — not { session: { user } }
-      const user = (data as unknown as { user: CustomUser })?.user;
+      const user = data?.user;
       const redirectPath = resolveRoleDashboard(user?.role);
 
       toast.success("Welcome back to Moja Ride!");

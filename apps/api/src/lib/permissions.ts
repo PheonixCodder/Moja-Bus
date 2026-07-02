@@ -54,7 +54,10 @@ export const ROLE_PERMISSIONS: Record<StaffRole, Permission[] | ["*"]> = {
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function hasPermission(role: StaffRole, permission: Permission): boolean {
+export function hasPermission(
+  role: StaffRole,
+  permission: Permission,
+): boolean {
   const perms = ROLE_PERMISSIONS[role] as string[];
   return perms.includes("*") || perms.includes(permission);
 }
@@ -62,7 +65,8 @@ export function hasPermission(role: StaffRole, permission: Permission): boolean 
 /** Returns the flat list of permission strings for a role — used for UI preview. */
 export function getPermissionsForRole(role: StaffRole): Permission[] {
   const perms = ROLE_PERMISSIONS[role];
-  if (perms.includes("*" as any)) return Object.values(PERMISSIONS) as Permission[];
+  if ((perms as string[]).includes("*"))
+    return Object.values(PERMISSIONS) as Permission[];
   return perms as Permission[];
 }
 

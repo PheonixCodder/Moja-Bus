@@ -15,15 +15,24 @@
     "build": "echo \"No build configured for @moja/db\"",
     "lint": "biome check package.json tsconfig.json src",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"No tests configured for @moja/db\""
+    "test": "echo \"No tests configured for @moja/db\"",
+    "generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@moja/config": "workspace:*",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "dotenv": "^17.4.2"
   },
   "devDependencies": {
-    "@moja/typescript": "workspace:*"
+    "@moja/typescript": "workspace:*",
+    "prisma": "^7.8.0",
+    "tsx": "^4.7.1"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }

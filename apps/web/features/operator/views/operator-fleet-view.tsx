@@ -55,14 +55,18 @@ import {
   ComboboxEmpty,
 } from "@moja/ui/components/ui/combobox";
 
-import type { Bus, FleetStats } from "@/features/operator/api/fleet";
+import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import {
-  getBuses,
-  deleteBus,
-  getBusDetails,
-} from "@/features/operator/api/fleet";
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { AddBusModal } from "@/features/operator/components/add-bus-modal";
 import { SeatMapPreview } from "@/features/operator/components/seat-map-preview";
+
+type Bus = RouterOutputs["fleet"]["getBuses"]["buses"][number];
+type FleetStats = RouterOutputs["fleet"]["getBuses"]["stats"];
 
 // ──────────────────────────────────────────────
 // Status config — colors pulled only from chart tokens / muted
@@ -83,6 +87,11 @@ const STATUS_CONFIG = {
     label: "Inactive",
     className: "bg-muted text-muted-foreground border-border",
     dot: "bg-muted-foreground",
+  },
+  RETIRED: {
+    label: "Retired",
+    className: "bg-muted/50 text-muted-foreground/70 border-border/50",
+    dot: "bg-muted-foreground/50",
   },
 } as const;
 
@@ -252,10 +261,12 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
 
 export function OperatorFleetView() {
   const searchParams = useSearchParams();
-  const [buses, setBuses] = useState<Bus[]>([]);
-  const [stats, setStats] = useState<FleetStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+
+  const { data } = useSuspenseQuery(trpc.fleet.getBuses.queryOptions());
+  const buses = data.buses;
+  const stats = data.stats;
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -270,32 +281,28 @@ export function OperatorFleetView() {
   }, [searchParams]);
   const [editingBus, setEditingBus] = useState<Bus | null>(null);
   const [deletingBus, setDeletingBus] = useState<Bus | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const deleteBusMutation = useMutation({
+    ...trpc.fleet.deleteBus.mutationOptions(),
+    onSuccess: () => {
+      toast.success(`Bus ${deletingBus?.registrationPlate ?? ""} deleted`);
+      queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
+      setDeletingBus(null);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to delete bus");
+    },
+  });
 
   // Seat map drawer
-  const [seatMapBus, setSeatMapBus] = useState<Bus | null>(null);
-  const [seatMapLoading, setSeatMapLoading] = useState(false);
-
-  const loadFleet = useCallback(async (showRefreshing = false) => {
-    if (showRefreshing) setRefreshing(true);
-    try {
-      const data = await getBuses();
-      setBuses(Array.isArray(data.buses) ? data.buses : []);
-      setStats(data.stats ?? null);
-    } catch {
-      toast.error("Unable to load fleet");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadFleet();
-  }, [loadFleet]);
+  const [seatMapBusId, setSeatMapBusId] = useState<string | null>(null);
+  const [seatMapBusTitle, setSeatMapBusTitle] = useState<{
+    plate: string;
+    layout: string;
+  } | null>(null);
 
   // Filtered buses — guard against non-array state during hydration
-  const filteredBuses = (Array.isArray(buses) ? buses : []).filter((bus) => {
+  const filteredBuses = buses.filter((bus) => {
     const matchSearch =
       !search ||
       bus.registrationPlate.toLowerCase().includes(search.toLowerCase()) ||
@@ -307,43 +314,20 @@ export function OperatorFleetView() {
     return matchSearch && matchStatus;
   });
 
-  async function handleDelete() {
+  function handleDelete() {
     if (!deletingBus) return;
-    setDeleteLoading(true);
-    try {
-      await deleteBus(deletingBus.id);
-      toast.success(`${deletingBus.registrationPlate} removed from fleet`);
-      setDeletingBus(null);
-      void loadFleet(true);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error during deletion");
-    } finally {
-      setDeleteLoading(false);
-    }
+    deleteBusMutation.mutate({ id: deletingBus.id });
   }
 
-  async function handleViewMap(bus: Bus) {
-    setSeatMapLoading(true);
-    try {
-      const detailed = await getBusDetails(bus.id);
-      setSeatMapBus(detailed);
-    } catch {
-      toast.error("Unable to load seat map");
-    } finally {
-      setSeatMapLoading(false);
-    }
+  function handleViewMap(bus: Bus) {
+    setSeatMapBusTitle({
+      plate: bus.registrationPlate,
+      layout: bus.layoutTemplate.name,
+    });
+    setSeatMapBusId(bus.id);
   }
 
   // ────────── Render ──────────
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Spinner className="size-6 text-primary" />
-        <p className="text-sm text-muted-foreground">Loading fleet…</p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-background">
@@ -523,7 +507,9 @@ export function OperatorFleetView() {
           if (!o) setEditingBus(null);
         }}
         editingBus={editingBus}
-        onSuccess={() => loadFleet(true)}
+        onSuccess={() => {
+          queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
+        }}
       />
 
       {/* ── Delete Confirm Dialog ── */}
@@ -558,9 +544,11 @@ export function OperatorFleetView() {
               size="sm"
               className="flex-1 h-8 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold"
               onClick={handleDelete}
-              disabled={deleteLoading}
+              disabled={deleteBusMutation.isPending}
             >
-              {deleteLoading ? <Spinner className="size-3.5 mr-1.5" /> : null}
+              {deleteBusMutation.isPending ? (
+                <Spinner className="size-3.5 mr-1.5" />
+              ) : null}
               Delete
             </Button>
           </DialogFooter>
@@ -569,8 +557,13 @@ export function OperatorFleetView() {
 
       {/* ── Seat Map Drawer ── */}
       <Drawer
-        open={!!seatMapBus || seatMapLoading}
-        onOpenChange={(o) => !o && setSeatMapBus(null)}
+        open={!!seatMapBusId}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSeatMapBusId(null);
+            setSeatMapBusTitle(null);
+          }
+        }}
         direction="right"
       >
         <DrawerContent className="bg-background border-l border-border sm:max-w-xl w-full">
@@ -584,8 +577,8 @@ export function OperatorFleetView() {
                   Seat map
                 </DrawerTitle>
                 <DrawerDescription className="text-xs text-muted-foreground">
-                  {seatMapBus
-                    ? `${seatMapBus.registrationPlate} — ${seatMapBus.layoutTemplate.name}`
+                  {seatMapBusTitle
+                    ? `${seatMapBusTitle.plate} — ${seatMapBusTitle.layout}`
                     : "Loading..."}
                 </DrawerDescription>
               </div>
@@ -593,33 +586,7 @@ export function OperatorFleetView() {
           </DrawerHeader>
 
           <div className="flex-1 overflow-y-auto p-4">
-            {seatMapLoading && (
-              <div className="flex items-center justify-center py-16 gap-3 text-muted-foreground">
-                <Spinner className="size-5 text-primary" />
-                <span className="text-sm">Loading seat map...</span>
-              </div>
-            )}
-
-            {seatMapBus && !seatMapLoading && seatMapBus.seats && (
-              <>
-                <div className="mb-4 rounded-lg border border-primary/15 bg-primary/5 px-4 py-3">
-                  <p className="text-xs text-primary font-semibold">
-                    Interactive mode active
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Click on a passenger seat to mark it out of service or
-                    reactivate it.
-                  </p>
-                </div>
-                <SeatMapPreview
-                  busId={seatMapBus.id}
-                  seats={seatMapBus.seats}
-                  rows={seatMapBus.layoutTemplate.rows}
-                  columns={seatMapBus.layoutTemplate.columns}
-                  interactive
-                />
-              </>
-            )}
+            {seatMapBusId ? <SeatMapFetcher busId={seatMapBusId} /> : null}
           </div>
 
           <DrawerFooter className="border-t border-border pt-4">
@@ -636,5 +603,35 @@ export function OperatorFleetView() {
         </DrawerContent>
       </Drawer>
     </div>
+  );
+}
+
+// Separate component to handle suspense query fetching for the drawer
+function SeatMapFetcher({ busId }: { busId: string }) {
+  const trpc = useTRPC();
+  const { data: seatMapBus } = useSuspenseQuery(
+    trpc.fleet.getBusDetails.queryOptions({ id: busId }),
+  );
+
+  if (!seatMapBus || !seatMapBus.seats) return null;
+
+  return (
+    <>
+      <div className="mb-4 rounded-lg border border-primary/15 bg-primary/5 px-4 py-3">
+        <p className="text-xs text-primary font-semibold">
+          Interactive mode active
+        </p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          Click on a passenger seat to mark it out of service or reactivate it.
+        </p>
+      </div>
+      <SeatMapPreview
+        busId={seatMapBus.id}
+        seats={seatMapBus.seats}
+        rows={seatMapBus.layoutTemplate.rows}
+        columns={seatMapBus.layoutTemplate.columns}
+        interactive
+      />
+    </>
   );
 }

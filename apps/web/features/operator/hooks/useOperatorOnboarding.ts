@@ -3,16 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  getOnboardingSnapshot,
-  saveOnboardingStep,
-  completeOnboarding as completeOnboardingApi,
-  type SaveStepPayload,
-} from "../api/onboarding";
 import { type OnboardingStep } from "@moja/schemas";
+import { useTRPC } from "@/trpc/client";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 export function useOperatorOnboarding() {
   const router = useRouter();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,12 +21,21 @@ export function useOperatorOnboarding() {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("company");
   const [operatorData, setOperatorData] = useState<any>(null);
 
+  const saveMutation = useMutation(
+    trpc.operator.saveOnboardingStep.mutationOptions(),
+  );
+  const completeMutation = useMutation(
+    trpc.operator.completeOnboarding.mutationOptions(),
+  );
+
   // Fetch onboarding snapshot on mount
   const fetchSnapshot = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getOnboardingSnapshot();
+      const data = await queryClient.fetchQuery(
+        trpc.operator.getOnboardingStatus.queryOptions(),
+      );
       setOnboardingStatus(data.onboardingStatus);
       setOperatorData(data.operator);
 
@@ -38,7 +46,7 @@ export function useOperatorOnboarding() {
       }
 
       if (data.onboardingCurrentStep) {
-        setCurrentStep(data.onboardingCurrentStep);
+        setCurrentStep(data.onboardingCurrentStep as OnboardingStep);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load onboarding status.");
@@ -53,13 +61,10 @@ export function useOperatorOnboarding() {
   }, []);
 
   // Save current step and go to next
-  const saveStep = async (
-    step: OnboardingStep,
-    data: Omit<SaveStepPayload, "step">,
-  ) => {
+  const saveStep = async (step: OnboardingStep, data: any) => {
     setIsSaving(true);
     try {
-      const response = await saveOnboardingStep({
+      const response = await saveMutation.mutateAsync({
         step,
         ...data,
       });
@@ -69,7 +74,7 @@ export function useOperatorOnboarding() {
 
       // Determine the next step and update state
       if (response.onboardingCurrentStep) {
-        setCurrentStep(response.onboardingCurrentStep);
+        setCurrentStep(response.onboardingCurrentStep as OnboardingStep);
       }
 
       toast.success("Progress saved successfully!");
@@ -86,7 +91,7 @@ export function useOperatorOnboarding() {
   const finalizeOnboarding = async () => {
     setIsSaving(true);
     try {
-      const response = await completeOnboardingApi();
+      const response = await completeMutation.mutateAsync();
       setOnboardingStatus(response.onboardingStatus);
 
       toast.success("Onboarding completed! Welcome to Moja Ride!");

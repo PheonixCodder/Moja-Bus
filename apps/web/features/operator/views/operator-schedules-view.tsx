@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -68,20 +68,19 @@ import {
 } from "@moja/ui/components/ui/drawer";
 import { Switch } from "@moja/ui/components/ui/switch";
 
-import type { Route } from "@/features/operator/api/routes";
-import { getRoutes, getRouteDetail } from "@/features/operator/api/routes";
-import type { Schedule, Fare } from "@/features/operator/api/schedules";
+import { useTRPC } from "@/trpc/client";
 import {
-  getSchedules,
-  createSchedule,
-  deleteSchedule,
-  updateSchedule,
-  updateScheduleCalendar,
-  updateFare,
-  regenerateTrips,
-} from "@/features/operator/api/schedules";
-import type { Bus as BusType } from "@/features/operator/api/fleet";
-import { getBuses } from "@/features/operator/api/fleet";
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type { RouterOutputs } from "@/trpc/client";
+
+type Schedule = RouterOutputs["schedules"]["list"][number];
+type Fare = Schedule["fares"][number];
+type Route = RouterOutputs["routes"]["list"][number];
+type RouteDetail = RouterOutputs["routes"]["get"];
+type BusType = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 
 // ──────────────────────────────────────────────
 // Helpers
@@ -290,11 +289,11 @@ function RoutePickerStep({
                     {r.destTerminal?.cityRelation?.name ?? r.destTerminal?.city}
                   </span>
                 </div>
-                {r.estimatedDurationMin && (
+                {r.estimatedMinutes && (
                   <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                     <Clock className="size-3" />~
-                    {Math.floor(r.estimatedDurationMin / 60)}h{" "}
-                    {r.estimatedDurationMin % 60}m
+                    {Math.floor(r.estimatedMinutes / 60)}h{" "}
+                    {r.estimatedMinutes % 60}m
                   </p>
                 )}
               </button>
@@ -435,7 +434,6 @@ function CalendarStep({
                 disabled={(date) =>
                   date < new Date(new Date().setHours(0, 0, 0, 0))
                 }
-                initialFocus
               />
             </PopoverContent>
           </Popover>
@@ -482,7 +480,6 @@ function CalendarStep({
                     ? date < parseLocalDate(config.validFrom)!
                     : date < new Date(new Date().setHours(0, 0, 0, 0))
                 }
-                initialFocus
               />
             </PopoverContent>
           </Popover>
@@ -935,16 +932,29 @@ function ScheduleCard({
 // ──────────────────────────────────────────────
 
 export function OperatorSchedulesView() {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [routes, setRoutes] = useState<Route[]>([]);
-  const [buses, setBuses] = useState<BusType[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // ── Data queries ──────────────────────────────
+  const { data: schedules } = useSuspenseQuery(
+    trpc.schedules.list.queryOptions(),
+  );
+  const { data: routesData } = useSuspenseQuery(
+    trpc.routes.list.queryOptions(),
+  );
+  const { data: busesData } = useSuspenseQuery(
+    trpc.fleet.getBuses.queryOptions(),
+  );
+
+  const routes = routesData ?? [];
+  const buses = busesData?.buses ?? [];
+
+  // ── Wizard open state ─────────────────────────
   const [wizardOpen, setWizardOpen] = useState(false);
   const [deletingSchedule, setDeletingSchedule] = useState<Schedule | null>(
     null,
   );
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     if (searchParams && searchParams.get("action") === "new") {
@@ -952,11 +962,11 @@ export function OperatorSchedulesView() {
     }
   }, [searchParams]);
 
-  // Wizard state
+  // ── Wizard state ──────────────────────────────
   const [step, setStep] = useState<WizardStep>("Route");
   const [maxStep, setMaxStep] = useState(0);
   const [selectedRouteId, setSelectedRouteId] = useState("");
-  const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<RouteDetail | null>(null);
   const [loadingRouteDetail, setLoadingRouteDetail] = useState(false);
   const [calConfig, setCalConfig] = useState<CalendarConfig>({
     days: {
@@ -977,7 +987,7 @@ export function OperatorSchedulesView() {
   const [saving, setSaving] = useState(false);
   const [successCount, setSuccessCount] = useState<number | null>(null);
 
-  // Edit State
+  // ── Edit State ────────────────────────────────
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [editName, setEditName] = useState("");
@@ -1001,12 +1011,46 @@ export function OperatorSchedulesView() {
   const [editFares, setEditFares] = useState<Fare[]>([]);
   const [editSaving, setEditSaving] = useState(false);
 
-  // Extend State
+  // ── Extend State ──────────────────────────────
   const [extendingScheduleId, setExtendingScheduleId] = useState<string | null>(
     null,
   );
 
-  // Edit & Extend Handlers
+  // ── Mutations ─────────────────────────────────
+  const createScheduleMutation = useMutation({
+    ...trpc.schedules.create.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
+    },
+  });
+
+  const deleteScheduleMutation = useMutation({
+    ...trpc.schedules.delete.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
+    },
+  });
+
+  const updateBasicMutation = useMutation({
+    ...trpc.schedules.updateBasic.mutationOptions(),
+  });
+
+  const updateCalendarMutation = useMutation({
+    ...trpc.schedules.updateCalendar.mutationOptions(),
+  });
+
+  const updateFareMutation = useMutation({
+    ...trpc.schedules.updateFare.mutationOptions(),
+  });
+
+  const regenerateTripsMutation = useMutation({
+    ...trpc.schedules.regenerateTrips.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
+    },
+  });
+
+  // ── Edit & Extend Handlers ────────────────────
   const handleEditClick = async (schedule: Schedule) => {
     try {
       setEditingSchedule(schedule);
@@ -1046,34 +1090,36 @@ export function OperatorSchedulesView() {
     if (!editingSchedule) return;
     setEditSaving(true);
     try {
-      // 1. Save basic schedule info
-      const updatedSchedule = await updateSchedule(editingSchedule.id, {
-        name: editName.trim() || null,
-        departureTime: editDepartureTime,
-        isActive: editIsActive,
+      await updateBasicMutation.mutateAsync({
+        id: editingSchedule.id,
+        data: {
+          name: editName.trim() || null,
+          departureTime: editDepartureTime,
+          isActive: editIsActive,
+        },
       });
 
-      // 2. Save calendar details
       if (editingSchedule.calendar) {
-        await updateScheduleCalendar(editingSchedule.id, {
-          monday: editCalConfig.days.monday,
-          tuesday: editCalConfig.days.tuesday,
-          wednesday: editCalConfig.days.wednesday,
-          thursday: editCalConfig.days.thursday,
-          friday: editCalConfig.days.friday,
-          saturday: editCalConfig.days.saturday,
-          sunday: editCalConfig.days.sunday,
-          validFrom: new Date(editCalConfig.validFrom).toISOString(),
-          validUntil: editCalConfig.validUntil
-            ? new Date(editCalConfig.validUntil).toISOString()
-            : null,
+        await updateCalendarMutation.mutateAsync({
+          id: editingSchedule.id,
+          data: {
+            monday: editCalConfig.days.monday,
+            tuesday: editCalConfig.days.tuesday,
+            wednesday: editCalConfig.days.wednesday,
+            thursday: editCalConfig.days.thursday,
+            friday: editCalConfig.days.friday,
+            saturday: editCalConfig.days.saturday,
+            sunday: editCalConfig.days.sunday,
+            validFrom: new Date(editCalConfig.validFrom).toISOString(),
+            validUntil: editCalConfig.validUntil
+              ? new Date(editCalConfig.validUntil).toISOString()
+              : null,
+          },
         });
       }
 
       toast.success("Schedule updated successfully");
-
-      // Reload page data
-      await loadData();
+      queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
       setEditDrawerOpen(false);
     } catch (err: any) {
       toast.error(err.message || "Failed to update schedule");
@@ -1087,7 +1133,11 @@ export function OperatorSchedulesView() {
     const parsed = parseInt(priceVal, 10);
     const price = isNaN(parsed) ? 0 : parsed;
     try {
-      await updateFare(editingSchedule.id, fareId, { priceXOF: price });
+      await updateFareMutation.mutateAsync({
+        scheduleId: editingSchedule.id,
+        fareId,
+        data: { priceXOF: price },
+      });
       setEditFares((prev) =>
         prev.map((f) => (f.id === fareId ? { ...f, priceXOF: price } : f)),
       );
@@ -1100,38 +1150,26 @@ export function OperatorSchedulesView() {
   const handleExtendTrips = async (schedule: Schedule) => {
     setExtendingScheduleId(schedule.id);
     try {
-      const res = await regenerateTrips(schedule.id);
+      // Find an active bus for regeneration - use first active bus from fleet
+      const activeBus = buses.find((b) => b.status === "ACTIVE");
+      if (!activeBus) {
+        toast.error("No active bus available to regenerate trips");
+        return;
+      }
+      const res = await regenerateTripsMutation.mutateAsync({
+        id: schedule.id,
+        defaultBusId: activeBus.id,
+      });
       toast.success(
-        res.message || `Successfully generated ${res.tripsCreated} trips.`,
+        res?.message ||
+          `Successfully generated ${res?.tripsCreated ?? 0} trips.`,
       );
-      await loadData();
     } catch (err: any) {
       toast.error(err.message || "Failed to extend trips");
     } finally {
       setExtendingScheduleId(null);
     }
   };
-
-  const loadData = useCallback(async () => {
-    try {
-      const [scheduleData, routeData, busData] = await Promise.all([
-        getSchedules(),
-        getRoutes(),
-        getBuses(),
-      ]);
-      setSchedules(Array.isArray(scheduleData) ? scheduleData : []);
-      setRoutes(Array.isArray(routeData) ? routeData : []);
-      setBuses(Array.isArray(busData.buses) ? busData.buses : []);
-    } catch {
-      toast.error("Failed to load data");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
 
   // When route is selected, fetch detail to get waypoints/stops
   useEffect(() => {
@@ -1140,15 +1178,16 @@ export function OperatorSchedulesView() {
       return;
     }
     setLoadingRouteDetail(true);
-    getRouteDetail(selectedRouteId)
-      .then(setSelectedRoute)
+    queryClient
+      .fetchQuery(trpc.routes.get.queryOptions({ id: selectedRouteId }))
+      .then((data) => setSelectedRoute(data))
       .catch(() => toast.error("Failed to load route details"))
       .finally(() => setLoadingRouteDetail(false));
   }, [selectedRouteId]);
 
   // Build stop labels from selected route
   const stops: { order: number; name: string; city: string }[] = selectedRoute
-    ? (selectedRoute.waypoints ?? []).map((w) => ({
+    ? (selectedRoute.waypoints ?? []).map((w: any) => ({
         order: w.stopOrder,
         name: w.terminal?.name ?? "Stop",
         city: w.terminal?.cityRelation?.name ?? w.terminal?.city ?? "",
@@ -1187,7 +1226,7 @@ export function OperatorSchedulesView() {
     if (!selectedRouteId || !calConfig.defaultBusId) return;
     setSaving(true);
     try {
-      const result = await createSchedule({
+      const result = await createScheduleMutation.mutateAsync({
         routeId: selectedRouteId,
         defaultBusId: calConfig.defaultBusId,
         departureTime: calConfig.departureTime,
@@ -1212,8 +1251,7 @@ export function OperatorSchedulesView() {
             priceXOF: f.priceXOF,
           })),
       });
-      setSuccessCount(result._count?.trips ?? 0);
-      setSchedules((prev) => [result as unknown as Schedule, ...prev]);
+      setSuccessCount(result?._count?.trips ?? 0);
       resetWizard();
     } catch (err) {
       toast.error(
@@ -1250,28 +1288,15 @@ export function OperatorSchedulesView() {
 
   async function handleDeleteConfirm() {
     if (!deletingSchedule) return;
-    setDeleteLoading(true);
     try {
-      await deleteSchedule(deletingSchedule.id);
+      await deleteScheduleMutation.mutateAsync({ id: deletingSchedule.id });
       toast.success("Schedule deleted");
-      setSchedules((prev) => prev.filter((s) => s.id !== deletingSchedule.id));
       setDeletingSchedule(null);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to delete schedule",
       );
-    } finally {
-      setDeleteLoading(false);
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Spinner className="size-6 text-primary" />
-        <p className="text-sm text-muted-foreground">Loading schedules…</p>
-      </div>
-    );
   }
 
   // Wizard mode
@@ -1719,17 +1744,21 @@ export function OperatorSchedulesView() {
             <Button
               variant="outline"
               onClick={() => setDeletingSchedule(null)}
-              disabled={deleteLoading}
+              disabled={deleteScheduleMutation.isPending}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteConfirm}
-              disabled={deleteLoading}
+              disabled={deleteScheduleMutation.isPending}
             >
-              {deleteLoading ? <Spinner className="size-4 mr-2" /> : null}
-              {deleteLoading ? "Deleting…" : "Delete Schedule"}
+              {deleteScheduleMutation.isPending ? (
+                <Spinner className="size-4 mr-2" />
+              ) : null}
+              {deleteScheduleMutation.isPending
+                ? "Deleting…"
+                : "Delete Schedule"}
             </Button>
           </DialogFooter>
         </DialogContent>

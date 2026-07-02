@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getSettings } from "../api/settings";
 import {
   type LucideIcon,
   BusFront,
@@ -44,7 +43,8 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@moja/ui/components/ui/sidebar";
-import type { CustomUser } from "@/lib/auth-client";
+import type { User } from "@/lib/auth-client";
+import { useTRPC } from "@/trpc/client";
 
 interface MenuItem {
   title: string;
@@ -110,20 +110,17 @@ function NavSection({ label, items, pathname }: NavSectionProps) {
 }
 
 interface OperatorSidebarProps {
-  user: CustomUser | null;
+  user: User | null;
 }
 
 export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const pathname = usePathname();
   const sidebar = useSidebar();
   const { signOut } = useAuth();
-  const [status, setStatus] = useState<string | null>(null);
+  const trpc = useTRPC();
 
-  useEffect(() => {
-    getSettings()
-      .then((data) => setStatus(data.company.status))
-      .catch(() => {});
-  }, []);
+  const { data } = useSuspenseQuery(trpc.operator.getSettings.queryOptions());
+  const status = data?.company?.status;
 
   // ── Operations group ──────────────────────────────────────────────
   const operationsItems: MenuItem[] = [
@@ -221,7 +218,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                   <span
                     className={cn(
                       "text-[8px] font-extrabold uppercase tracking-wider px-1 py-0.2 rounded border shrink-0",
-                      status === "APPROVED" &&
+                      (status === "VERIFIED" || status === "ACTIVE") &&
                         "bg-emerald-50 text-emerald-600 border-emerald-200",
                       status === "PENDING_VERIFICATION" &&
                         "bg-amber-50 text-amber-600 border-amber-200",
@@ -229,7 +226,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                         "bg-slate-50 text-slate-500 border-slate-200",
                     )}
                   >
-                    {status === "APPROVED"
+                    {status === "VERIFIED" || status === "ACTIVE"
                       ? "Verified"
                       : status === "PENDING_VERIFICATION"
                         ? "Pending"
@@ -258,7 +255,11 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
           pathname={pathname}
         />
         <NavSection label="Fleet" items={fleetItems} pathname={pathname} />
-        <NavSection label="Organization" items={organizationItems} pathname={pathname} />
+        <NavSection
+          label="Organization"
+          items={organizationItems}
+          pathname={pathname}
+        />
       </SidebarContent>
 
       <div className="mx-3 my-2 border-b border-sidebar-border" />

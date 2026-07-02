@@ -4,10 +4,10 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
-import type { CustomUser } from "@/lib/auth-client";
+import type { User } from "@/lib/auth-client";
 
 interface DashboardViewProps {
-  user: CustomUser | null;
+  user: User | null;
 }
 
 export function DashboardHeader({ user }: DashboardViewProps) {

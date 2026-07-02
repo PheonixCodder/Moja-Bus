@@ -7,7 +7,7 @@ import { SidebarInset, SidebarProvider } from "@moja/ui/components/ui/sidebar";
 import { TooltipProvider } from "@moja/ui/components/ui/tooltip";
 import { OperatorSidebar } from "@/features/operator/components/operator-sidebar";
 import { getServerSession, getUser } from "@/lib/auth-server";
-import type { CustomUser } from "@/lib/auth-client";
+import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 
 export default async function OperatorLayout({
   children,
@@ -16,12 +16,11 @@ export default async function OperatorLayout({
 }) {
   const session = await getServerSession();
 
-  if (!session?.data?.session) {
+  if (!session?.session) {
     redirect("/operator/login");
   }
 
-  const user = (session.data as unknown as { user: CustomUser }).user;
-  const role = user?.role || "TRAVELER";
+  const role = session.user?.role || "TRAVELER";
 
   if (role !== "OPERATOR" && role !== "ADMIN") {
     redirect("/dashboard");
@@ -32,15 +31,20 @@ export default async function OperatorLayout({
 
   const fullUser = await getUser();
 
+  // Prefetch settings for the sidebar
+  await prefetch(trpc.operator.getSettings.queryOptions());
+
   return (
-    <TooltipProvider>
-      <SidebarProvider defaultOpen={defaultOpen} className="h-svh">
-        <OperatorSidebar user={fullUser} />
-        <SidebarInset className="min-h-0 min-w-0 bg-bg-base">
-          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-          <Toaster />
-        </SidebarInset>
-      </SidebarProvider>
-    </TooltipProvider>
+    <HydrateClient>
+      <TooltipProvider>
+        <SidebarProvider defaultOpen={defaultOpen} className="h-svh">
+          <OperatorSidebar user={fullUser} />
+          <SidebarInset className="min-h-0 min-w-0 bg-bg-base">
+            <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+            <Toaster />
+          </SidebarInset>
+        </SidebarProvider>
+      </TooltipProvider>
+    </HydrateClient>
   );
 }

@@ -1,4 +1,5 @@
 import { OperatorTerminalsView } from "@/features/operator/views/operator-terminals-view";
+import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 
 export const metadata = {
   title: "Terminal Management - Moja Ride Operator Dashboard",
@@ -6,6 +7,12 @@ export const metadata = {
     "Manage depots and bookable passenger terminals for intercity routes.",
 };
 
-export default function OperatorTerminalsPage() {
-  return <OperatorTerminalsView />;
+export default async function OperatorTerminalsPage() {
+  await prefetch(trpc.terminals.list.queryOptions());
+  await prefetch(trpc.routes.getCities.queryOptions());
+  return (
+    <HydrateClient>
+      <OperatorTerminalsView />
+    </HydrateClient>
+  );
 }

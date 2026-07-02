@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import {
   Building2,
@@ -41,25 +41,49 @@ import {
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
 import { storageAdapter } from "../lib/storage-adapter";
+import { useTRPC } from "@/trpc/client";
 import {
-  getSettings,
-  updateCompany,
-  updateBank,
-  addDocument,
-  deleteDocument,
-  type OperatorSettings,
-  type Company,
-  type BankAccount,
-  type CompanyDocument,
-} from "../api/settings";
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 
 type SettingsSection = "profile" | "bank" | "documents" | "verification";
 
 export function OperatorSettingsView() {
   const [activeSection, setActiveSection] =
     useState<SettingsSection>("profile");
-  const [settings, setSettings] = useState<OperatorSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { data: settings } = useSuspenseQuery(
+    trpc.operator.getSettings.queryOptions(),
+  );
+
+  const updateCompanyMutation = useMutation(
+    trpc.operator.updateCompany.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
+  );
+  const updateBankMutation = useMutation(
+    trpc.operator.updateBank.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
+  );
+  const addDocumentMutation = useMutation(
+    trpc.operator.addDocument.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
+  );
+  const deleteDocumentMutation = useMutation(
+    trpc.operator.deleteDocument.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
+  );
+
   const [saving, setSaving] = useState(false);
 
   // Edit Drawers State
@@ -96,64 +120,48 @@ export function OperatorSettingsView() {
   const [uploadingDocType, setUploadingDocType] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const loadSettings = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getSettings();
-      setSettings(data);
-
-      // Pre-fill forms
-      setProfileForm({
-        name: data.company.name || "",
-        email: data.company.email || "",
-        phone: data.company.phone || "",
-        website: data.company.website || "",
-        description: data.company.description || "",
-      });
-
-      setLegalForm({
-        businessType: data.company.businessType || "SOLE_PROPRIETORSHIP",
-        registrationNumber: data.company.registrationNumber || "",
-        taxId: data.company.taxId || "",
-        yearEstablished: data.company.yearEstablished?.toString() || "",
-      });
-
-      if (data.company.bankAccount) {
-        setBankForm({
-          bankName: data.company.bankAccount.bankName || "",
-          accountNumber: data.company.bankAccount.accountNumber || "",
-          accountName: data.company.bankAccount.accountName || "",
-          branch: data.company.bankAccount.branch || "",
-          swiftCode: data.company.bankAccount.swiftCode || "",
-          iban: data.company.bankAccount.iban || "",
-        });
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load settings data");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
+    if (!settings) return;
+    const { company } = settings;
+    setProfileForm({
+      name: company.name || "",
+      email: company.email || "",
+      phone: company.phone || "",
+      website: company.website || "",
+      description: company.description || "",
+    });
+
+    setLegalForm({
+      businessType: company.businessType || "SOLE_PROPRIETORSHIP",
+      registrationNumber: company.registrationNumber || "",
+      taxId: company.taxId || "",
+      yearEstablished: company.yearEstablished?.toString() || "",
+    });
+
+    if (company.bankAccount) {
+      setBankForm({
+        bankName: company.bankAccount.bankName || "",
+        accountNumber: company.bankAccount.accountNumber || "",
+        accountName: company.bankAccount.accountName || "",
+        branch: company.bankAccount.branch || "",
+        swiftCode: company.bankAccount.swiftCode || "",
+        iban: company.bankAccount.iban || "",
+      });
+    }
+  }, [settings]);
 
   // Handle Save Company Profile
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const updated = await updateCompany({
+      await updateCompanyMutation.mutateAsync({
         name: profileForm.name,
         email: profileForm.email,
         phone: profileForm.phone,
         website: profileForm.website || null,
         description: profileForm.description || null,
       });
-      setSettings((prev) =>
-        prev ? { ...prev, company: { ...prev.company, ...updated } } : null,
-      );
       toast.success("Company profile updated successfully");
       setActiveDrawer(null);
     } catch (err: any) {
@@ -168,7 +176,7 @@ export function OperatorSettingsView() {
     e.preventDefault();
     setSaving(true);
     try {
-      const updated = await updateCompany({
+      await updateCompanyMutation.mutateAsync({
         businessType: legalForm.businessType as any,
         registrationNumber: legalForm.registrationNumber,
         taxId: legalForm.taxId,
@@ -176,9 +184,6 @@ export function OperatorSettingsView() {
           ? parseInt(legalForm.yearEstablished, 10)
           : null,
       });
-      setSettings((prev) =>
-        prev ? { ...prev, company: { ...prev.company, ...updated } } : null,
-      );
       toast.success("Legal business details updated successfully");
       setActiveDrawer(null);
     } catch (err: any) {
@@ -193,7 +198,7 @@ export function OperatorSettingsView() {
     e.preventDefault();
     setSaving(true);
     try {
-      const updated = await updateBank({
+      await updateBankMutation.mutateAsync({
         bankName: bankForm.bankName,
         accountNumber: bankForm.accountNumber,
         accountName: bankForm.accountName,
@@ -201,14 +206,6 @@ export function OperatorSettingsView() {
         swiftCode: bankForm.swiftCode || null,
         iban: bankForm.iban || null,
       });
-      setSettings((prev) =>
-        prev
-          ? {
-              ...prev,
-              company: { ...prev.company, bankAccount: updated },
-            }
-          : null,
-      );
       toast.success("Settlement bank details updated successfully");
       setActiveDrawer(null);
     } catch (err: any) {
@@ -230,13 +227,11 @@ export function OperatorSettingsView() {
     setUploadProgress(0);
 
     try {
-      // Decoupled storage adapter call
       const fileUrl = await storageAdapter.uploadFile(file, (pct) => {
         setUploadProgress(pct);
       });
 
-      // Save document meta to database
-      const newDoc = await addDocument({
+      await addDocumentMutation.mutateAsync({
         type,
         fileName: file.name,
         fileUrl,
@@ -244,17 +239,6 @@ export function OperatorSettingsView() {
         mimeType: file.type || "application/pdf",
       });
 
-      setSettings((prev) =>
-        prev
-          ? {
-              ...prev,
-              company: {
-                ...prev.company,
-                documents: [...prev.company.documents, newDoc],
-              },
-            }
-          : null,
-      );
       toast.success(`${type.replace("_", " ")} uploaded successfully`);
     } catch (err: any) {
       toast.error(err.message || "Failed to upload document");
@@ -272,18 +256,7 @@ export function OperatorSettingsView() {
     if (!confirmDelete) return;
 
     try {
-      await deleteDocument(id);
-      setSettings((prev) =>
-        prev
-          ? {
-              ...prev,
-              company: {
-                ...prev.company,
-                documents: prev.company.documents.filter((d) => d.id !== id),
-              },
-            }
-          : null,
-      );
+      await deleteDocumentMutation.mutateAsync({ id });
       toast.success("Document deleted");
     } catch (err: any) {
       toast.error(err.message || "Failed to delete document");
@@ -298,11 +271,8 @@ export function OperatorSettingsView() {
     try {
       toast.loading("Uploading logo...", { id: "logo-upload" });
       const fileUrl = await storageAdapter.uploadFile(file);
-      const updated = await updateCompany({ logoUrl: fileUrl });
+      await updateCompanyMutation.mutateAsync({ logoUrl: fileUrl });
 
-      setSettings((prev) =>
-        prev ? { ...prev, company: { ...prev.company, ...updated } } : null,
-      );
       toast.success("Company logo updated successfully", { id: "logo-upload" });
     } catch (err: any) {
       toast.error(err.message || "Failed to upload logo", {
@@ -315,10 +285,7 @@ export function OperatorSettingsView() {
   const handleLogoRemove = async () => {
     try {
       toast.loading("Removing logo...", { id: "logo-remove" });
-      const updated = await updateCompany({ logoUrl: "" });
-      setSettings((prev) =>
-        prev ? { ...prev, company: { ...prev.company, ...updated } } : null,
-      );
+      await updateCompanyMutation.mutateAsync({ logoUrl: "" });
       toast.success("Company logo removed", { id: "logo-remove" });
     } catch (err: any) {
       toast.error(err.message || "Failed to remove logo", {
@@ -327,15 +294,8 @@ export function OperatorSettingsView() {
     }
   };
 
-  if (loading || !settings) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Spinner className="size-8" />
-        <p className="text-sm font-semibold text-muted-foreground">
-          Loading company settings...
-        </p>
-      </div>
-    );
+  if (!settings) {
+    return null;
   }
 
   const { company } = settings;
@@ -356,7 +316,9 @@ export function OperatorSettingsView() {
     },
     {
       label: "Operating Permit uploaded",
-      done: company.documents.some((d) => d.type === "OPERATING_PERMIT"),
+      done: company.documents.some(
+        (d) => d.type === "TRANSPORT_OPERATING_PERMIT",
+      ),
     },
   ];
   const completedCount = checklist.filter((c) => c.done).length;
@@ -372,7 +334,7 @@ export function OperatorSettingsView() {
           <div
             className={cn(
               "w-2.5 h-2.5 rounded-full animate-pulse",
-              company.status === "APPROVED"
+              company.status === "VERIFIED"
                 ? "bg-emerald-500"
                 : company.status === "PENDING_VERIFICATION"
                   ? "bg-amber-500"
@@ -405,18 +367,19 @@ export function OperatorSettingsView() {
                   });
                   // Simulate complete
                   await fetch(
-                    `${API_BASE}/api/v1/operator/onboarding/complete`,
+                    `${process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:4000"}/api/v1/operator/onboarding/complete`,
                     {
                       method: "POST",
-                      headers: getHeaders(),
+                      headers: { "Content-Type": "application/json" },
                       credentials: "include",
                     },
                   );
-                  await loadSettings();
-                  toast.success(
-                    "Submitted for admin verification successfully",
-                    { id: "submit-verification" },
+                  await queryClient.invalidateQueries(
+                    trpc.operator.getSettings.queryFilter(),
                   );
+                  toast.success("Verification request submitted", {
+                    id: "submit-verification",
+                  });
                 } catch (err: any) {
                   toast.error(err.message || "Failed to submit", {
                     id: "submit-verification",
@@ -1134,7 +1097,7 @@ export function OperatorSettingsView() {
 
                     {/* Step 4: Admin Review */}
                     <div className="relative">
-                      {company.status === "APPROVED" ? (
+                      {company.status === "VERIFIED" ? (
                         <>
                           <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-emerald-500 text-emerald-500">
                             <CheckCircle2 className="size-3.5 fill-white" />
@@ -1183,7 +1146,7 @@ export function OperatorSettingsView() {
 
                     {/* Step 5: Approval */}
                     <div className="relative">
-                      {company.status === "APPROVED" ? (
+                      {company.status === "VERIFIED" ? (
                         <>
                           <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-emerald-500 text-emerald-500">
                             <ShieldCheck className="size-3.5 text-emerald-500" />

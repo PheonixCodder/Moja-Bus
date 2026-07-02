@@ -10,7 +10,9 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Terminal } from "@/features/operator/api/routes";
+import type { RouterOutputs } from "@/trpc/client";
+
+type Terminal = RouterOutputs["terminals"]["list"][number];
 
 // Fix Leaflet default icon paths broken by webpack/turbopack
 delete (L.Icon.Default.prototype as any)._getIconUrl;

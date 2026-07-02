@@ -70,13 +70,13 @@ Each phase delivers **shippable value**:
 #### Sprint 2.1 - Search API & Contract
 | Task | Status | Priority |
 |------|--------|----------|
-| Define search API endpoint (`GET /api/v1/trips/search`) | ⏳ | High |
-| Define request schema (from, to, date, filters) | ⏳ | High |
-| Define response schema (trip list with metadata) | ⏳ | High |
+| Define search tRPC query (`trips.search`) | ⏳ | High |
+| Define request input schema (from, to, date, filters) | ⏳ | High |
+| Define response output schema (trip list with metadata) | ⏳ | High |
 | Define sorting options (price, departure, duration, rating) | ⏳ | High |
 | Define filtering options (bus type, amenities, price range) | ⏳ | Medium |
-| Implement Zod schemas for search | ⏳ | High |
-| Create API client types for search | ⏳ | Medium |
+| Implement Zod schemas for search inputs/outputs | ⏳ | High |
+| Create tRPC hooks and types for search client | ⏳ | Medium |
 
 #### Sprint 2.2 - Search Backend
 | Task | Status | Priority |
@@ -117,9 +117,9 @@ Each phase delivers **shippable value**:
 | Task | Status | Priority |
 |------|--------|----------|
 | Define route schema | ⏳ | High |
-| Implement route CRUD API | ⏳ | High |
+| Implement route CRUD tRPC procedures | ⏳ | High |
 | Define schedule schema | ⏳ | High |
-| Implement schedule CRUD API | ⏳ | High |
+| Implement schedule CRUD tRPC procedures | ⏳ | High |
 | Create route creation UI | ⏳ | Medium |
 | Create schedule creation UI | ⏳ | Medium |
 | Create route list view | ⏳ | Medium |
@@ -151,8 +151,8 @@ Each phase delivers **shippable value**:
 |------|--------|----------|
 | Define bus schema | ⏳ | High |
 | Define seat schema | ⏳ | High |
-| Implement bus CRUD API | ⏳ | High |
-| Implement seat management API | ⏳ | High |
+| Implement bus CRUD tRPC procedures | ⏳ | High |
+| Implement seat management tRPC procedures | ⏳ | High |
 | Create seat layout editor | ⏳ | Medium |
 | Create bus list view | ⏳ | Medium |
 | Create bus detail view | ⏳ | Medium |
@@ -258,7 +258,7 @@ Each phase delivers **shippable value**:
 | Task | Status | Priority |
 |------|--------|----------|
 | Define staff schema | ⏳ | Medium |
-| Implement staff CRUD API | ⏳ | Medium |
+| Implement staff CRUD tRPC procedures | ⏳ | Medium |
 | Create staff list view | ⏳ | Medium |
 | Create staff creation form | ⏳ | Medium |
 | Implement role-based permissions | ⏳ | Medium |
@@ -557,7 +557,7 @@ Each feature must pass these gates before merging:
 
 2. **Testing**
    - ✅ Unit tests for business logic
-   - ✅ Integration tests for API endpoints
+   - ✅ Integration tests for tRPC procedures / API endpoints
    - ✅ E2E tests for user flows
    - ✅ All tests pass
 
@@ -567,7 +567,7 @@ Each feature must pass these gates before merging:
    - ✅ Performance review for heavy features
 
 4. **Documentation**
-   - ✅ API endpoints documented
+   - ✅ tRPC procedures / API endpoints documented
    - ✅ Complex logic documented
    - ✅ Decisions documented in context files
 

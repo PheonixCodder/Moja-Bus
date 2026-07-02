@@ -154,7 +154,9 @@ export function ProfileStep({
               <PhoneInput
                 id="personal-phone"
                 value={personalPhone}
-                onChange={(val) => setPersonalPhone(val || "")}
+                onChange={(val: string | undefined) =>
+                  setPersonalPhone(val || "")
+                }
                 placeholder="Enter personal phone"
               />
             </div>
@@ -324,7 +326,9 @@ export function ProfileStep({
                 <PhoneInput
                   id="emergency-phone"
                   value={emergencyContactPhone}
-                  onChange={(val) => setEmergencyContactPhone(val || "")}
+                  onChange={(val: string | undefined) =>
+                    setEmergencyContactPhone(val || "")
+                  }
                   placeholder="Emergency contact phone"
                 />
               </div>

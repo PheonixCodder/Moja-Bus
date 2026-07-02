@@ -2,6 +2,7 @@ import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { OperatorRoutesView } from "@/features/operator/views/operator-routes-view";
 import { OperatorQuickActions } from "@/features/operator/components/operator-quick-actions";
+import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 
 export const metadata = {
   title: "Routes — Moja Ride Operator",
@@ -9,9 +10,12 @@ export const metadata = {
     "Create and manage intercity bus routes, stop sequences, and waypoint timing.",
 };
 
-export default function RoutesPage() {
+export default async function RoutesPage() {
+  await prefetch(trpc.routes.list.queryOptions());
+  await prefetch(trpc.terminals.list.queryOptions());
+
   return (
-    <>
+    <HydrateClient>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-bg-base px-4">
         <SidebarTrigger className="text-text-muted hover:text-text-primary" />
         <Separator orientation="vertical" className="h-4 bg-border" />
@@ -23,6 +27,6 @@ export default function RoutesPage() {
         <OperatorQuickActions />
       </header>
       <OperatorRoutesView />
-    </>
+    </HydrateClient>
   );
 }

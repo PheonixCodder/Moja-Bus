@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
@@ -15,8 +17,6 @@ import {
 } from "@moja/ui/components/ui/card";
 import { Plus, Trash2, MapPin, Phone, User, Clock, Flag } from "lucide-react";
 import { type LocationsStepInput } from "@moja/schemas";
-import { getCities } from "../../api/routes";
-import type { City } from "../../api/routes";
 import {
   Combobox,
   ComboboxInput,
@@ -60,7 +60,10 @@ export function LocationsStep({
   onBack,
   isSaving,
 }: LocationsStepProps) {
-  const [cities, setCities] = useState<City[]>([]);
+  const trpc = useTRPC();
+  const { data: cities } = useSuspenseQuery(
+    trpc.routes.getCities.queryOptions(),
+  );
   const [locations, setLocations] = useState<LocationItem[]>([
     {
       id: crypto.randomUUID(),
@@ -83,13 +86,6 @@ export function LocationsStep({
       isActive: true,
     },
   ]);
-
-  // Load CI cities
-  useEffect(() => {
-    getCities()
-      .then(setCities)
-      .catch((err) => console.error("Failed to load cities", err));
-  }, []);
 
   // Pre-fill form if initialData exists
   useEffect(() => {
