@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getOnboardingSnapshot } from "../api/onboarding";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import {
   Building2,
   ShieldCheck,
@@ -12,31 +12,12 @@ import {
 } from "lucide-react";
 
 export function OperatorDashboardView() {
-  const [operatorData, setOperatorData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const trpc = useTRPC();
+  const { data } = useSuspenseQuery(
+    trpc.operator.getOnboardingStatus.queryOptions(),
+  );
 
-  useEffect(() => {
-    getOnboardingSnapshot()
-      .then((data) => {
-        setOperatorData(data.operator);
-        setIsLoading(false);
-      })
-      .catch(() => {
-        setIsLoading(false);
-      });
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-semibold text-muted-foreground">
-          Loading dashboard...
-        </p>
-      </div>
-    );
-  }
-
+  const operatorData = data?.operator;
   const company = operatorData?.company;
 
   return (

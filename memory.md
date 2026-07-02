@@ -14,18 +14,17 @@
 - Tracked operator onboarding lifecycle using the database (on the `Operator` model) with status enum (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`).
 - Secured operator dashboard `/dashboard/operator` and onboarding route `/dashboard/operator/onboarding` using Next.js server-side page guards.
 - Cleaned up the folder structures by moving onboarding components, API calls, hooks, and views into a separated feature module `apps/web/features/operator`.
-- Removed old route-based page files and components.
+- Completely shifted from `apps/api` to `apps/web` (Next.js serverless API routes with tRPC procedure queries/mutations) and planning for total removal of the deprecated Express server in future phases.
+- Shifted the database schema, migrations, and prisma client instantiator completely to `packages/db`.
 
 ## Next Step
-- Implement the passenger search API endpoint (`GET /api/v1/trips/search`) and build the web and mobile passenger search UIs (Phase 2 Discovery & Search).
+- Implement the passenger search tRPC procedure query (`trips.search`) and build the web and mobile passenger search UIs (Phase 2 Discovery & Search).
 
 ## Session Note
-- Replaced all legacy Select components across all operator views (onboarding, fleet, schedules, dispatcher trips, terminals) with searchable Combobox components.
-- Upgraded onboarding locations step city field to query CI cities dynamically from the database and updated the backend routes and Zod schemas to map and save `cityId`.
-- Upgraded the schedule wizard date picker inputs to use Popover-based shadcn Calendars (`@moja/ui/components/ui/calendar`).
-- Unified workspace formatting using Biome and verified successful TS typecheck builds.
-- Fixed 5 critical database mutation discrepancies (methods, paths, properties, and date/enum validation schemas) between the web client and backend API.
-- Completely removed placeholder Driver assignments/IDs from the Trip database table, models, schemas, and UI (saving layout DRIVER_AREA).
-- Implemented a Stripe/Vercel-style Company Settings (Control Center) view and routes supporting Profile forms, bank details, compliance document cards (decoupled upload adapter), a vertical verification pipeline, and a Company Health progress card.
-- Mounted settings page at `/dashboard/operator/settings` and integrated a real-time verification status badge into the operator sidebar header.
+- Aligned all workspace context files (`architecture.md`, `build-plan.md`, `code-standards.md`, `library-docs.md`, `ui-registry.md`, `progress-tracker.md`) to reflect the new tRPC procedure API layer, the centralization of database management in `packages/db`, and deprecation of the Express REST API.
+- Deduplicated the page headers in all 10 passenger and operator auth views inside `apps/web/features/auth/views` by introducing a shared `AuthHeader` component. Applied the premium pill-badge style from `operator-signup-view.tsx` ("for Business" / "Passenger Portal") universally.
+- Fixed the `UNAUTHORIZED` error on accepting staff invitations. Changed the tRPC `invitation.accept` procedure to `publicProcedure`, which updates the user's `emailVerified` to `true` and upgrades their role to `OPERATOR` inside a transaction. Updated the React `InvitationView` handler to perform registration, accept the invitation, and then sign in sequentially.
+- Fixed a type error in `apps/web/app/invite/page.tsx` related to `resolvedSearchParams` index signatures.
+- Fixed workspace formatting using Biome (`pnpm format`).
+- Verified that all workspace packages and apps build cleanly via TypeScript checks, save for pre-existing configuration type mismatches.
 

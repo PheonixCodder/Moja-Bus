@@ -76,16 +76,16 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import type {
-  Route as RouteType,
-  Terminal,
-} from "@/features/operator/api/routes";
+import { useTRPC } from "@/trpc/client";
 import {
-  getRoutes,
-  getTerminals,
-  createRoute,
-  deleteRoute,
-} from "@/features/operator/api/routes";
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type { RouterOutputs } from "@/trpc/client";
+
+type RouteType = RouterOutputs["routes"]["list"][number];
+type Terminal = RouterOutputs["terminals"]["list"][number];
 
 // Leaflet loaded only on client (no SSR)
 const RouteMapPreview = dynamic(
@@ -480,6 +480,10 @@ function RouteFormDrawer({
       ? waypoints[waypoints.length - 1]!.offsetMinutes + 60
       : undefined;
 
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const createMutation = useMutation(trpc.routes.create.mutationOptions());
+
   async function handleSave() {
     if (!name.trim()) {
       toast.error("Route name is required");
@@ -498,33 +502,32 @@ function RouteFormDrawer({
       return;
     }
 
-    setSaving(true);
-    try {
-      const payload: Parameters<typeof createRoute>[0] = {
-        name: name.trim(),
-        originTerminalId: originId,
-        destTerminalId: destId,
-        waypoints: waypoints.map((w, i) => ({
-          terminalId: w.terminalId,
-          stopOrder: i + 1,
-          offsetMinutes: w.offsetMinutes,
-          allowPickup: w.allowPickup,
-          allowDropoff: w.allowDropoff,
-        })),
-      };
-      if (distanceKm) payload.distanceKm = parseFloat(distanceKm);
-      if (estimatedDuration) payload.estimatedDurationMin = estimatedDuration;
-      const route = await createRoute(payload);
-      toast.success(`Route "${route.name}" created`);
-      onCreated(route);
-      resetForm();
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to create route",
-      );
-    } finally {
-      setSaving(false);
-    }
+    const payload: any = {
+      name: name.trim(),
+      originTerminalId: originId,
+      destTerminalId: destId,
+      waypoints: waypoints.map((w, i) => ({
+        terminalId: w.terminalId,
+        stopOrder: i + 1,
+        offsetMinutes: w.offsetMinutes,
+        allowPickup: w.allowPickup,
+        allowDropoff: w.allowDropoff,
+      })),
+    };
+    if (distanceKm) payload.distanceKm = parseFloat(distanceKm);
+    if (estimatedDuration) payload.estimatedDurationMin = estimatedDuration;
+
+    createMutation.mutate(payload, {
+      onSuccess: (route) => {
+        toast.success(`Route "${route.name}" created`);
+        onCreated(route as any);
+        resetForm();
+        queryClient.invalidateQueries(trpc.routes.list.pathFilter());
+      },
+      onError: (err) => {
+        toast.error(err.message || "Failed to create route");
+      },
+    });
   }
 
   function resetForm() {
@@ -820,10 +823,12 @@ function RouteFormDrawer({
           <Button
             className="flex-1"
             onClick={handleSave}
-            disabled={saving || !name || !originId || !destId}
+            disabled={createMutation.isPending || !name || !originId || !destId}
           >
-            {saving ? <Spinner className="size-4 mr-2" /> : null}
-            {saving ? "Saving…" : "Create Route"}
+            {createMutation.isPending ? (
+              <Spinner className="size-4 mr-2" />
+            ) : null}
+            {createMutation.isPending ? "Saving…" : "Create Route"}
           </Button>
         </DrawerFooter>
       </DrawerContent>
@@ -846,23 +851,26 @@ function DeleteRouteDialog({
   onClose: () => void;
   onDeleted: (id: string) => void;
 }) {
-  const [loading, setLoading] = useState(false);
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation(trpc.routes.delete.mutationOptions());
 
-  async function handleDelete() {
+  function handleDelete() {
     if (!route) return;
-    setLoading(true);
-    try {
-      await deleteRoute(route.id);
-      toast.success(`Route "${route.name}" deleted`);
-      onDeleted(route.id);
-      onClose();
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to delete route",
-      );
-    } finally {
-      setLoading(false);
-    }
+    deleteMutation.mutate(
+      { id: route.id },
+      {
+        onSuccess: () => {
+          toast.success(`Route "${route.name}" deleted`);
+          onDeleted(route.id);
+          onClose();
+          queryClient.invalidateQueries(trpc.routes.list.pathFilter());
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to delete route");
+        },
+      },
+    );
   }
 
   return (
@@ -883,16 +891,22 @@ function DeleteRouteDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={deleteMutation.isPending}
+          >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={handleDelete}
-            disabled={loading}
+            disabled={deleteMutation.isPending}
           >
-            {loading ? <Spinner className="size-4 mr-2" /> : null}
-            {loading ? "Deleting…" : "Delete Route"}
+            {deleteMutation.isPending ? (
+              <Spinner className="size-4 mr-2" />
+            ) : null}
+            {deleteMutation.isPending ? "Deleting…" : "Delete Route"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -947,38 +961,32 @@ function SuccessPanel({
 
 export function OperatorRoutesView() {
   const searchParams = useSearchParams();
+  const trpc = useTRPC();
+  const { data: routesData } = useSuspenseQuery(
+    trpc.routes.list.queryOptions(),
+  );
+  const { data: terminalsData } = useSuspenseQuery(
+    trpc.terminals.list.queryOptions(),
+  );
+
   const [routes, setRoutes] = useState<RouteType[]>([]);
   const [terminals, setTerminals] = useState<Terminal[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deletingRoute, setDeletingRoute] = useState<RouteType | null>(null);
   const [successRoute, setSuccessRoute] = useState<RouteType | null>(null);
+
+  // Sync state with suspense queries
+  useEffect(() => {
+    setRoutes(routesData);
+    setTerminals(terminalsData);
+  }, [routesData, terminalsData]);
 
   useEffect(() => {
     if (searchParams && searchParams.get("action") === "new") {
       setDrawerOpen(true);
     }
   }, [searchParams]);
-
-  const loadData = useCallback(async () => {
-    try {
-      const [routeData, terminalData] = await Promise.all([
-        getRoutes(),
-        getTerminals(),
-      ]);
-      setRoutes(Array.isArray(routeData) ? routeData : []);
-      setTerminals(Array.isArray(terminalData) ? terminalData : []);
-    } catch {
-      toast.error("Failed to load routes");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
 
   function handleCreated(route: RouteType) {
     setRoutes((prev) => [route, ...prev]);
@@ -1002,15 +1010,6 @@ export function OperatorRoutesView() {
         ?.toLowerCase()
         .includes(search.toLowerCase()),
   );
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Spinner className="size-6 text-primary" />
-        <p className="text-sm text-muted-foreground">Loading routes…</p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-full">

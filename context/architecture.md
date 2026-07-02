@@ -19,12 +19,12 @@ Moja Ride is a **multi-application, two-sided marketplace platform** with a **se
 ### Backend
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| API Server | Express 5.x | REST API, WebSocket support |
-| ORM | Prisma 7 | Database access, migrations |
+| API Server | Next.js tRPC Router | Unified server procedures API layer |
+| ORM | Prisma 7 | Database access (located in `packages/db`) |
 | Database | PostgreSQL | Primary data storage |
 | Cache | Redis (ioredis) | Session storage, rate limiting |
-| Auth | Better Auth | Authentication, sessions |
-| Validation | Zod 4 | Request/response validation |
+| Auth | Better Auth | Authentication, sessions (managed in `apps/web/lib/auth-server`) |
+| Validation | Zod 4 | Request/response/procedure input validation |
 | File Storage | Local/S3 | Bus images, documents |
 | Real-time | Socket.io | Live updates (optional) |
 
@@ -58,9 +58,12 @@ moja-buss/
 │   │   │   └── types/          # TypeScript types
 │   │   └── package.json
 │   │
-│   ├── web/                    # Passenger Web + Operator Portal
+│   ├── web/                    # Passenger Web + Operator Portal + tRPC API Server
 │   │   ├── app/
 │   │   │   ├── (auth)/         # Public auth pages
+│   │   │   ├── api/
+│   │   │   │   ├── auth/[...all] # Better Auth endpoint
+│   │   │   │   └── trpc/[trpc]   # tRPC endpoint
 │   │   │   ├── dashboard/      # Operator dashboard
 │   │   │   │   ├── bookings/   # Booking management
 │   │   │   │   ├── fleet/      # Fleet management
@@ -70,25 +73,14 @@ moja-buss/
 │   │   │   │   └── settings/   # Operator settings
 │   │   │   ├── search/         # Public trip search
 │   │   │   └── layout.tsx
+│   │   ├── trpc/               # tRPC setup and router procedures
+│   │   │   ├── routers/        # individual routers (fleet, trips, routes, etc.)
+│   │   │   ├── client.tsx      # React/Client wrapper
+│   │   │   ├── server.tsx      # Server-side caller
+│   │   │   └── init.ts         # tRPC initialization
 │   │   └── package.json
 │   │
-│   └── api/                    # Backend API Server
-│       ├── src/
-│       │   ├── config/         # Configuration
-│       │   ├── routes/         # API routes
-│       │   │   ├── auth/       # Authentication
-│       │   │   ├── users/      # User management
-│       │   │   ├── operators/  # Operator management
-│       │   │   ├── bookings/   # Booking operations
-│       │   │   ├── trips/      # Trip management
-│       │   │   ├── fleets/     # Fleet management
-│       │   │   ├── routes/     # Route management
-│       │   │   └── payments/   # Payment processing
-│       │   ├── services/       # Business logic
-│       │   ├── repositories/   # Database access
-│       │   └── middleware/     # Express middleware
-│       └── prisma/
-│           └── schema.prisma
+│   └── api/                    # Legacy REST API (DEPRECATED - Planning for removal)
 │
 ├── packages/
 │   ├── ui/                     # Shared UI components (shadcn)
@@ -96,8 +88,13 @@ moja-buss/
 │   ├── theme/                  # Design system (tokens, colors)
 │   ├── auth/                   # Authentication utilities
 │   ├── schemas/                # Zod validation schemas
-│   ├── db/                     # Database client
-│   ├── api-client/             # API client for frontend
+│   ├── db/                     # Database client (Prisma Schema & Client Client Creator)
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma   # Single Prisma schema
+│   │   │   └── seed.ts         # Seed script
+│   │   └── src/
+│   │       └── index.ts        # getPrismaClient() wrapper
+│   ├── api-client/             # API client for frontend (Legacy fetch client)
 │   ├── shared/                 # Shared utilities
 │   └── config/                 # Configuration
 │
@@ -125,69 +122,42 @@ moja-buss/
 
 ## API Design
 
-### REST API Structure
-**Base URL**: `/api/v1`
+### tRPC API Structure
+The server API is built using **tRPC procedures** exposed via `apps/web` under `/api/trpc`. Procedures are grouped under namespaces corresponding to domains.
 
-#### Auth
-- `POST /auth/register` - Passenger registration
-- `POST /auth/register/operator` - Operator registration
-- `POST /auth/login` - Login
-- `POST /auth/logout` - Logout
-- `POST /auth/refresh` - Refresh token
-- `POST /auth/verify-otp` - OTP verification
-- `GET /auth/me` - Current user
+#### Auth (Better Auth Endpoints under `/api/auth`)
+Better Auth handles the authentication endpoints natively:
+- `signUp.email` / `signIn.email` / `signOut` / `verifyEmail` / `sendVerificationEmail`
 
-#### Trips & Search
-- `GET /trips/search` - Search trips (from, to, date)
-- `GET /trips/:id` - Trip details
-- `GET /trips/:id/seats` - Seat availability
+#### Trips (`trips` router)
+- `trips.list` - Query trips filterable by status, route, and date
+- `trips.byId` - Query details for a specific trip (manifest, seat maps)
+- `trips.assignBus` - Mutation to update bus assignment on a trip
+- `trips.delay` - Mutation to log delays in minutes
+- `trips.cancel` - Mutation to cancel a single trip run
+- `trips.updateStatus` - Mutation to progress trip lifecycle (BOARDING -> DEPARTED -> ARRIVED)
 
-#### Bookings
-- `POST /bookings` - Create booking
-- `GET /bookings/me` - My bookings
-- `GET /bookings/:id` - Booking details
-- `POST /bookings/:id/cancel` - Cancel booking
+#### Fleet (`fleet` router)
+- `fleet.addBus` - Mutation to register a new bus
+- `fleet.list` - Query all buses for the operator
+- `fleet.busTypes` - Query standard bus templates
+- `fleet.layouts` - Query seat layout templates
 
-#### Operators
-- `POST /operators` - Register company
-- `GET /operators/me` - My company
-- `PUT /operators/me` - Update company
+#### Routes & Waypoints (`routes` router)
+- `routes.create` - Mutation to define a route and stops
+- `routes.list` - Query routes list
+- `routes.cities` - Query seeded Ivory Coast cities
+- `routes.terminals` - Query operator bookable terminals
 
-#### Fleet
-- `POST /buses` - Add bus
-- `GET /buses` - List buses
-- `GET /buses/:id` - Bus details
+#### Schedules (`schedules` router)
+- `schedules.create` - Mutation to create recurring/one-time schedules (triggers 14-day trip generator)
+- `schedules.list` - Query schedules
+- `schedules.addException` - Mutation to cancel/modify trips inside a range
 
-#### Routes
-- `POST /routes` - Create route
-- `GET /routes` - List routes
-- `GET /routes/:id` - Route details
-
-#### Schedules
-- `POST /schedules` - Create schedule
-- `GET /schedules` - List schedules
-
-### Response Structure
-```typescript
-// Success
-{
-  data: any,
-  meta?: {
-    total: number,
-    page: number,
-    limit: number
-  }
-}
-
-// Error
-{
-  error: {
-    code: string,
-    message: string,
-    details?: any
-  }
-}
-```
+#### Staff (`staff` router)
+- `staff.list` - Query operator company staff list
+- `staff.create` - Mutation to invite/add new staff member
+- `staff.updateRole` - Mutation to change staff roles
 
 ---
 
@@ -195,32 +165,31 @@ moja-buss/
 
 ### Core Principles
 
-1. **Apps Never Talk to Database Directly**
-   - All database access MUST go through `apps/api`
-   - No direct Prisma imports in frontend apps
+1. **Apps Never Instantiate Prisma Directly**
+   - Database access is managed exclusively by `@moja/db` through the `getPrismaClient()` helper.
+   - Client components and client-side code must NEVER import `@moja/db` or the Prisma client directly.
 
-2. **API Owns Business Logic**
-   - `apps/api` owns persistence, authorization, payment orchestration
-   - Business rules and validations live in the API
+2. **tRPC Server Procedures Contain Business Logic**
+   - Next.js server-side procedures inside `apps/web/trpc/routers` act as the database gateway and own authorization checks, transaction orchestration, validation, and business logic.
+   - The Express application (`apps/api`) is deprecated and is no longer the API gateway.
 
 3. **Shared Packages Stay Platform-Neutral**
-   - No React Native code in web packages
-   - No web-specific code in mobile packages
+   - No React Native code in web packages.
+   - No web-specific code in mobile packages.
 
 4. **Separation of Concerns**
-   - UI components in `components/`
-   - Business logic in `services/`
-   - Database access in `repositories/`
-   - Validation in schemas
+   - UI views and forms inside React client files.
+   - Procedure definitions and schema validations (Zod) in tRPC routers and `@moja/schemas`.
+   - Data mutations wrapped in transactions inside tRPC procedures.
 
 5. **Data Flow**
    ```
-   Frontend → API Client → API Routes → Services → Repositories → Database
+   Client View Component → tRPC Hooks Client → tRPC Router Endpoint (apps/web) → DB Client (@moja/db) → PostgreSQL
    ```
 
 6. **Offline Support**
-   - Mobile app stores tickets locally
-   - Sync with server when connection restored
+   - Mobile app stores tickets locally.
+   - Sync with server when connection restored.
 
 ---
 
@@ -280,14 +249,13 @@ The API is organized into domain-specific services:
 ## Deployment Architecture
 
 ### Development
-- `apps/app/` → Expo Dev Server (port 19000-19006)
-- `apps/web/` → Next.js Dev Server (port 3000)
-- `apps/api/` → Express Server (port 4000)
+- `apps/app/` → Expo Dev Server (port 8081 / default expo ports)
+- `apps/web/` → Next.js Dev Server (port 3000) - hosts both UI and tRPC/Better-Auth endpoints
+- `apps/api/` → Express Server (port 4000) (DEPRECATED - Planning for removal)
 
 ### Production
-- `apps/web/` → Vercel (Edge Network)
+- `apps/web/` → Vercel (Edge/Serverless functions hosting UI pages + tRPC endpoints + Better-Auth handler)
 - `apps/app/` → Expo EAS (iOS & Android)
-- `apps/api/` → Railway/EC2 (Auto-scaled)
 - Database → PlanetScale/Neon (Serverless PostgreSQL)
 - Cache → Upstash Redis
 - File Storage → AWS S3 / Cloudflare R2

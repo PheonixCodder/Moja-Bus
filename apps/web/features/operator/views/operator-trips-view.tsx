@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Radio,
   ArrowRight,
@@ -55,17 +55,17 @@ import {
   EmptyTitle,
 } from "@moja/ui/components/ui/empty";
 
-import type { Trip, TripStatus } from "@/features/operator/api/trips";
+import { useTRPC } from "@/trpc/client";
 import {
-  getTrips,
-  getTripDetail,
-  assignBusDriver,
-  logDelay,
-  cancelTrip,
-  startBoarding,
-} from "@/features/operator/api/trips";
-import type { Bus as BusType } from "@/features/operator/api/fleet";
-import { getBuses } from "@/features/operator/api/fleet";
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type { RouterOutputs } from "@/trpc/client";
+
+type Trip = RouterOutputs["trips"]["list"][number];
+type TripStatus = Trip["status"];
+type BusType = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 
 // ──────────────────────────────────────────────
 // Status config
@@ -105,8 +105,8 @@ const STATUS_CONFIG: Record<
     color: "text-red-600 bg-red-50 border-red-200",
     dot: "bg-red-500",
   },
-  COMPLETED: {
-    label: "Completed",
+  ARRIVED: {
+    label: "Arrived",
     icon: CheckCircle2,
     color: "text-slate-500 bg-slate-50 border-slate-200",
     dot: "bg-slate-300",
@@ -124,7 +124,7 @@ function formatTime(t: string) {
   return `${hour % 12 || 12}:${m} ${ampm}`;
 }
 
-function formatDate(d: string) {
+function formatDate(d: string | Date) {
   return new Date(d).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -135,7 +135,7 @@ function formatDate(d: string) {
 function groupTripsByDate(trips: Trip[]): [string, Trip[]][] {
   const map = new Map<string, Trip[]>();
   for (const trip of trips) {
-    const key = trip.departureDate.slice(0, 10);
+    const key = new Date(trip.departureDate).toISOString().slice(0, 10);
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(trip);
   }
@@ -307,104 +307,138 @@ function ManifestDrawer({
   buses: BusType[];
   onTripUpdate: (trip: Trip) => void;
 }) {
-  const [trip, setTrip] = useState<Trip | null>(null);
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const [tripData, setTripData] = useState<
+    RouterOutputs["trips"]["get"] | null
+  >(null);
   const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
   const [delayMinutes, setDelayMinutes] = useState("15");
   const [cancelReason, setCancelReason] = useState("");
   const [showDelayForm, setShowDelayForm] = useState(false);
   const [showCancelForm, setShowCancelForm] = useState(false);
 
+  const trip = tripData;
+
+  const assignBusMutation = useMutation({
+    ...trpc.trips.assignBusDriver.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
+      if (tripId) {
+        queryClient
+          .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
+          .then((data) => setTripData(data))
+          .catch(() => {});
+      }
+      toast.success("Bus assigned");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to assign bus"),
+  });
+
+  const updateStatusMutation = useMutation({
+    ...trpc.trips.updateStatus.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
+      if (tripId) {
+        queryClient
+          .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
+          .then((data) => setTripData(data))
+          .catch(() => {});
+      }
+    },
+    onError: (err: any) =>
+      toast.error(err.message || "Failed to update status"),
+  });
+
+  const delayMutation = useMutation({
+    ...trpc.trips.delay.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
+      if (tripId) {
+        queryClient
+          .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
+          .then((data) => setTripData(data))
+          .catch(() => {});
+      }
+      toast.success(`Delay logged`);
+      setShowDelayForm(false);
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to log delay"),
+  });
+
+  const cancelMutation = useMutation({
+    ...trpc.trips.cancel.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
+      if (tripId) {
+        queryClient
+          .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
+          .then((data) => setTripData(data))
+          .catch(() => {});
+      }
+      toast.success("Trip cancelled");
+      setShowCancelForm(false);
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to cancel trip"),
+  });
+
+  const actionLoading =
+    assignBusMutation.isPending ||
+    updateStatusMutation.isPending ||
+    delayMutation.isPending ||
+    cancelMutation.isPending;
+
   useEffect(() => {
     if (!tripId || !open) {
-      setTrip(null);
+      setTripData(null);
       return;
     }
     setLoading(true);
-    getTripDetail(tripId)
-      .then(setTrip)
+    queryClient
+      .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
+      .then((data) => setTripData(data))
       .catch(() => toast.error("Failed to load trip details"))
       .finally(() => setLoading(false));
   }, [tripId, open]);
 
-  async function handleAssignBus(busId: string) {
+  function handleAssignBus(busId: string) {
     if (!trip) return;
-    setActionLoading(true);
-    try {
-      const updated = await assignBusDriver(trip.id, { busId });
-      setTrip(updated);
-      onTripUpdate(updated);
-      toast.success("Bus assigned");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to assign bus");
-    } finally {
-      setActionLoading(false);
-    }
+    assignBusMutation.mutate({ id: trip.id, data: { busId } });
   }
 
-  async function handleStartBoarding() {
+  function handleStartBoarding() {
     if (!trip) return;
-    setActionLoading(true);
-    try {
-      const updated = await startBoarding(trip.id);
-      setTrip(updated);
-      onTripUpdate(updated);
-      toast.success("Boarding started");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to start boarding",
-      );
-    } finally {
-      setActionLoading(false);
-    }
+    updateStatusMutation.mutate(
+      { id: trip.id, status: "BOARDING" },
+      { onSuccess: () => toast.success("Boarding started") },
+    );
   }
 
-  async function handleLogDelay() {
+  function handleLogDelay() {
     if (!trip) return;
     const mins = parseInt(delayMinutes, 10);
     if (isNaN(mins) || mins <= 0) {
       toast.error("Enter a valid delay in minutes");
       return;
     }
-    setActionLoading(true);
-    try {
-      const updated = await logDelay(trip.id, { delayMinutes: mins });
-      setTrip(updated);
-      onTripUpdate(updated);
-      toast.success(`Delay of ${mins}m logged`);
-      setShowDelayForm(false);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to log delay");
-    } finally {
-      setActionLoading(false);
-    }
+    delayMutation.mutate({ id: trip.id, data: { delayMinutes: mins } });
   }
 
-  async function handleCancel() {
+  function handleCancel() {
     if (!trip || !cancelReason.trim()) {
       toast.error("Cancellation reason is required");
       return;
     }
-    setActionLoading(true);
-    try {
-      const updated = await cancelTrip(trip.id, {
-        cancelReason: cancelReason.trim(),
-      });
-      setTrip(updated);
-      onTripUpdate(updated);
-      toast.success("Trip cancelled");
-      setShowCancelForm(false);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to cancel trip");
-    } finally {
-      setActionLoading(false);
-    }
+    cancelMutation.mutate({
+      id: trip.id,
+      data: { cancelReason: cancelReason.trim() },
+    });
   }
 
   const isCancellable =
-    trip && !["CANCELLED", "COMPLETED", "DEPARTED"].includes(trip.status);
+    trip && !["CANCELLED", "ARRIVED", "DEPARTED"].includes(trip.status);
   const canBoard = trip?.status === "SCHEDULED";
-  const canDelay = trip && !["CANCELLED", "COMPLETED"].includes(trip.status);
+  const canDelay = trip && !["CANCELLED", "ARRIVED"].includes(trip.status);
 
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()} direction="right">
@@ -439,7 +473,7 @@ function ManifestDrawer({
             {/* Status */}
             <div className="flex items-center justify-between">
               <TripStatusBadge status={trip.status} />
-              {trip.delayMinutes > 0 && (
+              {(trip.delayMinutes ?? 0) > 0 && (
                 <span className="text-xs font-semibold text-amber-600">
                   +{trip.delayMinutes}m delay
                 </span>
@@ -561,7 +595,7 @@ function ManifestDrawer({
                     <span>Seat</span>
                     <span>Check-in</span>
                   </div>
-                  {trip.bookings!.map((b) => (
+                  {trip.bookings!.map((b: any) => (
                     <div
                       key={b.id}
                       className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2.5 border-b border-border last:border-b-0 items-center"
@@ -726,7 +760,17 @@ function TripCard({
   onTripUpdate: (trip: Trip) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [assignLoading, setAssignLoading] = useState(false);
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const assignBusMutation = useMutation({
+    ...trpc.trips.assignBusDriver.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
+      toast.success("Bus assigned");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to assign bus"),
+  });
 
   const route = trip.schedule?.route;
   const origin =
@@ -741,17 +785,8 @@ function TripCard({
     "—";
   const bus = trip.bus;
 
-  async function handleAssignBus(busId: string) {
-    setAssignLoading(true);
-    try {
-      const updated = await assignBusDriver(trip.id, { busId });
-      onTripUpdate(updated);
-      toast.success("Bus assigned");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to assign bus");
-    } finally {
-      setAssignLoading(false);
-    }
+  function handleAssignBus(busId: string) {
+    assignBusMutation.mutate({ id: trip.id, data: { busId } });
   }
 
   return (
@@ -828,12 +863,14 @@ function TripCard({
                   if (val) handleAssignBus(val);
                 }}
                 disabled={
-                  assignLoading ||
-                  ["CANCELLED", "COMPLETED"].includes(trip.status)
+                  assignBusMutation.isPending ||
+                  ["CANCELLED", "ARRIVED"].includes(trip.status)
                 }
               >
                 <ComboboxInput
-                  placeholder={assignLoading ? "Assigning..." : "Assign bus…"}
+                  placeholder={
+                    assignBusMutation.isPending ? "Assigning..." : "Assign bus…"
+                  }
                   className="w-full text-xs h-8"
                   value={
                     trip.busId
@@ -900,34 +937,30 @@ const STATUS_FILTERS: { value: string; label: string }[] = [
 ];
 
 export function OperatorTripsView() {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [buses, setBuses] = useState<BusType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [manifestTripId, setManifestTripId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadData = useCallback(async (showRefreshing = false) => {
-    if (showRefreshing) setRefreshing(true);
-    try {
-      const [tripData, busData] = await Promise.all([getTrips(), getBuses()]);
-      setTrips(Array.isArray(tripData) ? tripData : []);
-      setBuses(Array.isArray(busData.buses) ? busData.buses : []);
-    } catch {
-      toast.error("Failed to load dispatch board");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const { data: trips = [] } = useSuspenseQuery(trpc.trips.list.queryOptions());
+  const { data: busesData } = useSuspenseQuery(
+    trpc.fleet.getBuses.queryOptions(),
+  );
+  const buses = busesData?.buses ?? [];
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
+  function handleRefresh() {
+    setRefreshing(true);
+    queryClient
+      .invalidateQueries(trpc.trips.list.pathFilter())
+      .finally(() => setRefreshing(false));
+  }
 
-  function handleTripUpdate(updated: Trip) {
-    setTrips((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+  // handleTripUpdate is kept for compatibility with ManifestDrawer prop signature
+  function handleTripUpdate(_updated: Trip) {
+    // Invalidate queries to re-fetch fresh data
+    queryClient.invalidateQueries(trpc.trips.list.pathFilter());
   }
 
   const filteredTrips = trips.filter((t) => {
@@ -964,15 +997,6 @@ export function OperatorTripsView() {
   const boarding = trips.filter((t) => t.status === "BOARDING").length;
   const delayed = trips.filter((t) => t.status === "DELAYED").length;
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Spinner className="size-6 text-primary" />
-        <p className="text-sm text-muted-foreground">Loading dispatch board…</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-full">
       {/* Quick stats */}
@@ -1000,7 +1024,7 @@ export function OperatorTripsView() {
             variant="ghost"
             size="sm"
             className="h-7 text-xs gap-1.5"
-            onClick={() => loadData(true)}
+            onClick={() => handleRefresh()}
             disabled={refreshing}
           >
             <RefreshCw className={cn("size-3", refreshing && "animate-spin")} />

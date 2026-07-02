@@ -27,6 +27,7 @@ type PhoneInputProps = Omit<
 > &
   Omit<RPNInput.Props<typeof RPNInput.default>, "onChange"> & {
     onChange?: (value: RPNInput.Value) => void;
+    country?: RPNInput.Country;
   };
 
 const PhoneInput = React.forwardRef<
@@ -45,7 +46,7 @@ const PhoneInput = React.forwardRef<
       countrySelectComponent={CountrySelectComponent}
       inputComponent={InputComponent}
       smartCaret={false}
-      value={value || undefined}
+      {...(value ? { value: value as RPNInput.Value } : {})}
       /**
        * Handles the onChange event.
        *

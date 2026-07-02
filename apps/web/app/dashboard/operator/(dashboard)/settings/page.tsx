@@ -6,6 +6,14 @@ export const metadata = {
     "Manage company profile details, banking, compliance documents, and verification.",
 };
 
-export default function OperatorSettingsPage() {
-  return <OperatorSettingsView />;
+import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+
+export default async function OperatorSettingsPage() {
+  await prefetch(trpc.operator.getSettings.queryOptions());
+
+  return (
+    <HydrateClient>
+      <OperatorSettingsView />
+    </HydrateClient>
+  );
 }

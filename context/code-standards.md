@@ -15,9 +15,9 @@
 
 ## Rules and Patterns
 - Keep shared packages pure and free of runtime app dependencies.
-- Use `@moja/api-client` for API access instead of ad hoc fetch logic.
-- Use Zod for request and response validation at the API boundary.
-- Keep Prisma access inside the API and repository layer.
+- Use tRPC client procedures (`@/trpc/client`) for all data queries and mutations inside web app views instead of `@moja/api-client` or ad hoc fetch.
+- Use Zod for validation at procedure inputs and DB mutation schemas.
+- Access the database client exclusively via `getPrismaClient()` from `@moja/db` inside tRPC routers and server procedures. Do not import DB client directly on client-side components.
 - Keep passenger web and passenger mobile aligned at the contract level, not by sharing UI code.
 - Avoid `any` unless a third-party type hole cannot be avoided and is documented.
 - Keep user-facing errors clear and operationally useful.

@@ -2,6 +2,7 @@ import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { OperatorSchedulesView } from "@/features/operator/views/operator-schedules-view";
 import { OperatorQuickActions } from "@/features/operator/components/operator-quick-actions";
+import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 
 export const metadata = {
   title: "Schedules — Moja Ride Operator",
@@ -9,9 +10,13 @@ export const metadata = {
     "Create recurring schedules for your routes, set fares, and auto-generate trips.",
 };
 
-export default function SchedulesPage() {
+export default async function SchedulesPage() {
+  await prefetch(trpc.schedules.list.queryOptions());
+  await prefetch(trpc.routes.list.queryOptions());
+  await prefetch(trpc.fleet.getBuses.queryOptions());
+
   return (
-    <>
+    <HydrateClient>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-bg-base px-4">
         <SidebarTrigger className="text-text-muted hover:text-text-primary" />
         <Separator orientation="vertical" className="h-4 bg-border" />
@@ -23,6 +28,6 @@ export default function SchedulesPage() {
         <OperatorQuickActions />
       </header>
       <OperatorSchedulesView />
-    </>
+    </HydrateClient>
   );
 }

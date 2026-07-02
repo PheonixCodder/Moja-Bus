@@ -19,13 +19,13 @@
 - Keep local offline storage and ticket access in the mobile app where needed.
 
 ## Prisma
-- Prisma is used only in `apps/api`.
-- Use the lazy Prisma client from the db package.
-- Keep all database writes behind repositories or service boundaries.
+- Prisma is hosted inside the shared package `packages/db`.
+- Use the lazy database client creator `getPrismaClient()` from `@moja/db` to access the database.
+- Keep all database procedures and mutations encapsulated within tRPC server procedures (`apps/web/trpc/routers`).
 
 ## API Client and State
-- Use `@moja/api-client` as the shared HTTP layer.
-- Use React Query for server state.
+- Use tRPC client procedures (`@/trpc/client`) as the main API layer for the web app.
+- tRPC internally uses React Query/TanStack Query for server state caching.
 - Use Zustand for local UI state only.
 
 ## Payments

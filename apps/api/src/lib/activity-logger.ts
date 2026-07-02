@@ -18,7 +18,8 @@ export const ACTIVITY_ACTIONS = {
   OWNERSHIP_TRANSFERRED: "OWNERSHIP_TRANSFERRED",
 } as const;
 
-export type ActivityAction = (typeof ACTIVITY_ACTIONS)[keyof typeof ACTIVITY_ACTIONS];
+export type ActivityAction =
+  (typeof ACTIVITY_ACTIONS)[keyof typeof ACTIVITY_ACTIONS];
 
 export async function logActivity(
   companyId: string,

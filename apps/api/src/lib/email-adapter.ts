@@ -37,8 +37,11 @@ function formatExpiry(date: Date): string {
 }
 
 export const emailAdapter = {
-  async sendStaffInvitation(payload: StaffInvitationEmailPayload): Promise<void> {
-    const baseUrl = payload.baseUrl ?? process.env["WEB_BASE_URL"] ?? "http://localhost:3000";
+  async sendStaffInvitation(
+    payload: StaffInvitationEmailPayload,
+  ): Promise<void> {
+    const baseUrl =
+      payload.baseUrl ?? process.env["WEB_BASE_URL"] ?? "http://localhost:3000";
     const link = `${baseUrl}/invite?token=${payload.token}`;
     const role = formatRole(payload.role);
     const expires = formatExpiry(payload.expiresAt);

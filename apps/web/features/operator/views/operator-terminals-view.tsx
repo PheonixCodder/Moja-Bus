@@ -1,6 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import {
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+  useQuery,
+} from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import {
   MapPin,
@@ -61,15 +67,7 @@ import {
   ComboboxEmpty,
 } from "@moja/ui/components/ui/combobox";
 
-import type { Terminal } from "../api/terminals";
-import {
-  getLocations,
-  createTerminal,
-  updateTerminal,
-  deleteTerminal,
-} from "../api/terminals";
-import type { City } from "../api/routes";
-import { getCities } from "../api/routes";
+import { useTRPC } from "@/trpc/client";
 
 // ──────────────────────────────────────────────
 // KPI Card
@@ -117,17 +115,41 @@ function StatCard({
 
 export function OperatorTerminalsView() {
   const searchParams = useSearchParams();
-  const [locations, setLocations] = useState<Terminal[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { data: locations } = useSuspenseQuery(
+    trpc.terminals.list.queryOptions(),
+  );
+  const { data: cities } = useSuspenseQuery(
+    trpc.routes.getCities.queryOptions(),
+  );
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
 
+  // Mutations
+  const createMutation = useMutation(
+    trpc.terminals.create.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
+    }),
+  );
+  const updateMutation = useMutation(
+    trpc.terminals.update.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
+    }),
+  );
+  const deleteMutation = useMutation(
+    trpc.terminals.delete.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
+    }),
+  );
+
   // Form State
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<Terminal | null>(null);
+  const [editingLocation, setEditingLocation] = useState<any>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -148,40 +170,16 @@ export function OperatorTerminalsView() {
 
   // Delete State
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [locationToDelete, setLocationToDelete] = useState<Terminal | null>(
-    null,
-  );
+  const [locationToDelete, setLocationToDelete] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
-
-  const fetchLocations = useCallback((showSpinner = false) => {
-    if (showSpinner) setRefreshing(true);
-    getLocations()
-      .then((data) => {
-        setLocations(data);
-        setLoading(false);
-        setRefreshing(false);
-      })
-      .catch((err) => {
-        toast.error(err.message || "Failed to load locations");
-        setLoading(false);
-        setRefreshing(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetchLocations();
-    getCities()
-      .then(setCities)
-      .catch(() => {});
-  }, [fetchLocations]);
 
   // Open add drawer automatically if query param action=new is present
   useEffect(() => {
-    if (!loading && searchParams.get("action") === "new") {
+    if (searchParams.get("action") === "new") {
       resetForm();
       setDrawerOpen(true);
     }
-  }, [loading, searchParams]);
+  }, [searchParams]);
 
   const resetForm = () => {
     setName("");
@@ -201,7 +199,7 @@ export function OperatorTerminalsView() {
     setEditingLocation(null);
   };
 
-  const handleEditClick = (loc: Terminal) => {
+  const handleEditClick = (loc: any) => {
     setEditingLocation(loc);
     setName(loc.name);
     setAddressLine1(loc.addressLine1);
@@ -220,10 +218,12 @@ export function OperatorTerminalsView() {
     setDrawerOpen(true);
   };
 
-  const handleToggleTerminal = async (loc: Terminal, currentVal: boolean) => {
+  const handleToggleTerminal = async (loc: any, currentVal: boolean) => {
     try {
-      const updated = await updateTerminal(loc.id, { isTerminal: !currentVal });
-      setLocations((prev) => prev.map((l) => (l.id === loc.id ? updated : l)));
+      await updateMutation.mutateAsync({
+        id: loc.id,
+        data: { isTerminal: !currentVal },
+      });
       toast.success(
         `Location successfully ${!currentVal ? "promoted to Passenger Terminal" : "converted back to Depot"}`,
       );
@@ -267,15 +267,14 @@ export function OperatorTerminalsView() {
 
     try {
       if (editingLocation) {
-        const updated = await updateTerminal(editingLocation.id, payload);
+        await updateMutation.mutateAsync({
+          id: editingLocation.id,
+          data: payload,
+        });
         toast.success("Location updated successfully");
-        setLocations((prev) =>
-          prev.map((l) => (l.id === editingLocation.id ? updated : l)),
-        );
       } else {
-        const created = await createTerminal(payload);
+        await createMutation.mutateAsync(payload);
         toast.success("Location added successfully");
-        setLocations((prev) => [created, ...prev]);
       }
       setDrawerOpen(false);
       resetForm();
@@ -286,7 +285,7 @@ export function OperatorTerminalsView() {
     }
   };
 
-  const handleDeleteClick = (loc: Terminal) => {
+  const handleDeleteClick = (loc: any) => {
     setLocationToDelete(loc);
     setDeleteConfirmOpen(true);
   };
@@ -295,9 +294,8 @@ export function OperatorTerminalsView() {
     if (!locationToDelete) return;
     setDeleting(true);
     try {
-      await deleteTerminal(locationToDelete.id);
+      await deleteMutation.mutateAsync({ id: locationToDelete.id });
       toast.success("Location deleted successfully");
-      setLocations((prev) => prev.filter((l) => l.id !== locationToDelete.id));
       setDeleteConfirmOpen(false);
       setLocationToDelete(null);
     } catch (err: any) {
@@ -327,7 +325,7 @@ export function OperatorTerminalsView() {
     locations.find((l) => l.isPrimary)?.name || "Not Configured";
   const linkedToCityCount = locations.filter((l) => l.cityId).length;
 
-  if (loading) {
+  if (false) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
         <Spinner className="size-8 text-primary" />

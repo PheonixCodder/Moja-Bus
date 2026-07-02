@@ -67,19 +67,19 @@ Platform-seeded reference data powering all operator and passenger features.
 - [x] **Cities Database** (`City` model)
   - [x] 35 Côte d'Ivoire cities seeded with lat/lng, region, district
   - [x] 7 major hubs flagged (Abidjan, Bouaké, Yamoussoukro, etc.)
-  - [x] `GET /api/v1/routes/cities` endpoint for operator dropdowns
+  - [x] `routes.cities` tRPC procedure query for operator dropdowns
 
 - [x] **Bus Types & Seat Layout Templates**
   - [x] 7 bus types seeded (Coaster, Sprinter, Yutong, Higer, King Long, HiAce)
   - [x] 5 platform-default seat layouts seeded (22, 18, 47, 55, 15 seat configs)
   - [x] Grid-based seat template generation (row × col → label e.g. "2B")
-  - [x] `GET /api/v1/fleet/bus-types` endpoint
-  - [x] `GET /api/v1/fleet/layouts` endpoint (platform defaults + operator custom)
+  - [x] `fleet.busTypes` tRPC procedure query
+  - [x] `fleet.layouts` tRPC procedure query (platform defaults + operator custom)
 
 - [x] **Terminal Management** (`CompanyLocation` with `isTerminal` flag)
   - [x] Operator depots from onboarding promoted to bookable passenger terminals
   - [x] `cityId` FK links each terminal to canonical `City`
-  - [x] `GET /api/v1/routes/terminals` endpoint (operator-scoped, `isTerminal=true`)
+  - [x] `routes.terminals` tRPC procedure query (operator-scoped, `isTerminal=true`)
 
 ---
 
@@ -97,7 +97,7 @@ Full API backend for the Operator ERP platform.
   - [x] `validFrom` / `validUntil` date window
   - [x] Exception types: CANCELLED, EXTRA_SERVICE, MODIFIED
   - [x] Exception reasons: Holidays (Islamic, Christian, National), Strike, Weather, Maintenance
-  - [x] `POST /api/v1/schedules/:id/exceptions` auto-cancels pre-generated trips
+  - [x] `schedules.addException` mutation auto-cancels pre-generated trips
 
 - [x] **Fare Matrix** (`Fare` model)
   - [x] Per seat class (ECONOMY, STANDARD, VIP)
@@ -106,12 +106,12 @@ Full API backend for the Operator ERP platform.
   - [x] Prices stored in XOF (CFA Francs)
 
 - [x] **Trip Operations API**
-  - [x] `GET /api/v1/trips` — filterable by status, route, date range
-  - [x] `GET /api/v1/trips/:id` — full detail with seat map and stops
-  - [x] `PATCH /api/v1/trips/:id/assign` — swap bus or assign driver/assistant
-  - [x] `PATCH /api/v1/trips/:id/delay` — log delay minutes, cascade to stops
-  - [x] `PATCH /api/v1/trips/:id/cancel` — cancel individual trip run
-  - [x] `PATCH /api/v1/trips/:id/status` — lifecycle: BOARDING → DEPARTED → ARRIVED
+  - [x] `trips.list` procedure query — filterable by status, route, date range
+  - [x] `trips.byId` procedure query — full detail with seat map and stops
+  - [x] `trips.assignBus` mutation — swap bus or assign assistant
+  - [x] `trips.delay` mutation — log delay minutes, cascade to stops
+  - [x] `trips.cancel` mutation — cancel individual trip run
+  - [x] `trips.updateStatus` mutation — lifecycle: BOARDING → DEPARTED → ARRIVED
 
 ---
 
@@ -120,14 +120,14 @@ The main business functionality that makes Moja Ride valuable to passengers.
 
 #### Search Domain (NEXT PRIORITY)
 - [ ] **Search API Contract**
-  - [ ] Define search endpoint (`GET /api/v1/trips/search`)
-  - [ ] Define request parameters (from, to, date, filters)
-  - [ ] Define response structure (trip list with metadata)
+  - [ ] Define search tRPC query (`trips.search`)
+  - [ ] Define request input parameters (from, to, date, filters)
+  - [ ] Define response output structure (trip list with metadata)
   - [ ] Define sorting options (price, time, rating)
   - [ ] Define filtering options (bus type, amenities, etc.)
 
 - [ ] **Search Backend**
-  - [ ] Implement trip search service (query `Trip` + `TripStop` by terminal pair)
+  - [ ] Implement trip search procedure (query `Trip` + `TripStop` by terminal pair)
   - [ ] Implement caching strategy (Redis)
   - [ ] Implement pagination
   - [ ] Implement performance optimization
@@ -154,11 +154,11 @@ The main business functionality that makes Moja Ride valuable to passengers.
   - [x] Route list with stops
   - [ ] Route analytics
 
-- [x] **Schedule Management**
-  - [x] Schedule CRUD API
-  - [x] Recurring schedule logic
-  - [x] Schedule creation UI (wizard)
-  - [x] Schedule calendar view (preview calendar)
+- [x] Phase 3: Schedules & Trips Migration
+  - [x] Create `schedules` tRPC router
+  - [x] Refactor `OperatorSchedulesView`
+  - [x] Create `trips` tRPC router
+  - [x] Refactor `OperatorTripsView` (preview calendar)
 
 #### Fleet Domain
 - [ ] **Fleet Management API**
@@ -305,7 +305,7 @@ The main business functionality that makes Moja Ride valuable to passengers.
 2. **Package Manager**: pnpm for efficient dependency management
 3. **Frontend Web**: Next.js 16 with App Router
 4. **Frontend Mobile**: Expo SDK 56 with Expo Router
-5. **Backend**: Express.js with Prisma ORM
+5. **Backend**: Next.js Serverless tRPC API Router with Prisma ORM (Express API deprecated)
 6. **Database**: PostgreSQL
 7. **Cache**: Redis (ioredis)
 8. **Auth**: Better Auth for session management

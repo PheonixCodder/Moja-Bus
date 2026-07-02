@@ -232,7 +232,7 @@ export function CompanyStep({
               <PhoneInput
                 id="company-phone"
                 value={phone}
-                onChange={(val) => setPhone(val || "")}
+                onChange={(val: string | undefined) => setPhone(val || "")}
                 placeholder="Enter phone number"
                 required
               />

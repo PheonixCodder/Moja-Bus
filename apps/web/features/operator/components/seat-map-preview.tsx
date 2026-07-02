@@ -4,8 +4,13 @@ import { useState } from "react";
 import { AlertTriangle, Gauge } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { toast } from "sonner";
-import type { Seat } from "@/features/operator/api/fleet";
-import { toggleSeatStatus } from "@/features/operator/api/fleet";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
+import type { RouterOutputs } from "@/trpc/client";
+
+type Seat = NonNullable<
+  RouterOutputs["fleet"]["getBusDetails"]
+>["seats"][number];
 
 interface SeatMapPreviewProps {
   busId: string;
@@ -42,7 +47,12 @@ export function SeatMapPreview({
     }
   }
 
-  async function handleSeatClick(seat: Seat) {
+  const trpc = useTRPC();
+  const toggleMutation = useMutation({
+    ...trpc.fleet.toggleSeatStatus.mutationOptions(),
+  });
+
+  function handleSeatClick(seat: Seat) {
     if (!interactive) return;
     if (seat.seatType === "DRIVER_AREA" || seat.seatType === "EMPTY_SPACE")
       return;
@@ -51,20 +61,25 @@ export function SeatMapPreview({
     const nextActive = !seatStates[seat.id];
     setToggling(seat.id);
 
-    try {
-      const updated = await toggleSeatStatus(busId, seat.id, nextActive);
-      setSeatStates((prev) => ({ ...prev, [seat.id]: updated.isActive }));
-      onSeatToggled?.(updated);
-      toast.success(
-        nextActive
-          ? `Seat ${seat.label} reactivated`
-          : `Seat ${seat.label} placed out of service`,
-      );
-    } catch {
-      toast.error("Unable to update seat status");
-    } finally {
-      setToggling(null);
-    }
+    toggleMutation.mutate(
+      { busId, seatId: seat.id, isActive: nextActive },
+      {
+        onSuccess: (updated) => {
+          setSeatStates((prev) => ({ ...prev, [seat.id]: updated.isActive }));
+          onSeatToggled?.(updated);
+          toast.success(
+            nextActive
+              ? `Seat ${seat.label} reactivated`
+              : `Seat ${seat.label} placed out of service`,
+          );
+          setToggling(null);
+        },
+        onError: () => {
+          toast.error("Unable to update seat status");
+          setToggling(null);
+        },
+      },
+    );
   }
 
   // Column headers: A, B, C, D…

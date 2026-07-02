@@ -109,7 +109,7 @@ export function SignupForm({
           <PhoneInput
             id="phone"
             value={phone}
-            onChange={(value) => setPhone(value ?? "")}
+            onChange={(value: string | undefined) => setPhone(value ?? "")}
             placeholder="+225 XX XX XX XX"
             autoComplete="tel"
             country="CI"

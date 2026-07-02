@@ -5,18 +5,9 @@ import compression from "compression";
 import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
-import { toNodeHandler } from "better-auth/node";
 
-import { auth } from "./auth/auth.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { createHealthRouter } from "./routes/health.js";
-import { createOperatorRouter } from "./routes/operator.js";
-import { createFleetRouter } from "./routes/fleet.js";
-import { createRoutesRouter } from "./routes/routes-waypoints.js";
-import { createSchedulesRouter } from "./routes/schedules.js";
-import { createTripsRouter } from "./routes/trips.js";
-import { createStaffRouter } from "./routes/staff.js";
-import { createInvitationsRouter } from "./routes/invitations.js";
 
 export interface CreateApiAppOptions {
   allowedOrigins?: string[];
@@ -83,18 +74,10 @@ export function createApiApp(options: CreateApiAppOptions = {}): Express {
     }),
   );
   app.use(compression());
-  app.all("/api/auth/{*any}", toNodeHandler(auth));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
   app.use("/api/v1", createHealthRouter());
-  app.use("/api/v1", createOperatorRouter());
-  app.use("/api/v1", createFleetRouter());
-  app.use("/api/v1", createRoutesRouter());
-  app.use("/api/v1", createSchedulesRouter());
-  app.use("/api/v1", createTripsRouter());
-  app.use("/api/v1", createStaffRouter());
-  app.use("/api/v1", createInvitationsRouter());
 
   app.use(errorHandler);
 

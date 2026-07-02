@@ -118,7 +118,7 @@ export function OperatorSignupForm() {
           <PhoneInput
             id="phone"
             value={phone}
-            onChange={(value) => setPhone(value ?? "")}
+            onChange={(value: string | undefined) => setPhone(value ?? "")}
             placeholder="+225 07 00 00 00 00"
             autoComplete="tel"
             defaultCountry="CI"
