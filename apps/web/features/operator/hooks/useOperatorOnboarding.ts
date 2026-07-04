@@ -5,21 +5,32 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { type OnboardingStep } from "@moja/schemas";
 import { useTRPC } from "@/trpc/client";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+
+const STEP_ORDER: OnboardingStep[] = [
+  "company",
+  "locations",
+  "documents",
+  "bank",
+  "profile",
+  "terms",
+];
 
 export function useOperatorOnboarding() {
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data } = useSuspenseQuery(
+    trpc.operator.getOnboardingStatus.queryOptions(),
+  );
 
-  const [onboardingStatus, setOnboardingStatus] =
-    useState<string>("NOT_STARTED");
+  const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("company");
-  const [operatorData, setOperatorData] = useState<any>(null);
 
   const saveMutation = useMutation(
     trpc.operator.saveOnboardingStep.mutationOptions(),
@@ -28,51 +39,30 @@ export function useOperatorOnboarding() {
     trpc.operator.completeOnboarding.mutationOptions(),
   );
 
-  // Fetch onboarding snapshot on mount
-  const fetchSnapshot = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await queryClient.fetchQuery(
-        trpc.operator.getOnboardingStatus.queryOptions(),
-      );
-      setOnboardingStatus(data.onboardingStatus);
-      setOperatorData(data.operator);
-
-      if (data.onboardingStatus === "COMPLETED") {
-        toast.info("Your onboarding is already complete!");
-        router.push("/dashboard/operator");
-        return;
-      }
-
-      if (data.onboardingCurrentStep) {
-        setCurrentStep(data.onboardingCurrentStep as OnboardingStep);
-      }
-    } catch (err: any) {
-      setError(err.message || "Failed to load onboarding status.");
-      toast.error("Failed to load onboarding status.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSnapshot();
-  }, []);
+    if (data.onboardingStatus === "COMPLETED") {
+      toast.info("Your onboarding is already complete!");
+      router.push("/dashboard/operator");
+      return;
+    }
 
-  // Save current step and go to next
-  const saveStep = async (step: OnboardingStep, data: any) => {
+    if (data.onboardingCurrentStep) {
+      setCurrentStep(data.onboardingCurrentStep as OnboardingStep);
+    }
+  }, [data.onboardingStatus, data.onboardingCurrentStep, router]);
+
+  const saveStep = async (step: OnboardingStep, stepData: Record<string, unknown>) => {
     setIsSaving(true);
     try {
       const response = await saveMutation.mutateAsync({
         step,
-        ...data,
+        ...stepData,
       });
 
-      setOnboardingStatus(response.onboardingStatus);
-      setOperatorData(response.operator);
+      await queryClient.invalidateQueries(
+        trpc.operator.getOnboardingStatus.queryFilter(),
+      );
 
-      // Determine the next step and update state
       if (response.onboardingCurrentStep) {
         setCurrentStep(response.onboardingCurrentStep as OnboardingStep);
       }
@@ -87,12 +77,13 @@ export function useOperatorOnboarding() {
     }
   };
 
-  // Complete onboarding
   const finalizeOnboarding = async () => {
     setIsSaving(true);
     try {
-      const response = await completeMutation.mutateAsync();
-      setOnboardingStatus(response.onboardingStatus);
+      await completeMutation.mutateAsync();
+      await queryClient.invalidateQueries(
+        trpc.operator.getOnboardingStatus.queryFilter(),
+      );
 
       toast.success("Onboarding completed! Welcome to Moja Ride!");
       router.push("/dashboard/operator");
@@ -106,36 +97,31 @@ export function useOperatorOnboarding() {
     }
   };
 
-  // Navigate manually to a previous step (only if they have started)
   const goToStep = (step: OnboardingStep) => {
-    const stepOrder: OnboardingStep[] = [
-      "company",
-      "locations",
-      "documents",
-      "bank",
-      "profile",
-      "terms",
-    ];
-    const currentIndex = stepOrder.indexOf(currentStep);
-    const targetIndex = stepOrder.indexOf(step);
+    const currentIndex = STEP_ORDER.indexOf(currentStep);
+    const targetIndex = STEP_ORDER.indexOf(step);
 
     if (targetIndex < currentIndex) {
+      const confirmed = window.confirm(
+        "Going back may discard unsaved changes on this step. Continue?",
+      );
+      if (!confirmed) return;
       setCurrentStep(step);
-    } else {
+      return;
+    }
+
+    if (targetIndex > currentIndex) {
       toast.warning("Please complete the current step first to continue.");
     }
   };
 
   return {
-    isLoading,
     isSaving,
-    error,
-    onboardingStatus,
+    onboardingStatus: data.onboardingStatus,
     currentStep,
-    operatorData,
+    operatorData: data.operator,
     saveStep,
     finalizeOnboarding,
     goToStep,
-    refetch: fetchSnapshot,
   };
 }

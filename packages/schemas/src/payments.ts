@@ -1,4 +1,5 @@
 export type PaymentProvider =
+  | "MOCK"
   | "WAVE"
   | "ORANGE_MONEY"
   | "MOOV"

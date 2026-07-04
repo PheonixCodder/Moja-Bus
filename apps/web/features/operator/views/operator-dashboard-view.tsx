@@ -5,11 +5,15 @@ import { useTRPC } from "@/trpc/client";
 import {
   Building2,
   ShieldCheck,
+  ShieldAlert,
   Bus,
   MapPin,
   Users,
   Ticket,
+  Clock,
 } from "lucide-react";
+import { getCompanyStatusPresentation } from "@/features/operator/lib/company-status";
+import { cn } from "@moja/ui/lib/utils";
 
 export function OperatorDashboardView() {
   const trpc = useTRPC();
@@ -19,6 +23,13 @@ export function OperatorDashboardView() {
 
   const operatorData = data?.operator;
   const company = operatorData?.company;
+  const statusPresentation = getCompanyStatusPresentation(company?.status);
+  const StatusIcon =
+    company?.status === "SUSPENDED" || company?.status === "REJECTED"
+      ? ShieldAlert
+      : statusPresentation.isFullyVerified
+        ? ShieldCheck
+        : Clock;
 
   return (
     <div className="space-y-6">
@@ -28,17 +39,31 @@ export function OperatorDashboardView() {
           <Bus className="w-64 h-64" />
         </div>
         <div className="relative z-10 space-y-2">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded">
-            <ShieldCheck className="w-3.5 h-3.5" /> Approved Operator
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded border",
+              statusPresentation.isFullyVerified
+                ? "text-primary bg-primary/10 border-primary/20"
+                : company?.status === "SUSPENDED"
+                  ? "text-orange-300 bg-orange-500/10 border-orange-500/30"
+                  : company?.status === "REJECTED"
+                    ? "text-red-300 bg-red-500/10 border-red-500/30"
+                    : "text-amber-300 bg-amber-500/10 border-amber-500/30",
+            )}
+          >
+            <StatusIcon className="w-3.5 h-3.5" /> {statusPresentation.label}
           </span>
           <h1 className="text-2xl font-bold font-display tracking-tight">
             Welcome to Moja Ride, {company?.name || "Partner"}
           </h1>
           <p className="text-slate-400 text-xs max-w-md leading-relaxed">
-            Your onboarding registration has been submitted successfully and is
-            pending admin verification. You can now manage your terminals,
-            staff, and prepare for routing schedules.
+            {statusPresentation.description}
           </p>
+          {company?.rejectionReason ? (
+            <p className="text-red-300 text-xs max-w-md leading-relaxed">
+              Rejection reason: {company.rejectionReason}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -92,7 +117,7 @@ export function OperatorDashboardView() {
               {company?.estimatedStaffSize || "N/A"} Employees
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Status: Pending Verification
+              Status: {statusPresentation.shortLabel}
             </p>
           </div>
         </div>
@@ -108,9 +133,9 @@ export function OperatorDashboardView() {
             Buses and Route Scheduling
           </h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            Once admin reviews and approves your registration documents, you
-            will be able to add vehicles, create intercity route plans, and sell
-            digital tickets.
+            {statusPresentation.isFullyVerified
+              ? "Add vehicles, create intercity route plans, and sell digital tickets from the planning and fleet sections."
+              : "Complete verification to unlock full ticket sales. You can still configure terminals, routes, and schedules in the meantime."}
           </p>
         </div>
       </div>

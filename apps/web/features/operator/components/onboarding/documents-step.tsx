@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
@@ -20,6 +21,8 @@ import {
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { type DocumentsStepInput, type DocumentInput } from "@moja/schemas";
+import { createStorageAdapter } from "../../lib/storage-adapter";
+import { useTRPC } from "@/trpc/client";
 
 interface DocumentsStepProps {
   initialData?: any;
@@ -42,6 +45,19 @@ export function DocumentsStep({
   onBack,
   isSaving,
 }: DocumentsStepProps) {
+  const trpc = useTRPC();
+  const presignUploadMutation = useMutation(
+    trpc.operator.createPresignedUpload.mutationOptions(),
+  );
+  const fileStorage = useMemo(
+    () =>
+      createStorageAdapter(async (input) => {
+        const result = await presignUploadMutation.mutateAsync(input);
+        return { uploadUrl: result.uploadUrl, fileUrl: result.fileUrl };
+      }),
+    [presignUploadMutation],
+  );
+
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
 
   const documentTypes: DocumentTypeConfig[] = [
@@ -108,36 +124,46 @@ export function DocumentsStep({
     }
   }, [initialData]);
 
-  const onDrop = useCallback((acceptedFiles: File[], documentType: string) => {
-    const newFiles = acceptedFiles.map((file) => ({
-      id: crypto.randomUUID(),
-      name: file.name,
-      size: file.size,
-      type: file.type || "application/pdf",
-      documentType,
-      status: "uploading",
-      url: "",
-    }));
+  const onDrop = useCallback(
+    (acceptedFiles: File[], documentType: string) => {
+      const newFiles = acceptedFiles.map((file) => ({
+        id: crypto.randomUUID(),
+        name: file.name,
+        size: file.size,
+        type: file.type || "application/pdf",
+        documentType,
+        status: "uploading",
+        url: "",
+        file,
+      }));
 
-    setUploadedFiles((prev) => [...prev, ...newFiles]);
+      setUploadedFiles((prev) => [...prev, ...newFiles]);
 
-    // Simulate uploading files to a storage service (like S3)
-    newFiles.forEach((file) => {
-      setTimeout(() => {
-        setUploadedFiles((prev) =>
-          prev.map((f) =>
-            f.id === file.id
-              ? {
-                  ...f,
-                  status: "success",
-                  url: `https://moja-ride-bucket.s3.amazonaws.com/uploads/${f.id}-${f.name}`,
-                }
-              : f,
-          ),
-        );
-      }, 1500);
-    });
-  }, []);
+      newFiles.forEach(async (entry) => {
+        try {
+          const fileUrl = await fileStorage.uploadFile(entry.file);
+          setUploadedFiles((prev) =>
+            prev.map((f) =>
+              f.id === entry.id
+                ? {
+                    ...f,
+                    status: "success",
+                    url: fileUrl,
+                  }
+                : f,
+            ),
+          );
+        } catch {
+          setUploadedFiles((prev) =>
+            prev.map((f) =>
+              f.id === entry.id ? { ...f, status: "error" } : f,
+            ),
+          );
+        }
+      });
+    },
+    [fileStorage],
+  );
 
   const removeFile = (id: string) => {
     setUploadedFiles((prev) => prev.filter((f) => f.id !== id));

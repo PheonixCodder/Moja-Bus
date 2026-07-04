@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { OperatorOnboardingView } from "@/features/operator/views/operator-onboarding-view";
-import { trpc, getQueryClient, prefetch, HydrateClient } from "@/trpc/server";
+import { trpc, getQueryClient, HydrateClient } from "@/trpc/server";
 
 export default async function OperatorOnboardingPage() {
-  prefetch(trpc.operator.getOnboardingStatus.queryOptions());
-  prefetch(trpc.routes.getCities.queryOptions());
-  const data = await getQueryClient().fetchQuery(
-    trpc.operator.getOnboardingStatus.queryOptions(),
-  );
+  const queryClient = getQueryClient();
+  const [data] = await Promise.all([
+    queryClient.fetchQuery(trpc.operator.getOnboardingStatus.queryOptions()),
+    queryClient.prefetchQuery(trpc.routes.getCities.queryOptions()),
+  ]);
 
   if (data && data.onboardingStatus === "COMPLETED") {
     redirect("/dashboard/operator");

@@ -8,6 +8,7 @@ import {
   updateFareSchema,
 } from "@moja/schemas";
 import { generateTripsForSchedule } from "@/lib/trip-generator";
+import { buildAppDepartureTimestamp, addAppCalendarDays } from "@/lib/timezone";
 
 export const schedulesRouter = createTRPCRouter({
   list: operatorCompanyProcedure.query(async ({ ctx }) => {
@@ -37,7 +38,7 @@ export const schedulesRouter = createTRPCRouter({
   }),
 
   get: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const schedule = await ctx.prisma.schedule.findFirst({
         where: {
@@ -169,7 +170,7 @@ export const schedulesRouter = createTRPCRouter({
     }),
 
   delete: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const schedule = await ctx.prisma.schedule.findFirst({
         where: {
@@ -201,19 +202,20 @@ export const schedulesRouter = createTRPCRouter({
         });
       }
 
-      await ctx.prisma.trip.deleteMany({
-        where: { scheduleId: schedule.id },
-      });
-
-      await ctx.prisma.schedule.delete({
-        where: { id: schedule.id },
+      await ctx.prisma.$transaction(async (tx) => {
+        await tx.trip.deleteMany({
+          where: { scheduleId: schedule.id },
+        });
+        await tx.schedule.delete({
+          where: { id: schedule.id },
+        });
       });
 
       return { success: true };
     }),
 
   updateBasic: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), data: updateScheduleBasicSchema }))
+    .input(z.object({ id: z.string(), data: updateScheduleBasicSchema }))
     .mutation(async ({ ctx, input }) => {
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
@@ -237,7 +239,7 @@ export const schedulesRouter = createTRPCRouter({
     }),
 
   updateCalendar: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), data: updateCalendarSchema }))
+    .input(z.object({ id: z.string(), data: updateCalendarSchema }))
     .mutation(async ({ ctx, input }) => {
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
@@ -276,8 +278,8 @@ export const schedulesRouter = createTRPCRouter({
   updateFare: operatorCompanyProcedure
     .input(
       z.object({
-        scheduleId: z.string().uuid(),
-        fareId: z.string().uuid(),
+        scheduleId: z.string(),
+        fareId: z.string(),
         data: updateFareSchema,
       }),
     )
@@ -312,7 +314,7 @@ export const schedulesRouter = createTRPCRouter({
     }),
 
   regenerateTrips: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), defaultBusId: z.string().uuid() }))
+    .input(z.object({ id: z.string(), defaultBusId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
@@ -322,6 +324,22 @@ export const schedulesRouter = createTRPCRouter({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Schedule not found",
+        });
+      }
+
+      const bus = await ctx.prisma.bus.findFirst({
+        where: {
+          id: input.defaultBusId,
+          companyId: ctx.companyId,
+          status: "ACTIVE",
+        },
+        select: { id: true },
+      });
+
+      if (!bus) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Selected bus is invalid or does not belong to your company.",
         });
       }
 
@@ -342,5 +360,104 @@ export const schedulesRouter = createTRPCRouter({
           message: err.message || "Failed to generate trips",
         });
       }
+    }),
+
+  addException: operatorCompanyProcedure
+    .input(
+      z.object({
+        scheduleId: z.string(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        type: z.enum(["CANCELLED", "EXTRA_SERVICE", "MODIFIED"]),
+        reason: z.enum([
+          "HOLIDAY_ISLAMIC",
+          "HOLIDAY_CHRISTIAN",
+          "HOLIDAY_NATIONAL",
+          "STRIKE",
+          "WEATHER",
+          "MAINTENANCE",
+          "OPERATIONAL",
+          "OTHER",
+        ]),
+        notes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const schedule = await ctx.prisma.schedule.findFirst({
+        where: { id: input.scheduleId, companyId: ctx.companyId },
+      });
+
+      if (!schedule) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Schedule not found",
+        });
+      }
+
+      const exceptionDate = buildAppDepartureTimestamp(
+        new Date(`${input.date}T00:00:00.000Z`),
+        0,
+        0,
+      );
+
+      const existing = await ctx.prisma.serviceException.findFirst({
+        where: {
+          scheduleId: input.scheduleId,
+          date: exceptionDate,
+        },
+      });
+
+      if (existing) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "An exception already exists for this date.",
+        });
+      }
+
+      const exception = await ctx.prisma.serviceException.create({
+        data: {
+          scheduleId: input.scheduleId,
+          date: exceptionDate,
+          type: input.type,
+          reason: input.reason,
+          notes: input.notes ?? null,
+        },
+      });
+
+      if (input.type === "CANCELLED") {
+        const dayEnd = addAppCalendarDays(exceptionDate, 1);
+        await ctx.prisma.trip.deleteMany({
+          where: {
+            scheduleId: input.scheduleId,
+            departureDate: {
+              gte: exceptionDate,
+              lt: dayEnd,
+            },
+          },
+        });
+      }
+
+      return exception;
+    }),
+
+  removeException: operatorCompanyProcedure
+    .input(z.object({ exceptionId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const exception = await ctx.prisma.serviceException.findFirst({
+        where: { id: input.exceptionId },
+        include: { schedule: true },
+      });
+
+      if (!exception || exception.schedule.companyId !== ctx.companyId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Exception not found",
+        });
+      }
+
+      await ctx.prisma.serviceException.delete({
+        where: { id: exception.id },
+      });
+
+      return { success: true };
     }),
 });

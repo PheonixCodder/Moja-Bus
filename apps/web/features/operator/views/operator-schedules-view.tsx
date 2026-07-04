@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -1009,7 +1009,26 @@ export function OperatorSchedulesView() {
     defaultBusId: "",
   });
   const [editFares, setEditFares] = useState<Fare[]>([]);
+  const [editExceptions, setEditExceptions] = useState<
+    Array<{
+      id: string;
+      date: Date;
+      type: string;
+      reason: string;
+      notes: string | null;
+    }>
+  >([]);
+  const [exceptionDate, setExceptionDate] = useState("");
+  const [exceptionType, setExceptionType] = useState<
+    "CANCELLED" | "EXTRA_SERVICE" | "MODIFIED"
+  >("CANCELLED");
+  const [exceptionReason, setExceptionReason] = useState("OPERATIONAL");
+  const [exceptionNotes, setExceptionNotes] = useState("");
   const [editSaving, setEditSaving] = useState(false);
+  const [savingFareIds, setSavingFareIds] = useState<Set<string>>(new Set());
+  const fareDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {},
+  );
 
   // ── Extend State ──────────────────────────────
   const [extendingScheduleId, setExtendingScheduleId] = useState<string | null>(
@@ -1050,15 +1069,26 @@ export function OperatorSchedulesView() {
     },
   });
 
+  const addExceptionMutation = useMutation({
+    ...trpc.schedules.addException.mutationOptions(),
+  });
+
+  const removeExceptionMutation = useMutation({
+    ...trpc.schedules.removeException.mutationOptions(),
+  });
+
   // ── Edit & Extend Handlers ────────────────────
   const handleEditClick = async (schedule: Schedule) => {
     try {
-      setEditingSchedule(schedule);
-      setEditName(schedule.name ?? "");
-      setEditDepartureTime(schedule.departureTime);
-      setEditIsActive(schedule.isActive);
+      const detail = await queryClient.fetchQuery(
+        trpc.schedules.get.queryOptions({ id: schedule.id }),
+      );
+      setEditingSchedule(detail as Schedule);
+      setEditName(detail.name ?? "");
+      setEditDepartureTime(detail.departureTime);
+      setEditIsActive(detail.isActive);
 
-      const cal = schedule.calendar;
+      const cal = detail.calendar;
       setEditCalConfig({
         days: {
           monday: cal?.monday ?? false,
@@ -1069,7 +1099,7 @@ export function OperatorSchedulesView() {
           saturday: cal?.saturday ?? false,
           sunday: cal?.sunday ?? false,
         },
-        departureTime: schedule.departureTime,
+        departureTime: detail.departureTime,
         validFrom: cal?.validFrom
           ? new Date(cal.validFrom).toISOString().slice(0, 10)
           : "",
@@ -1078,10 +1108,54 @@ export function OperatorSchedulesView() {
           : "",
         defaultBusId: "",
       });
-      setEditFares(schedule.fares ?? []);
+      setEditFares(detail.fares ?? []);
+      setEditExceptions(detail.exceptions ?? []);
       setEditDrawerOpen(true);
     } catch {
       toast.error("Failed to load schedule details");
+    }
+  };
+
+  const handleAddException = async () => {
+    if (!editingSchedule || !exceptionDate) {
+      toast.error("Select a date for the exception");
+      return;
+    }
+
+    try {
+      const created = await addExceptionMutation.mutateAsync({
+        scheduleId: editingSchedule.id,
+        date: exceptionDate,
+        type: exceptionType,
+        reason: exceptionReason as
+          | "HOLIDAY_ISLAMIC"
+          | "HOLIDAY_CHRISTIAN"
+          | "HOLIDAY_NATIONAL"
+          | "STRIKE"
+          | "WEATHER"
+          | "MAINTENANCE"
+          | "OPERATIONAL"
+          | "OTHER",
+        notes: exceptionNotes || undefined,
+      });
+      setEditExceptions((prev) => [...prev, created]);
+      setExceptionDate("");
+      setExceptionNotes("");
+      toast.success("Service exception added");
+      await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add exception");
+    }
+  };
+
+  const handleRemoveException = async (exceptionId: string) => {
+    try {
+      await removeExceptionMutation.mutateAsync({ exceptionId });
+      setEditExceptions((prev) => prev.filter((e) => e.id !== exceptionId));
+      toast.success("Service exception removed");
+      await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove exception");
     }
   };
 
@@ -1119,7 +1193,7 @@ export function OperatorSchedulesView() {
       }
 
       toast.success("Schedule updated successfully");
-      queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
+      await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
       setEditDrawerOpen(false);
     } catch (err: any) {
       toast.error(err.message || "Failed to update schedule");
@@ -1128,23 +1202,39 @@ export function OperatorSchedulesView() {
     }
   };
 
-  const handleFarePriceChange = async (fareId: string, priceVal: string) => {
+  const handleFarePriceChange = (fareId: string, priceVal: string) => {
     if (!editingSchedule) return;
     const parsed = parseInt(priceVal, 10);
-    const price = isNaN(parsed) ? 0 : parsed;
-    try {
-      await updateFareMutation.mutateAsync({
-        scheduleId: editingSchedule.id,
-        fareId,
-        data: { priceXOF: price },
-      });
-      setEditFares((prev) =>
-        prev.map((f) => (f.id === fareId ? { ...f, priceXOF: price } : f)),
-      );
-      toast.success("Fare price updated");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update fare price");
+    const price = Number.isNaN(parsed) ? 0 : parsed;
+
+    setEditFares((prev) =>
+      prev.map((f) => (f.id === fareId ? { ...f, priceXOF: price } : f)),
+    );
+
+    const existingTimer = fareDebounceRef.current[fareId];
+    if (existingTimer) {
+      clearTimeout(existingTimer);
     }
+
+    fareDebounceRef.current[fareId] = setTimeout(async () => {
+      try {
+        setSavingFareIds((prev) => new Set(prev).add(fareId));
+        await updateFareMutation.mutateAsync({
+          scheduleId: editingSchedule.id,
+          fareId,
+          data: { priceXOF: price },
+        });
+        queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update fare price");
+      } finally {
+        setSavingFareIds((prev) => {
+          const next = new Set(prev);
+          next.delete(fareId);
+          return next;
+        });
+      }
+    }, 500);
   };
 
   const handleExtendTrips = async (schedule: Schedule) => {
@@ -1186,13 +1276,38 @@ export function OperatorSchedulesView() {
   }, [selectedRouteId]);
 
   // Build stop labels from selected route
-  const stops: { order: number; name: string; city: string }[] = selectedRoute
-    ? (selectedRoute.waypoints ?? []).map((w: any) => ({
-        order: w.stopOrder,
-        name: w.terminal?.name ?? "Stop",
-        city: w.terminal?.cityRelation?.name ?? w.terminal?.city ?? "",
-      }))
-    : [];
+  const stops: StopLabel[] = selectedRoute
+      ? (() => {
+        const origin: StopLabel = {
+          order: 0,
+          name: selectedRoute.originTerminal?.name ?? "Origin",
+          city:
+              selectedRoute.originTerminal?.cityRelation?.name ??
+              selectedRoute.originTerminal?.city ??
+              "",
+        };
+
+        const intermediate = (selectedRoute.waypoints ?? [])
+            .slice()
+            .sort((a, b) => a.stopOrder - b.stopOrder)
+            .map((w, idx) => ({
+              order: idx + 1,
+              name: w.terminal?.name ?? "Stop",
+              city: w.terminal?.cityRelation?.name ?? w.terminal?.city ?? "",
+            }));
+
+        const destination: StopLabel = {
+          order: intermediate.length + 1,
+          name: selectedRoute.destTerminal?.name ?? "Destination",
+          city:
+              selectedRoute.destTerminal?.cityRelation?.name ??
+              selectedRoute.destTerminal?.city ??
+              "",
+        };
+
+        return [origin, ...intermediate, destination];
+      })()
+      : [];
 
   function goToStep(s: WizardStep) {
     const idx = STEPS.indexOf(s);
@@ -1316,6 +1431,7 @@ export function OperatorSchedulesView() {
               selectedId={selectedRouteId}
               onSelect={(id) => {
                 setSelectedRouteId(id);
+                setFares([]);
               }}
             />
           )}
@@ -1627,6 +1743,113 @@ export function OperatorSchedulesView() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Service Exceptions */}
+            <div className="space-y-3.5">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
+                Service Exceptions
+              </h3>
+              {editExceptions.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No exceptions configured. Add a date to cancel or modify
+                  service.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {editExceptions.map((exception) => (
+                    <div
+                      key={exception.id}
+                      className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-xs"
+                    >
+                      <div>
+                        <p className="font-semibold">
+                          {new Date(exception.date).toISOString().slice(0, 10)} —{" "}
+                          {exception.type}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {exception.reason.replaceAll("_", " ")}
+                          {exception.notes ? ` — ${exception.notes}` : ""}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleRemoveException(exception.id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Date</Label>
+                  <Input
+                    type="date"
+                    value={exceptionDate}
+                    onChange={(e) => setExceptionDate(e.target.value)}
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Type</Label>
+                  <select
+                    value={exceptionType}
+                    onChange={(e) =>
+                      setExceptionType(
+                        e.target.value as
+                          | "CANCELLED"
+                          | "EXTRA_SERVICE"
+                          | "MODIFIED",
+                      )
+                    }
+                    className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
+                  >
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="MODIFIED">Modified</option>
+                    <option value="EXTRA_SERVICE">Extra service</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Reason</Label>
+                  <select
+                    value={exceptionReason}
+                    onChange={(e) => setExceptionReason(e.target.value)}
+                    className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
+                  >
+                    <option value="OPERATIONAL">Operational</option>
+                    <option value="HOLIDAY_NATIONAL">National holiday</option>
+                    <option value="HOLIDAY_ISLAMIC">Islamic holiday</option>
+                    <option value="HOLIDAY_CHRISTIAN">Christian holiday</option>
+                    <option value="WEATHER">Weather</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                    <option value="STRIKE">Strike</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Notes</Label>
+                  <Input
+                    value={exceptionNotes}
+                    onChange={(e) => setExceptionNotes(e.target.value)}
+                    placeholder="Optional notes"
+                    className="h-9 text-xs"
+                  />
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleAddException}
+                disabled={addExceptionMutation.isPending}
+              >
+                Add Exception
+              </Button>
             </div>
 
             {/* Fares Matrix */}

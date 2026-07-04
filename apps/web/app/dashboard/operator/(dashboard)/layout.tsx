@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { redirect } from "next/navigation";
 
@@ -38,7 +39,13 @@ export default async function OperatorLayout({
     <HydrateClient>
       <TooltipProvider>
         <SidebarProvider defaultOpen={defaultOpen} className="h-svh">
-          <OperatorSidebar user={fullUser} />
+          <Suspense
+            fallback={
+              <div className="hidden w-[var(--sidebar-width)] shrink-0 border-r border-border bg-sidebar md:block" />
+            }
+          >
+            <OperatorSidebar user={fullUser} />
+          </Suspense>
           <SidebarInset className="min-h-0 min-w-0 bg-bg-base">
             <main className="flex min-h-0 flex-1 flex-col">{children}</main>
             <Toaster />

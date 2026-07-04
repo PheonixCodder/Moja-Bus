@@ -18,9 +18,20 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient({ adapter });
 }
 
+function isStaleDevClient(client: PrismaClient): boolean {
+  return (
+    getOptionalEnv("NODE_ENV") === "development" &&
+    !("bankAccessLog" in client)
+  );
+}
+
 export function getPrismaClient(): PrismaClient {
   const existingClient = globalForPrisma.__mojaPrismaClient;
   if (existingClient) {
+    if (isStaleDevClient(existingClient)) {
+      delete globalForPrisma.__mojaPrismaClient;
+      return getPrismaClient();
+    }
     return existingClient;
   }
 

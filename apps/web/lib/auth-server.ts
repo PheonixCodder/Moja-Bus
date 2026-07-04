@@ -144,7 +144,7 @@ export const auth = betterAuth({
         otp: string;
         type: AuthOtpType;
       }) {
-        sendAuthOtp({ email, otp, type });
+        await sendAuthOtp({ email, otp, type });
       },
     }),
     nextCookies(),

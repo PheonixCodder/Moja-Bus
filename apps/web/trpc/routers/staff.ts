@@ -1,13 +1,27 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { headers } from "next/headers";
 import {
   createTRPCRouter,
   operatorCompanyProcedure,
   operatorStaffManageProcedure,
 } from "../init";
 import crypto from "node:crypto";
-// Note: We'll skip emailAdapter for now as we haven't ported it fully to web,
-// but we'll mock the invite sending or copy it later.
+import { auth } from "@/lib/auth-server";
+import { sendStaffInvitationEmail } from "@/lib/staff-email";
+import type { PrismaClient } from "@moja/db";
+
+async function logStaffActivity(
+  prisma: PrismaClient,
+  input: {
+    companyId: string;
+    userId: string;
+    action: string;
+    description: string;
+  },
+) {
+  await prisma.activityLog.create({ data: input });
+}
 
 const memberInclude = {
   user: {
@@ -27,6 +41,10 @@ const memberInclude = {
 } as const;
 
 export const staffRouter = createTRPCRouter({
+  getMyRole: operatorCompanyProcedure.query(async ({ ctx }) => {
+    return { role: ctx.operator.role };
+  }),
+
   listStaff: operatorStaffManageProcedure
     .input(
       z.object({
@@ -84,7 +102,7 @@ export const staffRouter = createTRPCRouter({
   updateRole: operatorStaffManageProcedure
     .input(
       z.object({
-        memberId: z.string().uuid(),
+        memberId: z.string(),
         role: z.enum([
           "OWNER",
           "ADMIN",
@@ -123,17 +141,26 @@ export const staffRouter = createTRPCRouter({
           message: "Cannot change the role of the company OWNER.",
         });
 
-      return ctx.prisma.operator.update({
+      const updated = await ctx.prisma.operator.update({
         where: { id: target.id },
         data: { role: input.role },
         include: memberInclude,
       });
+
+      await logStaffActivity(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: "ROLE_CHANGED",
+        description: `Changed a staff member role to ${input.role}.`,
+      });
+
+      return updated;
     }),
 
   updateStatus: operatorStaffManageProcedure
     .input(
       z.object({
-        memberId: z.string().uuid(),
+        memberId: z.string(),
         status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]),
       }),
     )
@@ -157,17 +184,26 @@ export const staffRouter = createTRPCRouter({
           message: "Cannot change the status of the company OWNER.",
         });
 
-      return ctx.prisma.operator.update({
+      const updated = await ctx.prisma.operator.update({
         where: { id: target.id },
         data: { status: input.status },
         include: memberInclude,
       });
+
+      await logStaffActivity(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: "STATUS_CHANGED",
+        description: `Changed a staff member status to ${input.status}.`,
+      });
+
+      return updated;
     }),
 
   transferOwnership: operatorStaffManageProcedure
     .input(
       z.object({
-        memberId: z.string().uuid(),
+        memberId: z.string(),
         password: z.string().min(1),
       }),
     )
@@ -179,9 +215,18 @@ export const staffRouter = createTRPCRouter({
         });
       }
 
-      // Password verification would go here in a real app, since Better Auth abstracts it, we might need a custom check
-      // For now, assume it's valid if they reached here, or we can use Better Auth API.
-      // Skipping actual password check for migration unless strictly needed.
+      // Verify current owner password before transferring ownership
+      try {
+        await auth.api.verifyPassword({
+          body: { password: input.password },
+          headers: await headers(),
+        });
+      } catch {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid password. Ownership transfer was not completed.",
+        });
+      }
 
       const target = await ctx.prisma.operator.findFirst({
         where: {
@@ -208,6 +253,13 @@ export const staffRouter = createTRPCRouter({
           data: { role: "OWNER" },
         }),
       ]);
+
+      await logStaffActivity(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: "OWNERSHIP_TRANSFERRED",
+        description: `Transferred company ownership to ${target.user.fullName}.`,
+      });
 
       return {
         success: true,
@@ -303,14 +355,32 @@ export const staffRouter = createTRPCRouter({
         include: {
           invitedBy: { select: { fullName: true } },
           acceptedBy: { select: { fullName: true } },
+          company: { select: { name: true } },
         },
+      });
+
+      await sendStaffInvitationEmail({
+        to: invitation.email,
+        companyName: invitation.company.name,
+        inviterName: invitation.invitedBy.fullName ?? "A team member",
+        role: invitation.role,
+        token: invitation.token,
+        message: invitation.message,
+        expiresAt: invitation.expiresAt,
+      });
+
+      await logStaffActivity(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: "INVITATION_SENT",
+        description: `Invited ${invitation.email} as ${invitation.role}.`,
       });
 
       return invitation;
     }),
 
   cancelInvitation: operatorStaffManageProcedure
-    .input(z.object({ invitationId: z.string().uuid() }))
+    .input(z.object({ invitationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const invite = await ctx.prisma.staffInvitation.findFirst({
         where: { id: input.invitationId, companyId: ctx.companyId },
@@ -332,11 +402,18 @@ export const staffRouter = createTRPCRouter({
         data: { status: "CANCELLED" },
       });
 
+      await logStaffActivity(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: "INVITATION_CANCELLED",
+        description: `Cancelled invitation for ${invite.email}.`,
+      });
+
       return { success: true };
     }),
 
   resendInvitation: operatorStaffManageProcedure
-    .input(z.object({ invitationId: z.string().uuid() }))
+    .input(z.object({ invitationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const invite = await ctx.prisma.staffInvitation.findFirst({
         where: { id: input.invitationId, companyId: ctx.companyId },
@@ -361,7 +438,25 @@ export const staffRouter = createTRPCRouter({
         include: {
           invitedBy: { select: { fullName: true } },
           acceptedBy: { select: { fullName: true } },
+          company: { select: { name: true } },
         },
+      });
+
+      await sendStaffInvitationEmail({
+        to: updated.email,
+        companyName: updated.company.name,
+        inviterName: updated.invitedBy.fullName ?? "A team member",
+        role: updated.role,
+        token: updated.token,
+        message: updated.message,
+        expiresAt: updated.expiresAt,
+      });
+
+      await logStaffActivity(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: "INVITATION_RESENT",
+        description: `Resent invitation to ${updated.email}.`,
       });
 
       return updated;

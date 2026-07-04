@@ -6,6 +6,7 @@ export * from "./search";
 export * from "./sync";
 export * from "./tracking";
 export * from "./operator";
+export * from "./operator-bookings";
 export * from "./routes";
 export * from "./schedules";
 export * from "./trips";

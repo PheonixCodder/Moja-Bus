@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   BusFront,
@@ -13,6 +13,7 @@ import {
   Activity,
   Wrench,
   Armchair,
+  Archive,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@moja/ui/lib/utils";
@@ -362,7 +363,7 @@ export function OperatorFleetView() {
       <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
         {/* ── KPI Stats ── */}
         {stats && (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <StatCard
               label="Total vehicles"
               value={stats.total}
@@ -379,6 +380,12 @@ export function OperatorFleetView() {
               value={stats.maintenance}
               icon={Wrench}
               iconClassName="bg-chart-4/10 [&>svg]:text-chart-4"
+            />
+            <StatCard
+              label="Retired"
+              value={stats.retired}
+              icon={Archive}
+              iconClassName="bg-muted [&>svg]:text-muted-foreground"
             />
             <StatCard
               label="Total capacity"
@@ -407,6 +414,7 @@ export function OperatorFleetView() {
                 { value: "ACTIVE", label: "Active" },
                 { value: "MAINTENANCE", label: "Maintenance" },
                 { value: "INACTIVE", label: "Inactive" },
+                { value: "RETIRED", label: "Retired" },
               ]}
               value={statusFilter}
               onValueChange={(v) => setStatusFilter(v ?? "ALL")}
@@ -423,7 +431,9 @@ export function OperatorFleetView() {
                         ? "Maintenance"
                         : statusFilter === "INACTIVE"
                           ? "Inactive"
-                          : ""
+                          : statusFilter === "RETIRED"
+                            ? "Retired"
+                            : ""
                 }
               />
               <ComboboxContent className="bg-popover border-border text-xs">
@@ -433,6 +443,7 @@ export function OperatorFleetView() {
                   <ComboboxItem value="ACTIVE">Active</ComboboxItem>
                   <ComboboxItem value="MAINTENANCE">Maintenance</ComboboxItem>
                   <ComboboxItem value="INACTIVE">Inactive</ComboboxItem>
+                  <ComboboxItem value="RETIRED">Retired</ComboboxItem>
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
@@ -586,7 +597,17 @@ export function OperatorFleetView() {
           </DrawerHeader>
 
           <div className="flex-1 overflow-y-auto p-4">
-            {seatMapBusId ? <SeatMapFetcher busId={seatMapBusId} /> : null}
+            {seatMapBusId ? (
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <Spinner className="size-6" />
+                  </div>
+                }
+              >
+                <SeatMapFetcher key={seatMapBusId} busId={seatMapBusId} />
+              </Suspense>
+            ) : null}
           </div>
 
           <DrawerFooter className="border-t border-border pt-4">
