@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function RoutesPage() {
   await prefetch(trpc.routes.list.queryOptions());
-  await prefetch(trpc.terminals.list.queryOptions());
+  await prefetch(trpc.terminals.list.queryOptions({ bookableOnly: true }));
 
   return (
     <HydrateClient>

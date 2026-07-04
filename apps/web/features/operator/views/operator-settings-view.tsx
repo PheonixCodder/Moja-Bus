@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import {
   Building2,
@@ -40,7 +40,12 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
-import { storageAdapter } from "../lib/storage-adapter";
+import { createStorageAdapter } from "../lib/storage-adapter";
+import {
+  getCompanyStatusPresentation,
+  getBankVerificationState,
+  getDocumentsVerificationState,
+} from "../lib/company-status";
 import { useTRPC } from "@/trpc/client";
 import {
   useMutation,
@@ -82,6 +87,33 @@ export function OperatorSettingsView() {
       onSuccess: () =>
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
     }),
+  );
+  const completeOnboardingMutation = useMutation(
+    trpc.operator.completeOnboarding.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
+  );
+  const resubmitVerificationMutation = useMutation(
+    trpc.operator.resubmitVerification.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
+  );
+  const revealBankMutation = useMutation(
+    trpc.operator.revealBankAccount.mutationOptions(),
+  );
+  const presignUploadMutation = useMutation(
+    trpc.operator.createPresignedUpload.mutationOptions(),
+  );
+
+  const fileStorage = useMemo(
+    () =>
+      createStorageAdapter(async (input) => {
+        const result = await presignUploadMutation.mutateAsync(input);
+        return { uploadUrl: result.uploadUrl, fileUrl: result.fileUrl };
+      }),
+    [presignUploadMutation],
   );
 
   const [saving, setSaving] = useState(false);
@@ -139,14 +171,14 @@ export function OperatorSettingsView() {
     });
 
     if (company.bankAccount) {
-      setBankForm({
-        bankName: company.bankAccount.bankName || "",
-        accountNumber: company.bankAccount.accountNumber || "",
-        accountName: company.bankAccount.accountName || "",
-        branch: company.bankAccount.branch || "",
-        swiftCode: company.bankAccount.swiftCode || "",
-        iban: company.bankAccount.iban || "",
-      });
+      setBankForm((prev) => ({
+        ...prev,
+        bankName: company.bankAccount!.bankName || "",
+        accountName: company.bankAccount!.accountName || "",
+        branch: company.bankAccount!.branch || "",
+        swiftCode: company.bankAccount!.swiftCode || "",
+        iban: company.bankAccount!.iban || "",
+      }));
     }
   }, [settings]);
 
@@ -193,6 +225,34 @@ export function OperatorSettingsView() {
     }
   };
 
+  const openBankDrawer = async () => {
+    const companyData = settings?.company;
+    if (companyData?.bankAccount) {
+      setBankForm((prev) => ({
+        ...prev,
+        bankName: companyData.bankAccount!.bankName || "",
+        accountNumber: "",
+        accountName: companyData.bankAccount!.accountName || "",
+        branch: companyData.bankAccount!.branch || "",
+        swiftCode: companyData.bankAccount!.swiftCode || "",
+        iban: companyData.bankAccount!.iban || "",
+      }));
+
+      if (settings?.operator.role === "OWNER") {
+        try {
+          const revealed = await revealBankMutation.mutateAsync();
+          setBankForm((prev) => ({
+            ...prev,
+            accountNumber: revealed.accountNumber,
+          }));
+        } catch (err: any) {
+          toast.error(err.message || "Could not load full account number");
+        }
+      }
+    }
+    setActiveDrawer("bank");
+  };
+
   // Handle Save Bank details
   const handleSaveBank = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,7 +287,7 @@ export function OperatorSettingsView() {
     setUploadProgress(0);
 
     try {
-      const fileUrl = await storageAdapter.uploadFile(file, (pct) => {
+      const fileUrl = await fileStorage.uploadFile(file, (pct) => {
         setUploadProgress(pct);
       });
 
@@ -270,7 +330,7 @@ export function OperatorSettingsView() {
 
     try {
       toast.loading("Uploading logo...", { id: "logo-upload" });
-      const fileUrl = await storageAdapter.uploadFile(file);
+      const fileUrl = await fileStorage.uploadFile(file);
       await updateCompanyMutation.mutateAsync({ logoUrl: fileUrl });
 
       toast.success("Company logo updated successfully", { id: "logo-upload" });
@@ -299,6 +359,11 @@ export function OperatorSettingsView() {
   }
 
   const { company } = settings;
+  const statusPresentation = getCompanyStatusPresentation(company.status);
+  const bankVerificationState = getBankVerificationState(company.bankAccount);
+  const documentsVerificationState = getDocumentsVerificationState(
+    company.documents,
+  );
 
   // Calculate Health Completion metrics
   const checklist = [
@@ -307,17 +372,22 @@ export function OperatorSettingsView() {
       done: !!company.name && !!company.taxId,
     },
     {
-      label: "Settlement bank details configured",
-      done: !!company.bankAccount,
+      label: "Settlement bank details verified",
+      done: bankVerificationState === "verified",
     },
     {
-      label: "Business License uploaded",
-      done: company.documents.some((d) => d.type === "BUSINESS_LICENSE"),
-    },
-    {
-      label: "Operating Permit uploaded",
+      label: "Business registration certificate approved",
       done: company.documents.some(
-        (d) => d.type === "TRANSPORT_OPERATING_PERMIT",
+        (d) =>
+          d.type === "BUSINESS_REGISTRATION_CERTIFICATE" &&
+          d.status === "APPROVED",
+      ),
+    },
+    {
+      label: "Operating permit approved",
+      done: company.documents.some(
+        (d) =>
+          d.type === "TRANSPORT_OPERATING_PERMIT" && d.status === "APPROVED",
       ),
     },
   ];
@@ -334,19 +404,21 @@ export function OperatorSettingsView() {
           <div
             className={cn(
               "w-2.5 h-2.5 rounded-full animate-pulse",
-              company.status === "VERIFIED"
+              company.status === "VERIFIED" || company.status === "ACTIVE"
                 ? "bg-emerald-500"
                 : company.status === "PENDING_VERIFICATION"
                   ? "bg-amber-500"
-                  : "bg-slate-400",
+                  : company.status === "SUSPENDED"
+                    ? "bg-orange-500"
+                    : company.status === "REJECTED"
+                      ? "bg-red-500"
+                      : "bg-slate-400",
             )}
           />
           <div>
             <h4 className="text-xs font-semibold text-foreground">
               Verification Status:{" "}
-              <span className="font-bold">
-                {company.status.replace("_", " ")}
-              </span>
+              <span className="font-bold">{statusPresentation.label}</span>
             </h4>
             {company.rejectionReason && (
               <p className="text-[11px] text-destructive mt-0.5">
@@ -356,7 +428,7 @@ export function OperatorSettingsView() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {company.status === "DRAFT" && (
+          {statusPresentation.canSubmitForVerification && (
             <Button
               size="sm"
               variant="default"
@@ -365,18 +437,7 @@ export function OperatorSettingsView() {
                   toast.loading("Submitting for verification...", {
                     id: "submit-verification",
                   });
-                  // Simulate complete
-                  await fetch(
-                    `${process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:4000"}/api/v1/operator/onboarding/complete`,
-                    {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                    },
-                  );
-                  await queryClient.invalidateQueries(
-                    trpc.operator.getSettings.queryFilter(),
-                  );
+                  await completeOnboardingMutation.mutateAsync();
                   toast.success("Verification request submitted", {
                     id: "submit-verification",
                   });
@@ -388,6 +449,29 @@ export function OperatorSettingsView() {
               }}
             >
               Submit for Verification
+            </Button>
+          )}
+          {statusPresentation.canResubmit && (
+            <Button
+              size="sm"
+              variant="default"
+              onClick={async () => {
+                try {
+                  toast.loading("Resubmitting for verification...", {
+                    id: "resubmit-verification",
+                  });
+                  await resubmitVerificationMutation.mutateAsync();
+                  toast.success("Verification request resubmitted", {
+                    id: "resubmit-verification",
+                  });
+                } catch (err: any) {
+                  toast.error(err.message || "Failed to resubmit", {
+                    id: "resubmit-verification",
+                  });
+                }
+              }}
+            >
+              Resubmit for Verification
             </Button>
           )}
         </div>
@@ -775,7 +859,7 @@ export function OperatorSettingsView() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setActiveDrawer("bank")}
+                    onClick={openBankDrawer}
                   >
                     {company.bankAccount
                       ? "Edit Bank Account"
@@ -805,7 +889,7 @@ export function OperatorSettingsView() {
                           Account Number
                         </span>
                         <p className="font-semibold text-foreground mt-0.5 font-mono">
-                          ••••••{company.bankAccount.accountNumber.slice(-4)}
+                          {company.bankAccount.accountNumber}
                         </p>
                       </div>
                       <div>
@@ -846,7 +930,7 @@ export function OperatorSettingsView() {
                         tickets booked through passenger apps.
                       </p>
                     </div>
-                    <Button size="sm" onClick={() => setActiveDrawer("bank")}>
+                    <Button size="sm" onClick={openBankDrawer}>
                       Configure Payout Bank
                     </Button>
                   </div>
@@ -872,22 +956,22 @@ export function OperatorSettingsView() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {[
                       {
-                        key: "BUSINESS_LICENSE",
+                        key: "BUSINESS_REGISTRATION_CERTIFICATE",
                         label: "Business Registration License",
                         desc: "Proof of legal commerce registry.",
                       },
                       {
-                        key: "TAX_CERTIFICATE",
+                        key: "TAX_CLEARANCE_CERTIFICATE",
                         label: "Tax Compliance Certificate",
                         desc: "TIN verification certificate.",
                       },
                       {
-                        key: "OPERATING_PERMIT",
+                        key: "TRANSPORT_OPERATING_PERMIT",
                         label: "National Transport Permit",
                         desc: "Permit to operate intercity passenger transport.",
                       },
                       {
-                        key: "INSURANCE_PROOF",
+                        key: "INSURANCE_CERTIFICATE",
                         label: "Passenger Fleet Insurance",
                         desc: "Proof of liability insurance coverage.",
                       },
@@ -1029,7 +1113,7 @@ export function OperatorSettingsView() {
 
                     {/* Step 2: Bank Details */}
                     <div className="relative">
-                      {company.bankAccount ? (
+                      {bankVerificationState === "verified" ? (
                         <>
                           <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-emerald-500 text-emerald-500">
                             <CheckCircle2 className="size-3.5 fill-white" />
@@ -1039,7 +1123,21 @@ export function OperatorSettingsView() {
                               Settlement Bank Account
                             </h4>
                             <p className="text-[11px] text-muted-foreground mt-0.5">
-                              Bank branch and account details configured.
+                              Bank account verified by Moja Ride.
+                            </p>
+                          </div>
+                        </>
+                      ) : bankVerificationState === "pending" ? (
+                        <>
+                          <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-amber-500 text-amber-500">
+                            <Clock className="size-3.5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-foreground">
+                              Settlement Bank Account
+                            </h4>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              Bank details submitted — pending admin verification.
                             </p>
                           </div>
                         </>
@@ -1063,7 +1161,7 @@ export function OperatorSettingsView() {
 
                     {/* Step 3: Operating Permit & Docs */}
                     <div className="relative">
-                      {company.documents.length >= 2 ? (
+                      {documentsVerificationState === "approved" ? (
                         <>
                           <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-emerald-500 text-emerald-500">
                             <CheckCircle2 className="size-3.5 fill-white" />
@@ -1073,8 +1171,21 @@ export function OperatorSettingsView() {
                               Compliance Permits & Documents
                             </h4>
                             <p className="text-[11px] text-muted-foreground mt-0.5">
-                              Required operating permit and business licenses
-                              submitted.
+                              Required documents uploaded and approved.
+                            </p>
+                          </div>
+                        </>
+                      ) : documentsVerificationState === "pending" ? (
+                        <>
+                          <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-amber-500 text-amber-500">
+                            <Clock className="size-3.5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-foreground">
+                              Compliance Permits & Documents
+                            </h4>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              Documents submitted — pending admin approval.
                             </p>
                           </div>
                         </>
@@ -1097,7 +1208,8 @@ export function OperatorSettingsView() {
 
                     {/* Step 4: Admin Review */}
                     <div className="relative">
-                      {company.status === "VERIFIED" ? (
+                      {company.status === "VERIFIED" ||
+                      company.status === "ACTIVE" ? (
                         <>
                           <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-emerald-500 text-emerald-500">
                             <CheckCircle2 className="size-3.5 fill-white" />
@@ -1108,6 +1220,36 @@ export function OperatorSettingsView() {
                             </h4>
                             <p className="text-[11px] text-muted-foreground mt-0.5">
                               Compliance review verified and approved.
+                            </p>
+                          </div>
+                        </>
+                      ) : company.status === "REJECTED" ? (
+                        <>
+                          <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-red-500 text-red-500">
+                            <AlertCircle className="size-3.5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-foreground">
+                              Admin Verification Review
+                            </h4>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              Your application was rejected. Update your profile
+                              and resubmit when ready.
+                            </p>
+                          </div>
+                        </>
+                      ) : company.status === "SUSPENDED" ? (
+                        <>
+                          <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-orange-500 text-orange-500">
+                            <ShieldAlert className="size-3.5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-foreground">
+                              Admin Verification Review
+                            </h4>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              Your account is suspended. Contact Moja Ride
+                              support for assistance.
                             </p>
                           </div>
                         </>
@@ -1146,7 +1288,8 @@ export function OperatorSettingsView() {
 
                     {/* Step 5: Approval */}
                     <div className="relative">
-                      {company.status === "VERIFIED" ? (
+                      {company.status === "VERIFIED" ||
+                      company.status === "ACTIVE" ? (
                         <>
                           <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-white flex items-center justify-center border-emerald-500 text-emerald-500">
                             <ShieldCheck className="size-3.5 text-emerald-500" />

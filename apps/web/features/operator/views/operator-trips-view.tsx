@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Radio,
   ArrowRight,
@@ -13,10 +14,9 @@ import {
   AlertTriangle,
   XCircle,
   CheckCircle2,
-  Loader2,
   Search,
-  Filter,
   RefreshCw,
+  ScanLine,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@moja/ui/lib/utils";
@@ -39,14 +39,6 @@ import {
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@moja/ui/components/ui/dialog";
-import {
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -57,13 +49,25 @@ import {
 
 import { useTRPC } from "@/trpc/client";
 import {
+  TicketScanner,
+  type TicketScanResult,
+} from "@/features/operator/components/ticket-scanner";
+import {
   useSuspenseQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
+import {
+  buildConsecutiveSegments,
+  countSegmentOccupancy,
+  getSegmentSeatStatus,
+  type TripSegment,
+} from "@/features/booking/lib/trip-segments";
 
 type Trip = RouterOutputs["trips"]["list"][number];
+type TripDetail = RouterOutputs["trips"]["get"];
 type TripStatus = Trip["status"];
 type BusType = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 
@@ -194,26 +198,33 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
 }
 
 // ──────────────────────────────────────────────
-// Manifest Seat Grid (airline style)
+// Segment Seat Grid (per consecutive stop pair)
 // ──────────────────────────────────────────────
 
-function ManifestSeatGrid({ trip }: { trip: Trip }) {
+function SegmentSeatGrid({
+  trip,
+  segment,
+}: {
+  trip: TripDetail;
+  segment: TripSegment;
+}) {
   const seats = trip.seats ?? [];
-  if (seats.length === 0)
+  const bookings = trip.bookings ?? [];
+
+  if (seats.length === 0) {
     return (
       <p className="text-xs text-muted-foreground text-center py-4">
         No seat map available for this trip.
       </p>
     );
+  }
 
-  // Group by row
   const maxRow = Math.max(...seats.map((s) => s.seat.row));
   const maxCol = Math.max(...seats.map((s) => s.seat.col));
 
   return (
     <div className="overflow-x-auto">
       <div className="inline-block">
-        {/* Column headers */}
         <div className="flex gap-1 mb-1 pl-8">
           {Array.from({ length: maxCol }, (_, i) => (
             <div
@@ -227,7 +238,6 @@ function ManifestSeatGrid({ trip }: { trip: Trip }) {
 
         {Array.from({ length: maxRow }, (_, row) => (
           <div key={row} className="flex items-center gap-1 mb-1">
-            {/* Row label */}
             <div className="w-7 text-[10px] font-bold text-muted-foreground text-right pr-1">
               {String.fromCharCode(65 + row)}
             </div>
@@ -248,18 +258,36 @@ function ManifestSeatGrid({ trip }: { trip: Trip }) {
                   </div>
                 );
               }
-              const isBooked = seat.status === "BOOKED";
-              const isBlocked = seat.status === "BLOCKED";
+
+              const isBlocked = !seat.isActive || !seat.seat.isActive;
+              const seatStatus = getSegmentSeatStatus(
+                seat.seatId,
+                bookings,
+                segment,
+                isBlocked,
+              );
+              const statusLabel =
+                seatStatus === "booked"
+                  ? "Booked"
+                  : seatStatus === "held"
+                    ? "Held"
+                    : seatStatus === "blocked"
+                      ? "Blocked"
+                      : "Available";
+
               return (
                 <div
                   key={col}
-                  title={`Seat ${seat.seat.label} — ${seat.status}`}
+                  title={`Seat ${seat.seat.label} — ${statusLabel}`}
                   className={cn(
                     "w-7 h-7 rounded border text-[9px] font-bold flex items-center justify-center transition-colors",
-                    isBooked && "bg-primary text-white border-primary",
-                    isBlocked && "bg-slate-200 text-slate-400 border-slate-300",
-                    !isBooked &&
-                      !isBlocked &&
+                    seatStatus === "booked" &&
+                      "bg-primary text-white border-primary",
+                    seatStatus === "held" &&
+                      "bg-amber-400 text-amber-950 border-amber-500",
+                    seatStatus === "blocked" &&
+                      "bg-slate-200 text-slate-400 border-slate-300",
+                    seatStatus === "available" &&
                       "bg-background border-border text-muted-foreground hover:border-primary/30",
                   )}
                 >
@@ -270,11 +298,14 @@ function ManifestSeatGrid({ trip }: { trip: Trip }) {
           </div>
         ))}
 
-        {/* Legend */}
-        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+        <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border">
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-primary border-primary border" />
             <span className="text-[11px] text-muted-foreground">Booked</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded bg-amber-400 border border-amber-500" />
+            <span className="text-[11px] text-muted-foreground">Held</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-background border border-border" />
@@ -290,6 +321,55 @@ function ManifestSeatGrid({ trip }: { trip: Trip }) {
   );
 }
 
+function SegmentOccupancySection({ trip }: { trip: TripDetail }) {
+  const segments = buildConsecutiveSegments(trip.tripStops ?? []);
+  const bookings = trip.bookings ?? [];
+
+  if (segments.length === 0) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        No route segments available for this trip.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {segments.map((segment) => {
+        const counts = countSegmentOccupancy(bookings, segment);
+        const segmentKey = `${segment.originOrder}-${segment.destinationOrder}`;
+
+        return (
+          <div
+            key={segmentKey}
+            className="space-y-2 rounded-md border border-border p-3 bg-slate-50/30"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h5 className="text-xs font-bold text-foreground">
+                {segment.originLabel}
+                <ArrowRight className="inline size-3 mx-1 text-muted-foreground/50" />
+                {segment.destinationLabel}
+              </h5>
+              {counts.held > 0 ? (
+                <span className="text-[10px] text-muted-foreground">
+                  {counts.confirmed} confirmed · {counts.held} held
+                </span>
+              ) : null}
+            </div>
+            <SeatFillBar
+              booked={counts.occupied}
+              total={trip.totalSeats}
+            />
+            {(trip.seats?.length ?? 0) > 0 ? (
+              <SegmentSeatGrid trip={trip} segment={segment} />
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ──────────────────────────────────────────────
 // Manifest Drawer
 // ──────────────────────────────────────────────
@@ -299,52 +379,70 @@ function ManifestDrawer({
   open,
   onClose,
   buses,
-  onTripUpdate,
 }: {
   tripId: string | null;
   open: boolean;
   onClose: () => void;
   buses: BusType[];
-  onTripUpdate: (trip: Trip) => void;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const [tripData, setTripData] = useState<
-    RouterOutputs["trips"]["get"] | null
-  >(null);
-  const [loading, setLoading] = useState(false);
   const [delayMinutes, setDelayMinutes] = useState("15");
   const [cancelReason, setCancelReason] = useState("");
   const [showDelayForm, setShowDelayForm] = useState(false);
   const [showCancelForm, setShowCancelForm] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [checkingInId, setCheckingInId] = useState<string | null>(null);
 
-  const trip = tripData;
+  const {
+    data: trip,
+    isLoading,
+    isFetching,
+    isError,
+  } = useQuery({
+    ...trpc.trips.get.queryOptions({ id: tripId ?? "" }),
+    enabled: !!tripId && open,
+  });
+
+  const invalidateTripData = useCallback(() => {
+    queryClient.invalidateQueries(trpc.trips.list.pathFilter());
+    if (tripId) {
+      queryClient.invalidateQueries(
+        trpc.trips.get.queryFilter({ id: tripId }),
+      );
+    }
+  }, [queryClient, trpc, tripId]);
+
+  const checkInMutation = useMutation({
+    ...trpc.operator.checkInBooking.mutationOptions(),
+    onSuccess: (result) => {
+      invalidateTripData();
+      if (result.alreadyCheckedIn) {
+        toast.info(`${result.passengerName} was already checked in`);
+      } else {
+        toast.success(
+          `Checked in ${result.passengerName} (seat ${result.seatLabel})`,
+        );
+      }
+    },
+    onError: (err: any) =>
+      toast.error(err.message || "Check-in failed"),
+  });
 
   const assignBusMutation = useMutation({
     ...trpc.trips.assignBusDriver.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
-      if (tripId) {
-        queryClient
-          .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
-          .then((data) => setTripData(data))
-          .catch(() => {});
-      }
+      invalidateTripData();
       toast.success("Bus assigned");
     },
-    onError: (err: any) => toast.error(err.message || "Failed to assign bus"),
+    onError: (err: any) =>
+      toast.error(err.message || "Failed to assign bus"),
   });
 
   const updateStatusMutation = useMutation({
     ...trpc.trips.updateStatus.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
-      if (tripId) {
-        queryClient
-          .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
-          .then((data) => setTripData(data))
-          .catch(() => {});
-      }
+      invalidateTripData();
     },
     onError: (err: any) =>
       toast.error(err.message || "Failed to update status"),
@@ -353,53 +451,77 @@ function ManifestDrawer({
   const delayMutation = useMutation({
     ...trpc.trips.delay.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
-      if (tripId) {
-        queryClient
-          .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
-          .then((data) => setTripData(data))
-          .catch(() => {});
-      }
-      toast.success(`Delay logged`);
+      invalidateTripData();
+      toast.success("Delay logged");
       setShowDelayForm(false);
     },
-    onError: (err: any) => toast.error(err.message || "Failed to log delay"),
+    onError: (err: any) =>
+      toast.error(err.message || "Failed to log delay"),
   });
 
   const cancelMutation = useMutation({
     ...trpc.trips.cancel.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(trpc.trips.list.pathFilter());
-      if (tripId) {
-        queryClient
-          .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
-          .then((data) => setTripData(data))
-          .catch(() => {});
-      }
+      invalidateTripData();
       toast.success("Trip cancelled");
       setShowCancelForm(false);
     },
-    onError: (err: any) => toast.error(err.message || "Failed to cancel trip"),
+    onError: (err: any) =>
+      toast.error(err.message || "Failed to cancel trip"),
   });
 
   const actionLoading =
     assignBusMutation.isPending ||
     updateStatusMutation.isPending ||
     delayMutation.isPending ||
-    cancelMutation.isPending;
+    cancelMutation.isPending ||
+    checkInMutation.isPending;
 
-  useEffect(() => {
-    if (!tripId || !open) {
-      setTripData(null);
-      return;
+  const confirmedBookings =
+    trip?.bookings?.filter((b) => b.status === "CONFIRMED") ?? [];
+  const checkedInCount = confirmedBookings.filter((b) => b.checkedInAt).length;
+
+  async function handleManualCheckIn(bookingId: string) {
+    if (!trip) return;
+    setCheckingInId(bookingId);
+    try {
+      await checkInMutation.mutateAsync({ bookingId, tripId: trip.id });
+    } finally {
+      setCheckingInId(null);
     }
-    setLoading(true);
-    queryClient
-      .fetchQuery(trpc.trips.get.queryOptions({ id: tripId }))
-      .then((data) => setTripData(data))
-      .catch(() => toast.error("Failed to load trip details"))
-      .finally(() => setLoading(false));
-  }, [tripId, open]);
+  }
+
+  const handleScanCheckIn = useCallback(
+    async (raw: string): Promise<TicketScanResult> => {
+      if (!tripId) {
+        throw new Error("Trip not loaded");
+      }
+      return checkInMutation.mutateAsync({
+        ticketToken: raw,
+        tripId,
+      });
+    },
+    [checkInMutation, tripId],
+  );
+
+  function bookingSegmentLabel(booking: {
+    originTripStop?: {
+      terminal?: { name?: string; cityRelation?: { name?: string } | null };
+    };
+    destinationTripStop?: {
+      terminal?: { name?: string; cityRelation?: { name?: string } | null };
+    };
+  }): string {
+    const origin =
+      booking.originTripStop?.terminal?.cityRelation?.name ??
+      booking.originTripStop?.terminal?.name ??
+      "";
+    const dest =
+      booking.destinationTripStop?.terminal?.cityRelation?.name ??
+      booking.destinationTripStop?.terminal?.name ??
+      "";
+    return origin && dest ? `${origin} → ${dest}` : "";
+  }
 
   function handleAssignBus(busId: string) {
     if (!trip) return;
@@ -444,29 +566,40 @@ function ManifestDrawer({
     <Drawer open={open} onOpenChange={(v) => !v && onClose()} direction="right">
       <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-lg flex flex-col">
         <DrawerHeader className="border-b border-border px-5 py-4 shrink-0">
-          <DrawerTitle className="text-base font-bold">
-            Trip Manifest
-          </DrawerTitle>
-          <DrawerDescription className="text-xs text-muted-foreground">
-            {trip
-              ? `${
-                  trip.schedule?.route?.originTerminal?.cityRelation?.name ??
-                  trip.schedule?.route?.originTerminal?.city ??
-                  trip.schedule?.route?.originTerminal?.name ??
-                  "Origin"
-                } → ${
-                  trip.schedule?.route?.destTerminal?.cityRelation?.name ??
-                  trip.schedule?.route?.destTerminal?.city ??
-                  trip.schedule?.route?.destTerminal?.name ??
-                  "Dest"
-                } · ${formatDate(trip.departureDate)}`
-              : "Loading…"}
-          </DrawerDescription>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <DrawerTitle className="text-base font-bold">
+                Trip Manifest
+              </DrawerTitle>
+              <DrawerDescription className="text-xs text-muted-foreground">
+                {trip
+                  ? `${
+                      trip.schedule?.route?.originTerminal?.cityRelation?.name ??
+                      trip.schedule?.route?.originTerminal?.city ??
+                      trip.schedule?.route?.originTerminal?.name ??
+                      "Origin"
+                    } → ${
+                      trip.schedule?.route?.destTerminal?.cityRelation?.name ??
+                      trip.schedule?.route?.destTerminal?.city ??
+                      trip.schedule?.route?.destTerminal?.name ??
+                      "Dest"
+                    } · ${formatDate(trip.departureDate)}`
+                  : "Loading…"}
+              </DrawerDescription>
+            </div>
+            {isFetching && !isLoading ? (
+              <RefreshCw className="size-3.5 text-muted-foreground animate-spin shrink-0 mt-1" />
+            ) : null}
+          </div>
         </DrawerHeader>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex-1 flex items-center justify-center">
             <Spinner className="size-6 text-primary" />
+          </div>
+        ) : isError ? (
+          <div className="flex-1 flex items-center justify-center px-5">
+            <p className="text-sm text-destructive">Failed to load trip details</p>
           </div>
         ) : trip ? (
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
@@ -565,64 +698,88 @@ function ManifestDrawer({
               </div>
             </div>
 
-            {/* Seat fill */}
+            {/* Segment occupancy */}
             <div className="space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Seat Occupancy
+                Segments
               </h4>
-              <SeatFillBar booked={trip.bookedSeats} total={trip.totalSeats} />
+              <SegmentOccupancySection trip={trip} />
             </div>
-
-            {/* Seat map */}
-            {(trip.seats?.length ?? 0) > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Seat Map
-                </h4>
-                <ManifestSeatGrid trip={trip} />
-              </div>
-            )}
 
             {/* Passenger list */}
             {(trip.bookings?.length ?? 0) > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Passengers ({trip.bookings!.length})
-                </h4>
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Passengers ({trip.bookings!.length})
+                  </h4>
+                  {confirmedBookings.length > 0 ? (
+                    <span className="text-[11px] font-semibold text-muted-foreground">
+                      {checkedInCount} / {confirmedBookings.length} checked in
+                    </span>
+                  ) : null}
+                </div>
                 <div className="border border-border rounded-md overflow-hidden">
-                  <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-slate-50 border-b border-border text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 bg-slate-50 border-b border-border text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     <span>Name</span>
                     <span>Seat</span>
-                    <span>Check-in</span>
+                    <span>Status</span>
+                    <span className="text-right">Action</span>
                   </div>
-                  {trip.bookings!.map((b: any) => (
+                  {trip.bookings!.map((b) => (
                     <div
                       key={b.id}
-                      className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2.5 border-b border-border last:border-b-0 items-center"
+                      className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 border-b border-border last:border-b-0 items-center"
                     >
                       <div>
                         <p className="text-xs font-semibold text-foreground">
                           {b.passengerName}
                         </p>
-                        {b.passengerPhone && (
+                        {b.passengerPhone ? (
                           <p className="text-[11px] text-muted-foreground">
                             {b.passengerPhone}
                           </p>
-                        )}
+                        ) : null}
+                        {bookingSegmentLabel(b) ? (
+                          <p className="text-[10px] text-muted-foreground/80 mt-0.5">
+                            {bookingSegmentLabel(b)}
+                          </p>
+                        ) : null}
                       </div>
                       <span className="font-mono text-xs font-bold text-foreground">
-                        {b.seatLabel}
+                        {b.seat?.label ?? "—"}
                       </span>
                       <span
                         className={cn(
-                          "text-[11px] font-bold",
-                          b.checkedIn
+                          "text-[11px] font-bold whitespace-nowrap",
+                          b.checkedInAt
                             ? "text-green-600"
                             : "text-muted-foreground",
                         )}
                       >
-                        {b.checkedIn ? "✓" : "—"}
+                        {b.checkedInAt ? "Checked in" : b.status === "CONFIRMED" ? "Pending" : b.status}
                       </span>
+                      {b.status === "CONFIRMED" && !b.checkedInAt ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-[11px] px-2"
+                          disabled={checkingInId === b.id || checkInMutation.isPending}
+                          onClick={() => void handleManualCheckIn(b.id)}
+                        >
+                          {checkingInId === b.id ? (
+                            <Spinner className="size-3" />
+                          ) : (
+                            "Check in"
+                          )}
+                        </Button>
+                      ) : b.checkedInAt ? (
+                        <span className="text-green-600 text-xs font-bold text-right">
+                          ✓
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -635,6 +792,18 @@ function ManifestDrawer({
                 Actions
               </h4>
               <div className="flex flex-col gap-2">
+                {confirmedBookings.length > 0 ? (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setScannerOpen(true)}
+                    disabled={actionLoading}
+                    className="w-full"
+                  >
+                    <ScanLine className="size-4 mr-2" />
+                    Scan ticket
+                  </Button>
+                ) : null}
                 {canBoard && (
                   <Button
                     size="sm"
@@ -740,6 +909,13 @@ function ManifestDrawer({
           </div>
         ) : null}
       </DrawerContent>
+      <TicketScanner
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onScan={handleScanCheckIn}
+        disabled={!trip}
+        description="Scan passenger tickets for this departure. Only tickets for this trip will be accepted."
+      />
     </Drawer>
   );
 }
@@ -752,12 +928,10 @@ function TripCard({
   trip,
   buses,
   onViewManifest,
-  onTripUpdate,
 }: {
   trip: Trip;
   buses: BusType[];
   onViewManifest: (id: string) => void;
-  onTripUpdate: (trip: Trip) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const trpc = useTRPC();
@@ -783,11 +957,12 @@ function TripCard({
     route?.destTerminal?.city ??
     route?.destTerminal?.name ??
     "—";
-  const bus = trip.bus;
 
   function handleAssignBus(busId: string) {
     assignBusMutation.mutate({ id: trip.id, data: { busId } });
   }
+
+  const passengerCount = trip._count?.bookings ?? 0;
 
   return (
     <div className="border border-border rounded-md bg-card hover:border-primary/20 transition-all duration-200 overflow-hidden">
@@ -837,10 +1012,11 @@ function TripCard({
             </div>
           </div>
 
-          {/* Seat fill inline */}
-          <div className="mt-2">
-            <SeatFillBar booked={trip.bookedSeats} total={trip.totalSeats} />
-          </div>
+          {passengerCount > 0 ? (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              {passengerCount} passenger{passengerCount !== 1 ? "s" : ""}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -939,10 +1115,18 @@ const STATUS_FILTERS: { value: string; label: string }[] = [
 export function OperatorTripsView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [manifestTripId, setManifestTripId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const manifest = searchParams.get("manifest");
+    if (manifest) {
+      setManifestTripId(manifest);
+    }
+  }, [searchParams]);
 
   const { data: trips = [] } = useSuspenseQuery(trpc.trips.list.queryOptions());
   const { data: busesData } = useSuspenseQuery(
@@ -955,12 +1139,6 @@ export function OperatorTripsView() {
     queryClient
       .invalidateQueries(trpc.trips.list.pathFilter())
       .finally(() => setRefreshing(false));
-  }
-
-  // handleTripUpdate is kept for compatibility with ManifestDrawer prop signature
-  function handleTripUpdate(_updated: Trip) {
-    // Invalidate queries to re-fetch fresh data
-    queryClient.invalidateQueries(trpc.trips.list.pathFilter());
   }
 
   const filteredTrips = trips.filter((t) => {
@@ -1110,7 +1288,6 @@ export function OperatorTripsView() {
                       trip={trip}
                       buses={buses}
                       onViewManifest={setManifestTripId}
-                      onTripUpdate={handleTripUpdate}
                     />
                   ))}
                 </div>
@@ -1126,7 +1303,6 @@ export function OperatorTripsView() {
         open={!!manifestTripId}
         onClose={() => setManifestTripId(null)}
         buses={buses}
-        onTripUpdate={handleTripUpdate}
       />
     </div>
   );

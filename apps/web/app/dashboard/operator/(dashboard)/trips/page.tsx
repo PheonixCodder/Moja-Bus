@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { OperatorTripsView } from "@/features/operator/views/operator-trips-view";
@@ -26,7 +27,9 @@ export default async function TripsPage() {
         </nav>
         <OperatorQuickActions />
       </header>
-      <OperatorTripsView />
+      <Suspense fallback={null}>
+        <OperatorTripsView />
+      </Suspense>
     </HydrateClient>
   );
 }

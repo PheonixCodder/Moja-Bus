@@ -26,16 +26,16 @@ export const routesRouter = createTRPCRouter({
   }),
 
   get: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const route = await ctx.prisma.route.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
         include: {
-          originTerminal: true,
-          destTerminal: true,
+          originTerminal: { include: { cityRelation: true } },
+          destTerminal: { include: { cityRelation: true } },
           waypoints: {
             include: {
-              terminal: true,
+              terminal: { include: { cityRelation: true } },
             },
             orderBy: { stopOrder: "asc" },
           },
@@ -94,7 +94,7 @@ export const routesRouter = createTRPCRouter({
     }),
 
   update: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), data: z.any() }))
+    .input(z.object({ id: z.string(), data: z.any() }))
     .mutation(async ({ ctx, input }) => {
       const { updateRouteSchema } = await import("@moja/schemas");
       const parsed = updateRouteSchema.safeParse(input.data);
@@ -132,21 +132,33 @@ export const routesRouter = createTRPCRouter({
 
       // Handle waypoints if provided
       if (data.waypoints) {
-        // Delete all old ones and insert new ones
-        await ctx.prisma.routeWaypoint.deleteMany({
-          where: { routeId: input.id },
-        });
+        return ctx.prisma.$transaction(async (tx) => {
+          await tx.routeWaypoint.deleteMany({
+            where: { routeId: input.id },
+          });
 
-        updateData.waypoints = {
-          create: data.waypoints.map((wp) => ({
-            terminalId: wp.terminalId,
-            stopOrder: wp.stopOrder,
-            arrivalOffsetMinutes: wp.offsetMinutes,
-            departureOffsetMinutes: wp.offsetMinutes,
-            isPickup: wp.allowPickup,
-            isDropoff: wp.allowDropoff,
-          })),
-        };
+          return tx.route.update({
+            where: { id: input.id },
+            data: {
+              ...updateData,
+              waypoints: {
+                create: data.waypoints.map((wp) => ({
+                  terminalId: wp.terminalId,
+                  stopOrder: wp.stopOrder,
+                  arrivalOffsetMinutes: wp.offsetMinutes,
+                  departureOffsetMinutes: wp.offsetMinutes,
+                  isPickup: wp.allowPickup,
+                  isDropoff: wp.allowDropoff,
+                })),
+              },
+            },
+            include: {
+              originTerminal: true,
+              destTerminal: true,
+              waypoints: true,
+            },
+          });
+        });
       }
 
       return ctx.prisma.route.update({
@@ -161,7 +173,7 @@ export const routesRouter = createTRPCRouter({
     }),
 
   delete: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const existingRoute = await ctx.prisma.route.findFirst({
         where: { id: input.id, companyId: ctx.companyId },

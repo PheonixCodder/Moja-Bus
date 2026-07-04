@@ -701,6 +701,9 @@ export function OperatorStaffView() {
   const { data: activityLog } = useSuspenseQuery(
     trpc.staff.getActivityLog.queryOptions({ limit: 30 }),
   );
+  const { data: myRoleData } = useSuspenseQuery(
+    trpc.staff.getMyRole.queryOptions(),
+  );
   const members = staffData.members as any[];
 
   // Sheets/dialogs
@@ -712,8 +715,8 @@ export function OperatorStaffView() {
     nextStatus: OperatorStatus;
   } | null>(null);
 
-  // Determine caller's role from the roster
-  const callerRole: StaffRole = "OWNER";
+  // Determine caller's role from the authenticated operator record
+  const callerRole: StaffRole = myRoleData.role;
 
   // Mutations
   const createInviteMutation = useMutation(

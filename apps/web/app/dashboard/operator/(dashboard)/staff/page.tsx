@@ -14,6 +14,7 @@ export default async function OperatorStaffPage() {
   await prefetch(trpc.staff.listStaff.queryOptions({}));
   await prefetch(trpc.staff.listInvitations.queryOptions());
   await prefetch(trpc.staff.getActivityLog.queryOptions({ limit: 30 }));
+  await prefetch(trpc.staff.getMyRole.queryOptions());
 
   return (
     <HydrateClient>
@@ -23,7 +24,7 @@ export default async function OperatorStaffPage() {
         <nav className="flex items-center gap-1 text-xs text-text-muted">
           <span>Operations</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">Dispatch Board</span>
+          <span className="text-text-primary font-medium">Staff Management</span>
         </nav>
         <OperatorQuickActions />
       </header>

@@ -6,10 +6,60 @@
 
 ## Current Status
 
-**Phase:** Operator ERP Platform Complete — Moving to Passenger Search & Booking Flow
-**Last Major Milestone:** All Operator dashboard views (Fleet, Routes, Schedules, Dispatch Board) fully built and wired to real API endpoints
-**Next Priority:** Passenger Trip Search (Search endpoint + Web UI + Mobile UI)
+**Phase:** Passenger Booking + Operator Operations
+**Last Major Milestone:** Operator booking check-in (manifest QR scanner, bookings list)
+**Next Priority:** Real payment provider integration; guest booking claim-by-phone
 
+
+---
+
+### Operator Booking Operations — Phase 3.5 (2026-07-03)
+
+- [x] `OperatorBookingService` + `operator.listBookings`, `getBooking`, `checkInBooking`
+- [x] Company-scoped check-in with optional trip guard; idempotent re-check-in
+- [x] Manifest drawer: check-in stats, manual check-in, QR scanner (`TicketScanner`)
+- [x] `/dashboard/operator/bookings` with Today / Upcoming / Past + search
+- [x] Sidebar nav link; `trips.get` booking segment includes; unit tests (24 passing)
+
+---
+
+### Audit Remediation (Production Blockers)
+
+- [x] Sprint 1: Email provider (Resend) + staff invitation emails
+- [x] Sprint 2: S3 presigned uploads + DocumentType enum fix in Settings
+- [x] Sprint 3: `updateCompany` partial updates + tRPC verification submit + terms persistence
+- [x] Sprint 4: Suspense boundaries + staff RBAC + delete/ownership guards
+- [x] Sprint 5: Route edit UI + `isTerminal` bookable terminal filter
+
+### Operator Beta Hardening (2026-07-03)
+
+- [x] Wave 1: Honest verification/status UI (dashboard, sidebar, settings checklist, `resubmitVerification`)
+- [x] Wave 1: Trip generator Africa/Abidjan calendar math + unit tests
+- [x] Wave 1: Schedule fare route-change clear + debounced inline edits + list invalidation
+- [x] Wave 1: Onboarding auth/role guard, Suspense hydration, back-nav confirm
+- [x] Wave 2: Bank AES-256-GCM encryption, masked API, `revealBankAccount`, `BankAccessLog`, rotation docs
+- [x] Wave 3: `schedules.addException` / `removeException` + operator schedule edit UI
+- [x] Wave 3: Atomic route waypoint updates, schedule delete transaction, ManifestDrawer abort cleanup
+- [x] Wave 3: Staff invitation/role activity logging
+- [x] Wave 4: RETIRED fleet filter + KPI, SidebarTrigger on settings/terminals, parallel terminal prefetches
+- [x] Wave 4: Incremental `z.any()` removal on `operator.ts` router inputs
+
+### Passenger Booking Flow — Web MVP (2026-07-03)
+
+- [x] `booking` tRPC router: `getTripDetails`, `getSeatAvailability`, `createHold`, `confirmBooking`, `releaseHold`
+- [x] Segment-aware seat availability (overlap logic shared with search)
+- [x] In-house `PassengerSeatMap` component (grid matches Prisma seat model)
+- [x] `/book/[offerId]` page + success page; search `OfferCard` links to booking
+- [x] Mock payment confirm flow; segment overlap unit tests
+
+### Passenger Booking Phase 2 (2026-07-03)
+
+- [x] `TripSummaryCard` on book page (operator, timeline, amenities, price, availability)
+- [x] Multi-passenger seat selection via `?passengers=` (1–6) from search through checkout
+- [x] `listMyBookings`, `getBooking`, `getTicket`, `getTicketByToken` + `booking-read-service`
+- [x] `/dashboard/bookings` wired with upcoming / pending / past filters
+- [x] Digital tickets with QR (`DigitalTicketCard`, `/dashboard/tickets`, verify API)
+- [x] Payment abstraction (`Payment` model, `initiatePayment`, method selector UI, mock provider default)
 
 ---
 
@@ -98,6 +148,7 @@ Full API backend for the Operator ERP platform.
   - [x] Exception types: CANCELLED, EXTRA_SERVICE, MODIFIED
   - [x] Exception reasons: Holidays (Islamic, Christian, National), Strike, Weather, Maintenance
   - [x] `schedules.addException` mutation auto-cancels pre-generated trips
+  - [x] Operator schedule edit UI for listing/adding/removing service exceptions
 
 - [x] **Fare Matrix** (`Fare` model)
   - [x] Per seat class (ECONOMY, STANDARD, VIP)
@@ -118,13 +169,13 @@ Full API backend for the Operator ERP platform.
 ### 🚧 Core Domains (IN PROGRESS)
 The main business functionality that makes Moja Ride valuable to passengers.
 
-#### Search Domain (NEXT PRIORITY)
-- [ ] **Search API Contract**
-  - [ ] Define search tRPC query (`trips.search`)
-  - [ ] Define request input parameters (from, to, date, filters)
-  - [ ] Define response output structure (trip list with metadata)
-  - [ ] Define sorting options (price, time, rating)
-  - [ ] Define filtering options (bus type, amenities, etc.)
+#### Search Domain
+- [x] **Search API Contract**
+  - [x] Define search tRPC query (`trips.search`)
+  - [x] Define request input parameters (from, to, date, filters)
+  - [x] Define response output structure (trip list with metadata)
+  - [x] Define sorting options (price, time, rating)
+  - [x] Define filtering options (bus type, amenities, etc.)
 
 - [ ] **Search Backend**
   - [ ] Implement trip search procedure (query `Trip` + `TripStop` by terminal pair)

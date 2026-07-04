@@ -61,7 +61,10 @@ export function BankStep({
     if (initialData?.company?.bankAccount) {
       const bank = initialData.company.bankAccount;
       setBankName(bank.bankName || "");
-      setAccountNumber(bank.accountNumber || "");
+      const masked =
+        typeof bank.accountNumber === "string" &&
+        bank.accountNumber.includes("•");
+      setAccountNumber(masked ? "" : bank.accountNumber || "");
       setAccountName(bank.accountName || "");
       setBranch(bank.branch || "");
       setSwiftCode(bank.swiftCode || "");

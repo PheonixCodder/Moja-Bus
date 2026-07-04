@@ -56,37 +56,13 @@ const steps = [
 
 export function OperatorOnboardingView() {
   const {
-    isLoading,
     isSaving,
-    error,
     currentStep,
     operatorData,
     saveStep,
     finalizeOnboarding,
     goToStep,
   } = useOperatorOnboarding();
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-semibold text-muted-foreground">
-          Loading onboarding details...
-        </p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-center px-4">
-        <p className="text-sm text-destructive font-bold">
-          Error loading onboarding details
-        </p>
-        <p className="text-xs text-muted-foreground max-w-sm">{error}</p>
-      </div>
-    );
-  }
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
 

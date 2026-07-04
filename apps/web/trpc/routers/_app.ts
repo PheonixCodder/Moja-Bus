@@ -7,6 +7,9 @@ import { routesRouter } from "./routes";
 import { schedulesRouter } from "./schedules";
 import { tripsRouter } from "./trips";
 import { invitationRouter } from "./invitation";
+import { locationsRouter } from "./locations";
+import { searchRouter } from "./search";
+import { bookingRouter } from "./booking";
 
 export const appRouter = createTRPCRouter({
   operator: operatorRouter,
@@ -17,6 +20,9 @@ export const appRouter = createTRPCRouter({
   schedules: schedulesRouter,
   trips: tripsRouter,
   invitation: invitationRouter,
+  locations: locationsRouter,
+  search: searchRouter,
+  booking: bookingRouter,
 });
 
 export type AppRouter = typeof appRouter;

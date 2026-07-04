@@ -19,6 +19,22 @@ enum UserRole {
   ADMIN
 }
 
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
 enum OnboardingStatus {
   NOT_STARTED
   IN_PROGRESS
@@ -75,28 +91,28 @@ enum StaffRole {
 // ============================================
 
 model User {
-  id            String         @id
+  id            String   @id
   fullName      String
-  email         String         @unique
-  emailVerified Boolean        @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  phone         String?        @unique
-  role          UserRole       @default(TRAVELER)
+  phone         String?  @unique
+  role          UserRole @default(TRAVELER)
 
   // Operator registration fields
-  workEmail     String?        @unique
-  workPhone     String?
+  workEmail String? @unique
+  workPhone String?
 
-  passwordHash  String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
-  sessions           Session[]
-  accounts           Account[]
-  refreshTokens      RefreshToken[]
-  operatorProfiles   Operator[]
-  passengerProfile   PassengerProfile?
+  sessions         Session[]
+  accounts         Account[]
+  refreshTokens    RefreshToken[]
+  operatorProfiles Operator[]
+  passengerProfile PassengerProfile?
 
   // Admin verification actions performed by this user
   verificationsPerformed CompanyDocument[] @relation("DocumentReviewedBy")
@@ -104,9 +120,12 @@ model User {
   bankAccountsVerified   BankAccount[]     @relation("BankAccountVerifiedBy")
 
   // Staff & Activity relations
-  sentInvitations        StaffInvitation[] @relation("InvitedBy")
-  acceptedInvitations    StaffInvitation[] @relation("AcceptedBy")
-  activityLogs           ActivityLog[]
+  sentInvitations     StaffInvitation[] @relation("InvitedBy")
+  acceptedInvitations StaffInvitation[] @relation("AcceptedBy")
+  activityLogs        ActivityLog[]
+  bankAccessLogs      BankAccessLog[]
+
+  bookings Booking[]
 
   @@index([role])
   @@map("user")
@@ -129,11 +148,11 @@ model Session {
 }
 
 model Account {
-  id                    String   @id
+  id                    String    @id
   accountId             String
   providerId            String
   userId                String
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -141,8 +160,8 @@ model Account {
   refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([userId])
   @@map("account")
@@ -161,12 +180,12 @@ model Verification {
 }
 
 model RefreshToken {
-  id         String   @id @default(cuid())
-  userId     String
-  tokenHash  String   @unique
-  expiresAt  DateTime
-  revokedAt  DateTime?
-  createdAt  DateTime @default(now())
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -179,51 +198,57 @@ model RefreshToken {
 // ============================================
 
 model Company {
-  id                   String         @id @default(cuid())
-  name                 String
-  slug                 String         @unique
-  email                String         @unique
-  phone                String         @unique
-  website              String?
-  description          String?
-  businessType         BusinessType   @default(SOLE_PROPRIETORSHIP)
-  registrationNumber   String         @unique
-  taxId                String         @unique
-  yearEstablished      Int?
-  logoUrl              String?
-  estimatedStaffSize   Int
+  id                 String       @id @default(cuid())
+  name               String
+  slug               String       @unique
+  email              String       @unique
+  phone              String       @unique
+  website            String?
+  description        String?
+  businessType       BusinessType @default(SOLE_PROPRIETORSHIP)
+  registrationNumber String       @unique
+  taxId              String       @unique
+  yearEstablished    Int?
+  logoUrl            String?
+  estimatedStaffSize Int
 
   // Status & Verification
-  status               CompanyStatus @default(DRAFT)
-  verifiedAt           DateTime?
+  status          CompanyStatus @default(DRAFT)
+  verifiedAt      DateTime?
   // Proper FK relation — no free-text admin ID string
-  verifiedById         String?
-  verifiedBy           User?         @relation("CompanyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
-  rejectionReason      String?
+  verifiedById    String?
+  verifiedBy      User?         @relation("CompanyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  rejectionReason String?
+
+  // Legal acceptance timestamps
+  termsAcceptedAt       DateTime?
+  commissionAcceptedAt  DateTime?
+  privacyAcceptedAt     DateTime?
 
   // Verification Progress Tracking
   verificationChecklist Json? @default("{}")
   registrationProgress  Json? @default("{}")
 
   // Relations
-  locations            CompanyLocation[]    @relation("CompanyLocations")
-  documents            CompanyDocument[]
-  bankAccount          BankAccount?
-  operators            Operator[]
-  invitations          StaffInvitation[]
-  activityLogs         ActivityLog[]
+  locations    CompanyLocation[] @relation("CompanyLocations")
+  documents    CompanyDocument[]
+  bankAccount  BankAccount?
+  operators    Operator[]
+  invitations  StaffInvitation[]
+  activityLogs ActivityLog[]
+  bankAccessLogs BankAccessLog[]
 
   // Fleet & Operations
-  fleet                Bus[]
-  layoutTemplates      SeatLayoutTemplate[] @relation("CompanyLayoutTemplates")
-  routes               Route[]
-  schedules            Schedule[]
-  trips                Trip[]
-  bookings             Booking[]
-  reviews              Review[]
+  fleet           Bus[]
+  layoutTemplates SeatLayoutTemplate[] @relation("CompanyLayoutTemplates")
+  routes          Route[]
+  schedules       Schedule[]
+  trips           Trip[]
+  bookings        Booking[]
+  reviews         Review[]
 
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([slug])
   @@index([status])
@@ -235,30 +260,30 @@ model Company {
 // CompanyLocation is defined further below with full terminal + city support
 
 model CompanyDocument {
-  id             String         @id @default(cuid())
-  companyId      String
-  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Document Details
-  type           DocumentType
-  fileName       String
-  fileUrl        String         // S3/Cloudflare URL
-  fileSize       Int            // Bytes
-  mimeType       String         // application/pdf, image/jpeg, etc.
+  type     DocumentType
+  fileName String
+  fileUrl  String // S3/Cloudflare URL
+  fileSize Int // Bytes
+  mimeType String // application/pdf, image/jpeg, etc.
 
   // Verification — proper FK to User
-  status         DocumentStatus @default(PENDING)
-  reviewedById   String?
-  reviewedBy     User?          @relation("DocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
-  reviewedAt     DateTime?
-  notes          String?
+  status       DocumentStatus @default(PENDING)
+  reviewedById String?
+  reviewedBy   User?          @relation("DocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+  notes        String?
 
   // Expiry (for permits, insurance)
   expiresAt      DateTime?
   reminderSentAt DateTime?
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([type])
@@ -267,29 +292,29 @@ model CompanyDocument {
 }
 
 model BankAccount {
-  id          String   @id @default(cuid())
-  companyId   String   @unique
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  companyId String  @unique
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Bank Details
   bankName      String
-  // NOT globally unique — account numbers are unique per bank, not across all banks.
-  // Uniqueness is enforced at the service layer when needed.
+  // Encrypted at rest (enc:v1: prefix) — see apps/web/lib/bank-crypto.ts
   accountNumber String
-  accountName   String   // Must match company name
+  accountNumberLast4 String?
+  accountName   String // Must match company name
   branch        String?
   swiftCode     String?
   iban          String?
 
   // Verification — proper FK to User
-  isVerified              Boolean   @default(false)
-  verifiedAt              DateTime?
-  verifiedById            String?
-  verifiedBy              User?     @relation("BankAccountVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
-  verificationDocumentId  String?   // Link to CompanyDocument
+  isVerified             Boolean   @default(false)
+  verifiedAt             DateTime?
+  verifiedById           String?
+  verifiedBy             User?     @relation("BankAccountVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verificationDocumentId String? // Link to CompanyDocument
 
   // Status
-  isActive Boolean  @default(true)
+  isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -298,10 +323,25 @@ model BankAccount {
   @@map("bank_account")
 }
 
-model Operator {
-  id        String @id @default(cuid())
+model BankAccessLog {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   userId    String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([userId])
+  @@map("bank_access_log")
+}
+
+model Operator {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Company Link
   companyId String
@@ -324,8 +364,8 @@ model Operator {
   // Personal Details
   dateOfBirth          DateTime?
   nationalIdNumber     String?
-  nationalIdType       String?   // passport | national_id | driver_license
-  nationalIdDocumentId String?   // Link to CompanyDocument
+  nationalIdType       String? // passport | national_id | driver_license
+  nationalIdDocumentId String? // Link to CompanyDocument
 
   // Contact
   personalPhone         String?
@@ -433,16 +473,16 @@ enum SeatStatus {
 
 model City {
   id         String  @id @default(cuid())
-  name       String  // French (official language of CI)
+  name       String // French (official language of CI)
   nameEn     String? // Optional English for future use
-  region     String  // e.g. "Vallée du Bandama"
-  district   String  // e.g. "Savanes"
+  region     String // e.g. "Vallée du Bandama"
+  district   String // e.g. "Savanes"
   latitude   Float?
   longitude  Float?
   isActive   Boolean @default(true)
   isMajorHub Boolean @default(false) // Abidjan, Bouaké, Yamoussoukro, etc.
 
-  locations  CompanyLocation[]
+  locations CompanyLocation[]
 
   @@unique([name])
   @@index([isActive])
@@ -457,47 +497,47 @@ model City {
 // bookable passenger terminal without a separate model.
 
 model CompanyLocation {
-  id               String   @id @default(cuid())
-  companyId        String
-  company          Company  @relation("CompanyLocations", fields: [companyId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation("CompanyLocations", fields: [companyId], references: [id], onDelete: Cascade)
 
   // Link to canonical CI city
-  cityId           String?
-  cityRelation     City?    @relation(fields: [cityId], references: [id])
+  cityId       String?
+  cityRelation City?   @relation(fields: [cityId], references: [id])
 
   // Terminal promotion — operator checks this in the dashboard
-  isTerminal       Boolean  @default(false)
+  isTerminal Boolean @default(false)
 
   // Location Details
-  name             String
-  addressLine1     String
-  addressLine2     String?
-  city             String?  // Keep the original field name as optional to avoid data loss warning
-  state            String?
-  postalCode       String?
-  country          String   @default("Cote d'Ivoire")
-  latitude         Float?
-  longitude        Float?
+  name         String
+  addressLine1 String
+  addressLine2 String?
+  city         String? // Keep the original field name as optional to avoid data loss warning
+  state        String?
+  postalCode   String?
+  country      String  @default("Cote d'Ivoire")
+  latitude     Float?
+  longitude    Float?
 
   // Contact
-  phone            String
-  managerName      String?
-  managerPhone     String?
-  managerEmail     String?
+  phone        String
+  managerName  String?
+  managerPhone String?
+  managerEmail String?
 
   // Operational
-  isPrimary        Boolean  @default(false)
-  operatingHours   Json?
-  isActive         Boolean  @default(true)
+  isPrimary      Boolean @default(false)
+  operatingHours Json?
+  isActive       Boolean @default(true)
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Route relations
-  originRoutes     Route[]       @relation("RouteOriginTerminal")
-  destRoutes       Route[]       @relation("RouteDestTerminal")
-  waypoints        RouteWaypoint[]
-  tripStops        TripStop[]
+  originRoutes Route[]         @relation("RouteOriginTerminal")
+  destRoutes   Route[]         @relation("RouteDestTerminal")
+  waypoints    RouteWaypoint[]
+  tripStops    TripStop[]
 
   @@index([companyId])
   @@index([cityId])
@@ -512,7 +552,7 @@ model CompanyLocation {
 
 model BusType {
   id          String  @id @default(cuid())
-  name        String  // "Toyota Coaster", "Yutong ZK6107", "Mercedes Sprinter"
+  name        String // "Toyota Coaster", "Yutong ZK6107", "Mercedes Sprinter"
   description String?
   isActive    Boolean @default(true)
 
@@ -524,22 +564,22 @@ model BusType {
 }
 
 model SeatLayoutTemplate {
-  id         String   @id @default(cuid())
-  busTypeId  String
-  busType    BusType  @relation(fields: [busTypeId], references: [id])
+  id        String  @id @default(cuid())
+  busTypeId String
+  busType   BusType @relation(fields: [busTypeId], references: [id])
 
   // null = platform default; set = operator custom layout
-  companyId  String?
-  company    Company? @relation("CompanyLayoutTemplates", fields: [companyId], references: [id])
+  companyId String?
+  company   Company? @relation("CompanyLayoutTemplates", fields: [companyId], references: [id])
 
-  name       String   // "Coaster Standard 22", "Coach VIP 18", "Coach 2+2 45"
+  name       String // "Coaster Standard 22", "Coach VIP 18", "Coach 2+2 45"
   totalSeats Int
   rows       Int
   columns    Int
-  hasAC      Boolean  @default(false)
-  hasWifi    Boolean  @default(false)
-  hasToilet  Boolean  @default(false)
-  hasLuggage Boolean  @default(true)
+  hasAC      Boolean @default(false)
+  hasWifi    Boolean @default(false)
+  hasToilet  Boolean @default(false)
+  hasLuggage Boolean @default(true)
 
   seatTemplates SeatTemplate[]
   buses         Bus[]
@@ -550,14 +590,14 @@ model SeatLayoutTemplate {
 }
 
 model SeatTemplate {
-  id         String   @id @default(cuid())
-  layoutId   String
-  layout     SeatLayoutTemplate @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+  id       String             @id @default(cuid())
+  layoutId String
+  layout   SeatLayoutTemplate @relation(fields: [layoutId], references: [id], onDelete: Cascade)
 
   row        Int
   col        Int
   deck       Int      @default(1)
-  label      String   // "1A", "1B", "2A" — shown to operators and passengers
+  label      String // "1A", "1B", "2A" — shown to operators and passengers
   seatType   SeatType @default(PASSENGER_WINDOW)
   isBookable Boolean  @default(true)
 
@@ -570,25 +610,25 @@ model SeatTemplate {
 // ============================================
 
 model Bus {
-  id                String     @id @default(cuid())
-  companyId         String
-  company           Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  busTypeId         String
-  busType           BusType    @relation(fields: [busTypeId], references: [id])
-  layoutTemplateId  String
-  layoutTemplate    SeatLayoutTemplate @relation(fields: [layoutTemplateId], references: [id])
+  id               String             @id @default(cuid())
+  companyId        String
+  company          Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  busTypeId        String
+  busType          BusType            @relation(fields: [busTypeId], references: [id])
+  layoutTemplateId String
+  layoutTemplate   SeatLayoutTemplate @relation(fields: [layoutTemplateId], references: [id])
 
-  registrationPlate String     @unique
-  internalName      String?    // "Bus Alpha", operator's own reference
+  registrationPlate String    @unique
+  internalName      String? // "Bus Alpha", operator's own reference
   manufactureYear   Int?
-  status            BusStatus  @default(ACTIVE)
+  status            BusStatus @default(ACTIVE)
   notes             String?
 
-  seats             Seat[]
-  trips             Trip[]
+  seats Seat[]
+  trips Trip[]
 
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([status])
@@ -596,18 +636,19 @@ model Bus {
 }
 
 model Seat {
-  id         String   @id @default(cuid())
-  busId      String
-  bus        Bus      @relation(fields: [busId], references: [id], onDelete: Cascade)
+  id    String @id @default(cuid())
+  busId String
+  bus   Bus    @relation(fields: [busId], references: [id], onDelete: Cascade)
 
-  row        Int
-  col        Int
-  deck       Int      @default(1)
-  label      String   // "1A", "2B" — copied from SeatTemplate, operator can rename
-  seatType   SeatType
-  isActive   Boolean  @default(true) // false = blocked/damaged
+  row      Int
+  col      Int
+  deck     Int      @default(1)
+  label    String // "1A", "2B" — copied from SeatTemplate, operator can rename
+  seatType SeatType
+  isActive Boolean  @default(true) // false = blocked/damaged
 
-  tripSeats  TripSeat[]
+  tripSeats TripSeat[]
+  bookings  Booking[]
 
   @@index([busId])
   @@map("seat")
@@ -618,28 +659,28 @@ model Seat {
 // ============================================
 
 model Route {
-  id                 String          @id @default(cuid())
-  companyId          String
-  company            Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  name               String          // "Abidjan – Bouaké Express"
+  name String // "Abidjan – Bouaké Express"
 
-  originTerminalId   String
-  originTerminal     CompanyLocation @relation("RouteOriginTerminal", fields: [originTerminalId], references: [id])
+  originTerminalId String
+  originTerminal   CompanyLocation @relation("RouteOriginTerminal", fields: [originTerminalId], references: [id])
 
-  destTerminalId     String
-  destTerminal       CompanyLocation @relation("RouteDestTerminal", fields: [destTerminalId], references: [id])
+  destTerminalId String
+  destTerminal   CompanyLocation @relation("RouteDestTerminal", fields: [destTerminalId], references: [id])
 
-  distanceKm         Float?
-  estimatedMinutes   Int?
+  distanceKm       Float?
+  estimatedMinutes Int?
 
-  status             RouteStatus     @default(DRAFT)
+  status RouteStatus @default(DRAFT)
 
-  waypoints          RouteWaypoint[]
-  schedules          Schedule[]
+  waypoints RouteWaypoint[]
+  schedules Schedule[]
 
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([status])
@@ -649,22 +690,22 @@ model Route {
 }
 
 model RouteWaypoint {
-  id                     String          @id @default(cuid())
-  routeId                String
-  route                  Route           @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  terminalId             String
-  terminal               CompanyLocation @relation(fields: [terminalId], references: [id])
+  id         String          @id @default(cuid())
+  routeId    String
+  route      Route           @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  terminalId String
+  terminal   CompanyLocation @relation(fields: [terminalId], references: [id])
 
-  stopOrder              Int     // 0 = origin, 1..N-1 = intermediate, N = destination
-  arrivalOffsetMinutes   Int     // minutes after origin departure: arrive at this stop
-  departureOffsetMinutes Int     // minutes after origin departure: leave this stop
+  stopOrder              Int // 0 = origin, 1..N-1 = intermediate, N = destination
+  arrivalOffsetMinutes   Int // minutes after origin departure: arrive at this stop
+  departureOffsetMinutes Int // minutes after origin departure: leave this stop
   distanceFromOriginKm   Float?
-  isPickup               Boolean @default(true)  // passengers can board here
-  isDropoff              Boolean @default(true)  // passengers can alight here
+  isPickup               Boolean @default(true) // passengers can board here
+  isDropoff              Boolean @default(true) // passengers can alight here
 
+  @@unique([routeId, stopOrder])
   @@index([routeId])
   @@index([terminalId])
-  @@unique([routeId, stopOrder])
   @@map("route_waypoint")
 }
 
@@ -673,24 +714,24 @@ model RouteWaypoint {
 // ============================================
 
 model Schedule {
-  id            String   @id @default(cuid())
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  routeId       String
-  route         Route    @relation(fields: [routeId], references: [id])
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  routeId   String
+  route     Route   @relation(fields: [routeId], references: [id])
 
-  name          String?  // "Morning Express", "Night Service"
-  departureTime String   // "06:00" — HH:mm, CI timezone is UTC+0 (no DST)
-  isActive      Boolean  @default(true)
+  name          String? // "Morning Express", "Night Service"
+  departureTime String // "06:00" — HH:mm, CI timezone is UTC+0 (no DST)
+  isActive      Boolean @default(true)
 
   // Bus NOT assigned here — assigned per Trip
-  calendar      ServiceCalendar?
-  exceptions    ServiceException[]
-  fares         Fare[]
-  trips         Trip[]
+  calendar   ServiceCalendar?
+  exceptions ServiceException[]
+  fares      Fare[]
+  trips      Trip[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([routeId])
@@ -703,13 +744,13 @@ model ServiceCalendar {
   scheduleId String   @unique
   schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
-  monday     Boolean  @default(false)
-  tuesday    Boolean  @default(false)
-  wednesday  Boolean  @default(false)
-  thursday   Boolean  @default(false)
-  friday     Boolean  @default(false)
-  saturday   Boolean  @default(false)
-  sunday     Boolean  @default(false)
+  monday    Boolean @default(false)
+  tuesday   Boolean @default(false)
+  wednesday Boolean @default(false)
+  thursday  Boolean @default(false)
+  friday    Boolean @default(false)
+  saturday  Boolean @default(false)
+  sunday    Boolean @default(false)
 
   validFrom  DateTime
   validUntil DateTime? // null = runs indefinitely
@@ -718,14 +759,14 @@ model ServiceCalendar {
 }
 
 model ServiceException {
-  id         String          @id @default(cuid())
+  id         String   @id @default(cuid())
   scheduleId String
-  schedule   Schedule        @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
-  date       DateTime        // the specific date affected (date only, time ignored)
-  type       ExceptionType
-  reason     ExceptionReason @default(OPERATIONAL)
-  notes      String?
+  date   DateTime // the specific date affected (date only, time ignored)
+  type   ExceptionType
+  reason ExceptionReason @default(OPERATIONAL)
+  notes  String?
 
   @@index([scheduleId])
   @@index([date])
@@ -737,22 +778,22 @@ model ServiceException {
 // ============================================
 
 model Fare {
-  id            String   @id @default(cuid())
-  scheduleId    String
-  schedule      Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
-  type          FareType  @default(FIXED)
-  seatClass     SeatClass
+  type      FareType  @default(FIXED)
+  seatClass SeatClass
 
   // Which segment this price covers (by waypoint stopOrder indices)
   // 0 → N = full route. 2 → N = board at intermediate stop 2.
-  fromStopOrder Int       @default(0)
+  fromStopOrder Int @default(0)
   toStopOrder   Int
 
-  priceXOF      Int       // price in CFA Francs — always XOF for CI
-  validFrom     DateTime?
-  validUntil    DateTime?
-  isActive      Boolean   @default(true)
+  priceXOF   Int // price in CFA Francs — always XOF for CI
+  validFrom  DateTime?
+  validUntil DateTime?
+  isActive   Boolean   @default(true)
 
   @@index([scheduleId])
   @@index([type])
@@ -764,44 +805,42 @@ model Fare {
 // ============================================
 
 model Trip {
-  id                 String     @id @default(cuid())
-  scheduleId         String
-  schedule           Schedule   @relation(fields: [scheduleId], references: [id])
-  companyId          String
-  company            Company    @relation(fields: [companyId], references: [id])
+  id         String   @id @default(cuid())
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
 
   // Bus assigned PER TRIP — not per schedule (maintenance/swap support)
-  busId              String
-  bus                Bus        @relation(fields: [busId], references: [id])
-
-
+  busId String
+  bus   Bus    @relation(fields: [busId], references: [id])
 
   // Schedule-derived but stored immutably on trip creation
-  departureDate      DateTime   // full timestamp: 2025-08-15T06:00:00Z
+  departureDate DateTime // full timestamp: 2025-08-15T06:00:00Z
 
   // Operational tracking
-  estimatedArrival   DateTime?
-  actualDeparture    DateTime?
-  actualArrival      DateTime?
-  delayMinutes       Int?
-  gate               String?    // physical bay/gate at origin terminal
-  status             TripStatus @default(SCHEDULED)
-  cancelReason       String?
-  notes              String?
+  estimatedArrival DateTime?
+  actualDeparture  DateTime?
+  actualArrival    DateTime?
+  delayMinutes     Int?
+  gate             String? // physical bay/gate at origin terminal
+  status           TripStatus @default(SCHEDULED)
+  cancelReason     String?
+  notes            String?
 
   // Route snapshot frozen at trip creation — protects historical bookings
   // if the route is later edited or deleted
-  routeSnapshotJson  Json
+  routeSnapshotJson Json
 
-  totalSeats         Int
-  bookedSeats        Int        @default(0)
+  totalSeats  Int
+  bookedSeats Int @default(0)
 
-  tripStops          TripStop[]
-  seats              TripSeat[]
-  bookings           Booking[]
+  tripStops TripStop[]
+  seats     TripSeat[]
+  bookings  Booking[]
 
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([scheduleId])
@@ -815,19 +854,22 @@ model Trip {
 // Search queries these for intermediate boarding (Daloa → Man on an Abidjan → Man bus).
 
 model TripStop {
-  id                 String          @id @default(cuid())
-  tripId             String
-  trip               Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  terminalId         String
-  terminal           CompanyLocation @relation(fields: [terminalId], references: [id])
+  id         String          @id @default(cuid())
+  tripId     String
+  trip       Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  terminalId String
+  terminal   CompanyLocation @relation(fields: [terminalId], references: [id])
 
   stopOrder          Int
-  scheduledArrival   DateTime?       // computed from departureDate + arrivalOffset
-  scheduledDeparture DateTime?       // computed from departureDate + departureOffset
+  scheduledArrival   DateTime? // computed from departureDate + arrivalOffset
+  scheduledDeparture DateTime? // computed from departureDate + departureOffset
   actualArrival      DateTime?
   actualDeparture    DateTime?
-  isPickup           Boolean         @default(true)
-  isDropoff          Boolean         @default(true)
+  isPickup           Boolean   @default(true)
+  isDropoff          Boolean   @default(true)
+
+  originBookings      Booking[] @relation("BookingOriginStop")
+  destinationBookings Booking[] @relation("BookingDestStop")
 
   @@unique([tripId, stopOrder])
   @@index([tripId])
@@ -836,19 +878,21 @@ model TripStop {
 }
 
 model TripSeat {
-  id        String     @id @default(cuid())
-  tripId    String
-  trip      Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  seatId    String
-  seat      Seat       @relation(fields: [seatId], references: [id])
+  id     String @id @default(cuid())
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  seatId String
+  seat   Seat   @relation(fields: [seatId], references: [id])
 
-  status    SeatStatus @default(AVAILABLE)
-  heldUntil DateTime?  // soft hold expiry (~10 min checkout window)
-  bookingId String?    // populated when BOOKED
+  isActive      Boolean @default(true) // false = blocked/damaged
+  blockedReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([tripId, seatId])
   @@index([tripId])
-  @@index([status])
+  @@index([tripId, isActive])
   @@map("trip_seat")
 }
 
@@ -857,17 +901,69 @@ model TripSeat {
 // ============================================
 
 model Booking {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   tripId    String
-  trip      Trip     @relation(fields: [tripId], references: [id])
+  trip      Trip    @relation(fields: [tripId], references: [id])
+  userId    String?
+  user      User?   @relation(fields: [userId], references: [id])
+  seatId    String
+  seat      Seat    @relation(fields: [seatId], references: [id])
+
+  // Segment relations
+  originTripStopId      String
+  originTripStop        TripStop @relation("BookingOriginStop", fields: [originTripStopId], references: [id])
+  destinationTripStopId String
+  destinationTripStop   TripStop @relation("BookingDestStop", fields: [destinationTripStopId], references: [id])
+  boardingStopOrder     Int
+  dropoffStopOrder      Int
+
+  // Holding & Reservation
+  status        BookingStatus @default(PENDING_PAYMENT)
+  holdExpiresAt DateTime? // Null for confirmed bookings; set for holds
+  issuedAt      DateTime? // When the ticket was actually issued (after payment)
+
+  // Booking details
+  farePaid         Int // price paid in XOF
+  paymentStatus    PaymentStatus @default(UNPAID)
+  bookingReference String        @unique // e.g. MR-7K4P92
+  passengerName    String
+  passengerPhone   String
+  ticketToken      String        @unique @default(cuid()) // used to generate QR code dynamically
+
+  payments Payment[]
+
+  // Tracking
+  checkedInAt DateTime?
+  boardedAt   DateTime?
+  completedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([companyId])
-  @@index([tripId])
+  @@index([tripId, seatId, status])
+  @@index([tripId, status])
+  @@index([tripId, seatId, originTripStopId, destinationTripStopId])
+  @@index([userId])
   @@map("booking")
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  bookingId         String
+  booking           Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  provider          String
+  amountXOF         Int
+  status            PaymentStatus @default(PENDING)
+  externalReference String?
+  metadata          Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([bookingId])
+  @@map("payment")
 }
 
 // STUB: expanded in Phase 6

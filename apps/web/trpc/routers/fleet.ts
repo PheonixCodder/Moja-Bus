@@ -42,7 +42,7 @@ export const fleetRouter = createTRPCRouter({
   }),
 
   getBusDetails: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const bus = await ctx.prisma.bus.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
@@ -64,8 +64,8 @@ export const fleetRouter = createTRPCRouter({
     .input(
       z.object({
         registrationPlate: z.string().min(1, "Registration plate is required"),
-        busTypeId: z.string().uuid(),
-        layoutTemplateId: z.string().uuid(),
+        busTypeId: z.string(),
+        layoutTemplateId: z.string(),
         internalName: z.string().optional(),
         manufactureYear: z.number().int().min(1900).optional(),
         notes: z.string().optional(),
@@ -87,9 +87,10 @@ export const fleetRouter = createTRPCRouter({
         });
       }
 
-      // Fetch template to auto-generate seats
+      // Fetch template with its seat definitions to auto-generate seats
       const template = await ctx.prisma.seatLayoutTemplate.findUnique({
         where: { id: input.layoutTemplateId },
+        include: { seatTemplates: true },
       });
 
       if (!template) {
@@ -118,36 +119,21 @@ export const fleetRouter = createTRPCRouter({
           },
         });
 
-        // Parse layout grid to create seats
-        const layoutGrid = (template as any).layoutGrid as {
-          type: any;
-          row: number;
-          col: number;
-          label: string;
-          deck: number;
-        }[];
+        // Generate Seat rows from the template's SeatTemplate relation
+        if (template.seatTemplates.length > 0) {
+          const seatsData = template.seatTemplates.map((t) => ({
+            busId: bus.id,
+            row: t.row,
+            col: t.col,
+            deck: t.deck,
+            label: t.label,
+            seatType: t.seatType,
+            isActive: true,
+          }));
 
-        if (Array.isArray(layoutGrid) && layoutGrid.length > 0) {
-          const seatsData = layoutGrid
-            .filter(
-              (cell) =>
-                cell.type !== "EMPTY_SPACE" && cell.type !== "DRIVER_AREA",
-            )
-            .map((cell) => ({
-              busId: bus.id,
-              row: cell.row,
-              col: cell.col,
-              deck: cell.deck ?? 1,
-              label: cell.label,
-              seatType: cell.type,
-              isActive: true,
-            }));
-
-          if (seatsData.length > 0) {
-            await tx.seat.createMany({
-              data: seatsData,
-            });
-          }
+          await tx.seat.createMany({
+            data: seatsData,
+          });
         }
 
         return bus;
@@ -157,7 +143,7 @@ export const fleetRouter = createTRPCRouter({
   updateBus: operatorCompanyProcedure
     .input(
       z.object({
-        id: z.string().uuid(),
+        id: z.string(),
         data: z.object({
           registrationPlate: z.string().optional(),
           internalName: z.string().optional(),
@@ -194,7 +180,7 @@ export const fleetRouter = createTRPCRouter({
     }),
 
   deleteBus: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const bus = await ctx.prisma.bus.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
@@ -202,6 +188,41 @@ export const fleetRouter = createTRPCRouter({
 
       if (!bus) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Bus not found" });
+      }
+
+      const now = new Date();
+      const futureTrip = await ctx.prisma.trip.findFirst({
+        where: {
+          busId: input.id,
+          companyId: ctx.companyId,
+          departureDate: { gte: now },
+          status: { notIn: ["CANCELLED", "ARRIVED"] },
+        },
+        select: { id: true },
+      });
+
+      if (futureTrip) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message:
+            "Cannot delete this bus because it is assigned to upcoming trips.",
+        });
+      }
+
+      const activeBooking = await ctx.prisma.booking.findFirst({
+        where: {
+          trip: { busId: input.id, companyId: ctx.companyId },
+          status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+        },
+        select: { id: true },
+      });
+
+      if (activeBooking) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message:
+            "Cannot delete this bus because it has active or upcoming bookings.",
+        });
       }
 
       await ctx.prisma.bus.delete({
@@ -214,8 +235,8 @@ export const fleetRouter = createTRPCRouter({
   toggleSeatStatus: operatorCompanyProcedure
     .input(
       z.object({
-        busId: z.string().uuid(),
-        seatId: z.string().uuid(),
+        busId: z.string(),
+        seatId: z.string(),
         isActive: z.boolean(),
       }),
     )

@@ -1,11 +1,44 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import {
+  saveOnboardingStepSchema,
+  companyStepSchema,
+  bankStepSchema,
+  documentSchema,
+  operatorListBookingsSchema,
+  operatorGetBookingSchema,
+  operatorCheckInBookingSchema,
+} from "@moja/schemas";
 
 import {
   createTRPCRouter,
   operatorProcedure,
   operatorCompanyProcedure,
 } from "../init";
+import { createPresignedUpload } from "@/lib/s3-storage";
+import {
+  maskBankAccountForClient,
+  prepareBankAccountStorage,
+  revealBankAccountNumber,
+} from "@/lib/bank-account";
+import { logBankAccess } from "@/lib/bank-access";
+import { OperatorBookingService } from "@/features/operator/services/operator-booking-service";
+
+function maskOperatorCompanyBank<T extends { company?: { bankAccount?: any } | null }>(
+  operator: T,
+): T {
+  if (!operator.company?.bankAccount) {
+    return operator;
+  }
+
+  return {
+    ...operator,
+    company: {
+      ...operator.company,
+      bankAccount: maskBankAccountForClient(operator.company.bankAccount),
+    },
+  };
+}
 
 export const operatorRouter = createTRPCRouter({
   getOnboardingStatus: operatorProcedure.query(async ({ ctx }) => {
@@ -34,7 +67,7 @@ export const operatorRouter = createTRPCRouter({
     return {
       onboardingStatus: operator.onboardingStatus,
       onboardingCurrentStep: operator.onboardingCurrentStep,
-      operator,
+      operator: maskOperatorCompanyBank(operator),
     };
   }),
 
@@ -77,19 +110,41 @@ export const operatorRouter = createTRPCRouter({
     };
   }),
 
-  saveOnboardingStep: operatorProcedure
-    .input(z.any()) // Validation done inside, or import schema from @moja/schemas
-    .mutation(async ({ ctx, input }) => {
-      const { saveOnboardingStepSchema } = await import("@moja/schemas");
-      const parsed = saveOnboardingStepSchema.safeParse(input);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
+  resubmitVerification: operatorProcedure.mutation(async ({ ctx }) => {
+    const operator = await ctx.prisma.operator.findFirst({
+      where: { userId: ctx.user.id, deletedAt: null },
+      orderBy: { joinedAt: "desc" },
+      include: { company: true },
+    });
 
+    if (!operator?.company) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Operator profile not found.",
+      });
+    }
+
+    if (operator.company.status !== "REJECTED") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Only rejected companies can resubmit for verification.",
+      });
+    }
+
+    const updatedCompany = await ctx.prisma.company.update({
+      where: { id: operator.companyId },
+      data: {
+        status: "PENDING_VERIFICATION",
+        rejectionReason: null,
+      },
+    });
+
+    return { company: updatedCompany };
+  }),
+
+  saveOnboardingStep: operatorProcedure
+    .input(saveOnboardingStepSchema)
+    .mutation(async ({ ctx, input }) => {
       const {
         step,
         companyData,
@@ -98,7 +153,7 @@ export const operatorRouter = createTRPCRouter({
         bankData,
         profileData,
         termsData,
-      } = parsed.data;
+      } = input;
 
       const existingOperator = await ctx.prisma.operator.findFirst({
         where: { userId: ctx.user.id, deletedAt: null },
@@ -256,11 +311,15 @@ export const operatorRouter = createTRPCRouter({
           });
         } else if (step === "bank") {
           if (!bankData) throw new TRPCError({ code: "BAD_REQUEST" });
+          const encryptedAccount = prepareBankAccountStorage(
+            bankData.accountNumber,
+          );
           const bankCreate = {
             companyId,
             isActive: true as const,
             bankName: bankData.bankName,
-            accountNumber: bankData.accountNumber,
+            accountNumber: encryptedAccount.accountNumber,
+            accountNumberLast4: encryptedAccount.accountNumberLast4,
             accountName: bankData.accountName,
             ...(bankData.branch != null ? { branch: bankData.branch } : {}),
             ...(bankData.swiftCode != null
@@ -270,7 +329,8 @@ export const operatorRouter = createTRPCRouter({
           };
           const bankUpdate = {
             bankName: bankData.bankName,
-            accountNumber: bankData.accountNumber,
+            accountNumber: encryptedAccount.accountNumber,
+            accountNumberLast4: encryptedAccount.accountNumberLast4,
             accountName: bankData.accountName,
             ...(bankData.branch != null ? { branch: bankData.branch } : {}),
             ...(bankData.swiftCode != null
@@ -278,10 +338,18 @@ export const operatorRouter = createTRPCRouter({
               : {}),
             ...(bankData.iban != null ? { iban: bankData.iban } : {}),
           };
+          const existingBank = await ctx.prisma.bankAccount.findUnique({
+            where: { companyId },
+          });
           await ctx.prisma.bankAccount.upsert({
             where: { companyId },
             create: bankCreate,
             update: bankUpdate,
+          });
+          await logBankAccess(ctx.prisma, {
+            companyId,
+            userId: ctx.user.id,
+            action: existingBank ? "UPDATE" : "CREATE",
           });
           resultOperator = await ctx.prisma.operator.update({
             where: { id: operatorId },
@@ -318,11 +386,33 @@ export const operatorRouter = createTRPCRouter({
           });
         } else if (step === "terms") {
           if (!termsData) throw new TRPCError({ code: "BAD_REQUEST" });
+          const now = new Date();
           resultOperator = await ctx.prisma.operator.update({
             where: { id: operatorId },
-            data: { onboardingLastStepAt: new Date() },
+            data: {
+              onboardingLastStepAt: now,
+            },
             include: { company: true },
           });
+
+          if (termsData.acceptTerms) {
+            await ctx.prisma.company.update({
+              where: { id: companyId },
+              data: { termsAcceptedAt: now },
+            });
+          }
+          if (termsData.acceptCommission) {
+            await ctx.prisma.company.update({
+              where: { id: companyId },
+              data: { commissionAcceptedAt: now },
+            });
+          }
+          if (termsData.acceptPrivacy) {
+            await ctx.prisma.company.update({
+              where: { id: companyId },
+              data: { privacyAcceptedAt: now },
+            });
+          }
         }
       }
 
@@ -336,7 +426,7 @@ export const operatorRouter = createTRPCRouter({
       return {
         onboardingStatus: resultOperator.onboardingStatus,
         onboardingCurrentStep: resultOperator.onboardingCurrentStep,
-        operator: resultOperator,
+        operator: maskOperatorCompanyBank(resultOperator),
       };
     }),
 
@@ -361,17 +451,29 @@ export const operatorRouter = createTRPCRouter({
       });
     }
 
+    if (operator.company.bankAccount) {
+      await logBankAccess(ctx.prisma, {
+        companyId: operator.companyId,
+        userId: ctx.user.id,
+        action: "VIEW_MASKED",
+      });
+    }
+
     return {
-      company: operator.company,
+      company: {
+        ...operator.company,
+        bankAccount: operator.company.bankAccount
+          ? maskBankAccountForClient(operator.company.bankAccount)
+          : null,
+      },
       operator,
     };
   }),
 
   updateCompany: operatorCompanyProcedure
-    .input(z.any())
+    .input(companyStepSchema.partial())
     .mutation(async ({ ctx, input }) => {
-      const { companyStepSchema } = await import("@moja/schemas");
-      const parsed = companyStepSchema.safeParse(input);
+      const parsed = companyStepSchema.partial().safeParse(input);
       if (!parsed.success) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -383,6 +485,14 @@ export const operatorRouter = createTRPCRouter({
       const cleanData = Object.fromEntries(
         Object.entries(parsed.data).filter(([_, v]) => v !== undefined),
       );
+
+      if (Object.keys(cleanData).length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No fields to update.",
+        });
+      }
+
       const updatedCompany = await ctx.prisma.company.update({
         where: { id: ctx.companyId },
         data: cleanData as any,
@@ -391,10 +501,34 @@ export const operatorRouter = createTRPCRouter({
       return updatedCompany;
     }),
 
-  updateBank: operatorCompanyProcedure
-    .input(z.any())
+  createPresignedUpload: operatorCompanyProcedure
+    .input(
+      z.object({
+        fileName: z.string().min(1),
+        contentType: z.string().min(1),
+        fileSize: z.number().int().positive(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const { bankStepSchema } = await import("@moja/schemas");
+      try {
+        return await createPresignedUpload({
+          ...input,
+          companyId: ctx.companyId,
+        });
+      } catch (error) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message:
+            error instanceof Error
+              ? error.message
+              : "File storage is not configured.",
+        });
+      }
+    }),
+
+  updateBank: operatorCompanyProcedure
+    .input(bankStepSchema)
+    .mutation(async ({ ctx, input }) => {
       const parsed = bankStepSchema.safeParse(input);
       if (!parsed.success) {
         throw new TRPCError({
@@ -407,23 +541,72 @@ export const operatorRouter = createTRPCRouter({
       const cleanData = Object.fromEntries(
         Object.entries(parsed.data).filter(([_, v]) => v !== undefined),
       );
+
+      const encryptedAccount = prepareBankAccountStorage(
+        cleanData.accountNumber as string,
+      );
+      const bankPayload = {
+        ...cleanData,
+        accountNumber: encryptedAccount.accountNumber,
+        accountNumberLast4: encryptedAccount.accountNumberLast4,
+      };
+
+      const existingBank = await ctx.prisma.bankAccount.findUnique({
+        where: { companyId: ctx.companyId },
+      });
+
       const updatedBank = await ctx.prisma.bankAccount.upsert({
         where: { companyId: ctx.companyId },
         create: {
-          ...(cleanData as any),
+          ...(bankPayload as any),
           companyId: ctx.companyId,
           isActive: true,
         },
-        update: cleanData as any,
+        update: bankPayload as any,
       });
 
-      return updatedBank;
+      await logBankAccess(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: existingBank ? "UPDATE" : "CREATE",
+      });
+
+      return maskBankAccountForClient(updatedBank);
     }),
 
+  revealBankAccount: operatorCompanyProcedure.mutation(async ({ ctx }) => {
+    if (ctx.operator.role !== "OWNER") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the company owner can reveal the full bank account number.",
+      });
+    }
+
+    const bankAccount = await ctx.prisma.bankAccount.findUnique({
+      where: { companyId: ctx.companyId },
+    });
+
+    if (!bankAccount) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Bank account not found.",
+      });
+    }
+
+    await logBankAccess(ctx.prisma, {
+      companyId: ctx.companyId,
+      userId: ctx.user.id,
+      action: "VIEW_FULL",
+    });
+
+    return {
+      accountNumber: revealBankAccountNumber(bankAccount),
+    };
+  }),
+
   addDocument: operatorCompanyProcedure
-    .input(z.any())
+    .input(documentSchema)
     .mutation(async ({ ctx, input }) => {
-      const { documentSchema } = await import("@moja/schemas");
       const parsed = documentSchema.safeParse(input);
       if (!parsed.success) {
         throw new TRPCError({
@@ -445,7 +628,7 @@ export const operatorRouter = createTRPCRouter({
     }),
 
   deleteDocument: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const document = await ctx.prisma.companyDocument.findFirst({
         where: {
@@ -466,5 +649,26 @@ export const operatorRouter = createTRPCRouter({
       });
 
       return { success: true };
+    }),
+
+  listBookings: operatorCompanyProcedure
+    .input(operatorListBookingsSchema)
+    .query(async ({ ctx, input }) => {
+      const service = new OperatorBookingService(ctx.prisma);
+      return service.listCompanyBookings(ctx.companyId, input);
+    }),
+
+  getBooking: operatorCompanyProcedure
+    .input(operatorGetBookingSchema)
+    .query(async ({ ctx, input }) => {
+      const service = new OperatorBookingService(ctx.prisma);
+      return service.getCompanyBooking(ctx.companyId, input.bookingId);
+    }),
+
+  checkInBooking: operatorCompanyProcedure
+    .input(operatorCheckInBookingSchema)
+    .mutation(async ({ ctx, input }) => {
+      const service = new OperatorBookingService(ctx.prisma);
+      return service.checkIn(ctx.companyId, input);
     }),
 });

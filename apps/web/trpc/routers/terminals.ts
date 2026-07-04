@@ -3,17 +3,26 @@ import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 
 export const terminalsRouter = createTRPCRouter({
-  list: operatorCompanyProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.companyLocation.findMany({
-      where: {
-        companyId: ctx.companyId,
-      },
-      include: {
-        cityRelation: true,
-      },
-      orderBy: { name: "asc" },
-    });
-  }),
+  list: operatorCompanyProcedure
+    .input(
+      z
+        .object({
+          bookableOnly: z.boolean().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.companyLocation.findMany({
+        where: {
+          companyId: ctx.companyId,
+          ...(input?.bookableOnly ? { isTerminal: true, isActive: true } : {}),
+        },
+        include: {
+          cityRelation: true,
+        },
+        orderBy: { name: "asc" },
+      });
+    }),
 
   create: operatorCompanyProcedure
     .input(z.any())
@@ -67,7 +76,7 @@ export const terminalsRouter = createTRPCRouter({
     }),
 
   update: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), data: z.any() }))
+    .input(z.object({ id: z.string(), data: z.any() }))
     .mutation(async ({ ctx, input }) => {
       const { updateTerminalSchema } = await import("@moja/schemas");
       const parsed = updateTerminalSchema.safeParse(input.data);
@@ -114,7 +123,7 @@ export const terminalsRouter = createTRPCRouter({
     }),
 
   delete: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const existingLocation = await ctx.prisma.companyLocation.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
@@ -124,6 +133,42 @@ export const terminalsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Location not found",
+        });
+      }
+
+      const [linkedRoute, waypoint, tripStop] = await Promise.all([
+        ctx.prisma.route.findFirst({
+          where: {
+            companyId: ctx.companyId,
+            OR: [
+              { originTerminalId: input.id },
+              { destTerminalId: input.id },
+            ],
+          },
+          select: { id: true, name: true },
+        }),
+        ctx.prisma.routeWaypoint.findFirst({
+          where: { terminalId: input.id },
+          select: { id: true },
+        }),
+        ctx.prisma.tripStop.findFirst({
+          where: { terminalId: input.id },
+          select: { id: true },
+        }),
+      ]);
+
+      if (linkedRoute) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Cannot delete this terminal because it is used by route "${linkedRoute.name}".`,
+        });
+      }
+
+      if (waypoint || tripStop) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message:
+            "Cannot delete this terminal because it is referenced by routes or scheduled trips.",
         });
       }
 

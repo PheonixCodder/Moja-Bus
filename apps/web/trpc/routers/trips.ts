@@ -7,14 +7,58 @@ import {
   cancelTripSchema,
   tripStatusEnum,
 } from "@moja/schemas";
+import { SearchFilters } from "@/features/search/services/search-service";
 
 export const tripsRouter = createTRPCRouter({
+  search: operatorCompanyProcedure
+    .input(
+      z.object({
+        originCityId: z.string(),
+        destinationCityId: z.string(),
+        date: z.string(),
+        passengers: z.coerce.number().int().min(1).default(1),
+        operators: z.array(z.string()).optional(),
+        amenities: z.array(z.string()).optional(),
+        departureTime: z
+          .array(z.enum(["MORNING", "AFTERNOON", "EVENING"]))
+          .optional(),
+        maxPrice: z.coerce.number().optional(),
+        sort: z.string().default("BEST"),
+        page: z.coerce.number().int().min(1).default(1),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { TripSearchReadRepository } = await import(
+        "../../features/search/repositories/search-read-repository"
+      );
+      const { SearchService } = await import(
+        "../../features/search/services/search-service"
+      );
+
+      const searchRepo = new TripSearchReadRepository(ctx.prisma);
+      const searchService = new SearchService(searchRepo);
+
+      return searchService.execute({
+        originCityId: input.originCityId,
+        destinationCityId: input.destinationCityId,
+        travelDate: new Date(input.date),
+        passengerCount: input.passengers,
+        filters: {
+          operators: input.operators as SearchFilters['operators'],
+          amenities: input.amenities as SearchFilters['amenities'],
+          departureTime: input.departureTime as SearchFilters['departureTime'],
+          maxPrice: input.maxPrice as SearchFilters['maxPrice'],
+        },
+        sort: input.sort,
+        page: input.page,
+      });
+    }),
   list: operatorCompanyProcedure
     .input(
       z
         .object({
           status: tripStatusEnum.optional(),
-          routeId: z.string().uuid().optional(),
+          routeId: z.string().optional(),
           startDate: z.string().optional(),
           endDate: z.string().optional(),
         })
@@ -61,13 +105,28 @@ export const tripsRouter = createTRPCRouter({
           seats: {
             include: { seat: true },
           },
+          _count: {
+            select: {
+              bookings: {
+                where: {
+                  OR: [
+                    { status: "CONFIRMED" },
+                    {
+                      status: "PENDING_PAYMENT",
+                      holdExpiresAt: { gt: new Date() },
+                    },
+                  ],
+                },
+              },
+            },
+          },
         },
         orderBy: { departureDate: "asc" },
       });
     }),
 
   get: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const trip = await ctx.prisma.trip.findFirst({
         where: {
@@ -105,7 +164,25 @@ export const tripsRouter = createTRPCRouter({
               { seat: { col: "asc" } },
             ],
           },
-          bookings: true,
+          bookings: {
+            include: {
+              seat: true,
+              originTripStop: {
+                include: {
+                  terminal: { include: { cityRelation: true } },
+                },
+              },
+              destinationTripStop: {
+                include: {
+                  terminal: { include: { cityRelation: true } },
+                },
+              },
+            },
+            where: {
+              status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+            },
+            orderBy: { createdAt: "asc" },
+          },
         },
       });
 
@@ -117,7 +194,7 @@ export const tripsRouter = createTRPCRouter({
     }),
 
   assignBusDriver: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), data: assignBusDriverSchema }))
+    .input(z.object({ id: z.string(), data: assignBusDriverSchema }))
     .mutation(async ({ ctx, input }) => {
       const { busId } = input.data;
 
@@ -135,7 +212,7 @@ export const tripsRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
       }
 
-      const newBus = await ctx.prisma.bus.findUnique({
+      const newBus = await ctx.prisma.bus.findFirst({
         where: { id: busId, companyId: ctx.companyId, status: "ACTIVE" },
         include: { seats: { where: { isActive: true } } },
       });
@@ -148,14 +225,12 @@ export const tripsRouter = createTRPCRouter({
       }
 
       if (trip.busId !== busId && trip.bookedSeats > 0) {
-        const bookedSeatIds = trip.seats
-          .filter((ts) => ts.status === "BOOKED")
-          .map((ts) => ts.seatId);
-
-        const bookedSeats = await ctx.prisma.seat.findMany({
-          where: { id: { in: bookedSeatIds } },
+        const bookings = await ctx.prisma.booking.findMany({
+          where: { tripId: trip.id, status: "CONFIRMED" },
+          include: { seat: true },
         });
-        const bookedLabels = bookedSeats.map((s) => s.label);
+
+        const bookedLabels = bookings.map((b) => b.seat.label);
 
         const newSeatLabels = new Set(newBus.seats.map((s) => s.label));
         const allLabelsCompatible = bookedLabels.every((label) =>
@@ -181,29 +256,32 @@ export const tripsRouter = createTRPCRouter({
         });
 
         if (trip.busId !== busId) {
-          const oldTripSeats = await tx.tripSeat.findMany({
+          const bookings = await tx.booking.findMany({
             where: { tripId: trip.id },
             include: { seat: true },
           });
+
+          for (const booking of bookings) {
+            const newSeat = newBus.seats.find(
+              (ns) => ns.label === booking.seat.label,
+            );
+            if (newSeat) {
+              await tx.booking.update({
+                where: { id: booking.id },
+                data: { seatId: newSeat.id },
+              });
+            }
+          }
 
           await tx.tripSeat.deleteMany({
             where: { tripId: trip.id },
           });
 
-          const newTripSeats = newBus.seats.map((seat) => {
-            const oldMatchingBooking = oldTripSeats.find(
-              (ots) => ots.status === "BOOKED" && ots.seat.label === seat.label,
-            );
-
-            return {
-              tripId: trip.id,
-              seatId: seat.id,
-              status: oldMatchingBooking
-                ? ("BOOKED" as any)
-                : ("AVAILABLE" as any),
-              bookingId: oldMatchingBooking?.bookingId ?? null,
-            };
-          });
+          const newTripSeats = newBus.seats.map((seat) => ({
+            tripId: trip.id,
+            seatId: seat.id,
+            isActive: true,
+          }));
 
           await tx.tripSeat.createMany({
             data: newTripSeats,
@@ -215,7 +293,7 @@ export const tripsRouter = createTRPCRouter({
     }),
 
   delay: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), data: delayTripSchema }))
+    .input(z.object({ id: z.string(), data: delayTripSchema }))
     .mutation(async ({ ctx, input }) => {
       const { delayMinutes, notes } = input.data;
 
@@ -255,8 +333,8 @@ export const tripsRouter = createTRPCRouter({
               : null,
             scheduledDeparture: stop.scheduledDeparture
               ? new Date(
-                  stop.scheduledDeparture.getTime() + delayMinutes * 60000,
-                )
+                stop.scheduledDeparture.getTime() + delayMinutes * 60000,
+              )
               : null,
           },
         });
@@ -266,7 +344,7 @@ export const tripsRouter = createTRPCRouter({
     }),
 
   cancel: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), data: cancelTripSchema }))
+    .input(z.object({ id: z.string(), data: cancelTripSchema }))
     .mutation(async ({ ctx, input }) => {
       const trip = await ctx.prisma.trip.findFirst({
         where: {
@@ -289,7 +367,7 @@ export const tripsRouter = createTRPCRouter({
     }),
 
   updateStatus: operatorCompanyProcedure
-    .input(z.object({ id: z.string().uuid(), status: tripStatusEnum }))
+    .input(z.object({ id: z.string(), status: tripStatusEnum }))
     .mutation(async ({ ctx, input }) => {
       const { status } = input;
 

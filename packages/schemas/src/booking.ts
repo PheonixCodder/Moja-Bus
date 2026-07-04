@@ -1,30 +1,71 @@
-export type BookingStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "CANCELLED"
-  | "EXPIRED"
-  | "COMPLETED";
+import { z } from "zod";
 
-export type SeatStatus = "AVAILABLE" | "RESERVED" | "SOLD";
+export const offerIdSchema = z.string().min(1);
 
-export interface BookingPassenger {
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
+export const getTripDetailsSchema = z.object({
+  offerId: offerIdSchema,
+});
 
-export interface BookingSeat {
-  seatId: string;
-  seatCode: string;
-  status: SeatStatus;
-}
+export const getSeatAvailabilitySchema = z.object({
+  offerId: offerIdSchema,
+});
 
-export interface BookingSummary {
-  bookingId: string;
-  tripId: string;
-  status: BookingStatus;
-  currency: "XOF";
-  totalAmount: number;
-  seatIds: string[];
-  passengerCount: number;
-}
+export const passengerDraftSchema = z.object({
+  passengerName: z.string().min(2, "Passenger name is required"),
+  passengerPhone: z.string().min(6, "Phone number is required"),
+});
+
+export const createHoldSchema = z.object({
+  offerId: offerIdSchema,
+  seatIds: z.array(z.string()).min(1).max(6),
+  passenger: passengerDraftSchema,
+});
+
+export const confirmBookingSchema = z.object({
+  holdId: z.string().min(1),
+});
+
+export const releaseHoldSchema = z.object({
+  holdId: z.string().min(1),
+});
+
+export const listMyBookingsSchema = z.object({
+  filter: z
+    .enum(["upcoming", "past", "pending"])
+    .optional()
+    .default("upcoming"),
+  limit: z.number().int().min(1).max(50).optional().default(20),
+  offset: z.number().int().min(0).optional().default(0),
+});
+
+export const getBookingSchema = z.object({
+  bookingReference: z.string().min(1),
+});
+
+export const getTicketSchema = z.object({
+  bookingReference: z.string().optional(),
+  ticketToken: z.string().optional(),
+}).refine((data) => data.bookingReference || data.ticketToken, {
+  message: "bookingReference or ticketToken is required",
+});
+
+export const getTicketByTokenSchema = z.object({
+  ticketToken: z.string().min(1),
+});
+
+export const initiatePaymentSchema = z.object({
+  holdId: z.string().min(1),
+  provider: z
+    .enum(["MOCK", "WAVE", "ORANGE_MONEY", "MTN_MOMO", "CINETPAY", "CARD"])
+    .default("MOCK"),
+});
+
+export type GetTripDetailsInput = z.infer<typeof getTripDetailsSchema>;
+export type GetSeatAvailabilityInput = z.infer<typeof getSeatAvailabilitySchema>;
+export type CreateHoldInput = z.infer<typeof createHoldSchema>;
+export type ConfirmBookingInput = z.infer<typeof confirmBookingSchema>;
+export type ReleaseHoldInput = z.infer<typeof releaseHoldSchema>;
+export type ListMyBookingsInput = z.infer<typeof listMyBookingsSchema>;
+export type GetBookingInput = z.infer<typeof getBookingSchema>;
+export type GetTicketInput = z.infer<typeof getTicketSchema>;
+export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;

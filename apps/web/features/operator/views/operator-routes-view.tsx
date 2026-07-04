@@ -80,6 +80,7 @@ import { useTRPC } from "@/trpc/client";
 import {
   useSuspenseQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
@@ -136,10 +137,11 @@ interface WaypointDraft {
 
 interface RouteCardProps {
   route: RouteType;
+  onEdit: (route: RouteType) => void;
   onDelete: (route: RouteType) => void;
 }
 
-function RouteCard({ route, onDelete }: RouteCardProps) {
+function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
   const stopCount = route._count?.waypoints ?? 0;
 
   return (
@@ -165,6 +167,14 @@ function RouteCard({ route, onDelete }: RouteCardProps) {
             </div>
           </div>
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:text-foreground"
+              onClick={() => onEdit(route)}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -365,14 +375,18 @@ interface RouteFormDrawerProps {
   open: boolean;
   onClose: () => void;
   terminals: Terminal[];
+  editingRouteId?: string | null;
   onCreated: (route: RouteType) => void;
+  onUpdated: (route: RouteType) => void;
 }
 
 function RouteFormDrawer({
   open,
   onClose,
   terminals,
+  editingRouteId,
   onCreated,
+  onUpdated,
 }: RouteFormDrawerProps) {
   const [name, setName] = useState("");
   const [originId, setOriginId] = useState("");
@@ -483,6 +497,34 @@ function RouteFormDrawer({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const createMutation = useMutation(trpc.routes.create.mutationOptions());
+  const updateMutation = useMutation(trpc.routes.update.mutationOptions());
+  const isEditing = Boolean(editingRouteId);
+
+  const { data: editingRoute } = useQuery({
+    ...trpc.routes.get.queryOptions({ id: editingRouteId ?? "" }),
+    enabled: open && Boolean(editingRouteId),
+  });
+
+  useEffect(() => {
+    if (!open || !editingRoute) {
+      return;
+    }
+
+    setName(editingRoute.name);
+    setOriginId(editingRoute.originTerminalId);
+    setDestId(editingRoute.destTerminalId);
+    setDistanceKm(editingRoute.distanceKm?.toString() ?? "");
+    setWaypoints(
+      editingRoute.waypoints.map((wp) => ({
+        id: wp.id,
+        terminalId: wp.terminalId,
+        terminal: wp.terminal as Terminal,
+        offsetMinutes: wp.arrivalOffsetMinutes,
+        allowPickup: wp.isPickup,
+        allowDropoff: wp.isDropoff,
+      })),
+    );
+  }, [open, editingRoute]);
 
   async function handleSave() {
     if (!name.trim()) {
@@ -516,6 +558,24 @@ function RouteFormDrawer({
     };
     if (distanceKm) payload.distanceKm = parseFloat(distanceKm);
     if (estimatedDuration) payload.estimatedDurationMin = estimatedDuration;
+
+    if (isEditing && editingRouteId) {
+      updateMutation.mutate(
+        { id: editingRouteId, data: payload },
+        {
+          onSuccess: (route) => {
+            toast.success(`Route "${route.name}" updated`);
+            onUpdated(route as any);
+            resetForm();
+            queryClient.invalidateQueries(trpc.routes.list.pathFilter());
+          },
+          onError: (err) => {
+            toast.error(err.message || "Failed to update route");
+          },
+        },
+      );
+      return;
+    }
 
     createMutation.mutate(payload, {
       onSuccess: (route) => {
@@ -559,10 +619,12 @@ function RouteFormDrawer({
       <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-2xl flex flex-col">
         <DrawerHeader className="border-b border-border px-5 py-4 shrink-0">
           <DrawerTitle className="text-base font-bold">
-            Create New Route
+            {isEditing ? "Edit Route" : "Create New Route"}
           </DrawerTitle>
           <DrawerDescription className="text-xs text-muted-foreground">
-            Define the origin, destination, and intermediate stops.
+            {isEditing
+              ? "Update the origin, destination, and intermediate stops."
+              : "Define the origin, destination, and intermediate stops."}
           </DrawerDescription>
         </DrawerHeader>
 
@@ -823,12 +885,22 @@ function RouteFormDrawer({
           <Button
             className="flex-1"
             onClick={handleSave}
-            disabled={createMutation.isPending || !name || !originId || !destId}
+            disabled={
+              createMutation.isPending ||
+              updateMutation.isPending ||
+              !name ||
+              !originId ||
+              !destId
+            }
           >
-            {createMutation.isPending ? (
+            {createMutation.isPending || updateMutation.isPending ? (
               <Spinner className="size-4 mr-2" />
             ) : null}
-            {createMutation.isPending ? "Saving…" : "Create Route"}
+            {createMutation.isPending || updateMutation.isPending
+              ? "Saving…"
+              : isEditing
+                ? "Save Changes"
+                : "Create Route"}
           </Button>
         </DrawerFooter>
       </DrawerContent>
@@ -966,13 +1038,14 @@ export function OperatorRoutesView() {
     trpc.routes.list.queryOptions(),
   );
   const { data: terminalsData } = useSuspenseQuery(
-    trpc.terminals.list.queryOptions(),
+    trpc.terminals.list.queryOptions({ bookableOnly: true }),
   );
 
   const [routes, setRoutes] = useState<RouteType[]>([]);
   const [terminals, setTerminals] = useState<Terminal[]>([]);
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingRouteId, setEditingRouteId] = useState<string | null>(null);
   const [deletingRoute, setDeletingRoute] = useState<RouteType | null>(null);
   const [successRoute, setSuccessRoute] = useState<RouteType | null>(null);
 
@@ -984,7 +1057,7 @@ export function OperatorRoutesView() {
 
   useEffect(() => {
     if (searchParams && searchParams.get("action") === "new") {
-      setDrawerOpen(true);
+      handleOpenCreate();
     }
   }, [searchParams]);
 
@@ -992,6 +1065,23 @@ export function OperatorRoutesView() {
     setRoutes((prev) => [route, ...prev]);
     setSuccessRoute(route);
     setDrawerOpen(false);
+    setEditingRouteId(null);
+  }
+
+  function handleUpdated(route: RouteType) {
+    setRoutes((prev) => prev.map((r) => (r.id === route.id ? route : r)));
+    setDrawerOpen(false);
+    setEditingRouteId(null);
+  }
+
+  function handleEdit(route: RouteType) {
+    setEditingRouteId(route.id);
+    setDrawerOpen(true);
+  }
+
+  function handleOpenCreate() {
+    setEditingRouteId(null);
+    setDrawerOpen(true);
   }
 
   function handleDeleted(id: string) {
@@ -1026,7 +1116,7 @@ export function OperatorRoutesView() {
         <Button
           size="sm"
           className="h-8 text-xs"
-          onClick={() => setDrawerOpen(true)}
+          onClick={handleOpenCreate}
         >
           <Plus className="size-3.5 mr-1.5" />
           New Route
@@ -1055,7 +1145,7 @@ export function OperatorRoutesView() {
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>
-                <Button size="sm" onClick={() => setDrawerOpen(true)}>
+                <Button size="sm" onClick={handleOpenCreate}>
                   <Plus className="size-3.5 mr-1.5" />
                   Create Route
                 </Button>
@@ -1080,6 +1170,7 @@ export function OperatorRoutesView() {
               <RouteCard
                 key={route.id}
                 route={route}
+                onEdit={handleEdit}
                 onDelete={setDeletingRoute}
               />
             ))}
@@ -1090,9 +1181,14 @@ export function OperatorRoutesView() {
       {/* Drawer */}
       <RouteFormDrawer
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => {
+          setDrawerOpen(false);
+          setEditingRouteId(null);
+        }}
         terminals={terminals}
+        editingRouteId={editingRouteId}
         onCreated={handleCreated}
+        onUpdated={handleUpdated}
       />
 
       {/* Delete dialog */}

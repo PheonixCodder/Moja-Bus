@@ -16,6 +16,7 @@ import {
   Layers,
   MapPin,
   Users,
+  Ticket,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -45,6 +46,7 @@ import {
 } from "@moja/ui/components/ui/sidebar";
 import type { User } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
+import { getCompanyStatusPresentation } from "@/features/operator/lib/company-status";
 
 interface MenuItem {
   title: string;
@@ -121,11 +123,13 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
 
   const { data } = useSuspenseQuery(trpc.operator.getSettings.queryOptions());
   const status = data?.company?.status;
+  const statusPresentation = getCompanyStatusPresentation(status);
 
   // ── Operations group ──────────────────────────────────────────────
   const operationsItems: MenuItem[] = [
     { title: "Overview", url: "/dashboard/operator", icon: Gauge },
     { title: "Dispatch Board", url: "/dashboard/operator/trips", icon: Radio },
+    { title: "Bookings", url: "/dashboard/operator/bookings", icon: Ticket },
   ];
 
   // ── Planning group ────────────────────────────────────────────────
@@ -218,19 +222,10 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                   <span
                     className={cn(
                       "text-[8px] font-extrabold uppercase tracking-wider px-1 py-0.2 rounded border shrink-0",
-                      (status === "VERIFIED" || status === "ACTIVE") &&
-                        "bg-emerald-50 text-emerald-600 border-emerald-200",
-                      status === "PENDING_VERIFICATION" &&
-                        "bg-amber-50 text-amber-600 border-amber-200",
-                      status === "DRAFT" &&
-                        "bg-slate-50 text-slate-500 border-slate-200",
+                      statusPresentation.badgeClassName,
                     )}
                   >
-                    {status === "VERIFIED" || status === "ACTIVE"
-                      ? "Verified"
-                      : status === "PENDING_VERIFICATION"
-                        ? "Pending"
-                        : "Draft"}
+                    {statusPresentation.shortLabel}
                   </span>
                 </>
               )}

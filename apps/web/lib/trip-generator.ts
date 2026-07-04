@@ -1,4 +1,13 @@
 import { getPrismaClient } from "@moja/db";
+import {
+  addAppCalendarDays,
+  buildAppDepartureTimestamp,
+  datesMatchCalendarDay,
+  getWeekdayKey,
+  isOnOrAfterCalendarDay,
+  isOnOrBeforeCalendarDay,
+  startOfAppCalendarDay,
+} from "./timezone";
 
 const prisma = getPrismaClient();
 
@@ -48,62 +57,39 @@ export async function generateTripsForSchedule(
 
   const tripsCreated = [];
 
-  // Generate for N days starting from today (UTC+0 CI timezone matches Server time)
-  const today = new Date();
+  const today = startOfAppCalendarDay(new Date());
 
   for (let i = 0; i < daysCount; i++) {
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + i);
+    const targetDate = addAppCalendarDays(today, i);
 
-    // 1. Check ServiceCalendar weekday match
-    const weekdayMap = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const weekdayName = weekdayMap[
-      targetDate.getDay()
-    ] as keyof typeof calendar;
+    const weekdayName = getWeekdayKey(targetDate) as keyof typeof calendar;
     const runsOnDay = calendar[weekdayName];
     if (typeof runsOnDay !== "boolean" || !runsOnDay) {
       continue;
     }
 
-    // 2. Validate calendar bounds
-    const dateStart = new Date(targetDate);
-    dateStart.setHours(0, 0, 0, 0);
-    if (dateStart < new Date(calendar.validFrom)) {
+    if (!isOnOrAfterCalendarDay(targetDate, calendar.validFrom)) {
       continue;
     }
-    if (calendar.validUntil && dateStart > new Date(calendar.validUntil)) {
+    if (
+      calendar.validUntil &&
+      !isOnOrBeforeCalendarDay(targetDate, calendar.validUntil)
+    ) {
       continue;
     }
 
-    // 3. Check for Exceptions (CANCELLED or MODIFIED)
-    const targetDateString = targetDate.toISOString().split("T")[0]; // YYYY-MM-DD
-    const exception = exceptions.find(
-      (e) => e.date.toISOString().split("T")[0] === targetDateString,
+    const exception = exceptions.find((e) =>
+      datesMatchCalendarDay(e.date, targetDate),
     );
 
     if (exception && exception.type === "CANCELLED") {
       continue;
     }
 
-    // Determine target departure timestamp
-    const departureTimestamp = new Date(
-      Date.UTC(
-        targetDate.getFullYear(),
-        targetDate.getMonth(),
-        targetDate.getDate(),
-        hours,
-        minutes,
-        0,
-        0,
-      ),
+    const departureTimestamp = buildAppDepartureTimestamp(
+      targetDate,
+      hours,
+      minutes,
     );
 
     // 4. Ensure no duplicate trip is generated
@@ -136,8 +122,24 @@ export async function generateTripsForSchedule(
         },
       });
 
-      // Create TripStops waypoints for boarding queries
-      const tripStopsData = route.waypoints.map((w) => ({
+      // Create TripStops: origin (stopOrder 0) + intermediate waypoints + destination
+      const lastWaypointOrder =
+        route.waypoints.length > 0
+          ? route.waypoints[route.waypoints.length - 1]!.stopOrder
+          : 0;
+      const destStopOrder = lastWaypointOrder + 1;
+
+      const originStop = {
+        tripId: createdTrip.id,
+        terminalId: route.originTerminalId,
+        stopOrder: 0,
+        scheduledArrival: departureTimestamp,
+        scheduledDeparture: departureTimestamp,
+        isPickup: true,
+        isDropoff: false,
+      };
+
+      const waypointStops = route.waypoints.map((w) => ({
         tripId: createdTrip.id,
         terminalId: w.terminalId,
         stopOrder: w.stopOrder,
@@ -151,15 +153,31 @@ export async function generateTripsForSchedule(
         isDropoff: w.isDropoff,
       }));
 
+      const destStop = {
+        tripId: createdTrip.id,
+        terminalId: route.destTerminalId,
+        stopOrder: destStopOrder,
+        scheduledArrival: new Date(
+          departureTimestamp.getTime() +
+            (route.estimatedMinutes ?? 0) * 60000,
+        ),
+        scheduledDeparture: new Date(
+          departureTimestamp.getTime() +
+            (route.estimatedMinutes ?? 0) * 60000,
+        ),
+        isPickup: false,
+        isDropoff: true,
+      };
+
       await tx.tripStop.createMany({
-        data: tripStopsData,
+        data: [originStop, ...waypointStops, destStop],
       });
 
       // Create TripSeats
       const tripSeatsData = bus.seats.map((seat) => ({
         tripId: createdTrip.id,
         seatId: seat.id,
-        status: "AVAILABLE" as any,
+        isActive: true,
       }));
 
       await tx.tripSeat.createMany({
