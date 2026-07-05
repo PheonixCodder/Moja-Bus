@@ -10,3 +10,4 @@ export * from "./operator-bookings";
 export * from "./routes";
 export * from "./schedules";
 export * from "./trips";
+export * from "./passenger";

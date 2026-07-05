@@ -1,25 +1,36 @@
 import type { PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import type { BookingHoldResult, ConfirmedBookingResult } from "@moja/types";
+import { SavedPassengerService } from "@/features/passenger/services/saved-passenger-service";
+import {
+  loadPlatformSettings,
+  resolvePricing,
+} from "@/features/payments/lib/pricing-resolver";
 import { generateBookingReference } from "../lib/booking-reference";
+import { holdGroupWhere } from "../lib/hold-group";
 import { isActiveBookingStatus, segmentsOverlap } from "../lib/segment-overlap";
 import { SeatAvailabilityService } from "./seat-availability-service";
 import { TripDetailsService } from "./trip-details-service";
 
 const HOLD_DURATION_MS = 10 * 60 * 1000;
 
+type SeatPassengerInput = {
+  seatId: string;
+  savedPassengerId?: string | undefined;
+  passenger?: { passengerName: string; passengerPhone: string } | undefined;
+};
+
 export class BookingHoldService {
   constructor(
     private prisma: PrismaClient,
     private tripDetailsService = new TripDetailsService(prisma),
     private seatAvailabilityService = new SeatAvailabilityService(prisma),
+    private savedPassengerService = new SavedPassengerService(prisma),
   ) {}
 
   async createHold(input: {
     offerId: string;
-    seatIds: string[];
-    passengerName: string;
-    passengerPhone: string;
+    passengers: SeatPassengerInput[];
     userId?: string | null;
   }): Promise<BookingHoldResult> {
     const details = await this.tripDetailsService.getTripDetails(input.offerId);
@@ -31,17 +42,25 @@ export class BookingHoldService {
       });
     }
 
-    const availability = await this.seatAvailabilityService.getSeatAvailability(
-      input.offerId,
-    );
-
-    const uniqueSeatIds = [...new Set(input.seatIds)];
-    if (uniqueSeatIds.length !== input.seatIds.length) {
+    const seatIds = input.passengers.map((p) => p.seatId);
+    const uniqueSeatIds = [...new Set(seatIds)];
+    if (uniqueSeatIds.length !== seatIds.length) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Duplicate seats selected",
       });
     }
+
+    if (uniqueSeatIds.length !== input.passengers.length) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Each seat must have exactly one passenger",
+      });
+    }
+
+    const availability = await this.seatAvailabilityService.getSeatAvailability(
+      input.offerId,
+    );
 
     for (const seatId of uniqueSeatIds) {
       const seat = availability.seats.find((s) => s.seatId === seatId);
@@ -66,7 +85,37 @@ export class BookingHoldService {
       });
     }
 
+    const resolvedPassengers = await Promise.all(
+      input.passengers.map(async (entry) => ({
+        seatId: entry.seatId,
+        ...(await this.savedPassengerService.resolveSeatPassenger(
+          input.userId,
+          entry,
+        )),
+      })),
+    );
+
     const holdExpiresAt = new Date(Date.now() + HOLD_DURATION_MS);
+
+    const trip = await this.prisma.trip.findUnique({
+      where: { id: details.tripId },
+      select: {
+        schedule: {
+          select: {
+            route: { select: { distanceKm: true } },
+          },
+        },
+      },
+    });
+    const distanceKm = trip?.schedule.route.distanceKm ?? null;
+    const { settings, tiers } = await loadPlatformSettings(this.prisma);
+    const pricing = resolvePricing({
+      baseFareXOF: details.priceXOF,
+      seatCount: uniqueSeatIds.length,
+      distanceKm,
+      settings,
+      tiers,
+    });
 
     const result = await this.prisma.$transaction(async (tx) => {
       const overlappingBookings = await tx.booking.findMany({
@@ -110,10 +159,40 @@ export class BookingHoldService {
         }
       }
 
+      const holdGroup = await tx.holdGroup.create({
+        data: {
+          companyId: details.companyId,
+          tripId: details.tripId,
+          userId: input.userId ?? null,
+          offerId: input.offerId,
+          status: "ACTIVE",
+          holdExpiresAt,
+          seatCount: uniqueSeatIds.length,
+          baseFareXOF: details.priceXOF,
+        },
+      });
+
+      await tx.pricingSnapshot.create({
+        data: {
+          holdGroupId: holdGroup.id,
+          distanceKm: pricing.distanceKm,
+          commissionBps: pricing.commissionBps,
+          convenienceFeeBps: pricing.convenienceFeeBps,
+          baseFareXOF: pricing.baseFareXOF,
+          seatCount: pricing.seatCount,
+          subtotalBaseXOF: pricing.subtotalBaseXOF,
+          convenienceFeeXOF: pricing.convenienceFeeXOF,
+          chargeAmountXOF: pricing.chargeAmountXOF,
+          commissionXOF: pricing.commissionXOF,
+          operatorNetXOF: pricing.operatorNetXOF,
+          platformGrossXOF: pricing.platformGrossXOF,
+        },
+      });
+
       const bookingReferences: string[] = [];
       const createdIds: string[] = [];
 
-      for (const seatId of uniqueSeatIds) {
+      for (const passenger of resolvedPassengers) {
         let reference = generateBookingReference();
         while (bookingReferences.includes(reference)) {
           reference = generateBookingReference();
@@ -125,31 +204,40 @@ export class BookingHoldService {
             companyId: details.companyId,
             tripId: details.tripId,
             userId: input.userId ?? null,
-            seatId,
+            seatId: passenger.seatId,
             originTripStopId: details.originTripStopId,
             destinationTripStopId: details.destinationTripStopId,
             boardingStopOrder: details.boardingStopOrder,
             dropoffStopOrder: details.dropoffStopOrder,
             status: "PENDING_PAYMENT",
             holdExpiresAt,
+            holdGroupId: holdGroup.id,
             farePaid: details.priceXOF,
             paymentStatus: "UNPAID",
             bookingReference: reference,
-            passengerName: input.passengerName,
-            passengerPhone: input.passengerPhone,
+            passengerName: passenger.passengerName,
+            passengerPhone: passenger.passengerPhone,
+            savedPassengerId: passenger.savedPassengerId,
           },
         });
         createdIds.push(booking.id);
       }
 
-      return { holdId: createdIds[0]!, bookingReferences, holdExpiresAt };
+      return {
+        holdId: holdGroup.id,
+        bookingReferences,
+        holdExpiresAt,
+        chargeAmountXOF: pricing.chargeAmountXOF,
+      };
     });
 
     return {
       holdId: result.holdId,
       holdExpiresAt: result.holdExpiresAt,
       bookingReferences: result.bookingReferences,
-      totalAmountXOF: details.priceXOF * uniqueSeatIds.length,
+      totalAmountXOF: result.chargeAmountXOF,
+      subtotalBaseXOF: pricing.subtotalBaseXOF,
+      convenienceFeeXOF: pricing.convenienceFeeXOF,
     };
   }
 
@@ -157,84 +245,28 @@ export class BookingHoldService {
     holdId: string,
     userId?: string | null,
   ): Promise<ConfirmedBookingResult> {
-    const anchor = await this.prisma.booking.findUnique({
-      where: { id: holdId },
-    });
-
-    if (!anchor) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Hold not found" });
-    }
-
-    if (anchor.status !== "PENDING_PAYMENT") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This hold has already been processed or expired",
-      });
-    }
-
-    if (anchor.holdExpiresAt && anchor.holdExpiresAt < new Date()) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This hold has expired. Please select seats again.",
-      });
-    }
-
-    const bookings = await this.prisma.booking.findMany({
-      where: {
-        tripId: anchor.tripId,
-        status: "PENDING_PAYMENT",
-        holdExpiresAt: anchor.holdExpiresAt,
-        passengerPhone: anchor.passengerPhone,
-      },
-    });
-
-    const confirmed = await this.prisma.$transaction(async (tx) => {
-      const updated = [];
-      for (const b of bookings) {
-        updated.push(
-          await tx.booking.update({
-            where: { id: b.id },
-            data: {
-              status: "CONFIRMED",
-              paymentStatus: "PAID",
-              issuedAt: new Date(),
-              holdExpiresAt: null,
-              ...(userId ? { userId } : {}),
-            },
-          }),
-        );
-      }
-      return updated;
-    });
-
-    const totalAmountXOF = confirmed.reduce((sum, b) => sum + b.farePaid, 0);
-
-    return {
-      holdId,
-      bookingReferences: confirmed.map((b) => b.bookingReference),
-      ticketTokens: confirmed.map((b) => b.ticketToken),
-      totalAmountXOF,
-      status: "CONFIRMED",
-    };
+    const { BookingConfirmationService } = await import(
+      "@/features/payments/services/booking-confirmation-service"
+    );
+    const confirmationService = new BookingConfirmationService(this.prisma);
+    return confirmationService.confirmFromPayment(holdId, userId);
   }
 
   async releaseHold(holdId: string): Promise<{ success: true }> {
-    const anchor = await this.prisma.booking.findUnique({
-      where: { id: holdId },
-    });
+    const { resolveHoldGroup } = await import(
+      "@/features/payments/lib/resolve-hold-group"
+    );
+    const holdGroup = await resolveHoldGroup(this.prisma, holdId);
 
-    if (!anchor) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Hold not found" });
-    }
-
-    await this.prisma.booking.updateMany({
-      where: {
-        tripId: anchor.tripId,
-        status: "PENDING_PAYMENT",
-        holdExpiresAt: anchor.holdExpiresAt,
-        passengerPhone: anchor.passengerPhone,
-      },
-      data: { status: "EXPIRED", holdExpiresAt: null },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.booking.updateMany({
+        where: { holdGroupId: holdGroup.id, status: "PENDING_PAYMENT" },
+        data: { status: "EXPIRED", holdExpiresAt: null },
+      });
+      await tx.holdGroup.update({
+        where: { id: holdGroup.id },
+        data: { status: "EXPIRED" },
+      });
     });
 
     return { success: true };

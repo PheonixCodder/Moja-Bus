@@ -17,8 +17,17 @@ export const passengerDraftSchema = z.object({
 
 export const createHoldSchema = z.object({
   offerId: offerIdSchema,
-  seatIds: z.array(z.string()).min(1).max(6),
-  passenger: passengerDraftSchema,
+  passengers: z.array(
+    z
+      .object({
+        seatId: z.string().min(1),
+        savedPassengerId: z.string().min(1).optional(),
+        passenger: passengerDraftSchema.optional(),
+      })
+      .refine((data) => data.savedPassengerId || data.passenger, {
+        message: "Provide savedPassengerId or passenger details for each seat",
+      }),
+  ).min(1).max(6),
 });
 
 export const confirmBookingSchema = z.object({
@@ -56,8 +65,21 @@ export const getTicketByTokenSchema = z.object({
 export const initiatePaymentSchema = z.object({
   holdId: z.string().min(1),
   provider: z
-    .enum(["MOCK", "WAVE", "ORANGE_MONEY", "MTN_MOMO", "CINETPAY", "CARD"])
-    .default("MOCK"),
+    .enum([
+      "MOCK",
+      "PAYSTACK",
+      "WAVE",
+      "ORANGE_MONEY",
+      "MTN_MOMO",
+      "CINETPAY",
+      "CARD",
+    ])
+    .default("PAYSTACK"),
+  payerEmail: z.string().email().optional(),
+});
+
+export const verifyPaymentSchema = z.object({
+  reference: z.string().min(1),
 });
 
 export type GetTripDetailsInput = z.infer<typeof getTripDetailsSchema>;
@@ -69,3 +91,4 @@ export type ListMyBookingsInput = z.infer<typeof listMyBookingsSchema>;
 export type GetBookingInput = z.infer<typeof getBookingSchema>;
 export type GetTicketInput = z.infer<typeof getTicketSchema>;
 export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
+export type VerifyPaymentInput = z.infer<typeof verifyPaymentSchema>;

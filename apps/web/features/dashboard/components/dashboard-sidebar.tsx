@@ -11,6 +11,7 @@ import {
   Search,
   Settings,
   Ticket,
+  Users,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -112,6 +113,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     { title: "Search trips", url: "/dashboard/search", icon: Search },
     { title: "Bookings", url: "/dashboard/bookings", icon: CalendarDays },
     { title: "Tickets", url: "/dashboard/tickets", icon: Ticket },
+    { title: "Passengers", url: "/dashboard/passengers", icon: Users },
   ];
 
   const otherMenuItems: MenuItem[] = [

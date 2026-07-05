@@ -128,12 +128,25 @@ export function PassengerTripCard({
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
           <div>
             <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
-              Passenger
+              {booking.seats.length > 1 ? "Passengers" : "Passenger"}
             </p>
-            <p className="text-sm font-semibold text-slate-800">
-              {booking.passengerName}
-            </p>
-            <p className="text-xs text-slate-500">{booking.passengerPhone}</p>
+            {booking.seats.length > 1 ? (
+              <ul className="text-sm text-slate-800 space-y-0.5 mt-1">
+                {booking.seats.map((seat) => (
+                  <li key={seat.bookingId}>
+                    <span className="font-semibold">{seat.seatLabel}:</span>{" "}
+                    {seat.passengerName}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-slate-800">
+                  {booking.passengerName}
+                </p>
+                <p className="text-xs text-slate-500">{booking.passengerPhone}</p>
+              </>
+            )}
           </div>
           <p className="text-xl font-black text-[#ee237c]">
             {formatPriceXOF(booking.totalAmountXOF)}

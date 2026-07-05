@@ -9,6 +9,7 @@ import {
   initiatePaymentSchema,
   listMyBookingsSchema,
   releaseHoldSchema,
+  verifyPaymentSchema,
 } from "@moja/schemas";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 import { TripDetailsService } from "@/features/booking/services/trip-details-service";
@@ -38,9 +39,7 @@ export const bookingRouter = createTRPCRouter({
       const service = new BookingHoldService(ctx.prisma);
       return service.createHold({
         offerId: input.offerId,
-        seatIds: input.seatIds,
-        passengerName: input.passenger.passengerName,
-        passengerPhone: input.passenger.passengerPhone,
+        passengers: input.passengers,
         userId: ctx.user?.id ?? null,
       });
     }),
@@ -49,7 +48,26 @@ export const bookingRouter = createTRPCRouter({
     .input(initiatePaymentSchema)
     .mutation(async ({ ctx, input }) => {
       const service = new PaymentService(ctx.prisma);
-      return service.initiateForHold(input.holdId, input.provider);
+      return service.initiateForHold(
+        input.holdId,
+        input.provider,
+        input.payerEmail ?? ctx.user?.email ?? null,
+      );
+    }),
+
+  verifyPayment: publicProcedure
+    .input(verifyPaymentSchema)
+    .mutation(async ({ ctx, input }) => {
+      const paymentService = new PaymentService(ctx.prisma);
+      const result = await paymentService.verifyAndConfirm(
+        input.reference,
+        ctx.user?.id ?? null,
+      );
+      const holdService = new BookingHoldService(ctx.prisma);
+      return holdService.confirmBooking(
+        result.holdGroupId,
+        ctx.user?.id ?? null,
+      );
     }),
 
   confirmBooking: publicProcedure

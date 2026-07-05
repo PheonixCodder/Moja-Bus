@@ -79,6 +79,8 @@ export interface BookingHoldResult {
   holdExpiresAt: Date;
   bookingReferences: string[];
   totalAmountXOF: number;
+  subtotalBaseXOF?: number;
+  convenienceFeeXOF?: number;
 }
 
 export interface ConfirmedBookingResult {
@@ -100,6 +102,8 @@ export interface PassengerBookingSeat {
   bookingId: string;
   bookingReference: string;
   seatLabel: string;
+  passengerName: string;
+  passengerPhone: string;
   farePaidXOF: number;
   ticketToken: string;
 }
