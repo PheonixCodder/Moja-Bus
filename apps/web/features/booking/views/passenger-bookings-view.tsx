@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Search, Ticket } from "lucide-react";
+import { toast } from "sonner";
+import { CalendarDays, Search } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { Button, buttonVariants } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { useTRPC } from "@/trpc/client";
 import { PassengerTripCard } from "@/features/booking/components/passenger-trip-card";
+import { isHoldActive } from "@/features/booking/lib/hold-countdown";
+import { usePaystackCheckout } from "@/features/payments/hooks/use-paystack-checkout";
 import type { PassengerBookingSummary } from "@moja/types";
 
 type BookingFilter = "upcoming" | "past" | "pending";
@@ -52,13 +55,55 @@ function ticketHref(booking: PassengerBookingSummary): string | null {
   return `/dashboard/tickets/${encodeURIComponent(ref)}`;
 }
 
+function canResumePayment(booking: PassengerBookingSummary): boolean {
+  return (
+    booking.status === "PENDING_PAYMENT" &&
+    Boolean(booking.holdGroupId) &&
+    isHoldActive(booking.holdExpiresAt)
+  );
+}
+
 export function PassengerBookingsView() {
   const trpc = useTRPC();
   const [filter, setFilter] = useState<BookingFilter>("upcoming");
+  const [payingGroupId, setPayingGroupId] = useState<string | null>(null);
+  const {
+    completePayment,
+    PaystackPaymentCancelledError,
+  } = usePaystackCheckout();
 
   const { data, isLoading, isError, error, refetch } = useQuery(
     trpc.booking.listMyBookings.queryOptions({ filter }),
   );
+
+  async function handleCompletePayment(booking: PassengerBookingSummary) {
+    const holdId = booking.holdGroupId;
+    if (!holdId) {
+      toast.error("This booking cannot be paid here. Please search and book again.");
+      return;
+    }
+
+    setPayingGroupId(booking.groupId);
+    try {
+      const confirmed = await completePayment({ holdId });
+      if (!confirmed) {
+        return;
+      }
+
+      toast.success("Payment confirmed. Your tickets are ready.");
+      await refetch();
+    } catch (err: unknown) {
+      if (err instanceof PaystackPaymentCancelledError) {
+        toast.error("Payment was cancelled");
+        return;
+      }
+      const message =
+        err instanceof Error ? err.message : "Payment failed. Please try again.";
+      toast.error(message);
+    } finally {
+      setPayingGroupId(null);
+    }
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -103,6 +148,13 @@ export function PassengerBookingsView() {
           </p>
           {data.items.map((booking) => {
             const href = ticketHref(booking);
+            const isPaying = payingGroupId === booking.groupId;
+            const showPayAction = filter === "pending" && canResumePayment(booking);
+            const holdExpired =
+              filter === "pending" &&
+              booking.status === "PENDING_PAYMENT" &&
+              !isHoldActive(booking.holdExpiresAt);
+
             return (
               <PassengerTripCard
                 key={booking.groupId}
@@ -110,6 +162,34 @@ export function PassengerBookingsView() {
                 {...(href
                   ? { action: { label: "View tickets", href } }
                   : {})}
+                footer={
+                  showPayAction ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={isPaying}
+                      onClick={() => handleCompletePayment(booking)}
+                      className="bg-[#ee237c] hover:bg-[#d01867] text-white font-bold"
+                    >
+                      {isPaying ? (
+                        <>
+                          <Spinner className="mr-2 size-4" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Complete payment"
+                      )}
+                    </Button>
+                  ) : holdExpired ? (
+                    <p className="text-xs text-slate-500">
+                      This hold has expired.{" "}
+                      <Link href="/" className="text-[#ee237c] font-semibold hover:underline">
+                        Search trips
+                      </Link>{" "}
+                      to book again.
+                    </p>
+                  ) : null
+                }
               />
             );
           })}

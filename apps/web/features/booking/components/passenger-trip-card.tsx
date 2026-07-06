@@ -11,14 +11,29 @@ import {
   formatTripDuration,
 } from "@/features/search/lib/format";
 import type { PassengerBookingSummary } from "@moja/types";
+import { useHoldCountdown } from "@/features/booking/lib/hold-countdown";
 
 function StatusBadge({ booking }: { booking: PassengerBookingSummary }) {
+  const countdown = useHoldCountdown(
+    booking.status === "PENDING_PAYMENT" ? booking.holdExpiresAt : null,
+  );
+
   if (booking.status === "PENDING_PAYMENT") {
+    const label = countdown?.label
+      ?? (booking.holdExpiresAt
+        ? `Pay by ${formatDepartureTime(booking.holdExpiresAt)}`
+        : "Awaiting payment");
+
     return (
-      <Badge className="bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-50">
-        {booking.holdExpiresAt
-          ? `Pay by ${formatDepartureTime(booking.holdExpiresAt)}`
-          : "Awaiting payment"}
+      <Badge
+        className={cn(
+          "border hover:bg-amber-50",
+          countdown?.expired
+            ? "bg-slate-100 text-slate-600 border-slate-200"
+            : "bg-amber-50 text-amber-800 border-amber-200",
+        )}
+      >
+        {label}
       </Badge>
     );
   }
@@ -128,12 +143,25 @@ export function PassengerTripCard({
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
           <div>
             <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
-              Passenger
+              {booking.seats.length > 1 ? "Passengers" : "Passenger"}
             </p>
-            <p className="text-sm font-semibold text-slate-800">
-              {booking.passengerName}
-            </p>
-            <p className="text-xs text-slate-500">{booking.passengerPhone}</p>
+            {booking.seats.length > 1 ? (
+              <ul className="text-sm text-slate-800 space-y-0.5 mt-1">
+                {booking.seats.map((seat) => (
+                  <li key={seat.bookingId}>
+                    <span className="font-semibold">{seat.seatLabel}:</span>{" "}
+                    {seat.passengerName}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-slate-800">
+                  {booking.passengerName}
+                </p>
+                <p className="text-xs text-slate-500">{booking.passengerPhone}</p>
+              </>
+            )}
           </div>
           <p className="text-xl font-black text-[#ee237c]">
             {formatPriceXOF(booking.totalAmountXOF)}

@@ -7,6 +7,7 @@ import type {
 } from "@moja/types";
 import { buildOfferId } from "@moja/types";
 import { phonesMatch } from "@/features/booking/lib/normalize-phone";
+import { bookingSummaryGroupKey } from "@/features/booking/lib/hold-group";
 
 type BookingFilter = "upcoming" | "past" | "pending";
 
@@ -28,21 +29,6 @@ const LIST_STATUSES = [
   "EXPIRED",
   "COMPLETED",
 ] as const;
-
-function groupKey(booking: {
-  tripId: string;
-  passengerPhone: string;
-  holdExpiresAt: Date | null;
-  issuedAt: Date | null;
-  createdAt?: Date;
-}): string {
-  const anchor =
-    booking.holdExpiresAt ??
-    booking.issuedAt ??
-    booking.createdAt ??
-    new Date(0);
-  return `${booking.tripId}:${booking.passengerPhone}:${anchor.toISOString()}`;
-}
 
 export class BookingReadService {
   constructor(private prisma: PrismaClient) {}
@@ -114,7 +100,7 @@ export class BookingReadService {
 
     const groups = new Map<string, typeof bookings>();
     for (const booking of bookings) {
-      const key = groupKey(booking);
+      const key = bookingSummaryGroupKey(booking);
       const list = groups.get(key) ?? [];
       list.push(booking);
       groups.set(key, list);
@@ -177,12 +163,18 @@ export class BookingReadService {
       await this.claimUnlinkedBookings(userId, [anchor.id]);
     }
 
+    const groupWhere = anchor.holdGroupId
+      ? { holdGroupId: anchor.holdGroupId }
+      : {
+          tripId: anchor.tripId,
+          holdExpiresAt: anchor.holdExpiresAt,
+          issuedAt: anchor.issuedAt,
+          passengerPhone: anchor.passengerPhone,
+        };
+
     const group = await this.prisma.booking.findMany({
       where: {
-        tripId: anchor.tripId,
-        passengerPhone: anchor.passengerPhone,
-        holdExpiresAt: anchor.holdExpiresAt,
-        issuedAt: anchor.issuedAt,
+        ...groupWhere,
         OR: [{ userId }, { userId: null }],
       },
       include: bookingInclude,
@@ -287,6 +279,7 @@ export class BookingReadService {
     group: Array<{
       id: string;
       tripId: string;
+      holdGroupId: string | null;
       createdAt: Date;
       bookingReference: string;
       ticketToken: string;
@@ -316,8 +309,15 @@ export class BookingReadService {
     const arrivalTime =
       first.destinationTripStop.scheduledArrival ?? departureTime;
 
+    const uniqueNames = [...new Set(group.map((b) => b.passengerName))];
+    const displayName =
+      uniqueNames.length === 1
+        ? first.passengerName
+        : `${first.passengerName} + ${uniqueNames.length - 1} other${uniqueNames.length > 2 ? "s" : ""}`;
+
     return {
-      groupId: groupKey(first),
+      groupId: bookingSummaryGroupKey(first),
+      holdGroupId: first.holdGroupId,
       tripId: first.tripId,
       companyName: first.company.name,
       originTerminalName: first.originTripStop.terminal.name,
@@ -329,7 +329,7 @@ export class BookingReadService {
         "Côte d'Ivoire",
       departureTime,
       arrivalTime,
-      passengerName: first.passengerName,
+      passengerName: displayName,
       passengerPhone: first.passengerPhone,
       status: first.status as PassengerBookingSummary["status"],
       paymentStatus: first.paymentStatus,
@@ -340,6 +340,8 @@ export class BookingReadService {
         bookingId: b.id,
         bookingReference: b.bookingReference,
         seatLabel: b.seat.label,
+        passengerName: b.passengerName,
+        passengerPhone: b.passengerPhone,
         farePaidXOF: b.farePaid,
         ticketToken: b.ticketToken,
       })),

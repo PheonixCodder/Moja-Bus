@@ -1,57 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { formatPriceXOF } from "@/features/search/lib/format";
 import { useTRPC } from "@/trpc/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
-import type { PaymentProvider } from "@moja/schemas/payments";
-import { cn } from "@moja/ui/lib/utils";
+import { useSession } from "@/lib/auth-client";
+import { usePaystackCheckout } from "@/features/payments/hooks/use-paystack-checkout";
 
 type TripDetails = RouterOutputs["booking"]["getTripDetails"];
 
-const PAYMENT_METHODS: Array<{
-  id: PaymentProvider;
-  label: string;
-  description: string;
-  available: boolean;
-}> = [
-  {
-    id: "MOCK",
-    label: "Mock payment (beta)",
-    description: "Simulated payment — no real charge",
-    available: true,
-  },
-  {
-    id: "MTN_MOMO",
-    label: "MTN Mobile Money",
-    description: "Coming soon",
-    available: false,
-  },
-  {
-    id: "ORANGE_MONEY",
-    label: "Orange Money",
-    description: "Coming soon",
-    available: false,
-  },
-  {
-    id: "WAVE",
-    label: "Wave",
-    description: "Coming soon",
-    available: false,
-  },
-  {
-    id: "CARD",
-    label: "Card",
-    description: "Coming soon",
-    available: false,
-  },
-];
+type AssignmentMode = "saved" | "manual";
+
+interface SeatAssignment {
+  seatId: string;
+  seatLabel: string;
+  mode: AssignmentMode;
+  savedPassengerId: string;
+  passengerName: string;
+  passengerPhone: string;
+}
 
 interface BookingCheckoutFormProps {
   offerId: string;
@@ -67,6 +41,20 @@ interface BookingCheckoutFormProps {
   }) => void;
 }
 
+function buildInitialAssignments(
+  seatIds: string[],
+  labels: string[],
+): SeatAssignment[] {
+  return seatIds.map((seatId, index) => ({
+    seatId,
+    seatLabel: labels[index] ?? seatId,
+    mode: "manual" as const,
+    savedPassengerId: "",
+    passengerName: "",
+    passengerPhone: "",
+  }));
+}
+
 export function BookingCheckoutForm({
   offerId,
   tripDetails,
@@ -76,56 +64,164 @@ export function BookingCheckoutForm({
   onConfirmed,
 }: BookingCheckoutFormProps) {
   const trpc = useTRPC();
-  const [passengerName, setPassengerName] = useState("");
-  const [passengerPhone, setPassengerPhone] = useState("");
-  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>("MOCK");
+  const { data: session } = useSession();
+  const isLoggedIn = Boolean(session?.user);
+
+  const [assignments, setAssignments] = useState<SeatAssignment[]>(() =>
+    buildInitialAssignments(selectedSeatIds, selectedLabels),
+  );
+
+  const pricingQuery = useQuery({
+    ...trpc.payments.getCheckoutPricing.queryOptions({
+      offerId,
+      seatCount: selectedSeatIds.length,
+    }),
+  });
+
+  const savedQuery = useQuery({
+    ...trpc.passenger.listSaved.queryOptions(),
+    enabled: isLoggedIn,
+  });
+
+  const savedPassengers = savedQuery.data?.items ?? [];
+  const defaultSavedId = useMemo(() => {
+    const self = savedPassengers.find((p) => p.isSelf);
+    return self?.id ?? savedPassengers[0]?.id ?? "";
+  }, [savedPassengers]);
+
+  useEffect(() => {
+    setAssignments(buildInitialAssignments(selectedSeatIds, selectedLabels));
+  }, [selectedSeatIds, selectedLabels]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !defaultSavedId || savedPassengers.length === 0) {
+      return;
+    }
+
+    setAssignments((prev) =>
+      prev.map((row) => {
+        if (row.passengerName || row.savedPassengerId) {
+          return row;
+        }
+        const saved = savedPassengers.find((p) => p.id === defaultSavedId);
+        if (!saved) return row;
+        return {
+          ...row,
+          mode: "saved",
+          savedPassengerId: saved.id,
+          passengerName: saved.fullName,
+          passengerPhone: saved.phone,
+        };
+      }),
+    );
+  }, [isLoggedIn, defaultSavedId, savedPassengers]);
 
   const createHoldMutation = useMutation(trpc.booking.createHold.mutationOptions());
-  const initiatePaymentMutation = useMutation(
-    trpc.booking.initiatePayment.mutationOptions(),
-  );
-  const confirmMutation = useMutation(
-    trpc.booking.confirmBooking.mutationOptions(),
-  );
+  const {
+    completePayment,
+    isPending: isPaymentPending,
+    PaystackPaymentCancelledError,
+  } = usePaystackCheckout();
 
-  const totalAmount = tripDetails.priceXOF * selectedSeatIds.length;
-  const isSubmitting =
-    createHoldMutation.isPending ||
-    initiatePaymentMutation.isPending ||
-    confirmMutation.isPending;
+  const pricing = pricingQuery.data as
+    | {
+        subtotalBaseXOF: number;
+        convenienceFeeXOF: number;
+        chargeAmountXOF: number;
+      }
+    | undefined;
+  const subtotalBaseXOF =
+    pricing?.subtotalBaseXOF ?? tripDetails.priceXOF * selectedSeatIds.length;
+  const convenienceFeeXOF = pricing?.convenienceFeeXOF ?? 0;
+  const totalAmount = pricing?.chargeAmountXOF ?? subtotalBaseXOF;
+
+  const isSubmitting = createHoldMutation.isPending || isPaymentPending;
+
+  function updateAssignment(
+    seatId: string,
+    patch: Partial<SeatAssignment>,
+  ) {
+    setAssignments((prev) =>
+      prev.map((row) => (row.seatId === seatId ? { ...row, ...patch } : row)),
+    );
+  }
+
+  function applySavedToAll(savedPassengerId: string) {
+    const saved = savedPassengers.find((p) => p.id === savedPassengerId);
+    if (!saved) return;
+
+    setAssignments((prev) =>
+      prev.map((row) => ({
+        ...row,
+        mode: "saved",
+        savedPassengerId: saved.id,
+        passengerName: saved.fullName,
+        passengerPhone: saved.phone,
+      })),
+    );
+  }
+
+  function handleSavedChange(seatId: string, savedPassengerId: string) {
+    if (savedPassengerId === "manual") {
+      updateAssignment(seatId, {
+        mode: "manual",
+        savedPassengerId: "",
+        passengerName: "",
+        passengerPhone: "",
+      });
+      return;
+    }
+
+    const saved = savedPassengers.find((p) => p.id === savedPassengerId);
+    if (!saved) return;
+
+    updateAssignment(seatId, {
+      mode: "saved",
+      savedPassengerId: saved.id,
+      passengerName: saved.fullName,
+      passengerPhone: saved.phone,
+    });
+  }
 
   async function handlePay(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!passengerName.trim() || !passengerPhone.trim()) {
-      toast.error("Please enter passenger name and phone number");
-      return;
-    }
-
-    const method = PAYMENT_METHODS.find((m) => m.id === paymentProvider);
-    if (!method?.available) {
-      toast.error("This payment method is not available yet");
-      return;
+    for (const row of assignments) {
+      if (row.mode === "saved") {
+        if (!row.savedPassengerId) {
+          toast.error(`Select a passenger for seat ${row.seatLabel}`);
+          return;
+        }
+      } else if (!row.passengerName.trim() || !row.passengerPhone.trim()) {
+        toast.error(`Enter name and phone for seat ${row.seatLabel}`);
+        return;
+      }
     }
 
     try {
       const hold = await createHoldMutation.mutateAsync({
         offerId,
-        seatIds: selectedSeatIds,
-        passenger: {
-          passengerName: passengerName.trim(),
-          passengerPhone: passengerPhone.trim(),
-        },
+        passengers: assignments.map((row) =>
+          row.mode === "saved" && row.savedPassengerId
+            ? { seatId: row.seatId, savedPassengerId: row.savedPassengerId }
+            : {
+                seatId: row.seatId,
+                passenger: {
+                  passengerName: row.passengerName.trim(),
+                  passengerPhone: row.passengerPhone.trim(),
+                },
+              },
+        ),
       });
 
-      await initiatePaymentMutation.mutateAsync({
+      const confirmed = await completePayment({
         holdId: hold.holdId,
-        provider: paymentProvider as "MOCK" | "WAVE" | "ORANGE_MONEY" | "MTN_MOMO" | "CINETPAY" | "CARD",
+        payerEmail: session?.user?.email,
       });
 
-      const confirmed = await confirmMutation.mutateAsync({
-        holdId: hold.holdId,
-      });
+      if (!confirmed) {
+        return;
+      }
 
       onConfirmed({
         holdId: confirmed.holdId,
@@ -134,6 +230,10 @@ export function BookingCheckoutForm({
         totalAmountXOF: confirmed.totalAmountXOF,
       });
     } catch (err: unknown) {
+      if (err instanceof PaystackPaymentCancelledError) {
+        toast.error("Payment was cancelled");
+        return;
+      }
       const message =
         err instanceof Error ? err.message : "Booking failed. Please try again.";
       toast.error(message);
@@ -151,60 +251,160 @@ export function BookingCheckoutForm({
         <p className="text-xs text-slate-600">
           Seats: {selectedLabels.join(", ")} ({selectedSeatIds.length})
         </p>
-        <p className="text-lg font-black text-[#ee237c]">
-          {formatPriceXOF(totalAmount)}
+        <div className="space-y-1 pt-1 text-sm text-slate-700">
+          <div className="flex justify-between">
+            <span>Fare</span>
+            <span>{formatPriceXOF(subtotalBaseXOF)}</span>
+          </div>
+          {convenienceFeeXOF > 0 ? (
+            <div className="flex justify-between">
+              <span>Service fee</span>
+              <span>{formatPriceXOF(convenienceFeeXOF)}</span>
+            </div>
+          ) : null}
+          <div className="flex justify-between text-base font-black text-[#ee237c]">
+            <span>Total</span>
+            <span>{formatPriceXOF(totalAmount)}</span>
+          </div>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Prices are tax-inclusive. Service fee supports secure card and mobile money checkout.
         </p>
       </div>
 
       <div className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="passenger-name">Passenger full name</Label>
-          <Input
-            id="passenger-name"
-            value={passengerName}
-            onChange={(e) => setPassengerName(e.target.value)}
-            placeholder="Full name as on ID"
-            required
-          />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Label className="text-base">Passengers per seat</Label>
+          {isLoggedIn && savedPassengers.length > 0 ? (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Apply to all:</span>
+              <select
+                className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
+                defaultValue=""
+                onChange={(e) => {
+                  if (e.target.value) applySavedToAll(e.target.value);
+                  e.target.value = "";
+                }}
+              >
+                <option value="" disabled>
+                  Choose passenger
+                </option>
+                {savedPassengers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.fullName}
+                    {p.label ? ` (${p.label})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="passenger-phone">Phone number</Label>
-          <Input
-            id="passenger-phone"
-            type="tel"
-            value={passengerPhone}
-            onChange={(e) => setPassengerPhone(e.target.value)}
-            placeholder="+225 07 00 00 00 00"
-            required
-          />
-          <p className="text-[11px] text-muted-foreground">
-            Same contact details apply to all seats in this booking.
-          </p>
-        </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label>Payment method</Label>
-        <div className="grid gap-2">
-          {PAYMENT_METHODS.map((method) => (
-            <button
-              key={method.id}
-              type="button"
-              disabled={!method.available}
-              onClick={() => setPaymentProvider(method.id)}
-              className={cn(
-                "rounded-xl border p-3 text-left transition-colors",
-                paymentProvider === method.id
-                  ? "border-[#ee237c] bg-pink-50/50"
-                  : "border-slate-200 hover:border-slate-300",
-                !method.available && "opacity-50 cursor-not-allowed",
-              )}
+        {!isLoggedIn ? (
+          <p className="text-xs text-muted-foreground">
+            <Link href="/login" className="text-[#ee237c] font-semibold hover:underline">
+              Sign in
+            </Link>{" "}
+            to use saved passengers, or enter details manually below.
+          </p>
+        ) : null}
+
+        <div className="space-y-3">
+          {assignments.map((row) => (
+            <div
+              key={row.seatId}
+              className="rounded-xl border border-slate-200 bg-white p-4 space-y-3"
             >
-              <p className="text-sm font-semibold text-slate-800">{method.label}</p>
-              <p className="text-xs text-slate-500">{method.description}</p>
-            </button>
+              <p className="text-sm font-bold text-slate-800">
+                Seat {row.seatLabel}
+              </p>
+
+              {isLoggedIn && savedPassengers.length > 0 ? (
+                <div className="space-y-1.5">
+                  <Label htmlFor={`passenger-select-${row.seatId}`}>
+                    Passenger
+                  </Label>
+                  <select
+                    id={`passenger-select-${row.seatId}`}
+                    className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                    value={
+                      row.mode === "manual" ? "manual" : row.savedPassengerId
+                    }
+                    onChange={(e) =>
+                      handleSavedChange(row.seatId, e.target.value)
+                    }
+                  >
+                    {savedPassengers.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.fullName}
+                        {p.label ? ` — ${p.label}` : ""}
+                      </option>
+                    ))}
+                    <option value="manual">Enter manually</option>
+                  </select>
+                </div>
+              ) : null}
+
+              {row.mode === "manual" || !isLoggedIn || savedPassengers.length === 0 ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`name-${row.seatId}`}>Full name</Label>
+                    <Input
+                      id={`name-${row.seatId}`}
+                      value={row.passengerName}
+                      onChange={(e) =>
+                        updateAssignment(row.seatId, {
+                          passengerName: e.target.value,
+                        })
+                      }
+                      placeholder="Full name as on ID"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`phone-${row.seatId}`}>Phone number</Label>
+                    <Input
+                      id={`phone-${row.seatId}`}
+                      type="tel"
+                      value={row.passengerPhone}
+                      onChange={(e) =>
+                        updateAssignment(row.seatId, {
+                          passengerPhone: e.target.value,
+                        })
+                      }
+                      placeholder="+225 07 00 00 00 00"
+                      required
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">
+                  {row.passengerName} · {row.passengerPhone}
+                </p>
+              )}
+            </div>
           ))}
         </div>
+
+        {isLoggedIn ? (
+          <p className="text-[11px] text-muted-foreground">
+            Manage saved passengers in{" "}
+            <Link
+              href="/dashboard/passengers"
+              className="text-[#ee237c] font-semibold hover:underline"
+            >
+              your dashboard
+            </Link>
+            .
+          </p>
+        ) : null}
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-1">
+        <p className="text-sm font-semibold text-slate-800">Payment</p>
+        <p className="text-xs text-slate-500">
+          Pay securely with card or mobile money (Orange Money, MTN, Wave) via Paystack.
+        </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
