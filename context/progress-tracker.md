@@ -6,461 +6,353 @@
 
 ## Current Status
 
-**Phase:** Passenger Booking + Operator Operations
-**Last Major Milestone:** Operator booking check-in (manifest QR scanner, bookings list)
-**Next Priority:** Real payment provider integration; guest booking claim-by-phone
+| Field | Value |
+|-------|--------|
+| **Phase** | Passenger Booking + Operator Operations (late MVP) |
+| **Last major milestone** | Paystack payments + HoldGroup aggregate + ledger (2026-07-05) |
+| **Web unit tests** | 47 passing (`pnpm test` in `apps/web`) |
+| **Next priority** | Paystack test-mode validation → admin commission UI → dashboard polish |
 
+### What works end-to-end today
+
+- **Passenger:** Search on `/` → book seats → per-seat passengers → **Paystack card/MoMo** → digital ticket + public `/tickets/[token]` page → dashboard bookings/tickets
+- **Operator:** Onboarding → fleet/routes/schedules → dispatch board → manifest (segment occupancy, check-in, QR scanner) → bookings list
+- **Auth:** Email/password, Google, OTP verify, password reset (passenger + operator)
+
+### Known gaps (not blocking dev/demo)
+
+- Paystack live keys required for real charges (`PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`)
+- Admin commission tier UI not built (tRPC API under `payments.*` exists)
+- Passenger dashboard home stats hardcoded `"0"`
+- `/dashboard/search` is a placeholder shell (real search lives on `/`)
+- Operator revenue analytics placeholder
+- No admin verification queue UI
+- Mobile app: shell only, no passenger search/booking
+- `trip.bookedSeats` DB column unused (occupancy derived from bookings)
+- Pre-existing TypeScript noise in some operator views / `bank-crypto.ts` / `trip-generator.ts`
 
 ---
+
+## Milestone Log (newest first)
+
+### Paystack Payments + HoldGroup Aggregate (2026-07-05)
+
+- [x] `HoldGroup`, `PricingSnapshot`, `Payment` 1:1, `PaymentAttempt`, `PaymentEvent`, `WebhookEvent`
+- [x] `PlatformSettings` + `CommissionDistanceTier` (admin distance bands by `Route.distanceKm`)
+- [x] `OperatorLedgerEntry` (append-only) + `Refund`; settlement export + manual payout API
+- [x] Pricing: 5% commission + 2.5% convenience fee (admin-configurable, distance tiers)
+- [x] `PaymentService` + Paystack Initialize/Verify/Webhook; `BookingConfirmationService` (idempotent)
+- [x] Checkout: Paystack popup with redirect fallback; resume payment from dashboard pending tab
+- [x] Email receipt on confirmation; cancellation (cash/voucher) with ledger debit
+- [x] `Company.paystackSubaccountCode` for v2 per-operator split at Initialize
+- [x] `pricing-resolver.test.ts`; validate-paystack-split.mjs manual test script
+- [ ] Paystack test-mode split + refund validation (run script before v2 go-live)
+- [ ] Admin UI for commission tiers + settlement
+
+### Saved Passengers + Per-Seat Booking (2026-07-04)
+
+- [x] `SavedPassenger` model + `Booking.holdGroupId` / `savedPassengerId` (Prisma)
+- [x] `passenger` tRPC: `listSaved`, `createSaved`, `updateSaved`, `deleteSaved`, `ensureProfile`
+- [x] `createHold` per-seat passengers; confirm/release/payment group by `holdGroupId`
+- [x] `/dashboard/passengers` — saved contacts CRUD UI + sidebar link
+- [x] Checkout: per-seat saved passenger picker, apply-to-all, guest manual entry
+- [x] Booking list/cards show per-seat passenger names for multi-seat groups
+- [x] `hold-group.test.ts` + legacy phone-grouping fallback for old bookings
+
+### Trip Manifest Segments + Scanner + Flicker Fix (2026-07-04)
+
+- [x] `trip-segments.ts` — consecutive segment builder, overlap occupancy, per-segment seat status
+- [x] Manifest drawer: per-segment occupancy bars + `SegmentSeatGrid` (compact read-only)
+- [x] Trip cards show live `_count.bookings` passengers (not stale `trip.bookedSeats`)
+- [x] `trips.list` includes booking count for dispatch cards
+- [x] Manifest `useQuery` for `trips.get` — no flicker refetch loop
+- [x] `TicketScanner` — stable DOM id, layout-effect timing, disabled while loading
+- [x] 8 unit tests for segment overlap logic
 
 ### Operator Booking Operations — Phase 3.5 (2026-07-03)
 
 - [x] `OperatorBookingService` + `operator.listBookings`, `getBooking`, `checkInBooking`
-- [x] Company-scoped check-in with optional trip guard; idempotent re-check-in
-- [x] Manifest drawer: check-in stats, manual check-in, QR scanner (`TicketScanner`)
-- [x] `/dashboard/operator/bookings` with Today / Upcoming / Past + search
-- [x] Sidebar nav link; `trips.get` booking segment includes; unit tests (24 passing)
+- [x] Company-scoped check-in with optional `tripId` guard; idempotent re-check-in
+- [x] Manifest drawer: check-in stats, manual check-in, QR scanner
+- [x] `/dashboard/operator/bookings` — Today / Upcoming / Past + search
+- [x] `trips.get` booking segment includes (origin/destination stops)
+- [x] `parse-ticket-token` + operator booking service unit tests
 
----
+### Passenger Dashboard + QR Ticket Fix (2026-07-03)
+
+- [x] Phone-based booking access + lazy claim (`normalize-phone`, `booking-read-service`)
+- [x] `userId` attached on `confirmBooking` when logged in
+- [x] `/dashboard/bookings` and `/dashboard/tickets` wired (upcoming / pending / past)
+- [x] `PassengerTripCard`, `passenger-bookings-view`, `passenger-tickets-view`
+- [x] Public ticket page `/tickets/[token]` + browser redirect from verify API
+- [x] QR payload points to `/tickets/{token}` (not verify JSON URL)
+
+### Passenger Booking Phase 2 (2026-07-03)
+
+- [x] `TripSummaryCard` on book page
+- [x] Multi-seat selection via `?passengers=` (1–6) search → checkout
+- [x] `listMyBookings`, `getBooking`, `getTicket`, `getTicketByToken`
+- [x] `DigitalTicketCard`, ticket detail view, verify API route
+- [x] Payment abstraction: `Payment` model, `initiatePayment`, method selector, mock provider
+
+### Passenger Booking Flow — Web MVP (2026-07-03)
+
+- [x] `booking` tRPC: `getTripDetails`, `getSeatAvailability`, `createHold`, `confirmBooking`, `releaseHold`
+- [x] Segment-aware seat availability (shared overlap logic with search)
+- [x] `PassengerSeatMap` (grid matches Prisma seat model)
+- [x] `/book/[offerId]` + success page; `OfferCard` links from search
+- [x] Mock payment confirm flow; `segment-overlap` unit tests
+
+### Operator Beta Hardening (2026-07-03)
+
+- [x] Wave 1: Honest verification/status UI, Abidjan trip generator tests, schedule fare UX
+- [x] Wave 1: Onboarding auth guard, Suspense hydration, back-nav confirm
+- [x] Wave 2: Bank AES-256-GCM encryption, masked API, `revealBankAccount`, `BankAccessLog`
+- [x] Wave 3: Schedule exceptions API + UI, atomic route waypoints, activity logging
+- [x] Wave 4: Fleet filter/KPI, sidebar triggers, parallel terminal prefetches, `z.any()` cleanup (partial)
 
 ### Audit Remediation (Production Blockers)
 
 - [x] Sprint 1: Email provider (Resend) + staff invitation emails
 - [x] Sprint 2: S3 presigned uploads + DocumentType enum fix in Settings
-- [x] Sprint 3: `updateCompany` partial updates + tRPC verification submit + terms persistence
+- [x] Sprint 3: `updateCompany` partial updates + verification submit + terms persistence
 - [x] Sprint 4: Suspense boundaries + staff RBAC + delete/ownership guards
 - [x] Sprint 5: Route edit UI + `isTerminal` bookable terminal filter
 
-### Operator Beta Hardening (2026-07-03)
+---
 
-- [x] Wave 1: Honest verification/status UI (dashboard, sidebar, settings checklist, `resubmitVerification`)
-- [x] Wave 1: Trip generator Africa/Abidjan calendar math + unit tests
-- [x] Wave 1: Schedule fare route-change clear + debounced inline edits + list invalidation
-- [x] Wave 1: Onboarding auth/role guard, Suspense hydration, back-nav confirm
-- [x] Wave 2: Bank AES-256-GCM encryption, masked API, `revealBankAccount`, `BankAccessLog`, rotation docs
-- [x] Wave 3: `schedules.addException` / `removeException` + operator schedule edit UI
-- [x] Wave 3: Atomic route waypoint updates, schedule delete transaction, ManifestDrawer abort cleanup
-- [x] Wave 3: Staff invitation/role activity logging
-- [x] Wave 4: RETIRED fleet filter + KPI, SidebarTrigger on settings/terminals, parallel terminal prefetches
-- [x] Wave 4: Incremental `z.any()` removal on `operator.ts` router inputs
+## Domain Status
 
-### Passenger Booking Flow — Web MVP (2026-07-03)
+### Foundation — COMPLETE
 
-- [x] `booking` tRPC router: `getTripDetails`, `getSeatAvailability`, `createHold`, `confirmBooking`, `releaseHold`
-- [x] Segment-aware seat availability (overlap logic shared with search)
-- [x] In-house `PassengerSeatMap` component (grid matches Prisma seat model)
-- [x] `/book/[offerId]` page + success page; search `OfferCard` links to booking
-- [x] Mock payment confirm flow; segment overlap unit tests
+- [x] Monorepo (Turbo + pnpm), shared packages (`@moja/ui`, `@moja/db`, `@moja/schemas`, `@moja/types`, `@moja/config`, `@moja/theme`)
+- [x] Better Auth: email/password, Google, OTP verify, password reset, sessions
+- [x] Web app shell (Next.js 16 App Router), operator + passenger dashboard layouts
+- [x] Mobile app shell (Expo Router) — auth shell only
+- [x] Context documentation (`context/*`, `memory.md`, workspace rules)
 
-### Passenger Booking Phase 2 (2026-07-03)
+### Platform Data Layer — COMPLETE
 
-- [x] `TripSummaryCard` on book page (operator, timeline, amenities, price, availability)
-- [x] Multi-passenger seat selection via `?passengers=` (1–6) from search through checkout
-- [x] `listMyBookings`, `getBooking`, `getTicket`, `getTicketByToken` + `booking-read-service`
-- [x] `/dashboard/bookings` wired with upcoming / pending / past filters
-- [x] Digital tickets with QR (`DigitalTicketCard`, `/dashboard/tickets`, verify API)
-- [x] Payment abstraction (`Payment` model, `initiatePayment`, method selector UI, mock provider default)
+- [x] 35 CI cities seeded (`City` model, hubs, regions)
+- [x] Bus types + seat layout templates (platform defaults)
+- [x] `CompanyLocation` terminals (`isTerminal`, `cityId` FK)
+- [x] tRPC: `routes.cities`, `fleet.busTypes`, `fleet.layouts`, `routes.terminals`
+
+### Operations Backend — COMPLETE
+
+- [x] Trip generator (14-day rolling, calendar + exceptions, `TripStop` / `TripSeat`)
+- [x] `ServiceCalendar` + `ServiceException` (holidays, cancel, extra service)
+- [x] Fare matrix (segment, seat class, XOF, fare types)
+- [x] `trips` API: list, get, assignBus, delay, cancel, updateStatus
+
+### Search Domain — MOSTLY COMPLETE (web)
+
+- [x] `search.search` tRPC + `SearchService` + `TripSearchReadRepository`
+- [x] Segment-aware offers, filters (operators, amenities, time, max price), sort, pagination
+- [x] **Web UI on `/`:** hero, form, city autocomplete, filters sidebar, results, `OfferCard` → book
+- [x] nuqs URL state for search params
+- [ ] Redis caching layer
+- [ ] `/dashboard/search` — still placeholder (should link to `/` or embed search)
+- [ ] Mobile search UI
+
+### Fleet Domain — COMPLETE (core)
+
+- [x] Bus CRUD, seat layout templates, seat map editor
+- [x] `operator-fleet-view` — list, add bus, seat preview
+- [ ] Bus image upload
+- [ ] Fleet analytics
+
+### Routes & Schedules — COMPLETE (core)
+
+- [x] Route CRUD + waypoints + map preview
+- [x] Schedule CRUD + calendar + fare matrix + exceptions UI
+- [x] `operator-routes-view`, `operator-schedules-view`
+- [ ] Route analytics
+
+### Operator Portal — MOSTLY COMPLETE
+
+- [x] Single-page onboarding (`/dashboard/operator/onboarding`) with durable step state
+- [x] Dashboard shell: fleet, routes, schedules, trips, terminals, staff, settings, bookings
+- [x] Dispatch board (`operator-trips-view`) — manifest, segment occupancy, scanner
+- [x] Staff management UI (`operator-staff-view`) — invite, roles, activity
+- [x] Settings: company profile, documents, bank (encrypted), verification checklist
+- [x] Terminals management (`operator-terminals-view`)
+- [ ] Admin verification queue UI
+- [ ] Revenue / analytics dashboard (KPIs placeholder)
+- [ ] Verification email notifications (beyond Resend staff invites)
+
+### Booking Domain — MOSTLY COMPLETE (web)
+
+- [x] Trip selection via search → `/book/[offerId]`
+- [x] Seat selection UI (`PassengerSeatMap`, multi-seat 1–6)
+- [x] Per-seat passenger details (saved passengers + manual guest)
+- [x] Hold mechanism (10 min), double-booking prevention (transaction + overlap)
+- [x] Seat status: AVAILABLE / HELD / SOLD / BLOCKED (segment-aware)
+- [x] Booking confirmation + success page
+- [x] Mock payment integration
+- [ ] Real payment gateway (Mobile Money, card)
+- [ ] Refunds
+
+### Ticket System — COMPLETE (web)
+
+- [x] Digital tickets with QR (`DigitalTicketCard`, `ticketToken`)
+- [x] Public human-readable ticket `/tickets/[token]`
+- [x] Operator check-in via QR scanner + manual button
+- [x] Ticket verify API (JSON for scanners, HTML redirect for browsers)
+- [ ] Offline ticket storage (mobile)
+
+### Passenger Domain — PARTIAL
+
+- [x] Saved passengers (`/dashboard/passengers`, max 20, self profile auto-seed)
+- [x] Booking history (`/dashboard/bookings`)
+- [x] Ticket wallet (`/dashboard/tickets`)
+- [x] Phone-based ownership + lazy claim for guest bookings
+- [ ] Dashboard home stats (wired to real counts)
+- [ ] Profile / notification preferences
+- [ ] Payment methods on file
+- [ ] Digital wallet
+
+### Payment Domain — PARTIAL
+
+- [x] `Payment` model + provider registry + `initiatePayment` / `assertHoldPaid`
+- [x] Mock provider (beta checkout)
+- [x] Payment method selector UI (MTN/Orange/Wave/Card shown as coming soon)
+- [ ] CinetPay / Wave / Orange Money / MTN MoMo live integration
+- [ ] Webhooks / payment verification
+- [ ] Refund processing
+
+### Admin Domain — NOT STARTED
+
+- [ ] Admin dashboard / verification queue
+- [ ] Company approve/reject workflow UI
+- [ ] Platform analytics
+- [ ] Dispute resolution
+
+### Review Domain — NOT STARTED
+
+- [ ] `Review` model is stub only (no rating/content fields in use)
+
+### Notification Domain — NOT STARTED
+
+- [ ] Push (mobile), SMS, in-app notification center
+- [x] Resend email for auth OTP + staff invitations
+
+### Mobile App — MINIMAL
+
+- [x] Expo shell + auth flows
+- [ ] Passenger search, booking, tickets
+- [ ] Offline ticket access
 
 ---
 
-## Overall Progress Summary
+## tRPC Router Inventory
 
-### ✅ Foundation (COMPLETED - 100%)
-The base infrastructure, shared packages, and authentication system are fully established.
-
-- [x] **Workspace Setup**
-  - [x] Monorepo structure with Turbo
-  - [x] pnpm workspaces configured
-  - [x] TypeScript configuration across all packages
-  - [x] Shared configuration packages
-
-- [x] **Shared Foundation**
-  - [x] `@moja/theme` - Design tokens (colors, spacing, typography)
-  - [x] `@moja/ui` - Shared shadcn components for web
-  - [x] `@moja/auth` - Authentication utilities
-  - [x] `@moja/schemas` - Zod validation schemas
-  - [x] `@moja/db` - Prisma client and database utilities
-  - [x] `@moja/api-client` - API client for frontend apps
-  - [x] `@moja/shared` - Shared utilities and types
-  - [x] `@moja/config` - Configuration management
-
-- [x] **Authentication System**
-  - [x] Better Auth integration
-  - [x] Email/password registration with OTP verification
-  - [x] Google social login (web)
-  - [x] Native Google sign-in (mobile)
-  - [x] Session management
-  - [x] Password reset flow
-  - [x] Email verification
-
-- [x] **App Shells**
-  - [x] Mobile app shell with Expo Router
-  - [x] Mobile auth-shell component (the file you have open)
-  - [x] Web app shell with Next.js App Router
-  - [x] Web dashboard shell with sidebar
-  - [x] Nested dashboard pages (search, bookings, tickets, settings)
-
-- [x] **Context Documentation**
-  - [x] project-overview.md - Complete vision and scope
-  - [x] architecture.md - Technical and business architecture
-  - [x] progress-tracker.md - This file
-  - [x] build-plan.md - Phased development plan
-  - [x] code-standards.md - Coding conventions
-  - [x] ui-tokens.md - Design system tokens
-  - [x] ui-rules.md - UI guidelines
+| Router | Status | Notes |
+|--------|--------|-------|
+| `search` | Live | Trip discovery |
+| `booking` | Live | Hold, pay, tickets, my bookings |
+| `passenger` | Live | Saved passengers |
+| `trips` | Live | Operator dispatch + manifest |
+| `operator` | Live | Onboarding, company, verification, bookings |
+| `fleet` | Live | Buses, layouts, types |
+| `routes` | Live | Routes, cities, terminals |
+| `schedules` | Live | Schedules, fares, exceptions |
+| `staff` | Live | Team management |
+| `terminals` | Live | Terminal CRUD |
+| `locations` | Live | City details for search UI |
+| `invitation` | Live | Staff invite accept flow |
 
 ---
 
-### ✅ Platform Data Layer (COMPLETED)
-Platform-seeded reference data powering all operator and passenger features.
+## Decision Log (unchanged)
 
-- [x] **Cities Database** (`City` model)
-  - [x] 35 Côte d'Ivoire cities seeded with lat/lng, region, district
-  - [x] 7 major hubs flagged (Abidjan, Bouaké, Yamoussoukro, etc.)
-  - [x] `routes.cities` tRPC procedure query for operator dropdowns
+### Product
+1. **Moja Ride** — CI intercity bus marketplace + operator ERP
+2. Commission-based revenue; Mobile Money primary payment target
+3. Apps: Passenger Web (live), Operator Portal (live), Mobile (shell), Admin (planned)
+4. QR digital tickets with offline access goal on mobile
 
-- [x] **Bus Types & Seat Layout Templates**
-  - [x] 7 bus types seeded (Coaster, Sprinter, Yutong, Higer, King Long, HiAce)
-  - [x] 5 platform-default seat layouts seeded (22, 18, 47, 55, 15 seat configs)
-  - [x] Grid-based seat template generation (row × col → label e.g. "2B")
-  - [x] `fleet.busTypes` tRPC procedure query
-  - [x] `fleet.layouts` tRPC procedure query (platform defaults + operator custom)
+### Technical
+1. Monorepo: Turbo + pnpm
+2. Web: Next.js 16, tRPC, Prisma, PostgreSQL, Better Auth, Tailwind 4 + shadcn
+3. Mobile: Expo SDK 56 + NativeWind
+4. Segment occupancy derived from bookings — **not** `trip.bookedSeats`
+5. Booking snapshots: `passengerName` / `passengerPhone` on each `Booking` row at hold time
+6. Multi-seat holds grouped by `holdGroupId` (legacy: phone + trip + expiry)
 
-- [x] **Terminal Management** (`CompanyLocation` with `isTerminal` flag)
-  - [x] Operator depots from onboarding promoted to bookable passenger terminals
-  - [x] `cityId` FK links each terminal to canonical `City`
-  - [x] `routes.terminals` tRPC procedure query (operator-scoped, `isTerminal=true`)
-
----
-
-### ✅ Operations Backend (COMPLETED)
-Full API backend for the Operator ERP platform.
-
-- [x] **Trip Generator Service** (`lib/trip-generator.ts`)
-  - [x] Auto-generates 14-day rolling `Trip` records on schedule creation
-  - [x] Respects `ServiceCalendar` day-of-week flags
-  - [x] Instantiates `TripStop` records from `RouteWaypoint` offsets
-  - [x] Instantiates `TripSeat` records from bus `Seat` roster
-
-- [x] **Schedule Calendar & Exceptions** (`ServiceCalendar`, `ServiceException`)
-  - [x] Per-day recurrence flags (Mon–Sun)
-  - [x] `validFrom` / `validUntil` date window
-  - [x] Exception types: CANCELLED, EXTRA_SERVICE, MODIFIED
-  - [x] Exception reasons: Holidays (Islamic, Christian, National), Strike, Weather, Maintenance
-  - [x] `schedules.addException` mutation auto-cancels pre-generated trips
-  - [x] Operator schedule edit UI for listing/adding/removing service exceptions
-
-- [x] **Fare Matrix** (`Fare` model)
-  - [x] Per seat class (ECONOMY, STANDARD, VIP)
-  - [x] Per segment (from/to stop order indices — supports intermediate boarding)
-  - [x] Fare types: FIXED, PROMO, HOLIDAY_SURGE, EARLY_BIRD
-  - [x] Prices stored in XOF (CFA Francs)
-
-- [x] **Trip Operations API**
-  - [x] `trips.list` procedure query — filterable by status, route, date range
-  - [x] `trips.byId` procedure query — full detail with seat map and stops
-  - [x] `trips.assignBus` mutation — swap bus or assign assistant
-  - [x] `trips.delay` mutation — log delay minutes, cascade to stops
-  - [x] `trips.cancel` mutation — cancel individual trip run
-  - [x] `trips.updateStatus` mutation — lifecycle: BOARDING → DEPARTED → ARRIVED
+### Deferred (v2+)
+Agent app, driver app, multi-country, cargo, subscriptions, loyalty, public API
 
 ---
 
-### 🚧 Core Domains (IN PROGRESS)
-The main business functionality that makes Moja Ride valuable to passengers.
+## Recommended Next Steps (priority order)
 
-#### Search Domain
-- [x] **Search API Contract**
-  - [x] Define search tRPC query (`trips.search`)
-  - [x] Define request input parameters (from, to, date, filters)
-  - [x] Define response output structure (trip list with metadata)
-  - [x] Define sorting options (price, time, rating)
-  - [x] Define filtering options (bus type, amenities, etc.)
+### 1. Real payment provider (highest product impact)
+Wire **one** live gateway first (recommend **CinetPay** or **Wave** for CI Mobile Money):
+- Provider adapter behind existing `PaymentService` registry
+- Webhook route for async confirmation
+- Replace mock-only path in checkout success criteria
+- Keep mock provider for local dev
 
-- [ ] **Search Backend**
-  - [ ] Implement trip search procedure (query `Trip` + `TripStop` by terminal pair)
-  - [ ] Implement caching strategy (Redis)
-  - [ ] Implement pagination
-  - [ ] Implement performance optimization
+### 2. Passenger dashboard polish (quick wins)
+- Wire `dashboard-view.tsx` stats from `booking.listMyBookings` (upcoming count, ticket count)
+- Redirect `/dashboard/search` → `/` or embed `SearchPageClient`
+- Call `passenger.ensureProfile` on passenger layout mount (faster checkout defaults)
 
-- [ ] **Search Frontend (Web)**
-  - [ ] Search form component (from/to city, date)
-  - [ ] Search results page
-  - [ ] Filter sidebar
-  - [ ] Sort controls
-  - [ ] Trip card component
-  - [ ] Empty state
-  - [ ] Loading states
+### 3. Operator revenue & analytics
+- Basic KPIs: bookings today, revenue XOF (sum `farePaid`), occupancy rate
+- Replace placeholder operator dashboard stats
 
-- [ ] **Search Frontend (Mobile)**
-  - [ ] Search screen
-  - [ ] Date picker
-  - [ ] Location autocomplete
-  - [ ] Results list
-  - [ ] Filter modal
+### 4. Admin verification queue
+- List `PENDING_VERIFICATION` companies + document review
+- Approve/reject with reason → operator status transitions
+- Unblocks real operator go-live
 
-- [x] **Route Management**
-  - [x] Route CRUD API
-  - [x] Route creation UI (operator)
-  - [x] Route list with stops
-  - [ ] Route analytics
+### 5. Booking ownership hardening
+- Decide: keep silent phone lazy-claim vs explicit phone + OTP
+- Document choice in `context/architecture.md`
 
-- [x] Phase 3: Schedules & Trips Migration
-  - [x] Create `schedules` tRPC router
-  - [x] Refactor `OperatorSchedulesView`
-  - [x] Create `trips` tRPC router
-  - [x] Refactor `OperatorTripsView` (preview calendar)
+### 6. Performance & hardening
+- Redis cache for `search.search` (optional until traffic)
+- Fix pre-existing TypeScript errors (`bank-crypto`, `trip-generator`, operator mutation types)
+- E2E smoke test script for book → pay → ticket → operator check-in
 
-#### Fleet Domain
-- [ ] **Fleet Management API**
-  - [x] Bus CRUD endpoints
-  - [x] Seat layout management
-  - [ ] Bus image upload
-  - [ ] Fleet analytics
-
-- [x] **Fleet Management UI**
-  - [x] Add bus form
-  - [x] Bus list view
-  - [x] Bus detail view
-  - [x] Seat map editor
-
-#### Operator Domain
-- [x] **Operator Registration**
-  - [x] Refactored company onboarding to single-page flow `/dashboard/operator/onboarding`
-  - [x] Added durable onboarding state tracking in Prisma
-  - [x] Built snapshot, step-save, and finalize API endpoints
-  - [ ] Admin verification UI
-  - [ ] Verification email notifications
-
-- [x] **Operator Dashboard Shell**
-  - [x] Operator dashboard with complete onboarding routing guards
-  - [x] Overview dashboard
-  - [x] Fleet management section
-  - [x] Route management section
-  - [x] Schedule management section
-  - [x] Booking management section (Live dispatch manifest & check-in)
-  - [x] Global Quick Actions header component
-  - [ ] Revenue analytics
-  - [ ] Staff management
-
-#### Booking Domain
-- [ ] **Booking Flow**
-  - [ ] Trip selection
-  - [ ] Seat selection UI
-  - [ ] Passenger details form
-  - [ ] Payment integration
-  - [ ] Booking confirmation
-
-- [ ] **Seat Management**
-  - [ ] Real-time seat availability
-  - [ ] Seat holding mechanism
-  - [ ] Double-booking prevention
-  - [ ] Seat status tracking
-
-- [ ] **Ticket System**
-  - [ ] Digital ticket generation
-  - [ ] QR code generation
-  - [ ] Offline ticket storage (mobile)
-  - [x] Ticket validation (operator) (Live dispatch manifest check-in)
-
-#### Payment Domain
-- [ ] **Payment Gateway Integration**
-  - [ ] Mobile Money (MTN, Orange, Moov)
-  - [ ] Credit/Debit card
-  - [ ] Cash payment option
-  - [ ] Wallet system
-
-- [ ] **Payment Processing**
-  - [ ] Payment initiation
-  - [ ] Payment verification
-  - [ ] Refund processing
-  - [ ] Payment history
-
-#### Passenger Domain
-- [ ] **Passenger Profile**
-  - [ ] Profile management
-  - [ ] Booking history
-  - [ ] Notification preferences
-  - [ ] Payment methods
-
-- [ ] **Digital Wallet**
-  - [ ] Balance tracking
-  - [ ] Transaction history
-  - [ ] Top-up functionality
-
-#### Review Domain
-- [ ] **Review System**
-  - [ ] Submit reviews
-  - [ ] Rating aggregation
-  - [ ] Review moderation
-  - [ ] Company responses
-
-#### Notification Domain
-- [ ] **Notification System**
-  - [ ] Push notifications (mobile)
-  - [ ] Email notifications
-  - [ ] SMS notifications (fallback)
-  - [ ] In-app notifications
-
----
-
-### 📋 Admin Domain
-- [ ] **Admin Dashboard**
-  - [ ] Platform overview
-  - [ ] Company verification queue
-  - [ ] User management
-  - [ ] Dispute resolution
-  - [ ] Analytics dashboard
-  - [ ] System settings
-
-- [ ] **Content Management**
-  - [ ] City/location management
-  - [ ] Announcement system
-  - [ ] FAQ management
-  - [ ] Help center
-
----
-
-### 🎨 UI/UX Polish
-- [ ] **Design System Completion**
-  - [ ] Finalize brand colors
-  - [ ] Create component library
-  - [ ] Define interaction patterns
-  - [ ] Accessibility audit
-
-- [ ] **Responsive Design**
-  - [ ] Mobile-first web experience
-  - [ ] Tablet optimization
-  - [ ] Desktop optimization
-
-- [ ] **Localization**
-  - [ ] French translation
-  - [ ] English translation
-  - [ ] RTL support (if needed)
-
----
-
-## Decision Log
-
-### Product Decisions
-1. **Product Name**: Moja Ride (confirmed)
-2. **Target Market**: Côte d'Ivoire intercity bus transportation
-3. **Platform Type**: Two-sided marketplace + ERP system
-4. **Apps**: Passenger Web, Passenger Mobile, Operator Portal, Admin Dashboard
-5. **Revenue Model**: Commission-based (percentage of each booking)
-6. **Payment Methods**: Mobile Money (primary), Cards, Cash
-7. **Offline Support**: Mobile app supports offline ticket access
-
-### Technical Decisions
-1. **Monorepo**: Using Turbo for build orchestration
-2. **Package Manager**: pnpm for efficient dependency management
-3. **Frontend Web**: Next.js 16 with App Router
-4. **Frontend Mobile**: Expo SDK 56 with Expo Router
-5. **Backend**: Next.js Serverless tRPC API Router with Prisma ORM (Express API deprecated)
-6. **Database**: PostgreSQL
-7. **Cache**: Redis (ioredis)
-8. **Auth**: Better Auth for session management
-9. **Validation**: Zod 4 for request/response validation
-10. **Styling Web**: Tailwind CSS 4 + shadcn/ui
-11. **Styling Mobile**: NativeWind + Tailwind CSS
-12. **State Management**: Zustand
-
-### Business Decisions
-1. **Verification Required**: All operators must be verified by admin
-2. **Seat Management**: Real-time with double-booking prevention
-3. **Digital Tickets**: QR code-based with offline access
-4. **Notifications**: Push (primary), SMS (fallback)
-5. **Brand Colors**: Primary #ee237c (pink/magenta), Font: Montserrat
-6. **Currency**: West African CFA Franc (XOF)
-
-### Deferred Features (v2+)
-- Agent app for staff at stations
-- Driver app for bus drivers
-- Multi-country expansion
-- Train/ferry integration
-- Cargo shipping
-- Subscription passes
-- Loyalty program
-- API for third-party integrations
-
----
-
-## Current Sprint Focus
-
-### Immediate Next Steps (Priority Order)
-
-1. **🔥 CRITICAL: Search Domain**
-   - Define and implement search API
-   - Create search UI for both web and mobile
-   - This unlocks the core passenger value proposition
-
-2. **Operator Portal Foundation**
-   - Company registration flow
-   - Basic fleet management
-   - Route and schedule creation
-
-3. **Booking Flow MVP**
-   - Trip selection → Seat selection → Checkout
-   - Payment integration (start with Mobile Money)
-   - Digital ticket generation
-
-4. **Core UI Components**
-   - Trip card
-   - Seat map
-   - Booking form
-   - Ticket display
+### 7. Mobile passenger MVP
+- Port search + booking flow to Expo (reuse tRPC client)
+- Offline ticket storage
 
 ---
 
 ## Blockers & Risks
 
-### Current Blockers
-- None identified - foundation is solid
-
-### Potential Risks
-1. **Payment Integration Complexity**
-   - Mobile Money gateways may have API limitations
-   - Mitigation: Start with simplest provider, add others later
-
-2. **Real-time Seat Management**
-   - Preventing race conditions on seat booking
-   - Mitigation: Use database transactions + optimistic locking
-
-3. **Offline Sync Complexity**
-   - Mobile app offline ticket access and sync
-   - Mitigation: Use Expo's offline capabilities + custom sync logic
-
-4. **Operator Adoption**
-   - Convincing operators to digitize their business
-   - Mitigation: Demonstrate clear ROI, provide onboarding support
+| Risk | Mitigation |
+|------|------------|
+| Payment gateway API complexity | Start with one provider; mock stays for dev |
+| Seat race conditions | Already using DB transactions + overlap checks |
+| Operator adoption | Admin verification + clear onboarding ROI |
+| Stale progress docs | Update this file after each milestone |
 
 ---
 
-## Success Criteria
+## Success Criteria (MVP)
 
-### MVP Launch (Target: 3 months)
-- [ ] 5+ bus operators onboarded
-- [ ] 100+ registered passengers
-- [ ] 100+ completed bookings
-- [ ] 90%+ booking success rate
-- [ ] <5% error rate on core flows
-
-### Phase 1 Complete (Target: 6 months)
-- [ ] 20+ operators onboarded
-- [ ] 10,000+ registered passengers
-- [ ] 10,000+ monthly bookings
-- [ ] 4.5+ average app store rating
-- [ ] 95%+ system uptime
+| Metric | Target | Current |
+|--------|--------|---------|
+| Operators onboarded | 5+ | Dev/staging only |
+| Registered passengers | 100+ | Not tracked |
+| Completed bookings | 100+ | Dev testing |
+| Booking success rate | 90%+ | Not measured |
+| Unit tests (web) | Green | 43 passing |
 
 ---
 
 ## How to Use This File
 
-1. **Before Starting Work**: Read this file to understand current state
-2. **After Completing a Task**: Update the corresponding checkbox
-3. **When Blocked**: Add blocker to the Blockers section
-4. **When Making Decisions**: Add to Decision Log
-5. **When Planning**: Use this to identify next priorities
+1. **Before starting work** — read Current Status + Recommended Next Steps
+2. **After completing a feature** — add a dated milestone block at the top of Milestone Log
+3. **Update domain checkboxes** when a whole area moves forward
+4. **When blocked** — add to Blockers & Risks
+5. **End of session** — run `/remember save` and sync this file
 
-**Last Updated**: June 30, 2026
-**Updated By**: Antigravity (AI assistant)
+**Last updated:** 2026-07-04  
+**Updated by:** Cursor agent (full tracker rewrite + saved passengers milestone)

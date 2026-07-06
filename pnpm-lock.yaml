@@ -278,6 +278,9 @@ importers:
       '@moja/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@paystack/inline-js':
+        specifier: ^2.22.7
+        version: 2.23.1
       '@tanstack/react-query':
         specifier: ^5.101.1
         version: 5.101.1(react@19.2.4)
@@ -1868,6 +1871,10 @@ packages:
   '@opentelemetry/semantic-conventions@1.41.1':
     resolution: {integrity: sha512-/UhIkaZgPutTFmQ7RnIJGgDXZmtEJ7Dvi86xNTFWcnRxVRNk/aotsqDJYeEvDP+FSMB2SdW+pQzNMcWP0rwuNA==}
     engines: {node: '>=14'}
+
+  '@paystack/inline-js@2.23.1':
+    resolution: {integrity: sha512-yf3mSh6CQMfhSbdiCO+j+yqnguw01vqSMuOIL2gCMYSijS3iiUSJyaN8O8K9m4ZdW5njXNMKJq8H945Dqt/f+g==}
+    engines: {node: '>= 22.0.0'}
 
   '@prisma/adapter-pg@7.8.0':
     resolution: {integrity: sha512-ygb3UkerK3v8MDpXVgCISdRNDozpxh6+JVJgiIGbSr5KBgz10LLf5ejUskPGoXlsIjxsOu6nuy1JVQr2EKGSlg==}
@@ -8061,6 +8068,8 @@ snapshots:
   '@noble/hashes@2.2.0': {}
 
   '@opentelemetry/semantic-conventions@1.41.1': {}
+
+  '@paystack/inline-js@2.23.1': {}
 
   '@prisma/adapter-pg@7.8.0':
     dependencies:

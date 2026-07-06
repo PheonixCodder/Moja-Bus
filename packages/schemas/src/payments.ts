@@ -1,11 +1,4 @@
-export type PaymentProvider =
-  | "MOCK"
-  | "WAVE"
-  | "ORANGE_MONEY"
-  | "MOOV"
-  | "MTN_MOMO"
-  | "CARD"
-  | "CINETPAY";
+export type PaymentProvider = "PAYSTACK";
 
 export type PaymentStatus =
   | "PENDING"

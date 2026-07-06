@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "biome check app components.json next.config.ts package.json postcss.config.mjs tsconfig.json",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/__tests__/trip-generator-dates.test.ts lib/__tests__/segment-overlap.test.ts features/operator/lib/__tests__/parse-ticket-token.test.ts features/operator/services/__tests__/operator-booking-service.test.ts features/booking/lib/__tests__/normalize-phone.test.ts features/booking/lib/__tests__/trip-segments.test.ts",
+    "test": "tsx --test lib/__tests__/trip-generator-dates.test.ts lib/__tests__/segment-overlap.test.ts features/operator/lib/__tests__/parse-ticket-token.test.ts features/operator/services/__tests__/operator-booking-service.test.ts features/booking/lib/__tests__/normalize-phone.test.ts features/booking/lib/__tests__/trip-segments.test.ts features/booking/lib/__tests__/hold-group.test.ts features/payments/lib/__tests__/pricing-resolver.test.ts features/payments/lib/__tests__/paystack-checkout.test.ts",
     "format": "biome format --write ."
   },
   "dependencies": {
@@ -47,6 +47,7 @@
     "react-phone-number-input": "^3.4.14",
     "react-qr-code": "^2.2.0",
     "resend": "^6.16.0",
+    "@paystack/inline-js": "^2.22.7",
     "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "superjson": "^2.2.6"
