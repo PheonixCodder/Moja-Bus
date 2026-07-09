@@ -284,7 +284,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                 title={user?.name ?? "Account"}
               >
                 <Avatar className="size-6 shrink-0">
-                  <AvatarImage src={operator.profilePhotoUrl || user?.image || undefined} />
+                  <AvatarImage src={data?.operator?.profilePhotoUrl || user?.image || undefined} />
                   <AvatarFallback className="bg-sidebar-primary/15 text-[10px] font-semibold text-sidebar-primary">
                     {userInitials}
                   </AvatarFallback>

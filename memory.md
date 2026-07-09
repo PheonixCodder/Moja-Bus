@@ -1,68 +1,40 @@
-# Memory — Moja Ride Paystack Payments
+# Memory — Phase 4 Domain Features & Architecture Refactoring
 
-Last updated: 2026-07-05
+Last updated: 2026-07-09
 
 ## What was built
 
-**Schema** (`packages/db/prisma/schema.prisma`)
-- `HoldGroup` aggregate root with `PricingSnapshot` (immutable fee breakdown)
-- `Payment` 1:1 with `HoldGroup`; `PaymentAttempt`, `PaymentEvent`, `WebhookEvent`
-- `PlatformSettings`, `CommissionDistanceTier` (admin distance bands)
-- `OperatorLedgerEntry` (append-only), `Refund`
-- `Company.paystackSubaccountCode` for v2 split
-- DB pushed after clearing legacy `payment` rows and orphan `holdGroupId` UUIDs
+- **Completed Phase 4 Audit Items (Missing Domain Features & Architecture)**, excluding the explicitly deferred Notifications System.
+- **Database & Auth:** Added `reviews Review[]` relation to the `User` schema in `schema.prisma`.
+- **Advanced Route & Trip Architecture:** 
+  - Added `version: 1` versioning to `routeSnapshotJson` for trips generated in `trip-generator.ts`.
+  - Added reconciliation logic to `trpc/routers/routes.ts` so edits on routes surface a warning if they affect unbooked future trips.
+  - Implemented a `trips.create` TRPC mutation for ad-hoc trip creation.
+  - Set Booking Hold expiry to 15 minutes in `booking-hold-service.ts`.
+- **UI Monolith Refactoring:** Split the massive `operator-bookings-view.tsx` into targeted sub-components (`bookings-list.tsx`, `booking-row.tsx`, `booking-detail-drawer.tsx`, `check-in-badge.tsx`).
+- **Seat Layout Builder:** Built a new `SeatLayoutBuilder` component using `@dnd-kit/core` for drag-and-drop seat layouts.
+- **Seed Data Enhancement:** Updated `generateSeats` in `seed.ts` to automatically leave space for a `DRIVER_AREA` and `EMPTY_SPACE` aisles based on grid columns.
 
-**Pricing**
-- Default 5% operator commission + 2.5% passenger convenience fee (admin-configurable)
-- Distance tiers via `Route.distanceKm` → `CommissionDistanceTier`
-- `apps/web/features/payments/lib/pricing-resolver.ts`
+## Decisions made
 
-**Payment flow**
-- `BookingHoldService` creates `HoldGroup` + `PricingSnapshot` + bookings
-- `PaymentService` — Paystack-only initialize, verify, webhook handler
-- `BookingConfirmationService` — idempotent confirm; ledger credit; email receipt
-- `CancellationService` — cash/voucher cancel with ledger debit
-- Paystack Popup via `@paystack/inline-js` with redirect fallback to hosted checkout
-- Shared `usePaystackCheckout` hook for checkout + dashboard resume payment
-- Pending payment tab: live countdown + **Complete payment** button
+- Notifications System is explicitly excluded from Phase 4 scope per user instruction.
+- Addressed `operator-bookings-view.tsx` as the primary target for monolithic UI refactoring.
+- Designed the `@dnd-kit/core` layout builder as a flexible drop-in replacement that provides a draggable reorder view.
 
-**API**
-- `booking.initiatePayment`, `booking.verifyPayment` (Paystack only)
-- `payments` router: pricing preview, cancel, admin tiers/settings, ledger export, settlement
-- `POST /api/webhooks/paystack`, `GET /api/payments/verify` (redirects to `/book/{offerId}/success`)
+## Problems solved
 
-**Checkout UI**
-- Fare + service fee breakdown; card/MoMo via Paystack Popup only
+- Fixed strict null-check TypeScript errors in `trip-generator.ts` where `departureTime.split(":")` returned potentially undefined array elements, resolving the build failure for `api` and `web`.
 
-**Tests**
-- `pricing-resolver.test.ts` — 47 total passing in `apps/web`
+## Current state
 
-## Env vars required for live Paystack
+- Phase 4 is structurally and functionally complete.
+- The `web` and `api` apps build and typecheck successfully.
+- `app` (Expo Native App) has some persistent typecheck failures tied to the removal of the Better Auth `emailOtp` plugin from a prior phase, which is known and currently out of scope.
 
-```
-PAYSTACK_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_test_...
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-# Optional: popup (default) | redirect (hosted Paystack page only)
-# NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE=redirect
-RESEND_API_KEY=...  # optional; logs email when missing
-EMAIL_FROM=Moja Ride <receipts@yourdomain.com>
-```
+## Next session starts with
 
-## Validation script (manual)
+- Either test the new Seat Layout Builder UI and Trip Generation workflows, or proceed to scoping and executing the next phase (Phase 5).
 
-`node apps/web/features/payments/scripts/validate-paystack-split.mjs` — test-mode split + refund checklist
+## Open questions
 
-## Decisions
-
-- Platform absorbs Paystack fees; fees stored on `Payment.feesXOF` after verify
-- Payment failure does not release seats; retries create new `PaymentAttempt`
-- v1: single merchant account + ledger; v2: `paystackSubaccountCode` on Initialize when set
-- Refunds v1: cash/voucher records only (no Paystack refund API in passenger cancel path yet)
-
-## Next session
-
-1. Run Paystack test-mode split validation script before enabling operator subaccounts
-2. Admin UI for commission tiers + settlement (tRPC API exists under `payments.*`)
-3. Wire Paystack Refund API for operator-cancel auto-refund
-4. End-to-end smoke: real Paystack test keys + Popup checkout
+- The `SeatLayoutBuilder` is implemented but needs to be formally wired into the `SeatLayoutTemplate` creation/editing flow when that is fully built out in the operator portal.

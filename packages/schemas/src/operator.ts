@@ -136,26 +136,63 @@ export const termsStepSchema = z.object({
 export type TermsStepInput = z.infer<typeof termsStepSchema>;
 
 export const onboardingStepValues = [
-  "company",
-  "locations",
-  "documents",
-  "bank",
-  "profile",
-  "terms",
+  "COMPANY",
+  "DOCUMENTS",
+  "BANK",
+  "PROFILE",
+  "TERMS",
 ] as const;
 export const onboardingStepSchema = z.enum(onboardingStepValues);
 export type OnboardingStep = z.infer<typeof onboardingStepSchema>;
 
+export const onboardingEventTypeValues = [
+  "STEP_ENTERED",
+  "STEP_COMPLETED",
+  "STEP_SKIPPED",
+  "ABANDONED",
+  "VALIDATION_FAILED",
+] as const;
+export const onboardingEventTypeSchema = z.enum(onboardingEventTypeValues);
+export type OnboardingEventType = z.infer<typeof onboardingEventTypeSchema>;
+
 export const saveOnboardingStepSchema = z.object({
   step: onboardingStepSchema,
   companyData: companyStepSchema.optional(),
-  locationsData: locationsStepSchema.optional(),
   documentsData: documentsStepSchema.optional(),
   bankData: bankStepSchema.optional(),
   profileData: profileStepSchema.optional(),
   termsData: termsStepSchema.optional(),
+  timeSpentSeconds: z.number().int().nonnegative().optional(),
 });
 export type SaveOnboardingStepInput = z.infer<typeof saveOnboardingStepSchema>;
+
+export const initSignupSchema = z.object({
+  companyName: z.string().min(2, "Company name is required"),
+  ownerName: z.string().min(2, "Your full name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(6, "Phone number is required"),
+  country: z.string().min(2, "Country is required"),
+});
+export type InitSignupInput = z.infer<typeof initSignupSchema>;
+
+export const logOnboardingEventSchema = z.object({
+  step: onboardingStepSchema,
+  eventType: onboardingEventTypeSchema,
+  timeSpentSeconds: z.number().int().nonnegative().optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
+});
+export type LogOnboardingEventInput = z.infer<typeof logOnboardingEventSchema>;
+
+export const verifySignupOtpSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  otp: z.string().length(6, "OTP must be 6 digits"),
+});
+export type VerifySignupOtpInput = z.infer<typeof verifySignupOtpSchema>;
+
+export const completeSignupSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+export type CompleteSignupInput = z.infer<typeof completeSignupSchema>;
 
 export const operatorRevenueAnalyticsSchema = z.object({
   from: z.string().datetime(),

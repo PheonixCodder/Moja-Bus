@@ -129,6 +129,18 @@ export function useAuth() {
         return { success: false };
       }
 
+      // Manually send verification OTP for non-operators (passengers) since auto-send is disabled
+      if (role !== "OPERATOR") {
+        try {
+          await authClient.emailOtp.sendVerificationOtp({
+            email,
+            type: "email-verification",
+          });
+        } catch (err) {
+          console.error("Failed to send verification OTP:", err);
+        }
+      }
+
       const verifyPath =
         role === "OPERATOR" ? "/operator/verify-email" : "/verify-email";
       toast.success("Account created! Check your inbox to verify your email.");

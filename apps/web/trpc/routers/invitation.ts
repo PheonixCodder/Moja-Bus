@@ -180,7 +180,6 @@ export const invitationRouter = createTRPCRouter({
             isActive: true,
             isVerified: false,
             onboardingStatus: "COMPLETED",
-            onboardingCurrentStep: "done",
           },
         }),
         ctx.prisma.staffInvitation.update({
