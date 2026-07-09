@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
@@ -42,8 +44,11 @@ export function CompanyStep({
   onSave,
   isSaving,
 }: CompanyStepProps) {
+  const trpc = useTRPC();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [debouncedSlug, setDebouncedSlug] = useState("");
+
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
@@ -86,6 +91,21 @@ export function CompanyStep({
       setLogoUrl(company.logoUrl || "");
     }
   }, [initialData]);
+
+  // Debounce slug for validation
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSlug(slug);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [slug]);
+
+  const { data: slugValidation, isLoading: isCheckingSlug } = useQuery({
+    ...trpc.operator.validateSlug.queryOptions({ slug: debouncedSlug }),
+    enabled: debouncedSlug.length > 0 && debouncedSlug !== initialData?.company?.slug,
+  });
+
+  const isSlugTaken = slugValidation?.isAvailable === false;
 
   // Automatically generate slug
   const generateSlug = (nameVal: string) => {
@@ -143,7 +163,8 @@ export function CompanyStep({
     businessType &&
     registrationNumber &&
     taxId &&
-    estimatedStaffSize;
+    estimatedStaffSize &&
+    !isSlugTaken;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -195,8 +216,13 @@ export function CompanyStep({
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="e.g. utb-transport"
                 required
-                className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
+                className={`rounded-md focus-visible:ring-primary focus-visible:border-primary ${isSlugTaken ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive' : 'border-border'}`}
               />
+              {isSlugTaken && (
+                <p className="text-xs text-destructive mt-1 font-semibold">
+                  This slug is already taken. Please choose another.
+                </p>
+              )}
             </div>
           </div>
 

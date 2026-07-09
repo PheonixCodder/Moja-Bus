@@ -42,14 +42,7 @@ export function ForgotPasswordForm({
           ? "Enter your email and we will send a reset code."
           : "Enter your work email and we will send a reset code."
       }
-      footer={
-        <Link
-          href={isPassenger ? "/login" : "/operator/login"}
-          className="font-medium text-primary"
-        >
-          Back to sign in
-        </Link>
-      }
+
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">

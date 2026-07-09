@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   BusFront,
   Plus,
@@ -205,6 +205,13 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
           </div>
         </div>
 
+        {bus.notes && (
+          <div className="rounded-md bg-amber-50/60 border border-amber-200/60 px-2.5 py-1.5">
+            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">Notes</p>
+            <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">{bus.notes}</p>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-between pt-1 border-t border-border/60 -mx-4 px-4 pt-3">
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -262,6 +269,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
 
 export function OperatorFleetView() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
@@ -278,22 +286,13 @@ export function OperatorFleetView() {
   useEffect(() => {
     if (searchParams && searchParams.get("action") === "new") {
       setAddModalOpen(true);
+      router.replace(window.location.pathname);
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
   const [editingBus, setEditingBus] = useState<Bus | null>(null);
   const [deletingBus, setDeletingBus] = useState<Bus | null>(null);
 
-  const deleteBusMutation = useMutation({
-    ...trpc.fleet.deleteBus.mutationOptions(),
-    onSuccess: () => {
-      toast.success(`Bus ${deletingBus?.registrationPlate ?? ""} deleted`);
-      queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
-      setDeletingBus(null);
-    },
-    onError: (err: Error) => {
-      toast.error(err.message || "Failed to delete bus");
-    },
-  });
+  const deleteBusMutation = useMutation(trpc.fleet.deleteBus.mutationOptions());
 
   // Seat map drawer
   const [seatMapBusId, setSeatMapBusId] = useState<string | null>(null);
@@ -317,7 +316,20 @@ export function OperatorFleetView() {
 
   function handleDelete() {
     if (!deletingBus) return;
-    deleteBusMutation.mutate({ id: deletingBus.id });
+    const plate = deletingBus.registrationPlate;
+    deleteBusMutation.mutate(
+      { id: deletingBus.id },
+      {
+        onSuccess: () => {
+          toast.success(`Bus ${plate} deleted`);
+          queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
+          setDeletingBus(null);
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to delete vehicle");
+        },
+      }
+    );
   }
 
   function handleViewMap(bus: Bus) {
@@ -408,7 +420,9 @@ export function OperatorFleetView() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Combobox
+            <div className="flex items-center gap-2">
+              <label htmlFor="fleet-status-filter" className="sr-only">Fleet status</label>
+              <Combobox
               items={[
                 { value: "ALL", label: "All statuses" },
                 { value: "ACTIVE", label: "Active" },
@@ -420,6 +434,7 @@ export function OperatorFleetView() {
               onValueChange={(v) => setStatusFilter(v ?? "ALL")}
             >
               <ComboboxInput
+                id="fleet-status-filter"
                 placeholder="Select status..."
                 className="h-8 text-xs bg-card border-border w-full sm:w-[160px]"
                 value={
@@ -447,6 +462,7 @@ export function OperatorFleetView() {
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
+            </div>
           </div>
           {(search || statusFilter !== "ALL") && (
             <span className="text-xs text-muted-foreground shrink-0">

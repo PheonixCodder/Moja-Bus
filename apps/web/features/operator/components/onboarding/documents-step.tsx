@@ -295,6 +295,7 @@ export function DocumentsStep({
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => removeFile(file.id)}
+                                aria-label="Remove file"
                                 className="text-muted-foreground hover:text-destructive w-6 h-6 rounded-full"
                               >
                                 <X className="w-3.5 h-3.5" />

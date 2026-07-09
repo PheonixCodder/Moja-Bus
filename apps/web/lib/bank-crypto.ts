@@ -18,13 +18,13 @@ function parseEncryptionKey(raw: string, label: string): Buffer {
 }
 
 function getEncryptionKeys(): Buffer[] {
-  const current = process.env.BANK_ENCRYPTION_KEY;
+  const current = process.env["BANK_ENCRYPTION_KEY"];
   if (!current) {
     throw new Error("BANK_ENCRYPTION_KEY is not configured");
   }
 
   const keys = [parseEncryptionKey(current, "BANK_ENCRYPTION_KEY")];
-  const previous = process.env.BANK_ENCRYPTION_KEY_PREVIOUS;
+  const previous = process.env["BANK_ENCRYPTION_KEY_PREVIOUS"];
   if (previous) {
     keys.push(parseEncryptionKey(previous, "BANK_ENCRYPTION_KEY_PREVIOUS"));
   }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirectIfOperatorAuthenticated } from "@/lib/auth-server";
+import { redirectIfAuthenticated } from "@/lib/auth-server";
 import { OperatorLoginView } from "@/features/auth/views/operator-login-view";
 
 type LoginPageProps = {
@@ -13,7 +13,7 @@ export const metadata = {
 export default async function OperatorLoginPage({
   searchParams,
 }: LoginPageProps) {
-  await redirectIfOperatorAuthenticated();
+  await redirectIfAuthenticated();
 
   const params = await searchParams;
 

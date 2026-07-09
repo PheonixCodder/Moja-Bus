@@ -101,6 +101,11 @@ export function AddBusModal({
 
   // Sync form when editing bus changes
   useEffect(() => {
+    if (!open) {
+      createMutation.reset();
+      updateMutation.reset();
+    }
+
     if (editingBus) {
       setPlateNumber(editingBus.registrationPlate);
       setInternalName(editingBus.internalName ?? "");
@@ -219,7 +224,7 @@ export function AddBusModal({
               </DrawerDescription>
             </div>
           </div>
-          <DrawerClose className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+          <DrawerClose aria-label="Close" className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
             <X className="size-4" />
           </DrawerClose>
         </DrawerHeader>
@@ -321,7 +326,6 @@ export function AddBusModal({
                 <ComboboxInput
                   placeholder="Select vehicle type..."
                   className="w-full"
-                  value={busTypes.find((bt) => bt.id === busTypeId)?.name || ""}
                 />
 
                 <ComboboxContent>
@@ -434,15 +438,6 @@ export function AddBusModal({
                   <ComboboxInput
                     placeholder="Select status..."
                     className="w-full"
-                    value={
-                      status === "ACTIVE"
-                        ? "Active"
-                        : status === "MAINTENANCE"
-                          ? "Maintenance"
-                          : status === "INACTIVE"
-                            ? "Inactive"
-                            : ""
-                    }
                   />
                   <ComboboxContent>
                     <ComboboxEmpty>No status found.</ComboboxEmpty>

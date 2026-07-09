@@ -258,9 +258,43 @@ export const fleetRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Seat not found" });
       }
 
-      return ctx.prisma.seat.update({
-        where: { id: input.seatId },
-        data: { isActive: input.isActive },
+      const futureTrips = await ctx.prisma.trip.findMany({
+        where: { busId: input.busId, status: "SCHEDULED" },
+        select: { id: true },
+      });
+      const futureTripIds = futureTrips.map((t) => t.id);
+
+      let unbookedTripIds = futureTripIds;
+      if (futureTripIds.length > 0) {
+        const bookedTrips = await ctx.prisma.booking.findMany({
+          where: {
+            seatId: input.seatId,
+            tripId: { in: futureTripIds },
+            status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+          },
+          select: { tripId: true },
+        });
+        const bookedTripIds = bookedTrips.map((b) => b.tripId);
+        unbookedTripIds = futureTripIds.filter((id) => !bookedTripIds.includes(id));
+      }
+
+      return ctx.prisma.$transaction(async (tx) => {
+        const updatedSeat = await tx.seat.update({
+          where: { id: input.seatId },
+          data: { isActive: input.isActive },
+        });
+
+        if (unbookedTripIds.length > 0) {
+          await tx.tripSeat.updateMany({
+            where: {
+              seatId: input.seatId,
+              tripId: { in: unbookedTripIds },
+            },
+            data: { isActive: input.isActive },
+          });
+        }
+        
+        return updatedSeat;
       });
     }),
 });

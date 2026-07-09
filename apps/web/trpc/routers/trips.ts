@@ -7,52 +7,67 @@ import {
   cancelTripSchema,
   tripStatusEnum,
 } from "@moja/schemas";
-import { SearchFilters } from "@/features/search/services/search-service";
+import { SearchFilters, SearchService } from "@/features/search/services/search-service";
+import { TripSearchReadRepository } from "@/features/search/repositories/search-read-repository";
 
 export const tripsRouter = createTRPCRouter({
-  search: operatorCompanyProcedure
-    .input(
-      z.object({
-        originCityId: z.string(),
-        destinationCityId: z.string(),
-        date: z.string(),
-        passengers: z.coerce.number().int().min(1).default(1),
-        operators: z.array(z.string()).optional(),
-        amenities: z.array(z.string()).optional(),
-        departureTime: z
-          .array(z.enum(["MORNING", "AFTERNOON", "EVENING"]))
-          .optional(),
-        maxPrice: z.coerce.number().optional(),
-        sort: z.string().default("BEST"),
-        page: z.coerce.number().int().min(1).default(1),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { TripSearchReadRepository } = await import(
-        "../../features/search/repositories/search-read-repository"
-      );
-      const { SearchService } = await import(
-        "../../features/search/services/search-service"
-      );
+  create: operatorCompanyProcedure
+    .input(z.object({ scheduleId: z.string(), busId: z.string(), departureDate: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const schedule = await ctx.prisma.schedule.findUnique({
+        where: { id: input.scheduleId, companyId: ctx.companyId },
+        include: { route: { include: { waypoints: { orderBy: { stopOrder: "asc" } } } } },
+      });
+      if (!schedule) throw new TRPCError({ code: "NOT_FOUND", message: "Schedule not found" });
 
-      const searchRepo = new TripSearchReadRepository(ctx.prisma);
-      const searchService = new SearchService(searchRepo);
+      const bus = await ctx.prisma.bus.findUnique({
+        where: { id: input.busId, companyId: ctx.companyId, status: "ACTIVE" },
+        include: { seats: { where: { isActive: true } } },
+      });
+      if (!bus) throw new TRPCError({ code: "BAD_REQUEST", message: "Bus invalid or not active" });
 
-      return searchService.execute({
-        originCityId: input.originCityId,
-        destinationCityId: input.destinationCityId,
-        travelDate: new Date(input.date),
-        passengerCount: input.passengers,
-        filters: {
-          operators: input.operators as SearchFilters['operators'],
-          amenities: input.amenities as SearchFilters['amenities'],
-          departureTime: input.departureTime as SearchFilters['departureTime'],
-          maxPrice: input.maxPrice as SearchFilters['maxPrice'],
-        },
-        sort: input.sort,
-        page: input.page,
+      const departureTimestamp = new Date(input.departureDate);
+
+      const existingTrip = await ctx.prisma.trip.findFirst({
+        where: { scheduleId: input.scheduleId, departureDate: departureTimestamp },
+      });
+      if (existingTrip) throw new TRPCError({ code: "CONFLICT", message: "Trip already exists for this time" });
+
+      return ctx.prisma.$transaction(async (tx) => {
+        const createdTrip = await tx.trip.create({
+          data: {
+            scheduleId: input.scheduleId,
+            companyId: ctx.companyId,
+            busId: input.busId,
+            departureDate: departureTimestamp,
+            estimatedArrival: new Date(departureTimestamp.getTime() + (schedule.route.estimatedMinutes ?? 0) * 60000),
+            totalSeats: bus.seats.length,
+            status: "SCHEDULED",
+            routeSnapshotJson: JSON.stringify({ ...schedule.route, version: 1 }),
+          },
+        });
+
+        const lastWaypointOrder = schedule.route.waypoints.length > 0 ? schedule.route.waypoints[schedule.route.waypoints.length - 1]!.stopOrder : 0;
+        const destStopOrder = lastWaypointOrder + 1;
+
+        await tx.tripStop.createMany({
+          data: [
+            { tripId: createdTrip.id, terminalId: schedule.route.originTerminalId, stopOrder: 0, scheduledArrival: departureTimestamp, scheduledDeparture: departureTimestamp, isPickup: true, isDropoff: false },
+            ...schedule.route.waypoints.map(w => ({
+              tripId: createdTrip.id, terminalId: w.terminalId, stopOrder: w.stopOrder, scheduledArrival: new Date(departureTimestamp.getTime() + w.arrivalOffsetMinutes * 60000), scheduledDeparture: new Date(departureTimestamp.getTime() + w.departureOffsetMinutes * 60000), isPickup: w.isPickup, isDropoff: w.isDropoff
+            })),
+            { tripId: createdTrip.id, terminalId: schedule.route.destTerminalId, stopOrder: destStopOrder, scheduledArrival: new Date(departureTimestamp.getTime() + (schedule.route.estimatedMinutes ?? 0) * 60000), scheduledDeparture: new Date(departureTimestamp.getTime() + (schedule.route.estimatedMinutes ?? 0) * 60000), isPickup: false, isDropoff: true }
+          ]
+        });
+
+        await tx.tripSeat.createMany({
+          data: bus.seats.map(seat => ({ tripId: createdTrip.id, seatId: seat.id, isActive: true }))
+        });
+
+        return createdTrip;
       });
     }),
+
   list: operatorCompanyProcedure
     .input(
       z
@@ -382,6 +397,14 @@ export const tripsRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
       }
 
+      // W1-B: Block BOARDING transition if no bus is assigned
+      if (status === "BOARDING" && !trip.busId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot set a trip to BOARDING without an assigned bus.",
+        });
+      }
+
       const updateData: any = { status };
 
       if (status === "DEPARTED") {
@@ -393,6 +416,36 @@ export const tripsRouter = createTRPCRouter({
       return ctx.prisma.trip.update({
         where: { id: trip.id },
         data: updateData,
+      });
+    }),
+
+  updateNotes: operatorCompanyProcedure
+    .input(z.object({ id: z.string(), notes: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: input.id, companyId: ctx.companyId },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      }
+      return ctx.prisma.trip.update({
+        where: { id: input.id },
+        data: { notes: input.notes },
+      });
+    }),
+
+  setGate: operatorCompanyProcedure
+    .input(z.object({ id: z.string(), gate: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: input.id, companyId: ctx.companyId },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      }
+      return ctx.prisma.trip.update({
+        where: { id: input.id },
+        data: { gate: input.gate },
       });
     }),
 });

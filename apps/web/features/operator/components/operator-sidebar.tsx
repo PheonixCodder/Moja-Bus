@@ -17,11 +17,12 @@ import {
   MapPin,
   Users,
   Ticket,
+  TrendingUp,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { cn } from "@moja/ui/lib/utils";
-import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -148,6 +149,11 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
     { title: "Buses", url: "/dashboard/operator/fleet", icon: BusFront },
   ];
 
+  // ── Financials group ──────────────────────────────────────────────
+  const financialsItems: MenuItem[] = [
+    { title: "Revenue", url: "/dashboard/operator/revenue", icon: TrendingUp },
+  ];
+
   // ── Organization group ───────────────────────────────────────────────────
   const organizationItems: MenuItem[] = [
     {
@@ -251,6 +257,11 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
         />
         <NavSection label="Fleet" items={fleetItems} pathname={pathname} />
         <NavSection
+          label="Financials"
+          items={financialsItems}
+          pathname={pathname}
+        />
+        <NavSection
           label="Organization"
           items={organizationItems}
           pathname={pathname}
@@ -273,6 +284,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                 title={user?.name ?? "Account"}
               >
                 <Avatar className="size-6 shrink-0">
+                  <AvatarImage src={operator.profilePhotoUrl || user?.image || undefined} />
                   <AvatarFallback className="bg-sidebar-primary/15 text-[10px] font-semibold text-sidebar-primary">
                     {userInitials}
                   </AvatarFallback>

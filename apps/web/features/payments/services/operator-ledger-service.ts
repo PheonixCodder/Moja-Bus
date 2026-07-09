@@ -22,7 +22,7 @@ export class OperatorLedgerService {
         sourceType: input.sourceType,
         amountXOF: input.amountXOF,
         description: input.description,
-        metadata: input.metadata ?? null,
+        metadata: input.metadata ? (input.metadata as any) : undefined,
       },
     });
   }

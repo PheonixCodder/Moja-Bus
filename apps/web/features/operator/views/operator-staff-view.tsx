@@ -699,7 +699,7 @@ export function OperatorStaffView() {
     trpc.staff.listInvitations.queryOptions(),
   );
   const { data: activityLog } = useSuspenseQuery(
-    trpc.staff.getActivityLog.queryOptions({ limit: 30 }),
+    trpc.staff.getActivityLog.queryOptions({ limit: 100 }),
   );
   const { data: myRoleData } = useSuspenseQuery(
     trpc.staff.getMyRole.queryOptions(),
@@ -973,20 +973,33 @@ export function OperatorStaffView() {
           {members.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-16 text-center shadow-sm">
               <Users className="h-10 w-10 text-muted-foreground/30 mb-3" />
-              <p className="text-[14px] font-medium text-foreground">
-                No team members yet
-              </p>
-              <p className="mt-1 text-[13px] text-muted-foreground">
-                Invite your first employee to get started.
-              </p>
-              <Button
-                size="sm"
-                className="mt-4 h-8.5 gap-1.5 bg-[#ee237c] hover:bg-[#d11f6e] text-white text-xs font-semibold"
-                onClick={() => setInviteOpen(true)}
-              >
-                <UserPlus className="size-4" />
-                Invite Member
-              </Button>
+              {search || roleFilter !== "ALL" || statusFilter !== "ALL" ? (
+                <>
+                  <p className="text-[14px] font-medium text-foreground">
+                    No results found
+                  </p>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
+                    Try adjusting your search or filters.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[14px] font-medium text-foreground">
+                    No team members yet
+                  </p>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
+                    Invite your first employee to get started.
+                  </p>
+                  <Button
+                    size="sm"
+                    className="mt-4 h-8.5 gap-1.5 bg-[#ee237c] hover:bg-[#d11f6e] text-white text-xs font-semibold"
+                    onClick={() => setInviteOpen(true)}
+                  >
+                    <UserPlus className="size-4" />
+                    Invite Member
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
@@ -1027,8 +1040,19 @@ export function OperatorStaffView() {
                     </div>
 
                     {/* Status */}
-                    <div className="hidden md:flex flex-col items-end gap-0.5 min-w-[110px]">
-                      <StatusBadge status={member.status} />
+                    <div className="hidden md:flex flex-col items-end gap-1 min-w-[110px]">
+                      <div className="flex items-center gap-2">
+                        {member.isVerified ? (
+                          <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-600 border border-emerald-500/20">
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-medium text-amber-600 border border-amber-500/20">
+                            Unverified
+                          </span>
+                        )}
+                        <StatusBadge status={member.status} />
+                      </div>
                       <span className="text-[11px] text-muted-foreground">
                         {formatRelativeTime(lastActive)}
                       </span>

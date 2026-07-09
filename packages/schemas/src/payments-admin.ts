@@ -41,7 +41,7 @@ export const recordSettlementSchema = z.object({
 
 export const cancelBookingSchema = z.object({
   bookingReference: z.string().min(1),
-  channel: z.enum(["CASH", "VOUCHER"]),
+  channel: z.enum(["CASH", "VOUCHER", "PAYSTACK"]),
   reason: z.string().optional(),
 });
 

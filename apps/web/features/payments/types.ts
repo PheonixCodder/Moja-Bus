@@ -39,10 +39,22 @@ export type WebhookPayload = {
   data: Record<string, unknown>;
 };
 
+export type CreateSubaccountInput = {
+  businessName: string;
+  settlementBankCode: string;
+  accountNumber: string;
+};
+
+export type CreateSubaccountResult = {
+  subaccountCode: string;
+};
+
 export interface PaymentProviderAdapter {
   id: PaymentProvider;
   initialize(input: InitializePaymentInput): Promise<InitializePaymentResult>;
   verify(reference: string): Promise<VerifyPaymentResult>;
   refund(input: RefundInput): Promise<RefundResult>;
+  createSubaccount(input: CreateSubaccountInput): Promise<CreateSubaccountResult>;
   parseWebhook(rawBody: string, signature: string | null): WebhookPayload;
 }
+

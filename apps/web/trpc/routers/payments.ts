@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import {
   cancelBookingSchema,
   createCommissionTierSchema,
@@ -12,6 +13,7 @@ import {
 } from "@moja/schemas";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 import { PaymentService } from "@/features/payments/payment-service";
+import { paystackListBanks } from "@/features/payments/providers/paystack-client";
 import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { TripDetailsService } from "@/features/booking/services/trip-details-service";
 
@@ -45,11 +47,21 @@ export const paymentsRouter = createTRPCRouter({
   cancelBooking: protectedProcedure
     .input(cancelBookingSchema)
     .mutation(async ({ ctx, input }) => {
+      let userCompanyId: string | undefined;
+      if (ctx.user.role === "OPERATOR") {
+        const operatorProfile = await ctx.prisma.operator.findFirst({
+          where: { userId: ctx.user.id, deletedAt: null },
+        });
+        userCompanyId = operatorProfile?.companyId ?? undefined;
+      }
+
       const service = new CancellationService(ctx.prisma);
       return service.cancelBooking({
         bookingReference: input.bookingReference,
         userId: ctx.user.id,
-        channel: input.channel,
+        userRole: ctx.user.role as any,
+        userCompanyId,
+        channel: input.channel as any,
         ...(input.reason ? { reason: input.reason } : {}),
       });
     }),
@@ -204,5 +216,22 @@ export const paymentsRouter = createTRPCRouter({
       });
 
       return { success: true as const, remainingBalanceXOF: balance - input.amountXOF };
+    }),
+
+  listBanks: publicProcedure
+    .input(
+      z.object({
+        country: z.string().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      try {
+        return await paystackListBanks(input.country);
+      } catch (err: any) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: err.message || "Failed to fetch bank list from Paystack",
+        });
+      }
     }),
 });

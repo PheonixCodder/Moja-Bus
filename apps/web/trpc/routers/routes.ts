@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+import { createRouteSchema, updateRouteSchema } from "@moja/schemas";
 
 export const routesRouter = createTRPCRouter({
   list: operatorCompanyProcedure.query(async ({ ctx }) => {
@@ -21,6 +22,7 @@ export const routesRouter = createTRPCRouter({
 
   getCities: operatorCompanyProcedure.query(async ({ ctx }) => {
     return ctx.prisma.city.findMany({
+      where: { isActive: true },
       orderBy: { name: "asc" },
     });
   }),
@@ -50,20 +52,9 @@ export const routesRouter = createTRPCRouter({
     }),
 
   create: operatorCompanyProcedure
-    .input(z.any())
+    .input(createRouteSchema)
     .mutation(async ({ ctx, input }) => {
-      const { createRouteSchema } = await import("@moja/schemas");
-      const parsed = createRouteSchema.safeParse(input);
-
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
-
-      const data = parsed.data;
+      const data = input;
 
       return ctx.prisma.route.create({
         data: {
@@ -82,6 +73,7 @@ export const routesRouter = createTRPCRouter({
               departureOffsetMinutes: wp.offsetMinutes, // Simplification
               isPickup: wp.allowPickup,
               isDropoff: wp.allowDropoff,
+              distanceFromOriginKm: wp.distanceFromOriginKm ?? null,
             })),
           },
         },
@@ -94,19 +86,8 @@ export const routesRouter = createTRPCRouter({
     }),
 
   update: operatorCompanyProcedure
-    .input(z.object({ id: z.string(), data: z.any() }))
+    .input(z.object({ id: z.string(), data: updateRouteSchema }))
     .mutation(async ({ ctx, input }) => {
-      const { updateRouteSchema } = await import("@moja/schemas");
-      const parsed = updateRouteSchema.safeParse(input.data);
-
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
-
       const existingRoute = await ctx.prisma.route.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });
@@ -115,7 +96,7 @@ export const routesRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Route not found" });
       }
 
-      const data = parsed.data;
+      const data = input.data;
 
       // Update basic details
       const updateData: any = {};
@@ -131,8 +112,9 @@ export const routesRouter = createTRPCRouter({
       if (data.status !== undefined) updateData.status = data.status;
 
       // Handle waypoints if provided
+      let updatedRoute;
       if (data.waypoints) {
-        return ctx.prisma.$transaction(async (tx) => {
+        updatedRoute = await ctx.prisma.$transaction(async (tx) => {
           await tx.routeWaypoint.deleteMany({
             where: { routeId: input.id },
           });
@@ -142,13 +124,14 @@ export const routesRouter = createTRPCRouter({
             data: {
               ...updateData,
               waypoints: {
-                create: data.waypoints.map((wp) => ({
+                create: data.waypoints!.map((wp) => ({
                   terminalId: wp.terminalId,
                   stopOrder: wp.stopOrder,
                   arrivalOffsetMinutes: wp.offsetMinutes,
                   departureOffsetMinutes: wp.offsetMinutes,
                   isPickup: wp.allowPickup,
                   isDropoff: wp.allowDropoff,
+                  distanceFromOriginKm: wp.distanceFromOriginKm ?? null,
                 })),
               },
             },
@@ -161,15 +144,30 @@ export const routesRouter = createTRPCRouter({
         });
       }
 
-      return ctx.prisma.route.update({
-        where: { id: input.id },
-        data: updateData,
-        include: {
-          originTerminal: true,
-          destTerminal: true,
-          waypoints: true,
+      } else {
+        updatedRoute = await ctx.prisma.route.update({
+          where: { id: input.id },
+          data: updateData,
+          include: {
+            originTerminal: true,
+            destTerminal: true,
+            waypoints: true,
+          },
+        });
+      }
+
+      const futureTripsCount = await ctx.prisma.trip.count({
+        where: {
+          schedule: { routeId: input.id },
+          departureDate: { gt: new Date() },
+          bookedSeats: 0,
         },
       });
+
+      return {
+        route: updatedRoute,
+        needsReconciliation: futureTripsCount > 0,
+      };
     }),
 
   delete: operatorCompanyProcedure

@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUpDown, Calendar, Search, Users } from "lucide-react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@moja/ui/components/ui/popover";
+import { Calendar as CalendarComponent } from "@moja/ui/components/ui/calendar";
 import { CityAutocompleteField, type CityValue } from "./city-autocomplete-field";
 import { useCityDetails } from "../hooks/use-city-details";
 
@@ -23,6 +26,12 @@ interface SearchFormProps {
 }
 
 const todayISO = () => new Date().toISOString().split("T")[0]!;
+
+function parseLocalDate(dateStr: string) {
+  if (!dateStr) return undefined;
+  const [y, m, d] = dateStr.split('-');
+  return new Date(Number(y), Number(m) - 1, Number(d));
+}
 
 export function SearchForm({
   initialFromId,
@@ -55,19 +64,22 @@ export function SearchForm({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!origin.id) {
+    const originVal = origin.id || origin.text.trim();
+    const destVal = destination.id || destination.text.trim();
+
+    if (!originVal) {
       toast.error("Please select a valid origin city");
       return;
     }
-    if (!destination.id) {
+    if (!destVal) {
       toast.error("Please select a valid destination city");
       return;
     }
-    if (origin.id === destination.id) {
+    if (originVal === destVal) {
       toast.error("Origin and destination cities cannot be the same");
       return;
     }
-    onSearch({ from: origin.id, to: destination.id, date, passengers });
+    onSearch({ from: originVal, to: destVal, date, passengers });
   }
 
   return (
@@ -105,20 +117,31 @@ export function SearchForm({
               />
             </div>
 
-            <div className="lg:col-span-2 relative">
+            <div className="lg:col-span-2">
               <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
-                Travel Date
+                Departure
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5 pointer-events-none" />
-                <Input
-                  type="date"
-                  value={date}
-                  min={todayISO()}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="pl-10 h-12 bg-slate-50 border-slate-200 focus:ring-[#ee237c] focus:border-[#ee237c] rounded-xl font-medium"
-                />
-              </div>
+              <Popover>
+                <PopoverTrigger
+                  render={
+                    <button
+                      type="button"
+                      className="relative w-full h-12 pl-10 pr-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-left flex items-center hover:bg-white focus:bg-white focus:border-[#ee237c] focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none text-slate-700"
+                    />
+                  }
+                >
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                  {date ? format(parseLocalDate(date)!, "PPP") : "Pick a date"}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={parseLocalDate(date)}
+                    onSelect={(d) => d && setDate(format(d, "yyyy-MM-dd"))}
+                    disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="lg:col-span-1 relative">

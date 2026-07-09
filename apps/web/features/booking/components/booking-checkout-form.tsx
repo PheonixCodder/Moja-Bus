@@ -216,7 +216,7 @@ export function BookingCheckoutForm({
 
       const confirmed = await completePayment({
         holdId: hold.holdId,
-        payerEmail: session?.user?.email,
+        payerEmail: session?.user?.email ?? null,
       });
 
       if (!confirmed) {

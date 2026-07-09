@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { redirectIfOperatorAuthenticated } from "@/lib/auth-server";
+import { redirectIfAuthenticated } from "@/lib/auth-server";
 import { OperatorResetPasswordView } from "@/features/auth/views/operator-reset-password-view";
 
 type ResetPasswordPageProps = {
@@ -13,7 +13,7 @@ export const metadata = {
 export default async function OperatorResetPasswordPage({
   searchParams,
 }: ResetPasswordPageProps) {
-  await redirectIfOperatorAuthenticated();
+  await redirectIfAuthenticated();
 
   const params = await searchParams;
   const email = params.email;

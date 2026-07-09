@@ -7,7 +7,7 @@ import {
   useQueryClient,
   useQuery,
 } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   MapPin,
   Plus,
@@ -69,6 +69,21 @@ import {
 
 import { useTRPC } from "@/trpc/client";
 
+const DAYS_OF_WEEK = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+];
+
+const DEFAULT_OPERATING_HOURS = DAYS_OF_WEEK.reduce((acc, day) => {
+  acc[day] = { open: "06:00", close: "20:00", closed: false };
+  return acc;
+}, {} as Record<string, { open: string; close: string; closed: boolean }>);
+
 // ──────────────────────────────────────────────
 // KPI Card
 // ──────────────────────────────────────────────
@@ -114,9 +129,12 @@ function StatCard({
 }
 
 export function OperatorTerminalsView() {
-  const searchParams = useSearchParams();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Data queries
   const { data: locations } = useSuspenseQuery(
     trpc.terminals.list.queryOptions(),
   );
@@ -167,6 +185,7 @@ export function OperatorTerminalsView() {
   const [managerName, setManagerName] = useState("");
   const [managerPhone, setManagerPhone] = useState("");
   const [managerEmail, setManagerEmail] = useState("");
+  const [operatingHours, setOperatingHours] = useState(DEFAULT_OPERATING_HOURS);
 
   // Delete State
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -178,8 +197,9 @@ export function OperatorTerminalsView() {
     if (searchParams.get("action") === "new") {
       resetForm();
       setDrawerOpen(true);
+      router.replace(window.location.pathname);
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const resetForm = () => {
     setName("");
@@ -195,6 +215,7 @@ export function OperatorTerminalsView() {
     setManagerName("");
     setManagerPhone("");
     setManagerEmail("");
+    setOperatingHours(DEFAULT_OPERATING_HOURS);
     setFormErrors({});
     setEditingLocation(null);
   };
@@ -214,11 +235,21 @@ export function OperatorTerminalsView() {
     setManagerName(loc.managerName ?? "");
     setManagerPhone(loc.managerPhone ?? "");
     setManagerEmail(loc.managerEmail ?? "");
+    setOperatingHours(
+      loc.operatingHours
+        ? (typeof loc.operatingHours === "string"
+            ? JSON.parse(loc.operatingHours)
+            : loc.operatingHours)
+        : DEFAULT_OPERATING_HOURS
+    );
     setFormErrors({});
     setDrawerOpen(true);
   };
 
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
   const handleToggleTerminal = async (loc: any, currentVal: boolean) => {
+    setTogglingId(loc.id);
     try {
       await updateMutation.mutateAsync({
         id: loc.id,
@@ -229,6 +260,8 @@ export function OperatorTerminalsView() {
       );
     } catch (err: any) {
       toast.error(err.message || "Failed to toggle terminal status");
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -263,6 +296,7 @@ export function OperatorTerminalsView() {
       managerName: managerName.trim() || null,
       managerPhone: managerPhone.trim() || null,
       managerEmail: managerEmail.trim() || null,
+      operatingHours,
     };
 
     try {
@@ -325,16 +359,7 @@ export function OperatorTerminalsView() {
     locations.find((l) => l.isPrimary)?.name || "Not Configured";
   const linkedToCityCount = locations.filter((l) => l.cityId).length;
 
-  if (false) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Spinner className="size-8 text-primary" />
-        <p className="text-sm font-semibold text-muted-foreground">
-          Loading terminals...
-        </p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-bg-base">
@@ -540,21 +565,27 @@ export function OperatorTerminalsView() {
                     {/* Mode Pill Toggle button */}
                     <button
                       onClick={() => handleToggleTerminal(loc, loc.isTerminal)}
+                      disabled={togglingId === loc.id}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded border px-2.5 py-0.5 text-[10px] font-bold transition-all duration-150 cursor-pointer",
                         loc.isTerminal
                           ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
                           : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100",
+                        togglingId === loc.id && "opacity-50 cursor-not-allowed",
                       )}
                     >
-                      <span
-                        className={cn(
-                          "h-1.5 w-1.5 rounded-full",
-                          loc.isTerminal
-                            ? "bg-emerald-500 animate-pulse"
-                            : "bg-slate-400",
-                        )}
-                      />
+                      {togglingId === loc.id ? (
+                        <Spinner className="size-2.5" />
+                      ) : (
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            loc.isTerminal
+                              ? "bg-emerald-500 animate-pulse"
+                              : "bg-slate-400",
+                          )}
+                        />
+                      )}
                       {loc.isTerminal
                         ? "Passenger Terminal"
                         : "Promote to Terminal"}
@@ -849,6 +880,74 @@ export function OperatorTerminalsView() {
                     onCheckedChange={setIsActive}
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Operating Hours */}
+            <div className="space-y-3.5 pt-1">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
+                Operating Hours
+              </h3>
+              <div className="space-y-2">
+                {DAYS_OF_WEEK.map((day) => (
+                  <div
+                    key={day}
+                    className="flex items-center gap-4 rounded-md border border-border bg-card p-3"
+                  >
+                    <div className="w-24 shrink-0">
+                      <Label className="text-xs font-semibold capitalize text-foreground">
+                        {day}
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="time"
+                          value={operatingHours[day]?.open || ""}
+                          onChange={(e) =>
+                            setOperatingHours({
+                              ...operatingHours,
+                              [day]: { ...operatingHours[day], open: e.target.value },
+                            })
+                          }
+                          disabled={operatingHours[day]?.closed}
+                          className="h-8 w-28 text-xs shadow-none border-border"
+                        />
+                        <span className="text-muted-foreground text-xs font-medium">to</span>
+                        <Input
+                          type="time"
+                          value={operatingHours[day]?.close || ""}
+                          onChange={(e) =>
+                            setOperatingHours({
+                              ...operatingHours,
+                              [day]: { ...operatingHours[day], close: e.target.value },
+                            })
+                          }
+                          disabled={operatingHours[day]?.closed}
+                          className="h-8 w-28 text-xs shadow-none border-border"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 ml-auto">
+                        <Switch
+                          id={`closed-${day}`}
+                          checked={operatingHours[day]?.closed || false}
+                          onCheckedChange={(checked) =>
+                            setOperatingHours({
+                              ...operatingHours,
+                              [day]: { ...operatingHours[day], closed: checked },
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor={`closed-${day}`}
+                          className="text-[10px] text-muted-foreground cursor-pointer"
+                        >
+                          Closed
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

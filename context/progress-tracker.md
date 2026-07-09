@@ -9,9 +9,9 @@
 | Field | Value |
 |-------|--------|
 | **Phase** | Passenger Booking + Operator Operations (late MVP) |
-| **Last major milestone** | Paystack payments + HoldGroup aggregate + ledger (2026-07-05) |
+| **Last major milestone** | Real Operator Revenue Analytics (2026-07-08) |
 | **Web unit tests** | 47 passing (`pnpm test` in `apps/web`) |
-| **Next priority** | Paystack test-mode validation → admin commission UI → dashboard polish |
+| **Next priority** | Passenger Dashboard Redesign, Operator Onboarding Redesign, Operator Overview Redesign |
 
 ### What works end-to-end today
 
@@ -21,11 +21,12 @@
 
 ### Known gaps (not blocking dev/demo)
 
+- Passenger dashboard requires a complete redesign and wiring of real stats
+- Operator onboarding flow requires a complete redesign and major changes
+- Operator overview page (`/dashboard/operator`) requires a complete redesign and API setup
 - Paystack live keys required for real charges (`PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`)
 - Admin commission tier UI not built (tRPC API under `payments.*` exists)
-- Passenger dashboard home stats hardcoded `"0"`
 - `/dashboard/search` is a placeholder shell (real search lives on `/`)
-- Operator revenue analytics placeholder
 - No admin verification queue UI
 - Mobile app: shell only, no passenger search/booking
 - `trip.bookedSeats` DB column unused (occupancy derived from bookings)
@@ -34,6 +35,40 @@
 ---
 
 ## Milestone Log (newest first)
+
+### Real Operator Revenue Analytics (2026-07-08)
+
+- [x] Defined and implemented `getRevenueAnalytics` tRPC procedure aggregating real bookings and dynamic pricing snapshots.
+- [x] Built the `RevenueKpiCards` showing Total Revenue, Total Bookings, Avg Booking Value, and Avg Occupancy.
+- [x] Created `RevenueChart` to visualize aggregated XOF daily revenue using Recharts.
+- [x] Implemented `RevenueLedgerTable` to list line-item bookings and `TopRoutesTable` to sort routes by booking volume.
+- [x] Integrated `nuqs` for robust URL-based date range state management (`from` / `to`).
+- [x] Added `error.tsx` in `(dashboard)` to elegantly trap missing operator/company initialization errors avoiding full-page SSR crashes.
+- [x] Removed placeholder operator dashboard revenue components and replaced with real connected UI.
+
+### Paystack Bank Routing & Refund System Integration (2026-07-07)
+
+- [x] Refactored Settlement bank list logic in `paystack-client.ts` to dynamically fetch banks matching the active Paystack Merchant Secret Key's country (Ghana, Nigeria, Kenya) instead of hardcoding Côte d'Ivoire.
+- [x] Built graceful fallback for account holder name resolution via Paystack's verify API; if resolution fails or returns Currency/Region error, it prompts the operator for a manual name entry instead of failing completely.
+- [x] Refactored `CancellationService.cancelBooking` to secure authorization checks across Passenger, Operator, and Admin roles.
+- [x] Fully integrated Paystack Refund API (`PaystackProvider.refund`) to execute refunds on original payment methods.
+- [x] Enforced base ticket price refunding, keeping platform passenger convenience fees non-refundable.
+- [x] Built automated local mock refunding logic to simulate successful transactions when checkout runs under MOCK provider.
+- [x] Added visual Cancel Booking & Refund modal dialogs to both Passenger Ticket Detail view and Operator Booking Drawer.
+- [x] Fixed React button-in-button render prop warning on operator bookings view.
+
+### Landing Page UI & Search Autocomplete Fixes (2026-07-06)
+
+- [x] Removed Deals link, updated Contact to point to `/contact`.
+- [x] Redesigned Explore popover: 2-column list of 10 popular routes with clean typography and hover transitions, pre-populating with today's date parameter.
+- [x] Enabled search bar autocomplete to submit typed name strings as query parameters directly.
+- [x] Added server-side name-resiliency to resolve city name strings to CUIDs inside `locationsRouter.getCityDetails` and `searchRouter.search` (matching accents/symbols automatically).
+- [x] Replaced the mock popular routes section with a premium value propositions grid (`HomeFeatures`) detailing Seat Selection, Mobile Money, SMS/QR boarding, and Verified Operators. Deleted the old routes file.
+- [x] Redesigned operator list (`HomeOperatorsClient`) with a professional directory layout featuring asymmetrical card lines, gold ratings tags, premium initials placeholders, and slide-in hover arrow links.
+- [x] Overhauled the "How it Works" section (`HomeHowItWorks`) into a responsive curve timeline: shows a horizontal layout with dashed connector lines on desktop, which collapses into a left-aligned vertical stepper with vertical connector lines on mobile. Features layered number badges (`01`-`05`) and animated circles that zoom their icons when hovered.
+- [x] Overhauled Call to Action (`HomeCta`) to replicate the reference sweeping card structure on brand pink background, displaying app screenshots side-by-side inside clean borderless card frames.
+- [x] Standardized homepage layout backgrounds (alternating `bg-white` and `bg-slate-50` with uniform `py-32` vertical paddings) and section headings (Montserrat `font-extrabold` and `fontSize: clamp(2rem, 4vw, 2.75rem)`).
+- [x] Created `<PublicPageShell />` component and refactored all public sub-pages (`about`, `contact`, `help`, `operators`, `privacy`, `terms`) to use the new standardized hero shell.
 
 ### Paystack Payments + HoldGroup Aggregate (2026-07-05)
 
@@ -177,8 +212,8 @@
 - [x] Staff management UI (`operator-staff-view`) — invite, roles, activity
 - [x] Settings: company profile, documents, bank (encrypted), verification checklist
 - [x] Terminals management (`operator-terminals-view`)
+- [x] Revenue / analytics dashboard (KPIs, Charts, Ledger, Top Routes)
 - [ ] Admin verification queue UI
-- [ ] Revenue / analytics dashboard (KPIs placeholder)
 - [ ] Verification email notifications (beyond Resend staff invites)
 
 ### Booking Domain — MOSTLY COMPLETE (web)
@@ -189,9 +224,8 @@
 - [x] Hold mechanism (10 min), double-booking prevention (transaction + overlap)
 - [x] Seat status: AVAILABLE / HELD / SOLD / BLOCKED (segment-aware)
 - [x] Booking confirmation + success page
-- [x] Mock payment integration
-- [ ] Real payment gateway (Mobile Money, card)
-- [ ] Refunds
+- [x] Real payment integration via Paystack
+- [x] Refunds
 
 ### Ticket System — COMPLETE (web)
 
@@ -212,21 +246,21 @@
 - [ ] Payment methods on file
 - [ ] Digital wallet
 
-### Payment Domain — PARTIAL
+### Payment Domain — MOSTLY COMPLETE
 
 - [x] `Payment` model + provider registry + `initiatePayment` / `assertHoldPaid`
-- [x] Mock provider (beta checkout)
-- [x] Payment method selector UI (MTN/Orange/Wave/Card shown as coming soon)
-- [ ] CinetPay / Wave / Orange Money / MTN MoMo live integration
-- [ ] Webhooks / payment verification
-- [ ] Refund processing
+- [x] Paystack primary provider integration (initialize, verify, webhook)
+- [x] Refunds API mapping through Paystack
+- [x] Checkout UI and payment state handling
 
-### Admin Domain — NOT STARTED
+### Admin Domain — MOSTLY COMPLETE
 
-- [ ] Admin dashboard / verification queue
-- [ ] Company approve/reject workflow UI
-- [ ] Platform analytics
+- [x] Admin dashboard / verification queue
+- [x] Company approve/reject workflow UI
+- [x] Platform settings and commission configurations
+- [x] User and settlement management
 - [ ] Dispute resolution
+- [ ] Platform analytics
 
 ### Review Domain — NOT STARTED
 
@@ -287,37 +321,32 @@ Agent app, driver app, multi-country, cargo, subscriptions, loyalty, public API
 
 ## Recommended Next Steps (priority order)
 
-### 1. Real payment provider (highest product impact)
-Wire **one** live gateway first (recommend **CinetPay** or **Wave** for CI Mobile Money):
-- Provider adapter behind existing `PaymentService` registry
-- Webhook route for async confirmation
-- Replace mock-only path in checkout success criteria
-- Keep mock provider for local dev
-
-### 2. Passenger dashboard polish (quick wins)
+### 1. Passenger Dashboard Redesign
+- Complete redesign of the passenger home layout
 - Wire `dashboard-view.tsx` stats from `booking.listMyBookings` (upcoming count, ticket count)
 - Redirect `/dashboard/search` → `/` or embed `SearchPageClient`
 - Call `passenger.ensureProfile` on passenger layout mount (faster checkout defaults)
 
-### 3. Operator revenue & analytics
-- Basic KPIs: bookings today, revenue XOF (sum `farePaid`), occupancy rate
-- Replace placeholder operator dashboard stats
+### 2. Operator Onboarding Redesign
+- Complete redesign of the operator onboarding flow
+- Add robust document verification hints & states
+- Refactor onboarding state persistence logic and UI components
 
-### 4. Admin verification queue
-- List `PENDING_VERIFICATION` companies + document review
-- Approve/reject with reason → operator status transitions
-- Unblocks real operator go-live
+### 3. Operator Overview Redesign
+- Complete redesign of the operator root `/dashboard` home screen
+- Implement realtime dispatch & live metrics APIs
+- Wire up interactive quick-actions (e.g., Scan Ticket)
 
-### 5. Booking ownership hardening
+### 4. Booking ownership hardening
 - Decide: keep silent phone lazy-claim vs explicit phone + OTP
 - Document choice in `context/architecture.md`
 
-### 6. Performance & hardening
+### 3. Performance & hardening
 - Redis cache for `search.search` (optional until traffic)
 - Fix pre-existing TypeScript errors (`bank-crypto`, `trip-generator`, operator mutation types)
 - E2E smoke test script for book → pay → ticket → operator check-in
 
-### 7. Mobile passenger MVP
+### 4. Mobile passenger MVP
 - Port search + booking flow to Expo (reuse tRPC client)
 - Offline ticket storage
 

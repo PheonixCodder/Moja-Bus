@@ -1,4 +1,4 @@
-import { redirectIfOperatorAuthenticated } from "@/lib/auth-server";
+import { redirectIfAuthenticated } from "@/lib/auth-server";
 import { OperatorForgotPasswordView } from "@/features/auth/views/operator-forgot-password-view";
 
 export const metadata = {
@@ -6,7 +6,7 @@ export const metadata = {
 };
 
 export default async function OperatorForgotPasswordPage() {
-  await redirectIfOperatorAuthenticated();
+  await redirectIfAuthenticated();
 
   return <OperatorForgotPasswordView />;
 }

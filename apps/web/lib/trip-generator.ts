@@ -53,7 +53,9 @@ export async function generateTripsForSchedule(
   }
 
   const { calendar, exceptions, route } = schedule;
-  const [hours, minutes] = schedule.departureTime.split(":").map(Number);
+  const timeParts = schedule.departureTime.split(":");
+  const hours = parseInt(timeParts[0] || "0", 10);
+  const minutes = parseInt(timeParts[1] || "0", 10);
 
   const tripsCreated = [];
 
@@ -118,7 +120,7 @@ export async function generateTripsForSchedule(
           ),
           totalSeats: bus.seats.length,
           status: "SCHEDULED",
-          routeSnapshotJson: JSON.stringify(route),
+          routeSnapshotJson: JSON.stringify({ ...route, version: 1 }),
         },
       });
 

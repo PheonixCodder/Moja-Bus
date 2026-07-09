@@ -31,20 +31,29 @@ export function TermsStep({
   const [acceptCommission, setAcceptCommission] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
 
+  const [stepSavedState, setStepSavedState] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!acceptTerms || !acceptCommission || !acceptPrivacy) {
       return;
     }
 
-    // Save step draft
-    const stepSaved = await onSave({
-      acceptTerms,
-      acceptCommission,
-      acceptPrivacy,
-    });
+    let isSaved = stepSavedState;
 
-    if (stepSaved) {
+    if (!isSaved) {
+      // Save step draft
+      isSaved = await onSave({
+        acceptTerms,
+        acceptCommission,
+        acceptPrivacy,
+      });
+      if (isSaved) {
+        setStepSavedState(true);
+      }
+    }
+
+    if (isSaved) {
       // Trigger finalize onboarding
       await onComplete();
     }
@@ -187,7 +196,11 @@ export function TermsStep({
           disabled={isSaving || !canSubmit}
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-md px-6 py-2"
         >
-          {isSaving ? "Completing..." : "Complete & Finalize Onboarding"}
+          {isSaving
+            ? "Completing..."
+            : stepSavedState
+              ? "Retry Verification"
+              : "Complete & Finalize Onboarding"}
         </Button>
       </div>
     </form>

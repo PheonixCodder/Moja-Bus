@@ -47,18 +47,18 @@ describe("paystack-checkout helpers", () => {
   });
 
   it("only prefers redirect when explicitly configured", () => {
-    const originalMode = process.env.NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE;
+    const originalMode = process.env["NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE"];
 
-    delete process.env.NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE;
+    delete process.env["NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE"];
     assert.equal(shouldPreferRedirectCheckout(), false);
 
-    process.env.NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE = "redirect";
+    process.env["NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE"] = "redirect";
     assert.equal(shouldPreferRedirectCheckout(), true);
 
     if (originalMode === undefined) {
-      delete process.env.NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE;
+      delete process.env["NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE"];
     } else {
-      process.env.NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE = originalMode;
+      process.env["NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE"] = originalMode;
     }
   });
 });

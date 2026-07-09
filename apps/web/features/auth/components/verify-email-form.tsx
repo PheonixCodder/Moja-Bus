@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
 import {
@@ -25,6 +25,14 @@ export function VerifyEmailForm({
   const { isPending, verifyEmail } = useAuth();
   const [otp, setOtp] = useState("");
   const [isResending, setIsResending] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const isPassenger = userType === "passenger";
 
@@ -61,6 +69,7 @@ export function VerifyEmailForm({
         type: "email-verification",
       });
       toast.success("A new verification code has been sent.");
+      setCountdown(60);
     } catch {
       toast.error("Failed to resend the verification email. Please try again.");
     } finally {
@@ -130,10 +139,10 @@ export function VerifyEmailForm({
           type="button"
           variant="ghost"
           className="w-full"
-          disabled={isResending || !email}
+          disabled={isResending || !email || countdown > 0}
           onClick={handleResend}
         >
-          {isResending ? "Sending…" : "Resend code"}
+          {isResending ? "Sending…" : countdown > 0 ? `Resend code in ${countdown}s` : "Resend code"}
         </Button>
       </form>
     </AuthCard>

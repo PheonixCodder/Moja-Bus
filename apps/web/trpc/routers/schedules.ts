@@ -131,17 +131,25 @@ export const schedulesRouter = createTRPCRouter({
           },
         });
 
-        const faresData = fares.map((f) => ({
-          scheduleId: schedule.id,
-          type: f.type as any,
-          seatClass: f.seatClass as any,
-          fromStopOrder: f.fromStopOrder,
-          toStopOrder: f.toStopOrder,
-          priceXOF: f.priceXOF,
-          validFrom: f.validFrom ? new Date(f.validFrom) : null,
-          validUntil: f.validUntil ? new Date(f.validUntil) : null,
-          isActive: true,
-        }));
+        const faresData = fares.map((f) => {
+          if (f.fromStopOrder >= f.toStopOrder) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Fare segment invalid: fromStopOrder (${f.fromStopOrder}) must be less than toStopOrder (${f.toStopOrder}).`,
+            });
+          }
+          return {
+            scheduleId: schedule.id,
+            type: f.type as any,
+            seatClass: f.seatClass as any,
+            fromStopOrder: f.fromStopOrder,
+            toStopOrder: f.toStopOrder,
+            priceXOF: f.priceXOF,
+            validFrom: f.validFrom ? new Date(f.validFrom) : null,
+            validUntil: f.validUntil ? new Date(f.validUntil) : null,
+            isActive: true,
+          };
+        });
 
         await tx.fare.createMany({
           data: faresData,
@@ -186,23 +194,23 @@ export const schedulesRouter = createTRPCRouter({
         });
       }
 
-      const bookingsCount = await ctx.prisma.booking.count({
-        where: {
-          trip: {
-            scheduleId: schedule.id,
-          },
-        },
-      });
-
-      if (bookingsCount > 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message:
-            "Cannot delete schedule. Active passenger bookings exist on its trips.",
-        });
-      }
-
       await ctx.prisma.$transaction(async (tx) => {
+        const bookingsCount = await tx.booking.count({
+          where: {
+            trip: {
+              scheduleId: schedule.id,
+            },
+          },
+        });
+
+        if (bookingsCount > 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Cannot delete schedule. Active passenger bookings exist on its trips.",
+          });
+        }
+
         await tx.trip.deleteMany({
           where: { scheduleId: schedule.id },
         });
@@ -301,6 +309,16 @@ export const schedulesRouter = createTRPCRouter({
 
       if (!fare) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Fare not found" });
+      }
+
+      // W1-D: Validate fare segment order
+      const fromOrder = input.data.fromStopOrder ?? fare.fromStopOrder;
+      const toOrder = input.data.toStopOrder ?? fare.toStopOrder;
+      if (fromOrder >= toOrder) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `fromStopOrder (${fromOrder}) must be less than toStopOrder (${toOrder}).`,
+        });
       }
 
       const updateData = Object.fromEntries(

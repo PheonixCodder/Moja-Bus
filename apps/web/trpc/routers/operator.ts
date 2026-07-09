@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { Prisma } from "@moja/db";
 import {
   saveOnboardingStepSchema,
   companyStepSchema,
@@ -8,6 +9,7 @@ import {
   operatorListBookingsSchema,
   operatorGetBookingSchema,
   operatorCheckInBookingSchema,
+  operatorRevenueAnalyticsSchema,
 } from "@moja/schemas";
 
 import {
@@ -23,20 +25,37 @@ import {
 } from "@/lib/bank-account";
 import { logBankAccess } from "@/lib/bank-access";
 import { OperatorBookingService } from "@/features/operator/services/operator-booking-service";
+import {
+  paystackResolveAccount,
+} from "@/features/payments/providers/paystack-client";
 
-function maskOperatorCompanyBank<T extends { company?: { bankAccount?: any } | null }>(
+function maskOperatorCompanyBank<T extends any>(
   operator: T,
 ): T {
-  if (!operator.company?.bankAccount) {
+  if (!operator || typeof operator !== "object" || !("company" in operator)) {
     return operator;
+  }
+
+  const op = operator as any;
+  if (!op.company) {
+    return operator;
+  }
+
+  const updatedCompany = { ...op.company };
+
+  if (op.company.bankAccount) {
+    updatedCompany.bankAccount = maskBankAccountForClient(op.company.bankAccount);
+  }
+
+  if (op.company.bankAccounts) {
+    updatedCompany.bankAccounts = op.company.bankAccounts.map((b: any) =>
+      maskBankAccountForClient(b),
+    );
   }
 
   return {
     ...operator,
-    company: {
-      ...operator.company,
-      bankAccount: maskBankAccountForClient(operator.company.bankAccount),
-    },
+    company: updatedCompany,
   };
 }
 
@@ -50,7 +69,7 @@ export const operatorRouter = createTRPCRouter({
           include: {
             locations: true,
             documents: true,
-            bankAccount: true,
+            bankAccounts: true,
           },
         },
       },
@@ -142,6 +161,15 @@ export const operatorRouter = createTRPCRouter({
     return { company: updatedCompany };
   }),
 
+  validateSlug: operatorProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const existing = await ctx.prisma.company.findUnique({
+        where: { slug: input.slug },
+      });
+      return { isAvailable: !existing };
+    }),
+
   saveOnboardingStep: operatorProcedure
     .input(saveOnboardingStepSchema)
     .mutation(async ({ ctx, input }) => {
@@ -171,23 +199,34 @@ export const operatorRouter = createTRPCRouter({
           });
 
         if (existingOperator) {
-          await ctx.prisma.company.update({
-            where: { id: existingOperator.companyId },
-            data: {
-              name: companyData.name,
-              slug: companyData.slug,
-              email: companyData.email,
-              phone: companyData.phone,
-              website: companyData.website ?? null,
-              description: companyData.description ?? null,
-              businessType: companyData.businessType,
-              registrationNumber: companyData.registrationNumber,
-              taxId: companyData.taxId,
-              yearEstablished: companyData.yearEstablished ?? null,
-              estimatedStaffSize: companyData.estimatedStaffSize,
-              logoUrl: companyData.logoUrl ?? null,
-            },
-          });
+          try {
+            await ctx.prisma.company.update({
+              where: { id: existingOperator.companyId },
+              data: {
+                name: companyData.name,
+                slug: companyData.slug,
+                email: companyData.email,
+                phone: companyData.phone,
+                website: companyData.website ?? null,
+                description: companyData.description ?? null,
+                businessType: companyData.businessType,
+                registrationNumber: companyData.registrationNumber,
+                taxId: companyData.taxId,
+                yearEstablished: companyData.yearEstablished ?? null,
+                estimatedStaffSize: companyData.estimatedStaffSize,
+                logoUrl: companyData.logoUrl ?? null,
+              },
+            });
+          } catch (err) {
+            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+              const field = (err.meta?.["target"] as string[] | undefined)?.[0] ?? "field";
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: `A company with this ${field} already exists. Please use a different value.`,
+              });
+            }
+            throw err;
+          }
 
           resultOperator = await ctx.prisma.operator.update({
             where: { id: existingOperator.id },
@@ -199,23 +238,35 @@ export const operatorRouter = createTRPCRouter({
             include: { company: true },
           });
         } else {
-          const company = await ctx.prisma.company.create({
-            data: {
-              name: companyData.name,
-              slug: companyData.slug,
-              email: companyData.email,
-              phone: companyData.phone,
-              website: companyData.website ?? null,
-              description: companyData.description ?? null,
-              businessType: companyData.businessType,
-              registrationNumber: companyData.registrationNumber,
-              taxId: companyData.taxId,
-              yearEstablished: companyData.yearEstablished ?? null,
-              estimatedStaffSize: companyData.estimatedStaffSize,
-              logoUrl: companyData.logoUrl ?? null,
-              status: "DRAFT",
-            },
-          });
+          let company;
+          try {
+            company = await ctx.prisma.company.create({
+              data: {
+                name: companyData.name,
+                slug: companyData.slug,
+                email: companyData.email,
+                phone: companyData.phone,
+                website: companyData.website ?? null,
+                description: companyData.description ?? null,
+                businessType: companyData.businessType,
+                registrationNumber: companyData.registrationNumber,
+                taxId: companyData.taxId,
+                yearEstablished: companyData.yearEstablished ?? null,
+                estimatedStaffSize: companyData.estimatedStaffSize,
+                logoUrl: companyData.logoUrl ?? null,
+                status: "DRAFT",
+              },
+            });
+          } catch (err) {
+            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+              const field = (err.meta?.["target"] as string[] | undefined)?.[0] ?? "field";
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: `A company with this ${field} already exists. Please use a different value.`,
+              });
+            }
+            throw err;
+          }
 
           resultOperator = await ctx.prisma.operator.create({
             data: {
@@ -248,17 +299,32 @@ export const operatorRouter = createTRPCRouter({
 
         if (step === "locations") {
           if (!locationsData) throw new TRPCError({ code: "BAD_REQUEST" });
+
+          const cityIds = locationsData.locations.map((l: any) => l.cityId).filter(Boolean) as string[];
+          let cities: any[] = [];
+          if (cityIds.length > 0) {
+            cities = await ctx.prisma.city.findMany({ where: { id: { in: cityIds } } });
+          }
+
           await ctx.prisma.$transaction([
             ctx.prisma.companyLocation.deleteMany({ where: { companyId } }),
             ctx.prisma.companyLocation.createMany({
-              data: locationsData.locations.map((loc: any) => ({
-                companyId,
-                name: loc.name,
-                addressLine1: loc.addressLine1,
-                addressLine2: loc.addressLine2 ?? null,
-                city: loc.city,
-                cityId: loc.cityId ?? null,
-                state: loc.state ?? null,
+              data: locationsData.locations.map((loc: any) => {
+                let resolvedCityName = loc.city;
+                if (loc.cityId) {
+                  const foundCity = cities.find(c => c.id === loc.cityId);
+                  if (foundCity) {
+                    resolvedCityName = foundCity.name;
+                  }
+                }
+                return {
+                  companyId,
+                  name: loc.name,
+                  addressLine1: loc.addressLine1,
+                  addressLine2: loc.addressLine2 ?? null,
+                  city: resolvedCityName,
+                  cityId: loc.cityId ?? null,
+                  state: loc.state ?? null,
                 postalCode: loc.postalCode ?? null,
                 country: loc.country,
                 latitude: loc.latitude ?? null,
@@ -274,7 +340,8 @@ export const operatorRouter = createTRPCRouter({
                 operatingHours: loc.operatingHours
                   ? ({ hours: loc.operatingHours } as any)
                   : null,
-              })),
+                };
+              }),
             }),
           ]);
           resultOperator = await ctx.prisma.operator.update({
@@ -311,6 +378,24 @@ export const operatorRouter = createTRPCRouter({
           });
         } else if (step === "bank") {
           if (!bankData) throw new TRPCError({ code: "BAD_REQUEST" });
+
+          // Call Paystack resolve account to verify details if bankCode is provided
+          let resolvedAccountName = bankData.accountName;
+          if (bankData.bankCode) {
+            try {
+              const resolved = await paystackResolveAccount({
+                accountNumber: bankData.accountNumber,
+                bankCode: bankData.bankCode,
+              });
+              resolvedAccountName = resolved.accountName;
+            } catch (err: any) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Bank details verification failed: ${err.message || "Invalid account number or bank code"}`,
+              });
+            }
+          }
+
           const encryptedAccount = prepareBankAccountStorage(
             bankData.accountNumber,
           );
@@ -318,9 +403,10 @@ export const operatorRouter = createTRPCRouter({
             companyId,
             isActive: true as const,
             bankName: bankData.bankName,
+            bankCode: bankData.bankCode ?? null,
             accountNumber: encryptedAccount.accountNumber,
             accountNumberLast4: encryptedAccount.accountNumberLast4,
-            accountName: bankData.accountName,
+            accountName: resolvedAccountName,
             ...(bankData.branch != null ? { branch: bankData.branch } : {}),
             ...(bankData.swiftCode != null
               ? { swiftCode: bankData.swiftCode }
@@ -329,23 +415,32 @@ export const operatorRouter = createTRPCRouter({
           };
           const bankUpdate = {
             bankName: bankData.bankName,
+            bankCode: bankData.bankCode ?? null,
             accountNumber: encryptedAccount.accountNumber,
             accountNumberLast4: encryptedAccount.accountNumberLast4,
-            accountName: bankData.accountName,
+            accountName: resolvedAccountName,
             ...(bankData.branch != null ? { branch: bankData.branch } : {}),
             ...(bankData.swiftCode != null
               ? { swiftCode: bankData.swiftCode }
               : {}),
             ...(bankData.iban != null ? { iban: bankData.iban } : {}),
           };
-          const existingBank = await ctx.prisma.bankAccount.findUnique({
+          const existingBank = await ctx.prisma.bankAccount.findFirst({
             where: { companyId },
           });
-          await ctx.prisma.bankAccount.upsert({
-            where: { companyId },
-            create: bankCreate,
-            update: bankUpdate,
-          });
+          if (existingBank) {
+            await ctx.prisma.bankAccount.update({
+              where: { id: existingBank.id },
+              data: bankUpdate,
+            });
+          } else {
+            await ctx.prisma.bankAccount.create({
+              data: {
+                ...bankCreate,
+                isDefault: true,
+              },
+            });
+          }
           await logBankAccess(ctx.prisma, {
             companyId,
             userId: ctx.user.id,
@@ -437,7 +532,7 @@ export const operatorRouter = createTRPCRouter({
       include: {
         company: {
           include: {
-            bankAccount: true,
+            bankAccounts: true,
             documents: true,
           },
         },
@@ -451,7 +546,7 @@ export const operatorRouter = createTRPCRouter({
       });
     }
 
-    if (operator.company.bankAccount) {
+    if (operator.company.bankAccounts && operator.company.bankAccounts.length > 0) {
       await logBankAccess(ctx.prisma, {
         companyId: operator.companyId,
         userId: ctx.user.id,
@@ -462,9 +557,9 @@ export const operatorRouter = createTRPCRouter({
     return {
       company: {
         ...operator.company,
-        bankAccount: operator.company.bankAccount
-          ? maskBankAccountForClient(operator.company.bankAccount)
-          : null,
+        bankAccounts: operator.company.bankAccounts
+          ? operator.company.bankAccounts.map((b: any) => maskBankAccountForClient(b))
+          : [],
       },
       operator,
     };
@@ -499,6 +594,18 @@ export const operatorRouter = createTRPCRouter({
       });
 
       return updatedCompany;
+    }),
+
+  updateProfile: operatorProcedure
+    .input(z.object({ profilePhotoUrl: z.string().url().optional().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const updatedOperator = await ctx.prisma.operator.update({
+        where: { id: ctx.operator.id },
+        data: {
+          profilePhotoUrl: input.profilePhotoUrl,
+        },
+      });
+      return updatedOperator;
     }),
 
   createPresignedUpload: operatorCompanyProcedure
@@ -543,7 +650,7 @@ export const operatorRouter = createTRPCRouter({
       );
 
       const encryptedAccount = prepareBankAccountStorage(
-        cleanData.accountNumber as string,
+        cleanData["accountNumber"] as string,
       );
       const bankPayload = {
         ...cleanData,
@@ -551,19 +658,26 @@ export const operatorRouter = createTRPCRouter({
         accountNumberLast4: encryptedAccount.accountNumberLast4,
       };
 
-      const existingBank = await ctx.prisma.bankAccount.findUnique({
+      const existingBank = await ctx.prisma.bankAccount.findFirst({
         where: { companyId: ctx.companyId },
       });
 
-      const updatedBank = await ctx.prisma.bankAccount.upsert({
-        where: { companyId: ctx.companyId },
-        create: {
-          ...(bankPayload as any),
-          companyId: ctx.companyId,
-          isActive: true,
-        },
-        update: bankPayload as any,
-      });
+      let updatedBank;
+      if (existingBank) {
+        updatedBank = await ctx.prisma.bankAccount.update({
+          where: { id: existingBank.id },
+          data: bankPayload as any,
+        });
+      } else {
+        updatedBank = await ctx.prisma.bankAccount.create({
+          data: {
+            ...(bankPayload as any),
+            companyId: ctx.companyId,
+            isActive: true,
+            isDefault: true,
+          },
+        });
+      }
 
       await logBankAccess(ctx.prisma, {
         companyId: ctx.companyId,
@@ -574,35 +688,201 @@ export const operatorRouter = createTRPCRouter({
       return maskBankAccountForClient(updatedBank);
     }),
 
-  revealBankAccount: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-    if (ctx.operator.role !== "OWNER") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Only the company owner can reveal the full bank account number.",
+  revealBankAccount: operatorCompanyProcedure
+    .input(z.object({ bankAccountId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.operator.role !== "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the company owner can reveal the full bank account number.",
+        });
+      }
+
+      const bankAccount = await ctx.prisma.bankAccount.findFirst({
+        where: { id: input.bankAccountId, companyId: ctx.companyId },
       });
-    }
 
-    const bankAccount = await ctx.prisma.bankAccount.findUnique({
-      where: { companyId: ctx.companyId },
-    });
+      if (!bankAccount) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bank account not found.",
+        });
+      }
 
-    if (!bankAccount) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Bank account not found.",
+      await logBankAccess(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: "VIEW_FULL",
       });
-    }
 
-    await logBankAccess(ctx.prisma, {
-      companyId: ctx.companyId,
-      userId: ctx.user.id,
-      action: "VIEW_FULL",
-    });
+      return {
+        accountNumber: revealBankAccountNumber(bankAccount),
+      };
+    }),
 
-    return {
-      accountNumber: revealBankAccountNumber(bankAccount),
-    };
-  }),
+  listBankAccounts: operatorCompanyProcedure
+    .query(async ({ ctx }) => {
+      const bankAccounts = await ctx.prisma.bankAccount.findMany({
+        where: { companyId: ctx.companyId },
+        orderBy: { createdAt: "desc" },
+      });
+      return bankAccounts.map((b) => maskBankAccountForClient(b));
+    }),
+
+  addBankAccount: operatorCompanyProcedure
+    .input(
+      z.object({
+        bankName: z.string().min(1),
+        bankCode: z.string().min(1),
+        accountNumber: z.string().min(1),
+        accountName: z.string().min(1),
+        branch: z.string().nullable().optional(),
+        swiftCode: z.string().nullable().optional(),
+        iban: z.string().nullable().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Resolve bank account on Paystack in real-time
+      let resolvedName = input.accountName || "Operator Account";
+      try {
+        const resolved = await paystackResolveAccount({
+          accountNumber: input.accountNumber,
+          bankCode: input.bankCode,
+        });
+        resolvedName = resolved.accountName;
+      } catch (err: any) {
+        // Fallback if it's a currency or unsupported country error
+        const isUnsupported =
+          err.message?.includes("valid currencies") ||
+          err.message?.includes("currency") ||
+          err.message?.includes("not support") ||
+          err.message?.includes("unsupported");
+        if (isUnsupported && input.accountName) {
+          resolvedName = input.accountName;
+        } else {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Bank details resolution failed: ${err.message}`,
+          });
+        }
+      }
+
+      const encryptedAccount = prepareBankAccountStorage(input.accountNumber);
+      
+      const newAccount = await ctx.prisma.bankAccount.create({
+        data: {
+          companyId: ctx.companyId,
+          bankName: input.bankName,
+          bankCode: input.bankCode,
+          accountNumber: encryptedAccount.accountNumber,
+          accountNumberLast4: encryptedAccount.accountNumberLast4,
+          accountName: resolvedName,
+          branch: input.branch ?? null,
+          swiftCode: input.swiftCode ?? null,
+          iban: input.iban ?? null,
+          isVerified: false,
+          isActive: true,
+          isDefault: false,
+        },
+      });
+
+      await logBankAccess(ctx.prisma, {
+        companyId: ctx.companyId,
+        userId: ctx.user.id,
+        action: "CREATE",
+      });
+
+      return maskBankAccountForClient(newAccount);
+    }),
+
+  setDefaultBankAccount: operatorCompanyProcedure
+    .input(z.object({ bankAccountId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const bankAccount = await ctx.prisma.bankAccount.findFirst({
+        where: { id: input.bankAccountId, companyId: ctx.companyId },
+      });
+
+      if (!bankAccount) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bank account not found",
+        });
+      }
+
+      if (!bankAccount.isVerified) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Only verified bank accounts can be set as default.",
+        });
+      }
+
+      await ctx.prisma.$transaction([
+        ctx.prisma.bankAccount.updateMany({
+          where: { companyId: ctx.companyId },
+          data: { isDefault: false },
+        }),
+        ctx.prisma.bankAccount.update({
+          where: { id: input.bankAccountId },
+          data: { isDefault: true },
+        }),
+        ctx.prisma.company.update({
+          where: { id: ctx.companyId },
+          data: { paystackSubaccountCode: bankAccount.paystackSubaccountCode },
+        }),
+      ]);
+
+      return { success: true };
+    }),
+
+  deleteBankAccount: operatorCompanyProcedure
+    .input(z.object({ bankAccountId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const bankAccount = await ctx.prisma.bankAccount.findFirst({
+        where: { id: input.bankAccountId, companyId: ctx.companyId },
+      });
+
+      if (!bankAccount) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bank account not found",
+        });
+      }
+
+      if (bankAccount.isDefault) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Cannot delete the default bank account.",
+        });
+      }
+
+      await ctx.prisma.bankAccount.delete({
+        where: { id: input.bankAccountId },
+      });
+
+      return { success: true };
+    }),
+
+  resolveBankAccount: operatorCompanyProcedure
+    .input(
+      z.object({
+        accountNumber: z.string().min(1),
+        bankCode: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const resolved = await paystackResolveAccount({
+          accountNumber: input.accountNumber,
+          bankCode: input.bankCode,
+        });
+        return resolved;
+      } catch (err) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: err instanceof Error ? err.message : "Failed to resolve account number",
+        });
+      }
+    }),
 
   addDocument: operatorCompanyProcedure
     .input(documentSchema)
@@ -670,5 +950,172 @@ export const operatorRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const service = new OperatorBookingService(ctx.prisma);
       return service.checkIn(ctx.companyId, input);
+    }),
+
+  getRevenueAnalytics: operatorCompanyProcedure
+    .input(operatorRevenueAnalyticsSchema)
+    .query(async ({ ctx, input }) => {
+      const { from, to } = input;
+      const companyId = ctx.companyId;
+
+      // 1. Fetch confirmed pricing snapshots within the period
+      // Need to go through HoldGroup -> Bookings (we'll check HoldGroup status and Booking issuedAt)
+      // Wait, HoldGroup has no issuedAt. Booking has issuedAt.
+      // But we can just use the created bookings for this company.
+      // Wait, let's create an OperatorRevenueService for this or do it inline.
+      // Doing it inline first:
+      
+      const confirmedBookings = await ctx.prisma.booking.findMany({
+        where: {
+          trip: {
+            companyId,
+          },
+          status: "CONFIRMED",
+          issuedAt: {
+            gte: new Date(from),
+            lte: new Date(to),
+          },
+        },
+        include: {
+          holdGroup: {
+            include: {
+              pricingSnapshot: true,
+            },
+          },
+          trip: {
+            include: {
+              schedule: {
+                include: {
+                  route: {
+                    include: {
+                      originTerminal: { include: { cityRelation: true } },
+                      destTerminal: { include: { cityRelation: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // 2. Fetch ledger balance (all time)
+      const ledgerEntriesForBalance = await ctx.prisma.operatorLedgerEntry.findMany({
+        where: { companyId },
+        select: {
+          entryType: true,
+          amountXOF: true,
+        },
+      });
+
+      const ledgerBalanceXOF = ledgerEntriesForBalance.reduce((acc, entry) => {
+        return entry.entryType === "CREDIT"
+          ? acc + entry.amountXOF
+          : acc - entry.amountXOF;
+      }, 0);
+
+      // 3. Fetch refunds issued within the period
+      // Actually refunds don't have a direct companyId on them, but we can query ledger entries of type REFUND
+      // Or we can get from Booking -> payments -> refunds. But simpler to use ledger entries.
+      const refundsLedger = await ctx.prisma.operatorLedgerEntry.findMany({
+        where: {
+          companyId,
+          sourceType: "REFUND",
+          createdAt: {
+            gte: new Date(from),
+            lte: new Date(to),
+          },
+        },
+      });
+      const refundsIssuedXOF = refundsLedger.reduce((acc, entry) => acc + entry.amountXOF, 0);
+
+      // 4. Calculate KPIs from bookings
+      let grossRevenueXOF = 0;
+      let netRevenueXOF = 0;
+      let commissionXOF = 0;
+
+      // Group by date for timeSeries
+      const timeSeriesMap = new Map<string, { date: string; grossXOF: number; netXOF: number; bookings: number }>();
+
+      // Group by route for topRoutes
+      const routeMap = new Map<string, { routeLabel: string; totalNetXOF: number; bookingsCount: number }>();
+
+      // Since pricingSnapshot is per holdGroup, and multiple bookings can share a holdGroup,
+      // we need to avoid double counting pricing snapshots.
+      const processedHoldGroups = new Set<string>();
+
+      for (const booking of confirmedBookings) {
+        const hg = booking.holdGroup;
+        if (!hg) continue;
+        if (!booking.issuedAt) continue;
+
+        const dateStr = booking.issuedAt.toISOString().split("T")[0] as string; // YYYY-MM-DD
+        if (!timeSeriesMap.has(dateStr)) {
+          timeSeriesMap.set(dateStr, { date: dateStr, grossXOF: 0, netXOF: 0, bookings: 0 });
+        }
+        const tsEntry = timeSeriesMap.get(dateStr)!;
+
+        const route = booking.trip.schedule?.route;
+        const origin = route?.originTerminal?.cityRelation?.name ?? "Unknown";
+        const dest = route?.destTerminal?.cityRelation?.name ?? "Unknown";
+        const routeLabel = `${origin} → ${dest}`;
+        if (!routeMap.has(routeLabel)) {
+          routeMap.set(routeLabel, { routeLabel, totalNetXOF: 0, bookingsCount: 0 });
+        }
+        const routeEntry = routeMap.get(routeLabel)!;
+
+        // Count bookings
+        tsEntry.bookings += 1;
+        routeEntry.bookingsCount += 1;
+
+        if (!processedHoldGroups.has(hg.id)) {
+          processedHoldGroups.add(hg.id);
+          const ps = hg.pricingSnapshot;
+          if (ps) {
+            grossRevenueXOF += ps.chargeAmountXOF;
+            netRevenueXOF += ps.operatorNetXOF;
+            commissionXOF += ps.commissionXOF + ps.convenienceFeeXOF;
+
+            tsEntry.grossXOF += ps.chargeAmountXOF;
+            tsEntry.netXOF += ps.operatorNetXOF;
+
+            routeEntry.totalNetXOF += ps.operatorNetXOF;
+          }
+        }
+      }
+
+      const timeSeries = Array.from(timeSeriesMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+      const topRoutes = Array.from(routeMap.values())
+        .sort((a, b) => b.totalNetXOF - a.totalNetXOF)
+        .slice(0, 5);
+
+      // 5. Recent ledger entries
+      const recentLedger = await ctx.prisma.operatorLedgerEntry.findMany({
+        where: { companyId },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      });
+
+      return {
+        kpis: {
+          grossRevenueXOF,
+          netRevenueXOF,
+          commissionXOF,
+          ledgerBalanceXOF,
+          refundsIssuedXOF,
+          totalConfirmedBookings: confirmedBookings.length,
+          totalTripsRun: 0, // Could calculate this if needed
+        },
+        timeSeries,
+        topRoutes,
+        recentLedger: recentLedger.map((e) => ({
+          id: e.id,
+          entryType: e.entryType,
+          sourceType: e.sourceType,
+          amountXOF: e.amountXOF,
+          description: e.description,
+          createdAt: e.createdAt.toISOString(),
+        })),
+      };
     }),
 });

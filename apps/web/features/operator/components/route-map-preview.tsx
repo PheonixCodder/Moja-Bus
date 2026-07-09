@@ -9,7 +9,6 @@ import {
   Popup,
 } from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import type { RouterOutputs } from "@/trpc/client";
 
 type Terminal = RouterOutputs["terminals"]["list"][number];
@@ -75,8 +74,14 @@ export default function RouteMapPreview({ terminals }: RouteMapPreviewProps) {
   ]);
 
   return (
-    <MapContainer
-      center={center}
+    <>
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossOrigin=""
+      />
+      <MapContainer
+        center={center}
       zoom={7}
       style={{ height: "100%", width: "100%" }}
       zoomControl={false}
@@ -117,6 +122,7 @@ export default function RouteMapPreview({ terminals }: RouteMapPreviewProps) {
           </Marker>
         );
       })}
-    </MapContainer>
+      </MapContainer>
+    </>
   );
 }

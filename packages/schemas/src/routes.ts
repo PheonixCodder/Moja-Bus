@@ -25,7 +25,7 @@ export const createRouteSchema = z.object({
   distanceKm: z.coerce.number().min(0).optional().nullable(),
   estimatedDurationMin: z.coerce.number().int().min(1).optional().nullable(),
   status: routeStatusEnum.default("DRAFT"),
-  waypoints: z.array(waypointSchema).default([]),
+  waypoints: z.array(waypointSchema).max(50, "Maximum of 50 stops allowed").default([]),
 });
 export type CreateRouteInput = z.infer<typeof createRouteSchema>;
 
@@ -50,6 +50,7 @@ export const createTerminalSchema = z.object({
   isPrimary: z.boolean().default(false),
   isTerminal: z.boolean().default(false),
   isActive: z.boolean().default(true),
+  operatingHours: z.any().optional().nullable(),
 });
 export type CreateTerminalInput = z.infer<typeof createTerminalSchema>;
 

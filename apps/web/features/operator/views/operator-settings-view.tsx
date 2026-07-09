@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
+import { useQueryState, parseAsStringEnum } from "nuqs";
 import {
   Building2,
   Landmark,
@@ -25,6 +26,7 @@ import {
   Eye,
   ExternalLink,
   ChevronRight,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@moja/ui/lib/utils";
@@ -40,6 +42,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
+import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 import { createStorageAdapter } from "../lib/storage-adapter";
 import {
   getCompanyStatusPresentation,
@@ -51,21 +54,66 @@ import {
   useMutation,
   useQueryClient,
   useSuspenseQuery,
+  useQuery,
 } from "@tanstack/react-query";
 
 type SettingsSection = "profile" | "bank" | "documents" | "verification";
 
 export function OperatorSettingsView() {
-  const [activeSection, setActiveSection] =
-    useState<SettingsSection>("profile");
+  const [activeSection, setActiveSection] = useQueryState(
+    "tab",
+    parseAsStringEnum<SettingsSection>(["profile", "bank", "documents", "verification"])
+      .withDefault("profile")
+  );
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: settings } = useSuspenseQuery(
     trpc.operator.getSettings.queryOptions(),
   );
 
+  const { data: bankAccounts, refetch: refetchBankAccounts } = useQuery(
+    trpc.operator.listBankAccounts.queryOptions()
+  );
+
+  const addBankAccountMutation = useMutation(
+    trpc.operator.addBankAccount.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
+        refetchBankAccounts();
+      },
+    }),
+  );
+
+  const setDefaultBankAccountMutation = useMutation(
+    trpc.operator.setDefaultBankAccount.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
+        refetchBankAccounts();
+      },
+    }),
+  );
+
+  const deleteBankAccountMutation = useMutation(
+    trpc.operator.deleteBankAccount.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
+        refetchBankAccounts();
+      },
+    }),
+  );
+
+  const { data: paystackBanks, isLoading: isLoadingBanks } = useQuery(
+    trpc.payments.listBanks.queryOptions({})
+  );
+
   const updateCompanyMutation = useMutation(
     trpc.operator.updateCompany.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
+  );
+  const updateProfileMutation = useMutation(
+    trpc.operator.updateProfile.mutationOptions({
       onSuccess: () =>
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
     }),
@@ -130,6 +178,7 @@ export function OperatorSettingsView() {
     phone: "",
     website: "",
     description: "",
+    estimatedStaffSize: "",
   });
 
   const [legalForm, setLegalForm] = useState({
@@ -141,6 +190,7 @@ export function OperatorSettingsView() {
 
   const [bankForm, setBankForm] = useState({
     bankName: "",
+    bankCode: "",
     accountNumber: "",
     accountName: "",
     branch: "",
@@ -151,8 +201,10 @@ export function OperatorSettingsView() {
   // Document upload state
   const [uploadingDocType, setUploadingDocType] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [docExpiryDates, setDocExpiryDates] = useState<Record<string, string>>({});
+  const [profileImageUploading, setProfileImageUploading] = useState(false);
 
-  useEffect(() => {
+  const openProfileDrawer = () => {
     if (!settings) return;
     const { company } = settings;
     setProfileForm({
@@ -161,26 +213,22 @@ export function OperatorSettingsView() {
       phone: company.phone || "",
       website: company.website || "",
       description: company.description || "",
+      estimatedStaffSize: company.estimatedStaffSize?.toString() || "",
     });
+    setActiveDrawer("profile");
+  };
 
+  const openLegalDrawer = () => {
+    if (!settings) return;
+    const { company } = settings;
     setLegalForm({
       businessType: company.businessType || "SOLE_PROPRIETORSHIP",
       registrationNumber: company.registrationNumber || "",
       taxId: company.taxId || "",
       yearEstablished: company.yearEstablished?.toString() || "",
     });
-
-    if (company.bankAccount) {
-      setBankForm((prev) => ({
-        ...prev,
-        bankName: company.bankAccount!.bankName || "",
-        accountName: company.bankAccount!.accountName || "",
-        branch: company.bankAccount!.branch || "",
-        swiftCode: company.bankAccount!.swiftCode || "",
-        iban: company.bankAccount!.iban || "",
-      }));
-    }
-  }, [settings]);
+    setActiveDrawer("legal");
+  };
 
   // Handle Save Company Profile
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -191,8 +239,9 @@ export function OperatorSettingsView() {
         name: profileForm.name,
         email: profileForm.email,
         phone: profileForm.phone,
-        website: profileForm.website || null,
-        description: profileForm.description || null,
+        website: profileForm.website || undefined,
+        description: profileForm.description || undefined,
+        estimatedStaffSize: profileForm.estimatedStaffSize ? parseInt(profileForm.estimatedStaffSize, 10) : undefined,
       });
       toast.success("Company profile updated successfully");
       setActiveDrawer(null);
@@ -225,31 +274,16 @@ export function OperatorSettingsView() {
     }
   };
 
-  const openBankDrawer = async () => {
-    const companyData = settings?.company;
-    if (companyData?.bankAccount) {
-      setBankForm((prev) => ({
-        ...prev,
-        bankName: companyData.bankAccount!.bankName || "",
-        accountNumber: "",
-        accountName: companyData.bankAccount!.accountName || "",
-        branch: companyData.bankAccount!.branch || "",
-        swiftCode: companyData.bankAccount!.swiftCode || "",
-        iban: companyData.bankAccount!.iban || "",
-      }));
-
-      if (settings?.operator.role === "OWNER") {
-        try {
-          const revealed = await revealBankMutation.mutateAsync();
-          setBankForm((prev) => ({
-            ...prev,
-            accountNumber: revealed.accountNumber,
-          }));
-        } catch (err: any) {
-          toast.error(err.message || "Could not load full account number");
-        }
-      }
-    }
+  const openBankDrawer = () => {
+    setBankForm({
+      bankName: "",
+      bankCode: "",
+      accountNumber: "",
+      accountName: "",
+      branch: "",
+      swiftCode: "",
+      iban: "",
+    });
     setActiveDrawer("bank");
   };
 
@@ -258,18 +292,20 @@ export function OperatorSettingsView() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateBankMutation.mutateAsync({
+      await addBankAccountMutation.mutateAsync({
         bankName: bankForm.bankName,
+        bankCode: bankForm.bankCode,
         accountNumber: bankForm.accountNumber,
         accountName: bankForm.accountName,
         branch: bankForm.branch || null,
         swiftCode: bankForm.swiftCode || null,
         iban: bankForm.iban || null,
       });
-      toast.success("Settlement bank details updated successfully");
+      toast.success("Settlement account submitted for admin verification.");
       setActiveDrawer(null);
+      refetchBankAccounts();
     } catch (err: any) {
-      toast.error(err.message || "Failed to update bank account");
+      toast.error(err.message || "Failed to submit bank account");
     } finally {
       setSaving(false);
     }
@@ -297,6 +333,7 @@ export function OperatorSettingsView() {
         fileUrl,
         fileSize: file.size,
         mimeType: file.type || "application/pdf",
+        expiresAt: docExpiryDates[type] ? new Date(docExpiryDates[type]).toISOString() : undefined,
       });
 
       toast.success(`${type.replace("_", " ")} uploaded successfully`);
@@ -320,6 +357,24 @@ export function OperatorSettingsView() {
       toast.success("Document deleted");
     } catch (err: any) {
       toast.error(err.message || "Failed to delete document");
+    }
+  };
+
+  // Handle Profile Photo Upload/Update
+  const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setProfileImageUploading(true);
+      toast.loading("Uploading profile photo...", { id: "profile-upload" });
+      const fileUrl = await fileStorage.uploadFile(file);
+      await updateProfileMutation.mutateAsync({ profilePhotoUrl: fileUrl });
+      toast.success("Profile photo updated", { id: "profile-upload" });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload photo", { id: "profile-upload" });
+    } finally {
+      setProfileImageUploading(false);
     }
   };
 
@@ -358,9 +413,10 @@ export function OperatorSettingsView() {
     return null;
   }
 
-  const { company } = settings;
+  const { company, operator } = settings;
   const statusPresentation = getCompanyStatusPresentation(company.status);
-  const bankVerificationState = getBankVerificationState(company.bankAccount);
+  const defaultBank = bankAccounts?.find((b) => b.isDefault);
+  const bankVerificationState = getBankVerificationState(defaultBank);
   const documentsVerificationState = getDocumentsVerificationState(
     company.documents,
   );
@@ -378,7 +434,7 @@ export function OperatorSettingsView() {
     {
       label: "Business registration certificate approved",
       done: company.documents.some(
-        (d) =>
+        (d: any) =>
           d.type === "BUSINESS_REGISTRATION_CERTIFICATE" &&
           d.status === "APPROVED",
       ),
@@ -386,7 +442,7 @@ export function OperatorSettingsView() {
     {
       label: "Operating permit approved",
       done: company.documents.some(
-        (d) =>
+        (d: any) =>
           d.type === "TRANSPORT_OPERATING_PERMIT" && d.status === "APPROVED",
       ),
     },
@@ -667,7 +723,7 @@ export function OperatorSettingsView() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setActiveDrawer("profile")}
+                    onClick={openProfileDrawer}
                   >
                     Edit General
                   </Button>
@@ -739,7 +795,7 @@ export function OperatorSettingsView() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setActiveDrawer("legal")}
+                    onClick={openLegalDrawer}
                   >
                     Edit Legal
                   </Button>
@@ -776,6 +832,53 @@ export function OperatorSettingsView() {
                     <p className="font-semibold text-foreground mt-0.5 font-mono">
                       {company.taxId}
                     </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* User Profile / Avatar Card */}
+              <div className="border border-border bg-card rounded-lg overflow-hidden shadow-xs">
+                <div className="p-4 border-b border-border/60">
+                  <div className="flex items-center gap-2">
+                    <User className="size-4 text-muted-foreground" />
+                    <h3 className="text-xs font-bold text-foreground uppercase tracking-widest">
+                      Your Profile
+                    </h3>
+                  </div>
+                </div>
+                <div className="p-6 flex flex-col md:flex-row items-center gap-6">
+                  <Avatar className="size-20 border border-border">
+                    <AvatarImage src={operator.profilePhotoUrl || undefined} />
+                    <AvatarFallback className="text-lg bg-slate-100">
+                      {operator.user?.fullName?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-3 w-full">
+                    <div>
+                      <h4 className="text-xs font-semibold text-foreground">
+                        Profile Photo
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">
+                        This is your personal avatar. It is visible in staff lists and activity logs.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label
+                        htmlFor="profile-photo-uploader"
+                        className="inline-flex items-center justify-center rounded-lg border border-border hover:bg-slate-50 cursor-pointer h-8 px-3 text-xs font-semibold"
+                      >
+                        <FileUp className="size-3.5 mr-1.5" />
+                        {operator.profilePhotoUrl ? "Change Photo" : "Upload Photo"}
+                        <input
+                          type="file"
+                          id="profile-photo-uploader"
+                          accept="image/png, image/jpeg"
+                          onChange={handleProfilePhotoUpload}
+                          disabled={profileImageUploading}
+                          className="hidden"
+                        />
+                      </Label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -861,59 +964,113 @@ export function OperatorSettingsView() {
                     variant="outline"
                     onClick={openBankDrawer}
                   >
-                    {company.bankAccount
-                      ? "Edit Bank Account"
-                      : "Configure Bank"}
+                    Add Settlement Method
                   </Button>
                 </div>
 
-                {company.bankAccount ? (
-                  <div className="p-6 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-xs">
-                      <div>
-                        <span className="text-muted-foreground">Bank Name</span>
-                        <p className="font-semibold text-foreground mt-0.5">
-                          {company.bankAccount.bankName}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">
-                          Account Holder Name
-                        </span>
-                        <p className="font-semibold text-foreground mt-0.5">
-                          {company.bankAccount.accountName}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">
-                          Account Number
-                        </span>
-                        <p className="font-semibold text-foreground mt-0.5 font-mono">
-                          {company.bankAccount.accountNumber}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">
-                          Bank Branch / Location
-                        </span>
-                        <p className="font-semibold text-foreground mt-0.5">
-                          {company.bankAccount.branch || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">
-                          SWIFT / BIC Code
-                        </span>
-                        <p className="font-semibold text-foreground mt-0.5 font-mono">
-                          {company.bankAccount.swiftCode || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">IBAN</span>
-                        <p className="font-semibold text-foreground mt-0.5 font-mono">
-                          {company.bankAccount.iban || "N/A"}
-                        </p>
-                      </div>
+                {bankAccounts && bankAccounts.length > 0 ? (
+                  <div className="p-6 space-y-6">
+                    <div className="space-y-4">
+                      {bankAccounts.map((account) => {
+                        const statusBadgeColor =
+                          account.isVerified
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : !account.isActive
+                              ? "bg-red-50 text-red-700 border-red-200"
+                              : "bg-yellow-50 text-yellow-700 border-yellow-200";
+
+                        const statusText =
+                          account.isVerified
+                            ? "Verified"
+                            : !account.isActive
+                              ? "Rejected / Disabled"
+                              : "Pending Review";
+
+                        return (
+                          <div
+                            key={account.id}
+                            className={`p-4 rounded-lg border ${
+                              account.isDefault
+                                ? "border-primary/40 bg-primary/5"
+                                : "border-border bg-card"
+                            } flex flex-col md:flex-row md:items-center justify-between gap-4`}
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-semibold text-foreground">
+                                  {account.bankName}
+                                </span>
+                                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${statusBadgeColor}`}>
+                                  {statusText}
+                                </span>
+                                {account.isDefault && (
+                                  <span className="text-[10px] font-bold bg-green-600 text-white px-2 py-0.5 rounded-full">
+                                    Active Payout Target
+                                  </span>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 text-[11px] text-muted-foreground mt-1">
+                                <div>
+                                  <span className="font-medium text-foreground">Holder:</span>{" "}
+                                  <span className="uppercase">{account.accountName}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-foreground">Account #:</span>{" "}
+                                  <span className="font-mono">{account.accountNumber}</span>
+                                </div>
+                                {account.paystackSubaccountCode && (
+                                  <div>
+                                    <span className="font-medium text-foreground">Paystack ID:</span>{" "}
+                                    <span className="font-mono">{account.paystackSubaccountCode}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 self-end md:self-center">
+                              {account.isVerified && !account.isDefault && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={async () => {
+                                    try {
+                                      toast.loading("Setting active target...", { id: "set-default" });
+                                      await setDefaultBankAccountMutation.mutateAsync({
+                                        bankAccountId: account.id,
+                                      });
+                                      toast.success("Payout target updated successfully", { id: "set-default" });
+                                    } catch (err: any) {
+                                      toast.error(err.message || "Failed to set default", { id: "set-default" });
+                                    }
+                                  }}
+                                >
+                                  Set Active
+                                </Button>
+                              )}
+                              {!account.isDefault && (
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={async () => {
+                                    if (confirm("Are you sure you want to delete this payment method?")) {
+                                      try {
+                                        toast.loading("Deleting account...", { id: "delete-bank" });
+                                        await deleteBankAccountMutation.mutateAsync({
+                                          bankAccountId: account.id,
+                                        });
+                                        toast.success("Account deleted", { id: "delete-bank" });
+                                      } catch (err: any) {
+                                        toast.error(err.message || "Failed to delete account", { id: "delete-bank" });
+                                      }
+                                    }
+                                  }}
+                                >
+                                  Delete
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (
@@ -923,7 +1080,7 @@ export function OperatorSettingsView() {
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-foreground">
-                        No bank account configured
+                        No bank accounts configured
                       </h4>
                       <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed mt-0.5">
                         Add settlement details to receive automatic payouts for
@@ -977,7 +1134,7 @@ export function OperatorSettingsView() {
                       },
                     ].map((slot) => {
                       const uploaded = company.documents.find(
-                        (d) => d.type === slot.key,
+                        (d: any) => d.type === slot.key,
                       );
                       const isUploading = uploadingDocType === slot.key;
 
@@ -1007,9 +1164,26 @@ export function OperatorSettingsView() {
                             ) : uploaded ? (
                               <div className="flex items-center justify-between text-xs">
                                 <div className="space-y-1">
-                                  <span className="font-semibold text-foreground truncate max-w-[150px] inline-block">
-                                    {uploaded.fileName}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-foreground truncate max-w-[150px] inline-block">
+                                      {uploaded.fileName}
+                                    </span>
+                                    {uploaded.status === "APPROVED" && (
+                                      <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-bold tracking-wider">
+                                        APPROVED
+                                      </span>
+                                    )}
+                                    {uploaded.status === "PENDING" && (
+                                      <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-bold tracking-wider">
+                                        PENDING
+                                      </span>
+                                    )}
+                                    {uploaded.status === "REJECTED" && (
+                                      <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold tracking-wider">
+                                        REJECTED
+                                      </span>
+                                    )}
+                                  </div>
                                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                                     <span>PDF</span>
                                     <span>•</span>
@@ -1019,6 +1193,17 @@ export function OperatorSettingsView() {
                                         "PPP",
                                       )}
                                     </span>
+                                    {uploaded.expiresAt && (
+                                      <>
+                                        <span>•</span>
+                                        <span className={cn(
+                                          new Date(uploaded.expiresAt) < new Date() ? "text-red-500 font-bold" :
+                                          new Date(uploaded.expiresAt) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? "text-amber-500 font-bold" : ""
+                                        )}>
+                                          Expires: {format(new Date(uploaded.expiresAt), "PPP")}
+                                        </span>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
 
@@ -1067,6 +1252,16 @@ export function OperatorSettingsView() {
                                     className="hidden"
                                   />
                                 </Label>
+                                <div className="mt-2 space-y-1 w-full max-w-[200px] mx-auto text-left">
+                                  <Label htmlFor={`expiry-${slot.key}`} className="text-[10px] text-muted-foreground ml-1">Expiry Date (Optional)</Label>
+                                  <Input
+                                    id={`expiry-${slot.key}`}
+                                    type="date"
+                                    className="h-7 text-[11px] w-full"
+                                    value={docExpiryDates[slot.key] || ""}
+                                    onChange={(e) => setDocExpiryDates(prev => ({ ...prev, [slot.key]: e.target.value }))}
+                                  />
+                                </div>
                               </div>
                             )}
                           </div>
@@ -1413,6 +1608,19 @@ export function OperatorSettingsView() {
                   }
                 />
               </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="estimated-staff-size">Estimated Staff Size</Label>
+                <Input
+                  id="estimated-staff-size"
+                  type="number"
+                  min="1"
+                  value={profileForm.estimatedStaffSize}
+                  onChange={(e) =>
+                    setProfileForm({ ...profileForm, estimatedStaffSize: e.target.value })
+                  }
+                />
+              </div>
             </div>
 
             <div className="p-6 border-t border-border flex items-center justify-end gap-3 bg-slate-50">
@@ -1542,21 +1750,49 @@ export function OperatorSettingsView() {
             className="h-full flex flex-col justify-between"
           >
             <DrawerHeader>
-              <DrawerTitle>Edit Settlement Bank Account</DrawerTitle>
+              <DrawerTitle>Add Settlement Account</DrawerTitle>
               <DrawerDescription>
-                Configure account parameters for automated ticket payouts.
+                Register a Côte d'Ivoire Bank or Mobile Money wallet for automated split payouts.
               </DrawerDescription>
             </DrawerHeader>
 
             <div className="flex-1 p-6 space-y-4 overflow-y-auto">
               <div className="space-y-1.5">
-                <Label htmlFor="bank-name">Bank Name *</Label>
+                <Label htmlFor="bank-code">Payout Provider *</Label>
+                <select
+                  id="bank-code"
+                  value={bankForm.bankCode}
+                  onChange={(e) => {
+                    const selected = paystackBanks?.find((p: any) => p.code === e.target.value);
+                    setBankForm({
+                      ...bankForm,
+                      bankCode: e.target.value,
+                      bankName: selected ? selected.name : "",
+                    });
+                  }}
+                  className="flex h-9 w-full rounded-md border border-input bg-bg-base px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                  required
+                >
+                  <option value="">
+                    {isLoadingBanks ? "Loading banks..." : "Select Bank or Mobile Money..."}
+                  </option>
+                  {paystackBanks?.map((provider: any) => (
+                    <option key={provider.code} value={provider.code}>
+                      {provider.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="account-number">Account / Wallet Number *</Label>
                 <Input
-                  id="bank-name"
-                  value={bankForm.bankName}
-                  onChange={(e) =>
-                    setBankForm({ ...bankForm, bankName: e.target.value })
-                  }
+                  id="account-number"
+                  value={bankForm.accountNumber}
+                  onChange={(e) => {
+                    setBankForm({ ...bankForm, accountNumber: e.target.value });
+                  }}
+                  placeholder="RIB number or phone format"
                   required
                 />
               </div>
@@ -1566,27 +1802,16 @@ export function OperatorSettingsView() {
                 <Input
                   id="account-name"
                   value={bankForm.accountName}
-                  onChange={(e) =>
-                    setBankForm({ ...bankForm, accountName: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setBankForm({ ...bankForm, accountName: e.target.value });
+                  }}
+                  placeholder="Enter account holder name"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="account-number">Account Number *</Label>
-                <Input
-                  id="account-number"
-                  value={bankForm.accountNumber}
-                  onChange={(e) =>
-                    setBankForm({ ...bankForm, accountNumber: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="bank-branch">Branch Location</Label>
+                <Label htmlFor="bank-branch">Branch Location (Optional)</Label>
                 <Input
                   id="bank-branch"
                   value={bankForm.branch}
@@ -1597,7 +1822,7 @@ export function OperatorSettingsView() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="bank-swift">SWIFT / BIC Code</Label>
+                <Label htmlFor="bank-swift">SWIFT / BIC Code (Optional)</Label>
                 <Input
                   id="bank-swift"
                   value={bankForm.swiftCode}
@@ -1608,7 +1833,7 @@ export function OperatorSettingsView() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="bank-iban">IBAN</Label>
+                <Label htmlFor="bank-iban">IBAN (Optional)</Label>
                 <Input
                   id="bank-iban"
                   value={bankForm.iban}
@@ -1627,8 +1852,8 @@ export function OperatorSettingsView() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? <Spinner className="size-4" /> : "Save Changes"}
+              <Button type="submit" disabled={saving || !bankForm.bankCode || !bankForm.accountNumber || !bankForm.accountName}>
+                {saving ? <Spinner className="size-4" /> : "Submit for Verification"}
               </Button>
             </div>
           </form>

@@ -103,6 +103,7 @@ export function OperatorOnboardingView() {
                   type="button"
                   onClick={() => goToStep(step.id as OnboardingStep)}
                   disabled={isUpcoming}
+                  title={isUpcoming ? "Please complete the current step first" : undefined}
                   className="flex flex-col items-center gap-2 focus:outline-none disabled:cursor-not-allowed group"
                 >
                   {/* Step Marker */}
@@ -151,7 +152,7 @@ export function OperatorOnboardingView() {
             <div
               className="h-full bg-primary transition-all duration-500 ease-in-out"
               style={{
-                width: `${((currentStepIndex + 1) / steps.length) * 100}%`,
+                width: `${(currentStepIndex / steps.length) * 100}%`,
               }}
             />
           </div>
