@@ -47,7 +47,7 @@ export function ResetPasswordForm({
       return;
     }
 
-    await resetPassword(email, otp, password);
+    await resetPassword(email, otp, password, userType);
   }
 
   return (

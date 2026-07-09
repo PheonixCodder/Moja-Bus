@@ -139,7 +139,8 @@ function formatDate(d: string | Date) {
 function groupTripsByDate(trips: Trip[]): [string, Trip[]][] {
   const map = new Map<string, Trip[]>();
   for (const trip of trips) {
-    const key = new Date(trip.departureDate).toISOString().slice(0, 10);
+    const d = new Date(trip.departureDate);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(trip);
   }
@@ -431,12 +432,41 @@ function ManifestDrawer({
 
   const assignBusMutation = useMutation({
     ...trpc.trips.assignBusDriver.mutationOptions(),
-    onSuccess: () => {
+    onMutate: async (newAssignment) => {
+      await queryClient.cancelQueries(trpc.trips.list.pathFilter());
+      const previousTrips = queryClient.getQueryData(
+        trpc.trips.list.queryFilter(),
+      );
+      queryClient.setQueriesData(trpc.trips.list.queryFilter(), (old: any) => {
+        if (!old) return old;
+        return old.map((t: any) => {
+          if (t.id === newAssignment.id) {
+            return {
+              ...t,
+              busId: newAssignment.data.busId,
+              bus:
+                busesQuery.data?.find((b) => b.id === newAssignment.data.busId) ||
+                t.bus,
+            };
+          }
+          return t;
+        });
+      });
+      return { previousTrips };
+    },
+    onError: (err: any, newAssignment, context: any) => {
+      queryClient.setQueriesData(
+        trpc.trips.list.queryFilter(),
+        context.previousTrips,
+      );
+      toast.error(err.message || "Failed to assign bus");
+    },
+    onSettled: () => {
       invalidateTripData();
+    },
+    onSuccess: () => {
       toast.success("Bus assigned");
     },
-    onError: (err: any) =>
-      toast.error(err.message || "Failed to assign bus"),
   });
 
   const updateStatusMutation = useMutation({
@@ -939,11 +969,39 @@ function TripCard({
 
   const assignBusMutation = useMutation({
     ...trpc.trips.assignBusDriver.mutationOptions(),
-    onSuccess: () => {
+    onMutate: async (newAssignment) => {
+      await queryClient.cancelQueries(trpc.trips.list.pathFilter());
+      const previousTrips = queryClient.getQueryData(
+        trpc.trips.list.queryFilter(),
+      );
+      queryClient.setQueriesData(trpc.trips.list.queryFilter(), (old: any) => {
+        if (!old) return old;
+        return old.map((t: any) => {
+          if (t.id === newAssignment.id) {
+            return {
+              ...t,
+              busId: newAssignment.data.busId,
+              bus: buses.find((b) => b.id === newAssignment.data.busId) || t.bus,
+            };
+          }
+          return t;
+        });
+      });
+      return { previousTrips };
+    },
+    onError: (err: any, newAssignment, context: any) => {
+      queryClient.setQueriesData(
+        trpc.trips.list.queryFilter(),
+        context.previousTrips,
+      );
+      toast.error(err.message || "Failed to assign bus");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries(trpc.trips.list.pathFilter());
+    },
+    onSuccess: () => {
       toast.success("Bus assigned");
     },
-    onError: (err: any) => toast.error(err.message || "Failed to assign bus"),
   });
 
   const route = trip.schedule?.route;

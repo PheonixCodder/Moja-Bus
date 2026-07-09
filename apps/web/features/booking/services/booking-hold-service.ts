@@ -12,7 +12,7 @@ import { isActiveBookingStatus, segmentsOverlap } from "../lib/segment-overlap";
 import { SeatAvailabilityService } from "./seat-availability-service";
 import { TripDetailsService } from "./trip-details-service";
 
-const HOLD_DURATION_MS = 10 * 60 * 1000;
+const HOLD_DURATION_MS = 15 * 60 * 1000;
 
 type SeatPassengerInput = {
   seatId: string;

@@ -1,4 +1,4 @@
-import { redirectIfOperatorAuthenticated } from "@/lib/auth-server";
+import { redirectIfAuthenticated } from "@/lib/auth-server";
 import { OperatorSignupView } from "@/features/auth/views/operator-signup-view";
 
 export const metadata = {
@@ -6,7 +6,7 @@ export const metadata = {
 };
 
 export default async function OperatorSignupPage() {
-  await redirectIfOperatorAuthenticated();
+  await redirectIfAuthenticated();
 
   return <OperatorSignupView />;
 }

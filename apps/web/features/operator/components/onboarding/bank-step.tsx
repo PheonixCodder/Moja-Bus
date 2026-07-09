@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
@@ -35,32 +37,25 @@ export function BankStep({
   onBack,
   isSaving,
 }: BankStepProps) {
+  const trpc = useTRPC();
+  const { data: paystackBanks, isLoading: isLoadingBanks } = useQuery(
+    trpc.payments.listBanks.queryOptions({})
+  );
+
   const [bankName, setBankName] = useState("");
+  const [bankCode, setBankCode] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [branch, setBranch] = useState("");
   const [swiftCode, setSwiftCode] = useState("");
   const [iban, setIban] = useState("");
 
-  const commonBanks = [
-    "BICICI",
-    "Banque de l'Union",
-    "Ecobank",
-    "Banque Atlantique",
-    "SGBCI",
-    "Standard Chartered",
-    "CBAO",
-    "Banque Internationale pour l'Afrique de l'Ouest (BIAO)",
-    "Orabank",
-    "Versus Bank",
-    "Other",
-  ];
-
   // Pre-fill form if initialData exists
   useEffect(() => {
     if (initialData?.company?.bankAccount) {
       const bank = initialData.company.bankAccount;
       setBankName(bank.bankName || "");
+      setBankCode(bank.bankCode || "");
       const masked =
         typeof bank.accountNumber === "string" &&
         bank.accountNumber.includes("•");
@@ -80,6 +75,7 @@ export function BankStep({
 
     const payload: BankStepInput = {
       bankName,
+      bankCode: bankCode || undefined,
       accountNumber,
       accountName,
       branch: branch || undefined,
@@ -139,22 +135,26 @@ export function BankStep({
                 Bank Name *
               </Label>
               <Combobox
-                items={commonBanks.map((b) => ({ value: b, label: b }))}
-                value={bankName}
-                onValueChange={(val) => setBankName(val || "")}
+                items={(paystackBanks || []).map((b: any) => ({ value: b.code, label: b.name }))}
+                value={bankCode}
+                onValueChange={(val) => {
+                  setBankCode(val || "");
+                  const matched = paystackBanks?.find((b: any) => b.code === val);
+                  setBankName(matched ? matched.name : "");
+                }}
               >
                 <ComboboxInput
                   id="bank-name"
-                  placeholder="Select bank"
+                  placeholder={isLoadingBanks ? "Loading banks..." : "Select bank"}
                   className="w-full text-sm"
                   value={bankName || ""}
                 />
                 <ComboboxContent>
                   <ComboboxEmpty>No bank found.</ComboboxEmpty>
                   <ComboboxList>
-                    {commonBanks.map((bank) => (
-                      <ComboboxItem key={bank} value={bank}>
-                        {bank}
+                    {(paystackBanks || []).map((bank: any) => (
+                      <ComboboxItem key={bank.code} value={bank.code}>
+                        {bank.name}
                       </ComboboxItem>
                     ))}
                   </ComboboxList>

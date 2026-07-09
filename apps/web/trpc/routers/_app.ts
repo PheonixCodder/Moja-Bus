@@ -12,6 +12,8 @@ import { searchRouter } from "./search";
 import { bookingRouter } from "./booking";
 import { passengerRouter } from "./passenger";
 import { paymentsRouter } from "./payments";
+import { publicRouter } from "./public";
+import { adminRouter } from "./admin";
 
 export const appRouter = createTRPCRouter({
   operator: operatorRouter,
@@ -27,6 +29,8 @@ export const appRouter = createTRPCRouter({
   booking: bookingRouter,
   passenger: passengerRouter,
   payments: paymentsRouter,
+  public: publicRouter,
+  admin: adminRouter,
 });
 
 export type AppRouter = typeof appRouter;

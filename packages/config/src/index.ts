@@ -11,12 +11,13 @@ export function getRequiredEnv(
   return value;
 }
 
-export function getOptionalEnv(
+export function getOptionalEnv<T extends string = string>(
   name: string,
   env: NodeJS.ProcessEnv = process.env,
-): string | undefined {
+  fallback?: T,
+): T | undefined {
   const value = env[name];
-  return value && value.length > 0 ? value : undefined;
+  return value && value.length > 0 ? (value as T) : fallback;
 }
 
 export function getBooleanEnv(

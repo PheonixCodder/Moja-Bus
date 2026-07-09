@@ -161,21 +161,22 @@ export function LocationsStep({
     field: keyof LocationItem,
     value: any,
   ) => {
-    const updated = locations.map((loc) => {
-      if (loc.id === id) {
-        const nextLoc = { ...loc, [field]: value };
-        if (field === "isPrimary" && value === true) {
-          nextLoc.isPrimary = true;
+    setLocations((prev) =>
+      prev.map((loc) => {
+        if (loc.id === id) {
+          const nextLoc = { ...loc, [field]: value };
+          if (field === "isPrimary" && value === true) {
+            nextLoc.isPrimary = true;
+          }
+          return nextLoc;
         }
-        return nextLoc;
-      }
-      // If another location was marked primary and this is marked primary, uncheck others
-      if (field === "isPrimary" && value === true) {
-        return { ...loc, isPrimary: false };
-      }
-      return loc;
-    });
-    setLocations(updated);
+        // If another location was marked primary and this is marked primary, uncheck others
+        if (field === "isPrimary" && value === true) {
+          return { ...loc, isPrimary: false };
+        }
+        return loc;
+      })
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -354,6 +355,13 @@ export function LocationsStep({
                         placeholder="Select CI City…"
                         className="w-full text-sm"
                         value={location.city || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLocations((prev) => prev.map((loc) => {
+                            if (loc.id !== location.id) return loc;
+                            return { ...loc, city: val, cityId: "" };
+                          }));
+                        }}
                       />
                       <ComboboxContent>
                         <ComboboxEmpty>No city found.</ComboboxEmpty>

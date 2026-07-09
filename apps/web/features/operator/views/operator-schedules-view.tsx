@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useQueryState, parseAsStringEnum, parseAsBoolean } from "nuqs";
 import {
   CalendarClock,
   Plus,
@@ -225,13 +226,28 @@ function RoutePickerStep({
   routes,
   selectedId,
   onSelect,
+  name,
+  onNameChange,
 }: {
   routes: Route[];
   selectedId: string;
   onSelect: (id: string) => void;
+  name: string;
+  onNameChange: (val: string) => void;
 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="schedule-name" className="text-sm font-bold text-foreground">Schedule Name (optional)</Label>
+        <Input
+          id="schedule-name"
+          placeholder="e.g. Morning Express"
+          value={name}
+          onChange={(e) => onNameChange(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
+
       <div>
         <h3 className="text-sm font-bold text-foreground">Select a route</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
@@ -555,6 +571,8 @@ interface FareDraft {
   fromStopOrder: number;
   toStopOrder: number;
   priceXOF: number;
+  type: "FIXED" | "FLEXIBLE";
+  seatClass: "ECONOMY" | "BUSINESS" | "VIP";
 }
 
 function PricingStep({
@@ -579,7 +597,7 @@ function PricingStep({
     if (value > 0) {
       onChange([
         ...existing,
-        { fromStopOrder: from, toStopOrder: to, priceXOF: value },
+        { fromStopOrder: from, toStopOrder: to, priceXOF: value, type: fare?.type ?? "FIXED", seatClass: fare?.seatClass ?? "ECONOMY" },
       ]);
     } else {
       onChange(existing);
@@ -616,15 +634,21 @@ function PricingStep({
         <div className="grid bg-slate-50 border-b border-border px-4 py-2.5">
           <div
             className="grid gap-2"
-            style={{ gridTemplateColumns: "1fr 1fr auto" }}
+            style={{ gridTemplateColumns: "1fr 1fr auto auto auto" }}
           >
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               From
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               To
             </span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground w-32">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Type
+            </span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Class
+            </span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground w-28">
               Fare (FCFA)
             </span>
           </div>
@@ -638,7 +662,7 @@ function PricingStep({
               <div
                 key={`${from.order}-${to.order}`}
                 className="grid gap-2 px-4 py-3 items-center hover:bg-slate-50/50 transition-colors"
-                style={{ gridTemplateColumns: "1fr 1fr auto" }}
+                style={{ gridTemplateColumns: "1fr 1fr auto auto auto" }}
               >
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-foreground truncate">
@@ -659,7 +683,42 @@ function PricingStep({
                     </p>
                   </div>
                 </div>
-                <div className="w-32">
+                <div className="w-24">
+                  <select
+                    value={fare?.type ?? "FIXED"}
+                    onChange={(e) => {
+                      const existing2 = fares.filter(
+                        (f) => !(f.fromStopOrder === from.order && f.toStopOrder === to.order),
+                      );
+                      if (fare) {
+                        onChange([...existing2, { ...fare, type: e.target.value as FareDraft["type"] }]);
+                      }
+                    }}
+                    className="w-full h-8 text-xs border border-input rounded-md bg-background px-1"
+                  >
+                    <option value="FIXED">Fixed</option>
+                    <option value="FLEXIBLE">Flexible</option>
+                  </select>
+                </div>
+                <div className="w-24">
+                  <select
+                    value={fare?.seatClass ?? "ECONOMY"}
+                    onChange={(e) => {
+                      const existing2 = fares.filter(
+                        (f) => !(f.fromStopOrder === from.order && f.toStopOrder === to.order),
+                      );
+                      if (fare) {
+                        onChange([...existing2, { ...fare, seatClass: e.target.value as FareDraft["seatClass"] }]);
+                      }
+                    }}
+                    className="w-full h-8 text-xs border border-input rounded-md bg-background px-1"
+                  >
+                    <option value="ECONOMY">Economy</option>
+                    <option value="BUSINESS">Business</option>
+                    <option value="VIP">VIP</option>
+                  </select>
+                </div>
+                <div className="w-28">
                   <Input
                     type="number"
                     min={0}
@@ -759,12 +818,19 @@ function PreviewStep({
       </div>
 
       {/* Calendar grid */}
-      <div className="border border-border rounded-md overflow-hidden">
+      <div
+        className="border border-border rounded-md overflow-hidden"
+        role="grid"
+        aria-label="Schedule preview calendar"
+        aria-readonly="true"
+      >
         {/* Day headers */}
-        <div className="grid grid-cols-7 bg-slate-50 border-b border-border">
+        <div className="grid grid-cols-7 bg-slate-50 border-b border-border" role="row">
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
             <div
               key={d}
+              role="columnheader"
+              aria-label={d}
               className="py-2 text-center text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
             >
               {d}
@@ -776,15 +842,26 @@ function PreviewStep({
         {weeks.map((week, wi) => (
           <div
             key={wi}
+            role="row"
             className="grid grid-cols-7 divide-x divide-border border-b border-border last:border-b-0"
           >
             {week.map((day, di) => {
               const isTrip = previewSet.has(day.toDateString());
               const isBeforeStart =
                 validFrom && day < (parseLocalDate(validFrom) || new Date());
+              const dateLabel = day.toLocaleDateString(undefined, {
+                month: "long",
+                day: "numeric",
+              });
               return (
                 <div
                   key={di}
+                  role="gridcell"
+                  aria-label={
+                    isTrip && !isBeforeStart
+                      ? `${dateLabel}: trip at ${formatTime(departureTime)}`
+                      : dateLabel
+                  }
                   className={cn(
                     "py-3 flex flex-col items-center gap-1 min-h-[52px]",
                     isBeforeStart && "bg-slate-50/70 opacity-40",
@@ -796,7 +873,8 @@ function PreviewStep({
                   {isTrip && !isBeforeStart && (
                     <div
                       className="size-2 rounded-full bg-primary"
-                      title={`Trip at ${formatTime(departureTime)}`}
+                      role="presentation"
+                      aria-hidden="true"
                     />
                   )}
                 </div>
@@ -934,7 +1012,7 @@ function ScheduleCard({
 export function OperatorSchedulesView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // ── Data queries ──────────────────────────────
   const { data: schedules } = useSuspenseQuery(
@@ -951,20 +1029,18 @@ export function OperatorSchedulesView() {
   const buses = busesData?.buses ?? [];
 
   // ── Wizard open state ─────────────────────────
-  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useQueryState("new", parseAsBoolean.withDefault(false));
   const [deletingSchedule, setDeletingSchedule] = useState<Schedule | null>(
     null,
   );
 
-  useEffect(() => {
-    if (searchParams && searchParams.get("action") === "new") {
-      setWizardOpen(true);
-    }
-  }, [searchParams]);
-
   // ── Wizard state ──────────────────────────────
-  const [step, setStep] = useState<WizardStep>("Route");
+  const [step, setStep] = useQueryState(
+    "step",
+    parseAsStringEnum<WizardStep>(["Route", "Calendar", "Pricing", "Preview"]).withDefault("Route")
+  );
   const [maxStep, setMaxStep] = useState(0);
+  const [wizardScheduleName, setWizardScheduleName] = useState("");
   const [selectedRouteId, setSelectedRouteId] = useState("");
   const [selectedRoute, setSelectedRoute] = useState<RouteDetail | null>(null);
   const [loadingRouteDetail, setLoadingRouteDetail] = useState(false);
@@ -1060,6 +1136,9 @@ export function OperatorSchedulesView() {
 
   const updateFareMutation = useMutation({
     ...trpc.schedules.updateFare.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.schedules.list.queryFilter());
+    }
   });
 
   const regenerateTripsMutation = useMutation({
@@ -1083,7 +1162,7 @@ export function OperatorSchedulesView() {
       const detail = await queryClient.fetchQuery(
         trpc.schedules.get.queryOptions({ id: schedule.id }),
       );
-      setEditingSchedule(detail as Schedule);
+      setEditingSchedule(detail as unknown as Schedule);
       setEditName(detail.name ?? "");
       setEditDepartureTime(detail.departureTime);
       setEditIsActive(detail.isActive);
@@ -1267,6 +1346,7 @@ export function OperatorSchedulesView() {
       setSelectedRoute(null);
       return;
     }
+    setFares([]);
     setLoadingRouteDetail(true);
     queryClient
       .fetchQuery(trpc.routes.get.queryOptions({ id: selectedRouteId }))
@@ -1342,6 +1422,7 @@ export function OperatorSchedulesView() {
     setSaving(true);
     try {
       const result = await createScheduleMutation.mutateAsync({
+        name: wizardScheduleName || null,
         routeId: selectedRouteId,
         defaultBusId: calConfig.defaultBusId,
         departureTime: calConfig.departureTime,
@@ -1359,8 +1440,8 @@ export function OperatorSchedulesView() {
         fares: fares
           .filter((f) => f.priceXOF > 0)
           .map((f) => ({
-            type: "FIXED" as const,
-            seatClass: "ECONOMY" as const,
+            type: f.type,
+            seatClass: f.seatClass,
             fromStopOrder: f.fromStopOrder,
             toStopOrder: f.toStopOrder,
             priceXOF: f.priceXOF,
@@ -1398,7 +1479,9 @@ export function OperatorSchedulesView() {
       validUntil: "",
       defaultBusId: "",
     });
-    setWizardOpen(false);
+    setWizardScheduleName("");
+    setWizardOpen(null);
+    setStep(null);
   }
 
   async function handleDeleteConfirm() {
@@ -1429,6 +1512,8 @@ export function OperatorSchedulesView() {
             <RoutePickerStep
               routes={routes}
               selectedId={selectedRouteId}
+              name={wizardScheduleName}
+              onNameChange={setWizardScheduleName}
               onSelect={(id) => {
                 setSelectedRouteId(id);
                 setFares([]);
@@ -1580,8 +1665,19 @@ export function OperatorSchedulesView() {
         )}
       </div>
 
-      {/* Edit schedule drawer */}
-      <Drawer open={editDrawerOpen} onOpenChange={setEditDrawerOpen}>
+      {/* Edit Drawer */}
+      <Drawer
+        open={editDrawerOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            const isDirty = editName !== (editingSchedule?.name ?? "") || editDepartureTime !== (editingSchedule?.departureTime ?? "");
+            if (isDirty && !window.confirm("You have unsaved changes. Are you sure you want to discard them?")) {
+              return;
+            }
+          }
+          setEditDrawerOpen(open);
+        }}
+      >
         <DrawerContent className="max-h-[92vh] flex flex-col">
           <DrawerHeader className="border-b border-border py-4 shrink-0">
             <DrawerTitle className="text-base font-bold tracking-tight">
@@ -1890,8 +1986,8 @@ export function OperatorSchedulesView() {
                           <Input
                             type="number"
                             min={0}
-                            value={f.priceXOF}
-                            onChange={(e) =>
+                            defaultValue={f.priceXOF}
+                            onBlur={(e) =>
                               handleFarePriceChange(f.id, e.target.value)
                             }
                             className="h-8 text-xs font-mono text-right"

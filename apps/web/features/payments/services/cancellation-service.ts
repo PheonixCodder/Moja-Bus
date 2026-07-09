@@ -5,8 +5,10 @@ import { resolveHoldGroup } from "../lib/resolve-hold-group";
 export type CancelBookingInput = {
   bookingReference: string;
   userId: string;
-  channel: "CASH" | "VOUCHER";
-  reason?: string;
+  userRole: "PASSENGER" | "OPERATOR" | "ADMIN";
+  userCompanyId?: string | undefined;
+  channel: "CASH" | "VOUCHER" | "PAYSTACK";
+  reason?: string | undefined;
 };
 
 export class CancellationService {
@@ -25,8 +27,20 @@ export class CancellationService {
       },
     });
 
-    if (!booking || booking.userId !== input.userId) {
+    if (!booking) {
       throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+    }
+
+    // Validate permission: owner passenger, operator staff of the owning company, or admin
+    const isOwner = booking.userId === input.userId;
+    const isCompanyStaff = input.userCompanyId && booking.companyId === input.userCompanyId;
+    const isAdmin = input.userRole === "ADMIN";
+
+    if (!isOwner && !isCompanyStaff && !isAdmin) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You do not have permission to cancel this booking",
+      });
     }
 
     if (booking.status !== "CONFIRMED") {
@@ -64,14 +78,38 @@ export class CancellationService {
     const proportionalBase = snapshot
       ? Math.round(snapshot.subtotalBaseXOF / snapshot.seatCount)
       : booking.farePaid;
-    const proportionalCharge = snapshot
-      ? Math.round(snapshot.chargeAmountXOF / snapshot.seatCount)
-      : booking.farePaid;
     const proportionalOperatorNet = snapshot
       ? Math.round(snapshot.operatorNetXOF / snapshot.seatCount)
       : booking.farePaid;
 
-    const refundAmountXOF = Math.max(0, proportionalCharge);
+    // Refund only the base ticket price, not the convenience fee
+    const refundAmountXOF = Math.max(0, proportionalBase);
+
+    let paystackRefundId: string | undefined;
+    let paystackRefundStatus: "COMPLETED" | "PROCESSING" | "FAILED" = "COMPLETED";
+
+    if (input.channel === "PAYSTACK") {
+      if (payment.provider === "MOCK") {
+        paystackRefundId = `mock_ref_${Date.now()}`;
+      } else {
+        const { PaystackProvider } = await import("../providers/paystack-provider");
+        const provider = new PaystackProvider();
+        try {
+          const refundResult = await provider.refund({
+            reference: payment.paystackReference!,
+            amountXOF: refundAmountXOF,
+            reason: input.reason ?? "Customer refund",
+          });
+          paystackRefundId = refundResult.refundId;
+          paystackRefundStatus = refundResult.status === "processed" ? "COMPLETED" : "PROCESSING";
+        } catch (err: any) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Paystack refund initiation failed: ${err.message}`,
+          });
+        }
+      }
+    }
 
     const result = await this.prisma.$transaction(async (tx) => {
       await tx.booking.update({
@@ -88,7 +126,8 @@ export class CancellationService {
           paymentId: payment.id,
           amountXOF: refundAmountXOF,
           channel: input.channel,
-          status: "COMPLETED",
+          status: paystackRefundStatus,
+          paystackRefundId: paystackRefundId ?? null,
           reason: input.reason ?? "Passenger cancellation before departure",
         },
       });

@@ -330,26 +330,45 @@ async function main() {
     where: { name: "Mercedes Sprinter" },
   });
 
-  // Helper to generate seat templates for a rows × cols grid
   function generateSeats(rows: number, cols: number, deck = 1) {
-    const colLabels = ["A", "B", "C", "D", "E"];
+    const colLabels = ["A", "B", "C", "D", "E", "F"];
     const templates = [];
+    let seatCounter = 1;
+
     for (let r = 1; r <= rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const label = `${r}${colLabels[c]}`;
-        const seatType =
-          c === 0 || c === cols - 1
-            ? "PASSENGER_WINDOW"
-            : cols > 2 && c === Math.floor(cols / 2)
-              ? "PASSENGER_AISLE"
-              : "PASSENGER_MIDDLE";
+      for (let c = 1; c <= cols; c++) {
+        let seatType = "PASSENGER_MIDDLE";
+        let isBookable = true;
+        let label = `${seatCounter}`;
+
+        // Create driver area at front left
+        if (r === 1 && c === 1) {
+          seatType = "DRIVER_AREA";
+          isBookable = false;
+          label = "DRV";
+        } 
+        // Create an aisle if we have 4 or 5 columns
+        else if ((cols === 4 && c === 3) || (cols === 5 && c === 3)) {
+          seatType = "EMPTY_SPACE";
+          isBookable = false;
+          label = "";
+        }
+        else {
+          if (c === 1 || c === cols) {
+            seatType = "PASSENGER_WINDOW";
+          } else {
+            seatType = "PASSENGER_AISLE";
+          }
+          seatCounter++;
+        }
+
         templates.push({
           row: r,
           col: c,
           deck,
           label,
           seatType: seatType as any,
-          isBookable: true,
+          isBookable,
         });
       }
     }

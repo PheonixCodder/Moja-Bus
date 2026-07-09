@@ -12,10 +12,12 @@ export interface CityValue {
 }
 
 interface CityAutocompleteFieldProps {
-  label: string;
+  label?: string;
   placeholder: string;
   value: CityValue;
   onChange: (value: CityValue) => void;
+  inputClassName?: string;
+  hideIcon?: boolean;
 }
 
 export function CityAutocompleteField({
@@ -23,6 +25,8 @@ export function CityAutocompleteField({
   placeholder,
   value,
   onChange,
+  inputClassName,
+  hideIcon = false,
 }: CityAutocompleteFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,11 +47,15 @@ export function CityAutocompleteField({
 
   return (
     <div className="relative" ref={containerRef}>
-      <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
-        {label}
-      </label>
+      {label && (
+        <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
+          {label}
+        </label>
+      )}
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
+        {!hideIcon && (
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
+        )}
         <Input
           type="text"
           placeholder={placeholder}
@@ -57,7 +65,7 @@ export function CityAutocompleteField({
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          className="pl-10 h-12 bg-slate-50 focus:bg-white border-slate-200 focus:ring-[#ee237c] focus:border-[#ee237c] rounded-xl font-medium"
+          className={inputClassName || "pl-10 h-12 bg-slate-50 focus:bg-white border-slate-200 focus:ring-[#ee237c] focus:border-[#ee237c] rounded-xl font-medium"}
         />
       </div>
       {isOpen && isSearchable && (

@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+import { createTerminalSchema, updateTerminalSchema } from "@moja/schemas";
 
 export const terminalsRouter = createTRPCRouter({
   list: operatorCompanyProcedure
@@ -25,20 +26,9 @@ export const terminalsRouter = createTRPCRouter({
     }),
 
   create: operatorCompanyProcedure
-    .input(z.any())
+    .input(createTerminalSchema)
     .mutation(async ({ ctx, input }) => {
-      const { createTerminalSchema } = await import("@moja/schemas");
-      const parsed = createTerminalSchema.safeParse(input);
-
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
-
-      const data = parsed.data;
+      const data = input;
 
       // Handle isPrimary constraint
       if (data.isPrimary === true) {
@@ -68,6 +58,7 @@ export const terminalsRouter = createTRPCRouter({
           isPrimary: data.isPrimary,
           isTerminal: data.isTerminal,
           isActive: data.isActive,
+          operatingHours: data.operatingHours ?? null,
         },
         include: {
           cityRelation: true,
@@ -76,19 +67,8 @@ export const terminalsRouter = createTRPCRouter({
     }),
 
   update: operatorCompanyProcedure
-    .input(z.object({ id: z.string(), data: z.any() }))
+    .input(z.object({ id: z.string(), data: updateTerminalSchema }))
     .mutation(async ({ ctx, input }) => {
-      const { updateTerminalSchema } = await import("@moja/schemas");
-      const parsed = updateTerminalSchema.safeParse(input.data);
-
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
-
       const existingLocation = await ctx.prisma.companyLocation.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });
@@ -100,7 +80,7 @@ export const terminalsRouter = createTRPCRouter({
         });
       }
 
-      const data = parsed.data;
+      const data = input.data;
 
       if (data.isPrimary === true && !existingLocation.isPrimary) {
         await ctx.prisma.companyLocation.updateMany({

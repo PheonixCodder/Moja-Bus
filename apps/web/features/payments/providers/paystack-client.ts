@@ -153,3 +153,118 @@ export function verifyPaystackSignature(
     .digest("hex");
   return hash === signature;
 }
+
+export async function paystackCreateSubaccount(input: {
+  businessName: string;
+  settlementBankCode: string;
+  accountNumber: string;
+}): Promise<{ subaccountCode: string }> {
+  const res = await fetch("https://api.paystack.co/subaccount", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${paystackSecretKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      business_name: input.businessName,
+      settlement_bank: input.settlementBankCode,
+      account_number: input.accountNumber,
+      percentage_charge: 100,
+    }),
+  });
+
+  const json = (await res.json()) as {
+    status?: boolean;
+    message?: string;
+    data?: {
+      subaccount_code: string;
+    };
+  };
+
+  if (!res.ok || !json.status || !json.data) {
+    throw new Error(json.message ?? "Failed to create Paystack subaccount");
+  }
+
+  return {
+    subaccountCode: json.data.subaccount_code,
+  };
+}
+
+export async function paystackResolveAccount(input: {
+  accountNumber: string;
+  bankCode: string;
+}): Promise<{ accountNumber: string; accountName: string }> {
+  const res = await fetch(
+    `https://api.paystack.co/bank/resolve?account_number=${input.accountNumber}&bank_code=${input.bankCode}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${paystackSecretKey()}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const json = (await res.json()) as {
+    status?: boolean;
+    message?: string;
+    data?: {
+      account_number: string;
+      account_name: string;
+    };
+  };
+
+  if (!res.ok || !json.status || !json.data) {
+    throw new Error(json.message ?? "Could not resolve bank account details");
+  }
+
+  return {
+    accountNumber: json.data.account_number,
+    accountName: json.data.account_name,
+  };
+}
+
+export type PaystackBank = {
+  name: string;
+  slug: string;
+  code: string;
+  longcode: string;
+  gateway: string | null;
+  pay_with_bank: boolean;
+  active: boolean;
+  is_deleted: boolean;
+  country: string;
+  currency: string;
+  type: string;
+  id: number;
+};
+
+export async function paystackListBanks(country?: string): Promise<PaystackBank[]> {
+  const supportedCountries = ["ghana", "kenya", "nigeria", "south africa"];
+  const normalizedCountry = country?.toLowerCase() ?? "";
+
+  const useCountryParam = supportedCountries.includes(normalizedCountry);
+  const url = useCountryParam
+    ? `https://api.paystack.co/bank?country=${encodeURIComponent(normalizedCountry)}`
+    : "https://api.paystack.co/bank";
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${paystackSecretKey()}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  const json = (await res.json()) as {
+    status?: boolean;
+    message?: string;
+    data?: PaystackBank[];
+  };
+
+  if (!res.ok || !json.status || !json.data) {
+    throw new Error(json.message ?? "Failed to fetch banks list from Paystack");
+  }
+
+  return json.data;
+}
+

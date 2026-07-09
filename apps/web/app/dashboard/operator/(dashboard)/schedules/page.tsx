@@ -11,9 +11,11 @@ export const metadata = {
 };
 
 export default async function SchedulesPage() {
-  await prefetch(trpc.schedules.list.queryOptions());
-  await prefetch(trpc.routes.list.queryOptions());
-  await prefetch(trpc.fleet.getBuses.queryOptions());
+  await Promise.all([
+    prefetch(trpc.schedules.list.queryOptions()),
+    prefetch(trpc.routes.list.queryOptions()),
+    prefetch(trpc.fleet.getBuses.queryOptions()),
+  ]);
 
   return (
     <HydrateClient>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Plus,
   Map as MapIcon,
@@ -84,6 +84,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
+import { OperatorPageHeader } from "@/features/operator/components/operator-page-header";
 
 type RouteType = RouterOutputs["routes"]["list"][number];
 type Terminal = RouterOutputs["terminals"]["list"][number];
@@ -129,6 +130,7 @@ interface WaypointDraft {
   offsetMinutes: number;
   allowPickup: boolean;
   allowDropoff: boolean;
+  distanceFromOriginKm?: number;
 }
 
 // ──────────────────────────────────────────────
@@ -223,6 +225,7 @@ interface SortableWaypointProps {
   isDest: boolean;
   onRemove: (id: string) => void;
   onOffsetChange: (id: string, minutes: number) => void;
+  onConfigChange: (id: string, config: Partial<WaypointDraft>) => void;
 }
 
 function SortableWaypoint({
@@ -232,6 +235,7 @@ function SortableWaypoint({
   isDest,
   onRemove,
   onOffsetChange,
+  onConfigChange,
 }: SortableWaypointProps) {
   const {
     attributes,
@@ -349,6 +353,38 @@ function SortableWaypoint({
                 )}
               </div>
             )}
+
+            {/* Distance, Pickup & Dropoff Toggles */}
+            <div className="flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-[10px] uppercase text-muted-foreground font-semibold">Distance (km)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  className="h-6 w-16 text-xs px-1.5"
+                  value={waypoint.distanceFromOriginKm?.toString() ?? ""}
+                  onChange={(e) => onConfigChange(waypoint.id, { distanceFromOriginKm: e.target.value ? Number(e.target.value) : undefined })}
+                />
+              </div>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="rounded border-border text-primary focus:ring-primary size-3"
+                  checked={waypoint.allowPickup}
+                  onChange={(e) => onConfigChange(waypoint.id, { allowPickup: e.target.checked })}
+                />
+                <span className="text-[10px] uppercase text-muted-foreground font-semibold">Pickup</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="rounded border-border text-primary focus:ring-primary size-3"
+                  checked={waypoint.allowDropoff}
+                  onChange={(e) => onConfigChange(waypoint.id, { allowDropoff: e.target.checked })}
+                />
+                <span className="text-[10px] uppercase text-muted-foreground font-semibold">Dropoff</span>
+              </label>
+            </div>
           </div>
 
           {/* Remove button for intermediate stops */}
@@ -444,6 +480,34 @@ function RouteFormDrawer({
       !waypoints.find((w) => w.terminalId === t.id),
   );
 
+  const getWaypointName = (id: string | number) => {
+    const wp = waypoints.find((w) => w.id === id);
+    return wp ? wp.terminal.name || wp.terminal.city : "waypoint";
+  };
+
+  const dndAnnouncements = {
+    onDragStart({ active }: any) {
+      return `Grabbed ${getWaypointName(active.id)}. Use up and down arrow keys to change its position, space bar to drop, and escape to cancel.`;
+    },
+    onDragOver({ active, over }: any) {
+      if (over) {
+        const overIndex = waypoints.findIndex((w) => w.id === over.id);
+        return `Moved ${getWaypointName(active.id)} to position ${overIndex + 1} of ${waypoints.length}.`;
+      }
+      return;
+    },
+    onDragEnd({ active, over }: any) {
+      if (over) {
+        const overIndex = waypoints.findIndex((w) => w.id === over.id);
+        return `Dropped ${getWaypointName(active.id)} at position ${overIndex + 1} of ${waypoints.length}.`;
+      }
+      return;
+    },
+    onDragCancel({ active }: any) {
+      return `Dragging cancelled. ${getWaypointName(active.id)} was returned to its original position.`;
+    },
+  };
+
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
@@ -472,6 +536,7 @@ function RouteFormDrawer({
         offsetMinutes: lastOffset + 60,
         allowPickup: true,
         allowDropoff: true,
+        distanceFromOriginKm: undefined,
       },
     ]);
     setNewStopId("");
@@ -522,6 +587,7 @@ function RouteFormDrawer({
         offsetMinutes: wp.arrivalOffsetMinutes,
         allowPickup: wp.isPickup,
         allowDropoff: wp.isDropoff,
+        distanceFromOriginKm: wp.distanceFromOriginKm ?? undefined,
       })),
     );
   }, [open, editingRoute]);
@@ -544,6 +610,23 @@ function RouteFormDrawer({
       return;
     }
 
+    let lastOffset = 0;
+    for (let i = 0; i < waypoints.length; i++) {
+      if (waypoints[i]!.offsetMinutes <= lastOffset) {
+        toast.error(
+          `Waypoint offsets must strictly ascend. Waypoint ${i + 1} offset (${waypoints[i]!.offsetMinutes}m) is not greater than the previous stop (${lastOffset}m).`
+        );
+        return;
+      }
+      lastOffset = waypoints[i]!.offsetMinutes;
+    }
+    
+    // Also ensure estimatedDuration is greater than the last waypoint offset
+    if (estimatedDuration && estimatedDuration <= lastOffset) {
+       toast.error(`Total estimated duration (${estimatedDuration}m) must be greater than the last waypoint offset (${lastOffset}m).`);
+       return;
+    }
+
     const payload: any = {
       name: name.trim(),
       originTerminalId: originId,
@@ -552,8 +635,9 @@ function RouteFormDrawer({
         terminalId: w.terminalId,
         stopOrder: i + 1,
         offsetMinutes: w.offsetMinutes,
-        allowPickup: w.allowPickup,
-        allowDropoff: w.allowDropoff,
+        isPickup: w.allowPickup,
+        isDropoff: w.allowDropoff,
+        distanceFromOriginKm: w.distanceFromOriginKm,
       })),
     };
     if (distanceKm) payload.distanceKm = parseFloat(distanceKm);
@@ -563,8 +647,12 @@ function RouteFormDrawer({
       updateMutation.mutate(
         { id: editingRouteId, data: payload },
         {
-          onSuccess: (route) => {
+          onSuccess: (response) => {
+            const route = response.route;
             toast.success(`Route "${route.name}" updated`);
+            if (response.needsReconciliation) {
+              toast.info("Future trips detected. Please reconcile the schedule to apply route changes.", { duration: 10000 });
+            }
             onUpdated(route as any);
             resetForm();
             queryClient.invalidateQueries(trpc.routes.list.pathFilter());
@@ -676,8 +764,17 @@ function RouteFormDrawer({
                       {terminals
                         .filter((t) => t.id !== destId)
                         .map((t) => (
-                          <ComboboxItem key={t.id} value={t.id}>
-                            {t.name} — {t.cityRelation?.name ?? t.city}
+                          <ComboboxItem key={t.id} value={t.id} className="flex flex-col items-start gap-1 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{t.name}</span>
+                              {t.cityRelation?.isMajorHub && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-wider">Hub</span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {t.cityRelation?.name ?? t.city}
+                              {t.cityRelation?.region && ` • ${t.cityRelation.region} Region`}
+                            </div>
                           </ComboboxItem>
                         ))}
                     </ComboboxList>
@@ -722,8 +819,17 @@ function RouteFormDrawer({
                       {terminals
                         .filter((t) => t.id !== originId)
                         .map((t) => (
-                          <ComboboxItem key={t.id} value={t.id}>
-                            {t.name} — {t.cityRelation?.name ?? t.city}
+                          <ComboboxItem key={t.id} value={t.id} className="flex flex-col items-start gap-1 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{t.name}</span>
+                              {t.cityRelation?.isMajorHub && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-wider">Hub</span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {t.cityRelation?.name ?? t.city}
+                              {t.cityRelation?.region && ` • ${t.cityRelation.region} Region`}
+                            </div>
                           </ComboboxItem>
                         ))}
                     </ComboboxList>
@@ -764,6 +870,7 @@ function RouteFormDrawer({
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     onDragEnd={handleDragEnd}
+                    announcements={dndAnnouncements}
                   >
                     <SortableContext
                       items={waypoints.map((w) => w.id)}
@@ -778,6 +885,9 @@ function RouteFormDrawer({
                           isDest={stop.id === "__dest__"}
                           onRemove={removeWaypoint}
                           onOffsetChange={updateOffset}
+                          onConfigChange={(id, updates) => {
+                            setWaypoints((prev) => prev.map((w) => (w.id === id ? { ...w, ...updates } : w)));
+                          }}
                         />
                       ))}
                     </SortableContext>
@@ -822,10 +932,18 @@ function RouteFormDrawer({
                                     <ComboboxItem
                                       key={t.id}
                                       value={t.id}
-                                      className="text-xs"
+                                      className="flex flex-col items-start gap-1 py-2"
                                     >
-                                      {t.name} —{" "}
-                                      {t.cityRelation?.name ?? t.city}
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium">{t.name}</span>
+                                        {t.cityRelation?.isMajorHub && (
+                                          <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-wider">Hub</span>
+                                        )}
+                                      </div>
+                                      <div className="text-[10px] text-muted-foreground">
+                                        {t.cityRelation?.name ?? t.city}
+                                        {t.cityRelation?.region && ` • ${t.cityRelation.region} Region`}
+                                      </div>
                                     </ComboboxItem>
                                   ))}
                                 </ComboboxList>
@@ -1033,6 +1151,7 @@ function SuccessPanel({
 
 export function OperatorRoutesView() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const trpc = useTRPC();
   const { data: routesData } = useSuspenseQuery(
     trpc.routes.list.queryOptions(),
@@ -1058,8 +1177,9 @@ export function OperatorRoutesView() {
   useEffect(() => {
     if (searchParams && searchParams.get("action") === "new") {
       handleOpenCreate();
+      router.replace(window.location.pathname);
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   function handleCreated(route: RouteType) {
     setRoutes((prev) => [route, ...prev]);
@@ -1104,24 +1224,30 @@ export function OperatorRoutesView() {
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border shrink-0">
-        <div className="flex items-center gap-2 flex-1 max-w-xs">
-          <Input
-            placeholder="Search routes…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-8 text-sm"
-          />
-        </div>
-        <Button
-          size="sm"
-          className="h-8 text-xs"
-          onClick={handleOpenCreate}
-        >
-          <Plus className="size-3.5 mr-1.5" />
-          New Route
-        </Button>
-      </div>
+      <OperatorPageHeader
+        title="Routes"
+        description="Manage your bus routes and stop sequences"
+        actions={
+          <>
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Search routes…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-8 text-sm w-52"
+              />
+            </div>
+            <Button
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleOpenCreate}
+            >
+              <Plus className="size-3.5 mr-1.5" />
+              New Route
+            </Button>
+          </>
+        }
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">

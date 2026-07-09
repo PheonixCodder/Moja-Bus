@@ -61,7 +61,7 @@ export function useAuth() {
       const user = data?.user;
       const redirectPath = resolveRoleDashboard(user?.role);
 
-      toast.success("Welcome back to Moja Ride!");
+      toast.success(`Welcome back to ${process.env["NEXT_PUBLIC_APP_NAME"] || "Moja Ride"}!`);
       router.push(redirectPath);
       router.refresh();
       return { success: true };
@@ -297,7 +297,7 @@ export function useAuth() {
           ? "/dashboard/operator/onboarding"
           : "/dashboard";
 
-      toast.success("Email verified. Welcome to Moja Ride!");
+      toast.success(`Email verified. Welcome to ${process.env.NEXT_PUBLIC_APP_NAME || "Moja Ride"}!`);
       router.push(redirectPath);
       router.refresh();
       return { success: true };

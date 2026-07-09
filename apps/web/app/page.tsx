@@ -1,47 +1,43 @@
-import type { SearchParams } from "nuqs/server";
-import { SearchPageClient } from "@/features/search/components/search-page-client";
-import { searchParamsCache } from "@/features/search/lib/params";
-import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+import type { Metadata } from "next";
+import { getServerSession } from "@/lib/auth-server";
+import { HomeHeader } from "@/features/home/components/home-header";
+import { HomeHero } from "@/features/home/components/home-hero";
+import { HomeDestinations } from "@/features/home/components/home-destinations";
+import { HomeFeatures } from "@/features/home/components/home-features";
+import { HomeOperators } from "@/features/home/components/home-operators";
+import { HomeHowItWorks } from "@/features/home/components/home-how-it-works";
+import { HomeTestimonials } from "@/features/home/components/home-testimonials";
+import { HomeCta } from "@/features/home/components/home-cta";
+import { HomeFooter } from "@/features/home/components/home-footer";
 
-export const metadata = {
-    title: "Search Buses - Moja Ride",
-    description: "Search and compare intercity bus departures across Côte d'Ivoire.",
+export const metadata: Metadata = {
+  title: "Moja Ride | The adventure starts with a ticket",
+  description:
+    "Discover Côte d'Ivoire with the best intercity bus service. Search, book, and travel with comfort and peace of mind.",
+  openGraph: {
+    title: "Moja Ride | The adventure starts with a ticket",
+    description:
+      "Book intercity bus tickets across Côte d'Ivoire — fast, safe, comfortable.",
+    images: ["/home/_.jpg"],
+  },
 };
 
-interface SearchPageProps {
-    searchParams: Promise<SearchParams>;
-}
+export default async function HomePage() {
+  const session = await getServerSession();
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-    const params = searchParamsCache.parse(await searchParams);
-
-    if (params.from) {
-        await prefetch(trpc.locations.getCityDetails.queryOptions({ id: params.from }));
-    }
-    if (params.to) {
-        await prefetch(trpc.locations.getCityDetails.queryOptions({ id: params.to }));
-    }
-    if (params.from && params.to && params.date) {
-        await prefetch(
-            trpc.search.search.queryOptions({
-                originCityId: params.from,
-                destinationCityId: params.to,
-                date: params.date,
-                passengers: params.passengers,
-                operators: params.operators.length > 0 ? params.operators : undefined,
-                amenities: params.amenities.length > 0 ? params.amenities : undefined,
-                departureTime:
-                    params.departureTime.length > 0 ? params.departureTime : undefined,
-                maxPrice: params.maxPrice ?? undefined,
-                sort: params.sort,
-                page: params.page,
-            }),
-        );
-    }
-
-    return (
-        <HydrateClient>
-            <SearchPageClient />
-        </HydrateClient>
-    );
+  return (
+    <div className="overflow-x-hidden">
+      <HomeHeader user={session?.user} />
+      <main>
+        <HomeHero />
+        <HomeDestinations />
+        <HomeFeatures />
+        <HomeOperators />
+        <HomeHowItWorks />
+        <HomeTestimonials />
+        <HomeCta />
+      </main>
+      <HomeFooter />
+    </div>
+  );
 }

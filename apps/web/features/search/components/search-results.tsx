@@ -45,6 +45,7 @@ export function SearchResults({
               type="button"
               variant={sort === s.id ? "default" : "outline"}
               onClick={() => onSortChange(s.id as SearchSortOption)}
+              aria-pressed={sort === s.id}
               className={cn(
                 "h-8 px-3 rounded-full text-xs font-semibold transition-all",
                 sort === s.id

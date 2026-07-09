@@ -18,7 +18,8 @@ import { Label } from "@moja/ui/components/ui/label";
 import { useTRPC } from "@/trpc/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { signIn, signUp } from "@/lib/auth-client";
-import { InviteRoleBadge, ROLE_LABELS } from "../components/invite-role-badge";
+import { InviteRoleBadge } from "../components/invite-role-badge";
+import { ROLE_LABELS } from "@/features/operator/lib/staff";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Local step type
@@ -391,12 +392,20 @@ export function InvitationView() {
               </div>
 
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="password-existing"
-                  className="text-[12px] font-medium"
-                >
-                  Password *
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor="password-existing"
+                    className="text-[12px] font-medium"
+                  >
+                    Password *
+                  </Label>
+                  <button
+                    className="text-[11px] text-[#ee237c] hover:underline"
+                    onClick={() => router.push("/operator/forgot-password")}
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <Input
                   id="password-existing"
                   type="password"

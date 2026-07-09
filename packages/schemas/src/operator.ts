@@ -70,7 +70,7 @@ export const locationSchema = z.object({
   managerPhone: z.string().optional().nullable(),
   managerEmail: z.string().optional().nullable(),
   isPrimary: z.boolean().default(false),
-  operatingHours: z.string().optional().nullable(),
+  operatingHours: z.any().optional().nullable(),
   isActive: z.boolean().default(true),
 });
 export type LocationInput = z.infer<typeof locationSchema>;
@@ -88,6 +88,7 @@ export const documentSchema = z.object({
   fileUrl: z.string().url("Invalid file URL"),
   fileSize: z.number().int().positive(),
   mimeType: z.string().min(1),
+  expiresAt: z.coerce.date().optional().nullable(),
 });
 export type DocumentInput = z.infer<typeof documentSchema>;
 
@@ -100,6 +101,7 @@ export type DocumentsStepInput = z.infer<typeof documentsStepSchema>;
 
 export const bankStepSchema = z.object({
   bankName: z.string().min(1, "Bank name is required"),
+  bankCode: z.string().optional().nullable(),
   accountNumber: z.string().min(1, "Account number is required"),
   accountName: z.string().min(1, "Account name is required"),
   branch: z.string().optional().nullable(),
@@ -154,3 +156,9 @@ export const saveOnboardingStepSchema = z.object({
   termsData: termsStepSchema.optional(),
 });
 export type SaveOnboardingStepInput = z.infer<typeof saveOnboardingStepSchema>;
+
+export const operatorRevenueAnalyticsSchema = z.object({
+  from: z.string().datetime(),
+  to: z.string().datetime(),
+});
+export type OperatorRevenueAnalyticsInput = z.infer<typeof operatorRevenueAnalyticsSchema>;

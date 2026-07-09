@@ -7,11 +7,14 @@ import type {
   RefundResult,
   VerifyPaymentResult,
   WebhookPayload,
+  CreateSubaccountInput,
+  CreateSubaccountResult,
 } from "../types";
 import {
   paystackInitialize,
   paystackVerify,
   verifyPaystackSignature,
+  paystackCreateSubaccount,
 } from "./paystack-client";
 
 export class PaystackProvider implements PaymentProviderAdapter {
@@ -63,6 +66,12 @@ export class PaystackProvider implements PaymentProviderAdapter {
       status: json.data.status === "processed" ? "processed" : "pending",
       refundId: String(json.data.id),
     };
+  }
+
+  async createSubaccount(
+    input: CreateSubaccountInput,
+  ): Promise<CreateSubaccountResult> {
+    return paystackCreateSubaccount(input);
   }
 
   parseWebhook(rawBody: string, signature: string | null): WebhookPayload {

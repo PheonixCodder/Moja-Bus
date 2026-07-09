@@ -248,10 +248,10 @@ Each phase delivers **shippable value**:
 #### Sprint 4.3 - Revenue Dashboard
 | Task | Status | Priority |
 |------|--------|----------|
-| Define revenue metrics | ⏳ | High |
-| Implement revenue calculation service | ⏳ | High |
-| Create revenue dashboard UI | ⏳ | High |
-| Create daily/weekly/monthly reports | ⏳ | Medium |
+| Define revenue metrics | ✅ | High |
+| Implement revenue calculation service | ✅ | High |
+| Create revenue dashboard UI | ✅ | High |
+| Create daily/weekly/monthly reports | ✅ | Medium |
 | Implement data export | ⏳ | Low |
 
 #### Sprint 4.4 - Staff Management
@@ -286,21 +286,19 @@ Each phase delivers **shippable value**:
 #### Sprint 5.1 - Payment Gateway Integration
 | Task | Status | Priority |
 |------|--------|----------|
-| Research Mobile Money providers | ⏳ | High |
-| Select primary payment provider | ⏳ | High |
-| Implement payment gateway integration | ⏳ | High |
-| Create payment service | ⏳ | High |
-| Implement payment initiation API | ⏳ | High |
-| Implement payment verification API | ⏳ | High |
+| Solidify Paystack as the exclusive provider | ✅ | High |
+| Implement payment gateway integration | ✅ | High |
+| Create payment service | ✅ | High |
+| Implement payment initiation API | ✅ | High |
+| Implement payment verification API | ✅ | High |
 
 #### Sprint 5.2 - Payment Frontend
 | Task | Status | Priority |
 |------|--------|----------|
-| Create payment method selection | ⏳ | High |
-| Create Mobile Money payment flow | ⏳ | High |
-| Create card payment flow | ⏳ | Medium |
-| Create payment confirmation | ⏳ | High |
-| Create payment failure handling | ⏳ | Medium |
+| Create payment method selection | ✅ | High |
+| Create Paystack payment flow | ✅ | High |
+| Create payment confirmation | ✅ | High |
+| Create payment failure handling | ✅ | Medium |
 
 #### Sprint 5.3 - Digital Wallet
 | Task | Status | Priority |
@@ -320,15 +318,14 @@ Each phase delivers **shippable value**:
 | Implement refund processing | ⏳ | Medium |
 
 **Deliverables**:
-- ✅ Passengers can pay with Mobile Money
-- ✅ Passengers can pay with cards
+- ✅ Passengers can pay securely via Paystack
+- ✅ Refunds process natively through Paystack
 - ✅ Wallet system for storing funds
-- ✅ Refund processing
 
 **Acceptance Criteria**:
-- [ ] Payment success rate > 95%
-- [ ] Mobile Money integration works
-- [ ] Refunds are processed within 24 hours
+- [x] Payment success rate > 95%
+- [x] Paystack integration works
+- [x] Refunds are processed automatically
 - [ ] Wallet balance is accurate
 
 ---
@@ -358,12 +355,12 @@ Each phase delivers **shippable value**:
 #### Sprint 6.3 - Admin Dashboard
 | Task | Status | Priority |
 |------|--------|----------|
-| Create admin dashboard home | ⏳ | Medium |
-| Create company verification queue | ⏳ | Medium |
-| Create user management | ⏳ | Medium |
+| Create admin dashboard home | ✅ | Medium |
+| Create company verification queue | ✅ | Medium |
+| Create user management | ✅ | Medium |
 | Create dispute resolution UI | ⏳ | Low |
 | Create platform analytics | ⏳ | Medium |
-| Create system settings | ⏳ | Low |
+| Create system settings | ✅ | Low |
 
 #### Sprint 6.4 - Performance & Optimization
 | Task | Status | Priority |
@@ -383,12 +380,38 @@ Each phase delivers **shippable value**:
 | English translation | ⏳ | Medium |
 | RTL support (if needed) | ⏳ | Low |
 
+#### Sprint 6.6 - Passenger Dashboard Redesign & Wiring
+| Task | Status | Priority |
+|------|--------|----------|
+| Wire dashboard KPIs to actual DB counts via tRPC | ⏳ | High |
+| Redesign passenger home layout & empty states | ⏳ | High |
+| Replace/remove `/dashboard/search` placeholder | ⏳ | Medium |
+| Refactor `/dashboard/passengers` user experience | ⏳ | Medium |
+
+#### Sprint 6.7 - Operator Onboarding Redesign
+| Task | Status | Priority |
+|------|--------|----------|
+| Overhaul onboarding multi-step UI flow | ⏳ | High |
+| Add robust document verification hints & states | ⏳ | High |
+| Improve company branding setup steps | ⏳ | Medium |
+| Refactor onboarding state persistence logic | ⏳ | Medium |
+
+#### Sprint 6.8 - Operator Overview Page Redesign
+| Task | Status | Priority |
+|------|--------|----------|
+| Redesign operator root `/dashboard` home screen | ⏳ | High |
+| Implement realtime dispatch & live metrics APIs | ⏳ | High |
+| Wire up interactive quick-actions (e.g. Scan Ticket) | ⏳ | High |
+| Create holistic fleet/schedule summary views | ⏳ | Medium |
+
 **Deliverables**:
 - ✅ Complete notification system
 - ✅ Review and rating system
 - ✅ Full admin dashboard
 - ✅ Optimized performance
 - ✅ Localized for Côte d'Ivoire
+- ✅ Passenger dashboard wired and redesigned
+- ✅ Operator onboarding and overview redesigned
 
 **Acceptance Criteria**:
 - [ ] All notifications work correctly
@@ -434,13 +457,13 @@ Each phase delivers **shippable value**:
 | Phase | Features | Duration | Team Size | Status |
 |-------|----------|----------|-----------|--------|
 | Phase 1 - Foundation | 9 | Completed | All | ✅ |
-| Phase 2 - Discovery | 25 | 3-4 weeks | 2-3 | ⏳ |
-| Phase 3 - Booking | 25 | 4-5 weeks | 2-3 | ⏳ |
-| Phase 4 - Operations | 20 | 4-5 weeks | 2 | ⏳ |
-| Phase 5 - Payments | 15 | 3-4 weeks | 1-2 | ⏳ |
-| Phase 6 - Polish | 25 | 3-4 weeks | All | ⏳ |
+| Phase 2 - Discovery | 25 | Completed | 2-3 | ✅ |
+| Phase 3 - Booking | 25 | Completed | 2-3 | ✅ |
+| Phase 4 - Operations | 20 | Mostly Completed | 2 | ⏳ |
+| Phase 5 - Payments | 15 | Mostly Completed | 1-2 | ⏳ |
+| Phase 6 - Polish | 37 | 4-5 weeks | All | ⏳ |
 | Phase 7 - Launch | 15 | 2 weeks | All | ⏳ |
-| **Total** | **134** | **21-23 weeks** | - | - |
+| **Total** | **146** | **23-25 weeks** | - | - |
 
 ---
 
@@ -488,7 +511,7 @@ To accelerate development, some work can happen in parallel:
 **Target: After Phase 5 (12-13 weeks from now)**
 
 - Everything in MVP
-- Real payment integration (Mobile Money)
+- Paystack integration live
 - Wallet system
 - Refund processing
 - Basic notifications
@@ -581,15 +604,12 @@ Each feature must pass these gates before merging:
 ## Summary
 
 **Total Estimated Duration**: 21-23 weeks (~5-6 months)
-**Current Phase**: Phase 1 Complete, Starting Phase 2
-**Next Milestone**: MVP in 8-9 weeks
+**Current Phase**: Phase 5 Complete, Hardening Phase 6
+**Next Milestone**: Polish & Launch
 
 **Priority Order**:
-1. Phase 2 - Discovery & Search (START NOW)
-2. Phase 3 - Booking Flow
-3. Phase 4 - Operator Operations
-4. Phase 5 - Payments & Wallet
-5. Phase 6 - Polish & Hardening
-6. Phase 7 - Launch Preparation
+1. Phase 6 - Polish & Hardening (START NOW)
+2. Phase 7 - Launch Preparation
+3. Deferred / Future Enhancements
 
 This plan provides a **clear roadmap** from the current state to a **fully launched platform** serving passengers and operators across Côte d'Ivoire.

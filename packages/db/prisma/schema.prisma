@@ -142,7 +142,7 @@ model User {
 
   // Operator registration fields
   workEmail String? @unique
-  workPhone String?
+  workPhone String?  @unique
 
   passwordHash String?
   createdAt    DateTime @default(now())
@@ -168,6 +168,7 @@ model User {
 
   bookings Booking[]
   holdGroups HoldGroup[]
+  reviews Review[]
 
   @@index([role])
   @@map("user")
@@ -274,7 +275,7 @@ model Company {
   // Relations
   locations    CompanyLocation[] @relation("CompanyLocations")
   documents    CompanyDocument[]
-  bankAccount  BankAccount?
+  bankAccounts BankAccount[]
   operators    Operator[]
   invitations  StaffInvitation[]
   activityLogs ActivityLog[]
@@ -340,11 +341,12 @@ model CompanyDocument {
 
 model BankAccount {
   id        String  @id @default(cuid())
-  companyId String  @unique
+  companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Bank Details
   bankName      String
+  bankCode      String?
   // Encrypted at rest (enc:v1: prefix) — see apps/web/lib/bank-crypto.ts
   accountNumber String
   accountNumberLast4 String?
@@ -362,10 +364,13 @@ model BankAccount {
 
   // Status
   isActive Boolean @default(true)
+  isDefault Boolean @default(false)
+  paystackSubaccountCode String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([bankName, accountNumber])
   @@index([companyId])
   @@map("bank_account")
 }
@@ -1208,11 +1213,17 @@ model Booking {
   @@map("booking")
 }
 
-// STUB: expanded in Phase 6
+// Expanded from stub in Phase 4
 model Review {
   id        String   @id @default(cuid())
   companyId String
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  rating    Int
+  content   String?
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1223,6 +1234,11 @@ model PassengerProfile {
   id        String   @id @default(cuid())
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  marketingOptIn   Boolean @default(false)
+  preferencesJson  Json?
+  stripeCustomerId String?
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

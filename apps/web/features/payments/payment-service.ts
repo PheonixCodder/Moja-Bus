@@ -75,8 +75,12 @@ export class PaymentService {
       payerEmail?.trim() ||
       holdGroup.bookings[0]?.passengerPhone.replace(/\s+/g, "") + "@guest.mojaride.ci";
 
-    const company = await this.prisma.company.findUnique({
-      where: { id: holdGroup.companyId },
+    const activeBankAccount = await this.prisma.bankAccount.findFirst({
+      where: {
+        companyId: holdGroup.companyId,
+        isDefault: true,
+        isVerified: true,
+      },
       select: { paystackSubaccountCode: true },
     });
 
@@ -127,8 +131,8 @@ export class PaymentService {
         holdGroupId: holdGroup.id,
         offerId: holdGroup.offerId,
       },
-      subaccountCode: company?.paystackSubaccountCode,
-      callbackUrl,
+      subaccountCode: activeBankAccount?.paystackSubaccountCode || null,
+      ...(callbackUrl ? { callbackUrl } : {}),
     });
 
     await this.prisma.$transaction(async (tx) => {

@@ -9,13 +9,12 @@ export async function createContextFromHeaders(headers: Headers) {
     headers,
   });
 
-  const source = headers.get("x-trpc-source") ?? "unknown";
-
-  console.log(">>> tRPC Request from", source, "by", session?.user?.email);
-
   return {
     prisma: getPrismaClient(),
     user: session?.user,
+    headers,
+    // Per-request cache — cleared on every new request, never stale across requests
+    _cache: new Map<string, unknown>(),
   };
 }
 
@@ -38,9 +37,37 @@ const t = initTRPC.context<Context>().create({
 
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
-export const publicProcedure = t.procedure;
 
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+/**
+ * CSRF POSTURE:
+ * Better Auth uses SameSite=Lax cookies for sessions. To protect tRPC mutations
+ * from Cross-Site Request Forgery (CSRF), we enforce an Origin header check 
+ * on all state-mutating procedures.
+ */
+const csrfMiddleware = t.middleware(({ type, next, ctx }) => {
+  if (type === "mutation") {
+    const origin = ctx.headers.get("origin");
+    const host = ctx.headers.get("host");
+
+    // In a browser, standard fetch/XHR sends Origin for cross-origin or POST.
+    // Allow if origin matches host, or if no origin (e.g. server-side calls or direct curl if we allow it)
+    // For strict CSRF, we require Origin to match the host or be a known trusted domain.
+    if (origin) {
+      const originUrl = new URL(origin);
+      if (originUrl.host !== host) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "CSRF check failed: Origin does not match Host.",
+        });
+      }
+    }
+  }
+  return next();
+});
+
+export const publicProcedure = t.procedure.use(csrfMiddleware);
+
+export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
   if (!ctx.user?.id) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -73,10 +100,17 @@ export const operatorProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 export const operatorCompanyProcedure = operatorProcedure.use(
   async ({ ctx, next }) => {
-    const operatorProfile = await ctx.prisma.operator.findFirst({
+    const cacheKey = `operator:${ctx.user.id}`;
+    const cached = ctx._cache.get(cacheKey) as Awaited<ReturnType<typeof ctx.prisma.operator.findFirst>> | undefined;
+
+    const operatorProfile = cached ?? await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
     });
+
+    if (!cached && operatorProfile) {
+      ctx._cache.set(cacheKey, operatorProfile);
+    }
 
     if (!operatorProfile || !operatorProfile.companyId) {
       throw new TRPCError({
@@ -104,7 +138,7 @@ export const operatorCompanyProcedure = operatorProcedure.use(
 
 export const operatorStaffManageProcedure = operatorCompanyProcedure.use(
   ({ ctx, next }) => {
-    if (ctx.operator.role !== "OWNER" && ctx.operator.role !== "ADMIN") {
+    if (ctx.operator.role !== "OWNER" && ctx.operator.role !== "ADMIN" && ctx.operator.role !== "MANAGER") {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You do not have permission to manage staff.",

@@ -5,7 +5,7 @@ export interface SearchFilters {
   operators: string[];
   amenities: string[];
   departureTime: ("MORNING" | "AFTERNOON" | "EVENING")[];
-  maxPrice: number;
+  maxPrice?: number;
 }
 
 export interface SearchContext {

@@ -25,9 +25,7 @@ function collectTrustedOrigins(baseUrl: string): string[] {
 
   if (process.env["NODE_ENV"] === "development") {
     origins.add("exp://");
-    origins.add("exp://**");
     // Add specific Expo dev server origins
-    origins.add("http://192.168.*.*:*/**");
     origins.add("http://192.168.100.3:8081");
     origins.add("http://localhost:8081");
     origins.add("http://127.0.0.1:8081");
@@ -169,7 +167,7 @@ export async function requireServerSession(redirectTo = "/login") {
   if (!data?.session) {
     redirect(redirectTo);
   }
-  return data.session;
+  return { session: data.session, user: data.user };
 }
 
 export async function redirectIfAuthenticated() {
@@ -187,22 +185,4 @@ export async function getUser() {
   return data?.user ?? null;
 }
 
-export async function redirectIfOperatorAuthenticated() {
-  const data = await getServerSession();
-  if (!data?.session) return;
-  const role = data.user?.role ?? "TRAVELER";
-  if (role === "OPERATOR" || role === "ADMIN") {
-    redirect("/dashboard/operator");
-  }
-  redirect("/dashboard");
-}
-
-export async function redirectIfPassengerAuthenticated() {
-  const data = await getServerSession();
-  if (!data?.session) return;
-  const role = data.user?.role ?? "TRAVELER";
-  if (role === "OPERATOR" || role === "ADMIN") {
-    redirect("/dashboard/operator");
-  }
-  redirect("/dashboard");
-}
+export type AuthUser = typeof auth.$Infer.Session.user;

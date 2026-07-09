@@ -168,7 +168,7 @@ export function SeatMapPreview({
                   type="button"
                   disabled={!interactive || isDisabled || isTogglingThis}
                   onClick={() => handleSeatClick(seat)}
-                  title={
+                  aria-label={
                     isDisabled
                       ? "Driver area"
                       : isPassenger

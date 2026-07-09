@@ -11,10 +11,12 @@ export const metadata = {
 };
 
 export default async function OperatorStaffPage() {
-  await prefetch(trpc.staff.listStaff.queryOptions({}));
-  await prefetch(trpc.staff.listInvitations.queryOptions());
-  await prefetch(trpc.staff.getActivityLog.queryOptions({ limit: 30 }));
-  await prefetch(trpc.staff.getMyRole.queryOptions());
+  await Promise.all([
+    prefetch(trpc.staff.listStaff.queryOptions({})),
+    prefetch(trpc.staff.listInvitations.queryOptions()),
+    prefetch(trpc.staff.getActivityLog.queryOptions({ limit: 100 })),
+    prefetch(trpc.staff.getMyRole.queryOptions()),
+  ]);
 
   return (
     <HydrateClient>

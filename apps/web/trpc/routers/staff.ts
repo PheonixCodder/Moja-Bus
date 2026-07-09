@@ -338,7 +338,8 @@ export const staffRouter = createTRPCRouter({
         });
       }
 
-      const token = crypto.randomBytes(32).toString("hex");
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
       const invitation = await ctx.prisma.staffInvitation.create({
@@ -348,7 +349,7 @@ export const staffRouter = createTRPCRouter({
           role: input.role,
           jobTitle: input.jobTitle ?? null,
           message: input.message ?? null,
-          token,
+          token: hashedToken,
           expiresAt,
           invitedById: ctx.user.id,
         },
@@ -364,7 +365,7 @@ export const staffRouter = createTRPCRouter({
         companyName: invitation.company.name,
         inviterName: invitation.invitedBy.fullName ?? "A team member",
         role: invitation.role,
-        token: invitation.token,
+        token: rawToken,
         message: invitation.message,
         expiresAt: invitation.expiresAt,
       });
@@ -431,10 +432,12 @@ export const staffRouter = createTRPCRouter({
         });
 
       const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const newRawToken = crypto.randomBytes(32).toString("hex");
+      const newHashedToken = crypto.createHash("sha256").update(newRawToken).digest("hex");
 
       const updated = await ctx.prisma.staffInvitation.update({
         where: { id: invite.id },
-        data: { expiresAt: newExpiresAt },
+        data: { expiresAt: newExpiresAt, token: newHashedToken },
         include: {
           invitedBy: { select: { fullName: true } },
           acceptedBy: { select: { fullName: true } },
@@ -447,7 +450,7 @@ export const staffRouter = createTRPCRouter({
         companyName: updated.company.name,
         inviterName: updated.invitedBy.fullName ?? "A team member",
         role: updated.role,
-        token: updated.token,
+        token: newRawToken,
         message: updated.message,
         expiresAt: updated.expiresAt,
       });

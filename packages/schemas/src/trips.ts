@@ -16,7 +16,7 @@ export const assignBusDriverSchema = z.object({
 export type AssignBusDriverInput = z.infer<typeof assignBusDriverSchema>;
 
 export const delayTripSchema = z.object({
-  delayMinutes: z.coerce.number().int().min(0, "Delay must be positive"),
+  delayMinutes: z.coerce.number().int().min(1, "Delay must be positive"),
   notes: z.string().optional().nullable(),
 });
 export type DelayTripInput = z.infer<typeof delayTripSchema>;

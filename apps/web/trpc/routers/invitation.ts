@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "../init";
+import crypto from "node:crypto";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared select shape returned to the client
@@ -34,8 +35,9 @@ export const invitationRouter = createTRPCRouter({
   validateToken: publicProcedure
     .input(z.object({ token: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
+      const hashedToken = crypto.createHash("sha256").update(input.token).digest("hex");
       const invitation = await ctx.prisma.staffInvitation.findUnique({
-        where: { token: input.token },
+        where: { token: hashedToken },
         select: invitationSelect,
       });
 
@@ -59,7 +61,7 @@ export const invitationRouter = createTRPCRouter({
       if (new Date(invitation.expiresAt) < new Date()) {
         // Mark as expired so the check is fast next time
         await ctx.prisma.staffInvitation.update({
-          where: { token: input.token },
+          where: { token: hashedToken },
           data: { status: "EXPIRED" },
         });
 
@@ -81,8 +83,9 @@ export const invitationRouter = createTRPCRouter({
   accept: publicProcedure
     .input(z.object({ token: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      const hashedToken = crypto.createHash("sha256").update(input.token).digest("hex");
       const invitation = await ctx.prisma.staffInvitation.findUnique({
-        where: { token: input.token },
+        where: { token: hashedToken },
         include: {
           company: { select: { id: true, name: true } },
         },
@@ -104,7 +107,7 @@ export const invitationRouter = createTRPCRouter({
 
       if (new Date(invitation.expiresAt) < new Date()) {
         await ctx.prisma.staffInvitation.update({
-          where: { token: input.token },
+          where: { token: hashedToken },
           data: { status: "EXPIRED" },
         });
         throw new TRPCError({
@@ -181,7 +184,7 @@ export const invitationRouter = createTRPCRouter({
           },
         }),
         ctx.prisma.staffInvitation.update({
-          where: { token: input.token },
+          where: { token: hashedToken },
           data: {
             status: "ACCEPTED",
             acceptedById: userId,
