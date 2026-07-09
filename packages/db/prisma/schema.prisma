@@ -82,6 +82,22 @@ enum OnboardingStatus {
   COMPLETED
 }
 
+enum OnboardingStep {
+  COMPANY
+  DOCUMENTS
+  BANK
+  PROFILE
+  TERMS
+}
+
+enum OnboardingEventType {
+  STEP_ENTERED
+  STEP_COMPLETED
+  STEP_SKIPPED
+  ABANDONED
+  VALIDATION_FAILED
+}
+
 enum BusinessType {
   SOLE_PROPRIETORSHIP
   LLC
@@ -156,9 +172,10 @@ model User {
   passengerProfile PassengerProfile?
 
   // Admin verification actions performed by this user
-  verificationsPerformed CompanyDocument[] @relation("DocumentReviewedBy")
-  companiesVerified      Company[]         @relation("CompanyVerifiedBy")
-  bankAccountsVerified   BankAccount[]     @relation("BankAccountVerifiedBy")
+  verificationsPerformed       CompanyDocument[]    @relation("DocumentReviewedBy")
+  companiesVerified            Company[]            @relation("CompanyVerifiedBy")
+  bankAccountsVerified         BankAccount[]        @relation("BankAccountVerifiedBy")
+  companyVerificationsReviewed CompanyVerification[] @relation("CompanyVerificationReviewer")
 
   // Staff & Activity relations
   sentInvitations     StaffInvitation[] @relation("InvitedBy")
@@ -263,14 +280,13 @@ model Company {
   verifiedBy      User?         @relation("CompanyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
   rejectionReason String?
 
-  // Legal acceptance timestamps
+  // Legal acceptance timestamps + version tracking
   termsAcceptedAt       DateTime?
   commissionAcceptedAt  DateTime?
   privacyAcceptedAt     DateTime?
-
-  // Verification Progress Tracking
-  verificationChecklist Json? @default("{}")
-  registrationProgress  Json? @default("{}")
+  termsVersion          String?
+  privacyVersion        String?
+  commissionVersion     String?
 
   // Relations
   locations    CompanyLocation[] @relation("CompanyLocations")
@@ -280,6 +296,7 @@ model Company {
   invitations  StaffInvitation[]
   activityLogs ActivityLog[]
   bankAccessLogs BankAccessLog[]
+  verification CompanyVerification?
 
   // Fleet & Operations
   fleet           Bus[]
@@ -330,12 +347,20 @@ model CompanyDocument {
   expiresAt      DateTime?
   reminderSentAt DateTime?
 
+  // Versioning — new upload supersedes old; old document retained for audit
+  isCurrent    Boolean   @default(true)
+  supersededAt DateTime?
+  replacedById String?
+  replacedBy   CompanyDocument?  @relation("DocumentReplacement", fields: [replacedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replaces     CompanyDocument[] @relation("DocumentReplacement")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([type])
   @@index([status])
+  @@index([isCurrent])
   @@map("company_document")
 }
 
@@ -367,6 +392,13 @@ model BankAccount {
   isDefault Boolean @default(false)
   paystackSubaccountCode String?
 
+  // External verification metadata
+  verificationProvider  String?   // e.g. "PAYSTACK", "FLUTTERWAVE"
+  verifiedByProvider    Boolean   @default(false)
+  verificationReference String?
+  verificationPayload   Json?
+  lastVerificationAt    DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -390,6 +422,23 @@ model BankAccessLog {
   @@map("bank_access_log")
 }
 
+model CompanyVerification {
+  id        String  @id @default(cuid())
+  companyId String  @unique
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  ownerIdentityVerified Boolean @default(false)
+  bankVerified          Boolean @default(false)
+  documentsVerified     Boolean @default(false)
+  permitVerified        Boolean @default(false)
+
+  reviewedById String?
+  reviewedBy   User?   @relation("CompanyVerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+
+  @@map("company_verification")
+}
+
 model Operator {
   id     String @id @default(cuid())
   userId String
@@ -407,11 +456,9 @@ model Operator {
   deletedAt  DateTime?
 
   // Onboarding status and tracking
-  onboardingStatus      OnboardingStatus @default(NOT_STARTED)
-  onboardingCurrentStep String           @default("company")
-  onboardingStartedAt   DateTime?
-  onboardingLastStepAt  DateTime?
-  onboardingCompletedAt DateTime?
+  onboardingStatus   OnboardingStatus @default(NOT_STARTED)
+  onboardingProgress OperatorOnboarding?
+  onboardingEvents   OperatorOnboardingEvent[]
 
   // Personal Details
   dateOfBirth          DateTime?
@@ -438,6 +485,67 @@ model Operator {
   @@index([userId])
   @@index([role])
   @@map("operator")
+}
+
+// ============================================
+// OPERATOR ONBOARDING PROGRESS
+// ============================================
+
+model OperatorOnboarding {
+  id         String   @id @default(cuid())
+  operatorId String   @unique
+  operator   Operator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  currentStep        OnboardingStep @default(COMPANY)
+  completedSteps     Json           @default("[]")
+  completedStepCount Int            @default(0)
+  totalSteps         Int            @default(5)
+
+  startedAt   DateTime  @default(now())
+  lastSeenAt  DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@index([operatorId])
+  @@map("operator_onboarding")
+}
+
+model OperatorOnboardingEvent {
+  id         String   @id @default(cuid())
+  operatorId String
+  operator   Operator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  step             OnboardingStep
+  eventType        OnboardingEventType
+  timeSpentSeconds Int?
+  metadata         Json?
+  device           String?
+  ip               String?
+
+  createdAt DateTime @default(now())
+
+  @@index([operatorId])
+  @@index([step, eventType])
+  @@map("operator_onboarding_event")
+}
+
+// Transient: deleted after successful account creation
+model PendingOperatorSignup {
+  id          String    @id @default(cuid())
+  companyName String
+  ownerName   String
+  email       String    @unique
+  phone       String
+  country     String
+  otpHash     String
+  expiresAt   DateTime
+  attempts    Int       @default(0)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([email])
+  @@index([expiresAt])
+  @@map("pending_operator_signup")
 }
 
 // ============================================

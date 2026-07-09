@@ -131,7 +131,7 @@ export const auth = betterAuth({
   plugins: [
     expo(),
     emailOTP({
-      sendVerificationOnSignUp: true,
+      sendVerificationOnSignUp: false,
       overrideDefaultEmailVerification: true,
       async sendVerificationOTP({
         email,

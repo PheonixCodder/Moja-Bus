@@ -42,5 +42,4 @@ export function getPrismaClient(): PrismaClient {
 
   return client;
 }
-
 export * from "@prisma/client";

@@ -142,8 +142,6 @@ export const routesRouter = createTRPCRouter({
             },
           });
         });
-      }
-
       } else {
         updatedRoute = await ctx.prisma.route.update({
           where: { id: input.id },

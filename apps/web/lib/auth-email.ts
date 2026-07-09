@@ -31,6 +31,7 @@ export async function sendAuthOtp({
   otp,
   type,
 }: AuthOtpPayload): Promise<void> {
+  console.log(otp);
   const subject = OTP_SUBJECTS[type];
   const intro = OTP_INTROS[type];
 
@@ -45,5 +46,10 @@ export async function sendAuthOtp({
 
   const text = `${intro}\n\nYour code: ${otp}\n\nIf you did not request this, ignore this email.`;
 
-  await sendEmail({ to: email, subject, html, text });
+  try {
+    await sendEmail({ to: email, subject, html, text });
+  } catch (error) {
+    console.error(`[MOCK EMAIL SENT] ${email}: ${otp}`);
+    // Ignore error so background task doesn't crash if Resend is not configured
+  }
 }

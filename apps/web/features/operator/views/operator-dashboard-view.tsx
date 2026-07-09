@@ -7,13 +7,16 @@ import {
   ShieldCheck,
   ShieldAlert,
   Bus,
-  MapPin,
   Users,
   Ticket,
   Clock,
+  CheckCircle2,
+  Circle,
+  ArrowRight,
 } from "lucide-react";
 import { getCompanyStatusPresentation } from "@/features/operator/lib/company-status";
 import { cn } from "@moja/ui/lib/utils";
+import Link from "next/link";
 
 export function OperatorDashboardView() {
   const trpc = useTRPC();
@@ -23,6 +26,7 @@ export function OperatorDashboardView() {
 
   const operatorData = data?.operator;
   const company = operatorData?.company;
+  const businessReadiness = data?.businessReadiness;
   const statusPresentation = getCompanyStatusPresentation(company?.status);
   const StatusIcon =
     company?.status === "SUSPENDED" || company?.status === "REJECTED"
@@ -30,6 +34,10 @@ export function OperatorDashboardView() {
       : statusPresentation.isFullyVerified
         ? ShieldCheck
         : Clock;
+
+  const readinessCompleted =
+    businessReadiness?.filter((r: any) => r.completed).length ?? 0;
+  const readinessTotal = businessReadiness?.length ?? 5;
 
   return (
     <div className="space-y-6">
@@ -88,19 +96,19 @@ export function OperatorDashboardView() {
 
         <div className="p-5 border border-border rounded-md bg-white space-y-3">
           <div className="w-8 h-8 bg-primary/10 text-primary rounded flex items-center justify-center">
-            <MapPin className="w-4 h-4" />
+            <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Terminals / Stations
+              Verification
             </h4>
             <p className="text-sm font-bold text-foreground mt-1">
-              {company?.locations?.length || 0} Registered
+              {statusPresentation.shortLabel}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Primary:{" "}
-              {company?.locations?.find((l: any) => l.isPrimary)?.city ||
-                "None"}
+              {statusPresentation.isFullyVerified
+                ? "Fully verified"
+                : "Under review"}
             </p>
           </div>
         </div>
@@ -116,14 +124,65 @@ export function OperatorDashboardView() {
             <p className="text-sm font-bold text-foreground mt-1">
               {company?.estimatedStaffSize || "N/A"} Employees
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Status: {statusPresentation.shortLabel}
-            </p>
           </div>
         </div>
       </div>
 
-      {/* Booking and fleet placeholder */}
+      {/* Business Operations Readiness — backend-driven */}
+      {businessReadiness && businessReadiness.length > 0 && (
+        <div className="border border-border rounded-md bg-white overflow-hidden">
+          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-foreground">
+                Business Operations
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Complete these steps to start selling tickets.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded">
+              {readinessCompleted}/{readinessTotal} Complete
+            </span>
+          </div>
+          <div className="divide-y divide-border">
+            {businessReadiness.map((item: any) => (
+              <Link
+                key={item.id}
+                href={item.completed ? "#" : item.href}
+                className={cn(
+                  "flex items-center justify-between px-5 py-3.5 transition-colors",
+                  item.completed
+                    ? "cursor-default"
+                    : "hover:bg-slate-50 cursor-pointer",
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  {item.completed ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                  )}
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      item.completed
+                        ? "text-muted-foreground line-through"
+                        : "text-foreground",
+                    )}
+                  >
+                    {item.title}
+                  </span>
+                </div>
+                {!item.completed && (
+                  <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Booking placeholder */}
       <div className="p-8 border border-dashed border-border rounded-md text-center bg-slate-50/50 space-y-4">
         <div className="w-12 h-12 bg-slate-100 text-slate-400 mx-auto rounded-full flex items-center justify-center">
           <Ticket className="w-6 h-6" />
