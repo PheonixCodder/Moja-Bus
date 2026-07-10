@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Search } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
 import type { User } from "@/lib/auth-client";
@@ -29,11 +29,11 @@ export function DashboardHeader({ user }: DashboardViewProps) {
       </div>
 
       <Link
-        href="/dashboard/search"
+        href="/"
         className="inline-flex items-center gap-1.5 rounded-md bg-neon px-3 py-1.5 text-sm font-semibold text-black shadow-[0_0_12px_rgba(57,255,20,0.15),0_0_2px_rgba(57,255,20,1)] transition-shadow duration-150 hover:bg-neon/90"
       >
-        <Plus className="size-4" />
-        Search trips
+        <Search className="size-4" />
+        Find a Bus
       </Link>
     </div>
   );

@@ -434,8 +434,8 @@ function ManifestDrawer({
     ...trpc.trips.assignBusDriver.mutationOptions(),
     onMutate: async (newAssignment) => {
       await queryClient.cancelQueries(trpc.trips.list.pathFilter());
-      const previousTrips = queryClient.getQueryData(
-        trpc.trips.list.queryFilter(),
+      const previousTrips = queryClient.getQueriesData(
+        trpc.trips.list.pathFilter(),
       );
       queryClient.setQueriesData(trpc.trips.list.queryFilter(), (old: any) => {
         if (!old) return old;
@@ -445,7 +445,7 @@ function ManifestDrawer({
               ...t,
               busId: newAssignment.data.busId,
               bus:
-                busesQuery.data?.find((b) => b.id === newAssignment.data.busId) ||
+                buses.find((b) => b.id === newAssignment.data.busId) ||
                 t.bus,
             };
           }
@@ -455,10 +455,11 @@ function ManifestDrawer({
       return { previousTrips };
     },
     onError: (err: any, newAssignment, context: any) => {
-      queryClient.setQueriesData(
-        trpc.trips.list.queryFilter(),
-        context.previousTrips,
-      );
+      if (context?.previousTrips) {
+        for (const [queryKey, data] of context.previousTrips) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
       toast.error(err.message || "Failed to assign bus");
     },
     onSettled: () => {
@@ -971,8 +972,8 @@ function TripCard({
     ...trpc.trips.assignBusDriver.mutationOptions(),
     onMutate: async (newAssignment) => {
       await queryClient.cancelQueries(trpc.trips.list.pathFilter());
-      const previousTrips = queryClient.getQueryData(
-        trpc.trips.list.queryFilter(),
+      const previousTrips = queryClient.getQueriesData(
+        trpc.trips.list.pathFilter(),
       );
       queryClient.setQueriesData(trpc.trips.list.queryFilter(), (old: any) => {
         if (!old) return old;
@@ -990,10 +991,11 @@ function TripCard({
       return { previousTrips };
     },
     onError: (err: any, newAssignment, context: any) => {
-      queryClient.setQueriesData(
-        trpc.trips.list.queryFilter(),
-        context.previousTrips,
-      );
+      if (context?.previousTrips) {
+        for (const [queryKey, data] of context.previousTrips) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
       toast.error(err.message || "Failed to assign bus");
     },
     onSettled: () => {

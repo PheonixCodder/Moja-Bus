@@ -36,3 +36,20 @@ export type PassengerDraft = z.infer<typeof passengerDraftSchema>;
 export type SeatPassengerInput = z.infer<typeof seatPassengerInputSchema>;
 export type CreateSavedPassengerInput = z.infer<typeof createSavedPassengerSchema>;
 export type UpdateSavedPassengerInput = z.infer<typeof updateSavedPassengerSchema>;
+
+export const submitReviewSchema = z.object({
+  companyId: z.string().min(1, "Company ID is required"),
+  bookingId: z.string().min(1, "Booking ID is required"),
+  rating: z.number().int().min(1).max(5, "Rating must be between 1 and 5"),
+  content: z.string().max(1000).optional().nullable(),
+});
+export type SubmitReviewInput = z.infer<typeof submitReviewSchema>;
+
+export const updatePreferencesSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters").optional(),
+  phone: z.string().min(6, "Phone number is too short").optional(),
+  preferredSeat: z.enum(["WINDOW", "AISLE", "NONE"]).optional(),
+  preferredClass: z.enum(["ECONOMY", "STANDARD", "VIP", "BUSINESS"]).optional(),
+  marketingOptIn: z.boolean().optional(),
+});
+export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>;

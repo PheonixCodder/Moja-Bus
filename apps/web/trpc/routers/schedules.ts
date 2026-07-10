@@ -312,8 +312,8 @@ export const schedulesRouter = createTRPCRouter({
       }
 
       // W1-D: Validate fare segment order
-      const fromOrder = input.data.fromStopOrder ?? fare.fromStopOrder;
-      const toOrder = input.data.toStopOrder ?? fare.toStopOrder;
+      const fromOrder = fare.fromStopOrder;
+      const toOrder = fare.toStopOrder;
       if (fromOrder >= toOrder) {
         throw new TRPCError({
           code: "BAD_REQUEST",

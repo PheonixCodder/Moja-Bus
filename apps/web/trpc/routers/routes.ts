@@ -158,7 +158,7 @@ export const routesRouter = createTRPCRouter({
         where: {
           schedule: { routeId: input.id },
           departureDate: { gt: new Date() },
-          bookedSeats: 0,
+          bookings: { none: { status: "CONFIRMED" } },
         },
       });
 

@@ -239,25 +239,27 @@ export const tripsRouter = createTRPCRouter({
         });
       }
 
-      if (trip.busId !== busId && trip.bookedSeats > 0) {
+      if (trip.busId !== busId) {
         const bookings = await ctx.prisma.booking.findMany({
-          where: { tripId: trip.id, status: "CONFIRMED" },
+          where: { tripId: trip.id, status: { in: ["CONFIRMED", "PENDING_PAYMENT"] } },
           include: { seat: true },
         });
 
-        const bookedLabels = bookings.map((b) => b.seat.label);
+        if (bookings.length > 0) {
+          const bookedLabels = bookings.map((b) => b.seat.label);
 
-        const newSeatLabels = new Set(newBus.seats.map((s) => s.label));
-        const allLabelsCompatible = bookedLabels.every((label) =>
-          newSeatLabels.has(label),
-        );
+          const newSeatLabels = new Set(newBus.seats.map((s) => s.label));
+          const allLabelsCompatible = bookedLabels.every((label) =>
+            newSeatLabels.has(label),
+          );
 
-        if (!allLabelsCompatible) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message:
-              "Cannot swap bus: The new bus seat layout is incompatible with the seats already booked on this trip.",
-          });
+          if (!allLabelsCompatible) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                "Cannot swap bus: The new bus seat layout is incompatible with the seats already booked on this trip.",
+            });
+          }
         }
       }
 
@@ -272,7 +274,7 @@ export const tripsRouter = createTRPCRouter({
 
         if (trip.busId !== busId) {
           const bookings = await tx.booking.findMany({
-            where: { tripId: trip.id },
+            where: { tripId: trip.id, status: { in: ["CONFIRMED", "PENDING_PAYMENT"] } },
             include: { seat: true },
           });
 
@@ -284,6 +286,11 @@ export const tripsRouter = createTRPCRouter({
               await tx.booking.update({
                 where: { id: booking.id },
                 data: { seatId: newSeat.id },
+              });
+            } else {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Cannot swap bus: Seat ${booking.seat.label} is missing on the new bus layout.`,
               });
             }
           }

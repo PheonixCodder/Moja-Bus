@@ -571,8 +571,8 @@ interface FareDraft {
   fromStopOrder: number;
   toStopOrder: number;
   priceXOF: number;
-  type: "FIXED" | "FLEXIBLE";
-  seatClass: "ECONOMY" | "BUSINESS" | "VIP";
+  type: "FIXED" | "PROMO" | "HOLIDAY_SURGE" | "EARLY_BIRD";
+  seatClass: "ECONOMY" | "STANDARD" | "VIP";
 }
 
 function PricingStep({
@@ -591,13 +591,20 @@ function PricingStep({
   function setFare(from: number, to: number, price: string) {
     const parsed = parseInt(price.replace(/\D/g, ""), 10);
     const value = isNaN(parsed) ? 0 : parsed;
+    const existingFare = fares.find((f) => f.fromStopOrder === from && f.toStopOrder === to);
     const existing = fares.filter(
       (f) => !(f.fromStopOrder === from && f.toStopOrder === to),
     );
     if (value > 0) {
       onChange([
         ...existing,
-        { fromStopOrder: from, toStopOrder: to, priceXOF: value, type: fare?.type ?? "FIXED", seatClass: fare?.seatClass ?? "ECONOMY" },
+        {
+          fromStopOrder: from,
+          toStopOrder: to,
+          priceXOF: value,
+          type: existingFare?.type ?? "FIXED",
+          seatClass: existingFare?.seatClass ?? "ECONOMY",
+        },
       ]);
     } else {
       onChange(existing);
@@ -697,7 +704,9 @@ function PricingStep({
                     className="w-full h-8 text-xs border border-input rounded-md bg-background px-1"
                   >
                     <option value="FIXED">Fixed</option>
-                    <option value="FLEXIBLE">Flexible</option>
+                    <option value="PROMO">Promo</option>
+                    <option value="HOLIDAY_SURGE">Holiday Surge</option>
+                    <option value="EARLY_BIRD">Early Bird</option>
                   </select>
                 </div>
                 <div className="w-24">
@@ -714,7 +723,7 @@ function PricingStep({
                     className="w-full h-8 text-xs border border-input rounded-md bg-background px-1"
                   >
                     <option value="ECONOMY">Economy</option>
-                    <option value="BUSINESS">Business</option>
+                    <option value="STANDARD">Standard</option>
                     <option value="VIP">VIP</option>
                   </select>
                 </div>

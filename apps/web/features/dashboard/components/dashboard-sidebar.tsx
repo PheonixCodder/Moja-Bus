@@ -12,6 +12,7 @@ import {
   Settings,
   Ticket,
   Users,
+  Wallet,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -65,7 +66,7 @@ function NavSection({ label, items, pathname }: NavSectionProps) {
         <SidebarMenu>
           {items.map((item) => {
             const isActive =
-              pathname === item.url || pathname.startsWith(`${item.url}/`);
+              pathname === item.url;
 
             return (
               <SidebarMenuItem key={item.title}>
@@ -110,9 +111,9 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
 
   const mainMenuItems: MenuItem[] = [
     { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-    { title: "Search trips", url: "/dashboard/search", icon: Search },
     { title: "Bookings", url: "/dashboard/bookings", icon: CalendarDays },
     { title: "Tickets", url: "/dashboard/tickets", icon: Ticket },
+    { title: "Wallet", url: "/dashboard/wallet", icon: Wallet },
     { title: "Passengers", url: "/dashboard/passengers", icon: Users },
   ];
 

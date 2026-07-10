@@ -11,7 +11,10 @@ export const metadata = {
 };
 
 export default async function OperatorDashboardPage() {
-  prefetch(trpc.operator.getOnboardingStatus.queryOptions());
+  await Promise.all([
+    prefetch(trpc.operator.getOnboardingStatus.queryOptions()),
+    prefetch(trpc.operator.getDashboardMetrics.queryOptions()),
+  ]);
   const data = await getQueryClient().fetchQuery(
     trpc.operator.getOnboardingStatus.queryOptions(),
   );

@@ -173,10 +173,24 @@ export class OperatorBookingService {
 
     if (!bookingId && input.ticketToken) {
       const token = parseTicketToken(input.ticketToken);
-      const byToken = await this.prisma.booking.findUnique({
+      let byToken = await this.prisma.booking.findUnique({
         where: { ticketToken: token },
         select: { id: true },
       });
+
+      // Fallback: search by booking reference (case-insensitive)
+      if (!byToken) {
+        byToken = await this.prisma.booking.findFirst({
+          where: {
+            bookingReference: {
+              equals: token,
+              mode: "insensitive" as const,
+            },
+          },
+          select: { id: true },
+        });
+      }
+
       if (!byToken) {
         throw new TRPCError({
           code: "NOT_FOUND",

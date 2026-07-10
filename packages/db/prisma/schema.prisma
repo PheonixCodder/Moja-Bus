@@ -993,7 +993,6 @@ model Trip {
   routeSnapshotJson Json
 
   totalSeats  Int
-  bookedSeats Int @default(0)
 
   tripStops TripStop[]
   seats     TripSeat[]
@@ -1304,6 +1303,9 @@ model Booking {
   savedPassengerId String?
   savedPassenger   SavedPassenger? @relation(fields: [savedPassengerId], references: [id], onDelete: SetNull)
 
+  // Review relation
+  review Review?
+
   // Tracking
   checkedInAt DateTime?
   boardedAt   DateTime?
@@ -1331,6 +1333,9 @@ model Review {
   content   String?
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
+  
+  bookingId String?  @unique
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

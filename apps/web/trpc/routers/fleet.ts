@@ -9,9 +9,34 @@ export const fleetRouter = createTRPCRouter({
     });
   }),
 
+  // Platform defaults + calling company's custom layouts
   getLayoutTemplates: operatorCompanyProcedure.query(async ({ ctx }) => {
     return ctx.prisma.seatLayoutTemplate.findMany({
-      include: { busType: true },
+      where: {
+        OR: [{ companyId: null }, { companyId: ctx.companyId }],
+      },
+      include: {
+        busType: true,
+        seatTemplates: {
+          orderBy: [{ row: "asc" }, { col: "asc" }],
+        },
+      },
+      orderBy: [{ companyId: "asc" }, { name: "asc" }], // nulls (platform) first
+    });
+  }),
+
+  // Company-owned custom layouts only, with bus-use count
+  getCustomLayouts: operatorCompanyProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.seatLayoutTemplate.findMany({
+      where: { companyId: ctx.companyId },
+      include: {
+        busType: true,
+        seatTemplates: {
+          orderBy: [{ row: "asc" }, { col: "asc" }],
+        },
+        _count: { select: { buses: true } },
+      },
+      orderBy: { name: "asc" },
     });
   }),
 
@@ -88,8 +113,11 @@ export const fleetRouter = createTRPCRouter({
       }
 
       // Fetch template with its seat definitions to auto-generate seats
-      const template = await ctx.prisma.seatLayoutTemplate.findUnique({
-        where: { id: input.layoutTemplateId },
+      const template = await ctx.prisma.seatLayoutTemplate.findFirst({
+        where: {
+          id: input.layoutTemplateId,
+          OR: [{ companyId: null }, { companyId: ctx.companyId }],
+        },
         include: { seatTemplates: true },
       });
 
@@ -296,5 +324,106 @@ export const fleetRouter = createTRPCRouter({
         
         return updatedSeat;
       });
+    }),
+
+  // ── Custom Layout Mutations ──────────────────────────────────────────────
+
+  createCustomLayout: operatorCompanyProcedure
+    .input(
+      z.object({
+        name: z.string().min(2, "Name must be at least 2 characters").max(60),
+        busTypeId: z.string().min(1, "Bus type is required"),
+        rows: z.number().int().min(2).max(20),
+        columns: z.number().int().min(2).max(6),
+        hasAC: z.boolean().default(false),
+        hasWifi: z.boolean().default(false),
+        hasToilet: z.boolean().default(false),
+        hasLuggage: z.boolean().default(true),
+        seats: z.array(
+          z.object({
+            row: z.number().int().min(1),
+            col: z.number().int().min(1),
+            deck: z.number().int().min(1).default(1),
+            label: z.string(),
+            seatType: z.enum([
+              "PASSENGER_WINDOW",
+              "PASSENGER_AISLE",
+              "DRIVER_AREA",
+              "EMPTY_SPACE",
+            ]),
+            isBookable: z.boolean(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Guard: no duplicate name per company
+      const existing = await ctx.prisma.seatLayoutTemplate.findFirst({
+        where: { name: input.name, companyId: ctx.companyId },
+      });
+      if (existing) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "A layout with this name already exists.",
+        });
+      }
+
+      const totalSeats = input.seats.filter(
+        (s) =>
+          s.seatType === "PASSENGER_WINDOW" ||
+          s.seatType === "PASSENGER_AISLE",
+      ).length;
+
+      if (totalSeats === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Layout must have at least one passenger seat.",
+        });
+      }
+
+      return ctx.prisma.seatLayoutTemplate.create({
+        data: {
+          companyId: ctx.companyId,
+          busTypeId: input.busTypeId,
+          name: input.name,
+          totalSeats,
+          rows: input.rows,
+          columns: input.columns,
+          hasAC: input.hasAC,
+          hasWifi: input.hasWifi,
+          hasToilet: input.hasToilet,
+          hasLuggage: input.hasLuggage,
+          seatTemplates: { create: input.seats },
+        },
+        include: { busType: true },
+      });
+    }),
+
+  deleteCustomLayout: operatorCompanyProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const layout = await ctx.prisma.seatLayoutTemplate.findFirst({
+        where: { id: input.id, companyId: ctx.companyId },
+      });
+      if (!layout) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Layout not found or not owned by your company.",
+        });
+      }
+
+      // Block deletion if any bus references this layout
+      const busCount = await ctx.prisma.bus.count({
+        where: { layoutTemplateId: input.id, companyId: ctx.companyId },
+      });
+      if (busCount > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Cannot delete — ${busCount} bus${busCount > 1 ? "es" : ""} use this layout. Reassign or remove those buses first.`,
+        });
+      }
+
+      await ctx.prisma.seatLayoutTemplate.delete({ where: { id: input.id } });
+      return { success: true };
     }),
 });

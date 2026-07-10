@@ -1,55 +1,101 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Ticket } from "lucide-react";
+import { Ticket, Search, QrCode, ArrowRight, ShieldCheck, MapPin, Calendar, Clock, Armchair } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { buttonVariants } from "@moja/ui/components/ui/button";
 import { Button } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { useTRPC } from "@/trpc/client";
 import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-card";
-import { PassengerTripCard } from "@/features/booking/components/passenger-trip-card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@moja/ui/components/ui/dialog";
+import type { PassengerBookingSummary } from "@moja/types";
+import { formatDepartureTime } from "@/features/search/lib/format";
 
-function TicketBlock({
+function TicketDialog({
   bookingReference,
   ticketToken,
+  isOpen,
+  onClose,
 }: {
   bookingReference: string;
   ticketToken: string;
+  isOpen: boolean;
+  onClose: () => void;
 }) {
   const trpc = useTRPC();
   const { data: ticket, isLoading, isError } = useQuery(
     trpc.booking.getTicket.queryOptions({ bookingReference }),
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-8">
-        <Spinner className="size-6 text-[#ee237c]" />
-      </div>
-    );
-  }
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="border-border bg-bg-surface max-w-lg rounded-xl">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold text-text-primary">Digital Boarding Pass</DialogTitle>
+          <DialogDescription className="text-xs">
+            Present this QR code to the driver or terminal agent during check-in.
+          </DialogDescription>
+        </DialogHeader>
 
-  if (isError || !ticket) {
-    return (
-      <p className="text-sm text-red-600 text-center py-4">
-        Could not load ticket QR.{" "}
-        <Link
-          href={`/tickets/${encodeURIComponent(ticketToken)}`}
-          className="underline font-semibold"
-        >
-          Open public ticket link
-        </Link>
-      </p>
-    );
-  }
-
-  return <DigitalTicketCard ticket={ticket} compact />;
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <Spinner className="size-8 text-primary" />
+          </div>
+        ) : isError || !ticket ? (
+          <div className="py-12 text-center space-y-4">
+            <p className="text-sm text-error font-medium">Could not load ticket details</p>
+            <Link
+              href={`/tickets/${encodeURIComponent(ticketToken)}`}
+              target="_blank"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              Open public ticket link
+            </Link>
+          </div>
+        ) : (
+          <div className="py-4 space-y-6">
+            <DigitalTicketCard ticket={ticket} />
+            <div className="flex justify-center gap-3">
+              <Button
+                variant="ghost"
+                onClick={onClose}
+                className="h-10 text-xs font-semibold text-text-secondary hover:bg-bg-elevated"
+              >
+                Close
+              </Button>
+              <Link
+                href={`/tickets/${encodeURIComponent(ticketToken)}`}
+                target="_blank"
+                className={cn(buttonVariants({ variant: "outline" }), "h-10 px-6 text-xs font-semibold border-border text-text-primary hover:bg-bg-elevated")}
+              >
+                Full screen view
+              </Link>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function PassengerTicketsView() {
   const trpc = useTRPC();
+  
+  // Selected seat ticket for showing QR Code Dialog
+  const [activeTicket, setActiveTicket] = useState<{
+    bookingReference: string;
+    ticketToken: string;
+  } | null>(null);
+
   const { data, isLoading, isError, error, refetch } = useQuery(
     trpc.booking.listMyBookings.queryOptions({ filter: "upcoming" }),
   );
@@ -59,19 +105,19 @@ export function PassengerTicketsView() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
-        <Spinner className="size-8 text-[#ee237c]" />
+        <Spinner className="size-8 text-primary" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center max-w-lg">
-        <p className="text-red-800 font-medium">Could not load tickets</p>
-        <p className="text-sm text-red-600 mt-1">
+      <div className="rounded-2xl border border-error/20 bg-error/5 p-6 text-center max-w-lg">
+        <p className="text-error font-medium">Could not load tickets</p>
+        <p className="text-sm text-text-muted mt-1">
           {error instanceof Error ? error.message : "Something went wrong"}
         </p>
-        <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+        <Button variant="outline" className="mt-4 border-border text-text-primary" onClick={() => refetch()}>
           Try again
         </Button>
       </div>
@@ -80,55 +126,112 @@ export function PassengerTicketsView() {
 
   if (confirmed.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center max-w-lg">
-        <Ticket className="size-12 mx-auto mb-4 text-slate-300" />
-        <p className="text-slate-600 font-medium">
-          No active tickets yet. Complete a booking to get your digital QR
-          tickets here.
-        </p>
+      <div className="rounded-2xl border border-dashed border-border bg-bg-surface p-12 text-center max-w-lg flex flex-col items-center justify-center space-y-4">
+        <div className="w-12 h-12 bg-bg-elevated text-text-muted rounded-full flex items-center justify-center">
+          <Ticket className="size-6 text-text-muted" />
+        </div>
+        <div className="space-y-1">
+          <p className="font-bold text-text-primary text-sm">No Active Tickets</p>
+          <p className="text-xs text-text-secondary">Complete a booking to get your digital QR tickets here.</p>
+        </div>
         <Link
           href="/"
           className={cn(
             buttonVariants(),
-            "mt-6 bg-[#ee237c] hover:bg-[#d01867] text-white font-bold",
+            "mt-2 bg-primary hover:bg-primary/95 text-white font-bold h-10 px-6 rounded-lg",
           )}
         >
-          Search trips
+          Book a Ticket
         </Link>
       </div>
     );
   }
 
+  const activeTicketsCount = confirmed.reduce((n, b) => n + b.seats.length, 0);
+
   return (
-    <div className="space-y-8 max-w-2xl">
-      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-        {confirmed.reduce((n, b) => n + b.seats.length, 0)} active ticket
-        {confirmed.reduce((n, b) => n + b.seats.length, 0) === 1 ? "" : "s"}
+    <div className="space-y-6 max-w-3xl">
+      <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest px-1">
+        {activeTicketsCount} Active Ticket{activeTicketsCount === 1 ? "" : "s"} Available
       </p>
 
-      {confirmed.flatMap((booking) =>
-        booking.seats.map((seat) => (
-          <section key={seat.bookingReference} className="space-y-4">
-            <PassengerTripCard booking={booking} />
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-3 text-center">
-                Seat {seat.seatLabel} · {seat.bookingReference}
-              </p>
-              <TicketBlock
-                bookingReference={seat.bookingReference}
-                ticketToken={seat.ticketToken}
-              />
-              <div className="mt-4 flex justify-center">
-                <Link
-                  href={`/dashboard/tickets/${encodeURIComponent(seat.bookingReference)}`}
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-                >
-                  Full screen ticket
-                </Link>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {confirmed.flatMap((booking) =>
+          booking.seats.map((seat) => {
+            const routeName = `${booking.originCityName} → ${booking.destinationCityName}`;
+            return (
+              <div
+                key={seat.bookingReference}
+                className="group relative flex flex-col justify-between p-5 rounded-2xl border border-border/80 bg-bg-surface hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+              >
+                <div className="space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      {booking.companyName}
+                    </span>
+                    <span className="text-[10px] font-bold text-text-muted font-mono tracking-tight uppercase">
+                      {seat.bookingReference}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-extrabold text-text-primary tracking-tight truncate">
+                      {routeName}
+                    </h4>
+                    <p className="text-[10px] text-text-secondary mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-text-muted" />
+                      {booking.originTerminalName}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[11px] border-t border-border/50 pt-3">
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-bold text-text-muted uppercase">Departure</p>
+                      <p className="font-semibold text-text-primary">
+                        {formatDepartureTime(booking.departureTime)}
+                      </p>
+                    </div>
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-bold text-text-muted uppercase">Seat Assigned</p>
+                      <p className="font-semibold text-text-primary flex items-center gap-1">
+                        <Armchair className="w-3.5 h-3.5 text-text-muted" />
+                        {seat.seatLabel}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-text-secondary truncate max-w-[100px]">
+                    {seat.passengerName}
+                  </span>
+                  
+                  <Button
+                    size="sm"
+                    onClick={() => setActiveTicket({
+                      bookingReference: seat.bookingReference,
+                      ticketToken: seat.ticketToken,
+                    })}
+                    className="bg-primary text-white hover:bg-primary/95 text-xs font-semibold h-8 rounded-lg gap-1.5 px-3"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    Show Boarding Pass
+                  </Button>
+                </div>
               </div>
-            </div>
-          </section>
-        )),
+            );
+          })
+        )}
+      </div>
+
+      {/* Ticket QR Dialog */}
+      {activeTicket && (
+        <TicketDialog
+          bookingReference={activeTicket.bookingReference}
+          ticketToken={activeTicket.ticketToken}
+          isOpen={activeTicket !== null}
+          onClose={() => setActiveTicket(null)}
+        />
       )}
     </div>
   );

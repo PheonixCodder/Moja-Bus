@@ -84,7 +84,6 @@ Each phase delivers **shippable value**:
 | Implement trip search service | ⏳ | High |
 | Implement database queries for search | ⏳ | High |
 | Add indexes for search performance | ⏳ | High |
-| Implement Redis caching for search results | ⏳ | Medium |
 | Implement pagination | ⏳ | High |
 | Handle edge cases (no results, invalid params) | ⏳ | Medium |
 
@@ -359,14 +358,13 @@ Each phase delivers **shippable value**:
 | Create company verification queue | ✅ | Medium |
 | Create user management | ✅ | Medium |
 | Create dispute resolution UI | ⏳ | Low |
-| Create platform analytics | ⏳ | Medium |
+| Create platform analytics | ✅ | Medium |
 | Create system settings | ✅ | Low |
 
 #### Sprint 6.4 - Performance & Optimization
 | Task | Status | Priority |
 |------|--------|----------|
 | Implement database query optimization | ⏳ | High |
-| Add more Redis caching | ⏳ | High |
 | Implement image optimization | ⏳ | Medium |
 | Implement code splitting | ⏳ | Medium |
 | Implement lazy loading | ⏳ | Medium |
@@ -383,26 +381,26 @@ Each phase delivers **shippable value**:
 #### Sprint 6.6 - Passenger Dashboard Redesign & Wiring
 | Task | Status | Priority |
 |------|--------|----------|
-| Wire dashboard KPIs to actual DB counts via tRPC | ⏳ | High |
-| Redesign passenger home layout & empty states | ⏳ | High |
-| Replace/remove `/dashboard/search` placeholder | ⏳ | Medium |
-| Refactor `/dashboard/passengers` user experience | ⏳ | Medium |
+| Wire dashboard KPIs to actual DB counts via tRPC | ✅ | High |
+| Redesign passenger home layout & empty states | ✅ | High |
+| Replace/remove `/dashboard/search` placeholder | ✅ | Medium |
+| Refactor `/dashboard/passengers` user experience | ✅ | Medium |
 
 #### Sprint 6.7 - Operator Onboarding Redesign
 | Task | Status | Priority |
 |------|--------|----------|
-| Overhaul onboarding multi-step UI flow | ⏳ | High |
-| Add robust document verification hints & states | ⏳ | High |
-| Improve company branding setup steps | ⏳ | Medium |
-| Refactor onboarding state persistence logic | ⏳ | Medium |
+| Overhaul onboarding multi-step UI flow | ✅ | High |
+| Add robust document verification hints & states | ✅ | High |
+| Improve company branding setup steps | ✅ | Medium |
+| Refactor onboarding state persistence logic | ✅ | Medium |
 
 #### Sprint 6.8 - Operator Overview Page Redesign
 | Task | Status | Priority |
 |------|--------|----------|
-| Redesign operator root `/dashboard` home screen | ⏳ | High |
-| Implement realtime dispatch & live metrics APIs | ⏳ | High |
-| Wire up interactive quick-actions (e.g. Scan Ticket) | ⏳ | High |
-| Create holistic fleet/schedule summary views | ⏳ | Medium |
+| Redesign operator root `/dashboard` home screen | ✅ | High |
+| Implement realtime dispatch & live metrics APIs | ✅ | High |
+| Wire up interactive quick-actions (e.g. Scan Ticket) | ✅ | High |
+| Create holistic fleet/schedule summary views | ✅ | Medium |
 
 **Deliverables**:
 - ✅ Complete notification system

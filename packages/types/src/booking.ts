@@ -112,6 +112,7 @@ export interface PassengerBookingSummary {
   groupId: string;
   holdGroupId: string | null;
   tripId: string;
+  companyId: string;
   companyName: string;
   originTerminalName: string;
   originCityName: string;
