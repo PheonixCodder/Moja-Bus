@@ -907,7 +907,10 @@ export function OperatorTerminalsView() {
                           onChange={(e) =>
                             setOperatingHours({
                               ...operatingHours,
-                              [day]: { ...operatingHours[day], open: e.target.value },
+                              [day]: {
+                                ...(operatingHours[day] ?? { open: "06:00", close: "20:00", closed: false }),
+                                open: e.target.value,
+                              },
                             })
                           }
                           disabled={operatingHours[day]?.closed}
@@ -920,7 +923,10 @@ export function OperatorTerminalsView() {
                           onChange={(e) =>
                             setOperatingHours({
                               ...operatingHours,
-                              [day]: { ...operatingHours[day], close: e.target.value },
+                              [day]: {
+                                ...(operatingHours[day] ?? { open: "06:00", close: "20:00", closed: false }),
+                                close: e.target.value,
+                              },
                             })
                           }
                           disabled={operatingHours[day]?.closed}
@@ -934,7 +940,10 @@ export function OperatorTerminalsView() {
                           onCheckedChange={(checked) =>
                             setOperatingHours({
                               ...operatingHours,
-                              [day]: { ...operatingHours[day], closed: checked },
+                              [day]: {
+                                ...(operatingHours[day] ?? { open: "06:00", close: "20:00", closed: false }),
+                                closed: checked,
+                              },
                             })
                           }
                         />

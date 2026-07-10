@@ -813,6 +813,7 @@ export const operatorRouter = createTRPCRouter({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
       include: {
+        user: true,
         company: {
           include: {
             bankAccounts: true,
@@ -1431,6 +1432,182 @@ export const operatorRouter = createTRPCRouter({
           description: e.description,
           createdAt: e.createdAt.toISOString(),
         })),
+      };
+    }),
+
+  getDashboardMetrics: operatorCompanyProcedure
+    .input(z.object({ clientDate: z.string().optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      const companyId = ctx.companyId;
+      
+      const baseDate = input?.clientDate ? new Date(input.clientDate) : new Date();
+      const startOfDay = new Date(baseDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(baseDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const todayTrips = await ctx.prisma.trip.findMany({
+        where: {
+          companyId,
+          departureDate: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        include: {
+          bus: {
+            include: { busType: true },
+          },
+          schedule: {
+            include: {
+              route: {
+                include: {
+                  originTerminal: { include: { cityRelation: true } },
+                  destTerminal: { include: { cityRelation: true } },
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              bookings: {
+                where: {
+                  status: "CONFIRMED",
+                },
+              },
+            },
+          },
+        },
+        orderBy: { departureDate: "asc" },
+      });
+
+      const totalBuses = await ctx.prisma.bus.count({
+        where: { companyId },
+      });
+      const activeBuses = await ctx.prisma.bus.count({
+        where: { companyId, status: "ACTIVE" },
+      });
+
+      const bookingsCreatedToday = await ctx.prisma.booking.findMany({
+        where: {
+          trip: { companyId },
+          status: "CONFIRMED",
+          issuedAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        include: {
+          holdGroup: {
+            include: { pricingSnapshot: true },
+          },
+        },
+      });
+
+      let revenueTodayXOF = 0;
+      const processedHoldGroups = new Set<string>();
+      for (const booking of bookingsCreatedToday) {
+        const hg = booking.holdGroup;
+        if (!hg) continue;
+        if (!processedHoldGroups.has(hg.id)) {
+          processedHoldGroups.add(hg.id);
+          const ps = hg.pricingSnapshot;
+          if (ps) {
+            revenueTodayXOF += ps.operatorNetXOF;
+          }
+        }
+      }
+
+      const totalTripsToday = todayTrips.length;
+      let totalSeatsToday = 0;
+      let totalBookingsToday = 0;
+
+      const departures = todayTrips.map((t) => {
+        totalSeatsToday += t.totalSeats;
+        const bookedCount = t._count.bookings;
+        totalBookingsToday += bookedCount;
+        
+        const origin = t.schedule?.route?.originTerminal?.cityRelation?.name ?? "Unknown";
+        const dest = t.schedule?.route?.destTerminal?.cityRelation?.name ?? "Unknown";
+
+        return {
+          id: t.id,
+          routeLabel: `${origin} → ${dest}`,
+          departureTime: t.departureDate.toISOString(),
+          status: t.status,
+          busLabel: t.bus ? `${t.bus.registrationPlate}${t.bus.internalName ? ` (${t.bus.internalName})` : ""}` : "No Bus Assigned",
+          bookedSeats: bookedCount,
+          totalSeats: t.totalSeats,
+        };
+      });
+
+      const occupancyRateToday = totalSeatsToday > 0 
+        ? Math.round((totalBookingsToday / totalSeatsToday) * 100) 
+        : 0;
+
+      const recentBookings = await ctx.prisma.booking.findMany({
+        where: {
+          trip: { companyId },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: {
+          trip: {
+            include: {
+              schedule: {
+                include: {
+                  route: {
+                    include: {
+                      originTerminal: { include: { cityRelation: true } },
+                      destTerminal: { include: { cityRelation: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const activities = recentBookings.map((b) => {
+        const origin = b.trip.schedule?.route?.originTerminal?.cityRelation?.name ?? "Unknown";
+        const dest = b.trip.schedule?.route?.destTerminal?.cityRelation?.name ?? "Unknown";
+        
+        let actionLabel = "Booked ticket";
+        if (b.status === "CONFIRMED") {
+          actionLabel = b.checkedInAt ? "Checked in" : "Purchased ticket";
+        } else if (b.status === "CANCELLED") {
+          actionLabel = "Cancelled booking";
+        } else if (b.status === "PENDING_PAYMENT") {
+          actionLabel = "Reserved seat (pending payment)";
+        }
+
+        const timestamp = b.checkedInAt && b.checkedInAt > b.createdAt 
+          ? b.checkedInAt.toISOString() 
+          : b.createdAt.toISOString();
+
+        return {
+          id: b.id,
+          passengerName: b.passengerName,
+          action: actionLabel,
+          routeLabel: `${origin} → ${dest}`,
+          timestamp,
+          status: b.status,
+          bookingReference: b.bookingReference,
+        };
+      });
+
+      return {
+        stats: {
+          totalTripsToday,
+          totalBookingsToday,
+          occupancyRateToday,
+          revenueTodayXOF,
+          activeBuses,
+          totalBuses,
+        },
+        departures,
+        activities,
       };
     }),
 });

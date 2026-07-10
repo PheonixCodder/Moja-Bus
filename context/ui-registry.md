@@ -32,6 +32,9 @@ After building any component, update this file with the component name, file pat
 
 ## Platform Data (Seeded via `packages/db/prisma/seed.ts`)
 - **`City`**: 35 CI cities seeded. `isMajorHub` flags Abidjan, Bouaké, Yamoussoukro, San-Pédro, Daloa, Korhogo, Man.
+| **AddBusModal** | Dialog | Operator / Fleet | Modal to register new vehicles, now includes grouped layout picker with quick access to the layout builder. |
+| **SeatMapPreview** | Component | Operator / Fleet | Shared interactive/readonly grid canvas for visualizing a seat layout. |
+| **LayoutBuilderSheet** | Sheet | Operator / Fleet | Advanced 3-step wizard (Configure, Design, Preview) for operators to create custom layout grid maps. |
 - **`BusType`**: 7 vehicle types seeded.
 - **`SeatLayoutTemplate`**: 5 platform-default seat grid layouts. Operator-specific layouts use `companyId`.
 - **`CompanyLocation` (Terminal)**: Operator depots from onboarding. `isTerminal=true` makes them bookable passenger stops. Linked to `City` via `cityId`.

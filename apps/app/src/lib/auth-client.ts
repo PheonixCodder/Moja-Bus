@@ -9,10 +9,10 @@ const baseURL =
 export const authClient = createAuthClient({
   baseURL,
   plugins: [
+    emailOTPClient(),
     expoClient({
       scheme: "travelerapp",
       storage: SecureStore,
-    }),
-    emailOTPClient(),
-  ],
-});
+    }) as any,
+  ] as const,
+}) as any;

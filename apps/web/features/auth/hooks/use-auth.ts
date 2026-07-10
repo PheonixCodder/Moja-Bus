@@ -309,7 +309,7 @@ export function useAuth() {
           ? "/dashboard/operator/onboarding"
           : "/dashboard";
 
-      toast.success(`Email verified. Welcome to ${process.env.NEXT_PUBLIC_APP_NAME || "Moja Ride"}!`);
+      toast.success(`Email verified. Welcome to ${process.env['NEXT_PUBLIC_APP_NAME'] || "Moja Ride"}!`);
       router.push(redirectPath);
       router.refresh();
       return { success: true };

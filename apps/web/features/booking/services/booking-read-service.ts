@@ -279,6 +279,7 @@ export class BookingReadService {
     group: Array<{
       id: string;
       tripId: string;
+      companyId: string;
       holdGroupId: string | null;
       createdAt: Date;
       bookingReference: string;
@@ -319,6 +320,7 @@ export class BookingReadService {
       groupId: bookingSummaryGroupKey(first),
       holdGroupId: first.holdGroupId,
       tripId: first.tripId,
+      companyId: first.companyId,
       companyName: first.company.name,
       originTerminalName: first.originTripStop.terminal.name,
       originCityName:

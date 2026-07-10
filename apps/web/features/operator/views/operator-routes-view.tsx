@@ -130,7 +130,7 @@ interface WaypointDraft {
   offsetMinutes: number;
   allowPickup: boolean;
   allowDropoff: boolean;
-  distanceFromOriginKm?: number;
+  distanceFromOriginKm?: number | undefined;
 }
 
 // ──────────────────────────────────────────────
@@ -870,7 +870,7 @@ function RouteFormDrawer({
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     onDragEnd={handleDragEnd}
-                    announcements={dndAnnouncements}
+                    accessibility={{ announcements: dndAnnouncements }}
                   >
                     <SortableContext
                       items={waypoints.map((w) => w.id)}

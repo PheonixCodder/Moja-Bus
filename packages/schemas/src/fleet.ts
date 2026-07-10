@@ -39,3 +39,35 @@ export type CreateBusInput = z.infer<typeof createBusSchema>;
 
 export const updateBusSchema = createBusSchema.partial();
 export type UpdateBusInput = z.infer<typeof updateBusSchema>;
+
+// ── Custom Layout Builder ────────────────────────────────────────────────────
+
+export const seatCellSchema = z.object({
+  row: z.number().int().min(1),
+  col: z.number().int().min(1),
+  deck: z.number().int().default(1),
+  label: z.string(),
+  seatType: seatTypeEnum,
+  isBookable: z.boolean(),
+});
+export type SeatCell = z.infer<typeof seatCellSchema>;
+
+export const createCustomLayoutSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .max(60, "Name must be at most 60 characters"),
+  busTypeId: z.string().min(1, "Bus type is required"),
+  rows: z.number().int().min(2, "Minimum 2 rows").max(20, "Maximum 20 rows"),
+  columns: z
+    .number()
+    .int()
+    .min(2, "Minimum 2 columns")
+    .max(6, "Maximum 6 columns"),
+  hasAC: z.boolean().default(false),
+  hasWifi: z.boolean().default(false),
+  hasToilet: z.boolean().default(false),
+  hasLuggage: z.boolean().default(true),
+  seats: z.array(seatCellSchema),
+});
+export type CreateCustomLayoutInput = z.infer<typeof createCustomLayoutSchema>;
