@@ -223,10 +223,11 @@ export function PassengerSettingsView() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Seating preference */}
                   <div className="flex flex-col gap-2">
-                    <Label className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                    <Label htmlFor="preferredSeat" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
                       Seating Preference
                     </Label>
                     <select
+                      id="preferredSeat"
                       value={preferredSeat}
                       onChange={(e) => setPreferredSeat(e.target.value)}
                       className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
@@ -239,10 +240,11 @@ export function PassengerSettingsView() {
 
                   {/* Seat Class preference */}
                   <div className="flex flex-col gap-2">
-                    <Label className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                    <Label htmlFor="preferredClass" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
                       Preferred Seating Class
                     </Label>
                     <select
+                      id="preferredClass"
                       value={preferredClass}
                       onChange={(e) => setPreferredClass(e.target.value)}
                       className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"

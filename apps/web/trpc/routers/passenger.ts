@@ -178,7 +178,7 @@ export const passengerRouter = createTRPCRouter({
 
       return ctx.prisma.review.create({
         data: {
-          companyId: input.companyId,
+          companyId: booking.companyId,
           bookingId: input.bookingId,
           rating: input.rating,
           content: input.content || null,

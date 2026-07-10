@@ -17,6 +17,7 @@ import {
 } from "@moja/schemas";
 import { TERMS_VERSION, PRIVACY_VERSION, COMMISSION_VERSION } from "@/lib/constants/legal";
 import crypto from "crypto";
+import { startOfAppCalendarDay, addAppCalendarDays } from "@/lib/timezone";
 
 import {
   createTRPCRouter,
@@ -1441,68 +1442,90 @@ export const operatorRouter = createTRPCRouter({
       const companyId = ctx.companyId;
       
       const baseDate = input?.clientDate ? new Date(input.clientDate) : new Date();
-      const startOfDay = new Date(baseDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(baseDate);
-      endOfDay.setHours(23, 59, 59, 999);
+      const startOfDay = startOfAppCalendarDay(baseDate);
+      const endOfDay = addAppCalendarDays(startOfDay, 1);
+      endOfDay.setUTCMilliseconds(-1);
       
-      const todayTrips = await ctx.prisma.trip.findMany({
-        where: {
-          companyId,
-          departureDate: {
-            gte: startOfDay,
-            lte: endOfDay,
+      const [todayTrips, totalBuses, activeBuses, bookingsCreatedToday, recentBookings] = await Promise.all([
+        ctx.prisma.trip.findMany({
+          where: {
+            companyId,
+            departureDate: {
+              gte: startOfDay,
+              lte: endOfDay,
+            },
           },
-        },
-        include: {
-          bus: {
-            include: { busType: true },
-          },
-          schedule: {
-            include: {
-              route: {
-                include: {
-                  originTerminal: { include: { cityRelation: true } },
-                  destTerminal: { include: { cityRelation: true } },
+          include: {
+            bus: {
+              include: { busType: true },
+            },
+            schedule: {
+              include: {
+                route: {
+                  include: {
+                    originTerminal: { include: { cityRelation: true } },
+                    destTerminal: { include: { cityRelation: true } },
+                  },
+                },
+              },
+            },
+            _count: {
+              select: {
+                bookings: {
+                  where: {
+                    status: "CONFIRMED",
+                  },
                 },
               },
             },
           },
-          _count: {
-            select: {
-              bookings: {
-                where: {
-                  status: "CONFIRMED",
+          orderBy: { departureDate: "asc" },
+        }),
+        ctx.prisma.bus.count({
+          where: { companyId },
+        }),
+        ctx.prisma.bus.count({
+          where: { companyId, status: "ACTIVE" },
+        }),
+        ctx.prisma.booking.findMany({
+          where: {
+            trip: { companyId },
+            status: "CONFIRMED",
+            issuedAt: {
+              gte: startOfDay,
+              lte: endOfDay,
+            },
+          },
+          include: {
+            holdGroup: {
+              include: { pricingSnapshot: true },
+            },
+          },
+        }),
+        ctx.prisma.booking.findMany({
+          where: {
+            trip: { companyId },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          include: {
+            trip: {
+              include: {
+                schedule: {
+                  include: {
+                    route: {
+                      include: {
+                        originTerminal: { include: { cityRelation: true } },
+                        destTerminal: { include: { cityRelation: true } },
+                      },
+                    },
+                  },
                 },
               },
             },
           },
-        },
-        orderBy: { departureDate: "asc" },
-      });
-
-      const totalBuses = await ctx.prisma.bus.count({
-        where: { companyId },
-      });
-      const activeBuses = await ctx.prisma.bus.count({
-        where: { companyId, status: "ACTIVE" },
-      });
-
-      const bookingsCreatedToday = await ctx.prisma.booking.findMany({
-        where: {
-          trip: { companyId },
-          status: "CONFIRMED",
-          issuedAt: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
-        },
-        include: {
-          holdGroup: {
-            include: { pricingSnapshot: true },
-          },
-        },
-      });
+        })
+      ]);
 
       let revenueTodayXOF = 0;
       const processedHoldGroups = new Set<string>();
@@ -1544,30 +1567,6 @@ export const operatorRouter = createTRPCRouter({
       const occupancyRateToday = totalSeatsToday > 0 
         ? Math.round((totalBookingsToday / totalSeatsToday) * 100) 
         : 0;
-
-      const recentBookings = await ctx.prisma.booking.findMany({
-        where: {
-          trip: { companyId },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: {
-          trip: {
-            include: {
-              schedule: {
-                include: {
-                  route: {
-                    include: {
-                      originTerminal: { include: { cityRelation: true } },
-                      destTerminal: { include: { cityRelation: true } },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
 
       const activities = recentBookings.map((b) => {
         const origin = b.trip.schedule?.route?.originTerminal?.cityRelation?.name ?? "Unknown";

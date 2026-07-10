@@ -39,13 +39,13 @@ export async function DashboardView() {
 
   // Fetch stats, recent bookings, and passenger profile details in parallel
   const [
-    upcomingTripsCount,
-    pendingPaymentsCount,
-    digitalTicketsCount,
-    savedContactsCount,
-    recentBookings,
-    profile,
-  ] = await Promise.all([
+    upcomingTripsResult,
+    pendingPaymentsResult,
+    digitalTicketsResult,
+    savedContactsResult,
+    recentBookingsResult,
+    profileResult,
+  ] = await Promise.allSettled([
     prisma.booking.count({
       where: {
         userId,
@@ -105,6 +105,13 @@ export async function DashboardView() {
       where: { userId },
     }),
   ]);
+
+  const upcomingTripsCount = upcomingTripsResult.status === "fulfilled" ? upcomingTripsResult.value : 0;
+  const pendingPaymentsCount = pendingPaymentsResult.status === "fulfilled" ? pendingPaymentsResult.value : 0;
+  const digitalTicketsCount = digitalTicketsResult.status === "fulfilled" ? digitalTicketsResult.value : 0;
+  const savedContactsCount = savedContactsResult.status === "fulfilled" ? savedContactsResult.value : 0;
+  const recentBookings = recentBookingsResult.status === "fulfilled" ? recentBookingsResult.value : [];
+  const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
 
   const preferences = (profile?.preferencesJson as any) || {};
   const walletBalance = preferences.wallet?.balanceXOF ?? 0;

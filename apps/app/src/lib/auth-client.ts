@@ -15,4 +15,4 @@ export const authClient = createAuthClient({
       storage: SecureStore,
     }) as any,
   ] as const,
-}) as any;
+});

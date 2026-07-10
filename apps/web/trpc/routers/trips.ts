@@ -241,7 +241,7 @@ export const tripsRouter = createTRPCRouter({
 
       if (trip.busId !== busId) {
         const bookings = await ctx.prisma.booking.findMany({
-          where: { tripId: trip.id, status: "CONFIRMED" },
+          where: { tripId: trip.id, status: { in: ["CONFIRMED", "PENDING_PAYMENT"] } },
           include: { seat: true },
         });
 
@@ -274,7 +274,7 @@ export const tripsRouter = createTRPCRouter({
 
         if (trip.busId !== busId) {
           const bookings = await tx.booking.findMany({
-            where: { tripId: trip.id },
+            where: { tripId: trip.id, status: { in: ["CONFIRMED", "PENDING_PAYMENT"] } },
             include: { seat: true },
           });
 
@@ -286,6 +286,11 @@ export const tripsRouter = createTRPCRouter({
               await tx.booking.update({
                 where: { id: booking.id },
                 data: { seatId: newSeat.id },
+              });
+            } else {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Cannot swap bus: Seat ${booking.seat.label} is missing on the new bus layout.`,
               });
             }
           }

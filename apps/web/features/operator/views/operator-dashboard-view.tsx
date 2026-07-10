@@ -100,6 +100,8 @@ export function OperatorDashboardView() {
       await checkInMutation.mutateAsync({
         ticketToken: ticketTokenInput.trim(),
       });
+    } catch (err) {
+      // Handled by onError in the mutation
     } finally {
       setIsSubmittingCheckIn(false);
     }

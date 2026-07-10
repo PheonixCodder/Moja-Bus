@@ -28,7 +28,7 @@ export default function SignupScreen() {
       });
 
       if (error) {
-        setMessage(error.message ?? "An error occurred");
+        setMessage(error.message || "An error occurred");
         return;
       }
 
