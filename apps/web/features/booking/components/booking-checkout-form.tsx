@@ -7,6 +7,7 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { CreditCard, Wallet } from "lucide-react";
 import { formatPriceXOF } from "@/features/search/lib/format";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -71,6 +72,8 @@ export function BookingCheckoutForm({
     buildInitialAssignments(selectedSeatIds, selectedLabels),
   );
 
+  const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "WALLET">("PAYSTACK");
+
   const pricingQuery = useQuery({
     ...trpc.payments.getCheckoutPricing.queryOptions({
       offerId,
@@ -83,7 +86,14 @@ export function BookingCheckoutForm({
     enabled: isLoggedIn,
   });
 
+  const walletQuery = useQuery({
+    ...trpc.passenger.getWalletBalance.queryOptions(),
+    enabled: isLoggedIn,
+  });
+
   const savedPassengers = savedQuery.data?.items ?? [];
+  const walletBalance = walletQuery.data;
+  
   const defaultSavedId = useMemo(() => {
     const self = savedPassengers.find((p) => p.isSelf);
     return self?.id ?? savedPassengers[0]?.id ?? "";
@@ -117,6 +127,7 @@ export function BookingCheckoutForm({
   }, [isLoggedIn, defaultSavedId, savedPassengers]);
 
   const createHoldMutation = useMutation(trpc.booking.createHold.mutationOptions());
+  const walletCheckoutMutation = useMutation(trpc.booking.checkoutWithWallet.mutationOptions());
   const {
     completePayment,
     isPending: isPaymentPending,
@@ -132,10 +143,12 @@ export function BookingCheckoutForm({
     | undefined;
   const subtotalBaseXOF =
     pricing?.subtotalBaseXOF ?? tripDetails.priceXOF * selectedSeatIds.length;
-  const convenienceFeeXOF = pricing?.convenienceFeeXOF ?? 0;
-  const totalAmount = pricing?.chargeAmountXOF ?? subtotalBaseXOF;
+  
+  // Platform policy: waives convenience fee for WALLET checkouts
+  const convenienceFeeXOF = paymentMethod === "WALLET" ? 0 : (pricing?.convenienceFeeXOF ?? 0);
+  const totalAmount = paymentMethod === "WALLET" ? subtotalBaseXOF : (pricing?.chargeAmountXOF ?? subtotalBaseXOF);
 
-  const isSubmitting = createHoldMutation.isPending || isPaymentPending;
+  const isSubmitting = createHoldMutation.isPending || isPaymentPending || walletCheckoutMutation.isPending;
 
   function updateAssignment(
     seatId: string,
@@ -198,6 +211,17 @@ export function BookingCheckoutForm({
       }
     }
 
+    if (paymentMethod === "WALLET") {
+      if (!isLoggedIn) {
+        toast.error("You must be logged in to pay with wallet balance");
+        return;
+      }
+      if ((walletBalance?.availableBalance ?? 0) < totalAmount) {
+        toast.error("Insufficient wallet balance");
+        return;
+      }
+    }
+
     try {
       const hold = await createHoldMutation.mutateAsync({
         offerId,
@@ -214,21 +238,35 @@ export function BookingCheckoutForm({
         ),
       });
 
-      const confirmed = await completePayment({
-        holdId: hold.holdId,
-        payerEmail: session?.user?.email ?? null,
-      });
+      if (paymentMethod === "PAYSTACK") {
+        const confirmed = await completePayment({
+          holdId: hold.holdId,
+          payerEmail: session?.user?.email ?? null,
+        });
 
-      if (!confirmed) {
-        return;
+        if (!confirmed) {
+          return;
+        }
+
+        onConfirmed({
+          holdId: confirmed.holdId,
+          bookingReferences: confirmed.bookingReferences,
+          ticketTokens: confirmed.ticketTokens,
+          totalAmountXOF: confirmed.totalAmountXOF,
+        });
+      } else {
+        // WALLET Checkout
+        const confirmed = await walletCheckoutMutation.mutateAsync({
+          holdId: hold.holdId,
+        });
+
+        onConfirmed({
+          holdId: confirmed.holdId,
+          bookingReferences: confirmed.bookingReferences,
+          ticketTokens: confirmed.ticketTokens,
+          totalAmountXOF: confirmed.totalAmountXOF,
+        });
       }
-
-      onConfirmed({
-        holdId: confirmed.holdId,
-        bookingReferences: confirmed.bookingReferences,
-        ticketTokens: confirmed.ticketTokens,
-        totalAmountXOF: confirmed.totalAmountXOF,
-      });
     } catch (err: unknown) {
       if (err instanceof PaystackPaymentCancelledError) {
         toast.error("Payment was cancelled");
@@ -268,7 +306,9 @@ export function BookingCheckoutForm({
           </div>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          Prices are tax-inclusive. Service fee supports secure card and mobile money checkout.
+          {paymentMethod === "WALLET" 
+            ? "Service convenience fees waived for paying with internal wallet balance." 
+            : "Prices are tax-inclusive. Service fee supports secure card and mobile money checkout."}
         </p>
       </div>
 
@@ -400,11 +440,81 @@ export function BookingCheckoutForm({
         ) : null}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-1">
-        <p className="text-sm font-semibold text-slate-800">Payment</p>
-        <p className="text-xs text-slate-500">
-          Pay securely with card or mobile money (Orange Money, MTN, Wave) via Paystack.
-        </p>
+      {/* Payment Selector Section */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-4">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-slate-800">Payment Options</p>
+          <p className="text-xs text-slate-500">
+            Choose a checkout method below to complete seat registration.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Card / Mobile Money */}
+          <button
+            type="button"
+            onClick={() => setPaymentMethod("PAYSTACK")}
+            className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+              paymentMethod === "PAYSTACK"
+                ? "border-primary bg-primary/5 text-primary shadow-xs"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50"
+            }`}
+          >
+            <CreditCard className="size-5 shrink-0" />
+            <div>
+              <p className="text-xs font-bold font-sans">Card / Mobile Money</p>
+              <p className="text-[10px] text-slate-500 font-sans mt-0.5">Pay via Paystack checkout</p>
+            </div>
+          </button>
+
+          {/* Wallet Balance */}
+          <button
+            type="button"
+            disabled={!isLoggedIn || (walletBalance?.availableBalance ?? 0) < subtotalBaseXOF}
+            onClick={() => setPaymentMethod("WALLET")}
+            className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all relative ${
+              paymentMethod === "WALLET"
+                ? "border-primary bg-primary/5 text-primary shadow-xs"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50"
+            } ${(!isLoggedIn || (walletBalance?.availableBalance ?? 0) < subtotalBaseXOF) ? "opacity-50 cursor-not-allowed bg-slate-50/50" : ""}`}
+          >
+            <Wallet className="size-5 shrink-0" />
+            <div>
+              <p className="text-xs font-bold font-sans">Moja Wallet Balance</p>
+              <p className="text-[10px] text-slate-500 font-sans mt-0.5">
+                {isLoggedIn
+                  ? `Available: ${formatPriceXOF(walletBalance?.availableBalance ?? 0)}`
+                  : "Sign in to pay with wallet"}
+              </p>
+            </div>
+          </button>
+        </div>
+
+        {/* Info alerts */}
+        {paymentMethod === "WALLET" && (
+          <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800 leading-relaxed">
+            <strong>Moja Wallet Checkout Benefit</strong>: Service convenience fees are fully waived (0 XOF) when paying with your internal wallet balance.
+          </div>
+        )}
+
+        {isLoggedIn && paymentMethod === "PAYSTACK" && (walletBalance?.availableBalance ?? 0) >= subtotalBaseXOF && (
+          <p className="text-[10px] text-slate-500 italic">
+            Tip: Switch to Wallet Balance to waive the convenience fee!
+          </p>
+        )}
+
+        {isLoggedIn && (walletBalance?.availableBalance ?? 0) < subtotalBaseXOF && (
+          <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 text-xs text-amber-800 flex items-center justify-between gap-2">
+            <span>Your wallet balance is insufficient for this booking.</span>
+            <Link
+              href="/dashboard/wallet"
+              className="text-[#ee237c] font-bold hover:underline shrink-0"
+              target="_blank"
+            >
+              Top-Up Wallet →
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -422,7 +532,7 @@ export function BookingCheckoutForm({
               Processing...
             </>
           ) : (
-            "Complete payment"
+            paymentMethod === "WALLET" ? "Complete with Wallet" : "Complete payment"
           )}
         </Button>
       </div>

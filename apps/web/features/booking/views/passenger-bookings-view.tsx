@@ -8,8 +8,9 @@ import {
   CalendarDays,
   Search,
   Star,
-  MessageSquareCode,
   ChevronRight,
+  CreditCard,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { Button, buttonVariants } from "@moja/ui/components/ui/button";
@@ -18,6 +19,7 @@ import { useTRPC } from "@/trpc/client";
 import { PassengerTripCard } from "@/features/booking/components/passenger-trip-card";
 import { isHoldActive } from "@/features/booking/lib/hold-countdown";
 import { usePaystackCheckout } from "@/features/payments/hooks/use-paystack-checkout";
+import { formatPriceXOF } from "@/features/search/lib/format";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +53,14 @@ export function PassengerBookingsView() {
   const [reviewContent, setReviewContent] = useState("");
   const [hoverRating, setHoverRating] = useState<number | null>(null);
 
+  // Payment Dialog State
+  const [selectedPaymentBooking, setSelectedPaymentBooking] =
+    useState<PassengerBookingSummary | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "WALLET">(
+    "PAYSTACK",
+  );
+
   const { completePayment, PaystackPaymentCancelledError } =
     usePaystackCheckout();
 
@@ -62,6 +72,25 @@ export function PassengerBookingsView() {
   // Fetch user's reviews to cross-reference
   const { data: userReviews } = useQuery(
     trpc.passenger.getUserReviews.queryOptions(),
+  );
+
+  // Fetch user's wallet balance
+  const walletQuery = useQuery({
+    ...trpc.passenger.getWalletBalance.queryOptions(),
+    enabled: isPaymentModalOpen,
+  });
+
+  // Fetch checkout pricing for holds
+  const pricingQuery = useQuery({
+    ...trpc.payments.getCheckoutPricing.queryOptions({
+      offerId: selectedPaymentBooking?.offerId ?? "",
+      seatCount: selectedPaymentBooking?.seats.length ?? 1,
+    }),
+    enabled: Boolean(selectedPaymentBooking?.offerId),
+  });
+
+  const walletCheckoutMutation = useMutation(
+    trpc.booking.checkoutWithWallet.mutationOptions(),
   );
 
   // Mutation to submit review
@@ -82,7 +111,12 @@ export function PassengerBookingsView() {
     }),
   );
 
-  async function handleCompletePayment(booking: PassengerBookingSummary) {
+  const pricing = pricingQuery.data;
+  const subtotalBaseXOF = pricing?.subtotalBaseXOF ?? (selectedPaymentBooking?.totalAmountXOF ?? 0);
+  const convenienceFeeXOF = paymentMethod === "WALLET" ? 0 : (pricing?.convenienceFeeXOF ?? 0);
+  const totalAmount = paymentMethod === "WALLET" ? subtotalBaseXOF : (pricing?.chargeAmountXOF ?? subtotalBaseXOF);
+
+  function handleCompletePayment(booking: PassengerBookingSummary) {
     const holdId = booking.holdGroupId;
     if (!holdId) {
       toast.error(
@@ -91,24 +125,41 @@ export function PassengerBookingsView() {
       return;
     }
 
-    setPayingGroupId(booking.groupId);
-    try {
-      const confirmed = await completePayment({ holdId });
-      if (!confirmed) {
-        return;
-      }
+    setSelectedPaymentBooking(booking);
+    setPaymentMethod("PAYSTACK");
+    setIsPaymentModalOpen(true);
+  }
 
-      toast.success("Payment confirmed. Your tickets are ready.");
-      await refetch();
+  async function executePayment() {
+    if (!selectedPaymentBooking || !selectedPaymentBooking.holdGroupId) return;
+    const holdId = selectedPaymentBooking.holdGroupId;
+
+    setPayingGroupId(selectedPaymentBooking.groupId);
+    try {
+      if (paymentMethod === "PAYSTACK") {
+        const confirmed = await completePayment({ holdId });
+        if (!confirmed) {
+          return;
+        }
+
+        toast.success("Payment confirmed. Your tickets are ready.");
+        setIsPaymentModalOpen(false);
+        await refetch();
+      } else {
+        // WALLET checkout
+        const confirmed = await walletCheckoutMutation.mutateAsync({ holdId });
+
+        toast.success("Payment confirmed using wallet balance. Your tickets are ready.");
+        setIsPaymentModalOpen(false);
+        await refetch();
+      }
     } catch (err: unknown) {
       if (err instanceof PaystackPaymentCancelledError) {
         toast.error("Payment was cancelled");
         return;
       }
       const message =
-        err instanceof Error
-          ? err.message
-          : "Payment failed. Please try again.";
+        err instanceof Error ? err.message : "Payment failed. Please try again.";
       toast.error(message);
     } finally {
       setPayingGroupId(null);
@@ -256,7 +307,7 @@ export function PassengerBookingsView() {
                     {filter === "past" &&
                       (alreadyReviewed ? (
                         <div className="flex items-center gap-1 text-[11px] font-semibold text-green-600">
-                          <CheckCircleIcon className="w-3.5 h-3.5" /> Reviewed
+                          Reviewed
                         </div>
                       ) : (
                         <Button
@@ -308,6 +359,148 @@ export function PassengerBookingsView() {
           })}
         </div>
       )}
+
+      {/* Complete Payment Modal */}
+      <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+        <DialogContent className="border-border bg-bg-surface max-w-md rounded-xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-text-primary">
+              Pay for Trip to {selectedPaymentBooking?.companyName}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Review details and select your payment method to complete the booking.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedPaymentBooking && (
+            <div className="py-4 space-y-4">
+              {/* Summary Block */}
+              <div className="rounded-xl border border-border bg-bg-elevated p-4 space-y-2">
+                <p className="text-xs font-bold text-text-primary">Booking Summary</p>
+                <div className="text-[11px] text-text-secondary space-y-1">
+                  <p>
+                    {selectedPaymentBooking.originCityName} → {selectedPaymentBooking.destinationCityName}
+                  </p>
+                  <p>
+                    Seats: {selectedPaymentBooking.seats.map((s) => s.seatLabel).join(", ")} ({selectedPaymentBooking.seats.length})
+                  </p>
+                </div>
+                <div className="space-y-1 pt-2 border-t border-border/60 text-xs text-text-primary">
+                  <div className="flex justify-between">
+                    <span>Fare</span>
+                    <span>{formatPriceXOF(subtotalBaseXOF)}</span>
+                  </div>
+                  {convenienceFeeXOF > 0 && (
+                    <div className="flex justify-between">
+                      <span>Service fee</span>
+                      <span>{formatPriceXOF(convenienceFeeXOF)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm font-black text-primary pt-1">
+                    <span>Total</span>
+                    <span>{formatPriceXOF(totalAmount)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Selector Tabs */}
+              <div className="space-y-3">
+                <Label className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                  Payment Method
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Card / Mobile Money */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("PAYSTACK")}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+                      paymentMethod === "PAYSTACK"
+                        ? "border-primary bg-primary/5 text-primary shadow-xs"
+                        : "border-border bg-bg-surface text-text-primary hover:bg-bg-elevated"
+                    }`}
+                  >
+                    <CreditCard className="size-5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold font-sans">Card / Mobile Money</p>
+                      <p className="text-[10px] text-text-muted font-sans mt-0.5">Pay via Paystack checkout</p>
+                    </div>
+                  </button>
+
+                  {/* Wallet Balance */}
+                  <button
+                    type="button"
+                    disabled={(walletQuery.data?.availableBalance ?? 0) < subtotalBaseXOF}
+                    onClick={() => setPaymentMethod("WALLET")}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all relative ${
+                      paymentMethod === "WALLET"
+                        ? "border-primary bg-primary/5 text-primary shadow-xs"
+                        : "border-border bg-bg-surface text-text-primary hover:bg-bg-elevated"
+                    } ${((walletQuery.data?.availableBalance ?? 0) < subtotalBaseXOF) ? "opacity-50 cursor-not-allowed bg-bg-elevated" : ""}`}
+                  >
+                    <Wallet className="size-5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold font-sans">Moja Wallet Balance</p>
+                      <p className="text-[10px] text-text-muted font-sans mt-0.5 font-mono">
+                        Available: {formatPriceXOF(walletQuery.data?.availableBalance ?? 0)}
+                      </p>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Info messages */}
+                {paymentMethod === "WALLET" && (
+                  <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800 leading-relaxed">
+                    <strong>Moja Wallet Checkout Benefit</strong>: Service convenience fees are fully waived (0 XOF) when paying with your internal wallet balance.
+                  </div>
+                )}
+
+                {paymentMethod === "PAYSTACK" && (walletQuery.data?.availableBalance ?? 0) >= subtotalBaseXOF && (
+                  <p className="text-[10px] text-text-muted italic">
+                    Tip: Switch to Wallet Balance to waive the convenience fee!
+                  </p>
+                )}
+
+                {(walletQuery.data?.availableBalance ?? 0) < subtotalBaseXOF && (
+                  <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 text-xs text-amber-800 flex items-center justify-between gap-2">
+                    <span>Your wallet balance is insufficient.</span>
+                    <Link
+                      href="/dashboard/wallet"
+                      className="text-primary font-bold hover:underline shrink-0"
+                      target="_blank"
+                    >
+                      Top-Up Wallet →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={payingGroupId !== null}
+              onClick={() => setIsPaymentModalOpen(false)}
+              className="h-10 text-xs font-semibold text-text-secondary hover:bg-bg-elevated"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={
+                payingGroupId !== null ||
+                (paymentMethod === "WALLET" && (walletQuery.data?.availableBalance ?? 0) < subtotalBaseXOF)
+              }
+              onClick={executePayment}
+              className="bg-primary text-white hover:bg-primary/95 font-semibold h-10 px-6 rounded-lg gap-2"
+            >
+              {payingGroupId !== null && <Spinner className="w-4 h-4 text-white" />}
+              {paymentMethod === "WALLET" ? "Complete with Wallet" : "Complete payment"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Review Dialog */}
       <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
@@ -402,25 +595,5 @@ export function PassengerBookingsView() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function CheckCircleIcon(props: React.ComponentProps<"svg">) {
-  return (
-    <svg
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={2.5}
-      stroke="currentColor"
-      {...props}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-      />
-    </svg>
   );
 }

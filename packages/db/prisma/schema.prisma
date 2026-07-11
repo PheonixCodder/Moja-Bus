@@ -51,22 +51,11 @@ enum PaymentRecordStatus {
   REFUNDED
 }
 
-enum LedgerEntryType {
-  CREDIT
-  DEBIT
-}
-
-enum LedgerSourceType {
-  PAYMENT
-  REFUND
-  SETTLEMENT
-  ADJUSTMENT
-}
-
 enum RefundChannel {
   CASH
   VOUCHER
   PAYSTACK
+  WALLET
 }
 
 enum RefundRecordStatus {
@@ -74,6 +63,58 @@ enum RefundRecordStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+enum AccountOwnerType {
+  USER
+  COMPANY
+  PLATFORM
+  SYSTEM
+}
+
+enum AccountCategory {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum AccountStatus {
+  NORMAL
+  FROZEN
+  SUSPENDED
+  CLOSED
+}
+
+enum TransactionStatus {
+  CREATED
+  AUTHORIZED
+  PENDING
+  POSTED
+  SETTLED
+  REVERSED
+  VOIDED
+  FAILED
+}
+
+enum LedgerEntrySide {
+  DEBIT
+  CREDIT
+}
+
+enum LedgerEntryStatus {
+  PENDING
+  POSTED
+  VOIDED
+  REVERSED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  EXPIRED
+  CONSUMED
+  CANCELLED
 }
 
 enum OnboardingStatus {
@@ -158,7 +199,7 @@ model User {
 
   // Operator registration fields
   workEmail String? @unique
-  workPhone String?  @unique
+  workPhone String? @unique
 
   passwordHash String?
   createdAt    DateTime @default(now())
@@ -172,9 +213,9 @@ model User {
   passengerProfile PassengerProfile?
 
   // Admin verification actions performed by this user
-  verificationsPerformed       CompanyDocument[]    @relation("DocumentReviewedBy")
-  companiesVerified            Company[]            @relation("CompanyVerifiedBy")
-  bankAccountsVerified         BankAccount[]        @relation("BankAccountVerifiedBy")
+  verificationsPerformed       CompanyDocument[]     @relation("DocumentReviewedBy")
+  companiesVerified            Company[]             @relation("CompanyVerifiedBy")
+  bankAccountsVerified         BankAccount[]         @relation("BankAccountVerifiedBy")
   companyVerificationsReviewed CompanyVerification[] @relation("CompanyVerificationReviewer")
 
   // Staff & Activity relations
@@ -183,9 +224,9 @@ model User {
   activityLogs        ActivityLog[]
   bankAccessLogs      BankAccessLog[]
 
-  bookings Booking[]
+  bookings   Booking[]
   holdGroups HoldGroup[]
-  reviews Review[]
+  reviews    Review[]
 
   @@index([role])
   @@map("user")
@@ -281,36 +322,38 @@ model Company {
   rejectionReason String?
 
   // Legal acceptance timestamps + version tracking
-  termsAcceptedAt       DateTime?
-  commissionAcceptedAt  DateTime?
-  privacyAcceptedAt     DateTime?
-  termsVersion          String?
-  privacyVersion        String?
-  commissionVersion     String?
+  termsAcceptedAt      DateTime?
+  commissionAcceptedAt DateTime?
+  privacyAcceptedAt    DateTime?
+  termsVersion         String?
+  privacyVersion       String?
+  commissionVersion    String?
 
   // Relations
-  locations    CompanyLocation[] @relation("CompanyLocations")
-  documents    CompanyDocument[]
-  bankAccounts BankAccount[]
-  operators    Operator[]
-  invitations  StaffInvitation[]
-  activityLogs ActivityLog[]
+  locations      CompanyLocation[]    @relation("CompanyLocations")
+  documents      CompanyDocument[]
+  bankAccounts   BankAccount[]
+  operators      Operator[]
+  invitations    StaffInvitation[]
+  activityLogs   ActivityLog[]
   bankAccessLogs BankAccessLog[]
-  verification CompanyVerification?
+  verification   CompanyVerification?
 
   // Fleet & Operations
   fleet           Bus[]
-  layoutTemplates SeatLayoutTemplate[] @relation("CompanyLayoutTemplates")
+  layoutTemplates SeatLayoutTemplate[]  @relation("CompanyLayoutTemplates")
   routes          Route[]
   schedules       Schedule[]
   trips           Trip[]
   bookings        Booking[]
   reviews         Review[]
   holdGroups      HoldGroup[]
-  ledgerEntries   OperatorLedgerEntry[]
 
-  // Paystack split (optional until operator onboarding completes)
-  paystackSubaccountCode String?
+  // Paystack transfer recipient for manual settlements
+  paystackTransferRecipientCode String?
+
+  settlementPolicyId String?
+  settlementPolicy   SettlementPolicy? @relation(fields: [settlementPolicyId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -348,7 +391,7 @@ model CompanyDocument {
   reminderSentAt DateTime?
 
   // Versioning — new upload supersedes old; old document retained for audit
-  isCurrent    Boolean   @default(true)
+  isCurrent    Boolean           @default(true)
   supersededAt DateTime?
   replacedById String?
   replacedBy   CompanyDocument?  @relation("DocumentReplacement", fields: [replacedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -370,15 +413,15 @@ model BankAccount {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Bank Details
-  bankName      String
-  bankCode      String?
+  bankName           String
+  bankCode           String?
   // Encrypted at rest (enc:v1: prefix) — see apps/web/lib/bank-crypto.ts
-  accountNumber String
+  accountNumber      String
   accountNumberLast4 String?
-  accountName   String // Must match company name
-  branch        String?
-  swiftCode     String?
-  iban          String?
+  accountName        String // Must match company name
+  branch             String?
+  swiftCode          String?
+  iban               String?
 
   // Verification — proper FK to User
   isVerified             Boolean   @default(false)
@@ -388,12 +431,12 @@ model BankAccount {
   verificationDocumentId String? // Link to CompanyDocument
 
   // Status
-  isActive Boolean @default(true)
-  isDefault Boolean @default(false)
-  paystackSubaccountCode String?
+  isActive                      Boolean @default(true)
+  isDefault                     Boolean @default(false)
+  paystackTransferRecipientCode String?
 
   // External verification metadata
-  verificationProvider  String?   // e.g. "PAYSTACK", "FLUTTERWAVE"
+  verificationProvider  String? // e.g. "PAYSTACK", "FLUTTERWAVE"
   verifiedByProvider    Boolean   @default(false)
   verificationReference String?
   verificationPayload   Json?
@@ -433,7 +476,7 @@ model CompanyVerification {
   permitVerified        Boolean @default(false)
 
   reviewedById String?
-  reviewedBy   User?   @relation("CompanyVerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedBy   User?     @relation("CompanyVerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
   reviewedAt   DateTime?
 
   @@map("company_verification")
@@ -456,7 +499,7 @@ model Operator {
   deletedAt  DateTime?
 
   // Onboarding status and tracking
-  onboardingStatus   OnboardingStatus @default(NOT_STARTED)
+  onboardingStatus   OnboardingStatus          @default(NOT_STARTED)
   onboardingProgress OperatorOnboarding?
   onboardingEvents   OperatorOnboardingEvent[]
 
@@ -992,11 +1035,11 @@ model Trip {
   // if the route is later edited or deleted
   routeSnapshotJson Json
 
-  totalSeats  Int
+  totalSeats Int
 
-  tripStops TripStop[]
-  seats     TripSeat[]
-  bookings  Booking[]
+  tripStops  TripStop[]
+  seats      TripSeat[]
+  bookings   Booking[]
   holdGroups HoldGroup[]
 
   createdAt DateTime @default(now())
@@ -1069,19 +1112,23 @@ model PlatformSettings {
   paystackFeeIntlCardBps    Int @default(380)
   paystackFeeMobileMoneyBps Int @default(195)
 
+  // Withdrawal Limits
+  minWithdrawalAmount      Int @default(5000) // Minimum amount an operator can withdraw
+  withdrawalFrequencyHours Int @default(24) // How often an operator can withdraw
+
   updatedAt DateTime @updatedAt
 
   @@map("platform_settings")
 }
 
 model CommissionDistanceTier {
-  id             String  @id @default(cuid())
-  label          String
-  minDistanceKm  Float
-  maxDistanceKm  Float?
-  commissionBps  Int
-  sortOrder      Int     @default(0)
-  isActive       Boolean @default(true)
+  id            String  @id @default(cuid())
+  label         String
+  minDistanceKm Float
+  maxDistanceKm Float?
+  commissionBps Int
+  sortOrder     Int     @default(0)
+  isActive      Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1107,8 +1154,7 @@ model HoldGroup {
 
   bookings        Booking[]
   pricingSnapshot PricingSnapshot?
-  payment         Payment?
-  ledgerEntries   OperatorLedgerEntry[]
+  payment         ExternalPayment?
   refunds         Refund[]
 
   createdAt DateTime @default(now())
@@ -1126,28 +1172,28 @@ model PricingSnapshot {
   holdGroupId String    @unique
   holdGroup   HoldGroup @relation(fields: [holdGroupId], references: [id], onDelete: Cascade)
 
-  distanceKm          Float?
-  commissionBps       Int
-  convenienceFeeBps   Int
-  baseFareXOF         Int
-  seatCount           Int
-  subtotalBaseXOF     Int
-  convenienceFeeXOF   Int
-  chargeAmountXOF     Int
-  commissionXOF       Int
-  operatorNetXOF      Int
-  platformGrossXOF    Int
-  snapshotJson        Json?
+  distanceKm        Float?
+  commissionBps     Int
+  convenienceFeeBps Int
+  baseFareXOF       Int
+  seatCount         Int
+  subtotalBaseXOF   Int
+  convenienceFeeXOF Int
+  chargeAmountXOF   Int
+  commissionXOF     Int
+  operatorNetXOF    Int
+  platformGrossXOF  Int
+  snapshotJson      Json?
 
   createdAt DateTime @default(now())
 
   @@map("pricing_snapshot")
 }
 
-model Payment {
-  id          String    @id @default(cuid())
-  holdGroupId String    @unique
-  holdGroup   HoldGroup @relation(fields: [holdGroupId], references: [id], onDelete: Cascade)
+model ExternalPayment {
+  id          String     @id @default(cuid())
+  holdGroupId String?    @unique
+  holdGroup   HoldGroup? @relation(fields: [holdGroupId], references: [id], onDelete: Cascade)
 
   provider          String
   amountXOF         Int
@@ -1158,10 +1204,10 @@ model Payment {
   metadata          Json?
   confirmedAt       DateTime?
 
-  attempts PaymentAttempt[]
-  events   PaymentEvent[]
-  refunds  Refund[]
-  ledgerEntries OperatorLedgerEntry[]
+  attempts      PaymentAttempt[]
+  events        PaymentEvent[]
+  refunds       Refund[]
+  transactions  FinancialTransaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1174,7 +1220,7 @@ model Payment {
 model PaymentAttempt {
   id                String              @id @default(cuid())
   paymentId         String
-  payment           Payment             @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payment           ExternalPayment     @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   attemptNumber     Int
   paystackReference String              @unique
   status            PaymentRecordStatus @default(INITIALIZED)
@@ -1190,26 +1236,26 @@ model PaymentAttempt {
 }
 
 model PaymentEvent {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   paymentId String
-  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payment   ExternalPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   eventType String
   payload   Json
-  createdAt DateTime @default(now())
+  createdAt DateTime        @default(now())
 
   @@index([paymentId])
   @@map("payment_event")
 }
 
 model WebhookEvent {
-  id              String   @id @default(cuid())
-  provider        String
-  eventType       String
-  idempotencyKey  String   @unique
-  reference       String?
-  payload         Json
-  processedAt     DateTime?
-  error           String?
+  id             String    @id @default(cuid())
+  provider       String
+  eventType      String
+  idempotencyKey String    @unique
+  reference      String?
+  payload        Json
+  processedAt    DateTime?
+  error          String?
 
   createdAt DateTime @default(now())
 
@@ -1217,35 +1263,13 @@ model WebhookEvent {
   @@map("webhook_event")
 }
 
-model OperatorLedgerEntry {
-  id        String  @id @default(cuid())
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  holdGroupId String?
-  holdGroup   HoldGroup? @relation(fields: [holdGroupId], references: [id], onDelete: SetNull)
-  paymentId   String?
-  payment     Payment?   @relation(fields: [paymentId], references: [id], onDelete: SetNull)
-
-  entryType   LedgerEntryType
-  sourceType  LedgerSourceType
-  amountXOF   Int
-  description String
-  metadata    Json?
-
-  createdAt DateTime @default(now())
-
-  @@index([companyId, createdAt])
-  @@index([holdGroupId])
-  @@map("operator_ledger_entry")
-}
 
 model Refund {
-  id          String    @id @default(cuid())
+  id          String          @id @default(cuid())
   holdGroupId String
-  holdGroup   HoldGroup @relation(fields: [holdGroupId], references: [id], onDelete: Cascade)
+  holdGroup   HoldGroup       @relation(fields: [holdGroupId], references: [id], onDelete: Cascade)
   paymentId   String
-  payment     Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payment     ExternalPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   amountXOF        Int
   channel          RefundChannel
@@ -1259,6 +1283,137 @@ model Refund {
   @@index([holdGroupId])
   @@index([paymentId])
   @@map("refund")
+}
+
+// ============================================
+// FINANCIAL CORE (DOUBLE-ENTRY LEDGER)
+// ============================================
+
+model FinancialAccount {
+  id String @id @default(cuid())
+
+  // Generic Ownership (Allows multiple accounts per owner)
+  ownerType AccountOwnerType
+  ownerId   String // e.g., userId or companyId
+
+  accountCategory      AccountCategory
+  accountClass         String // e.g., "PASSENGER_WALLET", "OPERATOR_RECEIVABLE", "LOYALTY_POINTS" (Data-driven)
+  currency             String          @default("XOF")
+  status               AccountStatus   @default(NORMAL)
+  allowNegativeBalance Boolean         @default(false)
+
+  // ⚠️ READ MODEL: Derived Cache. Mutated EXCLUSIVELY by AccountingEngine
+  postedBalance    Int @default(0) // Total settled
+  reservedBalance  Int @default(0) // Locked in reservations
+  availableBalance Int @default(0) // posted - reserved
+
+  ledgerEntries LedgerEntry[]
+  reservations  WalletReservation[]
+  snapshots     FinancialAccountSnapshot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerType, ownerId])
+  @@map("financial_account")
+}
+
+model FinancialAccountSnapshot {
+  id        String           @id @default(cuid())
+  accountId String
+  account   FinancialAccount @relation(fields: [accountId], references: [id])
+
+  period           String // "DAILY", "WEEKLY", "MONTHLY"
+  snapshotDate     DateTime
+  postedBalance    Int
+  reservedBalance  Int
+  availableBalance Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([accountId, period, snapshotDate])
+  @@map("financial_account_snapshot")
+}
+
+model FinancialTransaction {
+  id     String            @id @default(cuid())
+  type   String // Business Event: e.g., "BOOKING", "TOP_UP", "REFUND"
+  status TransactionStatus @default(CREATED)
+
+  // Explicit infrastructure linkage
+  externalPaymentId String?
+  externalPayment   ExternalPayment? @relation(fields: [externalPaymentId], references: [id])
+
+  currency    String  @default("XOF")
+  description String?
+  metadata    Json?
+
+  entries LedgerEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("financial_transaction")
+}
+
+model LedgerEntry {
+  id            String               @id @default(cuid())
+  transactionId String
+  transaction   FinancialTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  accountId String
+  account   FinancialAccount @relation(fields: [accountId], references: [id])
+
+  side     LedgerEntrySide
+  amount   Int
+  currency String            @default("XOF")
+  status   LedgerEntryStatus @default(POSTED)
+
+  sequenceNumber Int
+  description    String?
+  referenceType  String? // e.g., "BOOKING_ID"
+  referenceId    String?
+  effectiveAt    DateTime @default(now())
+  idempotencyKey String   @unique
+
+  createdAt DateTime @default(now())
+
+  @@unique([transactionId, sequenceNumber])
+  @@map("ledger_entry")
+}
+
+model WalletReservation {
+  id        String           @id @default(cuid())
+  accountId String
+  account   FinancialAccount @relation(fields: [accountId], references: [id])
+
+  holdGroupId String?
+
+  amount    Int
+  currency  String            @default("XOF")
+  status    ReservationStatus @default(ACTIVE)
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([holdGroupId])
+  @@map("wallet_reservation")
+}
+
+model SettlementPolicy {
+  id              String  @id @default(cuid())
+  name            String
+  type            String // "TIME_BASED", "THRESHOLD_BASED", "MANUAL"
+  isDefault       Boolean @default(false)
+  isActive        Boolean @default(true)
+  priority        Int     @default(0)
+  thresholdAmount Int?
+  cronSchedule    String?
+
+  companies Company[]
+
+  @@map("settlement_policy")
 }
 
 // ============================================
@@ -1299,7 +1454,7 @@ model Booking {
 
   // Multi-seat checkout grouping
   holdGroupId      String?
-  holdGroup        HoldGroup? @relation(fields: [holdGroupId], references: [id], onDelete: SetNull)
+  holdGroup        HoldGroup?      @relation(fields: [holdGroupId], references: [id], onDelete: SetNull)
   savedPassengerId String?
   savedPassenger   SavedPassenger? @relation(fields: [savedPassengerId], references: [id], onDelete: SetNull)
 
@@ -1310,6 +1465,7 @@ model Booking {
   checkedInAt DateTime?
   boardedAt   DateTime?
   completedAt DateTime?
+  clearedAt   DateTime? // Escrow clearance (when funds become available for withdrawal)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1325,18 +1481,18 @@ model Booking {
 
 // Expanded from stub in Phase 4
 model Review {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  rating    Int
-  content   String?
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-  
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  rating   Int
+  content  String?
+  authorId String
+  author   User    @relation(fields: [authorId], references: [id])
+
   bookingId String?  @unique
   booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1344,14 +1500,14 @@ model Review {
 }
 
 model PassengerProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   marketingOptIn   Boolean @default(false)
   preferencesJson  Json?
   stripeCustomerId String?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1372,7 +1528,7 @@ model SavedPassenger {
   dateOfBirth DateTime?
   idType      String?
   idNumber    String?
-  isSelf      Boolean  @default(false)
+  isSelf      Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -18,6 +18,7 @@ import {
   Users,
   Ticket,
   TrendingUp,
+  Banknote,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -152,6 +153,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   // ── Financials group ──────────────────────────────────────────────
   const financialsItems: MenuItem[] = [
     { title: "Revenue", url: "/dashboard/operator/revenue", icon: TrendingUp },
+    { title: "Withdrawals", url: "/dashboard/operator/withdraw", icon: Banknote },
   ];
 
   // ── Organization group ───────────────────────────────────────────────────

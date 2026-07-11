@@ -7,14 +7,17 @@ import type {
   RefundResult,
   VerifyPaymentResult,
   WebhookPayload,
-  CreateSubaccountInput,
-  CreateSubaccountResult,
+  CreateTransferRecipientInput,
+  CreateTransferRecipientResult,
+  InitiateTransferInput,
+  InitiateTransferResult,
 } from "../types";
 import {
   paystackInitialize,
   paystackVerify,
   verifyPaystackSignature,
-  paystackCreateSubaccount,
+  paystackCreateTransferRecipient,
+  paystackInitiateTransfer,
 } from "./paystack-client";
 
 export class PaystackProvider implements PaymentProviderAdapter {
@@ -28,7 +31,6 @@ export class PaystackProvider implements PaymentProviderAdapter {
       amountXOF: input.amountXOF,
       reference: input.reference,
       ...(input.metadata ? { metadata: input.metadata } : {}),
-      ...(input.subaccountCode ? { subaccountCode: input.subaccountCode } : {}),
     });
   }
 
@@ -68,10 +70,16 @@ export class PaystackProvider implements PaymentProviderAdapter {
     };
   }
 
-  async createSubaccount(
-    input: CreateSubaccountInput,
-  ): Promise<CreateSubaccountResult> {
-    return paystackCreateSubaccount(input);
+  async createTransferRecipient(
+    input: CreateTransferRecipientInput,
+  ): Promise<CreateTransferRecipientResult> {
+    return paystackCreateTransferRecipient(input);
+  }
+
+  async initiateTransfer(
+    input: InitiateTransferInput,
+  ): Promise<InitiateTransferResult> {
+    return paystackInitiateTransfer(input);
   }
 
   parseWebhook(rawBody: string, signature: string | null): WebhookPayload {

@@ -6,7 +6,6 @@ export type InitializePaymentInput = {
   email: string;
   reference: string;
   metadata?: Record<string, unknown>;
-  subaccountCode?: string | null;
 };
 
 export type InitializePaymentResult = {
@@ -39,14 +38,27 @@ export type WebhookPayload = {
   data: Record<string, unknown>;
 };
 
-export type CreateSubaccountInput = {
+export type CreateTransferRecipientInput = {
   businessName: string;
-  settlementBankCode: string;
+  bankCode: string;
   accountNumber: string;
 };
 
-export type CreateSubaccountResult = {
-  subaccountCode: string;
+export type CreateTransferRecipientResult = {
+  recipientCode: string;
+};
+
+export type InitiateTransferInput = {
+  amountXOF: number;
+  recipientCode: string;
+  reason: string;
+  reference?: string;
+};
+
+export type InitiateTransferResult = {
+  transferCode: string;
+  status: string;
+  fee: number;
 };
 
 export interface PaymentProviderAdapter {
@@ -54,7 +66,8 @@ export interface PaymentProviderAdapter {
   initialize(input: InitializePaymentInput): Promise<InitializePaymentResult>;
   verify(reference: string): Promise<VerifyPaymentResult>;
   refund(input: RefundInput): Promise<RefundResult>;
-  createSubaccount(input: CreateSubaccountInput): Promise<CreateSubaccountResult>;
+  createTransferRecipient(input: CreateTransferRecipientInput): Promise<CreateTransferRecipientResult>;
+  initiateTransfer(input: InitiateTransferInput): Promise<InitiateTransferResult>;
   parseWebhook(rawBody: string, signature: string | null): WebhookPayload;
 }
 

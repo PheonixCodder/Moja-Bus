@@ -1,4 +1,6 @@
 import { sendEmail } from "./email-client";
+import { getPrismaClient } from "@moja/db";
+import { Novu } from "@novu/api";
 
 export type AuthOtpType =
   | "sign-in"
@@ -31,7 +33,41 @@ export async function sendAuthOtp({
   otp,
   type,
 }: AuthOtpPayload): Promise<void> {
-  console.log(otp);
+  console.log(`\n=== 🔐 OTP verification for ${email}: ${otp} ===\n`);
+
+  const novuSecret = process.env["NOVU_SECRET_KEY"];
+
+  if (novuSecret) {
+    try {
+      const prisma = getPrismaClient();
+      const user = await prisma.user.findFirst({
+        where: { OR: [{ email }, { workEmail: email }] },
+        select: { phone: true },
+      });
+
+      const novu = new Novu({ secretKey: novuSecret });
+      await novu.trigger({
+        workflowId: "auth-otp",
+        to: {
+          subscriberId: email,
+          email: email,
+        },
+        payload: {
+          email,
+          otpCode: otp,
+          type,
+          ...(user?.phone ? { phone: user.phone } : {}),
+        },
+      });
+
+      console.log(`[NOVU] Successfully triggered auth-otp for ${email}`);
+      return;
+    } catch (err) {
+      console.error("[NOVU] Failed to trigger auth-otp workflow, falling back to Resend:", err);
+    }
+  }
+
+  // Fallback to Resend or Console Log if Novu is not configured or fails
   const subject = OTP_SUBJECTS[type];
   const intro = OTP_INTROS[type];
 
@@ -50,6 +86,5 @@ export async function sendAuthOtp({
     await sendEmail({ to: email, subject, html, text });
   } catch (error) {
     console.error(`[MOCK EMAIL SENT] ${email}: ${otp}`);
-    // Ignore error so background task doesn't crash if Resend is not configured
   }
 }

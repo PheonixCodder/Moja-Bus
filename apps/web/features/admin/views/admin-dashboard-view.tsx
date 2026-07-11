@@ -216,7 +216,7 @@ export function AdminDashboardView() {
           <div className="space-y-1">
             <h3 className="text-sm font-bold text-slate-800">Moja Ride Operations Control</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              As a platform administrator, you hold authority over fee bands, distance limits, operator settlements, and security verification. Ensure operator documents are checked carefully against registration numbers before approving subaccounts.
+              As a platform administrator, you hold authority over fee bands, distance limits, operator settlements, and security verification. Ensure operator documents are checked carefully against registration numbers before activating company accounts.
             </p>
           </div>
         </Card>

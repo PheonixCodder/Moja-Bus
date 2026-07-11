@@ -10,6 +10,7 @@ export type PaystackPopupConfig = {
 export type PaystackNewTransactionConfig = {
   key: string;
   access_code: string;
+  channels?: string[];
   onLoad?: () => void;
   onError?: (error: { message: string }) => void;
   onSuccess: (transaction: { reference?: string }) => void;

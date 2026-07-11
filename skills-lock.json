@@ -32,6 +32,48 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "93f53fd1c0352d3d7ec17b8f73d7351bf76f4821e55d123c9d2abc2c53ba48e4"
     },
+    "novu-dashboard-workflows": {
+      "source": "novuhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/dashboard-workflows/SKILL.md",
+      "computedHash": "ea1ec76f5e0d5e16b1f50268c8b2dd18d4a2708400c27f576fd43ff59f042ed4"
+    },
+    "novu-design-workflow": {
+      "source": "novuhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-workflow/SKILL.md",
+      "computedHash": "a0b942d11fa1a0bded0f378dabe316ca0956eadc782c00cbd3c3fc0a2780cff1"
+    },
+    "novu-framework-integration": {
+      "source": "novuhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/framework-integration/SKILL.md",
+      "computedHash": "13ab04f6ce796fe1fc8b20b04b019b5353221fd323b7900cd6d59eb4dbbdeb4f"
+    },
+    "novu-inbox-integration": {
+      "source": "novuhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/inbox-integration/SKILL.md",
+      "computedHash": "0ff1b5780cb5b308bb3495ac656fb484e71f62f766cfe21fe53fa0c96e1a4c62"
+    },
+    "novu-manage-preferences": {
+      "source": "novuhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/manage-preferences/SKILL.md",
+      "computedHash": "90ec06b8029e22bd39850223323c8801a5f1a6e56121492018b437bf38f331df"
+    },
+    "novu-manage-subscribers": {
+      "source": "novuhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/manage-subscribers/SKILL.md",
+      "computedHash": "977367963093652fc81ce304b625f9135682762099b5fdfea1fbe30c11721474"
+    },
+    "novu-trigger-notification": {
+      "source": "novuhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/trigger-notification/SKILL.md",
+      "computedHash": "d5d13510956d9453efed0939e0b90cf78dca16856a297d70facff694a5aca688"
+    },
     "nuqs": {
       "source": "pproenca/dot-skills",
       "sourceType": "github",

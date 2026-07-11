@@ -39,7 +39,7 @@ export function BookingDetailDrawer({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [refundChannel, setRefundChannel] = useState<"CASH" | "VOUCHER" | "PAYSTACK">("PAYSTACK");
+  const [refundChannel, setRefundChannel] = useState<"CASH" | "VOUCHER" | "WALLET">("WALLET");
   const [cancelReason, setCancelReason] = useState("");
 
   const { data: booking, isLoading } = useQuery({
@@ -182,17 +182,17 @@ export function BookingDetailDrawer({
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
-                    onClick={() => setRefundChannel("PAYSTACK")}
+                    onClick={() => setRefundChannel("WALLET")}
                     className={cn(
                       "p-2.5 rounded-md border text-center text-xs font-semibold transition-all",
-                      refundChannel === "PAYSTACK"
+                      refundChannel === "WALLET"
                         ? "border-red-600 bg-red-50 text-red-700"
                         : "border-slate-200 hover:border-slate-300 text-slate-700"
                     )}
                   >
-                    Paystack
+                    Wallet
                     <span className="block text-[8px] text-slate-400 font-normal mt-0.5">
-                      Online Refund
+                      Moja Wallet
                     </span>
                   </button>
                   <button

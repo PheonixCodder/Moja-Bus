@@ -43,3 +43,6 @@ export function getPrismaClient(): PrismaClient {
   return client;
 }
 export * from "@prisma/client";
+export * from './services/AccountingEngine';
+export * from "./services/FinancialAccountService";
+export * from "./services/SnapshotService";

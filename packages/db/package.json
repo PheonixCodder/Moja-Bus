@@ -18,7 +18,9 @@
     "test": "echo \"No tests configured for @moja/db\"",
     "generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "migrate-ledger": "tsx scripts/migrate-ledger.ts",
+    "reconcile-ledger": "tsx scripts/reconcile-ledger.ts"
   },
   "dependencies": {
     "@moja/config": "workspace:*",

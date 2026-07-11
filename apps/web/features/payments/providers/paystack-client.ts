@@ -41,7 +41,6 @@ export async function paystackInitialize(input: {
   amountXOF: number;
   reference: string;
   metadata?: Record<string, unknown>;
-  subaccountCode?: string | null;
   callbackUrl?: string;
 }): Promise<PaystackInitializeResult> {
   const body: Record<string, unknown> = {
@@ -53,11 +52,6 @@ export async function paystackInitialize(input: {
     callback_url: input.callbackUrl,
     channels: ["card", "mobile_money"],
   };
-
-  if (input.subaccountCode) {
-    body["subaccount"] = input.subaccountCode;
-    body["bearer"] = "account";
-  }
 
   const res = await fetch("https://api.paystack.co/transaction/initialize", {
     method: "POST",
@@ -154,22 +148,23 @@ export function verifyPaystackSignature(
   return hash === signature;
 }
 
-export async function paystackCreateSubaccount(input: {
+export async function paystackCreateTransferRecipient(input: {
   businessName: string;
-  settlementBankCode: string;
   accountNumber: string;
-}): Promise<{ subaccountCode: string }> {
-  const res = await fetch("https://api.paystack.co/subaccount", {
+  bankCode: string;
+}): Promise<{ recipientCode: string }> {
+  const res = await fetch("https://api.paystack.co/transferrecipient", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${paystackSecretKey()}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      business_name: input.businessName,
-      settlement_bank: input.settlementBankCode,
+      type: "nuban",
+      name: input.businessName,
       account_number: input.accountNumber,
-      percentage_charge: 100,
+      bank_code: input.bankCode,
+      currency: "XOF",
     }),
   });
 
@@ -177,16 +172,59 @@ export async function paystackCreateSubaccount(input: {
     status?: boolean;
     message?: string;
     data?: {
-      subaccount_code: string;
+      recipient_code: string;
     };
   };
 
   if (!res.ok || !json.status || !json.data) {
-    throw new Error(json.message ?? "Failed to create Paystack subaccount");
+    throw new Error(json.message ?? "Failed to create Paystack transfer recipient");
   }
 
   return {
-    subaccountCode: json.data.subaccount_code,
+    recipientCode: json.data.recipient_code,
+  };
+}
+
+export async function paystackInitiateTransfer(input: {
+  amountXOF: number;
+  recipientCode: string;
+  reason: string;
+  reference?: string;
+}): Promise<{ transferCode: string; status: string; fee: number }> {
+  const res = await fetch("https://api.paystack.co/transfer", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${paystackSecretKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      source: "balance",
+      amount: toPaystackAmountXOF(input.amountXOF),
+      recipient: input.recipientCode,
+      reason: input.reason,
+      reference: input.reference,
+      currency: "XOF",
+    }),
+  });
+
+  const json = (await res.json()) as {
+    status?: boolean;
+    message?: string;
+    data?: {
+      transfer_code: string;
+      status: string;
+      fee?: number;
+    };
+  };
+
+  if (!res.ok || !json.status || !json.data) {
+    throw new Error(json.message ?? "Failed to initiate Paystack transfer");
+  }
+
+  return {
+    transferCode: json.data.transfer_code,
+    status: json.data.status,
+    fee: (json.data.fee ?? 0) / 100, // Convert from kobo/cents to main currency
   };
 }
 
@@ -266,5 +304,65 @@ export async function paystackListBanks(country?: string): Promise<PaystackBank[
   }
 
   return json.data;
+}
+
+export async function paystackVerifyTransfer(reference: string): Promise<{
+  status: "success" | "failed" | "reversed" | "pending";
+  transferCode: string;
+  amountXOF: number;
+  reason?: string;
+  id?: number;
+}> {
+  const res = await fetch(`https://api.paystack.co/transfer/verify/${reference}`, {
+    headers: {
+      Authorization: `Bearer ${paystackSecretKey()}`,
+    },
+  });
+
+  const json = (await res.json()) as {
+    status?: boolean;
+    message?: string;
+    data?: {
+      status: string;
+      transfer_code: string;
+      amount: number;
+      failures?: string;
+      id?: number;
+    };
+  };
+
+  if (!res.ok || !json.status || !json.data) {
+    throw new Error(json.message ?? "Failed to verify Paystack transfer");
+  }
+
+  const amountXOF = Math.round(json.data.amount / 100);
+
+  const responseObj: {
+    status: "success" | "failed" | "reversed" | "pending";
+    transferCode: string;
+    amountXOF: number;
+    reason?: string;
+    id?: number;
+  } = {
+    status:
+      json.data.status === "success"
+        ? "success"
+        : json.data.status === "reversed"
+          ? "reversed"
+          : json.data.status === "failed"
+            ? "failed"
+            : "pending",
+    transferCode: json.data.transfer_code,
+    amountXOF,
+  };
+
+  if (json.data.failures) {
+    responseObj.reason = json.data.failures;
+  }
+  if (json.data.id != null) {
+    responseObj.id = json.data.id;
+  }
+
+  return responseObj;
 }
 

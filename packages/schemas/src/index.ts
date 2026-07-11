@@ -13,3 +13,4 @@ export * from "./trips";
 export * from "./passenger";
 export * from "./payments-admin";
 export * from "./admin";
+export * from "./wallet";

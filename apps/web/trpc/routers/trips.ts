@@ -263,7 +263,7 @@ export const tripsRouter = createTRPCRouter({
         }
       }
 
-      return ctx.prisma.$transaction(async (tx) => {
+      const result = await ctx.prisma.$transaction(async (tx) => {
         const updated = await tx.trip.update({
           where: { id: trip.id },
           data: {
@@ -312,6 +312,59 @@ export const tripsRouter = createTRPCRouter({
 
         return updated;
       });
+
+      // Trigger operator-bus-assigned to company managers
+      const managers = await ctx.prisma.operator.findMany({
+        where: { companyId: ctx.companyId, isActive: true, role: { in: ["OWNER", "MANAGER"] } },
+        include: { user: { select: { email: true, fullName: true, phone: true } } },
+      });
+
+      const schedule = await ctx.prisma.schedule.findUnique({
+        where: { id: trip.scheduleId },
+        include: {
+          route: {
+            include: {
+              originTerminal: { include: { cityRelation: true } },
+              destTerminal: { include: { cityRelation: true } },
+            },
+          },
+        },
+      });
+
+      const routeName = schedule
+        ? `${schedule.route.originTerminal.cityRelation?.name ?? "Unknown"} to ${schedule.route.destTerminal.cityRelation?.name ?? "Unknown"}`
+        : "Unknown Route";
+
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && managers.length > 0) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          for (const manager of managers) {
+            if (manager.user?.email) {
+              await novu.trigger({
+                workflowId: "operator-bus-assigned",
+                to: {
+                  subscriberId: manager.user.email,
+                  email: manager.user.email,
+                },
+                payload: {
+                  email: manager.user.email,
+                  staffName: manager.user.fullName ?? "Manager",
+                  busPlate: newBus.registrationPlate,
+                  routeName,
+                  departureTime: trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
+                  phone: manager.user.phone ?? undefined,
+                },
+              }).catch(() => {});
+            }
+          }
+        } catch (err) {
+          console.error("Failed to trigger operator-bus-assigned via Novu:", err);
+        }
+      }
+
+      return result;
     }),
 
   delay: operatorCompanyProcedure
@@ -362,6 +415,69 @@ export const tripsRouter = createTRPCRouter({
         });
       }
 
+      // Trigger passenger-trip-delayed for confirmed bookings
+      const bookings = await ctx.prisma.booking.findMany({
+        where: {
+          tripId: trip.id,
+          status: "CONFIRMED",
+        },
+        include: {
+          user: { select: { email: true, fullName: true, phone: true } },
+          trip: {
+            include: {
+              schedule: {
+                include: {
+                  route: {
+                    include: {
+                      originTerminal: { include: { cityRelation: true } },
+                      destTerminal: { include: { cityRelation: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (bookings.length > 0) {
+        const novuSecret = process.env["NOVU_SECRET_KEY"];
+        if (novuSecret) {
+          try {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            for (const booking of bookings) {
+              const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
+              if (email) {
+                const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
+                const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+                
+                await novu.trigger({
+                  workflowId: "passenger-trip-delayed",
+                  to: {
+                    subscriberId: email,
+                    email: email,
+                  },
+                  payload: {
+                    email,
+                    passengerName: booking.user?.fullName ?? booking.passengerName,
+                    originCity,
+                    destinationCity: destCity,
+                    originalTime: trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
+                    newTime: new Date(trip.departureDate.getTime() + delayMinutes * 60000).toLocaleString("en-US", { timeZone: "UTC" }),
+                    delayMinutes,
+                    gate: trip.gate ?? undefined,
+                    phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
+                  },
+                }).catch(() => {});
+              }
+            }
+          } catch (err) {
+            console.error("Failed to trigger passenger-trip-delayed via Novu:", err);
+          }
+        }
+      }
+
       return updatedTrip;
     }),
 
@@ -379,13 +495,77 @@ export const tripsRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
       }
 
-      return ctx.prisma.trip.update({
+      const updatedTrip = await ctx.prisma.trip.update({
         where: { id: trip.id },
         data: {
           status: "CANCELLED",
           cancelReason: input.data.cancelReason,
         },
       });
+
+      // Fetch confirmed bookings for cancellation notification
+      const bookings = await ctx.prisma.booking.findMany({
+        where: {
+          tripId: trip.id,
+          status: "CONFIRMED",
+        },
+        include: {
+          user: { select: { email: true, fullName: true, phone: true } },
+          trip: {
+            include: {
+              schedule: {
+                include: {
+                  route: {
+                    include: {
+                      originTerminal: { include: { cityRelation: true } },
+                      destTerminal: { include: { cityRelation: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (bookings.length > 0) {
+        const novuSecret = process.env["NOVU_SECRET_KEY"];
+        if (novuSecret) {
+          try {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            for (const booking of bookings) {
+              const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
+              if (email) {
+                const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
+                const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+                
+                await novu.trigger({
+                  workflowId: "passenger-trip-cancelled",
+                  to: {
+                    subscriberId: email,
+                    email: email,
+                  },
+                  payload: {
+                    email,
+                    passengerName: booking.user?.fullName ?? booking.passengerName,
+                    originCity,
+                    destinationCity: destCity,
+                    departureTime: trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
+                    cancelReason: input.data.cancelReason,
+                    refundAmountXOF: Number(booking.farePaid),
+                    phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
+                  },
+                }).catch(() => {});
+              }
+            }
+          } catch (err) {
+            console.error("Failed to trigger passenger-trip-cancelled via Novu:", err);
+          }
+        }
+      }
+
+      return updatedTrip;
     }),
 
   updateStatus: operatorCompanyProcedure
@@ -420,10 +600,95 @@ export const tripsRouter = createTRPCRouter({
         updateData.actualArrival = new Date();
       }
 
-      return ctx.prisma.trip.update({
+      const updatedTrip = await ctx.prisma.trip.update({
         where: { id: trip.id },
         data: updateData,
       });
+
+      // Triggers for passenger boarding announcements and completed trip review requests
+      if (status === "BOARDING" || status === "ARRIVED") {
+        const bookings = await ctx.prisma.booking.findMany({
+          where: {
+            tripId: trip.id,
+            status: "CONFIRMED",
+          },
+          include: {
+            user: { select: { email: true, fullName: true, phone: true } },
+            company: { select: { name: true } },
+            trip: {
+              include: {
+                bus: true,
+                schedule: {
+                  include: {
+                    route: {
+                      include: {
+                        originTerminal: { include: { cityRelation: true } },
+                        destTerminal: { include: { cityRelation: true } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (bookings.length > 0) {
+          const novuSecret = process.env["NOVU_SECRET_KEY"];
+          if (novuSecret) {
+            try {
+              const { Novu } = await import("@novu/api");
+              const novu = new Novu({ secretKey: novuSecret });
+              for (const booking of bookings) {
+                const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
+                if (email) {
+                  const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
+                  const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+
+                  if (status === "BOARDING") {
+                    await novu.trigger({
+                      workflowId: "passenger-trip-boarding",
+                      to: {
+                        subscriberId: email,
+                        email: email,
+                      },
+                      payload: {
+                        email,
+                        passengerName: booking.user?.fullName ?? booking.passengerName,
+                        destinationCity: destCity,
+                        gate: trip.gate ?? undefined,
+                        busPlate: booking.trip.bus?.registrationPlate ?? undefined,
+                        phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
+                      },
+                    }).catch(() => {});
+                  } else if (status === "ARRIVED") {
+                    await novu.trigger({
+                      workflowId: "passenger-review-request",
+                      to: {
+                        subscriberId: email,
+                        email: email,
+                      },
+                      payload: {
+                        email,
+                        passengerName: booking.user?.fullName ?? booking.passengerName,
+                        companyName: booking.company.name,
+                        originCity,
+                        destinationCity: destCity,
+                        tripId: trip.id,
+                        bookingReference: booking.bookingReference,
+                      },
+                    }).catch(() => {});
+                  }
+                }
+              }
+            } catch (err) {
+              console.error(`Failed to trigger Novu status transition (${status}) workflow:`, err);
+            }
+          }
+        }
+      }
+
+      return updatedTrip;
     }),
 
   updateNotes: operatorCompanyProcedure
@@ -450,9 +715,70 @@ export const tripsRouter = createTRPCRouter({
       if (!trip) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
       }
-      return ctx.prisma.trip.update({
+      
+      const updatedTrip = await ctx.prisma.trip.update({
         where: { id: input.id },
         data: { gate: input.gate },
       });
+
+      if (input.gate) {
+        const bookings = await ctx.prisma.booking.findMany({
+          where: {
+            tripId: trip.id,
+            status: "CONFIRMED",
+          },
+          include: {
+            user: { select: { email: true, fullName: true, phone: true } },
+            trip: {
+              include: {
+                schedule: {
+                  include: {
+                    route: {
+                      include: {
+                        destTerminal: { include: { cityRelation: true } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (bookings.length > 0) {
+          const novuSecret = process.env["NOVU_SECRET_KEY"];
+          if (novuSecret) {
+            try {
+              const { Novu } = await import("@novu/api");
+              const novu = new Novu({ secretKey: novuSecret });
+              for (const booking of bookings) {
+                const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
+                if (email) {
+                  const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+                  await novu.trigger({
+                    workflowId: "passenger-trip-gate-updated",
+                    to: {
+                      subscriberId: email,
+                      email: email,
+                    },
+                    payload: {
+                      email,
+                      passengerName: booking.user?.fullName ?? booking.passengerName,
+                      destinationCity: destCity,
+                      departureTime: trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
+                      gate: input.gate,
+                      phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
+                    },
+                  }).catch(() => {});
+                }
+              }
+            } catch (err) {
+              console.error("Failed to trigger passenger-trip-gate-updated via Novu:", err);
+            }
+          }
+        }
+      }
+
+      return updatedTrip;
     }),
 });

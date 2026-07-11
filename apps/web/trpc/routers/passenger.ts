@@ -6,8 +6,11 @@ import {
   updatePreferencesSchema,
 } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../init";
 import { SavedPassengerService } from "@/features/passenger/services/saved-passenger-service";
+import { FinancialAccountService } from "@moja/db";
+import { paystackInitialize } from "@/features/payments/providers/paystack-client";
 
 export const passengerRouter = createTRPCRouter({
   ensureProfile: protectedProcedure.query(async ({ ctx }) => {
@@ -135,6 +138,13 @@ export const passengerRouter = createTRPCRouter({
         });
       }
 
+      const changedFields: string[] = [];
+      if (input.fullName) changedFields.push("Full Name");
+      if (input.phone) changedFields.push("Phone Number");
+      if (input.preferredSeat) changedFields.push("Preferred Seat");
+      if (input.preferredClass) changedFields.push("Preferred Seat Class");
+      if (input.marketingOptIn !== undefined) changedFields.push("Marketing Preferences");
+
       const existingPrefs = (profile.preferencesJson as any) || {};
       const newPrefs = {
         ...existingPrefs,
@@ -142,13 +152,41 @@ export const passengerRouter = createTRPCRouter({
         ...(input.preferredClass !== undefined ? { preferredClass: input.preferredClass } : {}),
       };
 
-      return ctx.prisma.passengerProfile.update({
+      const updatedProfile = await ctx.prisma.passengerProfile.update({
         where: { id: profile.id },
         data: {
           preferencesJson: newPrefs,
           ...(input.marketingOptIn !== undefined ? { marketingOptIn: input.marketingOptIn } : {}),
         },
       });
+
+      // Trigger passenger-profile-updated
+      if (changedFields.length > 0 && ctx.user.email) {
+        const novuSecret = process.env["NOVU_SECRET_KEY"];
+        if (novuSecret) {
+          try {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            await novu.trigger({
+              workflowId: "passenger-profile-updated",
+              to: {
+                subscriberId: ctx.user.email,
+                email: ctx.user.email,
+              },
+              payload: {
+                email: ctx.user.email,
+                passengerName: input.fullName || ctx.user.name || "Passenger",
+                changedFields,
+                phone: input.phone || ctx.user.phone || undefined,
+              },
+            }).catch(() => {});
+          } catch (err) {
+            console.error("Failed to trigger passenger-profile-updated via Novu:", err);
+          }
+        }
+      }
+
+      return updatedProfile;
     }),
 
   submitReview: protectedProcedure
@@ -176,7 +214,7 @@ export const passengerRouter = createTRPCRouter({
         });
       }
 
-      return ctx.prisma.review.create({
+      const review = await ctx.prisma.review.create({
         data: {
           companyId: booking.companyId,
           bookingId: input.bookingId,
@@ -185,6 +223,38 @@ export const passengerRouter = createTRPCRouter({
           authorId: ctx.user.id,
         },
       });
+
+      // Trigger passenger-review-submitted
+      const company = await ctx.prisma.company.findUnique({
+        where: { id: booking.companyId },
+        select: { name: true },
+      });
+
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && ctx.user.email) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          await novu.trigger({
+            workflowId: "passenger-review-submitted",
+            to: {
+              subscriberId: ctx.user.email,
+              email: ctx.user.email,
+            },
+            payload: {
+              email: ctx.user.email,
+              passengerName: ctx.user.name ?? "Passenger",
+              companyName: company?.name ?? "Transport Operator",
+              rating: input.rating,
+              content: input.content ?? undefined,
+            },
+          }).catch(() => {});
+        } catch (err) {
+          console.error("Failed to trigger passenger-review-submitted via Novu:", err);
+        }
+      }
+
+      return review;
     }),
 
   getUserReviews: protectedProcedure.query(async ({ ctx }) => {
@@ -193,4 +263,102 @@ export const passengerRouter = createTRPCRouter({
       select: { bookingId: true, rating: true, content: true },
     });
   }),
+
+  getWalletBalance: protectedProcedure.query(async ({ ctx }) => {
+    const accountService = new FinancialAccountService(ctx.prisma);
+    const wallet = await accountService.getUserWallet(ctx.user.id);
+    return {
+      availableBalance: wallet.availableBalance,
+      postedBalance: wallet.postedBalance,
+      reservedBalance: wallet.reservedBalance,
+    };
+  }),
+
+  getWalletLedger: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(100).default(20),
+        offset: z.number().int().min(0).default(0),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const wallet = await accountService.getUserWallet(ctx.user.id);
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.ledgerEntry.findMany({
+          where: { accountId: wallet.id },
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        ctx.prisma.ledgerEntry.count({
+          where: { accountId: wallet.id },
+        }),
+      ]);
+
+      return { items, total };
+    }),
+
+  initiateWalletTopUp: protectedProcedure
+    .input(
+      z.object({
+        amountXOF: z.number().int().positive().min(100),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const wallet = await accountService.getUserWallet(ctx.user.id);
+      
+      const reference = `ref_topup_${wallet.id.slice(-6)}_${Date.now()}`;
+      const phone = ctx.user.phone ? ctx.user.phone.replace(/\s+/g, "") : "guest";
+      const email = ctx.user.email || `${phone}@guest.mojaride.ci`;
+
+      const initialized = await paystackInitialize({
+        email,
+        amountXOF: input.amountXOF,
+        reference,
+        metadata: {
+          isTopUp: true,
+          accountId: wallet.id,
+        },
+        callbackUrl: `${process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000"}/dashboard/wallet?topup=pending&ref=${reference}`,
+      });
+
+      await ctx.prisma.$transaction(async (tx) => {
+        const payment = await tx.externalPayment.create({
+          data: {
+            provider: "PAYSTACK",
+            amountXOF: input.amountXOF,
+            status: "PENDING",
+            paystackReference: reference,
+            metadata: {
+              isTopUp: true,
+              accountId: wallet.id,
+              authorizationUrl: initialized.authorizationUrl,
+            },
+          },
+        });
+
+        await tx.paymentAttempt.create({
+          data: {
+            paymentId: payment.id,
+            attemptNumber: 1,
+            paystackReference: reference,
+            status: "PENDING",
+            metadata: { accessCode: initialized.accessCode },
+          },
+        });
+      });
+
+      return { authorizationUrl: initialized.authorizationUrl };
+    }),
+
+  verifyWalletTopUp: protectedProcedure
+    .input(z.object({ reference: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { PaymentService } = await import("@/features/payments/payment-service");
+      const service = new PaymentService(ctx.prisma);
+      return service.verifyTopUp(input.reference);
+    }),
 });

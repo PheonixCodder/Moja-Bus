@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { NotificationPreferences } from "@/features/notifications/components/notification-preferences";
 import { format } from "date-fns";
 import { useQueryState, parseAsStringEnum } from "nuqs";
 import {
@@ -57,12 +58,12 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 
-type SettingsSection = "profile" | "bank" | "documents" | "verification";
+type SettingsSection = "profile" | "bank" | "documents" | "verification" | "notifications";
 
 export function OperatorSettingsView() {
   const [activeSection, setActiveSection] = useQueryState(
     "tab",
-    parseAsStringEnum<SettingsSection>(["profile", "bank", "documents", "verification"])
+    parseAsStringEnum<SettingsSection>(["profile", "bank", "documents", "verification", "notifications"])
       .withDefault("profile")
   );
   const trpc = useTRPC();
@@ -596,6 +597,19 @@ export function OperatorSettingsView() {
                 <CheckCircle2 className="size-4" />
                 Verification Status
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveSection("notifications")}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 text-xs font-semibold text-left border-l-2 transition-all outline-none",
+                  activeSection === "notifications"
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-transparent text-muted-foreground hover:bg-slate-50 hover:text-foreground",
+                )}
+              >
+                <Bell className="size-4" />
+                Notification Settings
+              </button>
             </nav>
           </div>
 
@@ -967,9 +981,17 @@ export function OperatorSettingsView() {
                     Add Settlement Method
                   </Button>
                 </div>
+                
+                <div className="mx-6 mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg flex gap-2.5 text-xs text-slate-600">
+                  <AlertCircle className="size-4 text-slate-500 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-slate-800 block">Withdrawal Settlement Notice</span>
+                    Paystack Transfer Fees (e.g. 100 XOF) are deducted automatically by the payment network from your requested payout amount at the time of transfer.
+                  </div>
+                </div>
 
                 {bankAccounts && bankAccounts.length > 0 ? (
-                  <div className="p-6 space-y-6">
+                  <div className="p-6 pt-2 space-y-6">
                     <div className="space-y-4">
                       {bankAccounts.map((account) => {
                         const statusBadgeColor =
@@ -1018,10 +1040,10 @@ export function OperatorSettingsView() {
                                   <span className="font-medium text-foreground">Account #:</span>{" "}
                                   <span className="font-mono">{account.accountNumber}</span>
                                 </div>
-                                {account.paystackSubaccountCode && (
+                                {account.paystackTransferRecipientCode && (
                                   <div>
-                                    <span className="font-medium text-foreground">Paystack ID:</span>{" "}
-                                    <span className="font-mono">{account.paystackSubaccountCode}</span>
+                                    <span className="font-medium text-foreground">Paystack Recipient ID:</span>{" "}
+                                    <span className="font-mono">{account.paystackTransferRecipientCode}</span>
                                   </div>
                                 )}
                               </div>
@@ -1520,6 +1542,13 @@ export function OperatorSettingsView() {
               </div>
             </div>
           )}
+
+          {/* NOTIFICATION CHANNELS & PREFERENCES */}
+          {activeSection === "notifications" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <NotificationPreferences />
+            </div>
+          )}
         </div>
       </div>
 
@@ -1752,7 +1781,7 @@ export function OperatorSettingsView() {
             <DrawerHeader>
               <DrawerTitle>Add Settlement Account</DrawerTitle>
               <DrawerDescription>
-                Register a Côte d'Ivoire Bank or Mobile Money wallet for automated split payouts.
+                Register a Côte d'Ivoire Bank or Mobile Money wallet for self-serve balance withdrawals.
               </DrawerDescription>
             </DrawerHeader>
 

@@ -8,8 +8,10 @@ import {
   useState,
 } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { ScanLine } from "lucide-react";
+import { ScanLine, Search } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
+import { Input } from "@moja/ui/components/ui/input";
+import { Label } from "@moja/ui/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -44,7 +46,7 @@ export function TicketScanner({
   onOpenChange,
   onScan,
   title = "Scan ticket",
-  description = "Point the camera at the passenger QR code on their ticket.",
+  description = "Point the camera at the passenger QR code on their ticket or enter details manually.",
   disabled = false,
 }: TicketScannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,6 +57,9 @@ export function TicketScanner({
   const [processing, setProcessing] = useState(false);
   const [lastResult, setLastResult] = useState<TicketScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [mode, setMode] = useState<"scan" | "manual">("scan");
+  const [manualInput, setManualInput] = useState("");
 
   useEffect(() => {
     onScanRef.current = onScan;
@@ -99,8 +104,27 @@ export function TicketScanner({
     }
   }, [disabled]);
 
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualInput.trim() || disabled || processing) return;
+
+    setProcessing(true);
+    setError(null);
+    try {
+      const result = await onScanRef.current(manualInput.trim());
+      setLastResult(result);
+      setManualInput(""); // Clear manual input on success
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Check-in failed.";
+      setError(message);
+      setLastResult(null);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   useLayoutEffect(() => {
-    if (!open) {
+    if (!open || mode === "manual") {
       void stopScanner();
       setStarting(false);
       setProcessing(false);
@@ -159,66 +183,135 @@ export function TicketScanner({
       cancelAnimationFrame(rafId);
       void stopScanner();
     };
-  }, [open, handleDecoded, stopScanner]);
+  }, [open, mode, handleDecoded, stopScanner]);
+
+  // Clean state when modal visibility toggles
+  useEffect(() => {
+    if (open) {
+      setMode("scan");
+      setManualInput("");
+      setLastResult(null);
+      setError(null);
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white border border-border rounded-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-text-primary">
             <ScanLine className="size-5" />
             {title}
           </DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription className="text-xs text-text-muted">{description}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div
+        {/* Tab switcher */}
+        <div className="flex gap-2 p-1 rounded-lg bg-slate-100 border border-slate-200/80 w-fit mb-1">
+          <button
+            type="button"
+            onClick={() => setMode("scan")}
             className={cn(
-              "relative overflow-hidden rounded-lg border border-border bg-black/5",
-              "min-h-[280px] flex items-center justify-center",
+              "px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200",
+              mode === "scan"
+                ? "bg-white text-primary border border-slate-200/40 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
             )}
           >
-            {(starting || processing) && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60">
-                <Spinner className="size-8 text-primary" />
-              </div>
+            Camera Scan
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("manual")}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200",
+              mode === "manual"
+                ? "bg-white text-primary border border-slate-200/40 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
             )}
+          >
+            Enter Manually
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {mode === "manual" ? (
+            <form onSubmit={handleManualSubmit} className="space-y-4 pt-1">
+              <div className="space-y-1.5">
+                <Label htmlFor="manual-token" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Ticket Token or Reference Number
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="manual-token"
+                    placeholder="Enter code (e.g. MOB-ABCD1)"
+                    value={manualInput}
+                    onChange={(e) => setManualInput(e.target.value)}
+                    disabled={processing}
+                    className="pr-10 h-10 border-slate-200 text-sm shadow-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <Search className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={processing || !manualInput.trim()}
+                className="w-full bg-primary hover:bg-primary/95 text-white h-10 text-xs font-bold rounded-lg shadow-xs"
+              >
+                {processing ? "Checking in..." : "Confirm Boarding"}
+              </Button>
+            </form>
+          ) : (
             <div
-              ref={containerRef}
-              id={SCANNER_CONTAINER_ID}
-              className="w-full"
-            />
-          </div>
+              className={cn(
+                "relative overflow-hidden rounded-lg border border-border bg-black/5",
+                "min-h-[280px] flex items-center justify-center",
+              )}
+            >
+              {(starting || processing) && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60">
+                  <Spinner className="size-8 text-primary" />
+                </div>
+              )}
+              <div
+                ref={containerRef}
+                id={SCANNER_CONTAINER_ID}
+                className="w-full"
+              />
+            </div>
+          )}
 
           {disabled ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Loading trip details…
             </p>
           ) : null}
 
           {error ? (
-            <p className="text-sm text-destructive font-medium">{error}</p>
+            <p className="text-xs text-destructive font-medium bg-red-50 border border-red-100 p-2.5 rounded-lg">{error}</p>
           ) : null}
 
           {lastResult ? (
             <div
               className={cn(
-                "rounded-md border p-3 text-sm",
+                "rounded-lg border p-3 text-sm",
                 lastResult.alreadyCheckedIn
                   ? "border-amber-200 bg-amber-50 text-amber-900"
                   : "border-emerald-200 bg-emerald-50 text-emerald-900",
               )}
             >
-              <p className="font-bold">
+              <p className="font-bold text-xs">
                 {lastResult.alreadyCheckedIn
                   ? "Already checked in"
                   : "Checked in successfully"}
               </p>
-              <p className="mt-1">
+              <p className="mt-1 text-xs">
                 {lastResult.passengerName} · Seat {lastResult.seatLabel}
               </p>
-              <p className="text-xs opacity-80 mt-0.5">
+              <p className="text-[10px] opacity-80 mt-0.5">
                 Ref {lastResult.bookingReference}
               </p>
             </div>
@@ -227,7 +320,7 @@ export function TicketScanner({
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="w-full h-10 text-xs border-slate-200"
             onClick={() => onOpenChange(false)}
           >
             Close

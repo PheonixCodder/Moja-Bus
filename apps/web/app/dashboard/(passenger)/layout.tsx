@@ -6,6 +6,7 @@ import { SidebarInset, SidebarProvider } from "@moja/ui/components/ui/sidebar";
 import { TooltipProvider } from "@moja/ui/components/ui/tooltip";
 import { DashboardSidebar } from "@/features/dashboard/components/dashboard-sidebar";
 import { getUser, requireServerSession } from "@/lib/auth-server";
+import { NotificationInbox } from "@/features/notifications/components/notification-inbox";
 
 export default async function DashboardLayout({
   children,
@@ -23,7 +24,10 @@ export default async function DashboardLayout({
     <TooltipProvider>
       <SidebarProvider defaultOpen={defaultOpen} className="h-svh">
         <DashboardSidebar user={user} />
-        <SidebarInset className="min-h-0 min-w-0 bg-bg-base">
+        <SidebarInset className="min-h-0 min-w-0 bg-bg-base relative">
+          <div className="absolute right-4 top-1.5 z-40">
+            <NotificationInbox />
+          </div>
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>
           <Toaster />
         </SidebarInset>

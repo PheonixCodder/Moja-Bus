@@ -7,6 +7,7 @@ import {
   adminUpdateUserRoleSchema,
   adminListOperationsSchema,
 } from "@moja/schemas";
+import { FinancialAccountService, AccountingEngine } from "@moja/db";
 import { createTRPCRouter, protectedProcedure } from "../init";
 import { revealBankAccountNumber } from "@/lib/bank-account";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
@@ -28,7 +29,7 @@ export const adminRouter = createTRPCRouter({
       pendingOperatorsCount,
       activeTripsCount,
     ] = await Promise.all([
-      ctx.prisma.payment.findMany({
+      ctx.prisma.externalPayment.findMany({
         where: { status: "SUCCESS" },
         select: { amountXOF: true },
       }),
@@ -88,7 +89,13 @@ export const adminRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const company = await ctx.prisma.company.findUnique({
         where: { id: input.companyId },
-        include: { bankAccounts: true },
+        include: {
+          bankAccounts: true,
+          operators: {
+            where: { role: "OWNER" },
+            include: { user: { select: { email: true, fullName: true } } },
+          },
+        },
       });
 
       if (!company) {
@@ -108,18 +115,18 @@ export const adminRouter = createTRPCRouter({
 
       const decryptedAccountNumber = revealBankAccountNumber(pendingBank as any);
 
-      // Create Paystack subaccount
+      // Create Paystack Transfer Recipient
       const paystack = new PaystackProvider();
-      let subaccountCode = "";
+      let recipientCode = "";
       try {
-        const result = await paystack.createSubaccount({
+        const result = await paystack.createTransferRecipient({
           businessName: company.name,
-          settlementBankCode: input.bankCode,
+          bankCode: input.bankCode,
           accountNumber: decryptedAccountNumber,
         });
-        subaccountCode = result.subaccountCode;
+        recipientCode = result.recipientCode;
       } catch (error: any) {
-        console.error("Paystack Subaccount Registration Error:", error);
+        console.error("Paystack Transfer Recipient Registration Error:", error);
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `Paystack registration failed: ${error.message || "Unknown error"}`,
@@ -131,7 +138,7 @@ export const adminRouter = createTRPCRouter({
           where: { id: input.companyId },
           data: {
             status: "ACTIVE",
-            paystackSubaccountCode: subaccountCode,
+            paystackTransferRecipientCode: recipientCode,
             verifiedAt: new Date(),
             verifiedById: ctx.user.id,
             rejectionReason: null,
@@ -145,7 +152,7 @@ export const adminRouter = createTRPCRouter({
             isDefault: true,
             verifiedAt: new Date(),
             verifiedById: ctx.user.id,
-            paystackSubaccountCode: subaccountCode,
+            paystackTransferRecipientCode: recipientCode,
           },
         });
 
@@ -154,12 +161,40 @@ export const adminRouter = createTRPCRouter({
             companyId: input.companyId,
             userId: ctx.user.id,
             action: "VERIFY_COMPANY",
-            description: `Approved company verification. Registered Paystack subaccount ${subaccountCode}.`,
+            description: `Approved company verification. Registered Paystack transfer recipient ${recipientCode}.`,
           },
         });
+
+        const accountService = new FinancialAccountService(tx as any);
+        await accountService.getOperatorReceivableAccount(input.companyId);
       });
 
-      return { success: true, subaccountCode };
+      const ownerUser = company.operators[0]?.user;
+      if (ownerUser?.email) {
+        const novuSecret = process.env["NOVU_SECRET_KEY"];
+        if (novuSecret) {
+          try {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            await novu.trigger({
+              workflowId: "operator-verification-approved",
+              to: {
+                subscriberId: ownerUser.email,
+                email: ownerUser.email,
+              },
+              payload: {
+                email: ownerUser.email,
+                ownerName: ownerUser.fullName ?? "Operator Owner",
+                companyName: company.name,
+              },
+            });
+          } catch (err) {
+            console.error("Failed to trigger operator-verification-approved via Novu:", err);
+          }
+        }
+      }
+
+      return { success: true, recipientCode };
     }),
 
   rejectOperator: adminProcedure
@@ -167,6 +202,12 @@ export const adminRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const company = await ctx.prisma.company.findUnique({
         where: { id: input.companyId },
+        include: {
+          operators: {
+            where: { role: "OWNER" },
+            include: { user: { select: { email: true, fullName: true } } },
+          },
+        },
       });
 
       if (!company) {
@@ -196,6 +237,32 @@ export const adminRouter = createTRPCRouter({
           },
         });
       });
+
+      const ownerUser = company.operators[0]?.user;
+      if (ownerUser?.email) {
+        const novuSecret = process.env["NOVU_SECRET_KEY"];
+        if (novuSecret) {
+          try {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            await novu.trigger({
+              workflowId: "operator-verification-rejected",
+              to: {
+                subscriberId: ownerUser.email,
+                email: ownerUser.email,
+              },
+              payload: {
+                email: ownerUser.email,
+                ownerName: ownerUser.fullName ?? "Operator Owner",
+                companyName: company.name,
+                reason: input.reason,
+              },
+            });
+          } catch (err) {
+            console.error("Failed to trigger operator-verification-rejected via Novu:", err);
+          }
+        }
+      }
 
       return { success: true };
     }),
@@ -264,10 +331,32 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      await ctx.prisma.user.update({
+      const updatedUser = await ctx.prisma.user.update({
         where: { id: input.userId },
         data: { role: input.role },
       });
+
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && updatedUser.email) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          await novu.trigger({
+            workflowId: "user-role-updated",
+            to: {
+              subscriberId: updatedUser.email,
+              email: updatedUser.email,
+            },
+            payload: {
+              email: updatedUser.email,
+              userName: updatedUser.fullName ?? "User",
+              newRole: input.role as any,
+            },
+          }).catch(() => {});
+        } catch (err) {
+          console.error("Failed to trigger user-role-updated:", err);
+        }
+      }
 
       return { success: true };
     }),
@@ -307,6 +396,38 @@ export const adminRouter = createTRPCRouter({
         });
       });
 
+      // Trigger operator-account-suspended
+      const operators = await ctx.prisma.operator.findMany({
+        where: { companyId: input.companyId, deletedAt: null },
+        include: { user: { select: { email: true, fullName: true, phone: true } } },
+      });
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && operators.length > 0) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          for (const op of operators) {
+            if (op.user.email) {
+              await novu.trigger({
+                workflowId: "operator-account-suspended",
+                to: {
+                  subscriberId: op.user.email,
+                  email: op.user.email,
+                },
+                payload: {
+                  email: op.user.email,
+                  operatorName: op.user.fullName ?? "Operator Staff",
+                  companyName: company.name,
+                  phone: op.user.phone ?? undefined,
+                },
+              }).catch(() => {});
+            }
+          }
+        } catch (err) {
+          console.error("Failed to trigger operator-account-suspended:", err);
+        }
+      }
+
       return { success: true };
     }),
 
@@ -344,6 +465,37 @@ export const adminRouter = createTRPCRouter({
           },
         });
       });
+
+      // Trigger operator-account-restored
+      const owners = await ctx.prisma.operator.findMany({
+        where: { companyId: input.companyId, role: "OWNER", deletedAt: null },
+        include: { user: { select: { email: true, fullName: true } } },
+      });
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && owners.length > 0) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          for (const owner of owners) {
+            if (owner.user.email) {
+              await novu.trigger({
+                workflowId: "operator-account-restored",
+                to: {
+                  subscriberId: owner.user.email,
+                  email: owner.user.email,
+                },
+                payload: {
+                  email: owner.user.email,
+                  ownerName: owner.user.fullName ?? "Operator Owner",
+                  companyName: company.name,
+                },
+              }).catch(() => {});
+            }
+          }
+        } catch (err) {
+          console.error("Failed to trigger operator-account-restored:", err);
+        }
+      }
 
       return { success: true };
     }),
@@ -425,18 +577,18 @@ export const adminRouter = createTRPCRouter({
 
       const decryptedAccountNumber = revealBankAccountNumber(bankAccount);
 
-      // Create Paystack subaccount
+      // Create Paystack transfer recipient
       const paystack = new PaystackProvider();
-      let subaccountCode = "";
+      let recipientCode = "";
       try {
-        const result = await paystack.createSubaccount({
+        const result = await paystack.createTransferRecipient({
           businessName: bankAccount.company.name,
-          settlementBankCode: bankCode,
+          bankCode: bankCode,
           accountNumber: decryptedAccountNumber,
         });
-        subaccountCode = result.subaccountCode;
+        recipientCode = result.recipientCode;
       } catch (error: any) {
-        console.error("Paystack Subaccount Registration Error:", error);
+        console.error("Paystack Transfer Recipient Registration Error:", error);
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `Paystack registration failed: ${error.message || "Unknown error"}`,
@@ -458,14 +610,14 @@ export const adminRouter = createTRPCRouter({
             isDefault,
             verifiedAt: new Date(),
             verifiedById: ctx.user.id,
-            paystackSubaccountCode: subaccountCode,
+            paystackTransferRecipientCode: recipientCode,
           },
         });
 
         if (isDefault) {
           await tx.company.update({
             where: { id: bankAccount.companyId },
-            data: { paystackSubaccountCode: subaccountCode },
+            data: { paystackTransferRecipientCode: recipientCode },
           });
         }
 
@@ -474,12 +626,46 @@ export const adminRouter = createTRPCRouter({
             companyId: bankAccount.companyId,
             userId: ctx.user.id,
             action: "VERIFY_COMPANY",
-            description: `Approved bank account. Registered Paystack subaccount ${subaccountCode}.`,
+            description: `Approved bank account. Registered Paystack transfer recipient ${recipientCode}.`,
           },
         });
       });
 
-      return { success: true, subaccountCode };
+      // Trigger operator-bank-verified to Owners
+      const owners = await ctx.prisma.operator.findMany({
+        where: { companyId: bankAccount.companyId, role: "OWNER", deletedAt: null },
+        include: { user: { select: { email: true, fullName: true } } },
+      });
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && owners.length > 0) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          const hiddenNum = `******${bankAccount.accountNumberLast4}`;
+          for (const owner of owners) {
+            if (owner.user.email) {
+              await novu.trigger({
+                workflowId: "operator-bank-verified",
+                to: {
+                  subscriberId: owner.user.email,
+                  email: owner.user.email,
+                },
+                payload: {
+                  email: owner.user.email,
+                  ownerName: owner.user.fullName ?? "Operator Owner",
+                  companyName: bankAccount.company.name,
+                  bankName: bankAccount.bankName,
+                  accountNumberHidden: hiddenNum,
+                },
+              }).catch(() => {});
+            }
+          }
+        } catch (err) {
+          console.error("Failed to trigger operator-bank-verified via Novu:", err);
+        }
+      }
+
+      return { success: true, recipientCode };
     }),
 
   rejectBankAccount: adminProcedure
@@ -515,6 +701,287 @@ export const adminRouter = createTRPCRouter({
           description: `Rejected bank account: ${input.reason}`,
         },
       });
+
+      // Trigger operator-bank-rejected to Owners
+      const owners = await ctx.prisma.operator.findMany({
+        where: { companyId: bankAccount.companyId, role: "OWNER", deletedAt: null },
+        include: { user: { select: { email: true, fullName: true } } },
+      });
+      const company = await ctx.prisma.company.findUnique({
+        where: { id: bankAccount.companyId },
+        select: { name: true },
+      });
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && owners.length > 0 && company) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          const hiddenNum = `******${bankAccount.accountNumberLast4}`;
+          for (const owner of owners) {
+            if (owner.user.email) {
+              await novu.trigger({
+                workflowId: "operator-bank-rejected",
+                to: {
+                  subscriberId: owner.user.email,
+                  email: owner.user.email,
+                },
+                payload: {
+                  email: owner.user.email,
+                  ownerName: owner.user.fullName ?? "Operator Owner",
+                  companyName: company.name,
+                  bankName: bankAccount.bankName,
+                  accountNumberHidden: hiddenNum,
+                  reason: input.reason,
+                },
+              }).catch(() => {});
+            }
+          }
+        } catch (err) {
+          console.error("Failed to trigger operator-bank-rejected via Novu:", err);
+        }
+      }
+
+      return { success: true };
+    }),
+
+  listAllWithdrawals: adminProcedure
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(100).default(20),
+        offset: z.number().int().min(0).default(0),
+        status: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const where: any = {
+        type: "OPERATOR_PAYOUT",
+      };
+      if (input.status && input.status !== "ALL") {
+        where.status = input.status;
+      }
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.financialTransaction.findMany({
+          where,
+          include: {
+            entries: {
+              include: {
+                account: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        ctx.prisma.financialTransaction.count({ where }),
+      ]);
+
+      const companyIds = Array.from(
+        new Set(
+          items.flatMap((tx) =>
+            tx.entries
+              .filter((e) => e.account.ownerType === "COMPANY")
+              .map((e) => e.account.ownerId)
+          )
+        )
+      );
+
+      const companies = await ctx.prisma.company.findMany({
+        where: { id: { in: companyIds } },
+        select: { id: true, name: true },
+      });
+      const companyMap = new Map(companies.map((c) => [c.id, c.name]));
+
+      return {
+        items: items.map((tx) => {
+          const operatorEntry = tx.entries.find(
+            (e) => e.account.accountClass === "OPERATOR_RECEIVABLE"
+          );
+          const companyId = operatorEntry?.account.ownerId || "";
+          const companyName = companyMap.get(companyId) || "Unknown Operator";
+
+          return {
+            id: tx.id,
+            status: tx.status,
+            externalPaymentId: tx.externalPaymentId,
+            description: tx.description,
+            metadata: tx.metadata,
+            createdAt: tx.createdAt,
+            amount: Number(operatorEntry?.amount || 0),
+            companyId,
+            companyName,
+          };
+        }),
+        total,
+      };
+    }),
+
+  resolveWithdrawal: adminProcedure
+    .input(
+      z.object({
+        transactionId: z.string(),
+        action: z.enum(["FORCE_COMPLETE", "FORCE_FAIL"]),
+        reason: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const tx = await ctx.prisma.financialTransaction.findUnique({
+        where: { id: input.transactionId },
+        include: { entries: { include: { account: true } } },
+      });
+
+      if (!tx || tx.type !== "OPERATOR_PAYOUT") {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Withdrawal transaction not found",
+        });
+      }
+
+      if (tx.status !== "CREATED" && tx.status !== "POSTED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Transaction is already in status ${tx.status} and cannot be resolved.`,
+        });
+      }
+
+      if (input.action === "FORCE_COMPLETE") {
+        await ctx.prisma.financialTransaction.update({
+          where: { id: tx.id },
+          data: {
+            status: "SETTLED",
+            metadata: {
+              ...(tx.metadata as object || {}),
+              forceCompletedBy: ctx.user.id,
+              forceCompleteReason: input.reason,
+              forceCompletedAt: new Date(),
+            },
+          },
+        });
+      } else {
+        await ctx.prisma.$transaction(async (prismaTx) => {
+          const engine = new AccountingEngine("PAYOUT_REVERSAL", {
+            ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
+            description: `Manual admin reversal: ${input.reason}`,
+            metadata: {
+              originalTxId: tx.id,
+              reversedBy: ctx.user.id,
+              reason: input.reason,
+            },
+          });
+
+          for (const entry of tx.entries) {
+            if (entry.side === "DEBIT") {
+              engine.addCredit({
+                accountId: entry.accountId,
+                amount: Number(entry.amount),
+                sequenceNumber: entry.sequenceNumber,
+              });
+            } else {
+              engine.addDebit({
+                accountId: entry.accountId,
+                amount: Number(entry.amount),
+                sequenceNumber: entry.sequenceNumber,
+              });
+            }
+          }
+
+          await engine.commit(prismaTx as any);
+
+          await prismaTx.financialTransaction.update({
+            where: { id: tx.id },
+            data: {
+              status: "FAILED",
+              metadata: {
+                ...(tx.metadata as object || {}),
+                forceFailedBy: ctx.user.id,
+                forceFailedReason: input.reason,
+                forceFailedAt: new Date(),
+              },
+            },
+          });
+        });
+      }
+
+      // Trigger withdrawal resolution alerts
+      const operatorEntry = tx.entries.find(
+        (e) => e.account.accountClass === "OPERATOR_RECEIVABLE"
+      );
+      const companyId = operatorEntry?.account.ownerId || "";
+      const company = await ctx.prisma.company.findUnique({
+        where: { id: companyId },
+        select: { name: true },
+      });
+      const owners = await ctx.prisma.operator.findMany({
+        where: { companyId, role: "OWNER", deletedAt: null },
+        include: { user: { select: { email: true, fullName: true } } },
+      });
+
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && owners.length > 0 && company) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          const amountVal = Number(operatorEntry?.amount || 0);
+          for (const owner of owners) {
+            if (owner.user.email) {
+              await novu.trigger({
+                workflowId: "operator-withdrawal-resolved",
+                to: {
+                  subscriberId: owner.user.email,
+                  email: owner.user.email,
+                },
+                payload: {
+                  email: owner.user.email,
+                  ownerName: owner.user.fullName ?? "Operator Owner",
+                  companyName: company.name,
+                  transactionId: input.transactionId,
+                  amountXOF: amountVal,
+                  status: input.action === "FORCE_COMPLETE" ? "SETTLED" : "FAILED",
+                  reason: input.reason,
+                },
+              }).catch(() => {});
+            }
+          }
+        } catch (err) {
+          console.error("Failed to trigger operator-withdrawal-resolved:", err);
+        }
+      }
+
+      if (input.action === "FORCE_FAIL" && novuSecret && company) {
+        const admins = await ctx.prisma.user.findMany({
+          where: { role: "ADMIN" },
+          select: { email: true },
+        });
+        if (admins.length > 0) {
+          try {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            const amountVal = Number(operatorEntry?.amount || 0);
+            for (const admin of admins) {
+              await novu.trigger({
+                workflowId: "admin-payout-failed",
+                to: {
+                  subscriberId: admin.email,
+                  email: admin.email,
+                },
+                payload: {
+                  adminEmail: admin.email,
+                  transactionId: input.transactionId,
+                  companyName: company.name,
+                  amountXOF: amountVal,
+                  errorCode: "FORCE_FAIL",
+                  errorMessage: input.reason,
+                },
+              }).catch(() => {});
+            }
+          } catch (err) {
+            console.error("Failed to trigger admin-payout-failed:", err);
+          }
+        }
+      }
 
       return { success: true };
     }),

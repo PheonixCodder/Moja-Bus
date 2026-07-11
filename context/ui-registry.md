@@ -21,6 +21,11 @@ After building any component, update this file with the component name, file pat
 - `apps/web/features/dashboard/components/dashboard-sidebar.tsx`: passenger dashboard sidebar with `bg-bg-surface`, collapsed bus logo state, grouped nav, and account dropdown.
 - `apps/web/features/dashboard/components/dashboard-header.tsx`: dashboard welcome header with session-aware greeting and search CTA.
 - `apps/web/features/dashboard/components/sessions-panel.tsx`: empty-state trips panel using the same card shell as the demo dashboard, adapted to bookings.
+- `apps/web/features/passenger/views/passenger-wallet-view.tsx`: Client-side view component displaying live Available/Reserved balances, top-up dialogue, and dynamic ledger transaction history table.
+- `apps/web/features/admin/views/admin-settlements-view.tsx`: Admin treasury cockpit displaying central clearing and revenue balance cards, an emergency manual settlement panel, and a class-filterable ledger auditor.
+- `apps/web/features/admin/views/admin-withdrawals-view.tsx`: Payout monitoring queue view displaying KPI summaries, status filters, and manual override dialogs.
+- `apps/web/app/dashboard/admin/withdrawals/page.tsx`: Page container prefetching withdrawals queue data and rendering `AdminWithdrawalsView`.
+- `apps/web/app/dashboard/(passenger)/wallet/page.tsx`: Suspense-bound container page prefetching passenger wallet data and rendering `PassengerWalletView`.
 - `apps/web/app/dashboard/layout.tsx`: protected dashboard layout using `SidebarProvider`, `SidebarInset`, `TooltipProvider`, and `Toaster`.
 - `apps/web/features/operator/views/operator-onboarding-view.tsx`: Single-route onboarding multi-step form view using Montserrat typeface, primary brand color `#ee237c`, dense-but-readable layout, small radii (<= 8px), and visible borders.
 - `apps/web/features/operator/views/operator-dashboard-view.tsx`: Operator dashboard landing overview rendering company details and verification status.
@@ -28,6 +33,8 @@ After building any component, update this file with the component name, file pat
 - `apps/web/features/operator/views/operator-routes-view.tsx`: Full Route Builder page with drag-and-drop stop sequence reordering, Leaflet map previews, and search-equipped Combobox selectors.
 - `apps/web/features/operator/views/operator-schedules-view.tsx`: 4-step Schedule Wizard page with calendar recurrence toggles, triangle fare pricing grid, and date generation preview.
 - `apps/web/features/operator/views/operator-trips-view.tsx`: Dispatch Board page grouped by departure dates with seat fill indicators, inline bus assignments, and manifest drawer supporting passenger lists, check-ins, and board/delay/cancel controls.
+- `apps/web/features/operator/views/operator-withdraw-view.tsx`: Self-serve operator payout withdrawal portal displaying Available vs Escrow (Pending) balances and payout request form.
+- `apps/web/app/dashboard/operator/(dashboard)/withdraw/page.tsx`: Page wrapper for `OperatorWithdrawView`.
 - `apps/web/features/operator/components/operator-quick-actions.tsx`: Header-level dashboard quick actions supporting query-parameter-driven form automation.
 
 ## Platform Data (Seeded via `packages/db/prisma/seed.ts`)

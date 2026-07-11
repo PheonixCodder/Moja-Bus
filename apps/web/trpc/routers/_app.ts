@@ -14,6 +14,7 @@ import { passengerRouter } from "./passenger";
 import { paymentsRouter } from "./payments";
 import { publicRouter } from "./public";
 import { adminRouter } from "./admin";
+import { walletRouter } from "./wallet";
 
 export const appRouter = createTRPCRouter({
   operator: operatorRouter,

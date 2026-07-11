@@ -9,6 +9,7 @@ import {
 import crypto from "node:crypto";
 import { auth } from "@/lib/auth-server";
 import { sendStaffInvitationEmail } from "@/lib/staff-email";
+import { Novu } from "@novu/api";
 import type { PrismaClient } from "@moja/db";
 
 async function logStaffActivity(
@@ -360,15 +361,62 @@ export const staffRouter = createTRPCRouter({
         },
       });
 
-      await sendStaffInvitationEmail({
-        to: invitation.email,
-        companyName: invitation.company.name,
-        inviterName: invitation.invitedBy.fullName ?? "A team member",
-        role: invitation.role,
-        token: rawToken,
-        message: invitation.message,
-        expiresAt: invitation.expiresAt,
+      console.log(rawToken);
+
+      const appUrl = process.env["APP_URL"] || "http://localhost:3000";
+      const inviteUrl = `${appUrl}/invite?token=${rawToken}`;
+      const expiresAtFormatted = invitation.expiresAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
+
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const novu = new Novu({ secretKey: novuSecret });
+          await novu.trigger({
+            workflowId: "operator-staff-invite",
+            to: {
+              subscriberId: invitation.email,
+              email: invitation.email,
+            },
+            payload: {
+              email: invitation.email,
+              companyName: invitation.company.name,
+              inviterName: invitation.invitedBy.fullName ?? "A team member",
+              role: invitation.role,
+              inviteUrl,
+              expiresAt: expiresAtFormatted,
+              message: invitation.message,
+            },
+          });
+          console.log(`[NOVU] Triggered operator-staff-invite for ${invitation.email}`);
+        } catch (err) {
+          console.error("[NOVU] Failed to trigger operator-staff-invite workflow:", err);
+          await sendStaffInvitationEmail({
+            to: invitation.email,
+            companyName: invitation.company.name,
+            inviterName: invitation.invitedBy.fullName ?? "A team member",
+            role: invitation.role,
+            token: rawToken,
+            message: invitation.message,
+            expiresAt: invitation.expiresAt,
+          });
+        }
+      } else {
+        await sendStaffInvitationEmail({
+          to: invitation.email,
+          companyName: invitation.company.name,
+          inviterName: invitation.invitedBy.fullName ?? "A team member",
+          role: invitation.role,
+          token: rawToken,
+          message: invitation.message,
+          expiresAt: invitation.expiresAt,
+        });
+      }
 
       await logStaffActivity(ctx.prisma, {
         companyId: ctx.companyId,
@@ -445,15 +493,60 @@ export const staffRouter = createTRPCRouter({
         },
       });
 
-      await sendStaffInvitationEmail({
-        to: updated.email,
-        companyName: updated.company.name,
-        inviterName: updated.invitedBy.fullName ?? "A team member",
-        role: updated.role,
-        token: newRawToken,
-        message: updated.message,
-        expiresAt: updated.expiresAt,
+      const appUrl = process.env["APP_URL"] || "http://localhost:3000";
+      const inviteUrl = `${appUrl}/invite?token=${newRawToken}`;
+      const expiresAtFormatted = updated.expiresAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
+
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const novu = new Novu({ secretKey: novuSecret });
+          await novu.trigger({
+            workflowId: "operator-staff-invite",
+            to: {
+              subscriberId: updated.email,
+              email: updated.email,
+            },
+            payload: {
+              email: updated.email,
+              companyName: updated.company.name,
+              inviterName: updated.invitedBy.fullName ?? "A team member",
+              role: updated.role,
+              inviteUrl,
+              expiresAt: expiresAtFormatted,
+              message: updated.message,
+            },
+          });
+          console.log(`[NOVU] Triggered operator-staff-invite for ${updated.email}`);
+        } catch (err) {
+          console.error("[NOVU] Failed to trigger operator-staff-invite workflow:", err);
+          await sendStaffInvitationEmail({
+            to: updated.email,
+            companyName: updated.company.name,
+            inviterName: updated.invitedBy.fullName ?? "A team member",
+            role: updated.role,
+            token: newRawToken,
+            message: updated.message,
+            expiresAt: updated.expiresAt,
+          });
+        }
+      } else {
+        await sendStaffInvitationEmail({
+          to: updated.email,
+          companyName: updated.company.name,
+          inviterName: updated.invitedBy.fullName ?? "A team member",
+          role: updated.role,
+          token: newRawToken,
+          message: updated.message,
+          expiresAt: updated.expiresAt,
+        });
+      }
 
       await logStaffActivity(ctx.prisma, {
         companyId: ctx.companyId,
