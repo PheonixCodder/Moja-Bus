@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const adminOperatorSignupPendingWorkflow = workflow(
   "admin-operator-signup-pending",
@@ -7,7 +9,7 @@ export const adminOperatorSignupPendingWorkflow = workflow(
     // 1. In-App Notification for admins
     await step.inApp("send-in-app", async () => ({
       subject: "Operator Verification Pending",
-      body: `🆕 Company ${payload.companyName} submitted verification documents. Review pending.`,
+      body: `🆕 Company ${escapeHtml(payload.companyName)} submitted verification documents. Review pending.`,
       avatar: "https://avatar.vercel.sh/onboarding-pending",
       redirect: { url: "/dashboard/admin/verification", target: "_self" },
     }));
@@ -20,10 +22,10 @@ export const adminOperatorSignupPendingWorkflow = workflow(
           <p>Hello Admin,</p>
           <p>A new transport operator has completed onboarding and submitted documents for verification:</p>
           <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0; font-size: 14px;">
-            <p style="margin: 0 0 8px 0;">Company Name: <strong>${payload.companyName}</strong></p>
-            <p style="margin: 0 0 8px 0;">Owner: <strong>${payload.ownerName}</strong></p>
-            <p style="margin: 0 0 8px 0;">Phone: <strong>${payload.ownerPhone}</strong></p>
-            <p style="margin: 0;">Submitted: <strong>${payload.submittedAt}</strong></p>
+            <p style="margin: 0 0 8px 0;">Company Name: <strong>${escapeHtml(payload.companyName)}</strong></p>
+            <p style="margin: 0 0 8px 0;">Owner: <strong>${escapeHtml(payload.ownerName)}</strong></p>
+            <p style="margin: 0 0 8px 0;">Phone: <strong>${escapeHtml(payload.ownerPhone)}</strong></p>
+            <p style="margin: 0;">Submitted: <strong>${escapeHtml(payload.submittedAt)}</strong></p>
           </div>
           <a href="https://mojaride.com/dashboard/admin/verification" 
              style="display: inline-block; background: #ee237c; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin-top: 10px;">
@@ -33,7 +35,7 @@ export const adminOperatorSignupPendingWorkflow = workflow(
       `;
 
       return {
-        subject: `Action Required: Verification Pending for ${payload.companyName}`,
+        subject: `Action Required: Verification Pending for ${escapeHtml(payload.companyName)}`,
         body: html,
       };
     });

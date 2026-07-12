@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const operatorBusAssignedWorkflow = workflow(
   "operator-bus-assigned",
@@ -7,7 +9,7 @@ export const operatorBusAssignedWorkflow = workflow(
     // 1. In-App Notification
     await step.inApp("send-in-app", async () => ({
       subject: "Bus Assignment Updated",
-      body: `Bus ${payload.busPlate} has been assigned to trip to ${payload.routeName} departing ${payload.departureTime}.`,
+      body: `Bus ${escapeHtml(payload.busPlate)} has been assigned to trip to ${escapeHtml(payload.routeName)} departing ${escapeHtml(payload.departureTime)}.`,
       avatar: "https://avatar.vercel.sh/bus",
       redirect: { url: "/dashboard/operator/trips", target: "_self" },
     }));
@@ -15,7 +17,7 @@ export const operatorBusAssignedWorkflow = workflow(
     // 2. SMS Notification
     if (payload.phone) {
       await step.sms("send-sms", async () => ({
-        body: `Moja Operator Alert: You are assigned to Bus ${payload.busPlate} for route ${payload.routeName} departing ${payload.departureTime}. Log in to view manifest.`,
+        body: `Moja Operator Alert: You are assigned to Bus ${escapeHtml(payload.busPlate)} for route ${escapeHtml(payload.routeName)} departing ${escapeHtml(payload.departureTime)}. Log in to view manifest.`,
       }));
     }
   },

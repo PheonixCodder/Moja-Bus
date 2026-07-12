@@ -9,6 +9,7 @@ import {
 } from "@moja/schemas";
 import { SearchFilters, SearchService } from "@/features/search/services/search-service";
 import { TripSearchReadRepository } from "@/features/search/repositories/search-read-repository";
+import { CancellationService } from "@/features/payments/services/cancellation-service";
 
 export const tripsRouter = createTRPCRouter({
   create: operatorCompanyProcedure
@@ -464,7 +465,7 @@ export const tripsRouter = createTRPCRouter({
                     originCity,
                     destinationCity: destCity,
                     originalTime: trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
-                    newTime: new Date(trip.departureDate.getTime() + delayMinutes * 60000).toLocaleString("en-US", { timeZone: "UTC" }),
+                    newTime: (updatedTrip.estimatedArrival ?? new Date(trip.departureDate.getTime() + delayMinutes * 60000)).toLocaleString("en-US", { timeZone: "UTC" }),
                     delayMinutes,
                     gate: trip.gate ?? undefined,
                     phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
@@ -528,6 +529,28 @@ export const tripsRouter = createTRPCRouter({
         },
       });
 
+      // Step 1: Process wallet refunds for each confirmed booking BEFORE notifying passengers
+      const cancellationService = new CancellationService(ctx.prisma);
+      const refundResults: { bookingReference: string; success: boolean; error?: string }[] = [];
+      for (const booking of bookings) {
+        if (booking.userId) {
+          try {
+            await cancellationService.cancelBooking({
+              bookingReference: booking.bookingReference,
+              userId: booking.userId,
+              userRole: "ADMIN", // operator-initiated trip cancellation is admin-level
+              channel: "WALLET",
+              reason: `Trip cancelled by operator: ${input.data.cancelReason ?? "No reason given"}`,
+            });
+            refundResults.push({ bookingReference: booking.bookingReference, success: true });
+          } catch (err: any) {
+            console.error(`[trips.cancel] Failed to refund booking ${booking.bookingReference}:`, err?.message);
+            refundResults.push({ bookingReference: booking.bookingReference, success: false, error: err?.message });
+          }
+        }
+      }
+
+      // Step 2: Notify passengers of cancellation
       if (bookings.length > 0) {
         const novuSecret = process.env["NOVU_SECRET_KEY"];
         if (novuSecret) {
@@ -539,13 +562,11 @@ export const tripsRouter = createTRPCRouter({
               if (email) {
                 const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
                 const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+                const refundResult = refundResults.find(r => r.bookingReference === booking.bookingReference);
                 
                 await novu.trigger({
                   workflowId: "passenger-trip-cancelled",
-                  to: {
-                    subscriberId: email,
-                    email: email,
-                  },
+                  to: { subscriberId: email, email },
                   payload: {
                     email,
                     passengerName: booking.user?.fullName ?? booking.passengerName,
@@ -553,7 +574,7 @@ export const tripsRouter = createTRPCRouter({
                     destinationCity: destCity,
                     departureTime: trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
                     cancelReason: input.data.cancelReason,
-                    refundAmountXOF: Number(booking.farePaid),
+                    refundAmountXOF: refundResult?.success ? Number(booking.farePaid) : 0,
                     phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
                   },
                 }).catch(() => {});

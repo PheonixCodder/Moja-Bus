@@ -102,6 +102,10 @@ export async function sendBookingConfirmedEmails(
           where: { id: userId },
           select: { email: true },
         }))?.email
+      : null) ??
+    // Fall back to guest phone-derived email for SMS/phone-only bookings
+    (holdGroup.bookings[0]?.passengerPhone
+      ? `${holdGroup.bookings[0].passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
       : null);
 
   if (!email) return;
@@ -112,7 +116,9 @@ export async function sendBookingConfirmedEmails(
   const passengerName = holdGroup.bookings[0]?.passengerName ?? "Traveler";
   const companyName = holdGroup.trip.company.name;
   const departureTime = holdGroup.trip.departureDate;
-  const totalAmountXOF = holdGroup.pricingSnapshot.chargeAmountXOF;
+  // Use confirmed.totalAmountXOF (actual amount paid) rather than the snapshot charge
+  // to correctly reflect any post-snapshot adjustments like convenience fee waivers.
+  const totalAmountXOF = confirmed.totalAmountXOF ?? holdGroup.pricingSnapshot.chargeAmountXOF;
   const passengerPhone = holdGroup.bookings[0]?.passengerPhone?.replace(/\s+/g, "");
 
   const novuSecret = process.env["NOVU_SECRET_KEY"];

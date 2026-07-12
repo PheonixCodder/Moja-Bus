@@ -89,6 +89,7 @@ export const invitationRouter = createTRPCRouter({
         where: { token: hashedToken },
         include: {
           company: { select: { id: true, name: true } },
+          invitedBy: { select: { email: true } },
         },
       });
 
@@ -208,7 +209,8 @@ export const invitationRouter = createTRPCRouter({
           await novu.trigger({
             workflowId: "staff-acceptance-alert",
             to: {
-              subscriberId: invitation.invitedById,
+              subscriberId: invitation.invitedBy?.email ?? invitation.email,
+              email: invitation.invitedBy?.email ?? invitation.email,
             },
             payload: {
               staffName: userName,

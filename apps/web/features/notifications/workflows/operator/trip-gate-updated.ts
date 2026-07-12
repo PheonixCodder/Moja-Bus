@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const passengerTripGateUpdatedWorkflow = workflow(
   "passenger-trip-gate-updated",
@@ -7,7 +9,7 @@ export const passengerTripGateUpdatedWorkflow = workflow(
     // 1. In-App Notification
     await step.inApp("send-in-app", async () => ({
       subject: "Boarding Gate Updated",
-      body: `Proceed to Gate ${payload.gate} for your trip to ${payload.destinationCity}.`,
+      body: `Proceed to Gate ${escapeHtml(payload.gate)} for your trip to ${escapeHtml(payload.destinationCity)}.`,
       avatar: "https://avatar.vercel.sh/gate",
       redirect: { url: "/dashboard/tickets", target: "_self" },
     }));
@@ -15,7 +17,7 @@ export const passengerTripGateUpdatedWorkflow = workflow(
     // 2. SMS Notification
     if (payload.phone) {
       await step.sms("send-sms", async () => ({
-        body: `Moja Ride Update: The gate for your trip to ${payload.destinationCity} (${payload.departureTime}) is set to Gate ${payload.gate}.`,
+        body: `Moja Ride Update: The gate for your trip to ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) is set to Gate ${escapeHtml(payload.gate)}.`,
       }));
     }
   },

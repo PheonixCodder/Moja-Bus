@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 const OTP_SUBJECTS = {
   "sign-in": "Your Moja Ride sign-in code",
@@ -28,7 +30,7 @@ export const authOtpWorkflow = workflow(
           <h2 style="color: #0081F1; margin-top: 0; font-size: 24px; font-weight: bold; letter-spacing: -0.5px;">Moja Ride</h2>
           <p style="font-size: 16px; line-height: 1.5; color: #334155;">${intro}</p>
           <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; text-align: center; background: #f1f5f9; padding: 16px; border-radius: 8px; margin: 24px 0; color: #0f172a; font-family: monospace;">
-            ${payload.otpCode}
+            ${escapeHtml(payload.otpCode)}
           </div>
           <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 0;">This code is valid for 10 minutes. If you did not request this code, you can safely ignore this email.</p>
         </div>
@@ -43,7 +45,7 @@ export const authOtpWorkflow = workflow(
     // 2. Conditionally send SMS (Twilio) if phone is provided
     if (payload.phone) {
       await step.sms("send-sms", async () => ({
-        body: `Moja Ride: Use code ${payload.otpCode} to complete your verification. Valid for 10 minutes.`,
+        body: `Moja Ride: Use code ${escapeHtml(payload.otpCode)} to complete your verification. Valid for 10 minutes.`,
       }));
     }
   },

@@ -147,7 +147,7 @@ export function AdminWithdrawalsView() {
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
               <Clock className="size-4 text-amber-500" />
-              Pending Requests
+              Pending Requests (This Page)
             </CardTitle>
           </CardHeader>
           <CardContent>

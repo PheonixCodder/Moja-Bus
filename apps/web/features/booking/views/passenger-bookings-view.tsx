@@ -82,11 +82,10 @@ export function PassengerBookingsView() {
 
   // Fetch checkout pricing for holds
   const pricingQuery = useQuery({
-    ...trpc.payments.getCheckoutPricing.queryOptions({
-      offerId: selectedPaymentBooking?.offerId ?? "",
-      seatCount: selectedPaymentBooking?.seats.length ?? 1,
+    ...trpc.payments.getHoldPricing.queryOptions({
+      holdId: selectedPaymentBooking?.holdGroupId ?? "",
     }),
-    enabled: Boolean(selectedPaymentBooking?.offerId),
+    enabled: Boolean(selectedPaymentBooking?.holdGroupId),
   });
 
   const walletCheckoutMutation = useMutation(

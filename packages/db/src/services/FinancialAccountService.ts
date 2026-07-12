@@ -59,20 +59,18 @@ export class FinancialAccountService {
     accountClass: string;
     allowNegativeBalance?: boolean;
   }) {
-    const existing = await this.prisma.financialAccount.findFirst({
+    return this.prisma.financialAccount.upsert({
       where: {
-        ownerType: params.ownerType,
-        ownerId: params.ownerId,
-        accountClass: params.accountClass,
+        ownerType_ownerId_accountCategory_accountClass_currency: {
+          ownerType: params.ownerType,
+          ownerId: params.ownerId,
+          accountCategory: params.accountCategory,
+          accountClass: params.accountClass,
+          currency: "XOF",
+        }
       },
-    });
-
-    if (existing) {
-      return existing;
-    }
-
-    return this.prisma.financialAccount.create({
-      data: {
+      update: {},
+      create: {
         ownerType: params.ownerType,
         ownerId: params.ownerId,
         accountCategory: params.accountCategory,

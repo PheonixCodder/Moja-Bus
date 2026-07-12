@@ -32,6 +32,7 @@ export const appRouter = createTRPCRouter({
   payments: paymentsRouter,
   public: publicRouter,
   admin: adminRouter,
+  wallet: walletRouter,
 });
 
 export type AppRouter = typeof appRouter;

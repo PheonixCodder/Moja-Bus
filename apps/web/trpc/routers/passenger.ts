@@ -268,9 +268,9 @@ export const passengerRouter = createTRPCRouter({
     const accountService = new FinancialAccountService(ctx.prisma);
     const wallet = await accountService.getUserWallet(ctx.user.id);
     return {
-      availableBalance: wallet.availableBalance,
-      postedBalance: wallet.postedBalance,
-      reservedBalance: wallet.reservedBalance,
+      availableBalance: Number(wallet.availableBalance),
+      postedBalance: Number(wallet.postedBalance),
+      reservedBalance: Number(wallet.reservedBalance),
     };
   }),
 
@@ -297,7 +297,10 @@ export const passengerRouter = createTRPCRouter({
         }),
       ]);
 
-      return { items, total };
+      return { 
+        items: items.map(i => ({ ...i, amount: Number(i.amount) })), 
+        total 
+      };
     }),
 
   initiateWalletTopUp: protectedProcedure
@@ -314,24 +317,44 @@ export const passengerRouter = createTRPCRouter({
       const phone = ctx.user.phone ? ctx.user.phone.replace(/\s+/g, "") : "guest";
       const email = ctx.user.email || `${phone}@guest.mojaride.ci`;
 
-      const initialized = await paystackInitialize({
-        email,
-        amountXOF: input.amountXOF,
-        reference,
-        metadata: {
-          isTopUp: true,
-          accountId: wallet.id,
+      const payment = await ctx.prisma.externalPayment.create({
+        data: {
+          provider: "PAYSTACK",
+          amountXOF: input.amountXOF,
+          status: "INITIALIZED",
+          paystackReference: reference,
+          metadata: {
+            isTopUp: true,
+            accountId: wallet.id,
+          },
         },
-        callbackUrl: `${process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000"}/dashboard/wallet?topup=pending&ref=${reference}`,
       });
 
+      let initialized;
+      try {
+        initialized = await paystackInitialize({
+          email,
+          amountXOF: input.amountXOF,
+          reference,
+          metadata: {
+            isTopUp: true,
+            accountId: wallet.id,
+          },
+          callbackUrl: `${process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000"}/dashboard/wallet?topup=pending&ref=${reference}`,
+        });
+      } catch (error) {
+        await ctx.prisma.externalPayment.update({
+          where: { id: payment.id },
+          data: { status: "FAILED" },
+        });
+        throw error;
+      }
+
       await ctx.prisma.$transaction(async (tx) => {
-        const payment = await tx.externalPayment.create({
+        await tx.externalPayment.update({
+          where: { id: payment.id },
           data: {
-            provider: "PAYSTACK",
-            amountXOF: input.amountXOF,
             status: "PENDING",
-            paystackReference: reference,
             metadata: {
               isTopUp: true,
               accountId: wallet.id,

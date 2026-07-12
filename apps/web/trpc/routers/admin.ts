@@ -848,8 +848,8 @@ export const adminRouter = createTRPCRouter({
       }
 
       if (input.action === "FORCE_COMPLETE") {
-        await ctx.prisma.financialTransaction.update({
-          where: { id: tx.id },
+        const updated = await ctx.prisma.financialTransaction.updateMany({
+          where: { id: tx.id, status: { in: ["CREATED", "POSTED"] } },
           data: {
             status: "SETTLED",
             metadata: {
@@ -860,8 +860,35 @@ export const adminRouter = createTRPCRouter({
             },
           },
         });
+        
+        if (updated.count === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Transaction was already resolved.",
+          });
+        }
       } else {
         await ctx.prisma.$transaction(async (prismaTx) => {
+          const updated = await prismaTx.financialTransaction.updateMany({
+            where: { id: tx.id, status: { in: ["CREATED", "POSTED"] } },
+            data: {
+              status: "FAILED",
+              metadata: {
+                ...(tx.metadata as object || {}),
+                forceFailedBy: ctx.user.id,
+                forceFailedReason: input.reason,
+                forceFailedAt: new Date(),
+              },
+            },
+          });
+          
+          if (updated.count === 0) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Transaction was already resolved.",
+            });
+          }
+
           const engine = new AccountingEngine("PAYOUT_REVERSAL", {
             ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
             description: `Manual admin reversal: ${input.reason}`,
@@ -889,19 +916,6 @@ export const adminRouter = createTRPCRouter({
           }
 
           await engine.commit(prismaTx as any);
-
-          await prismaTx.financialTransaction.update({
-            where: { id: tx.id },
-            data: {
-              status: "FAILED",
-              metadata: {
-                ...(tx.metadata as object || {}),
-                forceFailedBy: ctx.user.id,
-                forceFailedReason: input.reason,
-                forceFailedAt: new Date(),
-              },
-            },
-          });
         });
       }
 

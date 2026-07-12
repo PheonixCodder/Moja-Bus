@@ -382,9 +382,9 @@ export class PaymentService {
         // Reverse the ledger entries
         await this.prisma.$transaction(async (prismaTx) => {
           const engine = new AccountingEngine("PAYOUT_REVERSAL", {
-            externalPaymentId: payload.data.transfer_code || payload.data.id?.toString(),
+            ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
             description: `Reversal for failed transfer ${reference}`,
-            metadata: { originalTxId: reference, reason: payload.data.reason },
+            metadata: { originalTxId: reference, reason: payload.data.reason, paystackRef: payload.data.transfer_code ?? payload.data.id?.toString() },
           });
 
           // Original: DEBIT Operator Liability, CREDIT System Asset
@@ -563,6 +563,12 @@ export class PaymentService {
     verified: Awaited<ReturnType<typeof paystackVerify>>,
   ) {
     await this.prisma.$transaction(async (tx) => {
+      const existingPayment = await tx.externalPayment.findUnique({
+        where: { id: paymentId },
+        select: { metadata: true }
+      });
+      const existingMeta = (existingPayment?.metadata as object) || {};
+
       await tx.externalPayment.update({
         where: { id: paymentId },
         data: {
@@ -570,7 +576,7 @@ export class PaymentService {
           channel: verified.channel,
           feesXOF: verified.feesXOF,
           confirmedAt: verified.paidAt ? new Date(verified.paidAt) : new Date(),
-          metadata: { verifyRaw: verified.raw as object },
+          metadata: { ...existingMeta, verifyRaw: verified.raw as object },
         },
       });
 

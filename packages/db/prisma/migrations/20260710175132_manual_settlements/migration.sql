@@ -6,15 +6,13 @@
 
 */
 -- AlterTable
-ALTER TABLE "bank_account" DROP COLUMN "paystackSubaccountCode",
-ADD COLUMN     "paystackTransferRecipientCode" TEXT;
+ALTER TABLE "bank_account" ADD COLUMN     "paystackTransferRecipientCode" TEXT;
 
 -- AlterTable
 ALTER TABLE "booking" ADD COLUMN     "clearedAt" TIMESTAMP(3);
 
 -- AlterTable
-ALTER TABLE "company" DROP COLUMN "paystackSubaccountCode",
-ADD COLUMN     "paystackTransferRecipientCode" TEXT;
+ALTER TABLE "company" ADD COLUMN     "paystackTransferRecipientCode" TEXT;
 
 -- AlterTable
 ALTER TABLE "platform_settings" ADD COLUMN     "minWithdrawalAmount" INTEGER NOT NULL DEFAULT 5000,

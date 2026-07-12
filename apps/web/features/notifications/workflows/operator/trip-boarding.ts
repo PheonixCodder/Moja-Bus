@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const passengerTripBoardingWorkflow = workflow(
   "passenger-trip-boarding",
@@ -7,7 +9,7 @@ export const passengerTripBoardingWorkflow = workflow(
     // 1. In-App Notification
     await step.inApp("send-in-app", async () => ({
       subject: "Boarding Started",
-      body: `Boarding has started for your trip to ${payload.destinationCity}! ${payload.gate ? `Proceed to Gate ${payload.gate}.` : ""}`,
+      body: `Boarding has started for your trip to ${escapeHtml(payload.destinationCity)}! ${payload.gate ? `Proceed to Gate ${escapeHtml(payload.gate)}.` : ""}`,
       avatar: "https://avatar.vercel.sh/boarding",
       redirect: { url: "/dashboard/tickets", target: "_self" },
     }));
@@ -15,7 +17,7 @@ export const passengerTripBoardingWorkflow = workflow(
     // 2. SMS Notification
     if (payload.phone) {
       await step.sms("send-sms", async () => ({
-        body: `Moja Ride Boarding: Boarding has started for your trip to ${payload.destinationCity}. Proceed to ${payload.gate ? `Gate ${payload.gate}` : "the boarding terminal"}. Vehicle Plate: ${payload.busPlate ?? "Assigned bus"}.`,
+        body: `Moja Ride Boarding: Boarding has started for your trip to ${escapeHtml(payload.destinationCity)}. Proceed to ${payload.gate ? `Gate ${escapeHtml(payload.gate)}` : "the boarding terminal"}. Vehicle Plate: ${payload.busPlate ?? "Assigned bus"}.`,
       }));
     }
   },

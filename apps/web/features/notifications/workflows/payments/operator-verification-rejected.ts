@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const operatorVerificationRejectedWorkflow = workflow(
   "operator-verification-rejected",
@@ -9,10 +11,10 @@ export const operatorVerificationRejectedWorkflow = workflow(
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #fca5a5; border-radius: 12px; padding: 24px; color: #1e293b;">
           <h2 style="color: #ef4444; margin-top: 0; font-size: 24px; font-weight: bold; letter-spacing: -0.5px;">Verification Documents Rejected</h2>
-          <p style="font-size: 15px; line-height: 1.5; color: #334155;">Hello ${payload.ownerName},</p>
-          <p style="font-size: 15px; line-height: 1.5; color: #334155;">The verification documents submitted for <strong>${payload.companyName}</strong> were rejected for the following reason:</p>
+          <p style="font-size: 15px; line-height: 1.5; color: #334155;">Hello ${escapeHtml(payload.ownerName)},</p>
+          <p style="font-size: 15px; line-height: 1.5; color: #334155;">The verification documents submitted for <strong>${escapeHtml(payload.companyName)}</strong> were rejected for the following reason:</p>
           <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; border-radius: 4px; margin: 16px 0; font-size: 14px; color: #991b1b;">
-            "<strong>${payload.reason}</strong>"
+            "<strong>${escapeHtml(payload.reason)}</strong>"
           </div>
           <p style="font-size: 15px; line-height: 1.5; color: #334155;">Please log in to your dashboard and re-upload valid documents under settings to retry verification.</p>
           <a href="https://admin.mojaride.com/dashboard/operator/settings" 
@@ -31,7 +33,7 @@ export const operatorVerificationRejectedWorkflow = workflow(
     // 2. High priority dashboard badge alert
     await step.inApp("send-in-app", async () => ({
       subject: "Verification Documents Rejected",
-      body: `Verification documents rejected: ${payload.reason}. Please re-upload documents in settings.`,
+      body: `Verification documents rejected: ${escapeHtml(payload.reason)}. Please re-upload documents in settings.`,
       avatar: "https://avatar.vercel.sh/verify-rejected",
       redirect: { url: "/dashboard/operator/settings", target: "_self" },
     }));

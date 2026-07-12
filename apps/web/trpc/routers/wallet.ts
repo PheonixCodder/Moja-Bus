@@ -58,16 +58,25 @@ export const walletRouter = createTRPCRouter({
 
       const email = user?.email || (user?.phone?.replace(/\s+/g, "") + "@guest.mojaride.ci");
 
-      const initialized = await paystackInitialize({
-        email,
-        amountXOF: input.amountXOF,
-        reference,
-        metadata: {
-          paymentId: payment.id,
-          isTopUp: true,
-        },
-        ...(callbackUrl ? { callbackUrl } : {}),
-      });
+      let initialized;
+      try {
+        initialized = await paystackInitialize({
+          email,
+          amountXOF: input.amountXOF,
+          reference,
+          metadata: {
+            paymentId: payment.id,
+            isTopUp: true,
+          },
+          ...(callbackUrl ? { callbackUrl } : {}),
+        });
+      } catch (error) {
+        await ctx.prisma.externalPayment.update({
+          where: { id: payment.id },
+          data: { status: "FAILED" },
+        });
+        throw error;
+      }
 
       await ctx.prisma.$transaction(async (tx) => {
         await tx.paymentAttempt.create({

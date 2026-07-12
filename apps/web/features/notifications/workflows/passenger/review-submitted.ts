@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const passengerReviewSubmittedWorkflow = workflow(
   "passenger-review-submitted",
@@ -7,7 +9,7 @@ export const passengerReviewSubmittedWorkflow = workflow(
     // 1. In-App Notification
     await step.inApp("send-in-app", async () => ({
       subject: "Review Submitted",
-      body: `Thank you for your ${payload.rating}-star review of ${payload.companyName}! Your feedback helps us keep the ride safe.`,
+      body: `Thank you for your ${escapeHtml(payload.rating)}-star review of ${escapeHtml(payload.companyName)}! Your feedback helps us keep the ride safe.`,
       avatar: "https://avatar.vercel.sh/review-success",
       redirect: { url: "/dashboard/bookings", target: "_self" },
     }));

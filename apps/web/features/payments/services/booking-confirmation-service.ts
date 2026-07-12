@@ -66,19 +66,13 @@ export class BookingConfirmationService {
 
       const snapshot = holdGroup.pricingSnapshot;
       if (snapshot && snapshot.operatorNetXOF > 0) {
-        const existingLedger = await tx.financialTransaction.findFirst({
-          where: {
-            externalPaymentId: holdGroup.payment!.id,
-            type: "BOOKING"
-          },
-        });
-
-        if (!existingLedger) {
+        try {
           // New Financial Core Write (Double-Entry Ledger)
-          // Provision/fetch accounts
-          const clearingAcct = await this.accountService.getSystemPaystackClearingAccount();
-          const operatorAcct = await this.accountService.getOperatorReceivableAccount(holdGroup.companyId);
-          const platformAcct = await this.accountService.getPlatformRevenueAccount();
+          // Provision/fetch accounts using the TX client so they roll back if the booking fails.
+          const txAccountService = new FinancialAccountService(tx as unknown as PrismaClient);
+          const clearingAcct = await txAccountService.getSystemPaystackClearingAccount();
+          const operatorAcct = await txAccountService.getOperatorReceivableAccount(holdGroup.companyId);
+          const platformAcct = await txAccountService.getPlatformRevenueAccount();
 
           // Post the double-entry transaction
           const engine = new AccountingEngine("BOOKING", {
@@ -121,6 +115,12 @@ export class BookingConfirmationService {
           // Because `accountService` already ensured the accounts exist, locking them here is safe.
           engine.validate();
           await engine.commit(tx as any);
+        } catch (e: any) {
+          if (e.code === "P2002") {
+            // Unique constraint violation: ledger transaction already exists. Safe to ignore.
+          } else {
+            throw e;
+          }
         }
       }
 
@@ -179,7 +179,7 @@ export class BookingConfirmationService {
     const walletAcct = await this.accountService.getUserWallet(userId);
     const totalToPay = snapshot.subtotalBaseXOF; // Zero convenience fee
 
-    if (walletAcct.availableBalance < totalToPay) {
+    if (walletAcct.availableBalance < BigInt(totalToPay)) {
       // Trigger passenger-wallet-low-balance
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -233,16 +233,25 @@ export class BookingConfirmationService {
         );
       }
 
-      await tx.holdGroup.update({
-        where: { id: holdGroup.id },
+      const updatedHold = await tx.holdGroup.updateMany({
+        where: { id: holdGroup.id, status: "ACTIVE" },
         data: { status: "CONFIRMED" },
       });
+      
+      if (updatedHold.count === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Hold group is no longer active",
+        });
+      }
 
-      const operatorAcct = await this.accountService.getOperatorReceivableAccount(holdGroup.companyId);
-      const platformAcct = await this.accountService.getPlatformRevenueAccount();
+      const txAccountService = new FinancialAccountService(tx as unknown as PrismaClient);
+      const operatorAcct = await txAccountService.getOperatorReceivableAccount(holdGroup.companyId);
+      const platformAcct = await txAccountService.getPlatformRevenueAccount();
 
       const engine = new AccountingEngine("BOOKING", {
         description: `Wallet payment for booking hold ${holdGroup.id}`,
+        idempotencyKey: `WALLET_PAYMENT_${holdGroup.id}`,
       });
 
       let seq = 1;

@@ -341,7 +341,7 @@ model Company {
 
   // Fleet & Operations
   fleet           Bus[]
-  layoutTemplates SeatLayoutTemplate[]  @relation("CompanyLayoutTemplates")
+  layoutTemplates SeatLayoutTemplate[] @relation("CompanyLayoutTemplates")
   routes          Route[]
   schedules       Schedule[]
   trips           Trip[]
@@ -1204,10 +1204,10 @@ model ExternalPayment {
   metadata          Json?
   confirmedAt       DateTime?
 
-  attempts      PaymentAttempt[]
-  events        PaymentEvent[]
-  refunds       Refund[]
-  transactions  FinancialTransaction[]
+  attempts     PaymentAttempt[]
+  events       PaymentEvent[]
+  refunds      Refund[]
+  transactions FinancialTransaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1263,7 +1263,6 @@ model WebhookEvent {
   @@map("webhook_event")
 }
 
-
 model Refund {
   id          String          @id @default(cuid())
   holdGroupId String
@@ -1303,9 +1302,9 @@ model FinancialAccount {
   allowNegativeBalance Boolean         @default(false)
 
   // ⚠️ READ MODEL: Derived Cache. Mutated EXCLUSIVELY by AccountingEngine
-  postedBalance    Int @default(0) // Total settled
-  reservedBalance  Int @default(0) // Locked in reservations
-  availableBalance Int @default(0) // posted - reserved
+  postedBalance    BigInt @default(0) // Total settled
+  reservedBalance  BigInt @default(0) // Locked in reservations
+  availableBalance BigInt @default(0) // posted - reserved
 
   ledgerEntries LedgerEntry[]
   reservations  WalletReservation[]
@@ -1314,6 +1313,7 @@ model FinancialAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([ownerType, ownerId, accountCategory, accountClass, currency])
   @@index([ownerType, ownerId])
   @@map("financial_account")
 }
@@ -1325,9 +1325,9 @@ model FinancialAccountSnapshot {
 
   period           String // "DAILY", "WEEKLY", "MONTHLY"
   snapshotDate     DateTime
-  postedBalance    Int
-  reservedBalance  Int
-  availableBalance Int
+  postedBalance    BigInt
+  reservedBalance  BigInt
+  availableBalance BigInt
 
   createdAt DateTime @default(now())
 
@@ -1353,6 +1353,7 @@ model FinancialTransaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([externalPaymentId, type])
   @@map("financial_transaction")
 }
 
@@ -1365,7 +1366,7 @@ model LedgerEntry {
   account   FinancialAccount @relation(fields: [accountId], references: [id])
 
   side     LedgerEntrySide
-  amount   Int
+  amount   BigInt
   currency String            @default("XOF")
   status   LedgerEntryStatus @default(POSTED)
 

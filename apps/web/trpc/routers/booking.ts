@@ -57,34 +57,35 @@ export const bookingRouter = createTRPCRouter({
         phone = ctx.user.phone ?? null;
       } else if (firstPassenger?.passenger) {
         passengerName = firstPassenger.passenger.passengerName;
-        phone = firstPassenger.passenger.passengerPhone;
-        email = `${phone.replace(/\s+/g, "")}@guest.mojaride.ci`;
+        phone = firstPassenger.passenger.passengerPhone ?? null;
+        if (phone) {
+          email = `${phone.replace(/\s+/g, "")}@guest.mojaride.ci`;
+        }
       }
 
       if (email) {
-        const details = await ctx.prisma.trip.findFirst({
-          where: { bookings: { some: { holdGroupId: result.holdId } } },
-          include: {
-            schedule: {
+        const novuSecret = process.env["NOVU_SECRET_KEY"];
+        if (novuSecret) {
+          try {
+            const details = await ctx.prisma.trip.findFirst({
+              where: { bookings: { some: { holdGroupId: result.holdId } } },
               include: {
-                route: {
+                schedule: {
                   include: {
-                    originTerminal: { include: { cityRelation: true } },
-                    destTerminal: { include: { cityRelation: true } },
+                    route: {
+                      include: {
+                        originTerminal: { include: { cityRelation: true } },
+                        destTerminal: { include: { cityRelation: true } },
+                      },
+                    },
                   },
                 },
               },
-            },
-          },
-        });
+            });
 
-        if (details) {
-          const originCity = details.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
-          const destCity = details.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
-
-          const novuSecret = process.env["NOVU_SECRET_KEY"];
-          if (novuSecret) {
-            try {
+            if (details) {
+              const originCity = details.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
+              const destCity = details.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
               const { Novu } = await import("@novu/api");
               const novu = new Novu({ secretKey: novuSecret });
               await novu.trigger({
@@ -105,9 +106,9 @@ export const bookingRouter = createTRPCRouter({
                   phone: phone ?? undefined,
                 },
               }).catch(() => {});
-            } catch (err) {
-              console.error("Failed to trigger passenger-hold-created via Novu:", err);
             }
+          } catch (err) {
+            console.error("Failed to trigger passenger-hold-created via Novu:", err);
           }
         }
       }

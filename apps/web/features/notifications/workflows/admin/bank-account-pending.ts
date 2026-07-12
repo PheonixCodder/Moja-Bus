@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const adminBankAccountPendingWorkflow = workflow(
   "admin-bank-account-pending",
@@ -7,7 +9,7 @@ export const adminBankAccountPendingWorkflow = workflow(
     // 1. In-App Notification for admins
     await step.inApp("send-in-app", async () => ({
       subject: "Bank Account Pending Verification",
-      body: `🏦 Bank account verification requested by ${payload.companyName} (${payload.bankName} - ${payload.accountNumberHidden}).`,
+      body: `🏦 Bank account verification requested by ${escapeHtml(payload.companyName)} (${escapeHtml(payload.bankName)} - ${escapeHtml(payload.accountNumberHidden)}).`,
       avatar: "https://avatar.vercel.sh/bank-pending",
       redirect: { url: "/dashboard/admin/verification", target: "_self" },
     }));

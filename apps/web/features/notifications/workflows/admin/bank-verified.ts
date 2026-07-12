@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const operatorBankVerifiedWorkflow = workflow(
   "operator-bank-verified",
@@ -7,7 +9,7 @@ export const operatorBankVerifiedWorkflow = workflow(
     // 1. In-App Notification
     await step.inApp("send-in-app", async () => ({
       subject: "Bank Account Verified",
-      body: `✅ Bank account ${payload.bankName} (${payload.accountNumberHidden}) verified successfully. You can now request payouts to this account.`,
+      body: `✅ Bank account ${escapeHtml(payload.bankName)} (${escapeHtml(payload.accountNumberHidden)}) verified successfully. You can now request payouts to this account.`,
       avatar: "https://avatar.vercel.sh/bank-verified",
       redirect: { url: "/dashboard/operator/settings", target: "_self" },
     }));
@@ -17,18 +19,18 @@ export const operatorBankVerifiedWorkflow = workflow(
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #10b981; border-radius: 12px; padding: 24px; color: #1e293b;">
           <h2 style="color: #10b981; margin-top: 0; font-size: 20px; font-weight: bold;">Bank Account Verified</h2>
-          <p>Hello ${payload.ownerName},</p>
-          <p>We are pleased to inform you that your registered bank account for <strong>${payload.companyName}</strong> has been verified by the platform administrators.</p>
+          <p>Hello ${escapeHtml(payload.ownerName)},</p>
+          <p>We are pleased to inform you that your registered bank account for <strong>${escapeHtml(payload.companyName)}</strong> has been verified by the platform administrators.</p>
           <div style="background: #f0fdf4; border: 1px solid #d1fae5; padding: 16px; border-radius: 8px; margin: 16px 0; font-size: 14px; color: #065f46;">
-            <p style="margin: 0 0 8px 0;">Bank: <strong>${payload.bankName}</strong></p>
-            <p style="margin: 0;">Account: <strong>${payload.accountNumberHidden}</strong></p>
+            <p style="margin: 0 0 8px 0;">Bank: <strong>${escapeHtml(payload.bankName)}</strong></p>
+            <p style="margin: 0;">Account: <strong>${escapeHtml(payload.accountNumberHidden)}</strong></p>
           </div>
           <p>This bank account has been set as your default destination for operator revenue payouts and withdrawals.</p>
         </div>
       `;
 
       return {
-        subject: `Bank Account Verified - ${payload.companyName}`,
+        subject: `Bank Account Verified - ${escapeHtml(payload.companyName)}`,
         body: html,
       };
     });

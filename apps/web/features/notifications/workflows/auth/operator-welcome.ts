@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const operatorWelcomeWorkflow = workflow(
   "operator-welcome",
@@ -9,8 +11,8 @@ export const operatorWelcomeWorkflow = workflow(
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 28px; color: #1e293b;">
           <h2 style="color: #ee237c; margin-top: 0; font-size: 24px; font-weight: bold; letter-spacing: -0.5px;">Welcome to Moja Ride Business</h2>
-          <p style="font-size: 15px; line-height: 1.5; color: #334155;">Hello ${payload.ownerName},</p>
-          <p style="font-size: 15px; line-height: 1.5; color: #334155;">Your transport operator account for <strong>${payload.companyName}</strong> is active. Here is how to get started:</p>
+          <p style="font-size: 15px; line-height: 1.5; color: #334155;">Hello ${escapeHtml(payload.ownerName)},</p>
+          <p style="font-size: 15px; line-height: 1.5; color: #334155;">Your transport operator account for <strong>${escapeHtml(payload.companyName)}</strong> is active. Here is how to get started:</p>
           
           <ol style="line-height: 1.6; padding-left: 20px; font-size: 15px; color: #334155;">
             <li style="margin-bottom: 8px;"><strong>Complete Onboarding</strong>: Upload your business license and registration details.</li>
@@ -20,7 +22,7 @@ export const operatorWelcomeWorkflow = workflow(
           </ol>
           
           <p style="font-size: 15px; line-height: 1.5; color: #334155; margin-top: 24px;">Click below to open your onboarding checklist:</p>
-          <a href="${payload.dashboardUrl}/dashboard/operator/onboarding" 
+          <a href="${escapeHtml(payload.dashboardUrl)}/dashboard/operator/onboarding" 
              style="display: inline-block; background: #ee237c; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px;">
              Open Dashboard Onboarding
           </a>

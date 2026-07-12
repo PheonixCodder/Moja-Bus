@@ -55,6 +55,7 @@ export function TicketScanner({
   const lastScanRef = useRef<{ value: string; at: number } | null>(null);
   const [starting, setStarting] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const processingRef = useRef(false);
   const [lastResult, setLastResult] = useState<TicketScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +81,7 @@ export function TicketScanner({
   }, []);
 
   const handleDecoded = useCallback(async (raw: string) => {
-    if (disabled) return;
+    if (disabled || processingRef.current) return;
 
     const now = Date.now();
     const last = lastScanRef.current;
@@ -90,6 +91,7 @@ export function TicketScanner({
     lastScanRef.current = { value: raw, at: now };
 
     setProcessing(true);
+    processingRef.current = true;
     setError(null);
     try {
       const result = await onScanRef.current(raw);
@@ -101,14 +103,16 @@ export function TicketScanner({
       setLastResult(null);
     } finally {
       setProcessing(false);
+      processingRef.current = false;
     }
   }, [disabled]);
 
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualInput.trim() || disabled || processing) return;
+    if (!manualInput.trim() || disabled || processingRef.current) return;
 
     setProcessing(true);
+    processingRef.current = true;
     setError(null);
     try {
       const result = await onScanRef.current(manualInput.trim());
@@ -120,6 +124,7 @@ export function TicketScanner({
       setLastResult(null);
     } finally {
       setProcessing(false);
+      processingRef.current = false;
     }
   };
 

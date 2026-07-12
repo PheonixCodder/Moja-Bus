@@ -48,6 +48,26 @@ export const paymentsRouter = createTRPCRouter({
       });
     }),
 
+  getHoldPricing: protectedProcedure
+    .input(z.object({ holdId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const snapshot = await ctx.prisma.pricingSnapshot.findFirst({
+        where: { holdGroupId: input.holdId },
+        orderBy: { createdAt: "desc" },
+      });
+      if (!snapshot) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Pricing snapshot not found for this hold",
+        });
+      }
+      return {
+        subtotalBaseXOF: snapshot.subtotalBaseXOF,
+        convenienceFeeXOF: snapshot.convenienceFeeXOF,
+        chargeAmountXOF: snapshot.chargeAmountXOF,
+      };
+    }),
+
   cancelBooking: protectedProcedure
     .input(cancelBookingSchema)
     .mutation(async ({ ctx, input }) => {
@@ -237,8 +257,8 @@ export const paymentsRouter = createTRPCRouter({
     ]);
 
     return {
-      clearingBalance: clearing.postedBalance,
-      revenueBalance: revenue.postedBalance,
+      clearingBalance: Number(clearing.postedBalance),
+      revenueBalance: Number(revenue.postedBalance),
     };
   }),
 
@@ -259,7 +279,7 @@ export const paymentsRouter = createTRPCRouter({
         companyId: input.companyId,
         entryType: e.side === "CREDIT" ? "CREDIT" : "DEBIT",
         sourceType: e.transaction.type,
-        amountXOF: e.amount,
+        amountXOF: Number(e.amount), // BigInt → Number; individual entries are safe
         description: e.description || e.transaction.description,
         createdAt: e.createdAt,
       }));
@@ -267,7 +287,7 @@ export const paymentsRouter = createTRPCRouter({
       return {
         companyId: input.companyId,
         entryCount: entries.length,
-        balanceXOF: operatorAcct.postedBalance,
+        balanceXOF: Number(operatorAcct.postedBalance),
         entries: mappedEntries,
       };
     }),
@@ -279,7 +299,7 @@ export const paymentsRouter = createTRPCRouter({
       const operatorAcct = await accountService.getOperatorReceivableAccount(input.companyId);
       const clearingAcct = await accountService.getSystemPaystackClearingAccount();
 
-      if (input.amountXOF > operatorAcct.postedBalance) {
+      if (BigInt(input.amountXOF) > operatorAcct.postedBalance) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Settlement amount exceeds ledger balance",

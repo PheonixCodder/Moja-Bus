@@ -160,12 +160,12 @@ export async function paystackCreateTransferRecipient(input: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      type: "nuban",
       name: input.businessName,
       account_number: input.accountNumber,
       bank_code: input.bankCode,
       currency: "XOF",
     }),
+    signal: AbortSignal.timeout(30_000),
   });
 
   const json = (await res.json()) as {
@@ -205,6 +205,7 @@ export async function paystackInitiateTransfer(input: {
       reference: input.reference,
       currency: "XOF",
     }),
+    signal: AbortSignal.timeout(30_000),
   });
 
   const json = (await res.json()) as {
@@ -317,6 +318,7 @@ export async function paystackVerifyTransfer(reference: string): Promise<{
     headers: {
       Authorization: `Bearer ${paystackSecretKey()}`,
     },
+    signal: AbortSignal.timeout(30_000),
   });
 
   const json = (await res.json()) as {

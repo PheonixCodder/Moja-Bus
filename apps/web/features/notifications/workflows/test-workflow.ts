@@ -1,12 +1,14 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const testWorkflow = workflow(
   "test-workflow",
   async ({ step, payload }) => {
     await step.email("test-email", async () => ({
       subject: "Moja Ride Notification Test",
-      body: `Hello ${payload.name}! Your bridge endpoint is fully working.`,
+      body: `Hello ${escapeHtml(payload.name)}! Your bridge endpoint is fully working.`,
     }));
   },
   {

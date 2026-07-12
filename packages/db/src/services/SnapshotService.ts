@@ -122,6 +122,14 @@ export class SnapshotService {
         availableBalance: true,
       },
     });
-    return rows.reverse(); // oldest → newest for charting
+    // BigInt fields must be serialized before returning to JSON consumers
+    return rows
+      .reverse()
+      .map((r) => ({
+        snapshotDate: r.snapshotDate,
+        postedBalance: r.postedBalance.toString(),
+        reservedBalance: r.reservedBalance.toString(),
+        availableBalance: r.availableBalance.toString(),
+      }));
   }
 }

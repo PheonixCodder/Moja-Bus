@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const passengerHoldCreatedWorkflow = workflow(
   "passenger-hold-created",
@@ -7,15 +9,15 @@ export const passengerHoldCreatedWorkflow = workflow(
     // 1. In-App Notification
     await step.inApp("send-in-app", async () => ({
       subject: "Seats Held",
-      body: `Seats held! You have until ${payload.expiresAt} to complete checkout for ${payload.destinationCity}.`,
+      body: `Seats held! You have until ${escapeHtml(payload.expiresAt)} to complete checkout for ${escapeHtml(payload.destinationCity)}.`,
       avatar: "https://avatar.vercel.sh/hold",
-      redirect: { url: `/book/${payload.holdId}`, target: "_self" },
+      redirect: { url: `/book/${escapeHtml(payload.holdId)}`, target: "_self" },
     }));
 
     // 2. SMS Notification
     if (payload.phone) {
       await step.sms("send-sms", async () => ({
-        body: `Moja Ride: Seats reserved for your trip ${payload.originCity} -> ${payload.destinationCity} (${payload.departureTime}). Complete payment of ${payload.totalAmountXOF} XOF before ${payload.expiresAt} to confirm.`,
+        body: `Moja Ride: Seats reserved for your trip ${escapeHtml(payload.originCity)} -> ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}). Complete payment of ${escapeHtml(payload.totalAmountXOF)} XOF before ${escapeHtml(payload.expiresAt)} to confirm.`,
       }));
     }
   },

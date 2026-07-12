@@ -58,7 +58,7 @@ export function RevenueLedgerTable({ recentLedger }: { recentLedger: LedgerEntry
                     {entry.sourceType}
                   </TableCell>
                   <TableCell className="font-medium whitespace-nowrap">
-                    {entry.entryType === "CREDIT" ? "+" : "−"}{formatXOF(entry.amountXOF)}
+                    {entry.entryType === "CREDIT" ? "+" : "−"}{formatXOF(Number(entry.amountXOF))}
                   </TableCell>
                   <TableCell className="text-right text-xs whitespace-nowrap text-muted-foreground">
                     {format(new Date(entry.createdAt), "dd MMM, HH:mm", { locale: fr })}

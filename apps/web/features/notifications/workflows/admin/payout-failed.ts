@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const adminPayoutFailedWorkflow = workflow(
   "admin-payout-failed",
@@ -7,7 +9,7 @@ export const adminPayoutFailedWorkflow = workflow(
     // 1. In-App Notification for admins
     await step.inApp("send-in-app", async () => ({
       subject: "Payout Transfer Failed",
-      body: `❌ Payout of ${payload.amountXOF} XOF failed for ${payload.companyName}. Error: ${payload.errorMessage}.`,
+      body: `❌ Payout of ${escapeHtml(payload.amountXOF)} XOF failed for ${escapeHtml(payload.companyName)}. Error: ${escapeHtml(payload.errorMessage)}.`,
       avatar: "https://avatar.vercel.sh/payout-failed",
       redirect: { url: "/dashboard/admin/withdrawals", target: "_self" },
     }));
@@ -20,11 +22,11 @@ export const adminPayoutFailedWorkflow = workflow(
           <p>Hello Admin,</p>
           <p>An operator payout has failed or was manually marked as failed in the system:</p>
           <div style="background: white; border: 1px solid #fee2e2; padding: 16px; border-radius: 8px; margin: 16px 0; font-size: 14px; color: #1e293b;">
-            <p style="margin: 0 0 8px 0;">Company: <strong>${payload.companyName}</strong></p>
-            <p style="margin: 0 0 8px 0;">Amount: <strong>${payload.amountXOF} XOF</strong></p>
-            <p style="margin: 0 0 8px 0;">Transaction Ref: <code>${payload.transactionId}</code></p>
-            <p style="margin: 0 0 8px 0;">Error Code: <code>${payload.errorCode}</code></p>
-            <p style="margin: 0;">Description: <strong>${payload.errorMessage}</strong></p>
+            <p style="margin: 0 0 8px 0;">Company: <strong>${escapeHtml(payload.companyName)}</strong></p>
+            <p style="margin: 0 0 8px 0;">Amount: <strong>${escapeHtml(payload.amountXOF)} XOF</strong></p>
+            <p style="margin: 0 0 8px 0;">Transaction Ref: <code>${escapeHtml(payload.transactionId)}</code></p>
+            <p style="margin: 0 0 8px 0;">Error Code: <code>${escapeHtml(payload.errorCode)}</code></p>
+            <p style="margin: 0;">Description: <strong>${escapeHtml(payload.errorMessage)}</strong></p>
           </div>
           <a href="https://mojaride.com/dashboard/admin/withdrawals" 
              style="display: inline-block; background: #ef4444; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin-top: 10px;">
@@ -34,7 +36,7 @@ export const adminPayoutFailedWorkflow = workflow(
       `;
 
       return {
-        subject: `CRITICAL: Payout failed for ${payload.companyName} - ${payload.amountXOF} XOF`,
+        subject: `CRITICAL: Payout failed for ${escapeHtml(payload.companyName)} - ${escapeHtml(payload.amountXOF)} XOF`,
         body: html,
       };
     });

@@ -114,7 +114,10 @@ export const operatorRouter = createTRPCRouter({
           console.error("[NOVU] Failed to trigger operator-signup-otp workflow:", err);
         }
       } else {
-        console.log(`\n=== 🔐 MOCK EMAIL OTP for ${input.email}: ${otp} ===\n`);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Notification service is not configured. Cannot send verification code.",
+        });
       }
 
       const pending = await ctx.prisma.pendingOperatorSignup.upsert({
@@ -1489,7 +1492,7 @@ export const operatorRouter = createTRPCRouter({
       // 2. Fetch ledger balance (all time)
       const accountService = new FinancialAccountService(ctx.prisma);
       const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
-      const ledgerBalanceXOF = operatorAcct.postedBalance;
+      const ledgerBalanceXOF = Number(operatorAcct.postedBalance);
 
       // 3. Fetch refunds issued within the period
       // Using new FinancialTransaction model
@@ -1513,7 +1516,7 @@ export const operatorRouter = createTRPCRouter({
           },
         },
       });
-      const refundsIssuedXOF = refundTxs.reduce((acc, tx) => acc + (tx.entries[0]?.amount || 0), 0);
+      const refundsIssuedXOF = refundTxs.reduce((acc, tx) => acc + Number(tx.entries[0]?.amount || 0), 0);
 
       // 4. Calculate KPIs from bookings
       let grossRevenueXOF = 0;
@@ -1806,9 +1809,10 @@ export const operatorRouter = createTRPCRouter({
       return {
         accountId: operatorAcct.id,
         period: input.period,
-        currentBalance: operatorAcct.postedBalance,
+        currentBalance: Number(operatorAcct.postedBalance),
         series: series.map((s) => ({
           date: s.snapshotDate.toISOString().split("T")[0],
+          // series balances are already strings from SnapshotService.getTimeSeries
           postedBalance: s.postedBalance,
           reservedBalance: s.reservedBalance,
           availableBalance: s.availableBalance,
@@ -1835,15 +1839,15 @@ export const operatorRouter = createTRPCRouter({
       const latest = await snapshotService.getLatest(operatorAcct.id, input.period);
 
       return {
-        livePostedBalance: operatorAcct.postedBalance,
-        liveAvailableBalance: operatorAcct.availableBalance,
-        liveReservedBalance: operatorAcct.reservedBalance,
+        livePostedBalance: Number(operatorAcct.postedBalance),
+        liveAvailableBalance: Number(operatorAcct.availableBalance),
+        liveReservedBalance: Number(operatorAcct.reservedBalance),
         lastSnapshot: latest
           ? {
               date: latest.snapshotDate.toISOString().split("T")[0],
-              postedBalance: latest.postedBalance,
-              availableBalance: latest.availableBalance,
-              reservedBalance: latest.reservedBalance,
+              postedBalance: Number(latest.postedBalance),
+              availableBalance: Number(latest.availableBalance),
+              reservedBalance: Number(latest.reservedBalance),
             }
           : null,
       };
@@ -1857,6 +1861,16 @@ export const operatorRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const companyId = ctx.companyId;
       const amount = input.amountXOF;
+
+      const operator = await ctx.prisma.operator.findUnique({
+        where: { userId_companyId: { userId: ctx.user.id, companyId: ctx.companyId } }
+      });
+      if (operator?.role !== "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only company owners can request withdrawals.",
+        });
+      }
 
       // 1. Fetch settings and check minimum withdrawal limit
       const settings = await ctx.prisma.platformSettings.findUnique({
@@ -1901,7 +1915,7 @@ export const operatorRouter = createTRPCRouter({
           Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${operatorAcct.id} FOR UPDATE`
         );
 
-        if (!lockedAccounts.length || lockedAccounts[0]!.available_balance < amount) {
+        if (!lockedAccounts.length || BigInt(lockedAccounts[0]!.available_balance) < BigInt(amount)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Insufficient available balance.",
@@ -2023,8 +2037,13 @@ export const operatorRouter = createTRPCRouter({
           }
         }
 
+        await ctx.prisma.financialTransaction.update({
+          where: { id: txId },
+          data: { status: "PENDING" },
+        });
+
         // In a true system, this would trigger an alerting queue to manually review.
-        // For now, we leave the transaction as POSTED (funds deducted) and require admin intervention.
+        // We leave the transaction as PENDING (funds reserved) and require admin intervention.
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Payout initiated internally but network failed. Admin review required: ${error.message}`,

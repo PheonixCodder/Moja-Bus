@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
-import { Inbox } from "@novu/nextjs";
+import { Inbox } from "@novu/react";
 
 export function NotificationInbox() {
   const trpc = useTRPC();

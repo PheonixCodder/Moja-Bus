@@ -24,6 +24,7 @@ export class AccountingEngine {
   private description?: string;
   private currency: string;
   private metadata?: Record<string, unknown>;
+  private idempotencyKey?: string;
 
   constructor(
     type: string,
@@ -32,6 +33,7 @@ export class AccountingEngine {
       externalPaymentId?: string;
       description?: string;
       metadata?: Record<string, unknown>;
+      idempotencyKey?: string;
     }
   ) {
     this.type = type;
@@ -45,14 +47,23 @@ export class AccountingEngine {
     if (params?.metadata !== undefined) {
       this.metadata = params.metadata;
     }
+    if (params?.idempotencyKey !== undefined) {
+      this.idempotencyKey = params.idempotencyKey;
+    }
   }
 
   addDebit(params: AddEntryParams): this {
+    if (!Number.isSafeInteger(params.amount) || params.amount < 0) {
+      throw new Error(`Amount must be a positive safe integer. Received: ${params.amount}`);
+    }
     this.entries.push({ ...params, side: LedgerEntrySide.DEBIT });
     return this;
   }
 
   addCredit(params: AddEntryParams): this {
+    if (!Number.isSafeInteger(params.amount) || params.amount < 0) {
+      throw new Error(`Amount must be a positive safe integer. Received: ${params.amount}`);
+    }
     this.entries.push({ ...params, side: LedgerEntrySide.CREDIT });
     return this;
   }
@@ -69,11 +80,22 @@ export class AccountingEngine {
       if (entry.amount <= 0) {
         throw new Error(`Amount must be strictly positive, got ${entry.amount}`);
       }
+      if (!Number.isSafeInteger(entry.amount)) {
+        throw new Error(
+          `Amount must be a safe integer (no decimals, within ±${Number.MAX_SAFE_INTEGER}), got ${entry.amount}`,
+        );
+      }
       if (entry.side === LedgerEntrySide.DEBIT) {
         totalDebit += entry.amount;
       } else {
         totalCredit += entry.amount;
       }
+    }
+
+    if (!Number.isSafeInteger(totalDebit) || !Number.isSafeInteger(totalCredit)) {
+      throw new Error(
+        `Accumulated totals exceed safe integer precision: Σ Debit=${totalDebit}, Σ Credit=${totalCredit}`,
+      );
     }
 
     if (totalDebit !== totalCredit) {
@@ -105,7 +127,7 @@ export class AccountingEngine {
       // Determine balance deltas per account
       const accountUpdates = new Map<
         string,
-        { delta: number; isAssetOrExpense: boolean }
+        { delta: bigint; isAssetOrExpense: boolean }
       >();
 
       for (const entry of this.entries) {
@@ -120,7 +142,7 @@ export class AccountingEngine {
             account.accountCategory === AccountCategory.EXPENSE;
 
           accountUpdates.set(entry.accountId, {
-            delta: 0,
+            delta: 0n,
             isAssetOrExpense,
           });
         }
@@ -129,11 +151,12 @@ export class AccountingEngine {
 
         // Debit increases Asset/Expense, decreases Liability/Equity/Revenue.
         // Credit decreases Asset/Expense, increases Liability/Equity/Revenue.
-        let increment = 0;
+        let increment = 0n;
+        const amountBig = BigInt(entry.amount);
         if (entry.side === LedgerEntrySide.DEBIT) {
-          increment = current.isAssetOrExpense ? entry.amount : -entry.amount;
+          increment = current.isAssetOrExpense ? amountBig : -amountBig;
         } else {
-          increment = current.isAssetOrExpense ? -entry.amount : entry.amount;
+          increment = current.isAssetOrExpense ? -amountBig : amountBig;
         }
 
         current.delta += increment;
@@ -150,10 +173,11 @@ export class AccountingEngine {
           {
             id: string;
             posted_balance: number;
+            available_balance: number;
             allow_negative_balance: boolean;
           }[]
         >(
-          Prisma.sql`SELECT id, "postedBalance" as posted_balance, "allowNegativeBalance" as allow_negative_balance FROM "financial_account" WHERE id = ${accountId} FOR UPDATE`
+          Prisma.sql`SELECT id, "postedBalance" as posted_balance, "availableBalance" as available_balance, "allowNegativeBalance" as allow_negative_balance FROM "financial_account" WHERE id = ${accountId} FOR UPDATE`
         );
 
         if (lockedAccounts.length === 0) {
@@ -162,10 +186,12 @@ export class AccountingEngine {
         
         const lockedAccount = lockedAccounts[0]!;
         const update = accountUpdates.get(accountId)!;
-        const newPostedBalance = lockedAccount.posted_balance + update.delta;
+        // PostgreSQL returns BigInt columns as bigint in Node via pgBigInt/prisma raw
+        const currentAvailable = BigInt(lockedAccount.available_balance);
+        const newAvailableBalance = currentAvailable + update.delta;
 
         // Verify sufficient funds if negative balance is disallowed
-        if (!lockedAccount.allow_negative_balance && newPostedBalance < 0) {
+        if (!lockedAccount.allow_negative_balance && newAvailableBalance < 0n) {
           throw new Error(`Insufficient funds for account ${accountId}`);
         }
 
@@ -195,7 +221,7 @@ export class AccountingEngine {
             ...(entry.referenceId != null ? { referenceId: entry.referenceId } : {}),
             idempotencyKey:
               entry.idempotencyKey ||
-              `${transaction.id}-${entry.sequenceNumber}`,
+              (this.idempotencyKey ? `${this.idempotencyKey}-${entry.sequenceNumber}` : `${transaction.id}-${entry.sequenceNumber}`),
           },
         })
       );

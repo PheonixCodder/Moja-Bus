@@ -1,5 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
+import { escapeHtml } from "@/features/notifications/utils/escape-html";
+
 
 export const operatorBankRejectedWorkflow = workflow(
   "operator-bank-rejected",
@@ -7,7 +9,7 @@ export const operatorBankRejectedWorkflow = workflow(
     // 1. In-App Notification
     await step.inApp("send-in-app", async () => ({
       subject: "Bank Account Rejected",
-      body: `❌ Bank account validation failed for ${payload.bankName} (${payload.accountNumberHidden}). Reason: ${payload.reason}.`,
+      body: `❌ Bank account validation failed for ${escapeHtml(payload.bankName)} (${escapeHtml(payload.accountNumberHidden)}). Reason: ${escapeHtml(payload.reason)}.`,
       avatar: "https://avatar.vercel.sh/bank-rejected",
       redirect: { url: "/dashboard/operator/settings", target: "_self" },
     }));
@@ -17,19 +19,19 @@ export const operatorBankRejectedWorkflow = workflow(
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #ef4444; border-radius: 12px; padding: 24px; color: #1e293b; background: #fff5f5;">
           <h2 style="color: #ef4444; margin-top: 0; font-size: 20px; font-weight: bold;">Bank Account Verification Failed</h2>
-          <p>Hello ${payload.ownerName},</p>
-          <p>We regret to inform you that your registered bank account for <strong>${payload.companyName}</strong> was rejected during verification.</p>
+          <p>Hello ${escapeHtml(payload.ownerName)},</p>
+          <p>We regret to inform you that your registered bank account for <strong>${escapeHtml(payload.companyName)}</strong> was rejected during verification.</p>
           <div style="background: white; border: 1px solid #fee2e2; padding: 16px; border-radius: 8px; margin: 16px 0; font-size: 14px;">
-            <p style="margin: 0 0 8px 0;">Bank: <strong>${payload.bankName}</strong></p>
-            <p style="margin: 0 0 8px 0;">Account: <strong>${payload.accountNumberHidden}</strong></p>
-            <p style="margin: 0; color: #b91c1c;">Reason: <strong>${payload.reason}</strong></p>
+            <p style="margin: 0 0 8px 0;">Bank: <strong>${escapeHtml(payload.bankName)}</strong></p>
+            <p style="margin: 0 0 8px 0;">Account: <strong>${escapeHtml(payload.accountNumberHidden)}</strong></p>
+            <p style="margin: 0; color: #b91c1c;">Reason: <strong>${escapeHtml(payload.reason)}</strong></p>
           </div>
           <p style="font-size: 13px; color: #64748b;">Please double check your account number, bank code, and business name alignment, and submit another account in operator settings.</p>
         </div>
       `;
 
       return {
-        subject: `Bank Account Rejected - ${payload.companyName}`,
+        subject: `Bank Account Rejected - ${escapeHtml(payload.companyName)}`,
         body: html,
       };
     });
