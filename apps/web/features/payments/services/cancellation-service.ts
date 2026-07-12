@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@moja/db";
+import { AccountingEngine, FinancialAccountService } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import { resolveHoldGroup } from "../lib/resolve-hold-group";
 
@@ -7,7 +8,7 @@ export type CancelBookingInput = {
   userId: string;
   userRole: "PASSENGER" | "OPERATOR" | "ADMIN";
   userCompanyId?: string | undefined;
-  channel: "CASH" | "VOUCHER" | "PAYSTACK";
+  channel: "CASH" | "VOUCHER" | "WALLET";
   reason?: string | undefined;
 };
 
@@ -18,6 +19,7 @@ export class CancellationService {
     const booking = await this.prisma.booking.findUnique({
       where: { bookingReference: input.bookingReference },
       include: {
+        user: { select: { email: true, fullName: true } },
         trip: {
           select: {
             departureDate: true,
@@ -88,28 +90,7 @@ export class CancellationService {
     let paystackRefundId: string | undefined;
     let paystackRefundStatus: "COMPLETED" | "PROCESSING" | "FAILED" = "COMPLETED";
 
-    if (input.channel === "PAYSTACK") {
-      if (payment.provider === "MOCK") {
-        paystackRefundId = `mock_ref_${Date.now()}`;
-      } else {
-        const { PaystackProvider } = await import("../providers/paystack-provider");
-        const provider = new PaystackProvider();
-        try {
-          const refundResult = await provider.refund({
-            reference: payment.paystackReference!,
-            amountXOF: refundAmountXOF,
-            reason: input.reason ?? "Customer refund",
-          });
-          paystackRefundId = refundResult.refundId;
-          paystackRefundStatus = refundResult.status === "processed" ? "COMPLETED" : "PROCESSING";
-        } catch (err: any) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Paystack refund initiation failed: ${err.message}`,
-          });
-        }
-      }
-    }
+    // paystack refund calls are removed; all automated refunds go to wallet.
 
     const result = await this.prisma.$transaction(async (tx) => {
       await tx.booking.update({
@@ -132,19 +113,91 @@ export class CancellationService {
         },
       });
 
-      if (proportionalOperatorNet > 0) {
-        await tx.operatorLedgerEntry.create({
-          data: {
-            companyId: booking.companyId,
-            holdGroupId: holdGroup.id,
-            paymentId: payment.id,
-            entryType: "DEBIT",
-            sourceType: "REFUND",
-            amountXOF: proportionalOperatorNet,
-            description: `Refund debit for cancelled booking ${booking.bookingReference}`,
+      if (refundAmountXOF > 0) {
+        // Financial Core Write
+        const accountService = new FinancialAccountService(tx as any);
+        const opAcct = await accountService.getOperatorReceivableAccount(booking.companyId);
+
+        if (input.channel === "WALLET") {
+          if (!booking.userId) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Cannot refund to wallet for a guest booking. The passenger must register and claim their booking first.",
+            });
+          }
+          const platformRevAcct = await accountService.getPlatformRevenueAccount();
+          const passengerWalletAcct = await accountService.getUserWallet(booking.userId);
+          const commissionAmount = refundAmountXOF - proportionalOperatorNet;
+
+          const engine = new AccountingEngine("REFUND", {
+            externalPaymentId: payment.id,
+            description: `Wallet refund for cancelled booking ${booking.bookingReference}`,
             metadata: { refundId: refund.id, proportionalBase },
-          },
-        });
+          });
+
+          if (proportionalOperatorNet > 0) {
+            engine.addDebit({
+              accountId: opAcct.id,
+              amount: proportionalOperatorNet,
+              sequenceNumber: 1,
+              referenceType: "BOOKING_ID",
+              referenceId: booking.id,
+              description: "Operator refund deduction",
+            });
+          }
+
+          if (commissionAmount > 0) {
+            engine.addDebit({
+              accountId: platformRevAcct.id,
+              amount: commissionAmount,
+              sequenceNumber: 2,
+              referenceType: "BOOKING_ID",
+              referenceId: booking.id,
+              description: "Platform commission refund contribution",
+            });
+          }
+
+          engine.addCredit({
+            accountId: passengerWalletAcct.id,
+            amount: refundAmountXOF,
+            sequenceNumber: 3,
+            referenceType: "BOOKING_ID",
+            referenceId: booking.id,
+            description: "Wallet credit for cancelled ticket",
+          });
+
+          engine.validate();
+          await engine.commit(tx as any);
+        } else if (proportionalOperatorNet > 0) {
+          // CASH or VOUCHER
+          const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+          const engine = new AccountingEngine("REFUND", {
+            externalPaymentId: payment.id,
+            description: `Offline/Voucher refund deduction for booking ${booking.bookingReference}`,
+            metadata: { refundId: refund.id, proportionalBase },
+          });
+
+          engine.addDebit({
+            accountId: opAcct.id,
+            amount: proportionalOperatorNet,
+            sequenceNumber: 1,
+            referenceType: "BOOKING_ID",
+            referenceId: booking.id,
+            description: "Operator refund deduction",
+          });
+
+          engine.addCredit({
+            accountId: clearingAcct.id,
+            amount: proportionalOperatorNet,
+            sequenceNumber: 2,
+            referenceType: "BOOKING_ID",
+            referenceId: booking.id,
+            description: "Balancing credit for operator refund",
+          });
+
+          engine.validate();
+          await engine.commit(tx as any);
+        }
       }
 
       const remainingConfirmed = await tx.booking.count({
@@ -163,6 +216,30 @@ export class CancellationService {
 
       return refund;
     });
+
+    const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
+    if (email) {
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        const { Novu } = await import("@novu/api");
+        const novu = new Novu({ secretKey: novuSecret });
+        void novu.trigger({
+          workflowId: "passenger-booking-refunded",
+          to: {
+            subscriberId: email,
+            email: email,
+          },
+          payload: {
+            email,
+            passengerName: booking.user?.fullName ?? booking.passengerName,
+            bookingReference: booking.bookingReference,
+            refundAmountXOF: result.amountXOF,
+            channel: result.channel as any,
+            reason: result.reason ?? "Passenger cancellation before departure",
+          },
+        }).catch((err) => console.error("Failed to trigger passenger-booking-refunded via Novu:", err));
+      }
+    }
 
     return {
       success: true as const,

@@ -27,3 +27,8 @@ demo-ui
 legacy-apps-setup
 best-example
 graphify-out
+best-dashboard-setup
+
+# Migration artifacts
+packages/db/migrate-out.txt
+scratch-escape.cjs

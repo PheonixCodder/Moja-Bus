@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { Prisma } from "@moja/db";
+import { Prisma, FinancialAccountService, SnapshotService } from "@moja/db";
 import {
   saveOnboardingStepSchema,
   companyStepSchema,
@@ -17,6 +17,7 @@ import {
 } from "@moja/schemas";
 import { TERMS_VERSION, PRIVACY_VERSION, COMMISSION_VERSION } from "@/lib/constants/legal";
 import crypto from "crypto";
+import { Novu } from "@novu/api";
 import { startOfAppCalendarDay, addAppCalendarDays } from "@/lib/timezone";
 
 import {
@@ -37,6 +38,8 @@ import { OperatorBookingService } from "@/features/operator/services/operator-bo
 import {
   paystackResolveAccount,
 } from "@/features/payments/providers/paystack-client";
+import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
+import { AccountingEngine } from "@moja/db";
 
 function maskOperatorCompanyBank<T extends any>(
   operator: T,
@@ -88,8 +91,34 @@ export const operatorRouter = createTRPCRouter({
       const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
-      // In development, log the OTP. In production, you would use an email service
-      console.log(`\n=== 🔐 MOCK EMAIL OTP for ${input.email}: ${otp} ===\n`);
+      // Trigger Novu operator signup verification OTP
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const novu = new Novu({ secretKey: novuSecret });
+          await novu.trigger({
+            workflowId: "operator-signup-otp",
+            to: {
+              subscriberId: input.email,
+              email: input.email,
+            },
+            payload: {
+              email: input.email,
+              otpCode: otp,
+              companyName: input.companyName,
+              ownerName: input.ownerName,
+            },
+          });
+          console.log(`[NOVU] Successfully triggered operator-signup-otp for ${input.email}`);
+        } catch (err) {
+          console.error("[NOVU] Failed to trigger operator-signup-otp workflow:", err);
+        }
+      } else {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Notification service is not configured. Cannot send verification code.",
+        });
+      }
 
       const pending = await ctx.prisma.pendingOperatorSignup.upsert({
         where: { email: input.email },
@@ -176,7 +205,7 @@ export const operatorRouter = createTRPCRouter({
       });
 
       // 3. Create Company (DRAFT), Operator, and Onboarding Progress
-      return ctx.prisma.$transaction(async (tx) => {
+      const result = await ctx.prisma.$transaction(async (tx) => {
         const companyId = crypto.randomUUID();
         const company = await tx.company.create({
           data: {
@@ -216,6 +245,35 @@ export const operatorRouter = createTRPCRouter({
 
         return { success: true, companyId: company.id };
       });
+
+      // Trigger Welcome Onboarding notification after successful transaction commit
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const novu = new Novu({ secretKey: novuSecret });
+          const appUrl = process.env["APP_URL"] || "http://localhost:3000";
+          await novu.trigger({
+            workflowId: "operator-welcome",
+            to: {
+              subscriberId: user.id,
+              email: user.email,
+              firstName: user.fullName?.split(" ")[0] || undefined,
+              lastName: user.fullName?.split(" ").slice(1).join(" ") || undefined,
+            },
+            payload: {
+              email: user.email,
+              ownerName: user.fullName || "Operator",
+              companyName: pending.companyName,
+              dashboardUrl: appUrl,
+            },
+          });
+          console.log(`[NOVU] Triggered operator-welcome for user ${user.id}`);
+        } catch (err) {
+          console.error("[NOVU] Failed to trigger operator-welcome workflow:", err);
+        }
+      }
+
+      return result;
     }),
 
   getOnboardingStatus: operatorProcedure.query(async ({ ctx }) => {
@@ -366,6 +424,45 @@ export const operatorRouter = createTRPCRouter({
         : []),
     ]);
 
+    // Trigger admin-operator-signup-pending to admins
+    const admins = await ctx.prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { email: true },
+    });
+    if (admins.length > 0) {
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          const companyInfo = await ctx.prisma.company.findUnique({
+            where: { id: companyId },
+            include: { operators: { where: { role: "OWNER" }, include: { user: true } } },
+          });
+          const owner = companyInfo?.operators[0]?.user;
+          for (const admin of admins) {
+            await novu.trigger({
+              workflowId: "admin-operator-signup-pending",
+              to: {
+                subscriberId: admin.email,
+                email: admin.email,
+              },
+              payload: {
+                adminEmail: admin.email,
+                companyId: companyId,
+                companyName: companyInfo?.name ?? "Transport Operator",
+                ownerName: owner?.fullName ?? "Operator Owner",
+                ownerPhone: owner?.phone ?? "N/A",
+                submittedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }),
+              },
+            }).catch(() => {});
+          }
+        } catch (err) {
+          console.error("Failed to trigger admin-operator-signup-pending:", err);
+        }
+      }
+    }
+
     return { success: true };
   }),
 
@@ -397,6 +494,45 @@ export const operatorRouter = createTRPCRouter({
         rejectionReason: null,
       },
     });
+
+    // Trigger admin-operator-signup-pending to admins
+    const admins = await ctx.prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { email: true },
+    });
+    if (admins.length > 0) {
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          const companyInfo = await ctx.prisma.company.findUnique({
+            where: { id: operator.companyId },
+            include: { operators: { where: { role: "OWNER" }, include: { user: true } } },
+          });
+          const owner = companyInfo?.operators[0]?.user;
+          for (const admin of admins) {
+            await novu.trigger({
+              workflowId: "admin-operator-signup-pending",
+              to: {
+                subscriberId: admin.email,
+                email: admin.email,
+              },
+              payload: {
+                adminEmail: admin.email,
+                companyId: operator.companyId,
+                companyName: companyInfo?.name ?? "Transport Operator",
+                ownerName: owner?.fullName ?? "Operator Owner",
+                ownerPhone: owner?.phone ?? "N/A",
+                submittedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }),
+              },
+            }).catch(() => {});
+          }
+        } catch (err) {
+          console.error("Failed to trigger admin-operator-signup-pending:", err);
+        }
+      }
+    }
 
     return { company: updatedCompany };
   }),
@@ -1085,6 +1221,43 @@ export const operatorRouter = createTRPCRouter({
         action: "CREATE",
       });
 
+      // Trigger admin-bank-account-pending to all platform admins
+      const admins = await ctx.prisma.user.findMany({
+        where: { role: "ADMIN" },
+        select: { email: true },
+      });
+      const company = await ctx.prisma.company.findUnique({
+        where: { id: ctx.companyId },
+        select: { name: true },
+      });
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret && admins.length > 0 && company) {
+        try {
+          const { Novu } = await import("@novu/api");
+          const novu = new Novu({ secretKey: novuSecret });
+          const hiddenNum = `******${newAccount.accountNumberLast4}`;
+          for (const admin of admins) {
+            await novu.trigger({
+              workflowId: "admin-bank-account-pending",
+              to: {
+                subscriberId: admin.email,
+                email: admin.email,
+              },
+              payload: {
+                adminEmail: admin.email,
+                companyName: company.name,
+                bankName: newAccount.bankName,
+                accountName: newAccount.accountName,
+                accountNumberHidden: hiddenNum,
+                bankAccountId: newAccount.id,
+              },
+            }).catch(() => {});
+          }
+        } catch (err) {
+          console.error("Failed to trigger admin-bank-account-pending:", err);
+        }
+      }
+
       return maskBankAccountForClient(newAccount);
     }),
 
@@ -1120,7 +1293,7 @@ export const operatorRouter = createTRPCRouter({
         }),
         ctx.prisma.company.update({
           where: { id: ctx.companyId },
-          data: { paystackSubaccountCode: bankAccount.paystackSubaccountCode },
+          data: { paystackTransferRecipientCode: bankAccount.paystackTransferRecipientCode },
         }),
       ]);
 
@@ -1317,34 +1490,33 @@ export const operatorRouter = createTRPCRouter({
       });
 
       // 2. Fetch ledger balance (all time)
-      const ledgerEntriesForBalance = await ctx.prisma.operatorLedgerEntry.findMany({
-        where: { companyId },
-        select: {
-          entryType: true,
-          amountXOF: true,
-        },
-      });
-
-      const ledgerBalanceXOF = ledgerEntriesForBalance.reduce((acc, entry) => {
-        return entry.entryType === "CREDIT"
-          ? acc + entry.amountXOF
-          : acc - entry.amountXOF;
-      }, 0);
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+      const ledgerBalanceXOF = Number(operatorAcct.postedBalance);
 
       // 3. Fetch refunds issued within the period
-      // Actually refunds don't have a direct companyId on them, but we can query ledger entries of type REFUND
-      // Or we can get from Booking -> payments -> refunds. But simpler to use ledger entries.
-      const refundsLedger = await ctx.prisma.operatorLedgerEntry.findMany({
+      // Using new FinancialTransaction model
+      const refundTxs = await ctx.prisma.financialTransaction.findMany({
         where: {
-          companyId,
-          sourceType: "REFUND",
+          type: "REFUND",
           createdAt: {
             gte: new Date(from),
             lte: new Date(to),
           },
+          entries: {
+            some: {
+              accountId: operatorAcct.id,
+              side: "DEBIT", // Debiting operator's receivable means giving refund back
+            },
+          },
+        },
+        include: {
+          entries: {
+            where: { accountId: operatorAcct.id, side: "DEBIT" },
+          },
         },
       });
-      const refundsIssuedXOF = refundsLedger.reduce((acc, entry) => acc + entry.amountXOF, 0);
+      const refundsIssuedXOF = refundTxs.reduce((acc, tx) => acc + Number(tx.entries[0]?.amount || 0), 0);
 
       // 4. Calculate KPIs from bookings
       let grossRevenueXOF = 0;
@@ -1406,11 +1578,12 @@ export const operatorRouter = createTRPCRouter({
         .sort((a, b) => b.totalNetXOF - a.totalNetXOF)
         .slice(0, 5);
 
-      // 5. Recent ledger entries
-      const recentLedger = await ctx.prisma.operatorLedgerEntry.findMany({
-        where: { companyId },
+      // 5. Recent ledger entries (from Financial Core)
+      const recentLedgerEntries = await ctx.prisma.ledgerEntry.findMany({
+        where: { accountId: operatorAcct.id },
         orderBy: { createdAt: "desc" },
         take: 10,
+        include: { transaction: true },
       });
 
       return {
@@ -1421,16 +1594,16 @@ export const operatorRouter = createTRPCRouter({
           ledgerBalanceXOF,
           refundsIssuedXOF,
           totalConfirmedBookings: confirmedBookings.length,
-          totalTripsRun: 0, // Could calculate this if needed
+          totalTripsRun: 0,
         },
         timeSeries,
         topRoutes,
-        recentLedger: recentLedger.map((e) => ({
+        recentLedger: recentLedgerEntries.map((e) => ({
           id: e.id,
-          entryType: e.entryType,
-          sourceType: e.sourceType,
-          amountXOF: e.amountXOF,
-          description: e.description,
+          entryType: e.side === "CREDIT" ? "CREDIT" : "DEBIT",
+          sourceType: e.transaction.type,
+          amountXOF: e.amount,
+          description: e.description ?? e.transaction.description,
           createdAt: e.createdAt.toISOString(),
         })),
       };
@@ -1608,5 +1781,323 @@ export const operatorRouter = createTRPCRouter({
         departures,
         activities,
       };
+    }),
+
+  /**
+   * Returns a time-series of daily balance snapshots for the operator's
+   * receivable account, ready for charting without replaying ledger entries.
+   */
+  getSnapshotTimeSeries: operatorCompanyProcedure
+    .input(
+      z.object({
+        period: z.enum(["DAILY", "WEEKLY", "MONTHLY"]).default("DAILY"),
+        limit: z.number().int().min(1).max(365).default(30),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const companyId = ctx.companyId;
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const snapshotService = new SnapshotService(ctx.prisma);
+
+      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+      const series = await snapshotService.getTimeSeries(
+        operatorAcct.id,
+        input.period,
+        input.limit,
+      );
+
+      return {
+        accountId: operatorAcct.id,
+        period: input.period,
+        currentBalance: Number(operatorAcct.postedBalance),
+        series: series.map((s) => ({
+          date: s.snapshotDate.toISOString().split("T")[0],
+          // series balances are already strings from SnapshotService.getTimeSeries
+          postedBalance: s.postedBalance,
+          reservedBalance: s.reservedBalance,
+          availableBalance: s.availableBalance,
+        })),
+      };
+    }),
+
+  /**
+   * Returns the latest snapshot and the live posted balance for a quick
+   * "closing balance" card without a full ledger scan.
+   */
+  getAccountSnapshot: operatorCompanyProcedure
+    .input(
+      z.object({
+        period: z.enum(["DAILY", "WEEKLY", "MONTHLY"]).default("DAILY"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const companyId = ctx.companyId;
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const snapshotService = new SnapshotService(ctx.prisma);
+
+      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+      const latest = await snapshotService.getLatest(operatorAcct.id, input.period);
+
+      return {
+        livePostedBalance: Number(operatorAcct.postedBalance),
+        liveAvailableBalance: Number(operatorAcct.availableBalance),
+        liveReservedBalance: Number(operatorAcct.reservedBalance),
+        lastSnapshot: latest
+          ? {
+              date: latest.snapshotDate.toISOString().split("T")[0],
+              postedBalance: Number(latest.postedBalance),
+              availableBalance: Number(latest.availableBalance),
+              reservedBalance: Number(latest.reservedBalance),
+            }
+          : null,
+      };
+    }),
+
+  /**
+   * Initiates a withdrawal from the operator's available balance to their verified bank account.
+   */
+  requestWithdrawal: operatorCompanyProcedure
+    .input(z.object({ amountXOF: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const companyId = ctx.companyId;
+      const amount = input.amountXOF;
+
+      const operator = await ctx.prisma.operator.findUnique({
+        where: { userId_companyId: { userId: ctx.user.id, companyId: ctx.companyId } }
+      });
+      if (operator?.role !== "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only company owners can request withdrawals.",
+        });
+      }
+
+      // 1. Fetch settings and check minimum withdrawal limit
+      const settings = await ctx.prisma.platformSettings.findUnique({
+        where: { id: "default" },
+      });
+      if (settings && amount < settings.minWithdrawalAmount) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Minimum withdrawal amount is ${settings.minWithdrawalAmount} XOF`,
+        });
+      }
+
+      // 2. Fetch the active bank account with the transfer recipient code
+      const bankAccount = await ctx.prisma.bankAccount.findFirst({
+        where: {
+          companyId,
+          isDefault: true,
+          isVerified: true,
+          isActive: true,
+        },
+      });
+
+      if (!bankAccount || !bankAccount.paystackTransferRecipientCode) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No verified bank account or transfer recipient found. Please contact support.",
+        });
+      }
+
+      const accountService = new FinancialAccountService(ctx.prisma);
+
+      // 3. Lock account and check balance using AccountingEngine
+      const txId = await ctx.prisma.$transaction(async (tx) => {
+        const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+        const systemAcct = await accountService.getSystemPaystackClearingAccount();
+
+        // The AccountingEngine handles the row-level FOR UPDATE lock implicitly when commit() is called,
+        // but we need to verify availableBalance manually before committing.
+        const lockedAccounts = await tx.$queryRaw<
+          { available_balance: number }[]
+        >(
+          Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${operatorAcct.id} FOR UPDATE`
+        );
+
+        if (!lockedAccounts.length || BigInt(lockedAccounts[0]!.available_balance) < BigInt(amount)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Insufficient available balance.",
+          });
+        }
+
+        const engine = new AccountingEngine("OPERATOR_PAYOUT", {
+          description: `Withdrawal to bank account ${bankAccount.accountNumberLast4}`,
+          metadata: { requestedBy: ctx.user.id, bankAccountId: bankAccount.id },
+        });
+
+        // Withdrawals decrease Liability (Operator Receivable) via DEBIT
+        engine.addDebit({
+          accountId: operatorAcct.id,
+          amount,
+          sequenceNumber: 1,
+        });
+
+        // Withdrawals decrease Asset (System Clearing) via CREDIT
+        engine.addCredit({
+          accountId: systemAcct.id,
+          amount,
+          sequenceNumber: 2,
+        });
+
+        return await engine.commit(tx as any);
+      });
+
+      // 4. Initiate Paystack Transfer (outside transaction)
+      const company = await ctx.prisma.company.findUnique({
+        where: { id: companyId },
+        select: { name: true },
+      });
+      const companyName = company?.name ?? "Transport Operator";
+
+      try {
+        const paystack = new PaystackProvider();
+        const transfer = await paystack.initiateTransfer({
+          amountXOF: amount,
+          recipientCode: bankAccount.paystackTransferRecipientCode,
+          reason: `Moja Payout - ${companyId.slice(-6)}`,
+          reference: txId, // Tie the Paystack transfer strictly to our ledger Tx ID
+        });
+
+        // Store transfer info asynchronously
+        await ctx.prisma.financialTransaction.update({
+          where: { id: txId },
+          data: {
+            externalPaymentId: transfer.transferCode,
+            metadata: {
+              paystackStatus: transfer.status,
+              fee: transfer.fee,
+            },
+          },
+        });
+
+        const novuSecret = process.env["NOVU_SECRET_KEY"];
+        if (novuSecret && ctx.user.email) {
+          try {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            await novu.trigger({
+              workflowId: "operator-withdrawal-requested",
+              to: {
+                subscriberId: ctx.user.email,
+                email: ctx.user.email,
+              },
+              payload: {
+                email: ctx.user.email,
+                ownerName: ctx.user.name ?? "Operator Owner",
+                companyName,
+                amountXOF: amount,
+                bankName: bankAccount.bankName,
+                accountNumberLast4: bankAccount.accountNumberLast4,
+                transactionId: txId,
+              },
+            });
+          } catch (err) {
+            console.error("Failed to trigger operator-withdrawal-requested via Novu:", err);
+          }
+        }
+
+        return { success: true, transactionId: txId, transferCode: transfer.transferCode };
+      } catch (error: any) {
+        console.error("Paystack Transfer Initiation Error:", error);
+        
+        const novuSecret = process.env["NOVU_SECRET_KEY"];
+        if (novuSecret) {
+          try {
+            const admins = await ctx.prisma.user.findMany({
+              where: { role: "ADMIN" },
+              select: { email: true },
+            });
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            
+            await Promise.all(
+              admins.map(async (admin) => {
+                if (admin.email) {
+                  await novu.trigger({
+                    workflowId: "admin-treasury-network-failure",
+                    to: {
+                      subscriberId: admin.email,
+                      email: admin.email,
+                    },
+                    payload: {
+                      email: admin.email,
+                      companyId,
+                      amountXOF: amount,
+                      transactionId: txId,
+                      reason: error.message || "Unknown Paystack API connection error",
+                    },
+                  });
+                }
+              })
+            );
+          } catch (err) {
+            console.error("Failed to trigger admin-treasury-network-failure via Novu:", err);
+          }
+        }
+
+        await ctx.prisma.financialTransaction.update({
+          where: { id: txId },
+          data: { status: "PENDING" },
+        });
+
+        // In a true system, this would trigger an alerting queue to manually review.
+        // We leave the transaction as PENDING (funds reserved) and require admin intervention.
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Payout initiated internally but network failed. Admin review required: ${error.message}`,
+        });
+      }
+    }),
+
+  listWithdrawals: operatorCompanyProcedure
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(100).default(10),
+        offset: z.number().int().min(0).default(0),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const companyId = ctx.companyId;
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.financialTransaction.findMany({
+          where: {
+            type: "OPERATOR_PAYOUT",
+            entries: {
+              some: {
+                accountId: operatorAcct.id,
+              },
+            },
+          },
+          include: {
+            entries: {
+              where: {
+                accountId: operatorAcct.id,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        ctx.prisma.financialTransaction.count({
+          where: {
+            type: "OPERATOR_PAYOUT",
+            entries: {
+              some: {
+                accountId: operatorAcct.id,
+              },
+            },
+          },
+        }),
+      ]);
+
+      return { items, total };
     }),
 });

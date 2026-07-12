@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "../init";
 import crypto from "node:crypto";
+import { Novu } from "@novu/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared select shape returned to the client
@@ -88,6 +89,7 @@ export const invitationRouter = createTRPCRouter({
         where: { token: hashedToken },
         include: {
           company: { select: { id: true, name: true } },
+          invitedBy: { select: { email: true } },
         },
       });
 
@@ -198,6 +200,29 @@ export const invitationRouter = createTRPCRouter({
           },
         }),
       ]);
+
+      // Trigger Novu staff invitation acceptance alert to the inviter
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const novu = new Novu({ secretKey: novuSecret });
+          await novu.trigger({
+            workflowId: "staff-acceptance-alert",
+            to: {
+              subscriberId: invitation.invitedBy?.email ?? invitation.email,
+              email: invitation.invitedBy?.email ?? invitation.email,
+            },
+            payload: {
+              staffName: userName,
+              staffEmail: invitation.email,
+              role: invitation.role,
+            },
+          });
+          console.log(`[NOVU] Triggered staff-acceptance-alert for inviter ${invitation.invitedById}`);
+        } catch (err) {
+          console.error("[NOVU] Failed to trigger staff-acceptance-alert workflow:", err);
+        }
+      }
 
       return { success: true, companyName: invitation.company.name };
     }),

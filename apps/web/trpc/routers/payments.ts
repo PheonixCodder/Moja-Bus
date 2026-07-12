@@ -13,7 +13,11 @@ import {
 } from "@moja/schemas";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 import { PaymentService } from "@/features/payments/payment-service";
-import { paystackListBanks } from "@/features/payments/providers/paystack-client";
+import {
+  isPaystackConfigured,
+  paystackListBanks,
+} from "../../features/payments/providers/paystack-client";
+import { FinancialAccountService, AccountingEngine } from "@moja/db";
 import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { TripDetailsService } from "@/features/booking/services/trip-details-service";
 
@@ -42,6 +46,26 @@ export const paymentsRouter = createTRPCRouter({
         seatCount: input.seatCount,
         distanceKm: trip?.schedule.route.distanceKm ?? null,
       });
+    }),
+
+  getHoldPricing: protectedProcedure
+    .input(z.object({ holdId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const snapshot = await ctx.prisma.pricingSnapshot.findFirst({
+        where: { holdGroupId: input.holdId },
+        orderBy: { createdAt: "desc" },
+      });
+      if (!snapshot) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Pricing snapshot not found for this hold",
+        });
+      }
+      return {
+        subtotalBaseXOF: snapshot.subtotalBaseXOF,
+        convenienceFeeXOF: snapshot.convenienceFeeXOF,
+        chargeAmountXOF: snapshot.chargeAmountXOF,
+      };
     }),
 
   cancelBooking: protectedProcedure
@@ -143,79 +167,177 @@ export const paymentsRouter = createTRPCRouter({
     }),
 
   listLedgerEntries: adminProcedure
-    .input(listLedgerEntriesSchema)
+    .input(
+      listLedgerEntriesSchema.extend({
+        accountClass: z.string().optional(),
+      })
+    )
     .query(async ({ ctx, input }) => {
-      const where = input.companyId ? { companyId: input.companyId } : {};
-      const [items, total] = await Promise.all([
-        ctx.prisma.operatorLedgerEntry.findMany({
+      const accountService = new FinancialAccountService(ctx.prisma);
+      let accountIds: string[] = [];
+
+      const accountClass = input.accountClass || "OPERATOR_RECEIVABLE";
+
+      if (accountClass === "OPERATOR_RECEIVABLE") {
+        if (input.companyId) {
+          const opAcct = await accountService.getOperatorReceivableAccount(input.companyId);
+          accountIds.push(opAcct.id);
+        } else {
+          const opAccts = await ctx.prisma.financialAccount.findMany({
+            where: { ownerType: "COMPANY", accountClass: "OPERATOR_RECEIVABLE" },
+          });
+          accountIds = opAccts.map((a) => a.id);
+        }
+      } else if (accountClass === "PAYSTACK_CLEARING") {
+        const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+        accountIds.push(clearingAcct.id);
+      } else if (accountClass === "PLATFORM_FEES") {
+        const platformAcct = await accountService.getPlatformRevenueAccount();
+        accountIds.push(platformAcct.id);
+      } else {
+        const accts = await ctx.prisma.financialAccount.findMany({
+          where: { accountClass },
+        });
+        accountIds = accts.map((a) => a.id);
+      }
+
+      const where = { accountId: { in: accountIds } };
+      const [entries, total] = await Promise.all([
+        ctx.prisma.ledgerEntry.findMany({
           where,
           orderBy: { createdAt: "desc" },
           take: input.limit,
           skip: input.offset,
           include: {
-            company: { select: { id: true, name: true } },
+            account: true,
+            transaction: true,
           },
         }),
-        ctx.prisma.operatorLedgerEntry.count({ where }),
+        ctx.prisma.ledgerEntry.count({ where }),
       ]);
+
+      const companyIds = Array.from(new Set(entries.map((e) => e.account.ownerId)));
+      const companies = await ctx.prisma.company.findMany({
+        where: { id: { in: companyIds } },
+        select: { id: true, name: true },
+      });
+      const companyMap = new Map(companies.map((c) => [c.id, c]));
+
+      const items = entries.map((e) => {
+        let name = "Unknown Account";
+        if (e.account.ownerType === "SYSTEM") {
+          name = "System Clearing";
+        } else if (e.account.ownerType === "PLATFORM") {
+          name = "Platform Fees";
+        } else {
+          const comp = companyMap.get(e.account.ownerId);
+          if (comp) name = comp.name;
+        }
+
+        return {
+          id: e.id,
+          companyId: e.account.ownerId,
+          company: { id: e.account.ownerId, name },
+          entryType: e.side === "CREDIT" ? "CREDIT" : "DEBIT",
+          sourceType: e.transaction.type,
+          amountXOF: e.amount,
+          description: e.description || e.transaction.description,
+          createdAt: e.createdAt,
+        };
+      });
+
       return { items, total };
     }),
+
+  getTreasuryOverview: adminProcedure.query(async ({ ctx }) => {
+    const accountService = new FinancialAccountService(ctx.prisma);
+    const [clearing, revenue] = await Promise.all([
+      accountService.getSystemPaystackClearingAccount(),
+      accountService.getPlatformRevenueAccount(),
+    ]);
+
+    return {
+      clearingBalance: Number(clearing.postedBalance),
+      revenueBalance: Number(revenue.postedBalance),
+    };
+  }),
 
   exportOperatorLedger: adminProcedure
     .input(exportOperatorLedgerSchema)
     .query(async ({ ctx, input }) => {
-      const entries = await ctx.prisma.operatorLedgerEntry.findMany({
-        where: { companyId: input.companyId },
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const operatorAcct = await accountService.getOperatorReceivableAccount(input.companyId);
+
+      const entries = await ctx.prisma.ledgerEntry.findMany({
+        where: { accountId: operatorAcct.id },
         orderBy: { createdAt: "asc" },
+        include: { transaction: true },
       });
 
-      const balance = entries.reduce((sum, entry) => {
-        return entry.entryType === "CREDIT"
-          ? sum + entry.amountXOF
-          : sum - entry.amountXOF;
-      }, 0);
+      const mappedEntries = entries.map(e => ({
+        id: e.id,
+        companyId: input.companyId,
+        entryType: e.side === "CREDIT" ? "CREDIT" : "DEBIT",
+        sourceType: e.transaction.type,
+        amountXOF: Number(e.amount), // BigInt → Number; individual entries are safe
+        description: e.description || e.transaction.description,
+        createdAt: e.createdAt,
+      }));
 
       return {
         companyId: input.companyId,
         entryCount: entries.length,
-        balanceXOF: balance,
-        entries,
+        balanceXOF: Number(operatorAcct.postedBalance),
+        entries: mappedEntries,
       };
     }),
 
   recordSettlement: adminProcedure
     .input(recordSettlementSchema)
     .mutation(async ({ ctx, input }) => {
-      const exportData = await ctx.prisma.operatorLedgerEntry.findMany({
-        where: { companyId: input.companyId },
-        orderBy: { createdAt: "asc" },
-      });
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const operatorAcct = await accountService.getOperatorReceivableAccount(input.companyId);
+      const clearingAcct = await accountService.getSystemPaystackClearingAccount();
 
-      const balance = exportData.reduce((sum, entry) => {
-        return entry.entryType === "CREDIT"
-          ? sum + entry.amountXOF
-          : sum - entry.amountXOF;
-      }, 0);
-
-      if (input.amountXOF > balance) {
+      if (BigInt(input.amountXOF) > operatorAcct.postedBalance) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Settlement amount exceeds ledger balance",
         });
       }
 
-      await ctx.prisma.operatorLedgerEntry.create({
-        data: {
-          companyId: input.companyId,
-          entryType: "DEBIT",
-          sourceType: "SETTLEMENT",
-          amountXOF: input.amountXOF,
+      await ctx.prisma.$transaction(async (tx) => {
+        const engine = new AccountingEngine("SETTLEMENT", {
           description: input.note ?? "Manual operator settlement payout",
           metadata: { settledByUserId: ctx.user.id },
-        },
+        });
+
+        engine.addDebit({
+          accountId: operatorAcct.id,
+          amount: input.amountXOF,
+          sequenceNumber: 1,
+          referenceType: "SETTLEMENT",
+          description: input.note ?? "Settlement payout",
+        });
+
+        engine.addCredit({
+          accountId: clearingAcct.id,
+          amount: input.amountXOF,
+          sequenceNumber: 2,
+          referenceType: "SETTLEMENT",
+          description: "Settlement sent from clearing",
+        });
+
+        engine.validate();
+        await engine.commit(tx as any);
       });
 
-      return { success: true as const, remainingBalanceXOF: balance - input.amountXOF };
+      // Refetch balance after settlement
+      const updatedAcct = await ctx.prisma.financialAccount.findUniqueOrThrow({
+        where: { id: operatorAcct.id },
+      });
+
+      return { success: true as const, remainingBalanceXOF: updatedAcct.postedBalance };
     }),
 
   listBanks: publicProcedure

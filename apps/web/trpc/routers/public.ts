@@ -1,8 +1,31 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../init";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 import { TRPCError } from "@trpc/server";
 
 export const publicRouter = createTRPCRouter({
+  getNotificationToken: protectedProcedure.query(async ({ ctx }) => {
+    const secret = process.env['NOVU_SECRET_KEY'];
+    if (!secret) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Notification secret is not configured on server",
+      });
+    }
+
+    const subscriberId = ctx.user.email;
+    const crypto = await import("crypto");
+    const subscriberHash = crypto
+      .createHmac("sha256", secret)
+      .update(subscriberId)
+      .digest("hex");
+
+    return {
+      subscriberId,
+      subscriberHash,
+      appId: process.env['NEXT_PUBLIC_NOVU_APP_ID'] || "",
+    };
+  }),
+
   /**
    * List all verified + active operators safe for public display.
    * Excludes all sensitive fields (bank, tax IDs, documents, staff).

@@ -13,6 +13,7 @@ import {
   Coins,
   Activity,
   User,
+  Landmark,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -117,6 +118,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     { title: "Overview", url: "/dashboard/admin", icon: Gauge },
     { title: "Verification Queue", url: "/dashboard/admin/verification", icon: ShieldCheck },
     { title: "Settlements & Ledger", url: "/dashboard/admin/settlements", icon: Coins },
+    { title: "Withdrawal Queue", url: "/dashboard/admin/withdrawals", icon: Landmark },
   ];
 
   const adminItems: MenuItem[] = [

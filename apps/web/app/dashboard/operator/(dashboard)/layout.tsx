@@ -9,6 +9,7 @@ import { TooltipProvider } from "@moja/ui/components/ui/tooltip";
 import { OperatorSidebar } from "@/features/operator/components/operator-sidebar";
 import { getServerSession, getUser } from "@/lib/auth-server";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+import { NotificationInbox } from "@/features/notifications/components/notification-inbox";
 
 export default async function OperatorLayout({
   children,
@@ -46,7 +47,10 @@ export default async function OperatorLayout({
           >
             <OperatorSidebar user={fullUser} />
           </Suspense>
-          <SidebarInset className="min-h-0 min-w-0 bg-bg-base">
+          <SidebarInset className="min-h-0 min-w-0 bg-bg-base relative">
+            <div className="absolute right-4 top-1.5 z-40">
+              <NotificationInbox />
+            </div>
             <main className="flex min-h-0 flex-1 flex-col">{children}</main>
             <Toaster />
           </SidebarInset>

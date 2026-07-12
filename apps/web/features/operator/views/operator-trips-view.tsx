@@ -136,6 +136,21 @@ function formatDate(d: string | Date) {
   });
 }
 
+function formatHeaderDate(dateStr: string) {
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  if (year === undefined || month === undefined || day === undefined) return dateStr;
+  
+  // Construct Date object in the browser's local timezone
+  const d = new Date(year, month - 1, day);
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 function groupTripsByDate(trips: Trip[]): [string, Trip[]][] {
   const map = new Map<string, Trip[]>();
   for (const trip of trips) {
@@ -1334,7 +1349,7 @@ export function OperatorTripsView() {
               <div key={date}>
                 <div className="flex items-center gap-3 mb-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    {formatDate(date)}
+                    {formatHeaderDate(date)}
                   </h3>
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-[11px] text-muted-foreground">

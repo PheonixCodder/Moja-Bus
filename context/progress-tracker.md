@@ -8,8 +8,8 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | Passenger Booking + Operator Operations (late MVP) |
-| **Last major milestone** | Passenger & Operator Onboarding Redesigns (2026-07-09) |
+| **Phase** | Paystack Unified Treasury & Operator Withdrawals — Complete |
+| **Last major milestone** | Paystack Unified Treasury Migration & Operator Withdrawals (2026-07-10) |
 | **Web unit tests** | 47 passing (`pnpm test` in `apps/web`) |
 | **Next priority** | Booking Ownership Hardening |
 
@@ -26,6 +26,158 @@
 ---
 
 ## Milestone Log (newest first)
+
+### Novu Administrative & Verification Workflow Integration (2026-07-11)
+
+- [x] Implemented 9 new admin lifecycle workflows: `admin-operator-signup-pending`, `admin-bank-account-pending`, `admin-payout-failed`, `operator-bank-verified`, `operator-bank-rejected`, `operator-account-suspended`, `operator-account-restored`, `operator-withdrawal-resolved`, and `user-role-updated`.
+- [x] Wired verification and documents upload notification triggers into `completeOnboarding` and `resubmitVerification` mutations in `operator.ts` TRPC router.
+- [x] Wired operator bank accounts validation triggers into `addBankAccount` (operator), `verifyBankAccount` (admin), and `rejectBankAccount` (admin) mutations.
+- [x] Wired operator suspension & restoration alerts into `suspendCompany` and `activateCompany` mutations in `admin.ts`.
+- [x] Wired manual payout status resolution alerts into `resolveWithdrawal` (notifying operator of Settlement/Failure, and admins of Payout Errors).
+- [x] Wired platform user role privilege changes into `updateUserRole` security alert triggers.
+- [x] Resolved resolveWithdrawal transaction entry account mapping and TS compile narrowing bugs.
+- [x] Verified full compilation and Next.js production build succeeds with **0 errors**.
+
+### Novu Passenger & Operator Operational Workflow Integration (2026-07-11)
+
+- [x] Implemented 6 new operator dispatch board workflows: `passenger-trip-delayed`, `passenger-trip-cancelled`, `passenger-trip-boarding`, `passenger-trip-gate-updated`, `operator-bus-assigned`, and `passenger-review-request`.
+- [x] Implemented 5 new passenger lifecycle workflows: `passenger-hold-created`, `passenger-wallet-low-balance`, `passenger-review-submitted`, `passenger-profile-updated`, and `passenger-ticket-shared`.
+- [x] Created `shareTicket` protected mutation in `booking.ts` TRPC router to enable digital ticket URL sharing with friends/guests.
+- [x] Wired passenger triggers into `createHold` (holds), `confirmFromWallet` (insufficient balance), `submitReview` (reviews), `updatePreferences` (profile updates), and `shareTicket` (sharing).
+- [x] Wired operator triggers into `delay`, `cancel`, `updateStatus` (boarding/completed), and `setGate` mutations in the `trips.ts` TRPC router.
+- [x] Resolved strictNullChecks and session object differences (`ctx.user.fullName` -> `ctx.user.name` and terminal `cityRelation` null checks).
+- [x] Verified full compilation and Next.js production build succeeds with **0 errors**.
+
+### Novu Payment & Verification Workflow Integration (2026-07-11)
+
+- [x] Restructured `workflows/` directory into concern subfolders: `auth/`, `staff/`, `payments/`, and `admin/` to support enterprise organization standards.
+- [x] Implemented 9 new workflows for financial and admin operations: `passenger-booking-confirmed`, `passenger-booking-refunded`, `passenger-wallet-topup`, `operator-withdrawal-requested`, `operator-withdrawal-settled`, `operator-withdrawal-failed`, `operator-verification-approved`, `operator-verification-rejected`, and `admin-treasury-network-failure`.
+- [x] Wired triggers into `booking-receipt-email.ts` (booking confirmed), `cancellation-service.ts` (booking refunded), `payment-service.ts` (wallet top-up, payout settlement & failure webhooks), `operator.ts` (withdrawal requests, api network failure alerts), and `admin.ts` (operator verification approval and rejection).
+- [x] Resolved typecheck issues by replacing `user.name` references with `user.fullName` matching the PostgreSQL Prisma schema.
+- [x] Verified full compilation and Next.js production build bundles cleanly with **0 errors**.
+
+### Novu Framework & Workflow Trigger Implementation (2026-07-10)
+
+- [x] Installed Novu, React Email, and `zod-to-json-schema` dependencies in `apps/web`.
+- [x] Implemented code-first Bridge Endpoint route handler at [`app/api/novu/route.ts`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/app/api/novu/route.ts).
+- [x] Created five core authentication and invitation workflows: `auth-otp`, `operator-signup-otp`, `operator-staff-invite`, `staff-acceptance-alert`, and `operator-welcome`.
+- [x] refactored Better Auth dispatch hook in [`lib/auth-email.ts`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/lib/auth-email.ts) to trigger unified `auth-otp` with DB phone number fallback.
+- [x] Integrated workflow triggers in `operator` and `staff` TRPC routers with robust fallback routes.
+- [x] Verified full production packaging build succeeds with **0 errors**.
+
+### Centralized Ticket Scanner Upgrade (2026-07-10)
+
+- [x] Upgraded shared [`ticket-scanner.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/operator/components/ticket-scanner.tsx) to support both **Camera Scan** (via `html5-qrcode`) and **Enter Manually** inputs using interactive tabs.
+- [x] Replaced the mock animated check-in Dialog in [`operator-dashboard-view.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/operator/views/operator-dashboard-view.tsx) with the unified `<TicketScanner>` component.
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Operator Dispatch Board Timezone Fix (2026-07-10)
+
+- [x] Added `formatHeaderDate` inside [`operator-trips-view.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/operator/views/operator-trips-view.tsx) to parse `YYYY-MM-DD` grouping keys as local dates.
+- [x] Fixed date discrepancy between day headers (which double-shifted) and trip cards (which single-shifted).
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Passenger Bookings Completed Payment Selector Dialog (2026-07-10)
+
+- [x] Refactored [`passenger-bookings-view.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/booking/views/passenger-bookings-view.tsx) to launch a complete payment modal instead of opening Paystack inline popups directly.
+- [x] Enabled payment selector inside the modal, allowing passengers to check out holds from history using their Moja Wallet Balance (with waived convenience fees) or Card/Mobile Money.
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Decommissioned Split Config UI Cleanups (2026-07-10)
+
+- [x] Cleaned up verification dialog button labels and details inside [`admin-verification-view.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/admin/views/admin-verification-view.tsx) to use Paystack Transfer Recipient terminology.
+- [x] Cleaned up welcome card description inside [`admin-dashboard-view.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/admin/views/admin-dashboard-view.tsx) to refer to "activating company accounts."
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Booking Checkout Wallet Payment (2026-07-10)
+
+- [x] Added `confirmFromWallet` method to [`booking-confirmation-service.ts`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/payments/services/booking-confirmation-service.ts) to execute double-entry ledger transactions for wallet bookings.
+- [x] Added `checkoutWithWallet` mutation inside [`booking.ts`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/trpc/routers/booking.ts).
+- [x] Refactored [`booking-checkout-form.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/booking/components/booking-checkout-form.tsx) to query wallet balance, support toggling payment method, apply zero convenience fees, and confirm bookings instantly.
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Automated Payment Reconciliation Cron Job (2026-07-10)
+
+- [x] Added `paystackVerifyTransfer` helper inside [`paystack-client.ts`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/payments/providers/paystack-client.ts).
+- [x] Created `/api/cron/reconcile-payments` cron endpoint using `Promise.allSettled` to reconcile payouts and charges in parallel.
+- [x] Registered the cron route in [`vercel.json`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/vercel.json) to trigger every 5 minutes.
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Admin Payout Monitoring Queue (Withdrawals Queue) (2026-07-10)
+
+- [x] Added `listAllWithdrawals` and `resolveWithdrawal` procedures to admin TRPC router.
+- [x] Implemented double-entry manual resolution logic in `resolveWithdrawal` (force-completes or commits ledger reversal `PAYOUT_REVERSAL` to fail).
+- [x] Created client-side [`admin-withdrawals-view.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/admin/views/admin-withdrawals-view.tsx) view with status filters, pending volume statistics, and resolution modals.
+- [x] Created route wrapper page at [`apps/web/app/dashboard/admin/withdrawals/page.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/app/dashboard/admin/withdrawals/page.tsx).
+- [x] Added Withdrawal Queue link to [`admin-sidebar.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/admin/components/admin-sidebar.tsx).
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Admin Settlements & Ledger Auditor Redesign (2026-07-10)
+
+- [x] Added `getTreasuryOverview` query procedure to payments TRPC router.
+- [x] Updated `listLedgerEntries` query to support filtering by account class (`OPERATOR_RECEIVABLE`, `PAYSTACK_CLEARING`, `PLATFORM_FEES`).
+- [x] Added live Platform Treasury Overview cards displaying clearing and revenue balances in [`admin-settlements-view.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/admin/views/admin-settlements-view.tsx).
+- [x] Rebranded all manual record settlement controls to **Emergency Offline Settlement** with important warning notices.
+- [x] Integrated an account class selector in the Ledger Auditor tab to filter transaction logs dynamically.
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Operator Payout Settings & Payout History Table (2026-07-10)
+
+- [x] Added `listWithdrawals` query procedure to operator TRPC router.
+- [x] Implemented paginated `Withdrawal History Table` inside `/dashboard/operator/withdraw` (`operator-withdraw-view.tsx`) displaying date, status, gross payout, Paystack transfer fee, and net settled amount.
+- [x] Added `Withdrawal Settlement Notice` card and updated split payout descriptions in [`operator-settings-view.tsx`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/operator/views/operator-settings-view.tsx).
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Passenger Wallet Page Redesign & Backend Integration (2026-07-10)
+
+- [x] Added `getWalletBalance`, `getWalletLedger`, and `initiateWalletTopUp` TRPC functions to passenger router.
+- [x] Created client-side view component `PassengerWalletView` displaying live Available/Reserved balance cards, dynamic transaction histories, and a Paystack Top-Up dialog.
+- [x] Implemented a verification banner that polls balance status in the background when a Paystack top-up is pending.
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Paystack Unified Treasury Migration & Operator Withdrawals (2026-07-10)
+
+- [x] Migrated database schema to remove split subaccounts in favor of a central Moja Treasury. Added `clearedAt` for escrow clearing and withdrawal limits to `PlatformSettings`.
+- [x] Refactored `paystack-client.ts` and `payment-service.ts` to route all customer checkout and top-up funds directly to Moja's central Paystack account.
+- [x] Configured automatic operator bank validation to register operators as Paystack Transfer Recipients instead of Subaccounts.
+- [x] Implemented operator withdrawal TRPC endpoint (`operator.requestWithdrawal`) with double-entry ledger bookkeeping (DEBIT Operator Receivable Liability account, CREDIT System Clearing Asset account) via `AccountingEngine`. Integrated row-level `SELECT ... FOR UPDATE` locking to prevent race conditions/double-spending.
+- [x] Created operator self-serve withdrawal view `/dashboard/operator/withdraw` featuring Available vs Escrow balance display and payout request form.
+- [x] Implemented Paystack transfer webhook event handlers for `transfer.success`, `transfer.failed`, and `transfer.reversed` to automatically settle payouts or reverse them (restoring the operator's ledger balance via `AccountingEngine` double-entry reversing entries).
+- [x] Renamed and cleaned up all remaining references of `paystackSubaccountCode` to `paystackTransferRecipientCode`.
+- [x] Created UI/UX refactoring report at `docs/ui_refactoring.md`.
+- [x] Verified full type safety of the entire `web` workspace via `pnpm typecheck` with **0 errors**.
+
+### Financial Core — Phase 6 Monitoring (2026-07-10)
+
+- [x] Created `SnapshotService` (`packages/db/src/services/SnapshotService.ts`) with `take()`, `takeDaily()`, `takeWeekly()`, `takeMonthly()`, `getLatest()`, and `getTimeSeries()` — all idempotent via upsert on `@@unique([accountId, period, snapshotDate])`.
+- [x] Exported `SnapshotService` from `@moja/db`.
+- [x] Created `/api/cron/snapshot-accounts` route — runs DAILY every day, WEEKLY on Mondays, MONTHLY on the 1st.
+- [x] Registered cron in `vercel.json` at `0 0 * * *` (midnight UTC).
+- [x] Added `operator.getSnapshotTimeSeries` tRPC procedure for balance history charts.
+- [x] Added `operator.getAccountSnapshot` tRPC procedure for live + last-snapshot balance cards.
+- [x] TypeScript type check: **0 errors**.
+
+### Financial Core — Phase 5 Schema Cleanup (2026-07-10)
+
+- [x] Removed `LedgerEntryType` enum from schema.
+- [x] Removed `LedgerSourceType` enum from schema.
+- [x] Removed `OperatorLedgerEntry` model from schema.
+- [x] Removed back-relations from `Company`, `HoldGroup`, `ExternalPayment`.
+- [x] Migration `20260710104709_drop_operator_ledger_entry` applied — `DROP TABLE operator_ledger_entry`, `DROP TYPE "LedgerEntryType"`, `DROP TYPE "LedgerSourceType"`.
+- [x] Prisma Client regenerated — removed types no longer exist in generated code.
+- [x] TypeScript type check: **0 errors**.
+
+### Financial Core — Phase 4 Cutover (2026-07-10)
+
+- [x] Switched `payments.listLedgerEntries` to read from `LedgerEntry` (new Financial Core) — returns data in existing shape for frontend compatibility.
+- [x] Switched `payments.exportOperatorLedger` to use `FinancialAccountService.postedBalance` + `LedgerEntry` rows.
+- [x] Switched `payments.recordSettlement` to write via `AccountingEngine` (SETTLEMENT transaction, double-entry) instead of `OperatorLedgerEntry.create`.
+- [x] Removed `OperatorLedgerService` class (deleted `operator-ledger-service.ts`). Zero remaining references outside migration scripts.
+- [x] `BookingConfirmationService` now idempotency-checks against `FinancialTransaction` instead of legacy `OperatorLedgerEntry`; also removed parallel legacy write.
+- [x] `CancellationService` refund now writes exclusively via `AccountingEngine` (REFUND transaction).
+- [x] `operator.ts` `getFinancialReport` recentLedger and refund queries fully use new Financial Core.
+- [x] `AccountingEngine` extended with `metadata` support (stored in `FinancialTransaction.metadata`).
+- [x] TypeScript type-check: **0 errors** after all changes.
 
 ### Passenger & Operator Onboarding Redesigns (2026-07-09)
 
@@ -267,10 +419,13 @@
 
 - [x] `Review` model is stub only (no rating/content fields in use)
 
-### Notification Domain — NOT STARTED
+### Notification Domain — MOSTLY COMPLETE (Core Infrastructure)
 
-- [ ] Push (mobile), SMS, in-app notification center
-- [x] Resend email for auth OTP + staff invitations
+- [x] Restructured concern-based folder structure (auth, staff, payments, admin)
+- [x] Auth & Staff workflows (unified OTP, business pre-verification, invite email, accept alerts, onboarding guides)
+- [x] Payments & Withdrawals workflows (confirmed receipts, wallet topups, operator requests, settlements, failure alerts, admin treasury failures)
+- [x] Operator verification status approval and rejection workflows
+- [ ] Mobile app push notification gateway integration
 
 ### Mobile App — MINIMAL
 
@@ -367,5 +522,5 @@ Agent app, driver app, multi-country, cargo, subscriptions, loyalty, public API
 4. **When blocked** — add to Blockers & Risks
 5. **End of session** — run `/remember save` and sync this file
 
-**Last updated:** 2026-07-09  
-**Updated by:** Antigravity agent (Operator Overview Redesign + TypeScript compile fixes)
+**Last updated:** 2026-07-11  
+**Updated by:** Antigravity agent (Novu Payment & Verification Integration)

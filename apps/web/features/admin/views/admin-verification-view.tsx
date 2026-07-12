@@ -66,7 +66,7 @@ export function AdminVerificationView() {
   const verifyMutation = useMutation(
     trpc.admin.verifyOperator.mutationOptions({
       onSuccess: (res) => {
-        toast.success(`Company approved! Paystack subaccount ${res.subaccountCode} created.`);
+        toast.success(`Company approved! Paystack transfer recipient ${res.recipientCode} created.`);
         setIsApproveOpen(false);
         setSelectedCompany(null);
         queryClient.invalidateQueries(trpc.admin.listPendingOperators.pathFilter());
@@ -382,7 +382,7 @@ export function AdminVerificationView() {
                     setIsApproveOpen(true);
                   }}
                 >
-                  Approve & Create Subaccount
+                  Verify & Register Recipient
                 </Button>
               </div>
             </div>
@@ -396,10 +396,10 @@ export function AdminVerificationView() {
           <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
             <DialogHeader>
               <DialogTitle className="text-lg font-bold text-slate-900">
-                Verify and Create Paystack Subaccount
+                Verify & Register Transfer Recipient
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                To enable dynamic payment splits, map the bank details below to the correct Ivory Coast bank code.
+                To enable withdrawals, map the bank details below to the correct Ivory Coast bank code to create the Paystack Transfer Recipient.
               </DialogDescription>
             </DialogHeader>
 

@@ -32,7 +32,7 @@ export function TicketDetailView({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [refundChannel, setRefundChannel] = useState<"PAYSTACK" | "VOUCHER">("PAYSTACK");
+  const [refundChannel, setRefundChannel] = useState<"WALLET" | "VOUCHER">("WALLET");
   const [cancelReason, setCancelReason] = useState("");
 
   const { data: ticket, isLoading, isError } = useQuery(
@@ -164,17 +164,17 @@ export function TicketDetailView({
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setRefundChannel("PAYSTACK")}
+                  onClick={() => setRefundChannel("WALLET")}
                   className={cn(
                     "p-3 rounded-md border text-center text-xs font-semibold transition-all",
-                    refundChannel === "PAYSTACK"
+                    refundChannel === "WALLET"
                       ? "border-red-600 bg-red-50 text-red-700"
                       : "border-slate-200 hover:border-slate-300 text-slate-700"
                   )}
                 >
-                  Paystack Refund
+                  Wallet Refund
                   <span className="block text-[9px] text-slate-400 font-normal mt-0.5">
-                    Original Card/Wallet
+                    Moja Ride Wallet (Instant)
                   </span>
                 </button>
                 <button

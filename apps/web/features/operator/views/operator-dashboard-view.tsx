@@ -33,6 +33,7 @@ import { Progress } from "@moja/ui/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@moja/ui/components/ui/dialog";
 import { Input } from "@moja/ui/components/ui/input";
 import { toast } from "sonner";
+import { TicketScanner } from "@/features/operator/components/ticket-scanner";
 
 export function OperatorDashboardView() {
   const trpc = useTRPC();
@@ -40,8 +41,6 @@ export function OperatorDashboardView() {
   
   // State for Check-in dialog
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
-  const [ticketTokenInput, setTicketTokenInput] = useState("");
-  const [isSubmittingCheckIn, setIsSubmittingCheckIn] = useState(false);
 
   // Fetch status and live metrics
   const { data: onboardingData } = useSuspenseQuery(
@@ -72,40 +71,11 @@ export function OperatorDashboardView() {
   // Check-in mutation
   const checkInMutation = useMutation({
     ...trpc.operator.checkInBooking.mutationOptions(),
-    onSuccess: (result) => {
-      if (result.alreadyCheckedIn) {
-        toast.info(`${result.passengerName} was already checked in`);
-      } else {
-        toast.success(`Successfully checked in ${result.passengerName} (Seat ${result.seatLabel})`);
-      }
-      setIsCheckInOpen(false);
-      setTicketTokenInput("");
+    onSuccess: () => {
       // Invalidate queries to refresh stats
       queryClient.invalidateQueries(trpc.operator.getDashboardMetrics.queryFilter());
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to check in passenger. Please verify the ticket code.");
-    },
   });
-
-  const handleCheckInSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!ticketTokenInput.trim()) {
-      toast.error("Please enter a valid ticket reference or token");
-      return;
-    }
-
-    setIsSubmittingCheckIn(true);
-    try {
-      await checkInMutation.mutateAsync({
-        ticketToken: ticketTokenInput.trim(),
-      });
-    } catch (err) {
-      // Handled by onError in the mutation
-    } finally {
-      setIsSubmittingCheckIn(false);
-    }
-  };
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("fr-CI", {
@@ -507,76 +477,22 @@ export function OperatorDashboardView() {
         </div>
       )}
 
-      {/* Interactive Scan & Check-in Dialog */}
-      <Dialog open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
-        <DialogContent className="sm:max-w-md bg-white border border-border rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
-              <ScanLine className="w-5 h-5 text-primary" />
-              Ticket Verification & Check-In
-            </DialogTitle>
-            <DialogDescription className="text-xs text-text-muted">
-              Verify a passenger's ticket by scanning the QR code or entering the ticket code/reference below.
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Simulated Scanner Visualizer */}
-          <div className="relative aspect-video rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col items-center justify-center text-center text-slate-400 p-6 space-y-3">
-            <div className="absolute inset-0 bg-linear-to-b from-primary/10 to-transparent pointer-events-none animate-pulse" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-24 border-2 border-dashed border-primary/40 rounded flex items-center justify-center">
-              <div className="w-full h-0.5 bg-primary/80 absolute top-0 left-0 right-0 animate-bounce" />
-            </div>
-            <QrCode className="w-10 h-10 text-slate-500 animate-pulse" />
-            <div>
-              <p className="text-xs font-bold text-slate-200">Interactive Camera Ready</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Point boarding pass QR code at the scanner</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleCheckInSubmit} className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <label htmlFor="ticket-token" className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">
-                Ticket Token or Reference Number
-              </label>
-              <div className="relative">
-                <Input
-                  id="ticket-token"
-                  placeholder="Enter code (e.g. MOB-ABCD1 or Token)"
-                  value={ticketTokenInput}
-                  onChange={(e) => setTicketTokenInput(e.target.value)}
-                  disabled={isSubmittingCheckIn}
-                  className="pr-10 h-10 border-border text-sm shadow-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted">
-                  <Search className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsCheckInOpen(false);
-                  setTicketTokenInput("");
-                }}
-                disabled={isSubmittingCheckIn}
-                className="border-border text-text-primary hover:bg-bg-elevated h-9 text-xs font-semibold px-4 rounded-lg"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmittingCheckIn || !ticketTokenInput.trim()}
-                className="bg-primary hover:bg-primary/95 text-white h-9 text-xs font-bold px-4 rounded-lg shadow-sm"
-              >
-                {isSubmittingCheckIn ? "Checking in..." : "Confirm Boarding"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Upgraded Camera Scanner & Manual Input dialog */}
+      <TicketScanner
+        open={isCheckInOpen}
+        onOpenChange={setIsCheckInOpen}
+        onScan={async (rawValue) => {
+          const result = await checkInMutation.mutateAsync({
+            ticketToken: rawValue,
+          });
+          return {
+            passengerName: result.passengerName,
+            seatLabel: result.seatLabel,
+            bookingReference: result.bookingReference,
+            alreadyCheckedIn: result.alreadyCheckedIn || false,
+          };
+        }}
+      />
 
     </div>
   );

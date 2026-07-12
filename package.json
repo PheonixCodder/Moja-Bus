@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.34.4",
   "scripts": {
     "dev": "turbo dev",
+    "dev:novu": "npx novu@latest dev --port 3000",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",

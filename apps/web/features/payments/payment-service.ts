@@ -14,6 +14,7 @@ import {
   paystackVerify,
 } from "./providers/paystack-client";
 import { BookingConfirmationService } from "./services/booking-confirmation-service";
+import { AccountingEngine, FinancialAccountService } from "@moja/db";
 
 export type InitiatePaymentResult = {
   holdGroupId: string;
@@ -75,16 +76,7 @@ export class PaymentService {
       payerEmail?.trim() ||
       holdGroup.bookings[0]?.passengerPhone.replace(/\s+/g, "") + "@guest.mojaride.ci";
 
-    const activeBankAccount = await this.prisma.bankAccount.findFirst({
-      where: {
-        companyId: holdGroup.companyId,
-        isDefault: true,
-        isVerified: true,
-      },
-      select: { paystackSubaccountCode: true },
-    });
-
-    const payment = await this.prisma.payment.findUnique({
+    const payment = await this.prisma.externalPayment.findUnique({
       where: { holdGroupId: holdGroup.id },
       include: { attempts: { orderBy: { attemptNumber: "desc" }, take: 1 } },
     });
@@ -106,7 +98,7 @@ export class PaymentService {
       }
       attemptNumber = (paymentRecord.attempts[0]?.attemptNumber ?? 0) + 1;
     } else {
-      paymentRecord = await this.prisma.payment.create({
+      paymentRecord = await this.prisma.externalPayment.create({
         data: {
           holdGroupId: holdGroup.id,
           provider: "PAYSTACK",
@@ -131,7 +123,6 @@ export class PaymentService {
         holdGroupId: holdGroup.id,
         offerId: holdGroup.offerId,
       },
-      subaccountCode: activeBankAccount?.paystackSubaccountCode || null,
       ...(callbackUrl ? { callbackUrl } : {}),
     });
 
@@ -146,7 +137,7 @@ export class PaymentService {
         },
       });
 
-      await tx.payment.update({
+      await tx.externalPayment.update({
         where: { id: paymentRecord!.id },
         data: {
           status: "PENDING",
@@ -189,7 +180,7 @@ export class PaymentService {
     reference: string,
     userId?: string | null,
   ): Promise<import("@moja/types").ConfirmedBookingResult> {
-    const payment = await this.prisma.payment.findFirst({
+    const payment = await this.prisma.externalPayment.findFirst({
       where: { paystackReference: reference },
       include: { holdGroup: true },
     });
@@ -202,6 +193,9 @@ export class PaymentService {
     }
 
     if (payment.status === "SUCCESS") {
+      if (!payment.holdGroupId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Missing hold group ID" });
+      }
       return this.confirmationService.confirmFromPayment(
         payment.holdGroupId,
         userId,
@@ -211,7 +205,7 @@ export class PaymentService {
     const verified = await paystackVerify(reference);
 
     if (verified.status !== "success") {
-      await this.prisma.payment.update({
+      await this.prisma.externalPayment.update({
         where: { id: payment.id },
         data: { status: verified.status === "failed" ? "FAILED" : "PENDING" },
       });
@@ -228,11 +222,43 @@ export class PaymentService {
       });
     }
 
+    if (!payment.holdGroupId) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Missing hold group ID" });
+    }
+
     await this.markPaymentSuccess(payment.id, verified);
     return this.confirmationService.confirmFromPayment(
       payment.holdGroupId,
       userId,
     );
+  }
+
+  async verifyTopUp(reference: string): Promise<{ success: boolean }> {
+    const payment = await this.prisma.externalPayment.findFirst({
+      where: { paystackReference: reference },
+    });
+
+    if (!payment) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Payment reference not found",
+      });
+    }
+
+    if (payment.status === "SUCCESS") {
+      return { success: true };
+    }
+
+    const verified = await paystackVerify(reference);
+    if (verified.status === "success") {
+      await this.markPaymentSuccess(payment.id, verified);
+      if ((payment.metadata as any)?.isTopUp) {
+        await this.processTopUp(payment);
+      }
+      return { success: true };
+    }
+
+    return { success: false };
   }
 
   async handleWebhookEvent(payload: {
@@ -270,6 +296,19 @@ export class PaymentService {
       update: {},
     });
 
+    if (
+      payload.event === "transfer.success" ||
+      payload.event === "transfer.failed" ||
+      payload.event === "transfer.reversed"
+    ) {
+      await this.handleTransferWebhook(payload);
+      await this.prisma.webhookEvent.update({
+        where: { idempotencyKey },
+        data: { processedAt: new Date() },
+      });
+      return { handled: true };
+    }
+
     if (payload.event !== "charge.success") {
       await this.prisma.webhookEvent.update({
         where: { idempotencyKey },
@@ -278,7 +317,7 @@ export class PaymentService {
       return { handled: true };
     }
 
-    const payment = await this.prisma.payment.findFirst({
+    const payment = await this.prisma.externalPayment.findFirst({
       where: { paystackReference: reference },
     });
 
@@ -297,10 +336,19 @@ export class PaymentService {
       const verified = await paystackVerify(reference);
       if (verified.status === "success") {
         await this.markPaymentSuccess(payment.id, verified);
-        await this.confirmationService.confirmFromPayment(payment.holdGroupId);
+        if (payment.holdGroupId) {
+          await this.confirmationService.confirmFromPayment(payment.holdGroupId);
+        } else if ((payment.metadata as any)?.isTopUp) {
+          await this.processTopUp(payment);
+        }
       }
     } else {
-      await this.confirmationService.confirmFromPayment(payment.holdGroupId);
+      if (payment.holdGroupId) {
+        await this.confirmationService.confirmFromPayment(payment.holdGroupId);
+      } else if ((payment.metadata as any)?.isTopUp) {
+        // already processed if success, but we can make processTopUp idempotent
+        await this.processTopUp(payment);
+      }
     }
 
     await this.prisma.webhookEvent.update({
@@ -311,19 +359,224 @@ export class PaymentService {
     return { handled: true };
   }
 
+  private async handleTransferWebhook(payload: any) {
+    const reference = payload.data.reference; // This is the TxID of the original FinancialTransaction
+    if (!reference) return;
+
+    const tx = await this.prisma.financialTransaction.findUnique({
+      where: { id: reference },
+      include: { entries: true },
+    });
+
+    if (!tx) return;
+
+    if (payload.event === "transfer.success") {
+      if (tx.status !== "SETTLED") {
+        await this.prisma.financialTransaction.update({
+          where: { id: tx.id },
+          data: { status: "SETTLED" },
+        });
+      }
+    } else if (payload.event === "transfer.failed" || payload.event === "transfer.reversed") {
+      if (tx.status !== "FAILED" && tx.status !== "REVERSED") {
+        // Reverse the ledger entries
+        await this.prisma.$transaction(async (prismaTx) => {
+          const engine = new AccountingEngine("PAYOUT_REVERSAL", {
+            ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
+            description: `Reversal for failed transfer ${reference}`,
+            metadata: { originalTxId: reference, reason: payload.data.reason, paystackRef: payload.data.transfer_code ?? payload.data.id?.toString() },
+          });
+
+          // Original: DEBIT Operator Liability, CREDIT System Asset
+          // Reversal: CREDIT Operator Liability, DEBIT System Asset
+          for (const entry of tx.entries) {
+            if (entry.side === "DEBIT") {
+              engine.addCredit({
+                accountId: entry.accountId,
+                amount: Number(entry.amount),
+                sequenceNumber: entry.sequenceNumber,
+              });
+            } else {
+              engine.addDebit({
+                accountId: entry.accountId,
+                amount: Number(entry.amount),
+                sequenceNumber: entry.sequenceNumber,
+              });
+            }
+          }
+
+          await engine.commit(prismaTx as any);
+
+          await prismaTx.financialTransaction.update({
+            where: { id: tx.id },
+            data: { status: "FAILED" },
+          });
+        });
+      }
+    }
+
+    // Trigger Novu payout settlement/failure notifications
+    const meta = tx.metadata as any;
+    if (meta && meta.requestedBy && meta.bankAccountId) {
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { id: meta.requestedBy },
+          select: { email: true, fullName: true, phone: true },
+        });
+        const bankAccount = await this.prisma.bankAccount.findUnique({
+          where: { id: meta.bankAccountId },
+          include: { company: true },
+        });
+
+        if (user?.email && bankAccount) {
+          const novuSecret = process.env["NOVU_SECRET_KEY"];
+          if (novuSecret) {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            const amountXOF = tx.entries[0] ? Number(tx.entries[0].amount) : 0;
+            const phone = user.phone?.replace(/\s+/g, "");
+
+            if (payload.event === "transfer.success") {
+              await novu.trigger({
+                workflowId: "operator-withdrawal-settled",
+                to: {
+                  subscriberId: user.email,
+                  email: user.email,
+                },
+                payload: {
+                  email: user.email,
+                  ownerName: user.fullName ?? "Operator Owner",
+                  companyName: bankAccount.company.name,
+                  amountXOF,
+                  bankName: bankAccount.bankName,
+                  accountNumberLast4: bankAccount.accountNumberLast4,
+                  transactionId: tx.id,
+                  settledAt: new Date().toLocaleString("en-CI"),
+                  ...(phone ? { phone } : {}),
+                },
+              });
+            } else if (payload.event === "transfer.failed" || payload.event === "transfer.reversed") {
+              await novu.trigger({
+                workflowId: "operator-withdrawal-failed",
+                to: {
+                  subscriberId: user.email,
+                  email: user.email,
+                },
+                payload: {
+                  email: user.email,
+                  ownerName: user.fullName ?? "Operator Owner",
+                  companyName: bankAccount.company.name,
+                  amountXOF,
+                  bankName: bankAccount.bankName,
+                  accountNumberLast4: bankAccount.accountNumberLast4,
+                  transactionId: tx.id,
+                  reason: payload.data.reason || "Bank transaction rejected by destination network",
+                  ...(phone ? { phone } : {}),
+                },
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to trigger operator-withdrawal notification via Novu:", error);
+      }
+    }
+  }
+
+  private async processTopUp(payment: any) {
+    const meta = payment.metadata as any;
+    if (!meta || !meta.accountId) return;
+    
+    // Make sure we haven't already posted this top up. We check if there's a transaction.
+    const existingTx = await this.prisma.financialTransaction.findFirst({
+      where: { externalPaymentId: payment.id, type: "TOP_UP" },
+    });
+
+    if (existingTx) return;
+
+    const accountService = new FinancialAccountService(this.prisma);
+    const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+
+    await this.prisma.$transaction(async (tx) => {
+      const engine = new AccountingEngine("TOP_UP", {
+        externalPaymentId: payment.id,
+        description: `Wallet top up via Paystack`,
+      });
+
+      engine.addDebit({
+        accountId: clearingAcct.id,
+        amount: payment.amountXOF,
+        sequenceNumber: 1,
+        referenceType: "PAYMENT_ID",
+        referenceId: payment.id,
+        description: "Funds received from Paystack",
+      });
+
+      engine.addCredit({
+        accountId: meta.accountId,
+        amount: payment.amountXOF,
+        sequenceNumber: 2,
+        referenceType: "PAYMENT_ID",
+        referenceId: payment.id,
+        description: "Wallet top up",
+      });
+
+      engine.validate();
+      await engine.commit(tx as any);
+    });
+
+    if (meta.userId) {
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const user = await this.prisma.user.findUnique({
+            where: { id: meta.userId },
+            select: { email: true, fullName: true },
+          });
+          if (user?.email) {
+            const { Novu } = await import("@novu/api");
+            const novu = new Novu({ secretKey: novuSecret });
+            await novu.trigger({
+              workflowId: "passenger-wallet-topup",
+              to: {
+                subscriberId: user.email,
+                email: user.email,
+              },
+              payload: {
+                email: user.email,
+                passengerName: user.fullName ?? "Traveler",
+                amountXOF: payment.amountXOF,
+                transactionId: payment.id,
+                paymentMethod: payment.channel || "Paystack",
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Failed to trigger passenger-wallet-topup via Novu:", error);
+        }
+      }
+    }
+  }
+
   private async markPaymentSuccess(
     paymentId: string,
     verified: Awaited<ReturnType<typeof paystackVerify>>,
   ) {
     await this.prisma.$transaction(async (tx) => {
-      await tx.payment.update({
+      const existingPayment = await tx.externalPayment.findUnique({
+        where: { id: paymentId },
+        select: { metadata: true }
+      });
+      const existingMeta = (existingPayment?.metadata as object) || {};
+
+      await tx.externalPayment.update({
         where: { id: paymentId },
         data: {
           status: "SUCCESS",
           channel: verified.channel,
           feesXOF: verified.feesXOF,
           confirmedAt: verified.paidAt ? new Date(verified.paidAt) : new Date(),
-          metadata: { verifyRaw: verified.raw as object },
+          metadata: { ...existingMeta, verifyRaw: verified.raw as object },
         },
       });
 

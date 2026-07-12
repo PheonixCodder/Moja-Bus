@@ -11,6 +11,7 @@ export const metadata = {
 
 export default async function AdminSettlementsPage() {
   await prefetch(trpc.public.listOperators.queryOptions());
+  await prefetch(trpc.payments.getTreasuryOverview.queryOptions());
   await prefetch(
     trpc.payments.listLedgerEntries.queryOptions({
       limit: 20,
