@@ -4,6 +4,7 @@ import { createTRPCRouter, publicProcedure, protectedProcedure } from "../init";
 import crypto from "node:crypto";
 import { Novu } from "@novu/api";
 
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared select shape returned to the client
 // ─────────────────────────────────────────────────────────────────────────────
@@ -118,34 +119,27 @@ export const invitationRouter = createTRPCRouter({
         });
       }
 
-      let userId: string;
-      let userName: string;
-
-      if (ctx.user) {
-        // Logged-in user must match the invitation email
-        if (ctx.user.email !== invitation.email) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: `This invitation was sent to ${invitation.email}. Please sign in with that account.`,
-          });
-        }
-        userId = ctx.user.id;
-        userName = ctx.user.name ?? "A new member";
-      } else {
-        // User not logged in, look them up by email in DB
-        const dbUser = await ctx.prisma.user.findUnique({
-          where: { email: invitation.email },
-        });
-
-        if (!dbUser) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "User account not found. Please register first.",
-          });
-        }
-        userId = dbUser.id;
-        userName = dbUser.fullName;
+      // If the user is NOT logged in, redirect them to OTP sign-in.
+      // The invitation token is preserved as a query param so acceptance
+      // completes automatically after they verify their identity.
+      if (!ctx.user) {
+        return {
+          requiresAuth: true as const,
+          email: invitation.email,
+          companyName: invitation.company.name,
+        };
       }
+
+      // Logged-in user must match the invitation email
+      if (ctx.user.email !== invitation.email) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `This invitation was sent to ${invitation.email}. Please sign in with that account.`,
+        });
+      }
+
+      const userId = ctx.user.id;
+      const userName = ctx.user.name ?? "A new member";
 
       // Check if the user is already a member of this company
       const existingMembership = await ctx.prisma.operator.findFirst({
@@ -200,6 +194,8 @@ export const invitationRouter = createTRPCRouter({
           },
         }),
       ]);
+
+      // Session is managed by Better Auth natively — no manual createSession needed.
 
       // Trigger Novu staff invitation acceptance alert to the inviter
       const novuSecret = process.env["NOVU_SECRET_KEY"];

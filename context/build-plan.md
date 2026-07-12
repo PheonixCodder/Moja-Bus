@@ -302,19 +302,19 @@ Each phase delivers **shippable value**:
 #### Sprint 5.3 - Digital Wallet
 | Task | Status | Priority |
 |------|--------|----------|
-| Define wallet schema | ⏳ | Medium |
-| Implement wallet service | ⏳ | Medium |
-| Create wallet UI | ⏳ | Medium |
-| Implement top-up functionality | ⏳ | Medium |
-| Implement balance tracking | ⏳ | Medium |
+| Define wallet schema | ✅ | Medium |
+| Implement wallet service | ✅ | Medium |
+| Create wallet UI | ✅ | Medium |
+| Implement top-up functionality | ✅ | Medium |
+| Implement balance tracking | ✅ | Medium |
 
 #### Sprint 5.4 - Refund System
 | Task | Status | Priority |
 |------|--------|----------|
-| Define refund schema | ⏳ | Medium |
-| Implement refund service | ⏳ | Medium |
-| Create refund request flow | ⏳ | Medium |
-| Implement refund processing | ⏳ | Medium |
+| Define refund schema | ✅ | Medium |
+| Implement refund service | ✅ | Medium |
+| Create refund request flow | ✅ | Medium |
+| Implement refund processing | ✅ | Medium |
 
 **Deliverables**:
 - ✅ Passengers can pay securely via Paystack
@@ -325,7 +325,7 @@ Each phase delivers **shippable value**:
 - [x] Payment success rate > 95%
 - [x] Paystack integration works
 - [x] Refunds are processed automatically
-- [ ] Wallet balance is accurate
+- [x] Wallet balance is accurate and secured with BigInt migration
 
 ---
 
@@ -337,11 +337,11 @@ Each phase delivers **shippable value**:
 #### Sprint 6.1 - Notifications
 | Task | Status | Priority |
 |------|--------|----------|
+| Implement email notifications (Novu) | ✅ | High |
 | Implement push notifications (mobile) | ⏳ | High |
-| Implement email notifications | ⏳ | High |
 | Implement SMS notifications | ⏳ | Medium |
-| Create notification preferences | ⏳ | Medium |
-| Create in-app notification center | ⏳ | Medium |
+| Create notification preferences | ✅ | Medium |
+| Create in-app notification center | ✅ | Medium |
 
 #### Sprint 6.2 - Reviews & Ratings
 | Task | Status | Priority |
@@ -412,8 +412,11 @@ Each phase delivers **shippable value**:
 - ✅ Operator onboarding and overview redesigned
 
 **Acceptance Criteria**:
-- [ ] All notifications work correctly
+- [x] All email and in-app notifications work correctly and are secured against XSS
 - [ ] Reviews are displayed and aggregated
+- [ ] Admin can manage the platform
+- [ ] Performance metrics meet targets
+- [ ] App is accessible
 - [ ] Admin can manage the platform
 - [ ] Performance metrics meet targets
 - [ ] App is accessible
@@ -457,9 +460,9 @@ Each phase delivers **shippable value**:
 | Phase 1 - Foundation | 9 | Completed | All | ✅ |
 | Phase 2 - Discovery | 25 | Completed | 2-3 | ✅ |
 | Phase 3 - Booking | 25 | Completed | 2-3 | ✅ |
-| Phase 4 - Operations | 20 | Mostly Completed | 2 | ⏳ |
-| Phase 5 - Payments | 15 | Mostly Completed | 1-2 | ⏳ |
-| Phase 6 - Polish | 37 | 4-5 weeks | All | ⏳ |
+| Phase 4 - Operations | 20 | Completed | 2 | ✅ |
+| Phase 5 - Payments | 15 | Completed | 1-2 | ✅ |
+| Phase 6 - Polish | 37 | Mostly Completed | All | ⏳ |
 | Phase 7 - Launch | 15 | 2 weeks | All | ⏳ |
 | **Total** | **146** | **23-25 weeks** | - | - |
 
@@ -602,7 +605,8 @@ Each feature must pass these gates before merging:
 ## Summary
 
 **Total Estimated Duration**: 21-23 weeks (~5-6 months)
-**Current Phase**: Phase 5 Complete, Hardening Phase 6
+**Total Estimated Duration**: 21-23 weeks (~5-6 months)
+**Current Phase**: Phase 5 and core Phase 6 Complete, Finalizing Hardening Phase 6
 **Next Milestone**: Polish & Launch
 
 **Priority Order**:

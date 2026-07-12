@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   BusFront,
@@ -9,6 +9,8 @@ import {
   Loader2,
   ArrowRight,
   Building2,
+  Mail,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
@@ -17,18 +19,18 @@ import { Label } from "@moja/ui/components/ui/label";
 
 import { useTRPC } from "@/trpc/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { signIn, signUp } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { InviteRoleBadge } from "../components/invite-role-badge";
 import { ROLE_LABELS } from "@/features/operator/lib/staff";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Local step type
+// Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-type Step = "welcome" | "sign-in" | "create-account" | "joining" | "done";
+type Step = "welcome" | "create-account" | "sign-in" | "otp" | "done";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Branding header — shared across all steps
+// Branding header
 // ─────────────────────────────────────────────────────────────────────────────
 
 function BrandHeader() {
@@ -55,12 +57,15 @@ export function InvitationView() {
 
   const [step, setStep] = useState<Step>("welcome");
   const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [isNewUser, setIsNewUser] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const trpc = useTRPC();
 
-  // ── tRPC: validate the token (runs on mount) ────────────────────────────
+  // ── tRPC: validate the token ────────────────────────────────────────────────
   const {
     data: invitation,
     isLoading,
@@ -71,93 +76,106 @@ export function InvitationView() {
     retry: false,
   });
 
-  // ── tRPC: accept mutation ────────────────────────────────────────────────
+  // ── tRPC: accept mutation ────────────────────────────────────────────────────
   const acceptMutation = useMutation({
     ...trpc.invitation.accept.mutationOptions(),
   });
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
-
-  async function handleAccept() {
-    try {
-      await acceptMutation.mutateAsync({ token });
-      setStep("done");
-      setTimeout(() => router.push("/dashboard/operator"), 2500);
-    } catch (err: any) {
-      toast.error(err.message ?? "Failed to accept invitation");
-    }
+  // ── Cooldown timer for resend ─────────────────────────────────────────────
+  function startResendCooldown() {
+    setResendCooldown(60);
+    cooldownRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          if (cooldownRef.current) clearInterval(cooldownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   }
 
-  async function handleCreateAccount() {
+  // ── Send OTP helper ───────────────────────────────────────────────────────
+  async function sendOtp(email: string): Promise<boolean> {
+    const { error } = await authClient.emailOtp.sendVerificationOtp({
+      email,
+      type: "sign-in",
+    });
+    if (error) {
+      toast.error(error.message ?? "Failed to send verification code.");
+      return false;
+    }
+    startResendCooldown();
+    return true;
+  }
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+
+  async function handleSendOtpNewUser() {
     if (!fullName.trim()) {
       toast.error("Full name is required");
       return;
     }
-    if (!password || password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
     if (!invitation) return;
-
     setSubmitting(true);
-    try {
-      const { error: signUpError } = await signUp.email({
-        name: fullName,
-        email: invitation.email,
-        password,
-      });
-
-      if (signUpError) {
-        toast.error(signUpError.message ?? "Failed to create account");
-        return;
-      }
-
-      // 1. Accept the invitation (marks emailVerified: true and creates Operator profile)
-      await acceptMutation.mutateAsync({ token });
-
-      // 2. Sign in to establish the session cookie (now that emailVerified: true in DB)
-      const { error: signInError } = await signIn.email({
-        email: invitation.email,
-        password,
-      });
-
-      if (signInError) {
-        toast.error("Joined successfully! Please sign in.");
-        router.push("/login");
-        return;
-      }
-
-      setStep("done");
-      setTimeout(() => router.push("/dashboard/operator"), 2500);
-    } catch (err: any) {
-      toast.error(err.message ?? "Failed to accept invitation");
-    } finally {
-      setSubmitting(false);
+    const ok = await sendOtp(invitation.email);
+    if (ok) {
+      setIsNewUser(true);
+      setStep("otp");
     }
+    setSubmitting(false);
   }
 
-  async function handleSignIn() {
-    if (!password) {
-      toast.error("Password is required");
+  async function handleSendOtpExistingUser() {
+    if (!invitation) return;
+    setSubmitting(true);
+    const ok = await sendOtp(invitation.email);
+    if (ok) {
+      setIsNewUser(false);
+      setStep("otp");
+    }
+    setSubmitting(false);
+  }
+
+  async function handleResendOtp() {
+    if (!invitation || resendCooldown > 0) return;
+    setSubmitting(true);
+    await sendOtp(invitation.email);
+    toast.success("Code resent!");
+    setSubmitting(false);
+  }
+
+  async function handleVerifyOtp() {
+    if (otpCode.length < 6) {
+      toast.error("Please enter the full 6-digit code");
       return;
     }
     if (!invitation) return;
 
     setSubmitting(true);
     try {
-      const { error: signInError } = await signIn.email({
+      // converged flow — creates user if new, signs in if existing
+      const { error } = await authClient.signIn.emailOtp({
         email: invitation.email,
-        password,
+        otp: otpCode,
+        ...(isNewUser && fullName ? { name: fullName } : {}),
       });
 
-      if (signInError) {
-        toast.error(
-          signInError.message ?? "Sign in failed. Please check your password.",
-        );
+      if (error) {
+        let msg = error.message ?? "Invalid verification code.";
+        if (error.code === "TOO_MANY_ATTEMPTS") {
+          msg = "Too many attempts. Please request a new code later.";
+        } else if (error.code === "INVALID_OTP") {
+          msg = "Invalid verification code. Please check and try again.";
+        } else if (error.code === "OTP_EXPIRED") {
+          msg = "Verification code has expired. Please request a new code.";
+        }
+        toast.error(msg);
+        setSubmitting(false);
         return;
       }
 
-      // Accept the invitation for the signed-in user
+      // Session is established — now accept the invitation
       await acceptMutation.mutateAsync({ token });
 
       setStep("done");
@@ -186,8 +204,7 @@ export function InvitationView() {
               Invalid Link
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
-              No invitation token found in the URL. Please check your email
-              link.
+              No invitation token found in the URL. Please check your email link.
             </p>
             <Button
               variant="outline"
@@ -300,7 +317,8 @@ export function InvitationView() {
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
               Join <strong>{invitation.company.name}</strong> as{" "}
-              <strong>{ROLE_LABELS[invitation.role]}</strong>.
+              <strong>{ROLE_LABELS[invitation.role]}</strong>. We'll send a
+              verification code to confirm your identity.
             </p>
 
             <div className="space-y-4">
@@ -324,37 +342,21 @@ export function InvitationView() {
                   className="h-9 text-[13px] border-border"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="password-new"
-                  className="text-[12px] font-medium"
-                >
-                  Password *
-                </Label>
-                <Input
-                  id="password-new"
-                  type="password"
-                  placeholder="At least 8 characters"
-                  className="h-9 text-[13px] border-border"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendOtpNewUser()}
+                  disabled={submitting}
                 />
               </div>
 
               <Button
                 className="w-full h-10 text-[13px] bg-[#ee237c] hover:bg-[#d11f6e] text-white mt-2"
-                onClick={handleCreateAccount}
-                disabled={submitting || acceptMutation.isPending}
+                onClick={handleSendOtpNewUser}
+                disabled={submitting}
               >
-                {submitting || acceptMutation.isPending ? (
+                {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Join {invitation.company.name}{" "}
-                    <ArrowRight className="ml-1.5 h-4 w-4" />
+                    Send Verification Code <ArrowRight className="ml-1.5 h-4 w-4" />
                   </>
                 )}
               </Button>
@@ -376,8 +378,8 @@ export function InvitationView() {
               Sign in to your account
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
-              Use your existing account to join{" "}
-              <strong>{invitation.company.name}</strong>.
+              We'll send a one-time code to your email to verify your identity
+              before joining <strong>{invitation.company.name}</strong>.
             </p>
 
             <div className="space-y-4">
@@ -391,42 +393,16 @@ export function InvitationView() {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="password-existing"
-                    className="text-[12px] font-medium"
-                  >
-                    Password *
-                  </Label>
-                  <button
-                    className="text-[11px] text-[#ee237c] hover:underline"
-                    onClick={() => router.push("/operator/forgot-password")}
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-                <Input
-                  id="password-existing"
-                  type="password"
-                  placeholder="Your password"
-                  className="h-9 text-[13px] border-border"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSignIn()}
-                />
-              </div>
-
               <Button
                 className="w-full h-10 text-[13px] bg-[#ee237c] hover:bg-[#d11f6e] text-white mt-2"
-                onClick={handleSignIn}
-                disabled={submitting || acceptMutation.isPending}
+                onClick={handleSendOtpExistingUser}
+                disabled={submitting}
               >
-                {submitting || acceptMutation.isPending ? (
+                {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Sign In & Join <ArrowRight className="ml-1.5 h-4 w-4" />
+                    Send Verification Code <ArrowRight className="ml-1.5 h-4 w-4" />
                   </>
                 )}
               </Button>
@@ -434,6 +410,79 @@ export function InvitationView() {
               <button
                 className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setStep("welcome")}
+              >
+                ← Back
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── OTP ── */}
+        {!!token && !isLoading && invitation && step === "otp" && (
+          <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ee237c]/10 mb-5">
+              <Mail className="h-5 w-5 text-[#ee237c]" />
+            </div>
+            <h1 className="text-[17px] font-bold text-foreground mb-1">
+              Check your inbox
+            </h1>
+            <p className="text-[13px] text-muted-foreground mb-6">
+              We sent a 6-digit code to{" "}
+              <strong className="text-foreground">{invitation.email}</strong>.
+              Enter it below to continue.
+            </p>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="otp-code" className="text-[12px] font-medium">
+                  Verification Code
+                </Label>
+                <Input
+                  id="otp-code"
+                  placeholder="000000"
+                  maxLength={6}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  onKeyDown={(e) => e.key === "Enter" && handleVerifyOtp()}
+                  className="h-11 text-[16px] tracking-[0.3em] text-center border-border font-mono"
+                  disabled={submitting}
+                />
+              </div>
+
+              <Button
+                className="w-full h-10 text-[13px] bg-[#ee237c] hover:bg-[#d11f6e] text-white"
+                onClick={handleVerifyOtp}
+                disabled={submitting || otpCode.length < 6}
+              >
+                {submitting || acceptMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    Verify &amp; Join {invitation.company.name}{" "}
+                    <ArrowRight className="ml-1.5 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+
+              <div className="flex items-center justify-center gap-1.5">
+                <button
+                  className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0 || submitting}
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                </button>
+              </div>
+
+              <button
+                className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => {
+                  setOtpCode("");
+                  setStep(isNewUser ? "create-account" : "sign-in");
+                }}
               >
                 ← Back
               </button>

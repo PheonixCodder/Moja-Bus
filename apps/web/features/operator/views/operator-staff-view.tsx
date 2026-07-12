@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import {
   useSuspenseQuery,
   useMutation,
@@ -576,7 +576,9 @@ interface TransferDialogProps {
   member: StaffMember | null;
   open: boolean;
   onClose: () => void;
-  onConfirm: (memberId: string, password: string) => Promise<void>;
+  onConfirm: (memberId: string, otp: string) => Promise<void>;
+  onRequestOtp: () => Promise<void>;
+  otpPending: boolean;
 }
 
 function TransferOwnershipDialog({
@@ -584,16 +586,49 @@ function TransferOwnershipDialog({
   open,
   onClose,
   onConfirm,
+  onRequestOtp,
+  otpPending,
 }: TransferDialogProps) {
-  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, []);
+
+  function startCooldown() {
+    setCooldown(60);
+    cooldownRef.current = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          if (cooldownRef.current) clearInterval(cooldownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  async function handleSendOtp() {
+    try {
+      await onRequestOtp();
+      startCooldown();
+      toast.success("Verification code sent to your email!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send verification code");
+    }
+  }
 
   async function handleConfirm() {
-    if (!member || !password) return;
+    if (!member || !otp) return;
     setConfirming(true);
     try {
-      await onConfirm(member.id, password);
-      setPassword("");
+      await onConfirm(member.id, otp);
+      setOtp("");
       onClose();
     } finally {
       setConfirming(false);
@@ -605,7 +640,7 @@ function TransferOwnershipDialog({
       open={open}
       onOpenChange={(v) => {
         if (!v) {
-          setPassword("");
+          setOtp("");
           onClose();
         }
       }}
@@ -631,33 +666,48 @@ function TransferOwnershipDialog({
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="space-y-1.5 px-0 pb-2">
-          <Label
-            htmlFor="transfer-password"
-            className="text-[12px] font-medium text-muted-foreground"
-          >
-            Confirm your password
-          </Label>
-          <Input
-            id="transfer-password"
-            type="password"
-            placeholder="Enter your password"
-            className="h-9 text-[13px] border-border"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        <div className="space-y-3 px-0 pb-2">
+          <div className="flex items-end justify-between gap-3">
+            <div className="space-y-1.5 flex-1">
+              <Label
+                htmlFor="transfer-otp"
+                className="text-[12px] font-medium text-muted-foreground"
+              >
+                Verification Code
+              </Label>
+              <Input
+                id="transfer-otp"
+                type="text"
+                placeholder="000000"
+                maxLength={6}
+                className="h-9 text-[13px] border-border tracking-wider font-mono"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 text-[12px]"
+              onClick={handleSendOtp}
+              disabled={otpPending || cooldown > 0}
+            >
+              {cooldown > 0 ? `Resend in ${cooldown}s` : "Send Code"}
+            </Button>
+          </div>
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel
             className="h-9 text-[13px]"
-            onClick={() => setPassword("")}
+            onClick={() => setOtp("")}
           >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             className="h-9 text-[13px] bg-red-600 hover:bg-red-700 text-white border-0"
             onClick={handleConfirm}
-            disabled={confirming || !password}
+            disabled={confirming || otp.length < 6}
           >
             {confirming ? (
               <Spinner className="h-3.5 w-3.5" />
@@ -755,6 +805,10 @@ export function OperatorStaffView() {
     }),
   );
 
+  const requestTransferOtpMutation = useMutation(
+    trpc.staff.requestTransferOtp.mutationOptions(),
+  );
+
   const cancelInviteMutation = useMutation(
     trpc.staff.cancelInvitation.mutationOptions({
       onSuccess: () => {
@@ -807,17 +861,21 @@ export function OperatorStaffView() {
     }
   }
 
-  async function handleTransfer(memberId: string, password: string) {
+  async function handleTransfer(memberId: string, otp: string) {
     try {
-      const res = await transferOwnershipMutation.mutateAsync({
+      await transferOwnershipMutation.mutateAsync({
         memberId,
-        password,
+        otp,
       });
       toast.success("Ownership transferred successfully");
     } catch (err: any) {
       toast.error(err.message || "Failed to transfer ownership");
       throw err;
     }
+  }
+
+  async function handleRequestTransferOtp() {
+    await requestTransferOtpMutation.mutateAsync();
   }
 
   async function handleCancelInvite(inv: any) {
@@ -1280,6 +1338,8 @@ export function OperatorStaffView() {
         open={!!transferMember}
         onClose={() => setTransferMember(null)}
         onConfirm={handleTransfer}
+        onRequestOtp={handleRequestTransferOtp}
+        otpPending={requestTransferOtpMutation.isPending}
       />
     </div>
   );

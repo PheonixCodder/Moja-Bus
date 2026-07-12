@@ -111,35 +111,39 @@ Sent during the first phase of Operator registration to verify the business work
 
 ---
 
-### Event 3: `auth-forgot-password-otp`
-Sent when a passenger or operator requests a password reset code.
+### Event 3: `auth-forgot-password-otp` [REMOVED]
+This event was deprecated and completely removed because password authentication has been disabled in favor of true passwordless OTP authentication.
 
-*   **Trigger Location**: `apps/web/features/auth/hooks/use-auth.ts` (`forgotPassword` calls `emailOtp.requestPasswordReset`).
-*   **Better Auth Callback**: Intercepted in `apps/web/lib/auth-server.ts` (`emailOTP.sendVerificationOTP` where `type === "forget-password"`).
-*   **Recipient**: Any registered user (passenger, operator, or admin).
+---
+
+### Event 3.1: `auth-transfer-ownership-otp`
+Sent when a company owner requests an OTP code to authorize the irreversible transfer of business ownership to another staff member.
+
+*   **Trigger Location**: `apps/web/trpc/routers/staff.ts` (`requestTransferOtp` mutation).
+*   **Better Auth Callback**: N/A (custom tRPC-managed OTP verification flow using the `Verification` table).
+*   **Recipient**: Company Owner (`OPERATOR` / `OWNER` user).
 *   **Settings**:
     *   `critical: true`.
 *   **Channel Routing**:
     *   **Email (SendGrid)**: Primary. Delivered immediately.
-    *   **SMS (Twilio)**: Fallback. Triggered only if email bounces or if the user requests it via phone reset.
 *   **Payload Schema**:
     ```typescript
-    interface ForgotPasswordOtpPayload {
+    interface TransferOwnershipOtpPayload {
       email: string;
       otpCode: string;
     }
     ```
 *   **Copy Mockups**:
-    *   **Email Subject**: `Reset your Moja Ride password`
+    *   **Email Subject**: `Confirm business ownership transfer`
     *   **Email HTML**:
         ```html
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #eee; border-radius: 12px; padding: 24px;">
-          <h2 style="color: #ee237c; margin-top: 0;">Moja Ride</h2>
-          <p>We received a request to reset your password. Use the code below to complete the reset:</p>
+          <h2 style="color: #ee237c; margin-top: 0;">Moja Ride Business</h2>
+          <p>We received a request to transfer your business ownership. Use the verification code below to authorize this irreversible action:</p>
           <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; text-align: center; background: #f8f9fa; padding: 16px; border-radius: 8px; margin: 24px 0; color: #111;">
             {{payload.otpCode}}
           </div>
-          <p style="font-size: 12px; color: #666;">This code expires in 10 minutes. If you did not request this, you can ignore this email. Your password will remain unchanged.</p>
+          <p style="font-size: 12px; color: #666;">This code expires in 10 minutes. If you did not request this, please change your security settings and contact support immediately.</p>
         </div>
         ```
 
@@ -249,9 +253,9 @@ Sent to the inviter / company admin when a staff member accepts their invitation
 ---
 
 ### Event 7: `operator-welcome-onboarding`
-Sent after the operator completes email verification and sets up their password, welcoming them to the platform.
+Sent after the operator completes email verification and registers their account, welcoming them to the platform.
 
-*   **Trigger Location**: `apps/web/features/auth/components/operator-signup-form.tsx` (`handlePasswordSubmit` after `completeSignup.mutateAsync` succeeds).
+*   **Trigger Location**: `apps/web/lib/auth-server.ts` (inside `databaseHooks.user.create.after` hook).
 *   **Recipient**: Operator Owner.
 *   **Settings**:
     *   `critical: false`.

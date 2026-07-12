@@ -280,6 +280,16 @@ model Verification {
   @@map("verification")
 }
 
+model RateLimit {
+  id          String @id
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+
+  @@map("rate_limit")
+}
+
+
 model RefreshToken {
   id        String    @id @default(cuid())
   userId    String

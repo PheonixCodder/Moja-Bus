@@ -22,6 +22,7 @@
 - Prisma is hosted inside the shared package `packages/db`.
 - Use the lazy database client creator `getPrismaClient()` from `@moja/db` to access the database.
 - Keep all database procedures and mutations encapsulated within tRPC server procedures (`apps/web/trpc/routers`).
+- Financial amounts and balances are strictly cast as `BigInt` inside the DB schema. Downcast them to `Number()` only at the tRPC boundary, and ensure inputs pass `Number.isSafeInteger()` before persisting.
 
 ## API Client and State
 - Use tRPC client procedures (`@/trpc/client`) as the main API layer for the web app.
@@ -34,5 +35,6 @@
 - Use a stable abstraction so the web and mobile apps do not know provider internals.
 
 ## Notifications
-- Default to Expo push notifications plus SMS fallback.
+- We use the **Novu SDK** (`@novu/node`) for cross-channel notification orchestration (Email, SMS, Push, In-App).
+- Ensure all dynamic variables passed to Novu email templates are properly escaped using `escapeHtml()` to prevent injection attacks.
 - Treat SMS as the reliability backstop when data is weak or unavailable.

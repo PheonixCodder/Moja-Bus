@@ -19,6 +19,7 @@ import { TERMS_VERSION, PRIVACY_VERSION, COMMISSION_VERSION } from "@/lib/consta
 import crypto from "crypto";
 import { Novu } from "@novu/api";
 import { startOfAppCalendarDay, addAppCalendarDays } from "@/lib/timezone";
+import { auth } from "@/lib/auth-server";
 
 import {
   createTRPCRouter,
@@ -72,6 +73,24 @@ function maskOperatorCompanyBank<T extends any>(
 }
 
 export const operatorRouter = createTRPCRouter({
+  checkAccountStatus: publicProcedure
+    .input(z.object({ identifier: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const cleanIdentifier = input.identifier.trim();
+      const isEmail = cleanIdentifier.includes("@");
+
+      const user = await ctx.prisma.user.findFirst({
+        where: isEmail
+          ? { OR: [{ email: cleanIdentifier }, { workEmail: cleanIdentifier }] }
+          : { phone: cleanIdentifier },
+      });
+
+      return {
+        exists: !!user,
+        role: user?.role ?? null,
+      };
+    }),
+
   initSignup: publicProcedure
     .input(initSignupSchema)
     .mutation(async ({ ctx, input }) => {
@@ -86,39 +105,11 @@ export const operatorRouter = createTRPCRouter({
         });
       }
 
-      // Generate OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+      // Generate dummy OTP and hash just to satisfy Prisma schema for now.
+      // Better Auth handles the actual OTP generation and verification.
+      const dummyOtp = crypto.randomUUID();
+      const otpHash = crypto.createHash("sha256").update(dummyOtp).digest("hex");
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
-
-      // Trigger Novu operator signup verification OTP
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
-        try {
-          const novu = new Novu({ secretKey: novuSecret });
-          await novu.trigger({
-            workflowId: "operator-signup-otp",
-            to: {
-              subscriberId: input.email,
-              email: input.email,
-            },
-            payload: {
-              email: input.email,
-              otpCode: otp,
-              companyName: input.companyName,
-              ownerName: input.ownerName,
-            },
-          });
-          console.log(`[NOVU] Successfully triggered operator-signup-otp for ${input.email}`);
-        } catch (err) {
-          console.error("[NOVU] Failed to trigger operator-signup-otp workflow:", err);
-        }
-      } else {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Notification service is not configured. Cannot send verification code.",
-        });
-      }
 
       const pending = await ctx.prisma.pendingOperatorSignup.upsert({
         where: { email: input.email },
@@ -136,144 +127,6 @@ export const operatorRouter = createTRPCRouter({
       });
 
       return { success: true, email: pending.email };
-    }),
-
-  verifySignupOtp: publicProcedure
-    .input(verifySignupOtpSchema)
-    .mutation(async ({ ctx, input }) => {
-      const pending = await ctx.prisma.pendingOperatorSignup.findUnique({
-        where: { email: input.email },
-      });
-
-      if (!pending) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Signup request not found." });
-      }
-
-      if (pending.expiresAt < new Date()) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "OTP expired." });
-      }
-
-      if (pending.attempts >= 5) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many failed attempts." });
-      }
-
-      const inputHash = crypto.createHash("sha256").update(input.otp).digest("hex");
-      if (inputHash !== pending.otpHash) {
-        await ctx.prisma.pendingOperatorSignup.update({
-          where: { email: input.email },
-          data: { attempts: { increment: 1 } },
-        });
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid OTP." });
-      }
-
-      // Mark as completed
-      await ctx.prisma.pendingOperatorSignup.update({
-        where: { email: input.email },
-        data: { completedAt: new Date() },
-      });
-
-      return { success: true };
-    }),
-
-  completeSignup: publicProcedure
-    .input(completeSignupSchema)
-    .mutation(async ({ ctx, input }) => {
-      // 1. Find the pending signup
-      const pending = await ctx.prisma.pendingOperatorSignup.findUnique({
-        where: { email: input.email },
-      });
-
-      if (!pending || !pending.completedAt) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Email not verified or signup not initiated.",
-        });
-      }
-
-      // 2. Find user created by Better Auth and mark as verified
-      const user = await ctx.prisma.user.findUnique({
-        where: { email: input.email },
-      });
-
-      if (!user) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
-      }
-
-      await ctx.prisma.user.update({
-        where: { id: user.id },
-        data: { emailVerified: true },
-      });
-
-      // 3. Create Company (DRAFT), Operator, and Onboarding Progress
-      const result = await ctx.prisma.$transaction(async (tx) => {
-        const companyId = crypto.randomUUID();
-        const company = await tx.company.create({
-          data: {
-            id: companyId,
-            name: pending.companyName,
-            slug: `draft-${companyId}`,
-            email: pending.email,
-            phone: pending.phone,
-            registrationNumber: `DRAFT-${companyId}`,
-            taxId: `DRAFT-${companyId}`,
-            estimatedStaffSize: 1,
-            status: "DRAFT",
-          },
-        });
-
-        const operator = await tx.operator.create({
-          data: {
-            userId: user.id,
-            companyId: company.id,
-            role: "OWNER",
-          },
-        });
-
-        await tx.operatorOnboarding.create({
-          data: {
-            operatorId: operator.id,
-            currentStep: "COMPANY",
-            completedSteps: [],
-            completedStepCount: 0,
-            totalSteps: 5,
-          },
-        });
-
-        await tx.pendingOperatorSignup.delete({
-          where: { email: input.email },
-        });
-
-        return { success: true, companyId: company.id };
-      });
-
-      // Trigger Welcome Onboarding notification after successful transaction commit
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
-        try {
-          const novu = new Novu({ secretKey: novuSecret });
-          const appUrl = process.env["APP_URL"] || "http://localhost:3000";
-          await novu.trigger({
-            workflowId: "operator-welcome",
-            to: {
-              subscriberId: user.id,
-              email: user.email,
-              firstName: user.fullName?.split(" ")[0] || undefined,
-              lastName: user.fullName?.split(" ").slice(1).join(" ") || undefined,
-            },
-            payload: {
-              email: user.email,
-              ownerName: user.fullName || "Operator",
-              companyName: pending.companyName,
-              dashboardUrl: appUrl,
-            },
-          });
-          console.log(`[NOVU] Triggered operator-welcome for user ${user.id}`);
-        } catch (err) {
-          console.error("[NOVU] Failed to trigger operator-welcome workflow:", err);
-        }
-      }
-
-      return result;
     }),
 
   getOnboardingStatus: operatorProcedure.query(async ({ ctx }) => {
