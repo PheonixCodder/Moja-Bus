@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LoginForm } from "@/features/auth/components/login-form";
+import { PassengerAuthFlow } from "@/features/auth/components/passenger-auth-flow";
 import { AuthHeader } from "@/features/auth/components/auth-header";
 
 type OperatorLoginViewProps = {
@@ -13,7 +13,7 @@ export function OperatorLoginView({ errorCode }: OperatorLoginViewProps) {
         type="operator"
         description="Sign in to manage your transport business, fleet, and bookings."
       />
-      <LoginForm errorCode={errorCode} userType="operator" />
+      <PassengerAuthFlow userType="operator" />
       <p className="text-xs text-muted-foreground">
         Are you a passenger?{" "}
         {

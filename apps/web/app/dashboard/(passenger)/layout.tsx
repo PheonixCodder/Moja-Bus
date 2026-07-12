@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
+import { redirect } from "next/navigation";
 
 import { SidebarInset, SidebarProvider } from "@moja/ui/components/ui/sidebar";
 import { TooltipProvider } from "@moja/ui/components/ui/tooltip";
@@ -15,10 +16,13 @@ export default async function DashboardLayout({
 }) {
   await requireServerSession();
 
+  const user = await getUser();
+  if (user?.role === "TRAVELER" && !user.name) {
+    redirect("/login");
+  }
+
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
-
-  const user = await getUser();
 
   return (
     <TooltipProvider>

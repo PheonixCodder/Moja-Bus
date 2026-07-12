@@ -215,7 +215,7 @@ Sent to confirm review submission and thank passengers for providing feedback.
 ---
 
 ### Event 7: `passenger-profile-updated`
-Sent when critical profile configurations (phone number, email address, password) are changed.
+Sent when critical profile configurations (phone number, email address) are changed.
 
 *   **Recipient**: Profile Owner.
 *   **Settings**:

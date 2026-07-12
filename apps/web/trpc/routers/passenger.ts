@@ -117,14 +117,22 @@ export const passengerRouter = createTRPCRouter({
   updatePreferences: protectedProcedure
     .input(updatePreferencesSchema)
     .mutation(async ({ ctx, input }) => {
-      const profile = await ctx.prisma.passengerProfile.findUnique({
+      let profile = await ctx.prisma.passengerProfile.findUnique({
         where: { userId: ctx.user.id },
       });
 
       if (!profile) {
+        const service = new SavedPassengerService(ctx.prisma);
+        await service.ensureProfile(ctx.user.id);
+        profile = await ctx.prisma.passengerProfile.findUnique({
+          where: { userId: ctx.user.id },
+        });
+      }
+
+      if (!profile) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Profile not found",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Could not provision passenger profile.",
         });
       }
 

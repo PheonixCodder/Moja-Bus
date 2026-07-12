@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SignupForm } from "@/features/auth/components/signup-form";
+import { PassengerAuthFlow } from "@/features/auth/components/passenger-auth-flow";
 import { AuthHeader } from "@/features/auth/components/auth-header";
 
 export function SignupView() {
@@ -7,9 +7,9 @@ export function SignupView() {
     <div className="flex w-full flex-col items-center gap-8">
       <AuthHeader
         type="passenger"
-        description="Join thousands of travelers. Create your passenger account to search routes, book trips, and manage your bookings in one place."
+        description="Join thousands of travelers. Enter your phone or email to sign in or create an account."
       />
-      <SignupForm role="TRAVELER" />
+      <PassengerAuthFlow />
       <p className="text-xs text-muted-foreground">
         Are you a transport operator?{" "}
         {

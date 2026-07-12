@@ -26,6 +26,7 @@ Moja Ride is a **multi-application, two-sided marketplace platform** with a **se
 | Auth | Better Auth | Authentication, sessions (managed in `apps/web/lib/auth-server`) |
 | Validation | Zod 4 | Request/response/procedure input validation |
 | File Storage | Local/S3 | Bus images, documents |
+| Notifications | Novu SDK | Multi-channel messaging (Email, In-App, Push, SMS) |
 | Real-time | Socket.io | Live updates (optional) |
 
 ### DevOps & Tooling
@@ -187,7 +188,13 @@ Better Auth handles the authentication endpoints natively:
    Client View Component → tRPC Hooks Client → tRPC Router Endpoint (apps/web) → DB Client (@moja/db) → PostgreSQL
    ```
 
-6. **Offline Support**
+6. **Financial Arithmetic boundaries**
+   - Financial attributes in the database (`amount`, balances, etc.) use Postgres `BigInt`.
+   - tRPC JSON cannot naturally encode `BigInt` securely across boundaries without serialization.
+   - We cast `BigInt` to `Number()` inside tRPC router boundaries for frontend transmission, since XOF bounds easily fit within JS `MAX_SAFE_INTEGER`.
+   - `AccountingEngine` explicitly blocks JS floating point artifacts with strict `Number.isSafeInteger()` gates.
+
+7. **Offline Support**
    - Mobile app stores tickets locally.
    - Sync with server when connection restored.
 

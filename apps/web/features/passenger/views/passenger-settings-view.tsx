@@ -44,11 +44,7 @@ export function PassengerSettingsView() {
   const [preferredClass, setPreferredClass] = useState(preferences.preferredClass || "ECONOMY");
   const [marketingOptIn, setMarketingOptIn] = useState(profile?.marketingOptIn ?? false);
 
-  // Security Form State
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
 
   // Mutation to save settings
   const saveSettingsMutation = useMutation(
@@ -84,40 +80,6 @@ export function PassengerSettingsView() {
     });
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error("New passwords do not match");
-      return;
-    }
-    if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-
-    setIsChangingPassword(true);
-    try {
-      const { error } = await authClient.changePassword({
-        currentPassword,
-        newPassword,
-        revokeOtherSessions: true,
-      });
-
-      if (error) {
-        toast.error(error.message || "Failed to update password");
-      } else {
-        toast.success("Password updated successfully!");
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-      }
-    } catch {
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsChangingPassword(false);
-    }
-  };
-
   const isSaving = saveSettingsMutation.isPending;
 
   return (
@@ -136,13 +98,6 @@ export function PassengerSettingsView() {
         >
           <Settings2 className="w-4 h-4" />
           Travel Preferences
-        </TabsTrigger>
-        <TabsTrigger
-          value="security"
-          className="w-full justify-start text-xs font-semibold px-4 py-2.5 rounded-md text-left gap-2 text-text-secondary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
-        >
-          <Lock className="w-4 h-4" />
-          Account Security
         </TabsTrigger>
       </TabsList>
 
@@ -283,73 +238,6 @@ export function PassengerSettingsView() {
                   <Button type="submit" disabled={isSaving} className="bg-primary text-white hover:bg-primary/95 font-semibold h-10 px-6 rounded-lg gap-2">
                     {isSaving && <Spinner className="w-4 h-4 text-white" />}
                     Save Travel Preferences
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </form>
-        </TabsContent>
-
-        {/* Security Tab */}
-        <TabsContent value="security" className="m-0 focus-visible:outline-none">
-          <form onSubmit={handleChangePassword}>
-            <Card className="border-border bg-bg-surface shadow-sm">
-              <CardHeader className="border-b border-border/50 pb-4">
-                <CardTitle className="text-base font-bold text-text-primary">Account Security</CardTitle>
-                <CardDescription>Change your password. Doing so will revoke other active login sessions.</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-5">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="current-pass" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                    Current Password
-                  </Label>
-                  <Input
-                    id="current-pass"
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="h-10 rounded-lg border-border focus-visible:ring-primary"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="new-pass" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                      New Password
-                    </Label>
-                    <Input
-                      id="new-pass"
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="h-10 rounded-lg border-border focus-visible:ring-primary"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="confirm-pass" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                      Confirm New Password
-                    </Label>
-                    <Input
-                      id="confirm-pass"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="h-10 rounded-lg border-border focus-visible:ring-primary"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-border flex justify-end">
-                  <Button type="submit" disabled={isChangingPassword} className="bg-primary text-white hover:bg-primary/95 font-semibold h-10 px-6 rounded-lg gap-2">
-                    {isChangingPassword && <Spinner className="w-4 h-4 text-white" />}
-                    Update Password
                   </Button>
                 </div>
               </CardContent>

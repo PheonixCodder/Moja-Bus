@@ -8,7 +8,7 @@ import {
 } from "../init";
 import crypto from "node:crypto";
 import { auth } from "@/lib/auth-server";
-import { sendStaffInvitationEmail } from "@/lib/staff-email";
+
 import { Novu } from "@novu/api";
 import type { PrismaClient } from "@moja/db";
 
@@ -201,11 +201,76 @@ export const staffRouter = createTRPCRouter({
       return updated;
     }),
 
+  requestTransferOtp: operatorCompanyProcedure
+    .mutation(async ({ ctx }) => {
+      if (ctx.operator.role !== "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the company OWNER can request this verification code.",
+        });
+      }
+
+      // Generate a secure 6-digit code
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+      const identifier = `transfer-ownership:${ctx.user.email}`;
+
+      // Clear any existing active OTPs for this action
+      await ctx.prisma.verification.deleteMany({
+        where: { identifier },
+      });
+
+      // Store in verification table
+      await ctx.prisma.verification.create({
+        data: {
+          id: crypto.randomUUID(),
+          identifier,
+          value: hashedOtp,
+          expiresAt,
+        },
+      });
+
+      // Trigger Novu notification
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (novuSecret) {
+        try {
+          const novu = new Novu({ secretKey: novuSecret });
+          await novu.trigger({
+            workflowId: "auth-otp",
+            to: {
+              subscriberId: ctx.user.email,
+              email: ctx.user.email,
+            },
+            payload: {
+              identifier: ctx.user.email,
+              otpCode: otp,
+              type: "transfer-ownership",
+              email: ctx.user.email,
+            },
+          });
+          console.log(`[NOVU] Sent transfer-ownership OTP to ${ctx.user.email}`);
+        } catch (err) {
+          console.error("Failed to send transfer OTP:", err);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to send verification code.",
+          });
+        }
+      } else {
+        console.warn("[NOVU] NOVU_SECRET_KEY not configured — OTP console-logged.");
+        console.log(`\n=== 🔐 OTP verification for ${ctx.user.email}: ${otp} ===\n`);
+      }
+
+      return { success: true };
+    }),
+
   transferOwnership: operatorStaffManageProcedure
     .input(
       z.object({
         memberId: z.string(),
-        password: z.string().min(1),
+        otp: z.string().length(6),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -216,18 +281,38 @@ export const staffRouter = createTRPCRouter({
         });
       }
 
-      // Verify current owner password before transferring ownership
-      try {
-        await auth.api.verifyPassword({
-          body: { password: input.password },
-          headers: await headers(),
-        });
-      } catch {
+      const identifier = `transfer-ownership:${ctx.user.email}`;
+      const record = await ctx.prisma.verification.findFirst({
+        where: { identifier },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!record) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Invalid password. Ownership transfer was not completed.",
+          message: "No verification code found. Please request a new code.",
         });
       }
+
+      if (record.expiresAt < new Date()) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Verification code has expired. Please request a new code.",
+        });
+      }
+
+      const hashedInputOtp = crypto.createHash("sha256").update(input.otp).digest("hex");
+      if (record.value !== hashedInputOtp) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid verification code.",
+        });
+      }
+
+      // Delete the verified code
+      await ctx.prisma.verification.delete({
+        where: { id: record.id },
+      });
 
       const target = await ctx.prisma.operator.findFirst({
         where: {
@@ -396,26 +481,9 @@ export const staffRouter = createTRPCRouter({
           console.log(`[NOVU] Triggered operator-staff-invite for ${invitation.email}`);
         } catch (err) {
           console.error("[NOVU] Failed to trigger operator-staff-invite workflow:", err);
-          await sendStaffInvitationEmail({
-            to: invitation.email,
-            companyName: invitation.company.name,
-            inviterName: invitation.invitedBy.fullName ?? "A team member",
-            role: invitation.role,
-            token: rawToken,
-            message: invitation.message,
-            expiresAt: invitation.expiresAt,
-          });
         }
       } else {
-        await sendStaffInvitationEmail({
-          to: invitation.email,
-          companyName: invitation.company.name,
-          inviterName: invitation.invitedBy.fullName ?? "A team member",
-          role: invitation.role,
-          token: rawToken,
-          message: invitation.message,
-          expiresAt: invitation.expiresAt,
-        });
+        console.warn("[NOVU] NOVU_SECRET_KEY not configured — staff invitation email not sent.");
       }
 
       await logStaffActivity(ctx.prisma, {
@@ -526,26 +594,9 @@ export const staffRouter = createTRPCRouter({
           console.log(`[NOVU] Triggered operator-staff-invite for ${updated.email}`);
         } catch (err) {
           console.error("[NOVU] Failed to trigger operator-staff-invite workflow:", err);
-          await sendStaffInvitationEmail({
-            to: updated.email,
-            companyName: updated.company.name,
-            inviterName: updated.invitedBy.fullName ?? "A team member",
-            role: updated.role,
-            token: newRawToken,
-            message: updated.message,
-            expiresAt: updated.expiresAt,
-          });
         }
       } else {
-        await sendStaffInvitationEmail({
-          to: updated.email,
-          companyName: updated.company.name,
-          inviterName: updated.invitedBy.fullName ?? "A team member",
-          role: updated.role,
-          token: newRawToken,
-          message: updated.message,
-          expiresAt: updated.expiresAt,
-        });
+        console.warn("[NOVU] NOVU_SECRET_KEY not configured — staff invitation email not sent.");
       }
 
       await logStaffActivity(ctx.prisma, {

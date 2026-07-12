@@ -20,7 +20,7 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const role = session.user?.role || "TRAVELER";
+  const role = (session.user as any)?.role || "TRAVELER";
 
   if (role !== "ADMIN") {
     redirect("/dashboard");

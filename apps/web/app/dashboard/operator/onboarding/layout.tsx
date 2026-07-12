@@ -13,7 +13,7 @@ export default async function OnboardingLayout({
     redirect("/operator/login");
   }
 
-  const role = session.user?.role || "TRAVELER";
+  const role = (session.user as any)?.role || "TRAVELER";
 
   if (role !== "OPERATOR" && role !== "ADMIN") {
     redirect("/dashboard");
