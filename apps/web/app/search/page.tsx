@@ -2,6 +2,7 @@ import type { SearchParams } from "nuqs/server";
 import { SearchPageClient } from "@/features/search/components/search-page-client";
 import { searchParamsCache } from "@/features/search/lib/params";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+import { getServerSession } from "@/lib/auth-server";
 
 export const metadata = {
     title: "Search Buses - Moja Ride",
@@ -14,6 +15,7 @@ interface SearchPageProps {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
     const params = searchParamsCache.parse(await searchParams);
+    const session = await getServerSession();
 
     if (params.from) {
         await prefetch(trpc.locations.getCityDetails.queryOptions({ id: params.from }));
@@ -37,11 +39,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 page: params.page,
             }),
         );
+        await prefetch(
+            trpc.search.cheapestByDate.queryOptions({
+                originCityId: params.from,
+                destinationCityId: params.to,
+                centerDate: params.date,
+            }),
+        );
     }
 
     return (
         <HydrateClient>
-            <SearchPageClient />
+            <SearchPageClient user={session?.user} />
         </HydrateClient>
     );
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Command } from "lucide-react";
 
 export default function OperatorAuthLayout({
   children,
@@ -6,10 +7,38 @@ export default function OperatorAuthLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-accent/30">
-      <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        {children}
+    <main className="min-h-screen bg-bg-surface">
+      <div className="grid min-h-screen justify-center p-2 lg:grid-cols-2">
+        {/* Right Cover Column (Desktop only) */}
+        <div className="relative order-2 hidden h-full rounded-3xl bg-primary lg:flex flex-col justify-between p-12 text-white">
+          <div className="space-y-2">
+            <Command className="size-10 text-white" />
+            <h1 className="font-bold text-3xl tracking-tight">Moja Ride for Business</h1>
+            <p className="text-sm opacity-90 max-w-md">
+              Complete operating system for modern intercity bus operators.
+            </p>
+          </div>
+
+          <div className="flex gap-6 pt-10 border-t border-white/20">
+            <div className="flex-1 space-y-1">
+              <h2 className="font-bold text-sm">Real-time Dispatch</h2>
+              <p className="text-xs opacity-80 leading-relaxed">
+                Manage routes, assign vehicles, monitor driver status, and scan tickets in real-time.
+              </p>
+            </div>
+            <div className="w-[1px] bg-white/20 h-auto" />
+            <div className="flex-1 space-y-1">
+              <h2 className="font-bold text-sm">Unified Treasury & Payouts</h2>
+              <p className="text-xs opacity-80 leading-relaxed">
+                Receive central settlements, manage commission tiers, and withdraw revenue directly to your bank account.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Left Form Column */}
+        <div className="relative order-1 flex h-full">{children}</div>
       </div>
-    </div>
+    </main>
   );
 }

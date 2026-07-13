@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { PassengerAuthFlow } from "@/features/auth/components/passenger-auth-flow";
-import { AuthHeader } from "@/features/auth/components/auth-header";
+import { Globe } from "lucide-react";
 
 type OperatorLoginViewProps = {
   errorCode?: string | undefined;
@@ -8,23 +10,30 @@ type OperatorLoginViewProps = {
 
 export function OperatorLoginView({ errorCode }: OperatorLoginViewProps) {
   return (
-    <div className="flex w-full flex-col items-center gap-8">
-      <AuthHeader
-        type="operator"
-        description="Sign in to manage your transport business, fleet, and bookings."
-      />
-      <PassengerAuthFlow userType="operator" />
-      <p className="text-xs text-muted-foreground">
-        Are you a passenger?{" "}
-        {
-          <Link
-            href="/login"
-            className="font-medium text-primary hover:underline"
-          >
-            Sign in to Passenger Portal
+    <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[500px]">
+      {/* Switch to Passenger Link (Absolute top right) */}
+      <div className="absolute top-5 flex w-full justify-end px-10 left-0">
+        <div className="text-muted-foreground text-sm">
+          Are you a passenger?{" "}
+          <Link href="/login" className="text-foreground font-semibold hover:underline">
+            Passenger Portal
           </Link>
-        }
-      </p>
+        </div>
+      </div>
+
+      {/* Dynamic OTP auth flow */}
+      <div className="space-y-4 pt-2">
+        <PassengerAuthFlow userType="operator" />
+      </div>
+
+      {/* Footer copyright info (Absolute bottom) */}
+      <div className="absolute bottom-5 flex w-full justify-between px-10 left-0 right-0 text-sm text-muted-foreground">
+        <span>© 2026 Moja Ride. All rights reserved.</span>
+        <div className="flex items-center gap-1 text-sm font-bold">
+          <Globe className="size-4 text-muted-foreground" />
+          ENG
+        </div>
+      </div>
     </div>
   );
 }

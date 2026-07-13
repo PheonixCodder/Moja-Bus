@@ -3,45 +3,46 @@
 import { Filter } from "lucide-react";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
-import { Slider } from "@moja/ui/components/ui/slider";
-import { AMENITY_OPTIONS, DEPARTURE_TIME_OPTIONS, PRICE_RANGE } from "../lib/constants";
-import { formatPriceXOF } from "../lib/format";
+import { AMENITY_OPTIONS, DEPARTURE_TIME_OPTIONS } from "../lib/constants";
 
-interface OperatorOption {
+export interface OperatorOption {
   id: string;
   name: string;
 }
 
-interface SearchFiltersSidebarProps {
+export interface FiltersSidebarSharedProps {
   operators: string[];
   amenities: string[];
   departureTime: ("MORNING" | "AFTERNOON" | "EVENING")[];
-  maxPrice: number | null;
   activeOperators: OperatorOption[];
   onToggleOperator: (id: string) => void;
   onToggleAmenity: (id: string) => void;
   onToggleTime: (id: "MORNING" | "AFTERNOON" | "EVENING") => void;
-  onMaxPriceChange: (value: number) => void;
   onClear: () => void;
 }
 
-export function SearchFiltersSidebar({
+interface SearchFiltersSidebarProps extends FiltersSidebarSharedProps {
+  onOpenMobileFilters: () => void;
+}
+
+/** Shared filter content — used inside both the desktop sidebar and mobile drawer */
+export function FiltersContent({
   operators,
   amenities,
   departureTime,
-  maxPrice,
   activeOperators,
   onToggleOperator,
   onToggleAmenity,
   onToggleTime,
-  onMaxPriceChange,
   onClear,
-}: SearchFiltersSidebarProps) {
+}: FiltersSidebarSharedProps) {
   return (
-    <aside className="lg:col-span-3 space-y-6 lg:sticky lg:top-4 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+    <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-bold font-montserrat flex items-center gap-2">
-          <Filter className="h-4 w-4 text-[#ee237c]" /> Filter Results
+        <h3 className="font-bold font-montserrat flex items-center gap-2 text-slate-800">
+          <Filter className="h-4 w-4 text-[#ee237c]" />
+          Filter Results
         </h3>
         <button
           type="button"
@@ -54,41 +55,51 @@ export function SearchFiltersSidebar({
 
       <Separator className="bg-slate-100" />
 
-      <div className="space-y-3">
-        <h4 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider">
-          Bus Operator
-        </h4>
-        <div className="space-y-2">
-          {activeOperators.map((op) => (
-            <div key={op.id} className="flex items-center gap-2">
-              <Checkbox
-                id={`op-${op.id}`}
-                checked={operators.includes(op.id)}
-                onCheckedChange={() => onToggleOperator(op.id)}
-                className="border-slate-300 data-[state=checked]:bg-[#ee237c] data-[state=checked]:border-[#ee237c]"
-              />
-              <label htmlFor={`op-${op.id}`} className="text-sm font-semibold text-slate-600 cursor-pointer select-none">
-                {op.name}
-              </label>
-            </div>
-          ))}
+      {/* Bus Operator */}
+      {activeOperators.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+            Bus Operator
+          </h4>
+          <div className="space-y-2.5">
+            {activeOperators.map((op) => (
+              <div key={op.id} className="flex items-center gap-2.5">
+                <Checkbox
+                  id={`op-${op.id}`}
+                  checked={operators.includes(op.id)}
+                  onCheckedChange={() => onToggleOperator(op.id)}
+                  className="border-slate-300 data-[state=checked]:bg-[#ee237c] data-[state=checked]:border-[#ee237c]"
+                />
+                <label
+                  htmlFor={`op-${op.id}`}
+                  className="text-sm font-semibold text-slate-600 cursor-pointer select-none leading-none"
+                >
+                  {op.name}
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* Amenities */}
       <div className="space-y-3">
-        <h4 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider">
+        <h4 className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
           Amenities
         </h4>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {AMENITY_OPTIONS.map((amenity) => (
-            <div key={amenity.id} className="flex items-center gap-2">
+            <div key={amenity.id} className="flex items-center gap-2.5">
               <Checkbox
                 id={`am-${amenity.id}`}
                 checked={amenities.includes(amenity.id)}
                 onCheckedChange={() => onToggleAmenity(amenity.id)}
                 className="border-slate-300 data-[state=checked]:bg-[#ee237c] data-[state=checked]:border-[#ee237c]"
               />
-              <label htmlFor={`am-${amenity.id}`} className="text-sm font-semibold text-slate-600 flex items-center gap-1.5 cursor-pointer select-none">
+              <label
+                htmlFor={`am-${amenity.id}`}
+                className="text-sm font-semibold text-slate-600 flex items-center gap-1.5 cursor-pointer select-none leading-none"
+              >
                 <amenity.icon className="h-3.5 w-3.5 text-slate-400" />
                 {amenity.label}
               </label>
@@ -97,47 +108,41 @@ export function SearchFiltersSidebar({
         </div>
       </div>
 
+      {/* Departure Time */}
       <div className="space-y-3">
-        <h4 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider">
+        <h4 className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
           Departure Time
         </h4>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {DEPARTURE_TIME_OPTIONS.map((time) => (
-            <div key={time.id} className="flex items-center gap-2">
+            <div key={time.id} className="flex items-center gap-2.5">
               <Checkbox
                 id={`time-${time.id}`}
                 checked={departureTime.includes(time.id)}
                 onCheckedChange={() => onToggleTime(time.id)}
                 className="border-slate-300 data-[state=checked]:bg-[#ee237c] data-[state=checked]:border-[#ee237c]"
               />
-              <label htmlFor={`time-${time.id}`} className="text-sm font-semibold text-slate-600 cursor-pointer select-none">
+              <label
+                htmlFor={`time-${time.id}`}
+                className="text-sm font-semibold text-slate-600 cursor-pointer select-none leading-none"
+              >
                 {time.label}
               </label>
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="space-y-3">
-        <h4 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider flex justify-between">
-          <span>Max Price</span>
-          <span className="text-[#ee237c] lowercase">
-            {maxPrice ? formatPriceXOF(maxPrice) : "Any"}
-          </span>
-        </h4>
-        <Slider
-          min={PRICE_RANGE.min}
-          max={PRICE_RANGE.max}
-          step={PRICE_RANGE.step}
-          value={[maxPrice || PRICE_RANGE.max]}
-          onValueChange={(val) => onMaxPriceChange(Array.isArray(val) ? val[0]! : val)}
-          className="py-2"
-        />
-        <div className="flex justify-between text-[10px] font-bold text-slate-400">
-          <span>{formatPriceXOF(PRICE_RANGE.min)}</span>
-          <span>{formatPriceXOF(PRICE_RANGE.max)}</span>
-        </div>
-      </div>
+/** Desktop sticky sidebar — hidden on mobile (<lg) */
+export function SearchFiltersSidebar(props: SearchFiltersSidebarProps) {
+  const { onOpenMobileFilters: _unused, ...filtersProps } = props;
+
+  return (
+    <aside className="hidden lg:block w-64 xl:w-72 shrink-0 sticky top-24 self-start bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <FiltersContent {...filtersProps} />
     </aside>
   );
 }

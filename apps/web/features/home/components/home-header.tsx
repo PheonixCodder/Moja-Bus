@@ -21,7 +21,7 @@ import {
   PopoverTrigger,
 } from "@moja/ui/components/ui/popover";
 import Image from "next/image";
-import {User} from "better-auth";
+import type { User as AuthUser } from "@/lib/auth-client";
 
 const POPULAR_ROUTES = [
   { from: "Abidjan", to: "Bouaké" },
@@ -37,7 +37,7 @@ const POPULAR_ROUTES = [
 ];
 
 interface HomeHeaderProps {
-  user?:  User | undefined;
+  user?: AuthUser | undefined;
 }
 
 export function HomeHeader({ user }: HomeHeaderProps) {
@@ -84,7 +84,9 @@ export function HomeHeader({ user }: HomeHeaderProps) {
   };
 
   const isHome = pathname === "/";
-  const isTransparent = isHome && !scrolled && !mobileOpen;
+  const isSearch = pathname.startsWith("/search");
+  const hasLightText = isHome && !scrolled && !mobileOpen;
+  const hasTransparentBg = (isHome || isSearch) && !scrolled && !mobileOpen;
 
   return (
     <>
@@ -94,7 +96,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-          scrolled || !isHome
+          !hasTransparentBg
             ? "bg-white/95 backdrop-blur-xl shadow-sm border-slate-200/50"
             : "bg-transparent"
         )}
@@ -191,7 +193,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
             {user ? (
                 <Popover>
                   <PopoverTrigger className="flex items-center gap-2 outline-none cursor-pointer ml-2">
-                    <Avatar className={cn("h-10 w-10 rounded-full border-2 shadow-sm transition-transform hover:scale-105", isTransparent ? "border-white/30" : "border-slate-100")}>
+                    <Avatar className={cn("h-10 w-10 rounded-full border-2 shadow-sm transition-transform hover:scale-105", hasLightText ? "border-white/30" : "border-slate-100")}>
                       <AvatarImage src={user.image || ""} alt={user.name || "User"} />
                       <AvatarFallback className="bg-slate-100 text-slate-600 font-semibold text-xs">
                         {getInitials(user.name)}
@@ -270,7 +272,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
             {/* Mobile Menu Toggle */}
             <div className="flex md:hidden items-center gap-3">
               {user && (
-                <Avatar className={cn("h-8 w-8 rounded-full border-2", isTransparent ? "border-white/30" : "border-slate-100")}>
+                <Avatar className={cn("h-8 w-8 rounded-full border-2", hasLightText ? "border-white/30" : "border-slate-100")}>
                   <AvatarImage src={user.image || ""} alt={user.name || "User"} />
                   <AvatarFallback className="bg-slate-100 text-slate-600 font-semibold text-[10px]">
                     {getInitials(user.name)}
@@ -281,7 +283,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                 onClick={() => setMobileOpen(!mobileOpen)}
                 className={cn(
                   "p-2 -mr-2 rounded-lg transition-colors",
-                  isTransparent ? "text-white" : "text-slate-800"
+                  hasLightText ? "text-white" : "text-slate-800"
                 )}
               >
                 {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

@@ -11,12 +11,10 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
-import { Label } from "@moja/ui/components/ui/label";
+import { Field, FieldContent, FieldGroup, FieldLabel } from "@moja/ui/components/ui/field";
 import { Switch } from "@moja/ui/components/ui/switch";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
-import { Spinner } from "@moja/ui/components/ui/spinner";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
-import { Smartphone, Mail, User, Sparkles, Building } from "lucide-react";
 
 type AuthStep = "input" | "otp" | "profile" | "details";
 
@@ -35,11 +33,11 @@ const slideVariants = {
   }),
 };
 
-export function PassengerAuthFlow({ 
-  userType = "passenger",
-  initialStep = "input",
-  initialUser,
-}: { 
+export function PassengerAuthFlow({
+                                    userType = "passenger",
+                                    initialStep = "input",
+                                    initialUser,
+                                  }: {
   userType?: "passenger" | "operator" | undefined;
   initialStep?: AuthStep | undefined;
   initialUser?: { email?: string; phone?: string } | undefined;
@@ -51,10 +49,10 @@ export function PassengerAuthFlow({
   const [step, setStep] = useState<AuthStep>(initialStep);
   const [direction, setDirection] = useState(1);
   const [identifier, setIdentifier] = useState(
-    initialUser ? (initialUser.email || initialUser.phone || "") : ""
+      initialUser ? (initialUser.email || initialUser.phone || "") : ""
   );
   const [method, setMethod] = useState<"phone" | "email">(
-    initialUser && initialUser.phone ? "phone" : "email"
+      initialUser && initialUser.phone ? "phone" : "email"
   );
   const [otp, setOtp] = useState("");
 
@@ -70,37 +68,39 @@ export function PassengerAuthFlow({
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [operatorCollectedEmail, setOperatorCollectedEmail] = useState("");
   const [operatorCollectedPhone, setOperatorCollectedPhone] = useState("");
+  const [localPending, setLocalPending] = useState(false);
 
   // TRPC Mutations
   const updatePreferencesMutation = useMutation(
-    trpc.passenger.updatePreferences.mutationOptions({
-      onSuccess: () => {
-        toast.success("Profile setup complete!");
-        router.push("/dashboard");
-        router.refresh();
-      },
-      onError: (err) => {
-        toast.error(err.message || "Failed to complete profile setup.");
-      },
-    })
+      trpc.passenger.updatePreferences.mutationOptions({
+        onSuccess: () => {
+          toast.success("Profile setup complete!");
+          router.push("/dashboard");
+          router.refresh();
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to complete profile setup.");
+          setLocalPending(false);
+        },
+      })
   );
 
   const checkAccountStatusMutation = useMutation(
-    trpc.operator.checkAccountStatus.mutationOptions()
+      trpc.operator.checkAccountStatus.mutationOptions()
   );
 
   const initSignupMutation = useMutation(
-    trpc.operator.initSignup.mutationOptions()
+      trpc.operator.initSignup.mutationOptions()
   );
 
   const detectMethod = (input: string): "phone" | "email" => {
     const cleanInput = input.trim();
     if (
-      cleanInput.startsWith("+225") ||
-      cleanInput.startsWith("07") ||
-      cleanInput.startsWith("05") ||
-      cleanInput.startsWith("01") ||
-      /^[0-9\s+\-()]+$/.test(cleanInput)
+        cleanInput.startsWith("+225") ||
+        cleanInput.startsWith("07") ||
+        cleanInput.startsWith("05") ||
+        cleanInput.startsWith("01") ||
+        /^[0-9\s+\-()]+$/.test(cleanInput)
     ) {
       return "phone";
     }
@@ -287,342 +287,349 @@ export function PassengerAuthFlow({
       return;
     }
 
-    updatePreferencesMutation.mutate({
-      fullName: fullName.trim(),
-      preferredSeat,
-      preferredClass,
-      marketingOptIn,
-    });
+    setLocalPending(true);
+    try {
+      const { error } = await authClient.updateUser({
+        name: fullName.trim(),
+      });
+      if (error) throw error;
+
+      updatePreferencesMutation.mutate({
+        fullName: fullName.trim(),
+        preferredSeat,
+        preferredClass,
+        marketingOptIn,
+      });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update profile name.");
+      setLocalPending(false);
+    }
   }
 
   const isPending =
-    authPending ||
-    updatePreferencesMutation.isPending ||
-    checkAccountStatusMutation.isPending ||
-    initSignupMutation.isPending;
+      authPending ||
+      localPending ||
+      updatePreferencesMutation.isPending ||
+      checkAccountStatusMutation.isPending ||
+      initSignupMutation.isPending;
 
   return (
-    <div className="w-full max-w-md overflow-hidden">
-      <motion.div
-        layout
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="bg-card border border-border rounded-2xl shadow-sm w-full"
-      >
-        <AnimatePresence mode="wait" custom={direction} initial={false}>
-          <motion.div
-            key={step}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.2 }}
-            className="p-6 flex flex-col gap-6"
-          >
-            {/* Header section based on step */}
-            <div className="flex flex-col gap-1.5">
-              <h3 className="font-semibold text-xl tracking-tight text-card-foreground">
-                {step === "input" && (userType === "passenger" ? "Welcome to Moja Ride" : "Business Portal")}
-                {step === "details" && "Register Your Business"}
-                {step === "otp" && "Verify Your Account"}
-                {step === "profile" && "Complete Your Profile"}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {step === "input" && (userType === "passenger" ? "Enter your phone number or email to continue." : "Enter your work email or phone to sign in.")}
-                {step === "details" && "Tell us about your company to get started."}
-                {step === "otp" && `We sent a 6-digit verification code to ${identifier}.`}
-                {step === "profile" && "Please enter your name and preferences to complete registration."}
-              </p>
-            </div>
+      <div className="w-full overflow-hidden">
+        <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="w-full bg-transparent border-none shadow-none"
+        >
+          <AnimatePresence mode="wait" custom={direction} initial={false}>
+            <motion.div
+                key={step}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.2 }}
+                className="w-full py-2 flex flex-col gap-4"
+            >
+              {/* Header section based on step */}
+              <div className="space-y-3 text-center mb-4">
+                <h1 className="font-medium text-4xl tracking-tight text-text-primary">
+                  {step === "input" && (userType === "passenger" ? "Welcome to Moja Ride" : "Business Portal")}
+                  {step === "details" && "Register Your Business"}
+                  {step === "otp" && "Verify Your Account"}
+                  {step === "profile" && "Complete Your Profile"}
+                </h1>
+                <p className="text-muted-foreground text-base">
+                  {step === "input" && (userType === "passenger" ? "Enter your phone number or email to continue." : "Enter your work email or phone to sign in.")}
+                  {step === "details" && "Tell us about your company to get started."}
+                  {step === "otp" && `We sent a 6-digit verification code to ${identifier}.`}
+                  {step === "profile" && "Please enter your name and preferences to complete registration."}
+                </p>
+              </div>
 
-            {/* Input Step Form */}
-            {step === "input" && (
-              <form onSubmit={handleSendCode} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="identifier" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {userType === "passenger" ? "Phone Number or Email" : "Work Email or Phone"}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="identifier"
-                      type="text"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder={userType === "passenger" ? "07 00 00 00 00 or you@example.com" : "you@company.com or phone"}
-                      required
-                      disabled={isPending}
-                      className="h-10 border-border pr-10 focus-visible:ring-primary"
-                      autoFocus
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                      {detectMethod(identifier) === "phone" ? (
-                        <Smartphone className="h-4 w-4" />
+              {/* Google Social Login & Divider (Shown on passenger input step only) */}
+              {step === "input" && userType === "passenger" && (
+                  <div className="w-full space-y-4">
+                    <Button
+                        variant="outline"
+                        className="w-full flex items-center justify-center gap-2"
+                        onClick={async () => {
+                          await authClient.signIn.social({
+                            provider: "google",
+                            callbackURL: "/dashboard",
+                          });
+                        }}
+                    >
+                      <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                      </svg>
+                      Continue with Google
+                    </Button>
+                    <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-border after:border-t">
+                      <span className="relative z-10 bg-background px-2 text-muted-foreground">Or continue with</span>
+                    </div>
+                  </div>
+              )}
+
+              {/* Input Step Form */}
+              {step === "input" && (
+                  <form onSubmit={handleSendCode} className="flex flex-col gap-4">
+                    <FieldGroup className="gap-4">
+                      <Field className="gap-1.5">
+                        <FieldLabel htmlFor="identifier">
+                          {userType === "passenger" ? "Phone Number or Email" : "Work Email or Phone"}
+                        </FieldLabel>
+                        <Input
+                            id="identifier"
+                            type="text"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
+                            placeholder={userType === "passenger" ? "07 00 00 00 00 or you@example.com" : "you@company.com or phone"}
+                            required
+                            disabled={isPending}
+                            autoFocus
+                            className="h-11 px-4 w-full box-border"
+                            style={{ boxSizing: "border-box" }}
+                        />
+                      </Field>
+                    </FieldGroup>
+                    <Button type="submit" className="w-full" disabled={isPending || !identifier.trim()}>
+                      {isPending ? "Checking status..." : "Continue"}
+                    </Button>
+                  </form>
+              )}
+
+              {/* Company Details Step Form (Operators Only) */}
+              {step === "details" && (
+                  <form onSubmit={handleOperatorDetailsSubmit} className="flex flex-col gap-4">
+                    <FieldGroup className="gap-4">
+                      <Field className="gap-1.5">
+                        <FieldLabel htmlFor="companyName">Company Name</FieldLabel>
+                        <Input
+                            id="companyName"
+                            value={companyName}
+                            onChange={(e) => setCompanyName(e.target.value)}
+                            placeholder="e.g. Express Transit"
+                            required
+                            disabled={isPending}
+                            autoFocus
+                            className="h-11 px-4 w-full box-border"
+                            style={{ boxSizing: "border-box" }}
+                        />
+                      </Field>
+
+                      <Field className="gap-1.5">
+                        <FieldLabel htmlFor="ownerName">Your Full Name</FieldLabel>
+                        <Input
+                            id="ownerName"
+                            value={ownerName}
+                            onChange={(e) => setOwnerName(e.target.value)}
+                            placeholder="Your legal name"
+                            required
+                            disabled={isPending}
+                            className="h-11 px-4 w-full box-border"
+                            style={{ boxSizing: "border-box" }}
+                        />
+                      </Field>
+
+                      {/* Conditional fields based on first step input type */}
+                      {method === "email" ? (
+                          <Field className="gap-1.5">
+                            <FieldLabel htmlFor="operatorPhone">Phone Number</FieldLabel>
+                            <PhoneInput
+                                id="operatorPhone"
+                                value={operatorCollectedPhone}
+                                onChange={(value) => setOperatorCollectedPhone(value ?? "")}
+                                placeholder="+225 07 00 00 00 00"
+                                country="CI"
+                                defaultCountry="CI"
+                                international={false}
+                                required
+                                disabled={isPending}
+                                className="w-full box-border"
+                                style={{ boxSizing: "border-box" }}
+                            />
+                          </Field>
                       ) : (
-                        <Mail className="h-4 w-4" />
+                          <Field className="gap-1.5">
+                            <FieldLabel htmlFor="operatorEmail">Work Email</FieldLabel>
+                            <Input
+                                id="operatorEmail"
+                                type="email"
+                                value={operatorCollectedEmail}
+                                onChange={(e) => setOperatorCollectedEmail(e.target.value)}
+                                placeholder="you@company.com"
+                                required
+                                disabled={isPending}
+                                className="h-11 px-4 w-full box-border"
+                                style={{ boxSizing: "border-box" }}
+                            />
+                          </Field>
                       )}
-                    </div>
-                  </div>
-                </div>
-                <Button type="submit" className="w-full h-10 font-semibold" disabled={isPending || !identifier.trim()}>
-                  {isPending ? "Checking status..." : "Continue"}
-                </Button>
-              </form>
-            )}
 
-            {/* Company Details Step Form (Operators Only) */}
-            {step === "details" && (
-              <form onSubmit={handleOperatorDetailsSubmit} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="companyName" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Company Name
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="companyName"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="e.g. Express Transit"
-                      required
-                      disabled={isPending}
-                      className="h-10 border-border pr-10 focus-visible:ring-primary"
-                      autoFocus
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                      <Building className="h-4 w-4" />
-                    </div>
-                  </div>
-                </div>
+                      <Field orientation="horizontal">
+                        <Checkbox
+                            id="terms"
+                            checked={acceptTerms}
+                            onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                            disabled={isPending}
+                        />
+                        <FieldContent>
+                          <FieldLabel htmlFor="terms" className="font-normal">
+                            I accept the{" "}
+                            <Link href="/terms" className="text-primary hover:underline font-medium">
+                              Terms and Conditions
+                            </Link>{" "}
+                            and{" "}
+                            <Link href="/privacy" className="text-primary hover:underline font-medium">
+                              Privacy Policy
+                            </Link>
+                          </FieldLabel>
+                        </FieldContent>
+                      </Field>
+                    </FieldGroup>
 
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="ownerName" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Your Full Name
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="ownerName"
-                      value={ownerName}
-                      onChange={(e) => setOwnerName(e.target.value)}
-                      placeholder="Your legal name"
-                      required
-                      disabled={isPending}
-                      className="h-10 border-border pr-10 focus-visible:ring-primary"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                      <User className="h-4 w-4" />
-                    </div>
-                  </div>
-                </div>
+                    <Button type="submit" className="w-full" disabled={isPending}>
+                      {isPending ? "Submitting..." : "Continue"}
+                    </Button>
 
-                {/* Conditional fields based on first step input type */}
-                {method === "email" ? (
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="operatorPhone" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Phone Number
-                    </Label>
-                    <PhoneInput
-                      id="operatorPhone"
-                      value={operatorCollectedPhone}
-                      onChange={(value) => setOperatorCollectedPhone(value ?? "")}
-                      placeholder="+225 07 00 00 00 00"
-                      country="CI"
-                      defaultCountry="CI"
-                      international={false}
-                      required
-                      disabled={isPending}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="operatorEmail" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Work Email
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="operatorEmail"
-                        type="email"
-                        value={operatorCollectedEmail}
-                        onChange={(e) => setOperatorCollectedEmail(e.target.value)}
-                        placeholder="you@company.com"
-                        required
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full text-muted-foreground"
+                        onClick={() => {
+                          setDirection(-1);
+                          setStep("input");
+                        }}
                         disabled={isPending}
-                        className="h-10 border-border pr-10 focus-visible:ring-primary"
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                        <Mail className="h-4 w-4" />
-                      </div>
-                    </div>
-                  </div>
-                )}
+                    >
+                      Go Back
+                    </Button>
+                  </form>
+              )}
 
-                <div className="flex items-start gap-2 pt-2">
-                  <Checkbox
-                    id="terms"
-                    checked={acceptTerms}
-                    onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-                    disabled={isPending}
-                  />
-                  <Label
-                    htmlFor="terms"
-                    className="text-xs text-muted-foreground cursor-pointer leading-normal"
-                  >
-                    I accept the{" "}
-                    <Link href="/terms" className="text-primary hover:underline font-medium">
-                      Terms and Conditions
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="/privacy" className="text-primary hover:underline font-medium">
-                      Privacy Policy
-                    </Link>
-                  </Label>
-                </div>
+              {/* OTP Step Form */}
+              {step === "otp" && (
+                  <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
+                    <FieldGroup className="gap-4">
+                      <Field className="gap-1.5">
+                        <FieldLabel htmlFor="otp">Verification Code</FieldLabel>
+                        <Input
+                            id="otp"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={6}
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                            placeholder="123456"
+                            required
+                            disabled={isPending}
+                            className="h-11 w-full text-center font-mono text-lg tracking-[0.5em] box-border"
+                            style={{ boxSizing: "border-box" }}
+                            autoFocus
+                        />
+                      </Field>
+                    </FieldGroup>
+                    <Button type="submit" className="w-full" disabled={isPending || otp.length < 6}>
+                      {isPending ? "Verifying..." : "Verify and Sign In"}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full text-muted-foreground"
+                        onClick={() => {
+                          setDirection(-1);
+                          setStep(userType === "operator" && companyName ? "details" : "input");
+                          setOtp("");
+                        }}
+                        disabled={isPending}
+                    >
+                      Use a different phone or email
+                    </Button>
+                  </form>
+              )}
 
-                <Button type="submit" className="w-full h-10 font-semibold mt-2" disabled={isPending}>
-                  {isPending ? "Submitting..." : "Continue"}
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full text-xs font-semibold text-muted-foreground hover:bg-transparent"
-                  onClick={() => {
-                    setDirection(-1);
-                    setStep("input");
-                  }}
-                  disabled={isPending}
-                >
-                  Go Back
-                </Button>
-              </form>
-            )}
+              {/* Passenger Profile Setup Step Form */}
+              {step === "profile" && (
+                  <form onSubmit={handleCompleteProfile} className="flex flex-col gap-4">
+                    <FieldGroup className="gap-4">
+                      <Field className="gap-1.5">
+                        <FieldLabel htmlFor="fullName">Full Name</FieldLabel>
+                        <Input
+                            id="fullName"
+                            type="text"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="e.g. John Doe"
+                            required
+                            disabled={isPending}
+                            autoFocus
+                            className="h-11 px-4 w-full box-border"
+                            style={{ boxSizing: "border-box" }}
+                        />
+                      </Field>
 
-            {/* OTP Step Form */}
-            {step === "otp" && (
-              <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="otp" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Verification Code
-                  </Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    placeholder="123456"
-                    required
-                    disabled={isPending}
-                    className="h-10 border-border text-center font-mono text-lg tracking-[0.5em] focus-visible:ring-primary"
-                    autoFocus
-                  />
-                </div>
-                <Button type="submit" className="w-full h-10 font-semibold" disabled={isPending || otp.length < 6}>
-                  {isPending ? "Verifying..." : "Verify and Sign In"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full text-xs font-semibold text-muted-foreground hover:bg-transparent"
-                  onClick={() => {
-                    setDirection(-1);
-                    setStep(userType === "operator" && companyName ? "details" : "input");
-                    setOtp("");
-                  }}
-                  disabled={isPending}
-                >
-                  Use a different phone or email
-                </Button>
-              </form>
-            )}
+                      <Field className="gap-1.5">
+                        <FieldLabel htmlFor="preferredSeat">Seat Preference</FieldLabel>
+                        <select
+                            id="preferredSeat"
+                            value={preferredSeat}
+                            onChange={(e) => setPreferredSeat(e.target.value as any)}
+                            disabled={isPending}
+                            className="w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary box-border"
+                            style={{ boxSizing: "border-box" }}
+                        >
+                          <option value="NONE">No preference</option>
+                          <option value="WINDOW">Window Seat</option>
+                          <option value="AISLE">Aisle Seat</option>
+                        </select>
+                      </Field>
 
-            {/* Passenger Profile Setup Step Form */}
-            {step === "profile" && (
-              <form onSubmit={handleCompleteProfile} className="flex flex-col gap-5">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="fullName" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Full Name
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="fullName"
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. John Doe"
-                      required
-                      disabled={isPending}
-                      className="h-10 border-border pr-10 focus-visible:ring-primary"
-                      autoFocus
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                      <User className="h-4 w-4" />
-                    </div>
-                  </div>
-                </div>
+                      <Field className="gap-1.5">
+                        <FieldLabel htmlFor="preferredClass">Travel Class</FieldLabel>
+                        <select
+                            id="preferredClass"
+                            value={preferredClass}
+                            onChange={(e) => setPreferredClass(e.target.value as any)}
+                            disabled={isPending}
+                            className="w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary box-border"
+                            style={{ boxSizing: "border-box" }}
+                        >
+                          <option value="ECONOMY">Economy Class</option>
+                          <option value="STANDARD">Standard Class</option>
+                          <option value="BUSINESS">Business Class</option>
+                          <option value="VIP">VIP Class</option>
+                        </select>
+                      </Field>
 
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="preferredSeat" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Seat Preference
-                  </Label>
-                  <select
-                    id="preferredSeat"
-                    value={preferredSeat}
-                    onChange={(e) => setPreferredSeat(e.target.value as any)}
-                    disabled={isPending}
-                    className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  >
-                    <option value="NONE">No preference</option>
-                    <option value="WINDOW">Window Seat</option>
-                    <option value="AISLE">Aisle Seat</option>
-                  </select>
-                </div>
+                      <Field orientation="horizontal" className="border-t border-border pt-4 justify-between">
+                        <FieldContent>
+                          <FieldLabel htmlFor="marketing">Marketing & Promotions</FieldLabel>
+                          <p className="text-sm text-muted-foreground leading-normal">
+                            Receive discount codes, vouchers, and travel deal alerts.
+                          </p>
+                        </FieldContent>
+                        <Switch
+                            id="marketing"
+                            checked={marketingOptIn}
+                            onCheckedChange={setMarketingOptIn}
+                            disabled={isPending}
+                        />
+                      </Field>
+                    </FieldGroup>
 
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="preferredClass" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Travel Class
-                  </Label>
-                  <select
-                    id="preferredClass"
-                    value={preferredClass}
-                    onChange={(e) => setPreferredClass(e.target.value as any)}
-                    disabled={isPending}
-                    className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  >
-                    <option value="ECONOMY">Economy Class</option>
-                    <option value="STANDARD">Standard Class</option>
-                    <option value="BUSINESS">Business Class</option>
-                    <option value="VIP">VIP Class</option>
-                  </select>
-                </div>
-
-                <div className="border-t border-border pt-4 flex items-center justify-between">
-                  <div className="space-y-0.5 max-w-[280px]">
-                    <Label htmlFor="marketing" className="text-xs font-bold text-text-primary">
-                      Marketing & Promotions
-                    </Label>
-                    <p className="text-[10px] text-muted-foreground leading-normal">
-                      Receive discount codes, vouchers, and travel deal alerts.
-                    </p>
-                  </div>
-                  <Switch
-                    id="marketing"
-                    checked={marketingOptIn}
-                    onCheckedChange={setMarketingOptIn}
-                    disabled={isPending}
-                  />
-                </div>
-
-                <Button type="submit" className="w-full h-10 font-semibold gap-2 mt-2" disabled={isPending || !fullName.trim()}>
-                  {isPending && <Spinner className="w-4 h-4 text-white" />}
-                  <Sparkles className="h-4 w-4" />
-                  Complete Registration
-                </Button>
-              </form>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
-    </div>
+                    <Button type="submit" className="w-full mt-2" disabled={isPending || !fullName.trim()}>
+                      Complete Registration
+                    </Button>
+                  </form>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      </div>
   );
 }
