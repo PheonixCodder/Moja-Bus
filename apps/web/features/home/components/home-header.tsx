@@ -84,9 +84,8 @@ export function HomeHeader({ user }: HomeHeaderProps) {
   };
 
   const isHome = pathname === "/";
-  const isSearch = pathname.startsWith("/search");
   const hasLightText = isHome && !scrolled && !mobileOpen;
-  const hasTransparentBg = (isHome || isSearch) && !scrolled && !mobileOpen;
+  const hasTransparentBg = !scrolled && !mobileOpen;
 
   return (
     <>

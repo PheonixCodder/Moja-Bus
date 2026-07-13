@@ -15,6 +15,7 @@ import { paymentsRouter } from "./payments";
 import { publicRouter } from "./public";
 import { adminRouter } from "./admin";
 import { walletRouter } from "./wallet";
+import { blogRouter } from "./blog";
 
 export const appRouter = createTRPCRouter({
   operator: operatorRouter,
@@ -33,6 +34,7 @@ export const appRouter = createTRPCRouter({
   public: publicRouter,
   admin: adminRouter,
   wallet: walletRouter,
+  blog: blogRouter,
 });
 
 export type AppRouter = typeof appRouter;

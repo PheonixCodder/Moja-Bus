@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/snapshot-accounts",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/publish-blogs",
+      "schedule": "* * * * *"
     }
   ]
 }

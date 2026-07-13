@@ -228,6 +228,11 @@ model User {
   holdGroups HoldGroup[]
   reviews    Review[]
 
+  // Blog system relations
+  authoredBlogs       BlogPost[]       @relation("BlogAuthor")
+  reviewedBlogs       BlogPost[]       @relation("BlogReviewer")
+  blogRevisions       BlogRevision[]   @relation("BlogRevisionAuthor")
+
   @@index([role])
   @@map("user")
 }
@@ -1600,4 +1605,177 @@ enum InvitationStatus {
   ACCEPTED
   EXPIRED
   CANCELLED
+}
+
+// ============================================
+// ENTERPRISE BLOG SYSTEM
+// ============================================
+
+enum BlogPostStatus {
+  DRAFT
+  REVIEW
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum BlogEventType {
+  VIEW
+  READ_25
+  READ_50
+  READ_75
+  READ_100
+  CTA_CLICK
+  SHARE
+}
+
+model BlogCategory {
+  id          String         @id @default(cuid())
+  parentId    String?
+  parent      BlogCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    BlogCategory[] @relation("CategoryHierarchy")
+  name        String         @unique
+  slug        String         @unique
+  description String?
+  posts       BlogPost[]
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("blog_category")
+}
+
+model BlogTag {
+  id    String     @id @default(cuid())
+  name  String     @unique
+  slug  String     @unique
+  posts BlogPost[]
+
+  @@map("blog_tag")
+}
+
+model BlogPost {
+  id             String         @id @default(cuid())
+  status         BlogPostStatus @default(DRAFT)
+  
+  title          String
+  slug           String         @unique
+  
+  content        String         @db.Text
+  excerpt        String?        @db.Text
+  
+  // Author Display Overrides
+  authorId          String
+  author            User     @relation("BlogAuthor", fields: [authorId], references: [id])
+  displayAuthorName String?  
+  displayAuthorBio  String?
+  displayAuthorAvatar String?
+  
+  // Images & Media
+  coverImage        String?
+  coverImageBlur    String?
+  coverImageAlt     String?
+  coverImageCredit  String?
+  ogImage           String? 
+  
+  // Precomputed & Metadata
+  readingTime    Int            @default(0) 
+  wordCount      Int            @default(0)
+  language       String         @default("en")
+  
+  // Feature flags
+  featured       Boolean        @default(false)
+  featuredOrder  Int?
+  allowIndex     Boolean        @default(true)
+  allowComments  Boolean        @default(false)
+  
+  // SEO Metadata
+  seoTitle           String?
+  seoDescription     String?
+  canonicalUrl       String?
+  robots             String? 
+  ogTitle            String?
+  ogDescription      String?
+  twitterTitle       String?
+  twitterDescription String?
+  twitterImage       String?
+
+  // Timestamps & Workflow
+  scheduledFor   DateTime?
+  publishedAt    DateTime?
+  lastReviewedAt DateTime?
+  lastReviewedById String?
+  reviewer          User?    @relation("BlogReviewer", fields: [lastReviewedById], references: [id])
+  
+  // Soft Delete
+  deletedAt      DateTime?
+  deletedById    String?
+
+  // Analytics Base
+  viewCount      Int @default(0)
+  completionRate Float @default(0)
+
+  // Relations
+  categoryId     String?
+  category       BlogCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags           BlogTag[]
+  
+  revisions      BlogRevision[]
+  events         BlogEvent[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([slug])
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@map("blog_post")
+}
+
+model BlogRevision {
+  id         String   @id @default(cuid())
+  postId     String
+  post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  content    String   @db.Text
+  changedById String
+  changedBy  User     @relation("BlogRevisionAuthor", fields: [changedById], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@map("blog_revision")
+}
+
+model BlogSlugHistory {
+  id        String   @id @default(cuid())
+  oldSlug   String   @unique
+  newSlug   String
+  createdAt DateTime @default(now())
+
+  @@map("blog_slug_history")
+}
+
+model BlogRedirect {
+  id          String   @id @default(cuid())
+  source      String   @unique
+  destination String
+  type        Int      @default(301) 
+  createdAt   DateTime @default(now())
+
+  @@map("blog_redirect")
+}
+
+model BlogEvent {
+  id        String   @id @default(cuid())
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  eventType BlogEventType
+  userId    String?  
+  sessionId String?  
+  metadata  Json?
+  
+  createdAt DateTime @default(now())
+
+  @@index([postId, eventType])
+  @@index([createdAt])
+  @@map("blog_event")
 }

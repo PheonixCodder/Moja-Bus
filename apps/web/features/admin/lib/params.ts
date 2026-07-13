@@ -1,6 +1,7 @@
 import {
   parseAsString,
   parseAsInteger,
+  createSearchParamsCache
 } from "nuqs/server";
 
 export const adminUsersParamsSchema = {
@@ -23,3 +24,11 @@ export const adminOperationsParamsSchema = {
 export const adminSettingsParamsSchema = {
   tab: parseAsString.withDefault("global"),
 };
+
+export const adminBlogParamsSchema = {
+  q: parseAsString.withDefault(""),
+  status: parseAsString.withDefault(""),
+  page: parseAsInteger.withDefault(1),
+};
+
+export const adminBlogParamsCache = createSearchParamsCache(adminBlogParamsSchema);
