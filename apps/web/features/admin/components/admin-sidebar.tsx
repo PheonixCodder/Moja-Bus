@@ -14,6 +14,7 @@ import {
   Activity,
   User,
   Landmark,
+  FileText,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -124,6 +125,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const adminItems: MenuItem[] = [
     { title: "User Directory", url: "/dashboard/admin/users", icon: Users },
     { title: "Operations Oversight", url: "/dashboard/admin/operations", icon: Activity },
+    { title: "Content & Blog", url: "/dashboard/admin/blog", icon: FileText },
     { title: "Platform Settings", url: "/dashboard/admin/settings", icon: Settings },
   ];
 
