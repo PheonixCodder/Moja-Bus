@@ -1,25 +1,38 @@
-# Memory — Payment System, Novu Integration & BigInt Migration (Sprint 5 & 6)
+# Memory — Paystack Unified Treasury & Operator Withdrawals (Session 10 — UI Refactoring & Reconciler Complete)
 
 Last updated: 2026-07-11
 
 ## What was built
 
-- **Full Novu Notification Integration:** Configured and integrated Novu across all platforms for Admin, Passenger, and Operator workflows. Built 13 workflow triggers (e.g. `passenger-booking-confirmed`, `operator-withdrawal-requested`, `admin-treasury-network-failure`).
-- **Notification Security:** Implemented comprehensive HTML escaping via a shared `escape-html.ts` utility for all user-provided payload variables (e.g., passenger names, reasons) used in Novu email templates to prevent XSS.
-- **BigInt Financial Migration:** Successfully migrated all core ledger balance and transaction columns (`amount`, `postedBalance`, etc.) in Prisma to `BigInt` to support exact accounting for large values (XOF), replacing `Int`. Handled JSON serialization boundaries safely with `Number()` casts in tRPC routers and `AccountingEngine`.
-- **Paystack & Wallet Resiliency:** Hardened all outbound Paystack API calls with `AbortSignal.timeout(30_000)` and robust try/catch blocks. Ensure database states appropriately track `PENDING` payment attempts or `FAILED` network issues *before* finalizing ledger deducts or marking transactions as settled.
-- **Wallet Provisioning Safety:** Fixed `booking-confirmation-service.ts` to execute wallet account provisioning dynamically via the Prisma transaction client (`tx`) so that accounts cleanly roll back if the main transaction fails.
-- **CodeRabbit Review Resolutions:** Fixed 37 specific issues raised by the automated code review tool, resolving UI labels, removing legacy column drops, removing unused properties in API requests, and standardizing error handling.
-- **Workspace-wide Type Safety:** Successfully verified workspace typechecking after BigInt changes (`pnpm tsc --noEmit` exits with 0).
+### Paystack Unified Treasury Migration & Operator Withdrawals ✅
+A complete transition from automatic Paystack subaccount splits to a unified Moja Treasury model with self-serve operator withdrawals.
+
+#### New Prisma Models & Fields (`packages/db/prisma/schema.prisma`)
+- Added `paystackTransferRecipientCode` to `Company` and `BankAccount` models.
+- Added `clearedAt` to `Booking` model to track when booking funds clear escrow.
+- Added `minWithdrawalAmount` and `withdrawalFrequencyHours` to `PlatformSettings`.
+- Dropped `paystackSubaccountCode` from the database.
 
 #### Paystack Provider & Client Updates
 - Refactored `paystack-client.ts` to implement `paystackCreateTransferRecipient`, `paystackInitiateTransfer`, and `paystackVerifyTransfer`.
 - Removed subaccount splits from `paystack-provider.ts` and `payment-service.ts`.
 - Switched operator verification flow in `admin.ts` to register bank accounts as Transfer Recipients instead of Subaccounts.
 
-- For Novu integration, user inputs used in Novu template payloads must be escaped before being sent to the Novu API, guaranteeing safe rendering in email clients.
-- `BigInt` will be used exclusively at the database and logical layers for financial tables. We safely cast down to `Number()` only at the exact boundaries for tRPC JSON transmission because our frontend components and XOF maximums fit safely inside JavaScript's `MAX_SAFE_INTEGER`.
-- For internal withdrawal network failures, transactions will be marked `PENDING` (funds reserved) and require an admin reconciliation, rather than rolling back immediately, so manual payout retries or verifications can take place.
+#### Operator Withdrawals Flow
+- Created `operator.requestWithdrawal` TRPC endpoint which checks limits, verifies available balance, locks accounts (`SELECT ... FOR UPDATE`), creates ledger entries (`OPERATOR_PAYOUT`), and initiates Paystack transfers.
+- Added `OperatorWithdrawView` and page `/dashboard/operator/withdraw` allowing operators to view available vs escrow (pending) balances, withdrawal history logs (with status codes and fees), and request bank transfers.
+- Added "Withdrawals" tab to the operator sidebar under Financials.
+
+#### Paystack Webhooks & Automated Reconciler
+- Extended `PaymentService.handleWebhookEvent` to capture `transfer.success`, `transfer.failed`, and `transfer.reversed` Paystack events.
+- Created `/api/cron/reconcile-payments` cron endpoint running every 5 minutes in `vercel.json`. It reconciles pending withdrawals and passenger wallet top-ups/bookings in parallel using `Promise.allSettled` to prevent timeouts.
+
+#### Booking Checkout Wallet Payments & Bookings History Modal
+- Added `confirmFromWallet` in `BookingConfirmationService` and `booking.checkoutWithWallet` TRPC mutation.
+- Refactored `booking-checkout-form.tsx` to let passengers pay with internal wallet balances. Applies a zero convenience fee policy and confirms bookings instantly.
+- Refactored `passenger-bookings-view.tsx` to open an interactive payment selector dialog, enabling travelers to resume holds in their history using their Moja Wallet Balance (with waived convenience fees) or Card/Mobile Money.
+- Integrated `formatHeaderDate` inside `operator-trips-view.tsx` to prevent date discrepancy caused by double-timezone shifting on day headers.
+- Upgraded the shared `TicketScanner` component to support both live camera scans and manual text entry, and embedded it on the Operator Dashboard page to replace the non-functional mock scanner.
 
 ## Architecture Decisions
 - **Single Treasury Model**: All checkouts and top-ups route to Moja's central Paystack balance. Operators are treated purely as transfer recipients, simplifying accounting and resolving split settlement failures.
@@ -27,11 +40,15 @@ Last updated: 2026-07-11
 - **Concurrency Locks**: Available balance validation during withdrawals holds an explicit `FOR UPDATE` postgres lock to prevent race conditions (double-payouts).
 
 ## Current State
-- **Workspace Status:** 100% type-safe compilation. Running `pnpm tsc --noEmit` completes successfully with no errors or warnings across the workspace.
-- **Payments:** End-to-end resilient.
-- **Notifications:** Integrated and secure.
+- Schema: Unified treasury migrations applied and verified in PostgreSQL. ✅
+- Paystack Provider: Configured to support transfers, recipient generation, and transfer verification. ✅
+- Operator Withdrawals: Self-serve withdrawal, balance checks, and withdrawal log history tables fully active. ✅
+- Payout Webhooks & Cron Reconciler: Automated webhook processor and 5-min cron self-healer fully active. ✅
+- Booking Checkout: Real-time wallet balance checks, toggle selection, and zero-fee checkout fully active. ✅
+- Resumed Holds: Completed payment dialog modal on Bookings list page fully active. ✅
+- UI Cleanups & Commission Oversight: Removed all stale subaccount and dynamic split config copy, and verified operator commission configurations for ledger tier compliance. ✅
+- Novu Notification Integration & Sync: Framework setup, core workflows, and TRPC triggers fully synced to Novu Cloud. ✅
+- TypeScript Compilation: achieves 100% type safety with **0 compile errors** on `web`. ✅
 
 ## Next Session Starts With
-1. **Novu Studio Synchronization**: Sync our code-defined workflows to the Novu Cloud dashboard using `npx novu sync` and set up provider configurations.
-2. **Booking Ownership Hardening:** Address anonymous passenger booking claim mechanisms (lazy-claim vs. explicit OTP verification).
-3. **Operations Dashboard Oversight**: Clean up any remaining operator commission configurations to ensure compliance with ledger tiers.
+1. **Booking Ownership Hardening:** Address anonymous passenger booking claim mechanisms (lazy-claim vs. explicit OTP verification).
