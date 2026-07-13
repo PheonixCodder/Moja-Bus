@@ -1,6 +1,7 @@
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 import { AdminBlogView } from "@/features/admin/views/admin-blog-view";
 import { adminBlogParamsCache } from "@/features/admin/lib/params";
+import type { SearchParams } from "nuqs/server";
 
 export const metadata = {
   title: "Blog Management — Admin Portal",
@@ -10,18 +11,23 @@ export const metadata = {
 export default async function AdminBlogPage({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<SearchParams>;
 }) {
-  const { q, status, page } = adminBlogParamsCache.parse(searchParams);
+  const parsedParams = adminBlogParamsCache.parse(await searchParams);
+  const { q, status, page } = parsedParams;
 
-  await prefetch(
-    trpc.admin.listBlogPosts.queryOptions({
-      search: q || undefined,
-      status: status || undefined,
-      limit: 20,
-      offset: (page - 1) * 20,
-    })
-  );
+  await Promise.all([
+    prefetch(
+      trpc.admin.listBlogPosts.queryOptions({
+        search: q || undefined,
+        status: status || undefined,
+        limit: 20,
+        offset: (page - 1) * 20,
+      })
+    ),
+    prefetch(trpc.admin.listBlogCategories.queryOptions()),
+    prefetch(trpc.admin.listBlogTags.queryOptions()),
+  ]);
 
   return (
     <HydrateClient>

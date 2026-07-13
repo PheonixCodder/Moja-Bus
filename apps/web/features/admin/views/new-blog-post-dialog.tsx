@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Loader2, PenLine } from "lucide-react";
 import { Input } from "@moja/ui/components/ui/input";
 import { Button } from "@moja/ui/components/ui/button";
@@ -33,6 +34,9 @@ export function NewBlogPostDialog({ open, onOpenChange }: NewBlogPostDialogProps
       onOpenChange(false);
       setTitle("");
       router.push(`/dashboard/admin/blog/${data.id}/edit`);
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Failed to create blog post draft");
     },
   });
 

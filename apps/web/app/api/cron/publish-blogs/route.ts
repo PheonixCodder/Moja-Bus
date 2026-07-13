@@ -7,10 +7,9 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   // Check authorization header (Vercel Cron sends a Bearer token)
   const authHeader = request.headers.get("authorization");
-  if (
-    process.env["CRON_SECRET"] &&
-    authHeader !== `Bearer ${process.env["CRON_SECRET"]}`
-  ) {
+  const cronSecret = process.env["CRON_SECRET"];
+
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -34,12 +33,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ publishedCount: 0 });
     }
 
-    // Update them to PUBLISHED
+    // Update them to PUBLISHED while filtering by SCHEDULED to prevent race conditions
     const updated = await prisma.blogPost.updateMany({
       where: {
         id: {
           in: postsToPublish.map((p) => p.id),
         },
+        status: "SCHEDULED",
       },
       data: {
         status: "PUBLISHED",
@@ -48,8 +48,11 @@ export async function GET(request: Request) {
       },
     });
 
-    // Revalidate the blog cache so Next.js serves the new posts
+    // Revalidate the public blog index and each newly published post details cache
     revalidatePath("/blog");
+    for (const post of postsToPublish) {
+      revalidatePath(`/blog/${post.slug}`);
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useQueryState, parseAsInteger } from "nuqs";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,7 @@ import {
 import { Card } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
+import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -48,14 +49,31 @@ export function AdminBlogView() {
   const currentPage = currentPageParam - 1; // 0-indexed internally
   const pageSize = 20;
 
-  const { data: blogData } = useSuspenseQuery(
-    trpc.admin.listBlogPosts.queryOptions({
+  const [searchVal, setSearchVal] = useState(searchQuery);
+
+  // Debounce admin search input to avoid triggering RSC fetches/suspensions per keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void setSearchQuery(searchVal || null);
+      void setCurrentPageParam(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchVal, setSearchQuery, setCurrentPageParam]);
+
+  // Sync back when searchQuery is modified externally (e.g. cleared)
+  useEffect(() => {
+    setSearchVal(searchQuery);
+  }, [searchQuery]);
+
+  const { data: blogData } = useQuery({
+    ...trpc.admin.listBlogPosts.queryOptions({
       search: searchQuery || undefined,
       status: selectedStatus || undefined,
       limit: pageSize,
       offset: currentPage * pageSize,
-    })
-  );
+    }),
+    placeholderData: keepPreviousData,
+  });
 
   return (
     <div className="space-y-6">
@@ -131,11 +149,8 @@ export function AdminBlogView() {
             <Input
               type="text"
               placeholder="Search by title or excerpt..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPageParam(1);
-              }}
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
               className="h-10 pl-9 pr-4 text-sm"
             />
           </div>
@@ -163,7 +178,11 @@ export function AdminBlogView() {
       </Card>
 
       {/* Table */}
-      {blogData.items.length === 0 ? (
+      {!blogData ? (
+        <div className="h-40 flex items-center justify-center bg-white border border-border rounded-md">
+          <Spinner className="size-6 text-slate-400" />
+        </div>
+      ) : blogData.items.length === 0 ? (
         <div className="rounded-md border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center space-y-3">
           <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mx-auto">
             <SearchX className="size-6" />

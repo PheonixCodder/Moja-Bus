@@ -9,10 +9,14 @@ interface BlogShareButtonsProps {
 }
 
 export function BlogShareButtons({ title }: BlogShareButtonsProps) {
-  const handleCopyLink = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("Article link copied to clipboard");
+  const handleCopyLink = async () => {
+    if (typeof window !== "undefined" && navigator?.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Article link copied to clipboard");
+      } catch (err) {
+        toast.error("Failed to copy link");
+      }
     }
   };
 

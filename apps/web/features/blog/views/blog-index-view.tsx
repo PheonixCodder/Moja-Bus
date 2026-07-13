@@ -64,6 +64,7 @@ export function BlogIndexView() {
       tagSlug: params.tag || undefined,
       searchQuery: params.q || undefined,
       limit: limit,
+      offset: offset,
     })
   );
 
@@ -105,7 +106,7 @@ export function BlogIndexView() {
             <Search className="absolute left-3.5 top-[25px] size-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search guides, guides, or articles..."
+              placeholder="Search guides, news, or articles..."
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               className="w-full pl-10 pr-4 h-11 text-sm bg-white border-slate-200 rounded-full shadow-sm focus:border-rose-400 focus:ring-rose-400/20"

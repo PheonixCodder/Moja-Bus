@@ -56,34 +56,47 @@ const MdxEditorWrapper = dynamic(
 
 // ─── Zod schema ──────────────────────────────────────────────────────────────
 
-const editPostSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200),
-  slug: z
-    .string()
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Lowercase letters, numbers, hyphens only")
-    .min(1, "Slug is required"),
-  content: z.string().min(1, "Content is required"),
-  excerpt: z.string().max(500).optional().or(z.literal("")),
-  status: z.enum(["DRAFT", "REVIEW", "SCHEDULED", "PUBLISHED", "ARCHIVED"]),
-  scheduledFor: z.string().optional(),
-  coverImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  coverImageAlt: z.string().max(200).optional().or(z.literal("")),
-  coverImageCredit: z.string().max(200).optional().or(z.literal("")),
-  ogImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  displayAuthorName: z.string().max(100).optional().or(z.literal("")),
-  displayAuthorBio: z.string().max(500).optional().or(z.literal("")),
-  categoryId: z.string().optional().or(z.literal("")),
-  tagIds: z.array(z.string()).default([]),
-  featured: z.boolean(),
-  allowIndex: z.boolean(),
-  allowComments: z.boolean(),
-  seoTitle: z.string().max(70).optional().or(z.literal("")),
-  seoDescription: z.string().max(160).optional().or(z.literal("")),
-  canonicalUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  twitterTitle: z.string().max(70).optional().or(z.literal("")),
-  twitterDescription: z.string().max(200).optional().or(z.literal("")),
-  twitterImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-});
+const editPostSchema = z
+  .object({
+    title: z.string().min(1, "Title is required").max(200),
+    slug: z
+      .string()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Lowercase letters, numbers, hyphens only")
+      .min(1, "Slug is required"),
+    content: z.string().min(1, "Content is required"),
+    excerpt: z.string().max(500).optional().or(z.literal("")),
+    status: z.enum(["DRAFT", "REVIEW", "SCHEDULED", "PUBLISHED", "ARCHIVED"]),
+    scheduledFor: z.string().optional(),
+    coverImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+    coverImageAlt: z.string().max(200).optional().or(z.literal("")),
+    coverImageCredit: z.string().max(200).optional().or(z.literal("")),
+    ogImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+    displayAuthorName: z.string().max(100).optional().or(z.literal("")),
+    displayAuthorBio: z.string().max(500).optional().or(z.literal("")),
+    categoryId: z.string().optional().or(z.literal("")),
+    tagIds: z.array(z.string()).default([]),
+    featured: z.boolean(),
+    allowIndex: z.boolean(),
+    allowComments: z.boolean(),
+    seoTitle: z.string().max(70).optional().or(z.literal("")),
+    seoDescription: z.string().max(160).optional().or(z.literal("")),
+    canonicalUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+    twitterTitle: z.string().max(70).optional().or(z.literal("")),
+    twitterDescription: z.string().max(200).optional().or(z.literal("")),
+    twitterImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  })
+  .refine(
+    (data) => {
+      if (data.status === "SCHEDULED") {
+        return !!data.scheduledFor && data.scheduledFor.trim() !== "";
+      }
+      return true;
+    },
+    {
+      message: "Publish date/time is required when status is Scheduled",
+      path: ["scheduledFor"],
+    }
+  );
 
 type EditPostFormValues = z.infer<typeof editPostSchema>;
 
@@ -175,15 +188,15 @@ export function BlogEditView({ postId }: { postId: string }) {
   const watchedSeoDescription = watch("seoDescription");
   const watchedExcerpt = watch("excerpt");
 
-  // ⌘S shortcut
-  const onSubmit = useCallback(async (values: EditPostFormValues) => {
+  const savePost = useCallback(async (values: EditPostFormValues, targetStatus?: "PUBLISHED") => {
+    const status = targetStatus || values.status;
     await updatePost.mutateAsync({
       id: postId,
       title: values.title,
       slug: values.slug,
       content: values.content,
       excerpt: values.excerpt || null,
-      status: values.status,
+      status,
       scheduledFor: values.scheduledFor ? new Date(values.scheduledFor) : null,
       coverImage: values.coverImage || null,
       coverImageAlt: values.coverImageAlt || null,
@@ -203,7 +216,18 @@ export function BlogEditView({ postId }: { postId: string }) {
       twitterDescription: values.twitterDescription || null,
       twitterImage: values.twitterImage || null,
     });
-  }, [postId, updatePost]);
+    if (targetStatus) {
+      form.setValue("status", targetStatus);
+    }
+  }, [postId, updatePost, form]);
+
+  const onSubmit = useCallback(async (values: EditPostFormValues) => {
+    await savePost(values);
+  }, [savePost]);
+
+  const onPublish = useCallback(async (values: EditPostFormValues) => {
+    await savePost(values, "PUBLISHED");
+  }, [savePost]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -281,8 +305,7 @@ export function BlogEditView({ postId }: { postId: string }) {
             className="h-8 gap-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white"
             disabled={updatePost.isPending || watchedStatus === "PUBLISHED"}
             onClick={() => {
-              form.setValue("status", "PUBLISHED");
-              handleSubmit(onSubmit)();
+              void handleSubmit(onPublish)();
             }}
           >
             <Globe className="size-3.5" />

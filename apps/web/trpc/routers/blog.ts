@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, adminProcedure } from "../init";
+import { createTRPCRouter, publicProcedure } from "../init";
 import { TRPCError } from "@trpc/server";
+import { Prisma } from "@moja/db";
 
 export const blogRouter = createTRPCRouter({
   // --- PUBLIC ENDPOINTS ---
@@ -8,12 +9,13 @@ export const blogRouter = createTRPCRouter({
     .input(z.object({
       limit: z.number().default(20),
       cursor: z.string().nullish(),
+      offset: z.number().int().min(0).optional(),
       categorySlug: z.string().optional(),
       tagSlug: z.string().optional(),
       searchQuery: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const where: any = {
+      const where: Prisma.BlogPostWhereInput = {
         status: "PUBLISHED",
         deletedAt: null,
       };
@@ -37,22 +39,38 @@ export const blogRouter = createTRPCRouter({
         where,
         take: input.limit + 1,
         ...(input.cursor && { cursor: { id: input.cursor }, skip: 1 }),
+        ...(input.offset !== undefined && { skip: input.offset }),
         orderBy: { publishedAt: "desc" },
         include: {
           author: { select: { fullName: true, image: true } },
           category: { select: { name: true, slug: true } },
-          tags: { select: { name: true, slug: true } },
+          tags: { select: { id: true, name: true, slug: true } },
         },
       });
 
       let nextCursor: typeof input.cursor | undefined = undefined;
       if (posts.length > input.limit) {
         const nextItem = posts.pop();
-        nextCursor = nextItem!.id;
+        if (nextItem) {
+          nextCursor = nextItem.id;
+        }
       }
 
+      // Sanitize internal moderation and analytics fields before returning to client
+      const sanitizedPosts = posts.map((post) => {
+        const {
+          lastReviewedById,
+          deletedById,
+          robots,
+          viewCount,
+          completionRate,
+          ...publicPost
+        } = post;
+        return publicPost;
+      });
+
       return {
-        posts,
+        posts: sanitizedPosts,
         nextCursor,
       };
     }),
@@ -88,7 +106,17 @@ export const blogRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      return post;
+      // Sanitize internal moderation and analytics fields before returning to client
+      const {
+        lastReviewedById,
+        deletedById,
+        robots,
+        viewCount,
+        completionRate,
+        ...publicPost
+      } = post;
+
+      return publicPost;
     }),
 
   trackEvent: publicProcedure
@@ -98,22 +126,35 @@ export const blogRouter = createTRPCRouter({
       metadata: z.record(z.string(), z.any()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      // Create the event log
-      ctx.prisma.blogEvent.create({
+      // Validate that target post exists and is active (Abuse Prevention)
+      const post = await ctx.prisma.blogPost.findUnique({
+        where: { id: input.postId, deletedAt: null, status: "PUBLISHED" },
+        select: { id: true },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Target post not found or not published",
+        });
+      }
+
+      // Create the event log and await it
+      await ctx.prisma.blogEvent.create({
         data: {
           postId: input.postId,
           eventType: input.eventType,
           metadata: input.metadata ? (input.metadata as any) : undefined,
           userId: ctx.user?.id || null,
         },
-      }).catch(console.error);
+      });
 
-      // Increment total view count on the BlogPost model
+      // Increment total view count on the BlogPost model and await it
       if (input.eventType === "VIEW") {
-        ctx.prisma.blogPost.update({
+        await ctx.prisma.blogPost.update({
           where: { id: input.postId },
           data: { viewCount: { increment: 1 } },
-        }).catch(console.error);
+        });
       }
 
       return { success: true };

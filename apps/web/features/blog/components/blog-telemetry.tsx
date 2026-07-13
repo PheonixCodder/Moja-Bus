@@ -13,10 +13,18 @@ export function BlogTelemetry({ postId }: BlogTelemetryProps) {
   const trackEvent = useMutation(trpc.blog.trackEvent.mutationOptions());
 
   useEffect(() => {
-    trackEvent.mutate({
-      postId,
-      eventType: "VIEW",
-    });
+    if (typeof window === "undefined") return;
+
+    const storageKey = `blog-viewed-${postId}`;
+    const alreadyViewed = sessionStorage.getItem(storageKey);
+
+    if (!alreadyViewed) {
+      sessionStorage.setItem(storageKey, "true");
+      trackEvent.mutate({
+        postId,
+        eventType: "VIEW",
+      });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 

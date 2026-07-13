@@ -8,16 +8,20 @@ import {
   adminListOperationsSchema,
 } from "@moja/schemas";
 import { FinancialAccountService, AccountingEngine } from "@moja/db";
-import { createTRPCRouter, protectedProcedure } from "../init";
+import { createTRPCRouter, adminProcedure } from "../init";
 import { revealBankAccountNumber } from "@/lib/bank-account";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
 
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "ADMIN") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-  }
-  return next({ ctx });
-});
+function slugify(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
 
 export const adminRouter = createTRPCRouter({
   getDashboardKPIs: adminProcedure.query(async ({ ctx }) => {
@@ -1008,14 +1012,7 @@ export const adminRouter = createTRPCRouter({
       categoryId: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      // Generate a URL-safe slug from title with a random suffix for uniqueness
-      const baseSlug = input.title
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .slice(0, 60);
+      const baseSlug = slugify(input.title).slice(0, 60);
       const suffix = Math.random().toString(36).slice(2, 8);
       const slug = `${baseSlug}-${suffix}`;
 
@@ -1180,12 +1177,7 @@ export const adminRouter = createTRPCRouter({
       description: z.string().max(200).nullish(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const slug = input.name
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
+      const slug = slugify(input.name);
 
       return ctx.prisma.blogCategory.create({
         data: {
@@ -1207,18 +1199,41 @@ export const adminRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, name, parentId, description } = input;
       const data: any = {};
+      
       if (name !== undefined) {
         data.name = name;
-        data.slug = name
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9\s-]/g, "")
-          .replace(/\s+/g, "-")
-          .replace(/-+/g, "-");
+        data.slug = slugify(name);
       }
+      
       if (parentId !== undefined) {
-        data.parentId = parentId || null;
+        const targetParentId = parentId || null;
+        if (targetParentId) {
+          if (targetParentId === id) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "A category cannot be its own parent.",
+            });
+          }
+
+          // Traverse parents upward to check for cycles
+          let currentParentId: string | null = targetParentId;
+          while (currentParentId) {
+            const parentCat: { parentId: string | null } | null = await ctx.prisma.blogCategory.findUnique({
+              where: { id: currentParentId },
+              select: { parentId: true },
+            });
+            if (parentCat?.parentId === id) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "Circular dependency detected: a category cannot be parented to its own descendant.",
+              });
+            }
+            currentParentId = parentCat?.parentId || null;
+          }
+        }
+        data.parentId = targetParentId;
       }
+      
       if (description !== undefined) {
         data.description = description || null;
       }
@@ -1248,12 +1263,7 @@ export const adminRouter = createTRPCRouter({
       name: z.string().min(1).max(30),
     }))
     .mutation(async ({ ctx, input }) => {
-      const slug = input.name
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
+      const slug = slugify(input.name);
 
       return ctx.prisma.blogTag.create({
         data: {
@@ -1269,12 +1279,7 @@ export const adminRouter = createTRPCRouter({
       name: z.string().min(1).max(30),
     }))
     .mutation(async ({ ctx, input }) => {
-      const slug = input.name
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
+      const slug = slugify(input.name);
 
       return ctx.prisma.blogTag.update({
         where: { id: input.id },
