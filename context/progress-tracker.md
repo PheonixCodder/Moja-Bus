@@ -28,7 +28,26 @@
 
 ## Milestone Log (newest first)
 
+### Passenger Dashboard Redesign (2026-07-13)
+
+- [x] Overhauled the passenger dashboard layout to integrate a sticky glassmorphic header (`backdrop-blur-md bg-background/50 sticky top-0 z-50 border-b`) with `SidebarTrigger`, custom Command Search Dialog (`⌘K`), and integrated `NotificationInbox`.
+- [x] Redesigned the `DashboardSidebar` component matching the exact structures, grouping labels, support cards, active path link indicators, and ellipsis footer menus of `best-dashboard-setup`.
+- [x] Resolved button nesting hydration error (`<button> cannot contain a nested <button>`) and Radix prop warnings by switching to the `render` prop on `DropdownMenuTrigger` and `DropdownMenuItem`.
+- [x] Fixed snap-open animation issues on all Base UI popups/dialogs by defining custom variants (`data-open`, `data-closed`), keyframes, and transition utilities inside the Tailwind v4 globals stylesheet.
+- [x] Resolved Novu Inbox popover clipping by removing `overflow-hidden` from the layout header and adding `z-9999` classes.
+- [x] Completely redesigned the main overview page (`DashboardView`) using a 2-column workspace layout.
+- [x] Query accurate ledger account balance from the database using FinancialAccountService.
+- [x] Built the `TravelStatsChart` Client Component rendering monthly trip activity as a responsive, styled area chart.
+- [x] Built the `WalletQuickDeposit` Client Component supporting card/mobile money top-ups via Paystack and rendering a 3-row mini ledger.
+- [x] Built the `SavedCompanions` Component rendering a list of saved passenger contacts.
+- [x] Built the `DashboardQuickSearch` Client Component embedding an autocomplete route finder inside the welcome panel.
+- [x] Built the `LiveBoardingPass` Client Component rendering gate QR check-ins and departure countdowns on travel days.
+- [x] Adjusted the Upcoming Trips (`SessionsPanel`) search button background and neon glow shadow to match Moja's signature brand pink.
+- [x] Restructured recent bookings into a timeline displaying terminals, dates, operator details, and QR ticket buttons.
+- [x] Verified full type safety on the `web` workspace.
+
 ### Payment System, Novu Integration & BigInt Migration (2026-07-11)
+
 
 - [x] Implemented comprehensive Novu notification workflows (13 triggers) for Passenger, Operator, and Admin flows.
 - [x] Integrated `escape-html` globally across all notification payloads to prevent XSS injection.

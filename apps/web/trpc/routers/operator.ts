@@ -1825,6 +1825,29 @@ export const operatorRouter = createTRPCRouter({
           },
         });
 
+        // Record the Paystack transfer fee as a separate expense
+        if (transfer.fee > 0) {
+          await ctx.prisma.$transaction(async (tx) => {
+            const processorFeeAcct = await accountService.getPaymentProcessorFeeAccount();
+            const systemAcct = await accountService.getSystemPaystackClearingAccount();
+            const feeEngine = new AccountingEngine("PAYMENT_PROCESSOR_FEE", {
+              description: `Paystack transfer fee for payout ${txId}`,
+              externalPaymentId: transfer.transferCode,
+            });
+            feeEngine.addDebit({
+              accountId: processorFeeAcct.id,
+              amount: transfer.fee,
+              sequenceNumber: 1,
+            });
+            feeEngine.addCredit({
+              accountId: systemAcct.id,
+              amount: transfer.fee,
+              sequenceNumber: 2,
+            });
+            await feeEngine.commit(tx as any);
+          });
+        }
+
         const novuSecret = process.env["NOVU_SECRET_KEY"];
         if (novuSecret && ctx.user.email) {
           try {
@@ -1890,16 +1913,22 @@ export const operatorRouter = createTRPCRouter({
           }
         }
 
+        // DO NOT synchronously reverse the ledger. If Paystack received the transfer request
+        // but the network response timed out, reversing here creates a double-spend!
+        // Instead, mark the transaction as UNKNOWN_NETWORK_ERROR and let the webhook or
+        // manual reconciliation resolve it.
         await ctx.prisma.financialTransaction.update({
           where: { id: txId },
-          data: { status: "PENDING" },
+          data: {
+            status: "PENDING",
+            metadata: { error: error.message, networkError: true },
+          },
         });
 
-        // In a true system, this would trigger an alerting queue to manually review.
-        // We leave the transaction as PENDING (funds reserved) and require admin intervention.
+        // Throw an error to the client indicating the network failure (but funds remain locked)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Payout initiated internally but network failed. Admin review required: ${error.message}`,
+          message: `Transfer initiated but the network connection timed out (${error.message}). Your funds have been locked while we verify the status with Paystack. Please check back in a few minutes.`,
         });
       }
     }),

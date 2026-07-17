@@ -26,6 +26,7 @@ export function NotificationInbox() {
           elements: {
             bellIcon: "text-slate-600 hover:text-slate-900 transition-colors size-5",
             bellContainer: "relative p-2 rounded-full hover:bg-slate-100 transition-all",
+            inbox__popoverContent: "z-[9999]!",
           }
         }}
       />

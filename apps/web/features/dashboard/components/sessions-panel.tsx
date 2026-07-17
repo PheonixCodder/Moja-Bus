@@ -29,7 +29,7 @@ export function SessionsPanel() {
           </p>
           <Link
             href="/dashboard/search"
-            className="inline-flex items-center gap-1.5 rounded-md bg-neon px-3 py-1.5 text-sm font-semibold text-black shadow-[0_0_12px_rgba(57,255,20,0.15),0_0_2px_rgba(57,255,20,1)] transition-colors duration-150 hover:bg-neon/90"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-white shadow-[0_0_12px_rgba(238,35,124,0.25),0_0_2px_rgba(238,35,124,1)] transition-colors duration-150 hover:bg-primary/90"
           >
             <Plus className="size-4" />
             Search trips

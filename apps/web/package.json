@@ -32,6 +32,7 @@
     "@paystack/inline-js": "^2.22.7",
     "@react-email/components": "^1.0.12",
     "@tanstack/react-query": "^5.101.1",
+    "@tanstack/react-table": "^8.21.3",
     "@trpc/client": "^11.18.0",
     "@trpc/server": "^11.18.0",
     "@trpc/tanstack-react-query": "^11.18.0",

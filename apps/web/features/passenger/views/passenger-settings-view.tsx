@@ -11,6 +11,13 @@ import { Label } from "@moja/ui/components/ui/label";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { Switch } from "@moja/ui/components/ui/switch";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -181,16 +188,16 @@ export function PassengerSettingsView() {
                     <Label htmlFor="preferredSeat" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
                       Seating Preference
                     </Label>
-                    <select
-                      id="preferredSeat"
-                      value={preferredSeat}
-                      onChange={(e) => setPreferredSeat(e.target.value)}
-                      className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    >
-                      <option value="NONE">No seating preference</option>
-                      <option value="WINDOW">Window Seats</option>
-                      <option value="AISLE">Aisle Seats</option>
-                    </select>
+                    <Select value={preferredSeat} onValueChange={setPreferredSeat}>
+                      <SelectTrigger className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
+                        <SelectValue placeholder="No seating preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">No seating preference</SelectItem>
+                        <SelectItem value="WINDOW">Window Seats</SelectItem>
+                        <SelectItem value="AISLE">Aisle Seats</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Seat Class preference */}
@@ -198,17 +205,17 @@ export function PassengerSettingsView() {
                     <Label htmlFor="preferredClass" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
                       Preferred Seating Class
                     </Label>
-                    <select
-                      id="preferredClass"
-                      value={preferredClass}
-                      onChange={(e) => setPreferredClass(e.target.value)}
-                      className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    >
-                      <option value="ECONOMY">Economy Class</option>
-                      <option value="STANDARD">Standard Class</option>
-                      <option value="BUSINESS">Business Class</option>
-                      <option value="VIP">VIP Class</option>
-                    </select>
+                    <Select value={preferredClass} onValueChange={setPreferredClass}>
+                      <SelectTrigger className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
+                        <SelectValue placeholder="Economy Class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ECONOMY">Economy Class</SelectItem>
+                        <SelectItem value="STANDARD">Standard Class</SelectItem>
+                        <SelectItem value="BUSINESS">Business Class</SelectItem>
+                        <SelectItem value="VIP">VIP Class</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

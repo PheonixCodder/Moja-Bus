@@ -18,7 +18,7 @@ After building any component, update this file with the component name, file pat
 - `apps/app/src/components/auth-field.tsx`: mobile auth text input rows with rounded 18px borders, dark fill, and secondary helper text.
 - `apps/app/src/components/auth-button.tsx`: shared pressable auth action with primary/secondary variants, loading spinner, and disabled state styling.
 - `packages/ui/src/components/ui/*`: shared shadcn component source of truth mirrored from `demo-ui` and exposed to apps through `@moja/ui/components/ui/*`.
-- `apps/web/features/dashboard/components/dashboard-sidebar.tsx`: passenger dashboard sidebar with `bg-bg-surface`, collapsed bus logo state, grouped nav, and account dropdown.
+- `apps/web/features/dashboard/components/dashboard-sidebar.tsx`: passenger dashboard sidebar redesigned to match best-dashboard-setup layout structure, custom grouped nav, traveler support card, and NavUser ellipsis dropdown footer.
 - `apps/web/features/dashboard/components/dashboard-header.tsx`: dashboard welcome header with session-aware greeting and search CTA.
 - `apps/web/features/dashboard/components/sessions-panel.tsx`: empty-state trips panel using the same card shell as the demo dashboard, adapted to bookings.
 - `apps/web/features/passenger/views/passenger-wallet-view.tsx`: Client-side view component displaying live Available/Reserved balances, top-up dialogue, and dynamic ledger transaction history table.
@@ -26,7 +26,7 @@ After building any component, update this file with the component name, file pat
 - `apps/web/features/admin/views/admin-withdrawals-view.tsx`: Payout monitoring queue view displaying KPI summaries, status filters, and manual override dialogs.
 - `apps/web/app/dashboard/admin/withdrawals/page.tsx`: Page container prefetching withdrawals queue data and rendering `AdminWithdrawalsView`.
 - `apps/web/app/dashboard/(passenger)/wallet/page.tsx`: Suspense-bound container page prefetching passenger wallet data and rendering `PassengerWalletView`.
-- `apps/web/app/dashboard/layout.tsx`: protected dashboard layout using `SidebarProvider`, `SidebarInset`, `TooltipProvider`, and `Toaster`.
+- `apps/web/app/dashboard/(passenger)/layout.tsx`: redesigned passenger dashboard layout using SidebarProvider and SidebarInset with unified h-12 sticky header, search shortcut tag button, and integrated notification inbox.
 - `apps/web/features/operator/views/operator-onboarding-view.tsx`: Single-route onboarding multi-step form view using Montserrat typeface, primary brand color `#ee237c`, dense-but-readable layout, small radii (<= 8px), and visible borders.
 - `apps/web/features/operator/views/operator-dashboard-view.tsx`: Operator dashboard landing overview rendering company details and verification status.
 - `apps/web/features/operator/views/operator-fleet-view.tsx`: Fleet management dashboard with bus table grid and Add Bus popover form.

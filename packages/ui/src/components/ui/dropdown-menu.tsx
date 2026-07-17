@@ -16,8 +16,17 @@ function DropdownMenuPortal({ ...props }: any) {
   return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />;
 }
 
-function DropdownMenuTrigger({ ...props }: any) {
-  return <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />;
+function DropdownMenuTrigger({ asChild, children, ...props }: any) {
+  if (asChild) {
+    return (
+      <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" render={children} {...props} />
+    );
+  }
+  return (
+    <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props}>
+      {children}
+    </MenuPrimitive.Trigger>
+  );
 }
 
 function DropdownMenuContent({

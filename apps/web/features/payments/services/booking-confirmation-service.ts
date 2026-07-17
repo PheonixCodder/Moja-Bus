@@ -40,7 +40,28 @@ export class BookingConfirmationService {
       });
     }
 
+    // Fix #2: Orphan Rescue — if payment was captured but hold expired, rescue funds to wallet.
+    // This handles both the case where the cron runs after expiry AND direct webhook calls.
+    const holdIsExpired =
+      holdGroup.status !== "ACTIVE" ||
+      (holdGroup.holdExpiresAt !== null && holdGroup.holdExpiresAt < new Date());
+
+    if (holdIsExpired) {
+      await this.rescueOrphanedPayment(holdGroup, userId);
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Your booking session expired, but your payment was captured. The full amount has been credited to your Moja Wallet. You can use it to book again immediately.",
+      });
+    }
+
     assertHoldGroupActive(holdGroup);
+
+    const clearingAcct = await this.accountService.getSystemPaystackClearingAccount();
+    const operatorAcct = await this.accountService.getOperatorReceivableAccount(holdGroup.companyId);
+    const platformCommissionAcct = await this.accountService.getPlatformCommissionRevenueAccount();
+    const platformConvenienceAcct = await this.accountService.getPlatformConvenienceFeeRevenueAccount();
+    const processorFeeAcct = await this.accountService.getPaymentProcessorFeeAccount();
 
     const confirmed = await this.prisma.$transaction(async (tx) => {
       const updatedBookings = [];
@@ -66,65 +87,78 @@ export class BookingConfirmationService {
 
       const snapshot = holdGroup.pricingSnapshot;
       if (snapshot && snapshot.operatorNetXOF > 0) {
-        try {
-          // New Financial Core Write (Double-Entry Ledger)
-          // Provision/fetch accounts using the TX client so they roll back if the booking fails.
-          const txAccountService = new FinancialAccountService(tx as unknown as PrismaClient);
-          const clearingAcct = await txAccountService.getSystemPaystackClearingAccount();
-          const operatorAcct = await txAccountService.getOperatorReceivableAccount(holdGroup.companyId);
-          const platformAcct = await txAccountService.getPlatformRevenueAccount();
+        // Post the double-entry transaction
+        const engine = new AccountingEngine("BOOKING", {
+          externalPaymentId: holdGroup.payment!.id,
+          description: `Payment for booking hold ${holdGroup.id}`,
+        });
 
-          // Post the double-entry transaction
-          const engine = new AccountingEngine("BOOKING", {
-            externalPaymentId: holdGroup.payment!.id,
-            description: `Payment for booking hold ${holdGroup.id}`,
-          });
+        const feesXOF = holdGroup.payment?.feesXOF ?? 0;
+        let seq = 1;
+        
+        engine.addDebit({
+          accountId: clearingAcct.id,
+          amount: snapshot.chargeAmountXOF - feesXOF,
+          sequenceNumber: seq++,
+          referenceType: "HOLD_GROUP",
+          referenceId: holdGroup.id,
+          description: "Funds received from Paystack net of fees",
+        });
 
-          let seq = 1;
-          
+        if (feesXOF > 0) {
           engine.addDebit({
-            accountId: clearingAcct.id,
-            amount: snapshot.chargeAmountXOF,
+            accountId: processorFeeAcct.id,
+            amount: feesXOF,
             sequenceNumber: seq++,
             referenceType: "HOLD_GROUP",
             referenceId: holdGroup.id,
-            description: "Funds received from Paystack",
+            description: "Paystack processing fees",
           });
-
-          engine.addCredit({
-            accountId: operatorAcct.id,
-            amount: snapshot.operatorNetXOF,
-            sequenceNumber: seq++,
-            referenceType: "HOLD_GROUP",
-            referenceId: holdGroup.id,
-            description: "Operator ticket revenue net of commission",
-          });
-
-          if (snapshot.platformGrossXOF > 0) {
-            engine.addCredit({
-              accountId: platformAcct.id,
-              amount: snapshot.platformGrossXOF,
-              sequenceNumber: seq++,
-              referenceType: "HOLD_GROUP",
-              referenceId: holdGroup.id,
-              description: "Platform commission and convenience fees",
-            });
-          }
-
-          // We pass `tx` (the Prisma transaction client) so everything commits atomically.
-          // Because `accountService` already ensured the accounts exist, locking them here is safe.
-          engine.validate();
-          await engine.commit(tx as any);
-        } catch (e: any) {
-          if (e.code === "P2002") {
-            // Unique constraint violation: ledger transaction already exists. Safe to ignore.
-          } else {
-            throw e;
-          }
         }
+
+        engine.addCredit({
+          accountId: operatorAcct.id,
+          amount: snapshot.operatorNetXOF,
+          sequenceNumber: seq++,
+          referenceType: "HOLD_GROUP",
+          referenceId: holdGroup.id,
+          description: "Operator ticket revenue net of commission (escrowed until departure)",
+          reserveOnCredit: true, // Fix #1: funds go into reservedBalance until trip departs
+        });
+
+        if (snapshot.commissionXOF > 0) {
+          engine.addCredit({
+            accountId: platformCommissionAcct.id,
+            amount: snapshot.commissionXOF,
+            sequenceNumber: seq++,
+            referenceType: "HOLD_GROUP",
+            referenceId: holdGroup.id,
+            description: "Platform commission",
+          });
+        }
+
+        if (snapshot.convenienceFeeXOF > 0) {
+          engine.addCredit({
+            accountId: platformConvenienceAcct.id,
+            amount: snapshot.convenienceFeeXOF,
+            sequenceNumber: seq++,
+            referenceType: "HOLD_GROUP",
+            referenceId: holdGroup.id,
+            description: "Platform convenience fee",
+          });
+        }
+
+        // We pass `tx` (the Prisma transaction client) so everything commits atomically.
+        // Because `accountService` already ensured the accounts exist, locking them here is safe.
+        // If a duplicate webhook hits this, `engine.commit` will throw a P2002 error safely aborting this transaction.
+        engine.validate();
+        await engine.commit(tx as any);
       }
 
       return updatedBookings;
+    }, {
+      maxWait: 5000,
+      timeout: 15000,
     });
 
     const totalAmountXOF =
@@ -216,6 +250,9 @@ export class BookingConfirmationService {
       });
     }
 
+    const operatorAcct = await this.accountService.getOperatorReceivableAccount(holdGroup.companyId);
+    const platformCommissionAcct = await this.accountService.getPlatformCommissionRevenueAccount();
+
     const confirmed = await this.prisma.$transaction(async (tx) => {
       const updatedBookings = [];
       for (const booking of holdGroup.bookings) {
@@ -245,10 +282,6 @@ export class BookingConfirmationService {
         });
       }
 
-      const txAccountService = new FinancialAccountService(tx as unknown as PrismaClient);
-      const operatorAcct = await txAccountService.getOperatorReceivableAccount(holdGroup.companyId);
-      const platformAcct = await txAccountService.getPlatformRevenueAccount();
-
       const engine = new AccountingEngine("BOOKING", {
         description: `Wallet payment for booking hold ${holdGroup.id}`,
         idempotencyKey: `WALLET_PAYMENT_${holdGroup.id}`,
@@ -271,13 +304,24 @@ export class BookingConfirmationService {
         sequenceNumber: seq++,
         referenceType: "HOLD_GROUP",
         referenceId: holdGroup.id,
-        description: "Operator ticket revenue net of commission",
+        description: "Operator ticket revenue net of commission (escrowed until departure)",
+        reserveOnCredit: true, // Fix #1: funds go into reservedBalance until trip departs
       });
 
       const platformCommission = totalToPay - snapshot.operatorNetXOF;
+
+      // Update the PricingSnapshot to accurately reflect the waived convenience fee
+      await tx.pricingSnapshot.update({
+        where: { holdGroupId: holdGroup.id },
+        data: {
+          convenienceFeeXOF: 0,
+          platformGrossXOF: platformCommission,
+        },
+      });
+
       if (platformCommission > 0) {
         engine.addCredit({
-          accountId: platformAcct.id,
+          accountId: platformCommissionAcct.id,
           amount: platformCommission,
           sequenceNumber: seq++,
           referenceType: "HOLD_GROUP",
@@ -290,6 +334,9 @@ export class BookingConfirmationService {
       await engine.commit(tx as any);
 
       return updatedBookings;
+    }, {
+      maxWait: 5000,
+      timeout: 15000,
     });
 
     const result: ConfirmedBookingResult = {
@@ -307,5 +354,90 @@ export class BookingConfirmationService {
     );
 
     return result;
+  }
+
+  /**
+   * Fix #2: Orphan Rescue
+   * Called when a Paystack payment was captured but the booking hold has expired.
+   * Credits the full captured amount to the passenger's wallet so their money is not lost.
+   * Marks the hold as EXPIRED to prevent any future double-processing.
+   */
+  private async rescueOrphanedPayment(
+    holdGroup: Awaited<ReturnType<typeof resolveHoldGroup>>,
+    userId?: string | null,
+  ): Promise<void> {
+    const payment = holdGroup.payment!;
+    const amountXOF = payment.amountXOF;
+    const feesXOF = payment.feesXOF ?? 0;
+
+    // Determine who to refund: passed userId, or the userId on the holdGroup itself
+    const targetUserId = userId ?? (holdGroup as any).userId ?? null;
+
+    if (!targetUserId) {
+      // Guest booking with no account — log for manual review, do not throw
+      console.error(
+        `[rescueOrphanedPayment] Cannot auto-rescue: no userId for holdGroup ${holdGroup.id} ` +
+        `(payment ${payment.id}, amount ${amountXOF} XOF). Manual intervention required.`
+      );
+      return;
+    }
+
+    // Idempotency: only run if hold is not yet expired or already rescued
+    if (holdGroup.status === "EXPIRED") {
+      return;
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      const clearingAcct = await this.accountService.getSystemPaystackClearingAccount();
+      const passengerWallet = await this.accountService.getUserWallet(targetUserId);
+
+      const engine = new AccountingEngine("ORPHANED_PAYMENT_RESCUE", {
+        externalPaymentId: payment.id,
+        description: `Rescued expired hold ${holdGroup.id} — full amount credited to passenger wallet`,
+        metadata: { holdGroupId: holdGroup.id, originalPaymentId: payment.id },
+      });
+
+      let seq = 1;
+
+      // Debit clearing (net of Paystack fees)
+      engine.addDebit({
+        accountId: clearingAcct.id,
+        amount: amountXOF - feesXOF,
+        sequenceNumber: seq++,
+        referenceType: "HOLD_GROUP",
+        referenceId: holdGroup.id,
+        description: "Clearing debit for orphaned payment rescue",
+      });
+
+      // Debit processor fee account for the Paystack fees already incurred
+      if (feesXOF > 0) {
+        const processorFeeAcct = await this.accountService.getPaymentProcessorFeeAccount();
+        engine.addDebit({
+          accountId: processorFeeAcct.id,
+          amount: feesXOF,
+          sequenceNumber: seq++,
+          description: "Paystack fee on orphaned payment",
+        });
+      }
+
+      // Credit the full captured amount to the passenger wallet
+      engine.addCredit({
+        accountId: passengerWallet.id,
+        amount: amountXOF,
+        sequenceNumber: seq++,
+        referenceType: "HOLD_GROUP",
+        referenceId: holdGroup.id,
+        description: "Wallet credit: expired hold rescue",
+      });
+
+      engine.validate();
+      await engine.commit(tx as any);
+
+      // Mark hold EXPIRED to prevent any future double-processing
+      await tx.holdGroup.update({
+        where: { id: holdGroup.id },
+        data: { status: "EXPIRED" },
+      });
+    });
   }
 }

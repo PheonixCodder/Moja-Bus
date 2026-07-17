@@ -15,6 +15,17 @@ interface AddEntryParams {
   referenceType?: string;
   referenceId?: string;
   idempotencyKey?: string;
+  /**
+   * If true, a CREDIT to this account goes into reservedBalance instead of availableBalance.
+   * Used for operator ticket revenue: funds are held in escrow until after trip departure.
+   * DEBIT entries always reduce availableBalance (withdrawals, refunds).
+   */
+  reserveOnCredit?: boolean;
+  /**
+   * If true, a DEBIT to this account pulls from reservedBalance instead of availableBalance.
+   * Used for refunds before trip departure (returning escrowed funds).
+   */
+  releaseFromReserve?: boolean;
 }
 
 export class AccountingEngine {
@@ -127,7 +138,7 @@ export class AccountingEngine {
       // Determine balance deltas per account
       const accountUpdates = new Map<
         string,
-        { delta: bigint; isAssetOrExpense: boolean }
+        { delta: bigint; availableDelta: bigint; reservedDelta: bigint; isAssetOrExpense: boolean }
       >();
 
       for (const entry of this.entries) {
@@ -143,6 +154,8 @@ export class AccountingEngine {
 
           accountUpdates.set(entry.accountId, {
             delta: 0n,
+            availableDelta: 0n,
+            reservedDelta: 0n,
             isAssetOrExpense,
           });
         }
@@ -160,6 +173,19 @@ export class AccountingEngine {
         }
 
         current.delta += increment;
+
+        // If reserveOnCredit is set and this is a CREDIT entry, the balance change
+        // goes into reservedBalance rather than availableBalance.
+        // If releaseFromReserve is set and this is a DEBIT entry, the balance change
+        // also pulls from reservedBalance.
+        if (entry.releaseFromReserve && entry.side === LedgerEntrySide.DEBIT) {
+          current.reservedDelta += increment;
+        } else if (entry.reserveOnCredit && entry.side === LedgerEntrySide.CREDIT) {
+          current.reservedDelta += increment;
+        } else {
+          current.availableDelta += increment;
+        }
+
         accountUpdates.set(entry.accountId, current);
       }
 
@@ -200,7 +226,10 @@ export class AccountingEngine {
           where: { id: accountId },
           data: {
             postedBalance: { increment: update.delta },
-            availableBalance: { increment: update.delta }, // posted - reserved
+            // availableDelta and reservedDelta may differ when reserveOnCredit is used.
+            // In the common case (no reserveOnCredit), availableDelta == delta and reservedDelta == 0.
+            availableBalance: { increment: update.availableDelta },
+            reservedBalance: { increment: update.reservedDelta },
           },
         });
       }
