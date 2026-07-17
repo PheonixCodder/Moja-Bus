@@ -8,20 +8,25 @@ import {
   CalendarDays,
   LayoutDashboard,
   LogOut,
-  Search,
   Settings,
   Ticket,
   Users,
   Wallet,
+  EllipsisVertical,
+  CircleUser,
+  LifeBuoy
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { cn } from "@moja/ui/lib/utils";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { Card, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
@@ -37,7 +42,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarTrigger,
   useSidebar,
 } from "@moja/ui/components/ui/sidebar";
 import type { User } from "@/lib/auth-client";
@@ -48,65 +52,13 @@ interface MenuItem {
   icon: LucideIcon;
 }
 
-interface NavSectionProps {
-  label?: string;
-  items: MenuItem[];
-  pathname: string;
-}
-
-function NavSection({ label, items, pathname }: NavSectionProps) {
-  return (
-    <SidebarGroup>
-      {label ? (
-        <SidebarGroupLabel className="px-3 mb-1 text-[11px] uppercase tracking-widest text-text-muted">
-          {label}
-        </SidebarGroupLabel>
-      ) : null}
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map((item) => {
-            const isActive =
-              pathname === item.url;
-
-            return (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  isActive={isActive}
-                  tooltip={item.title}
-                  className={cn(
-                    "h-9 rounded-md border border-transparent px-3 py-2 text-[13px] font-medium tracking-tight transition-colors duration-150",
-                    "text-text-secondary hover:bg-bg-elevated hover:text-text-primary",
-                    isActive &&
-                      "border-neon/20 bg-neon/5 text-neon hover:bg-neon/5 hover:text-neon",
-                  )}
-                  render={
-                    <Link href={item.url}>
-                      <item.icon
-                        className={cn(
-                          "size-4 shrink-0",
-                          isActive ? "text-neon" : "text-text-muted",
-                        )}
-                      />
-                      <span>{item.title}</span>
-                    </Link>
-                  }
-                />
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
-}
-
 interface DashboardSidebarProps {
   user: User | null;
 }
 
 export function DashboardSidebar({ user }: DashboardSidebarProps) {
   const pathname = usePathname();
-  const sidebar = useSidebar();
+  const { isMobile } = useSidebar();
   const { signOut } = useAuth();
 
   const mainMenuItems: MenuItem[] = [
@@ -131,120 +83,182 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     : "MB";
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r border-border bg-bg-surface"
-    >
-      <SidebarHeader className="flex flex-col gap-4 px-3 pt-4">
-        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-          <div
-            className={cn(
-              "flex h-9 w-9 items-center justify-center overflow-hidden transition-all duration-300 ease-in-out",
-              sidebar.state === "collapsed" &&
-                "group cursor-pointer rounded-md hover:bg-bg-elevated",
-            )}
-          >
-            {sidebar.state === "collapsed" ? (
-              <>
-                <SidebarTrigger
-                  className={cn(
-                    "flex h-full items-center justify-center p-0 text-text-muted transition-all duration-300 ease-in-out",
-                    "w-0 scale-90 opacity-0 group-hover:w-full group-hover:scale-100 group-hover:opacity-100",
-                    "hover:text-text-primary",
-                  )}
-                />
-                <BusFront
-                  className={cn(
-                    "size-5 shrink-0 text-neon transition-all duration-300 ease-in-out",
-                    "group-hover:w-0 group-hover:scale-75 group-hover:opacity-0",
-                  )}
-                />
-              </>
-            ) : (
-              <BusFront className="size-5 text-neon" />
-            )}
-          </div>
-
-          <span className="font-semibold text-base tracking-tight text-text-primary group-data-[collapsible=icon]:hidden">
-            Moja
-            <span className="text-neon">Ride</span>
-          </span>
-
-          <SidebarTrigger className="ml-auto text-text-muted hover:text-text-primary lg:hidden" />
-        </div>
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
+      {/* Header section matches best-dashboard-setup exactly */}
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="default" render={
+              <Link prefetch={false} href="/dashboard" className="flex items-center gap-2">
+                <BusFront className="size-4 text-primary" />
+                <span className="font-semibold text-base tracking-tight text-sidebar-foreground">
+                  Moja<span className="text-primary font-bold">Ride</span>
+                </span>
+              </Link>
+            } tooltip="Moja Ride" />
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
-      <div className="mx-3 my-2 border-b border-border border-dashed" />
+      <SidebarContent>
+        {/* Main Passenger Menu Group */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
+            Dashboards
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainMenuItems.map((item) => {
+                const isActive =
+                  pathname === item.url ||
+                  (item.url !== "/dashboard" && pathname.startsWith(item.url));
 
-      <SidebarContent className="px-0">
-        <NavSection items={mainMenuItems} pathname={pathname} />
-        <NavSection
-          label="Account"
-          items={otherMenuItems}
-          pathname={pathname}
-        />
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      tooltip={item.title}
+                      render={
+                        <Link href={item.url}>
+                          <item.icon className="size-4 shrink-0" />
+                          <span>{item.title}</span>
+                        </Link>
+                      }
+                    />
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Secondary Account Menu Group */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
+            Account
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {otherMenuItems.map((item) => {
+                const isActive = pathname === item.url;
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      tooltip={item.title}
+                      render={
+                        <Link href={item.url}>
+                          <item.icon className="size-4 shrink-0" />
+                          <span>{item.title}</span>
+                        </Link>
+                      }
+                    />
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
-      <div className="mx-3 my-2 border-b border-border border-dashed" />
+      <SidebarFooter className="gap-4">
+        {/* Replicated sidebar support card for Travelers */}
+        <Card className="overflow-hidden shadow-none border border-sidebar-border bg-sidebar group-data-[collapsible=icon]:hidden mx-2">
+          <CardHeader className="min-w-0 p-3">
+            <CardTitle className="truncate text-xs font-semibold text-sidebar-foreground flex items-center gap-1.5">
+              <LifeBuoy className="size-3.5 text-primary" /> Need booking support?
+            </CardTitle>
+            <CardDescription className="line-clamp-2 text-[10px] text-muted-foreground leading-normal mt-1">
+              Contact us at support@mojaride.com for help.
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
-      <SidebarFooter className="px-3 py-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger
-                className={cn(
-                  "flex h-9 w-full items-center gap-2 rounded-md border border-border bg-bg-elevated px-2",
-                  "outline-none transition-colors duration-150 hover:border-border-strong",
-                  "focus-visible:ring-2 focus-visible:ring-neon",
-                  "group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
-                )}
-                title={user?.name ?? "Account"}
-              >
-                <Avatar className="size-5 shrink-0">
-                  <AvatarFallback className="bg-neon/10 text-[10px] font-semibold text-neon">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="truncate text-[13px] font-medium text-text-primary group-data-[collapsible=icon]:hidden">
-                  {user?.name ?? user?.email ?? "Account"}
-                </span>
-              </DropdownMenuTrigger>
+                render={
+                  <SidebarMenuButton
+                    size="lg"
+                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground w-full flex items-center gap-2 p-2 rounded-md transition-colors"
+                  >
+                    <Avatar className="h-8 w-8 rounded-lg grayscale shrink-0">
+                      <AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden min-w-0">
+                      <span className="truncate font-medium text-sidebar-foreground">
+                        {user?.name ?? "Guest User"}
+                      </span>
+                      <span className="truncate text-muted-foreground text-xs">
+                        {user?.email ?? user?.phone ?? "No contact details"}
+                      </span>
+                    </div>
+                    <EllipsisVertical className="ml-auto size-4 shrink-0 group-data-[collapsible=icon]:hidden text-muted-foreground" />
+                  </SidebarMenuButton>
+                }
+              />
 
               <DropdownMenuContent
-                side="top"
-                align="start"
-                className="w-56 border-border bg-bg-surface"
+                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg border border-sidebar-border bg-sidebar"
+                side={isMobile ? "bottom" : "right"}
+                align="end"
+                sideOffset={4}
               >
-                <div className="px-2 py-1.5">
-                  <p className="truncate text-xs font-medium text-text-primary">
-                    {user?.name}
-                  </p>
-                  <p className="truncate text-xs text-text-muted">
-                    {user?.email}
-                  </p>
-                </div>
-                <DropdownMenuSeparator className="bg-border" />
-                <DropdownMenuItem
-                  className="cursor-pointer text-text-secondary hover:text-text-primary"
-                  render={<Link href="/dashboard/settings" />}
-                >
-                  <Settings className="mr-2 size-4 text-text-muted" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                      <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">
+                          {userInitials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+                        <span className="truncate font-medium text-sidebar-foreground">
+                          {user?.name ?? "Guest User"}
+                        </span>
+                        <span className="truncate text-muted-foreground text-xs">
+                          {user?.email ?? user?.phone}
+                        </span>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator className="bg-sidebar-border" />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    render={
+                      <Link href="/dashboard/settings" className="flex w-full items-center gap-2">
+                        <CircleUser className="size-4 text-muted-foreground" />
+                        Account Settings
+                      </Link>
+                    }
+                  />
+                  <DropdownMenuItem
+                    render={
+                      <Link href="/dashboard/wallet" className="flex w-full items-center gap-2">
+                        <Wallet className="size-4 text-muted-foreground" />
+                        Wallet Ledger
+                      </Link>
+                    }
+                  />
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator className="bg-sidebar-border" />
                 <DropdownMenuItem
                   onClick={signOut}
-                  className="cursor-pointer text-error focus:bg-error/10 focus:text-error hover:text-error"
+                  className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive hover:text-destructive"
                 >
-                  <LogOut className="mr-2 size-4" />
-                  Sign out
+                  <LogOut className="size-4 mr-2" />
+                  <span>Sign out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-
       <SidebarRail />
     </Sidebar>
   );

@@ -77,12 +77,25 @@ export class CancellationService {
     }
 
     const snapshot = holdGroup.pricingSnapshot;
-    const proportionalBase = snapshot
-      ? Math.round(snapshot.subtotalBaseXOF / snapshot.seatCount)
-      : booking.farePaid;
-    const proportionalOperatorNet = snapshot
-      ? Math.round(snapshot.operatorNetXOF / snapshot.seatCount)
-      : booking.farePaid;
+    let proportionalBase = booking.farePaid;
+    let proportionalOperatorNet = booking.farePaid;
+
+    if (snapshot) {
+      const cancelledSoFar = await this.prisma.booking.count({
+        where: { holdGroupId: holdGroup.id, status: "CANCELLED" },
+      });
+      const isLastSeat = (cancelledSoFar + 1) === snapshot.seatCount;
+      const standardBase = Math.round(snapshot.subtotalBaseXOF / snapshot.seatCount);
+      const standardNet = Math.round(snapshot.operatorNetXOF / snapshot.seatCount);
+
+      proportionalBase = isLastSeat
+        ? snapshot.subtotalBaseXOF - (cancelledSoFar * standardBase)
+        : standardBase;
+      
+      proportionalOperatorNet = isLastSeat
+        ? snapshot.operatorNetXOF - (cancelledSoFar * standardNet)
+        : standardNet;
+    }
 
     // Refund only the base ticket price, not the convenience fee
     const refundAmountXOF = Math.max(0, proportionalBase);
@@ -125,7 +138,7 @@ export class CancellationService {
               message: "Cannot refund to wallet for a guest booking. The passenger must register and claim their booking first.",
             });
           }
-          const platformRevAcct = await accountService.getPlatformRevenueAccount();
+          const platformCommissionAcct = await accountService.getPlatformCommissionRevenueAccount();
           const passengerWalletAcct = await accountService.getUserWallet(booking.userId);
           const commissionAmount = refundAmountXOF - proportionalOperatorNet;
 
@@ -143,12 +156,13 @@ export class CancellationService {
               referenceType: "BOOKING_ID",
               referenceId: booking.id,
               description: "Operator refund deduction",
+              releaseFromReserve: booking.clearedAt === null,
             });
           }
 
           if (commissionAmount > 0) {
             engine.addDebit({
-              accountId: platformRevAcct.id,
+              accountId: platformCommissionAcct.id,
               amount: commissionAmount,
               sequenceNumber: 2,
               referenceType: "BOOKING_ID",
@@ -170,30 +184,32 @@ export class CancellationService {
           await engine.commit(tx as any);
         } else if (proportionalOperatorNet > 0) {
           // CASH or VOUCHER
-          const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+          const commissionAmount = refundAmountXOF - proportionalOperatorNet;
           const engine = new AccountingEngine("REFUND", {
             externalPaymentId: payment.id,
-            description: `Offline/Voucher refund deduction for booking ${booking.bookingReference}`,
+            description: `Offline/Voucher reimbursement for booking ${booking.bookingReference}`,
             metadata: { refundId: refund.id, proportionalBase },
           });
 
-          engine.addDebit({
-            accountId: opAcct.id,
-            amount: proportionalOperatorNet,
-            sequenceNumber: 1,
-            referenceType: "BOOKING_ID",
-            referenceId: booking.id,
-            description: "Operator refund deduction",
-          });
-
-          engine.addCredit({
-            accountId: clearingAcct.id,
-            amount: proportionalOperatorNet,
-            sequenceNumber: 2,
-            referenceType: "BOOKING_ID",
-            referenceId: booking.id,
-            description: "Balancing credit for operator refund",
-          });
+          if (commissionAmount > 0) {
+            const platformCommissionAcct = await accountService.getPlatformCommissionRevenueAccount();
+            engine.addDebit({
+              accountId: platformCommissionAcct.id,
+              amount: commissionAmount,
+              sequenceNumber: 1,
+              referenceType: "BOOKING_ID",
+              referenceId: booking.id,
+              description: "Platform commission reversal",
+            });
+            engine.addCredit({
+              accountId: opAcct.id,
+              amount: commissionAmount,
+              sequenceNumber: 2,
+              referenceType: "BOOKING_ID",
+              referenceId: booking.id,
+              description: "Reimbursement for cash refund (net of lost revenue)",
+            });
+          }
 
           engine.validate();
           await engine.commit(tx as any);

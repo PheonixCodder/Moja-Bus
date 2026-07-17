@@ -192,8 +192,9 @@ export const paymentsRouter = createTRPCRouter({
         const clearingAcct = await accountService.getSystemPaystackClearingAccount();
         accountIds.push(clearingAcct.id);
       } else if (accountClass === "PLATFORM_FEES") {
-        const platformAcct = await accountService.getPlatformRevenueAccount();
-        accountIds.push(platformAcct.id);
+        const platformCommissionAcct = await accountService.getPlatformCommissionRevenueAccount();
+        const platformConvenienceAcct = await accountService.getPlatformConvenienceFeeRevenueAccount();
+        accountIds.push(platformCommissionAcct.id, platformConvenienceAcct.id);
       } else {
         const accts = await ctx.prisma.financialAccount.findMany({
           where: { accountClass },
@@ -251,14 +252,15 @@ export const paymentsRouter = createTRPCRouter({
 
   getTreasuryOverview: adminProcedure.query(async ({ ctx }) => {
     const accountService = new FinancialAccountService(ctx.prisma);
-    const [clearing, revenue] = await Promise.all([
+    const [clearing, commissionRevenue, convenienceRevenue] = await Promise.all([
       accountService.getSystemPaystackClearingAccount(),
-      accountService.getPlatformRevenueAccount(),
+      accountService.getPlatformCommissionRevenueAccount(),
+      accountService.getPlatformConvenienceFeeRevenueAccount(),
     ]);
 
     return {
       clearingBalance: Number(clearing.postedBalance),
-      revenueBalance: Number(revenue.postedBalance),
+      revenueBalance: Number(commissionRevenue.postedBalance) + Number(convenienceRevenue.postedBalance),
     };
   }),
 
@@ -299,10 +301,10 @@ export const paymentsRouter = createTRPCRouter({
       const operatorAcct = await accountService.getOperatorReceivableAccount(input.companyId);
       const clearingAcct = await accountService.getSystemPaystackClearingAccount();
 
-      if (BigInt(input.amountXOF) > operatorAcct.postedBalance) {
+      if (BigInt(input.amountXOF) > operatorAcct.availableBalance) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Settlement amount exceeds ledger balance",
+          message: "Settlement amount exceeds available ledger balance",
         });
       }
 
@@ -338,6 +340,70 @@ export const paymentsRouter = createTRPCRouter({
       });
 
       return { success: true as const, remainingBalanceXOF: updatedAcct.postedBalance };
+    }),
+
+  listSettlementHistory: adminProcedure
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(100).default(20),
+        offset: z.number().int().min(0).default(0),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const [transactions, total] = await Promise.all([
+        ctx.prisma.financialTransaction.findMany({
+          where: { type: "SETTLEMENT" },
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          skip: input.offset,
+          include: {
+            entries: {
+              include: { account: true },
+            },
+          },
+        }),
+        ctx.prisma.financialTransaction.count({ where: { type: "SETTLEMENT" } }),
+      ]);
+
+      // Collect company IDs from DEBIT entries (operator receivable side)
+      const companyIds = Array.from(
+        new Set(
+          transactions.flatMap((tx) =>
+            tx.entries
+              .filter(
+                (e) => e.side === "DEBIT" && e.account.ownerType === "COMPANY"
+              )
+              .map((e) => e.account.ownerId)
+          )
+        )
+      );
+
+      const companies = await ctx.prisma.company.findMany({
+        where: { id: { in: companyIds } },
+        select: { id: true, name: true },
+      });
+      const companyMap = new Map(companies.map((c) => [c.id, c]));
+
+      const items = transactions.map((tx) => {
+        const debitEntry = tx.entries.find(
+          (e) => e.side === "DEBIT" && e.account.ownerType === "COMPANY"
+        );
+        const companyId = debitEntry?.account.ownerId ?? null;
+        const company = companyId ? companyMap.get(companyId) : null;
+
+        return {
+          id: tx.id,
+          operatorId: companyId,
+          operatorName: company?.name ?? "Unknown Operator",
+          amountXOF: debitEntry ? Number(debitEntry.amount) : 0,
+          note: tx.description,
+          metadata: tx.metadata as { settledByUserId?: string } | null,
+          status: tx.status,
+          createdAt: tx.createdAt,
+        };
+      });
+
+      return { items, total };
     }),
 
   listBanks: publicProcedure

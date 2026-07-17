@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { getUser } from "@/lib/auth-server";
-import { getPrismaClient } from "@moja/db";
+import { getPrismaClient, FinancialAccountService } from "@moja/db";
 import {
   Card,
   CardContent,
@@ -22,11 +22,15 @@ import {
   CardTitle,
 } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
-import { Button, buttonVariants } from "@moja/ui/components/ui/button";
+import { buttonVariants } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
-import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
 import { PageHeader } from "@/features/dashboard/components/page-header";
 import { SessionsPanel } from "@/features/dashboard/components/sessions-panel";
+import { TravelStatsChart } from "@/features/dashboard/components/travel-stats-chart";
+import { WalletQuickDeposit } from "@/features/dashboard/components/wallet-quick-deposit";
+import { SavedCompanions } from "@/features/dashboard/components/saved-companions";
+import { DashboardQuickSearch } from "@/features/dashboard/components/dashboard-quick-search";
+import { LiveBoardingPass } from "@/features/dashboard/components/live-boarding-pass";
 
 export async function DashboardView() {
   const user = await getUser();
@@ -37,7 +41,13 @@ export async function DashboardView() {
   const userId = user.id;
   const now = new Date();
 
-  // Fetch stats, recent bookings, and passenger profile details in parallel
+  // Range start for last 6 months trip activity chart
+  const startOfRange = new Date();
+  startOfRange.setMonth(startOfRange.getMonth() - 5);
+  startOfRange.setDate(1);
+  startOfRange.setHours(0, 0, 0, 0);
+
+  // Fetch stats, recent bookings, passenger profile, saved contacts, and monthly spending in parallel
   const [
     upcomingTripsResult,
     pendingPaymentsResult,
@@ -45,6 +55,10 @@ export async function DashboardView() {
     savedContactsResult,
     recentBookingsResult,
     profileResult,
+    savedPassengersResult,
+    monthlyBookingsResult,
+    walletResult,
+    nextDepartureResult,
   ] = await Promise.allSettled([
     prisma.booking.count({
       where: {
@@ -104,26 +118,111 @@ export async function DashboardView() {
     prisma.passengerProfile.findUnique({
       where: { userId },
     }),
+    prisma.savedPassenger.findMany({
+      where: { profile: { userId } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+    prisma.booking.findMany({
+      where: {
+        userId,
+        status: "CONFIRMED",
+        createdAt: { gte: startOfRange },
+      },
+      select: { createdAt: true },
+    }),
+    new FinancialAccountService(prisma).getUserWallet(userId),
+    prisma.booking.findFirst({
+      where: {
+        userId,
+        status: "CONFIRMED",
+        trip: { departureDate: { gte: now } },
+      },
+      orderBy: { trip: { departureDate: "asc" } },
+      include: {
+        trip: {
+          include: {
+            schedule: {
+              include: {
+                route: {
+                  include: {
+                    originTerminal: true,
+                    destTerminal: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        originTripStop: { include: { terminal: true } },
+        destinationTripStop: { include: { terminal: true } },
+      },
+    }),
   ]);
 
   const upcomingTripsCount = upcomingTripsResult.status === "fulfilled" ? upcomingTripsResult.value : 0;
   const pendingPaymentsCount = pendingPaymentsResult.status === "fulfilled" ? pendingPaymentsResult.value : 0;
-  const digitalTicketsCount = digitalTicketsResult.status === "fulfilled" ? digitalTicketsResult.value : 0;
   const savedContactsCount = savedContactsResult.status === "fulfilled" ? savedContactsResult.value : 0;
   const recentBookings = recentBookingsResult.status === "fulfilled" ? recentBookingsResult.value : [];
-  const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
+  const savedPassengers = savedPassengersResult.status === "fulfilled" ? savedPassengersResult.value : [];
+  const monthlyBookings = monthlyBookingsResult.status === "fulfilled" ? monthlyBookingsResult.value : [];
+  const wallet = walletResult.status === "fulfilled" ? walletResult.value : null;
+  const nextDeparture = nextDepartureResult.status === "fulfilled" ? nextDepartureResult.value : null;
 
-  const preferences = (profile?.preferencesJson as any) || {};
-  const walletBalance = preferences.wallet?.balanceXOF ?? 0;
+  const walletBalance = wallet ? Number(wallet.availableBalance) : 0;
+
+  // Now fetch recent wallet ledger transactions
+  const ledgerEntries = wallet
+    ? await prisma.ledgerEntry.findMany({
+        where: { accountId: wallet.id },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      })
+    : [];
+
+  // Display boarding pass if departures occur within 24 hours
+  const showLivePass = nextDeparture
+    ? new Date(nextDeparture.trip.departureDate).getTime() - now.getTime() <= 24 * 60 * 60 * 1000
+    : false;
+
+  // Compute last 6 months list labels and trip progression
+  const last6Months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    return d;
+  }).reverse();
+
+  const chartData = last6Months.map((date) => {
+    const monthLabel = date.toLocaleDateString("en-US", { month: "short" });
+    const count = monthlyBookings.filter((b) => {
+      const bDate = new Date(b.createdAt);
+      return bDate.getMonth() === date.getMonth() && bDate.getFullYear() === date.getFullYear();
+    }).length;
+    return {
+      month: monthLabel,
+      trips: count,
+      spent: count * 7500, // approximation based on 7,500 XOF avg fare
+    };
+  });
 
   const stats = [
     {
-      title: "Upcoming Trips",
+      title: "Pre-funded Wallet",
+      value: `${walletBalance.toLocaleString("fr-FR")} XOF`,
+      description: "Available travel balance",
+      icon: Wallet,
+      href: "/dashboard/wallet",
+      badge: "Fast Pay",
+      badgeVariant: "default" as const,
+    },
+    {
+      title: "Upcoming Journeys",
       value: upcomingTripsCount,
       description: "Confirmed upcoming trips",
       icon: BusFront,
       href: "/dashboard/bookings?tab=upcoming",
-      colorClass: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+      badge: "Schedules",
+      badgeVariant: "secondary" as const,
     },
     {
       title: "Pending Payments",
@@ -131,105 +230,82 @@ export async function DashboardView() {
       description: "Awaiting checkout confirmation",
       icon: CalendarDays,
       href: "/dashboard/bookings?tab=pending",
-      colorClass: pendingPaymentsCount > 0 
-        ? "text-amber-500 bg-amber-500/10 border-amber-500/20 animate-pulse" 
-        : "text-amber-500 bg-amber-500/10 border-amber-500/20",
+      badge: pendingPaymentsCount > 0 ? "Action Required" : "All Clear",
+      badgeVariant: (pendingPaymentsCount > 0 ? "destructive" : "outline") as any,
     },
     {
-      title: "Digital Wallet",
-      value: `${walletBalance.toLocaleString("fr-FR")} XOF`,
-      description: "Pre-funded travel balance",
-      icon: Wallet,
-      href: "/dashboard/wallet",
-      colorClass: "text-neon bg-neon/10 border-neon/20",
-    },
-    {
-      title: "Saved Contacts",
+      title: "Saved Passengers",
       value: savedContactsCount,
       description: "For rapid booking checkout",
       icon: Users,
       href: "/dashboard/passengers",
-      colorClass: "text-pink-500 bg-pink-500/10 border-pink-500/20",
+      badge: "Contacts",
+      badgeVariant: "outline" as const,
     },
   ];
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="Dashboard" className="lg:hidden" />
+      <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6">
+        {/* Live Boarding Pass Gate Banner (Departing in <24 Hours) */}
+        {showLivePass && nextDeparture && (
+          <LiveBoardingPass
+            origin={nextDeparture.originTripStop?.terminal?.name || "Origin Terminal"}
+            destination={nextDeparture.destinationTripStop?.terminal?.name || "Destination Terminal"}
+            departureTime={new Date(nextDeparture.trip.departureDate)}
+            seatId={nextDeparture.seatId}
+            qrPayload={nextDeparture.ticketToken}
+          />
+        )}
 
-      <div className="flex flex-1 flex-col gap-8 p-4 lg:p-8">
-        {/* Welcome Section */}
-        <div className="bg-bg-surface border border-border/80 rounded-xl p-6 relative overflow-hidden shadow-sm">
-          <div className="absolute right-0 bottom-0 translate-y-6 translate-x-6 text-text-muted/5 pointer-events-none">
-            <BusFront className="w-64 h-64" />
-          </div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="space-y-2">
+        {/* Welcome Section & Quick Route Search Form */}
+        <div className="bg-linear-to-r from-primary/10 via-primary/5 to-card border border-border/80 rounded-xl p-6 relative overflow-hidden shadow-xs dark:bg-card">
+
+          <div className="relative z-10 space-y-4">
+            <div className="space-y-1">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                 Passenger Portal
               </span>
-              <h1 className="text-2xl lg:text-3xl font-extrabold font-display tracking-tight text-text-primary">
-                Hello, {user.name?.split(" ")[0] ?? "Traveler"}!
+              <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-foreground">
+                Welcome back, {user.name?.split(" ")[0] ?? "Traveler"}!
               </h1>
-              <p className="text-text-secondary text-sm max-w-md leading-relaxed">
+              <p className="text-muted-foreground text-sm max-w-md leading-relaxed">
                 Ready for your next journey? Search for active routes, manage your bookings, and travel securely across Côte d'Ivoire.
               </p>
             </div>
 
-            {/* Quick Actions */}
-            <div className="flex flex-wrap gap-3 shrink-0">
-              <Link
-                href="/"
-                className={cn(
-                  buttonVariants({ variant: "default", size: "lg" }),
-                  "bg-primary text-white hover:bg-primary/95 font-semibold px-4 h-10 rounded-lg shadow-sm gap-2 flex items-center justify-center",
-                )}
-              >
-                <Search className="w-4 h-4" />
-                Find a Bus
-              </Link>
-              <Link
-                href="/dashboard/passengers"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "lg" }),
-                  "border-border text-text-primary hover:bg-bg-elevated font-semibold px-4 h-10 rounded-lg gap-2 flex items-center justify-center",
-                )}
-              >
-                <Plus className="w-4 h-4" />
-                Add Contact
-              </Link>
-            </div>
+            {/* Inline Quick Search Widget */}
+            <DashboardQuickSearch />
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Premium Stats Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs dark:*:data-[slot=card]:bg-card">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Link 
-                key={stat.title} 
+              <Link
+                key={stat.title}
                 href={stat.href}
                 className="group block transition-all duration-300 hover:-translate-y-0.5"
               >
-                <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                      {stat.title}
-                    </CardTitle>
-                    <div className={`p-1.5 rounded-md border shrink-0 ${stat.colorClass}`}>
+                <Card className="border-border">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <div className="flex size-7 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
                       <Icon className="size-4" />
                     </div>
+                    <Badge variant={stat.badgeVariant} className="text-[9px] tracking-wider font-semibold">
+                      {stat.badge}
+                    </Badge>
                   </CardHeader>
-                  <CardContent className="pt-2">
-                    <div className="text-2xl font-extrabold tracking-tight text-text-primary">
-                      {stat.value}
+                  <CardContent className="flex flex-col gap-1">
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <div className="font-bold text-2xl tabular-nums leading-none tracking-tight text-foreground">
+                        {stat.value}
+                      </div>
+                      <ArrowUpRight className="size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <p className="text-[10px] text-text-muted mt-1 flex items-center gap-1">
-                      {stat.description}
-                      <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </p>
+                    <p className="text-muted-foreground text-xs">{stat.description}</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -237,34 +313,38 @@ export async function DashboardView() {
           })}
         </div>
 
-        {/* Recent Activity & Quick Info */}
+        {/* 2-Column Core Section */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Recent Bookings Stream */}
-          <Card className="border-border bg-bg-surface lg:col-span-2">
+          {/* Timeline-style Recent Bookings */}
+          <Card className="border-border bg-card shadow-xs lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 pb-4">
               <div>
-                <CardTitle className="text-base font-bold text-text-primary">Recent Bookings</CardTitle>
-                <CardDescription>Your latest travel bookings and schedules.</CardDescription>
+                <CardTitle className="text-base font-bold text-foreground">Recent Bookings</CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Your latest travel schedules and QR ticket tokens.
+                </CardDescription>
               </div>
               <Link
                 href="/dashboard/bookings"
                 className={cn(
                   buttonVariants({ variant: "ghost", size: "sm" }),
-                  "text-primary hover:text-primary-hover font-semibold gap-1 flex items-center"
+                  "text-primary hover:text-primary/90 font-semibold gap-1 flex items-center"
                 )}
               >
-                View All <ArrowRight className="w-4 h-4" />
+                View All <ArrowRight className="size-4" />
               </Link>
             </CardHeader>
             <CardContent className="pt-6">
               {recentBookings.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-sm text-text-secondary space-y-4">
-                  <div className="w-12 h-12 bg-bg-elevated text-text-muted rounded-full flex items-center justify-center">
-                    <Ticket className="w-6 h-6" />
+                <div className="flex flex-col items-center justify-center py-12 text-center text-sm text-muted-foreground space-y-4">
+                  <div className="w-12 h-12 bg-muted text-muted-foreground rounded-full flex items-center justify-center">
+                    <Ticket className="size-6" />
                   </div>
                   <div className="space-y-1 max-w-xs">
-                    <p className="font-bold text-text-primary">No Travel Bookings Yet</p>
-                    <p className="text-xs">Book tickets to popular destinations like Bouaké, Yamoussoukro, or San Pédro.</p>
+                    <p className="font-bold text-foreground">No Travel Bookings Yet</p>
+                    <p className="text-xs text-muted-foreground">
+                      Book tickets to popular destinations like Bouaké, Yamoussoukro, or San Pédro.
+                    </p>
                   </div>
                   <Link
                     href="/"
@@ -277,88 +357,104 @@ export async function DashboardView() {
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="relative border-l border-muted pl-4 ml-2 space-y-6">
                   {recentBookings.map((booking) => {
                     const departureDate = booking.trip.departureDate;
-                    const routeName = booking.trip.schedule?.route?.name || "Intercity Route";
+                    const originName = booking.originTripStop?.terminal?.name || "Origin Terminal";
+                    const destName = booking.destinationTripStop?.terminal?.name || "Destination Terminal";
                     const isConfirmed = booking.status === "CONFIRMED";
                     const isPending = booking.status === "PENDING_PAYMENT";
-                    
-                    return (
-                      <div 
-                        key={booking.id} 
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border/60 rounded-lg hover:bg-bg-elevated/40 transition-colors gap-4"
-                      >
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              variant="secondary"
-                              className={cn(
-                                "text-[9px] font-bold uppercase tracking-wider shrink-0",
-                                isConfirmed && "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20",
-                                isPending && "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-                              )}
-                            >
-                              {booking.status.replace("_", " ")}
-                            </Badge>
-                            <span className="text-[10px] text-text-muted font-mono tracking-tight uppercase">
-                              Ref: {booking.bookingReference}
-                            </span>
-                          </div>
-                          
-                          <h4 className="text-sm font-bold text-text-primary">
-                            {routeName}
-                          </h4>
-                          
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
-                            <span>{booking.company.name}</span>
-                            <span>•</span>
-                            <span>
-                              {new Date(departureDate).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
-                            </span>
-                            <span>•</span>
-                            <span className="font-semibold text-text-primary">
-                              Seat {booking.seatId}
-                            </span>
-                          </div>
-                        </div>
 
-                        <div className="flex items-center gap-2 sm:self-center">
-                          {isConfirmed ? (
-                            <Link
-                              href={`/tickets/${booking.ticketToken}`}
-                              className={cn(
-                                buttonVariants({ variant: "outline", size: "sm" }),
-                                "border-border text-text-primary hover:bg-bg-elevated h-8 text-xs font-semibold flex items-center justify-center"
-                              )}
-                            >
-                              Ticket Details
-                            </Link>
-                          ) : isPending ? (
-                            <Link
-                              href={`/book/${booking.id}`}
-                              className={cn(
-                                buttonVariants({ variant: "default", size: "sm" }),
-                                "bg-primary text-white hover:bg-primary/95 h-8 text-xs font-semibold flex items-center justify-center"
-                              )}
-                            >
-                              Complete Checkout
-                            </Link>
-                          ) : (
-                            <Link
-                              href={`/dashboard/bookings`}
-                              className={cn(
-                                buttonVariants({ variant: "ghost", size: "sm" }),
-                                "h-8 text-xs font-semibold flex items-center justify-center"
-                              )}
-                            >
-                              Details
-                            </Link>
+                    return (
+                      <div key={booking.id} className="relative group">
+                        {/* Timeline Node Point */}
+                        <div
+                          className={cn(
+                            "absolute -left-[21px] top-1.5 size-2.5 rounded-full border-2 bg-background transition-all group-hover:scale-110",
+                            isConfirmed && "border-emerald-500 bg-emerald-500",
+                            isPending && "border-amber-500 bg-amber-500"
                           )}
+                        />
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border/80 rounded-lg bg-card/40 hover:bg-muted/30 transition-colors gap-4">
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge
+                                variant="secondary"
+                                className={cn(
+                                  "text-[9px] font-bold uppercase tracking-wider shrink-0",
+                                  isConfirmed && "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20",
+                                  isPending && "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                                )}
+                              >
+                                {booking.status.replace("_", " ")}
+                              </Badge>
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                REF: {booking.bookingReference}
+                              </span>
+                            </div>
+
+                            {/* Node Route Path representation */}
+                            <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                              <span className="truncate">{originName}</span>
+                              <ArrowRight className="size-3.5 text-muted-foreground" />
+                              <span className="truncate">{destName}</span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
+                              <span>{booking.company.name}</span>
+                              <span>•</span>
+                              <span>
+                                {new Date(departureDate).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                              <span>•</span>
+                              <span className="font-semibold text-foreground">
+                                Seat {booking.seatId}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 sm:self-center shrink-0">
+                            {isConfirmed ? (
+                              <Link
+                                href={`/tickets/${booking.ticketToken}`}
+                                className={cn(
+                                  buttonVariants({ variant: "outline", size: "sm" }),
+                                  "border-border text-foreground hover:bg-muted h-8 text-xs font-semibold flex items-center justify-center gap-1.5"
+                                )}
+                              >
+                                <Ticket className="size-3.5" />
+                                QR Code
+                              </Link>
+                            ) : isPending ? (
+                              <Link
+                                href={`/book/${booking.id}`}
+                                className={cn(
+                                  buttonVariants({ variant: "default", size: "sm" }),
+                                  "bg-primary text-white hover:bg-primary/95 h-8 text-xs font-semibold flex items-center justify-center gap-1.5"
+                                )}
+                              >
+                                <CreditCard className="size-3.5" />
+                                Pay
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/dashboard/bookings`}
+                                className={cn(
+                                  buttonVariants({ variant: "ghost", size: "sm" }),
+                                  "h-8 text-xs font-semibold flex items-center justify-center"
+                                )}
+                              >
+                                Details
+                              </Link>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -368,35 +464,47 @@ export async function DashboardView() {
             </CardContent>
           </Card>
 
-          {/* Quick Security & Travel Info */}
-          <Card className="border-border bg-bg-surface">
-            <CardHeader>
-              <CardTitle className="text-base font-bold text-text-primary">Travel Guidelines</CardTitle>
-              <CardDescription>Essential safety information for Moja travelers.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-xs text-text-secondary leading-relaxed">
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
+          {/* Wallet Deposit and Contact list sidebar */}
+          <div className="flex flex-col gap-6">
+            <WalletQuickDeposit recentTransactions={ledgerEntries} />
+            
+            <SavedCompanions companions={savedPassengers} />
+
+            {/* Support and Safety Guidelines Card */}
+            <Card className="border-border bg-card shadow-xs">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-bold text-foreground">Travel Guidelines</CardTitle>
+                <CardDescription className="text-[10px] text-muted-foreground">
+                  Essential safety guidelines for Moja Ride travelers.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-xs text-muted-foreground leading-relaxed">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="size-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-foreground block mb-0.5">Verified Operators</span>
+                    Every transport operator is verified for permits and safety compliance.
+                  </div>
                 </div>
-                <div>
-                  <span className="font-bold text-text-primary block mb-0.5">Verified Operators</span>
-                  Every transport operator on Moja Ride is thoroughly verified for permits and safety compliance.
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <CreditCard className="size-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-foreground block mb-0.5">Secure Payments</span>
+                    Transactions are securely processed with verified escrows via Paystack.
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-lg bg-neon/15 text-neon flex items-center justify-center shrink-0">
-                  <CreditCard className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="font-bold text-text-primary block mb-0.5">Secure Payments</span>
-                  All card and mobile money transactions are securely processed via standard 256-bit SSL encryption.
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
+
+        {/* Travel Analytics Composed Chart */}
+        <TravelStatsChart data={chartData} />
 
         <SessionsPanel />
       </div>

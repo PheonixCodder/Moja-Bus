@@ -27,3 +27,33 @@ export const adminListOperationsSchema = z.object({
   limit: z.number().int().min(1).max(100).default(20),
   offset: z.number().int().min(0).default(0),
 });
+
+export const adminListCompaniesSchema = z.object({
+  search: z.string().optional(),
+  status: z.enum(["DRAFT", "PENDING_VERIFICATION", "VERIFIED", "ACTIVE", "SUSPENDED", "REJECTED"]).optional(),
+  limit: z.number().int().min(1).max(100).default(20),
+  offset: z.number().int().min(0).default(0),
+});
+
+export const adminGetCompanySchema = z.object({
+  companyId: z.string().min(1, "Company ID is required"),
+});
+
+export const adminUpdateVerificationChecklistSchema = z.object({
+  companyId: z.string().min(1, "Company ID is required"),
+  ownerIdentityVerified: z.boolean(),
+  bankVerified: z.boolean(),
+  documentsVerified: z.boolean(),
+  permitVerified: z.boolean(),
+});
+
+export const adminListLedgerEntriesSchema = z.object({
+  search: z.string().optional(),
+  side: z.enum(["DEBIT", "CREDIT"]).optional(),
+  type: z.string().optional(),
+  limit: z.number().int().min(1).max(100).default(20),
+  offset: z.number().int().min(0).default(0),
+});
+
+
+

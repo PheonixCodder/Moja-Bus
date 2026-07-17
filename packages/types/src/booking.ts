@@ -129,6 +129,8 @@ export interface PassengerBookingSummary {
   totalAmountXOF: number;
   seats: PassengerBookingSeat[];
   offerId: string;
+  originCoordinates: [number, number] | null;       // [longitude, latitude]
+  destinationCoordinates: [number, number] | null;  // [longitude, latitude]
 }
 
 export interface PassengerBookingsListResult {

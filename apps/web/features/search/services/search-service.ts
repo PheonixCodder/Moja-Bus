@@ -84,7 +84,8 @@ export class SearchService {
           f.isActive,
       );
       const fallbackFare = trip.schedule.fares.find((f) => f.isActive);
-      const priceXOF = segmentFare?.priceXOF ?? fallbackFare?.priceXOF ?? 5000; // default 5000 XOF fallback
+      const baseFare = segmentFare?.priceXOF ?? fallbackFare?.priceXOF ?? 5000; // default 5000 XOF fallback
+      const priceXOF = baseFare * ctx.passengerCount;
 
       // Amenities mapping
       const amenitiesList: Amenity[] = [];

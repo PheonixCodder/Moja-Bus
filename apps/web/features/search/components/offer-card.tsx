@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useQueryState } from "nuqs";
 import { Bus } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { buttonVariants } from "@moja/ui/components/ui/button";
@@ -20,6 +20,7 @@ export function OfferCard({
   passengers?: number;
 }) {
   const isSoldOut = offer.availability.status === "SOLD_OUT";
+  const [, setBookingOfferId] = useQueryState("bookingOfferId", { history: "push" });
 
   return (
     <Card className="border border-slate-100 hover:border-pink-200 transition-all duration-300 shadow-sm hover:shadow-md rounded-2xl overflow-hidden group">
@@ -87,7 +88,7 @@ export function OfferCard({
           <div className="flex flex-row md:flex-col justify-between md:justify-center items-center md:items-end gap-4 min-w-[160px]">
             <div className="text-left md:text-right">
               <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">
-                Segment Ticket
+                Total for {passengers} {passengers === 1 ? "passenger" : "passengers"}
               </span>
               <span className="text-2xl font-black font-montserrat text-[#ee237c] tracking-tight">
                 {formatPriceXOF(offer.priceXOF)}
@@ -95,9 +96,9 @@ export function OfferCard({
             </div>
 
             <div className="space-y-2 w-full md:w-auto">
-              <Link
-                href={`/book/${encodeURIComponent(offer.offerId)}?passengers=${passengers}`}
-                aria-disabled={isSoldOut}
+              <button
+                onClick={() => !isSoldOut && setBookingOfferId(offer.offerId)}
+                disabled={isSoldOut}
                 className={cn(
                   buttonVariants(),
                   "w-full h-10 px-6 rounded-xl font-bold text-sm transition-all duration-200",
@@ -107,7 +108,7 @@ export function OfferCard({
                 )}
               >
                 {isSoldOut ? "Sold Out" : "Select Seats"}
-              </Link>
+              </button>
 
               <div className="text-center md:text-right">
                 {isSoldOut ? (

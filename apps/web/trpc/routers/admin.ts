@@ -6,6 +6,11 @@ import {
   adminListUsersSchema,
   adminUpdateUserRoleSchema,
   adminListOperationsSchema,
+  adminListCompaniesSchema,
+  adminGetCompanySchema,
+  adminUpdateVerificationChecklistSchema,
+  adminListLedgerEntriesSchema,
+  tripStatusEnum,
 } from "@moja/schemas";
 import { FinancialAccountService, AccountingEngine } from "@moja/db";
 import { createTRPCRouter, adminProcedure } from "../init";
@@ -26,20 +31,20 @@ function slugify(text: string): string {
 export const adminRouter = createTRPCRouter({
   getDashboardKPIs: adminProcedure.query(async ({ ctx }) => {
     const [
-      successfulPayments,
-      confirmedPricing,
+      gmvResult,
+      commissionResult,
       travelersCount,
       operatorsCount,
       pendingOperatorsCount,
       activeTripsCount,
     ] = await Promise.all([
-      ctx.prisma.externalPayment.findMany({
+      ctx.prisma.externalPayment.aggregate({
+        _sum: { amountXOF: true },
         where: { status: "SUCCESS" },
-        select: { amountXOF: true },
       }),
-      ctx.prisma.pricingSnapshot.findMany({
+      ctx.prisma.pricingSnapshot.aggregate({
+        _sum: { platformGrossXOF: true },
         where: { holdGroup: { status: "CONFIRMED" } },
-        select: { platformGrossXOF: true },
       }),
       ctx.prisma.user.count({
         where: { role: "TRAVELER" },
@@ -53,8 +58,8 @@ export const adminRouter = createTRPCRouter({
       }),
     ]);
 
-    const totalGMV = successfulPayments.reduce((sum, p) => sum + p.amountXOF, 0);
-    const totalCommission = confirmedPricing.reduce((sum, s) => sum + s.platformGrossXOF, 0);
+    const totalGMV = gmvResult._sum.amountXOF ?? 0;
+    const totalCommission = commissionResult._sum.platformGrossXOF ?? 0;
 
     return {
       totalGMV,
@@ -65,6 +70,242 @@ export const adminRouter = createTRPCRouter({
       activeTripsCount,
     };
   }),
+
+  listCompaniesForVerification: adminProcedure
+    .input(adminListCompaniesSchema)
+    .query(async ({ ctx, input }) => {
+      const where: any = {};
+
+      if (input.status) {
+        where.status = input.status;
+      }
+
+      if (input.search) {
+        const searchLower = input.search.toLowerCase();
+        where.OR = [
+          { name: { contains: searchLower, mode: "insensitive" } },
+          { registrationNumber: { contains: searchLower, mode: "insensitive" } },
+          { taxId: { contains: searchLower, mode: "insensitive" } },
+          {
+            operators: {
+              some: {
+                user: {
+                  fullName: { contains: searchLower, mode: "insensitive" },
+                },
+              },
+            },
+          },
+        ];
+      }
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.company.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          skip: input.offset,
+          include: {
+            documents: true,
+            bankAccounts: true,
+            verification: true,
+            operators: {
+              where: { role: "OWNER" },
+              include: {
+                user: {
+                  select: {
+                    fullName: true,
+                    email: true,
+                    phone: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        ctx.prisma.company.count({ where }),
+      ]);
+
+      return { items, total };
+    }),
+
+  getCompanyForVerification: adminProcedure
+    .input(adminGetCompanySchema)
+    .query(async ({ ctx, input }) => {
+      const company = await ctx.prisma.company.findUnique({
+        where: { id: input.companyId },
+        include: {
+          documents: true,
+          bankAccounts: true,
+          verification: true,
+          operators: {
+            where: { role: "OWNER" },
+            include: {
+              user: {
+                select: {
+                  fullName: true,
+                  email: true,
+                  phone: true,
+                },
+              },
+            },
+          },
+          activityLogs: {
+            orderBy: { createdAt: "desc" },
+            include: {
+              user: {
+                select: {
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!company) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Company not found",
+        });
+      }
+
+      return company;
+    }),
+
+  updateCompanyVerificationChecklist: adminProcedure
+    .input(adminUpdateVerificationChecklistSchema)
+    .mutation(async ({ ctx, input }) => {
+      const verification = await ctx.prisma.companyVerification.upsert({
+        where: { companyId: input.companyId },
+        update: {
+          ownerIdentityVerified: input.ownerIdentityVerified,
+          bankVerified: input.bankVerified,
+          documentsVerified: input.documentsVerified,
+          permitVerified: input.permitVerified,
+          reviewedById: ctx.user.id,
+          reviewedAt: new Date(),
+        },
+        create: {
+          companyId: input.companyId,
+          ownerIdentityVerified: input.ownerIdentityVerified,
+          bankVerified: input.bankVerified,
+          documentsVerified: input.documentsVerified,
+          permitVerified: input.permitVerified,
+          reviewedById: ctx.user.id,
+          reviewedAt: new Date(),
+        },
+      });
+
+      await ctx.prisma.activityLog.create({
+        data: {
+          companyId: input.companyId,
+          userId: ctx.user.id,
+          action: "UPDATE_VERIFICATION_CHECKLIST",
+          description: `Updated verification checklist progress flags: ID=${input.ownerIdentityVerified}, Bank=${input.bankVerified}, Docs=${input.documentsVerified}, Permit=${input.permitVerified}`,
+        },
+      });
+
+      return verification;
+    }),
+
+  listLedgerEntries: adminProcedure
+    .input(adminListLedgerEntriesSchema)
+    .query(async ({ ctx, input }) => {
+      const where: any = {};
+
+      if (input.side) {
+        where.side = input.side;
+      }
+
+      if (input.type) {
+        where.transaction = { type: input.type };
+      }
+
+      if (input.search) {
+        const searchLower = input.search.toLowerCase();
+        where.OR = [
+          { description: { contains: searchLower, mode: "insensitive" } },
+          { transactionId: { contains: searchLower, mode: "insensitive" } },
+          { referenceId: { contains: searchLower, mode: "insensitive" } },
+          {
+            account: {
+              ownerId: { contains: searchLower, mode: "insensitive" },
+            },
+          },
+        ];
+      }
+
+      const [items, total, debitSumResult, creditSumResult] = await Promise.all([
+        ctx.prisma.ledgerEntry.findMany({
+          where,
+          orderBy: { effectiveAt: "desc" },
+          take: input.limit,
+          skip: input.offset,
+          include: {
+            transaction: true,
+            account: true,
+          },
+        }),
+        ctx.prisma.ledgerEntry.count({ where }),
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: { side: "DEBIT" },
+        }),
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: { side: "CREDIT" },
+        }),
+      ]);
+
+      const ownerIds = Array.from(new Set(items.map((item) => item.account.ownerId)));
+
+      const [users, companies] = await Promise.all([
+        ctx.prisma.user.findMany({
+          where: { id: { in: ownerIds } },
+          select: { id: true, fullName: true, email: true },
+        }),
+        ctx.prisma.company.findMany({
+          where: { id: { in: ownerIds } },
+          select: { id: true, name: true },
+        }),
+      ]);
+
+      const userMap = new Map(users.map((u) => [u.id, u]));
+      const companyMap = new Map(companies.map((c) => [c.id, c]));
+
+      const enrichedItems = items.map((item) => {
+        let ownerName = "Platform Treasury";
+        let ownerEmail = "treasury@mojaride.com";
+        if (item.account.ownerType === "USER") {
+          const u = userMap.get(item.account.ownerId);
+          ownerName = u?.fullName || "Unknown Passenger";
+          ownerEmail = u?.email || "";
+        } else if (item.account.ownerType === "COMPANY") {
+          const c = companyMap.get(item.account.ownerId);
+          ownerName = c?.name || "Unknown Operator";
+          ownerEmail = "";
+        }
+        return {
+          ...item,
+          ownerName,
+          ownerEmail,
+        };
+      });
+
+      const totalDebitVolume = debitSumResult._sum.amount || BigInt(0);
+      const totalCreditVolume = creditSumResult._sum.amount || BigInt(0);
+      const isBalanced = totalDebitVolume === totalCreditVolume;
+
+      return {
+        items: enrichedItems,
+        total,
+        totalDebitVolume,
+        totalCreditVolume,
+        isBalanced,
+      };
+    }),
+
 
   listPendingOperators: adminProcedure.query(async ({ ctx }) => {
     return ctx.prisma.company.findMany({
@@ -87,6 +328,7 @@ export const adminRouter = createTRPCRouter({
       orderBy: { createdAt: "desc" },
     });
   }),
+
 
   verifyOperator: adminProcedure
     .input(adminVerifyCompanySchema)
@@ -312,6 +554,67 @@ export const adminRouter = createTRPCRouter({
       ]);
 
       return { items, total };
+    }),
+
+  getUserProfile: adminProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: input.userId },
+        include: {
+          operatorProfiles: {
+            include: {
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  status: true,
+                  logoUrl: true,
+                  businessType: true,
+                  registrationNumber: true,
+                },
+              },
+              onboardingProgress: true,
+            },
+          },
+          passengerProfile: {
+            include: { savedPassengers: true },
+          },
+          bookings: {
+            orderBy: { createdAt: "desc" },
+            take: 10,
+            include: {
+              company: { select: { name: true } },
+              trip: {
+                include: {
+                  schedule: {
+                    include: {
+                      route: {
+                        select: {
+                          name: true,
+                          originTerminal: { select: { city: true, name: true } },
+                          destTerminal: { select: { city: true, name: true } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          sessions: {
+            orderBy: { createdAt: "desc" },
+            take: 5,
+          },
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
+
+      return user;
     }),
 
   updateUserRole: adminProcedure
@@ -754,14 +1057,27 @@ export const adminRouter = createTRPCRouter({
         limit: z.number().int().min(1).max(100).default(20),
         offset: z.number().int().min(0).default(0),
         status: z.string().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
+      const dateFilter =
+        input.from && input.to
+          ? {
+              createdAt: {
+                gte: new Date(input.from),
+                lte: new Date(input.to),
+              },
+            }
+          : {};
+
       const where: any = {
         type: "OPERATOR_PAYOUT",
+        ...dateFilter,
       };
-      if (input.status && input.status !== "ALL") {
-        where.status = input.status;
+      if (input.status && input.status.toUpperCase() !== "ALL") {
+        where.status = input.status.toUpperCase();
       }
 
       const [items, total] = await Promise.all([
@@ -1003,6 +1319,108 @@ export const adminRouter = createTRPCRouter({
 
       return { success: true };
     }),
+
+  getWithdrawalStats: adminProcedure
+    .input(
+      z.object({
+        from: z.string().optional(),
+        to: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Build optional date range filter
+      const dateFilter =
+        input.from && input.to
+          ? {
+              createdAt: {
+                gte: new Date(input.from),
+                lte: new Date(input.to),
+              },
+            }
+          : {};
+
+      // Group by status to get counts (DB-level, never client-side)
+      const statusGroups = await ctx.prisma.financialTransaction.groupBy({
+        by: ["status"],
+        where: { type: "OPERATOR_PAYOUT", ...dateFilter },
+        _count: { id: true },
+      });
+
+      const countMap = new Map(statusGroups.map((g) => [g.status, g._count.id]));
+
+      // Aggregate DEBIT amounts per status from LedgerEntry (operator receivable side)
+      const [pendingSum, settledSum, failedSum] = await Promise.all([
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: {
+            side: "DEBIT",
+            account: { accountClass: "OPERATOR_RECEIVABLE" },
+            transaction: {
+              type: "OPERATOR_PAYOUT",
+              status: { in: ["CREATED", "POSTED"] },
+              ...dateFilter,
+            },
+          },
+        }),
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: {
+            side: "DEBIT",
+            account: { accountClass: "OPERATOR_RECEIVABLE" },
+            transaction: {
+              type: "OPERATOR_PAYOUT",
+              status: "SETTLED",
+              ...dateFilter,
+            },
+          },
+        }),
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: {
+            side: "DEBIT",
+            account: { accountClass: "OPERATOR_RECEIVABLE" },
+            transaction: {
+              type: "OPERATOR_PAYOUT",
+              status: { in: ["FAILED", "REVERSED"] },
+              ...dateFilter,
+            },
+          },
+        }),
+      ]);
+
+      return {
+        pendingCount:
+          (countMap.get("CREATED") ?? 0) + (countMap.get("POSTED") ?? 0),
+        pendingVolumeXOF: Number(pendingSum._sum.amount ?? 0),
+        settledCount: countMap.get("SETTLED") ?? 0,
+        settledVolumeXOF: Number(settledSum._sum.amount ?? 0),
+        failedCount:
+          (countMap.get("FAILED") ?? 0) + (countMap.get("REVERSED") ?? 0),
+        failedVolumeXOF: Number(failedSum._sum.amount ?? 0),
+        totalCount: statusGroups.reduce((s, g) => s + g._count.id, 0),
+      };
+    }),
+
+  getOnboardingFunnel: adminProcedure.query(async ({ ctx }) => {
+    const funnelSteps = await ctx.prisma.operatorOnboarding.groupBy({
+      by: ["currentStep"],
+      _count: { _all: true },
+    });
+
+    const total = await ctx.prisma.operatorOnboarding.count();
+    const completed = await ctx.prisma.operatorOnboarding.count({
+      where: { completedAt: { not: null } },
+    });
+
+    return {
+      totalStarted: total,
+      totalCompleted: completed,
+      steps: funnelSteps.map(step => ({
+        step: step.currentStep,
+        count: step._count._all,
+      })),
+    };
+  }),
 
   // --- BLOG MANAGEMENT ---
   createBlogPostDraft: adminProcedure
@@ -1297,5 +1715,807 @@ export const adminRouter = createTRPCRouter({
         where: { id: input.id },
       });
     }),
+
+  getBlogAnalytics: adminProcedure
+    .input(z.object({
+      period: z.enum(["7d", "30d", "90d", "all"]).default("30d"),
+    }))
+    .query(async ({ ctx, input }) => {
+      const periodDays: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
+      const since =
+        input.period === "all"
+          ? undefined
+          : new Date(Date.now() - periodDays[input.period]! * 86_400_000);
+
+      const eventWhere = since ? { createdAt: { gte: since } } : {};
+
+      const [
+        viewsAgg,
+        publishedCount,
+        draftCount,
+        shareCount,
+        ctaCount,
+        r25,
+        r50,
+        r75,
+        r100,
+        topPosts,
+        viewEvents,
+      ] = await Promise.all([
+        ctx.prisma.blogPost.aggregate({
+          _sum: { viewCount: true },
+          where: { deletedAt: null },
+        }),
+        ctx.prisma.blogPost.count({ where: { status: "PUBLISHED", deletedAt: null } }),
+        ctx.prisma.blogPost.count({ where: { status: "DRAFT", deletedAt: null } }),
+        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "SHARE" } }),
+        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "CTA_CLICK" } }),
+        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "READ_25" } }),
+        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "READ_50" } }),
+        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "READ_75" } }),
+        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "READ_100" } }),
+        ctx.prisma.blogPost.findMany({
+          where: { deletedAt: null },
+          orderBy: { viewCount: "desc" },
+          take: 10,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            status: true,
+            viewCount: true,
+            publishedAt: true,
+            featured: true,
+            category: { select: { name: true } },
+            _count: { select: { events: { where: { eventType: "SHARE" } } } },
+          },
+        }),
+        ctx.prisma.blogEvent.findMany({
+          where: { ...eventWhere, eventType: "VIEW" },
+          select: { createdAt: true },
+          orderBy: { createdAt: "asc" },
+        }),
+      ]);
+
+      // Group VIEW events by calendar day (YYYY-MM-DD)
+      const dayMap = new Map<string, number>();
+      for (const e of viewEvents) {
+        const key = e.createdAt.toISOString().slice(0, 10);
+        dayMap.set(key, (dayMap.get(key) ?? 0) + 1);
+      }
+      const dailyViews = Array.from(dayMap.entries())
+        .map(([date, views]) => ({ date, views }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return {
+        kpis: {
+          totalViews: viewsAgg._sum.viewCount ?? 0,
+          publishedCount,
+          draftCount,
+          shareCount,
+          ctaCount,
+        },
+        dailyViews,
+        readDepth: [
+          { stage: "25%", count: r25 },
+          { stage: "50%", count: r50 },
+          { stage: "75%", count: r75 },
+          { stage: "100%", count: r100 },
+        ],
+        topPosts,
+      };
+    }),
+
+  listBlogRedirects: adminProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        page: z.number().int().min(1).default(1),
+        limit: z.number().int().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const where: any = {};
+      if (input.search) {
+        where.OR = [
+          { source: { contains: input.search, mode: "insensitive" } },
+          { destination: { contains: input.search, mode: "insensitive" } },
+        ];
+      }
+      const [items, total] = await Promise.all([
+        ctx.prisma.blogRedirect.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          skip: (input.page - 1) * input.limit,
+        }),
+        ctx.prisma.blogRedirect.count({ where }),
+      ]);
+      return { items, total };
+    }),
+
+  createBlogRedirect: adminProcedure
+    .input(
+      z.object({
+        source: z.string().min(1),
+        destination: z.string().min(1),
+        type: z.number().default(301),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.blogRedirect.create({ data: input });
+    }),
+
+  updateBlogRedirect: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        source: z.string().min(1),
+        destination: z.string().min(1),
+        type: z.number().default(301),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      return ctx.prisma.blogRedirect.update({ where: { id }, data });
+    }),
+
+  deleteBlogRedirect: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.blogRedirect.delete({ where: { id: input.id } });
+    }),
+
+  listDispatchTrips: adminProcedure
+    .input(
+      z.object({
+        status: z.preprocess(
+          (val) => (typeof val === "string" ? val.toUpperCase() : val),
+          z.union([tripStatusEnum, z.literal("ALL"), z.literal("ACTIVE")])
+        ).optional(),
+        companyId: z.string().nullable().optional(),
+        from: z.string().nullable().optional(),
+        to: z.string().nullable().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const filters: any = {};
+
+      if (input?.status && input.status !== "ALL") {
+        if (input.status === "ACTIVE") {
+          filters.status = {
+            in: ["SCHEDULED", "BOARDING", "DEPARTED", "DELAYED"],
+          };
+        } else {
+          filters.status = input.status;
+        }
+      }
+
+      if (input?.companyId) {
+        filters.companyId = input.companyId;
+      }
+
+      if (input?.from || input?.to) {
+        filters.departureDate = {};
+        if (input?.from) {
+          filters.departureDate.gte = new Date(input.from);
+        }
+        if (input?.to) {
+          filters.departureDate.lte = new Date(input.to);
+        }
+      }
+
+      return ctx.prisma.trip.findMany({
+        where: filters,
+        include: {
+          company: {
+            select: { name: true, logoUrl: true },
+          },
+          bus: {
+            include: { busType: true },
+          },
+          schedule: {
+            include: {
+              route: {
+                include: {
+                  originTerminal: { include: { cityRelation: true } },
+                  destTerminal: { include: { cityRelation: true } },
+                },
+              },
+            },
+          },
+          seats: {
+            include: { seat: true },
+          },
+          _count: {
+            select: {
+              bookings: {
+                where: {
+                  OR: [
+                    { status: "CONFIRMED" },
+                    {
+                      status: "PENDING_PAYMENT",
+                      holdExpiresAt: { gt: new Date() },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        orderBy: { departureDate: "asc" },
+      });
+    }),
+
+  getDispatchTrip: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const trip = await ctx.prisma.trip.findUnique({
+        where: { id: input.id },
+        include: {
+          company: true,
+          bus: {
+            include: { busType: true },
+          },
+          schedule: {
+            include: {
+              route: {
+                include: {
+                  originTerminal: { include: { cityRelation: true } },
+                  destTerminal: { include: { cityRelation: true } },
+                  waypoints: { orderBy: { stopOrder: "asc" } },
+                },
+              },
+            },
+          },
+          tripStops: {
+            orderBy: { stopOrder: "asc" },
+            include: {
+              terminal: { include: { cityRelation: true } },
+            },
+          },
+          seats: {
+            include: { seat: true },
+            orderBy: [
+              { seat: { deck: "asc" } },
+              { seat: { row: "asc" } },
+              { seat: { col: "asc" } },
+            ],
+          },
+          bookings: {
+            include: {
+              seat: true,
+              originTripStop: {
+                include: {
+                  terminal: { include: { cityRelation: true } },
+                },
+              },
+              destinationTripStop: {
+                include: {
+                  terminal: { include: { cityRelation: true } },
+                },
+              },
+            },
+            where: {
+              status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+            },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      });
+
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      }
+
+      return trip;
+    }),
+
+  getTripAudit: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const trip = await ctx.prisma.trip.findUnique({
+        where: { id: input.id },
+        include: {
+          company: true,
+          bus: {
+            include: { busType: true },
+          },
+          schedule: {
+            include: {
+              route: {
+                include: {
+                  originTerminal: { include: { cityRelation: true } },
+                  destTerminal: { include: { cityRelation: true } },
+                  waypoints: { orderBy: { stopOrder: "asc" } },
+                },
+              },
+            },
+          },
+          tripStops: {
+            orderBy: { stopOrder: "asc" },
+            include: {
+              terminal: { include: { cityRelation: true } },
+            },
+          },
+          seats: {
+            include: { seat: true },
+            orderBy: [
+              { seat: { deck: "asc" } },
+              { seat: { row: "asc" } },
+              { seat: { col: "asc" } },
+            ],
+          },
+          bookings: {
+            include: {
+              seat: true,
+              originTripStop: {
+                include: {
+                  terminal: { include: { cityRelation: true } },
+                },
+              },
+              destinationTripStop: {
+                include: {
+                  terminal: { include: { cityRelation: true } },
+                },
+              },
+              holdGroup: {
+                include: {
+                  payment: true,
+                },
+              },
+              review: true,
+            },
+            orderBy: { createdAt: "desc" },
+          },
+        },
+      });
+
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      }
+
+      return trip;
+    }),
+
+  listRoutes: adminProcedure
+    .input(z.object({
+      search: z.string().optional(),
+      status: z.string().optional(),
+      page: z.number().optional().default(1),
+      pageSize: z.number().optional().default(15),
+    }))
+    .query(async ({ ctx, input }) => {
+      const where: any = {};
+      if (input.status && input.status !== "All") {
+        where.status = input.status;
+      }
+      if (input.search) {
+        where.OR = [
+          { name: { contains: input.search, mode: "insensitive" } },
+          { company: { name: { contains: input.search, mode: "insensitive" } } },
+          { originTerminal: { city: { contains: input.search, mode: "insensitive" } } },
+          { destTerminal: { city: { contains: input.search, mode: "insensitive" } } },
+        ];
+      }
+
+      const offset = (input.page - 1) * input.pageSize;
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.route.findMany({
+          where,
+          orderBy: { name: "asc" },
+          take: input.pageSize,
+          skip: offset,
+          include: {
+            originTerminal: { include: { cityRelation: true } },
+            destTerminal: { include: { cityRelation: true } },
+            company: { select: { name: true, logoUrl: true, slug: true } },
+            _count: {
+              select: { waypoints: true },
+            },
+          },
+        }),
+        ctx.prisma.route.count({ where }),
+      ]);
+
+      return { items, total };
+    }),
+
+  getRoute: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const route = await ctx.prisma.route.findUnique({
+        where: { id: input.id },
+        include: {
+          originTerminal: { include: { cityRelation: true } },
+          destTerminal: { include: { cityRelation: true } },
+          company: { select: { name: true, logoUrl: true, slug: true } },
+          waypoints: {
+            include: {
+              terminal: { include: { cityRelation: true } },
+            },
+            orderBy: { stopOrder: "asc" },
+          },
+        },
+      });
+
+      if (!route) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Route not found" });
+      }
+
+      return route;
+    }),
+
+  listActivityLogs: adminProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(0).default(0),
+        limit: z.number().int().min(1).max(100).default(20),
+        search: z.string().optional(),
+        channels: z.array(z.string()).optional(),
+        templates: z.array(z.string()).optional(),
+        subscriberIds: z.array(z.string()).optional(),
+        transactionId: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const novuSecret = process.env["NOVU_SECRET_KEY"];
+      if (!novuSecret) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "NOVU_SECRET_KEY is not configured",
+        });
+      }
+
+      const { Novu } = await import("@novu/api");
+      const novu = new Novu({ secretKey: novuSecret });
+
+      let templateIds: string[] | undefined = undefined;
+      if (input.templates?.length) {
+        const workflows = await novu.workflows.list({ limit: 100 });
+        const workflowsData = (workflows as any).result?.data || (workflows as any).data || [];
+        
+        const matchingWorkflows = workflowsData.filter((w: any) => 
+          input.templates!.includes(w.identifier) || input.templates!.includes(w.name)
+        );
+        templateIds = matchingWorkflows.map((w: any) => w._id || w.id);
+        
+        if (templateIds && templateIds.length === 0) {
+           return { items: [], hasMore: false, page: input.page, limit: input.limit };
+        }
+      }
+
+      const response = await novu.notifications.list({
+        page: input.page,
+        limit: input.limit,
+        ...(input.search ? { search: input.search } : {}),
+        ...(input.channels?.length ? { channels: input.channels as any } : {}),
+        ...(templateIds && templateIds.length > 0 ? { templates: templateIds as string[] } : {}),
+        ...(input.subscriberIds?.length ? { subscriberIds: input.subscriberIds } : {}),
+        ...(input.transactionId ? { transactionId: input.transactionId } : {}),
+      });
+
+      const result = (response as any).result || (response as any);
+
+      return {
+        items: result.data ?? [],
+        hasMore: result.hasMore ?? false,
+        page: input.page,
+        limit: input.limit,
+      };
+    }),
+
+  listBankAccessLogs: adminProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(0).default(0),
+        limit: z.number().int().min(1).max(100).default(20),
+        companyId: z.string().optional(),
+        userId: z.string().optional(),
+        action: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, limit, companyId, userId, action } = input;
+      const skip = page * limit;
+
+      const where = {
+        ...(companyId ? { companyId } : {}),
+        ...(userId ? { userId } : {}),
+        ...(action ? { action } : {}),
+      };
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.bankAccessLog.findMany({
+          where,
+          include: {
+            company: { select: { id: true, name: true, slug: true } },
+            user: { select: { id: true, fullName: true, email: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        ctx.prisma.bankAccessLog.count({ where }),
+      ]);
+
+      return { items, total, page, limit };
+    }),
+
+  listWebhookEvents: adminProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(0).default(0),
+        limit: z.number().int().min(1).max(100).default(20),
+        search: z.string().optional(),
+        status: z.string().optional(),
+        provider: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, limit, search, status, provider } = input;
+      const skip = page * limit;
+
+      const where: any = {};
+
+      if (provider && provider !== "All") {
+        where.provider = { equals: provider, mode: "insensitive" };
+      }
+
+      if (search) {
+        where.OR = [
+          { reference: { contains: search, mode: "insensitive" } },
+          { idempotencyKey: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      if (status && status !== "All") {
+        if (status === "Processed") {
+          where.processedAt = { not: null };
+          where.error = null;
+        } else if (status === "Failed") {
+          where.error = { not: null };
+        } else if (status === "Pending") {
+          where.processedAt = null;
+          where.error = null;
+        }
+      }
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.webhookEvent.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        ctx.prisma.webhookEvent.count({ where }),
+      ]);
+
+      return { items, total, page, limit };
+    }),
+
+  getDashboardStats: adminProcedure
+    .input(
+      z.object({
+        from: z.string(),
+        to: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const from = new Date(input.from);
+      const to = new Date(input.to);
+      const windowMs = to.getTime() - from.getTime();
+      const prevFrom = new Date(from.getTime() - windowMs);
+      const prevTo = from;
+
+      // 1. Period Ledgers
+      const [
+        revenueCurrent,
+        revenuePrev,
+        operatorEarningsCurrent,
+        operatorEarningsPrev,
+      ] = await Promise.all([
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: {
+            side: "CREDIT",
+            status: "POSTED",
+            account: { accountClass: "PLATFORM_FEES" },
+            effectiveAt: { gte: from, lte: to },
+          },
+        }),
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: {
+            side: "CREDIT",
+            status: "POSTED",
+            account: { accountClass: "PLATFORM_FEES" },
+            effectiveAt: { gte: prevFrom, lt: prevTo },
+          },
+        }),
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: {
+            side: "CREDIT",
+            status: "POSTED",
+            transaction: { type: "BOOKING" },
+            account: { accountClass: "OPERATOR_RECEIVABLE" },
+            effectiveAt: { gte: from, lte: to },
+          },
+        }),
+        ctx.prisma.ledgerEntry.aggregate({
+          _sum: { amount: true },
+          where: {
+            side: "CREDIT",
+            status: "POSTED",
+            transaction: { type: "BOOKING" },
+            account: { accountClass: "OPERATOR_RECEIVABLE" },
+            effectiveAt: { gte: prevFrom, lt: prevTo },
+          },
+        }),
+      ]);
+
+      // 2. Absolute Balances (Treasury View)
+      const [
+        systemAssetAcc,
+        operatorLiabilitySum,
+        passengerWalletSum,
+      ] = await Promise.all([
+        ctx.prisma.financialAccount.findFirst({
+          where: { accountCategory: "ASSET", accountClass: "PAYSTACK_CLEARING" },
+        }),
+        ctx.prisma.financialAccount.aggregate({
+          _sum: { postedBalance: true },
+          where: { accountCategory: "LIABILITY", accountClass: "OPERATOR_RECEIVABLE" },
+        }),
+        ctx.prisma.financialAccount.aggregate({
+          _sum: { postedBalance: true },
+          where: { accountCategory: "LIABILITY", accountClass: "PASSENGER_WALLET" },
+        }),
+      ]);
+
+      // 3. Platform Operational Stats
+      const [
+        travelersCount,
+        operatorsCount,
+        pendingOperatorsCount,
+        activeTripsCount,
+        bookingsCurrent,
+        bookingsPrev,
+      ] = await Promise.all([
+        ctx.prisma.user.count({ where: { role: "TRAVELER" } }),
+        ctx.prisma.company.count(),
+        ctx.prisma.company.count({ where: { status: "PENDING_VERIFICATION" } }),
+        ctx.prisma.trip.count({ where: { status: { in: ["BOARDING", "DEPARTED"] } } }),
+        ctx.prisma.booking.count({
+          where: { status: "CONFIRMED", createdAt: { gte: from, lte: to } },
+        }),
+        ctx.prisma.booking.count({
+          where: { status: "CONFIRMED", createdAt: { gte: prevFrom, lt: prevTo } },
+        }),
+      ]);
+
+      // Calculate Period GMV (Platform Revenue + Operator Earnings from Bookings)
+      const currentRevenue = Number(revenueCurrent._sum.amount || 0);
+      const prevRevenue = Number(revenuePrev._sum.amount || 0);
+      const currentOperatorEarnings = Number(operatorEarningsCurrent._sum.amount || 0);
+      const prevOperatorEarnings = Number(operatorEarningsPrev._sum.amount || 0);
+
+      const currentGMV = currentRevenue + currentOperatorEarnings;
+      const previousGMV = prevRevenue + prevOperatorEarnings;
+
+      // 4. Trend Data for Chart
+      const recentRevenueEntries = await ctx.prisma.ledgerEntry.findMany({
+        where: {
+          side: "CREDIT",
+          status: "POSTED",
+          account: { accountClass: "PLATFORM_FEES" },
+          effectiveAt: { gte: from, lte: to },
+        },
+        select: { amount: true, effectiveAt: true },
+        orderBy: { effectiveAt: "asc" },
+      });
+
+      const recentEarningsEntries = await ctx.prisma.ledgerEntry.findMany({
+        where: {
+          side: "CREDIT",
+          status: "POSTED",
+          transaction: { type: "BOOKING" },
+          account: { accountClass: "OPERATOR_RECEIVABLE" },
+          effectiveAt: { gte: from, lte: to },
+        },
+        select: { amount: true, effectiveAt: true },
+        orderBy: { effectiveAt: "asc" },
+      });
+
+      const dayCount = Math.max(1, Math.ceil(windowMs / (24 * 60 * 60 * 1000)));
+      const trendMap: Record<string, { revenue: number; operator: number }> = {};
+      
+      for (let i = 0; i < dayCount; i++) {
+        const d = new Date(from);
+        d.setDate(d.getDate() + i);
+        trendMap[d.toISOString().slice(0, 10)] = { revenue: 0, operator: 0 };
+      }
+
+      for (const entry of recentRevenueEntries) {
+        const key = entry.effectiveAt.toISOString().slice(0, 10);
+        const mapEntry = trendMap[key];
+        if (mapEntry) mapEntry.revenue += Number(entry.amount);
+      }
+      for (const entry of recentEarningsEntries) {
+        const key = entry.effectiveAt.toISOString().slice(0, 10);
+        const mapEntry = trendMap[key];
+        if (mapEntry) mapEntry.operator += Number(entry.amount);
+      }
+
+      const revenueTrend = Object.entries(trendMap).map(([date, data]) => ({ 
+        date, 
+        gmv: data.revenue + data.operator 
+      }));
+
+      const gmvDeltaPct =
+        previousGMV === 0
+          ? null
+          : Math.round(((currentGMV - previousGMV) / previousGMV) * 100);
+
+      const bookingDeltaPct =
+        bookingsPrev === 0
+          ? null
+          : Math.round(((bookingsCurrent - bookingsPrev) / bookingsPrev) * 100);
+
+      return {
+        // Core KPIs
+        gmv: currentGMV,
+        gmvDeltaPct,
+        commission: currentRevenue,
+        bookingsCurrent,
+        bookingDeltaPct,
+        
+        // Treasury Balances
+        systemLiquidity: Number(systemAssetAcc?.postedBalance || 0),
+        operatorPayables: Number(operatorLiabilitySum._sum.postedBalance || 0),
+        passengerWallets: Number(passengerWalletSum._sum.postedBalance || 0),
+
+        // Platform Health
+        travelersCount,
+        operatorsCount,
+        pendingOperatorsCount,
+        activeTripsCount,
+        
+        // Chart
+        revenueTrend,
+      };
+    }),
+
+  getRecentActivity: adminProcedure.query(async ({ ctx }) => {
+    const [recentCompanies, recentBookings] = await Promise.all([
+      ctx.prisma.company.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+      ctx.prisma.booking.findMany({
+        where: { status: "CONFIRMED" },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          bookingReference: true,
+          passengerName: true,
+          farePaid: true,
+          createdAt: true,
+          company: { select: { name: true } },
+        },
+      }),
+    ]);
+    return { recentCompanies, recentBookings };
+  }),
 });
 

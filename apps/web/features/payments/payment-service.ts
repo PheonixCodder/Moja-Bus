@@ -407,6 +407,51 @@ export class PaymentService {
 
           await engine.commit(prismaTx as any);
 
+          // Fix #4: Also reverse the PAYMENT_PROCESSOR_FEE transaction for this transfer.
+          // The fee was recorded in a separate $transaction in requestWithdrawal, keyed by
+          // the same externalPaymentId (the Paystack transfer code). Without this, the
+          // processor fee account accumulates phantom debits on every failed payout.
+          if (tx.externalPaymentId) {
+            const feeTx = await prismaTx.financialTransaction.findFirst({
+              where: {
+                type: "PAYMENT_PROCESSOR_FEE",
+                externalPaymentId: tx.externalPaymentId,
+                status: { notIn: ["FAILED", "REVERSED"] },
+              },
+              include: { entries: true },
+            });
+
+            if (feeTx && feeTx.entries.length > 0) {
+              const feeReverseEngine = new AccountingEngine("PAYOUT_FEE_REVERSAL", {
+                description: `Fee reversal for failed transfer ${reference}`,
+                metadata: { originalFeeTxId: feeTx.id, originalPayoutTxId: reference },
+              });
+
+              for (const entry of feeTx.entries) {
+                if (entry.side === "DEBIT") {
+                  feeReverseEngine.addCredit({
+                    accountId: entry.accountId,
+                    amount: Number(entry.amount),
+                    sequenceNumber: entry.sequenceNumber,
+                  });
+                } else {
+                  feeReverseEngine.addDebit({
+                    accountId: entry.accountId,
+                    amount: Number(entry.amount),
+                    sequenceNumber: entry.sequenceNumber,
+                  });
+                }
+              }
+
+              await feeReverseEngine.commit(prismaTx as any);
+
+              await prismaTx.financialTransaction.update({
+                where: { id: feeTx.id },
+                data: { status: "REVERSED" },
+              });
+            }
+          }
+
           await prismaTx.financialTransaction.update({
             where: { id: tx.id },
             data: { status: "FAILED" },
@@ -496,6 +541,7 @@ export class PaymentService {
 
     const accountService = new FinancialAccountService(this.prisma);
     const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+    const processorFeeAcct = await accountService.getPaymentProcessorFeeAccount();
 
     await this.prisma.$transaction(async (tx) => {
       const engine = new AccountingEngine("TOP_UP", {
@@ -503,19 +549,33 @@ export class PaymentService {
         description: `Wallet top up via Paystack`,
       });
 
+      const feesXOF = payment.feesXOF ?? 0;
+      let seq = 1;
+
       engine.addDebit({
         accountId: clearingAcct.id,
-        amount: payment.amountXOF,
-        sequenceNumber: 1,
+        amount: payment.amountXOF - feesXOF,
+        sequenceNumber: seq++,
         referenceType: "PAYMENT_ID",
         referenceId: payment.id,
-        description: "Funds received from Paystack",
+        description: "Funds received from Paystack net of fees",
       });
+
+      if (feesXOF > 0) {
+        engine.addDebit({
+          accountId: processorFeeAcct.id,
+          amount: feesXOF,
+          sequenceNumber: seq++,
+          referenceType: "PAYMENT_ID",
+          referenceId: payment.id,
+          description: "Paystack processing fees",
+        });
+      }
 
       engine.addCredit({
         accountId: meta.accountId,
         amount: payment.amountXOF,
-        sequenceNumber: 2,
+        sequenceNumber: seq++,
         referenceType: "PAYMENT_ID",
         referenceId: payment.id,
         description: "Wallet top up",

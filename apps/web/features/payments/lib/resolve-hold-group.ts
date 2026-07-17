@@ -27,6 +27,7 @@ export type ResolvedHoldGroup = HoldGroup & {
     status: string;
     paystackReference: string | null;
     amountXOF: number;
+    feesXOF: number | null;
     provider: string;
   } | null;
 };
@@ -62,6 +63,7 @@ const holdGroupInclude = {
       status: true,
       paystackReference: true,
       amountXOF: true,
+      feesXOF: true,
       provider: true,
     },
   },

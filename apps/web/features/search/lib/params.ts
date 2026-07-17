@@ -37,6 +37,9 @@ export const searchParamsSchema = {
 
   // 4. Pagination
   page: parseAsInteger.withDefault(1),
+
+  // 5. Booking Modal State
+  bookingOfferId: parseAsString,
 };
 
 export const searchParamsCache = createSearchParamsCache(searchParamsSchema);

@@ -17,14 +17,38 @@ export class FinancialAccountService {
   }
 
   /**
-   * Retrieves or creates the platform revenue account.
+   * Retrieves or creates the platform commission revenue account.
    */
-  async getPlatformRevenueAccount() {
+  async getPlatformCommissionRevenueAccount() {
     return this.getOrCreateAccount({
       ownerType: "PLATFORM",
       ownerId: "moja_ride",
       accountCategory: "REVENUE",
-      accountClass: "PLATFORM_FEES",
+      accountClass: "COMMISSION_REVENUE",
+    });
+  }
+
+  /**
+   * Retrieves or creates the platform convenience fee revenue account.
+   */
+  async getPlatformConvenienceFeeRevenueAccount() {
+    return this.getOrCreateAccount({
+      ownerType: "PLATFORM",
+      ownerId: "moja_ride",
+      accountCategory: "REVENUE",
+      accountClass: "CONVENIENCE_FEE_REVENUE",
+    });
+  }
+
+  /**
+   * Retrieves or creates the payment processor fees account.
+   */
+  async getPaymentProcessorFeeAccount() {
+    return this.getOrCreateAccount({
+      ownerType: "PLATFORM",
+      ownerId: "moja_ride",
+      accountCategory: "EXPENSE",
+      accountClass: "PAYMENT_PROCESSOR_FEES",
     });
   }
 
@@ -37,6 +61,7 @@ export class FinancialAccountService {
       ownerId: companyId,
       accountCategory: "LIABILITY", // Liability from the platform's perspective (money we owe the operator)
       accountClass: "OPERATOR_RECEIVABLE",
+      allowNegativeBalance: true, // Must be true: refunds must always succeed even if operator withdrew all funds
     });
   }
 

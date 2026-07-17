@@ -727,7 +727,7 @@ function PricingStep({
                     <option value="VIP">VIP</option>
                   </select>
                 </div>
-                <div className="w-28">
+                <div className="w-28 flex flex-col gap-1 items-end">
                   <Input
                     type="number"
                     min={0}
@@ -738,6 +738,11 @@ function PricingStep({
                     }
                     className="h-8 text-sm text-right font-mono"
                   />
+                  {fare && fare.priceXOF > 0 && (
+                    <span className="text-[10px] text-muted-foreground mr-1 -mt-1 leading-none">
+                      Net: {Math.round(fare.priceXOF * 0.95).toLocaleString()}
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -1991,7 +1996,7 @@ export function OperatorSchedulesView() {
                         <span className="text-xs font-semibold text-foreground">
                           Stop {f.toStopOrder}
                         </span>
-                        <div className="w-32">
+                        <div className="w-32 flex flex-col gap-1 items-end">
                           <Input
                             type="number"
                             min={0}
@@ -2001,6 +2006,11 @@ export function OperatorSchedulesView() {
                             }
                             className="h-8 text-xs font-mono text-right"
                           />
+                          {f.priceXOF > 0 && (
+                            <span className="text-[10px] text-muted-foreground mr-1 -mt-1 leading-none">
+                              Net: {Math.round(f.priceXOF * 0.95).toLocaleString()}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
