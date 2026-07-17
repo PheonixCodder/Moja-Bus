@@ -2,15 +2,27 @@ import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { AdminDashboardView } from "@/features/admin/views/admin-dashboard-view";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+import { dashboardSearchParamsCache } from "@/features/admin/lib/search-params";
+import type { SearchParams } from "nuqs/server";
+import { type Metadata } from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Admin Portal Overview — Moja Ride",
   description:
     "Monitor and manage operators, passengers, financials, and real-time operations across Moja Ride.",
 };
 
-export default async function AdminDashboardPage() {
-  await prefetch(trpc.admin.getDashboardKPIs.queryOptions());
+interface PageProps {
+  searchParams: Promise<SearchParams>;
+}
+
+export default async function AdminDashboardPage({ searchParams }: PageProps) {
+  const { from, to } = dashboardSearchParamsCache.parse(await searchParams);
+
+  await Promise.all([
+    prefetch(trpc.admin.getDashboardStats.queryOptions({ from, to })),
+    prefetch(trpc.admin.getRecentActivity.queryOptions()),
+  ]);
 
   return (
     <HydrateClient>
@@ -23,14 +35,15 @@ export default async function AdminDashboardPage() {
           <span className="text-text-primary font-medium">Overview</span>
         </nav>
       </header>
+
       <div className="flex-1 overflow-y-auto p-6 md:p-8">
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="mx-auto max-w-7xl space-y-6">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
               System Overview
             </h1>
             <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Monitor and manage operators, passengers, financials, and real-time operations across Moja Ride.
+              Monitor operators, travelers, financials, and real-time operations across Moja Ride.
             </p>
           </div>
           <AdminDashboardView />

@@ -10,8 +10,8 @@ import { getServerSession, getUser } from "@/lib/auth-server";
 import { NotificationInbox } from "@/features/notifications/components/notification-inbox";
 
 export default async function AdminLayout({
-  children,
-}: {
+                                            children,
+                                          }: {
   children: ReactNode;
 }) {
   const session = await getServerSession();
@@ -32,17 +32,17 @@ export default async function AdminLayout({
   const fullUser = await getUser();
 
   return (
-    <TooltipProvider>
-      <SidebarProvider defaultOpen={defaultOpen} className="h-svh">
-        <AdminSidebar user={fullUser} />
-        <SidebarInset className="min-h-0 min-w-0 bg-bg-base relative">
-          <div className="absolute right-4 top-1.5 z-40">
-            <NotificationInbox />
-          </div>
-          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-          <Toaster />
-        </SidebarInset>
-      </SidebarProvider>
-    </TooltipProvider>
+      <TooltipProvider>
+        <SidebarProvider defaultOpen={defaultOpen} className="h-svh">
+          <AdminSidebar user={fullUser} />
+          <SidebarInset className="min-h-0 min-w-0 bg-bg-base relative">
+            <div className="absolute right-4 top-1.5 z-40">
+              <NotificationInbox />
+            </div>
+            <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+            <Toaster />
+          </SidebarInset>
+        </SidebarProvider>
+      </TooltipProvider>
   );
 }

@@ -1,6 +1,6 @@
-import { PageHeader } from "@/features/dashboard/components/page-header";
 import { PassengerSettingsView } from "@/features/passenger/views/passenger-settings-view";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+import { PageTitleHeader } from "@/features/dashboard/components/page-title-header";
 
 export const metadata = {
   title: "Settings — Moja Ride",
@@ -12,17 +12,12 @@ export default async function SettingsPage() {
 
   return (
     <HydrateClient>
-      <div className="flex flex-1 flex-col">
-        <PageHeader title="Settings" className="lg:hidden" />
-        <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
-          <div className="hidden lg:block">
-            <h1 className="text-2xl font-bold text-text-primary">Settings</h1>
-            <p className="text-sm text-text-secondary mt-1">
-              Profile, travel preferences, and account security.
-            </p>
-          </div>
-          <PassengerSettingsView />
-        </div>
+      <div className="flex-1 p-6 lg:p-10 max-w-6xl mx-auto w-full">
+        <PageTitleHeader
+          title="Account Settings"
+          description="Manage your profile details, default travel preferences, and email notifications."
+        />
+        <PassengerSettingsView />
       </div>
     </HydrateClient>
   );

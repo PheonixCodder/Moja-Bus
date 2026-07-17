@@ -20,6 +20,15 @@ import {
   TableRow,
 } from "@moja/ui/components/ui/table";
 import { Badge } from "@moja/ui/components/ui/badge";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@moja/ui/components/ui/combobox";
+import { formatAdminDateTime } from "@/lib/format-date";
 
 export function AdminOperationsView() {
   const trpc = useTRPC();
@@ -64,21 +73,31 @@ export function AdminOperationsView() {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Building className="size-4 text-slate-400" />
             <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Operator:</span>
-            <select
-              className="h-9 rounded border border-border bg-white px-2 py-1 text-xs text-slate-800 outline-none w-full sm:w-48"
-              value={selectedCompanyId}
-              onChange={(e) => {
-                setSelectedCompanyId(e.target.value || "");
+            <Combobox
+              items={[
+                { label: "All Companies", value: "ALL" },
+                ...(companies?.map((c: any) => ({ label: c.name, value: c.id })) ?? []),
+              ]}
+              value={selectedCompanyId || "ALL"}
+              onValueChange={(val) => {
+                setSelectedCompanyId(val === "ALL" ? "" : (val ?? ""));
                 setCurrentPageParam(1);
               }}
             >
-              <option value="">All Companies</option>
-              {companies?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              <ComboboxInput
+                placeholder="Filter by operator..."
+                className="w-full sm:w-56 h-9 bg-white"
+              />
+              <ComboboxContent>
+                <ComboboxEmpty>No operator found.</ComboboxEmpty>
+                <ComboboxList>
+                  <ComboboxItem value="ALL">All Companies</ComboboxItem>
+                  {companies?.map((c: any) => (
+                    <ComboboxItem key={c.id} value={c.id}>{c.name}</ComboboxItem>
+                  ))}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
           </div>
         </div>
       </Card>
@@ -120,16 +139,7 @@ export function AdminOperationsView() {
                       </div>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-slate-600 text-xs">
-                      {new Date(trip.departureDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}{" "}
-                      at{" "}
-                      {new Date(trip.departureDate).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatAdminDateTime(trip.departureDate)}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-slate-700 font-bold text-xs">
                       <div className="flex items-center gap-1">

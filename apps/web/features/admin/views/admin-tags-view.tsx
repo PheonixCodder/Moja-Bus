@@ -121,7 +121,7 @@ export function AdminTagsView() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <Table>
           <TableHeader className="bg-slate-50/70">
             <TableRow>

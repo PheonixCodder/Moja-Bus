@@ -42,8 +42,15 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Badge } from "@moja/ui/components/ui/badge";
-
-
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@moja/ui/components/ui/combobox";
+import { formatAdminDate } from "@/lib/format-date";
 
 export function AdminVerificationView() {
   const trpc = useTRPC();
@@ -176,11 +183,7 @@ export function AdminVerificationView() {
                       </div>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-slate-600 text-xs">
-                      {new Date(company.updatedAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatAdminDate(company.updatedAt)}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-right">
                       <Button
@@ -332,7 +335,7 @@ export function AdminVerificationView() {
                               {doc.name || doc.documentType.replace(/_/g, " ")}
                             </div>
                             <div className="text-[10px] text-slate-400 mt-0.5">
-                              Uploaded on {new Date(doc.createdAt).toLocaleDateString()}
+                              Uploaded on {formatAdminDate(doc.createdAt)}
                             </div>
                           </div>
                         </div>
@@ -424,18 +427,32 @@ export function AdminVerificationView() {
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Settlement Bank Code (Paystack List)
                 </label>
-                <select
-                  className="w-full h-10 rounded-md border border-border bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                <Combobox
+                  items={[
+                    { label: "-- Select Bank Code --", value: "" },
+                    ...(paystackBanks?.map((bank: any) => ({
+                      label: `${bank.code} - ${bank.name}`,
+                      value: bank.code,
+                    })) ?? []),
+                  ]}
                   value={selectedBankCode}
-                  onChange={(e) => setSelectedBankCode(e.target.value)}
+                  onValueChange={(val) => setSelectedBankCode(val ?? "")}
                 >
-                  <option value="">-- Select Bank Code --</option>
-                  {paystackBanks?.map((bank: any) => (
-                    <option key={bank.code} value={bank.code}>
-                      {bank.code} - {bank.name}
-                    </option>
-                  ))}
-                </select>
+                  <ComboboxInput
+                    placeholder="Search bank..."
+                    className="w-full h-10"
+                  />
+                  <ComboboxContent>
+                    <ComboboxEmpty>No bank found.</ComboboxEmpty>
+                    <ComboboxList>
+                      {paystackBanks?.map((bank: any) => (
+                        <ComboboxItem key={bank.code} value={bank.code}>
+                          {bank.code} — {bank.name}
+                        </ComboboxItem>
+                      ))}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </div>
             </div>
 

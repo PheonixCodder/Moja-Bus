@@ -35,6 +35,13 @@ import {
 import { NewBlogPostDialog } from "./new-blog-post-dialog";
 import { AdminCategoriesView } from "./admin-categories-view";
 import { AdminTagsView } from "./admin-tags-view";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
 
 export function AdminBlogView() {
   const trpc = useTRPC();
@@ -158,21 +165,25 @@ export function AdminBlogView() {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Filter className="size-4 text-slate-400" />
             <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Status:</span>
-            <select
-              className="h-10 rounded border border-border bg-white px-3 py-2 text-xs text-slate-800 outline-none w-full sm:w-40 focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
+            <Select
+              value={selectedStatus || "ALL"}
+              onValueChange={(val) => {
+                setSelectedStatus(val === "ALL" ? "" : val);
                 setCurrentPageParam(1);
               }}
             >
-              <option value="">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="REVIEW">In Review</option>
-              <option value="SCHEDULED">Scheduled</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="ARCHIVED">Archived</option>
-            </select>
+              <SelectTrigger className="h-10 w-full sm:w-40 bg-white">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="DRAFT">Draft</SelectItem>
+                <SelectItem value="REVIEW">In Review</SelectItem>
+                <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+                <SelectItem value="PUBLISHED">Published</SelectItem>
+                <SelectItem value="ARCHIVED">Archived</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </Card>
@@ -239,7 +250,7 @@ export function AdminBlogView() {
                     </TableCell>
                     <TableCell className="px-4 py-3 text-right">
                       <div className="flex justify-end">
-                        <Button onClick={() => router.push(`/dashboard/admin/blog/${post.id}/edit`)} size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900">
+                        <Button onClick={() => router.push(`/dashboard/admin/content/posts/${post.id}/edit`)} size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900">
                           <Edit2 className="size-4" />
                           <span className="sr-only">Edit</span>
                         </Button>

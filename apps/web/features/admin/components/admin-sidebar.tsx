@@ -10,11 +10,18 @@ import {
   ChevronsUpDown,
   Users,
   ShieldCheck,
-  Coins,
   Activity,
-  User,
   Landmark,
+  Coins,
   FileText,
+  Scale,
+  Briefcase,
+  Route,
+  BarChart2,
+  Link as LinkIcon,
+  History,
+  Shield,
+  Webhook,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -115,18 +122,41 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const sidebar = useSidebar();
   const { signOut } = useAuth();
 
-  const generalItems: MenuItem[] = [
+  const overviewItems: MenuItem[] = [
     { title: "Overview", url: "/dashboard/admin", icon: Gauge },
-    { title: "Verification Queue", url: "/dashboard/admin/verification", icon: ShieldCheck },
-    { title: "Settlements & Ledger", url: "/dashboard/admin/settlements", icon: Coins },
-    { title: "Withdrawal Queue", url: "/dashboard/admin/withdrawals", icon: Landmark },
   ];
 
-  const adminItems: MenuItem[] = [
-    { title: "User Directory", url: "/dashboard/admin/users", icon: Users },
-    { title: "Operations Oversight", url: "/dashboard/admin/operations", icon: Activity },
-    { title: "Content & Blog", url: "/dashboard/admin/blog", icon: FileText },
-    { title: "Platform Settings", url: "/dashboard/admin/settings", icon: Settings },
+  const financialItems: MenuItem[] = [
+    { title: "Ledger", url: "/dashboard/admin/financials/ledger", icon: Scale },
+    { title: "Settlements", url: "/dashboard/admin/financials/settlements", icon: Landmark },
+    { title: "Withdrawals", url: "/dashboard/admin/financials/withdrawals", icon: Coins },
+  ];
+
+  const operationsItems: MenuItem[] = [
+    { title: "Live Dispatch", url: "/dashboard/admin/operations/dispatch", icon: Activity },
+    { title: "Routes", url: "/dashboard/admin/operations/routes", icon: Route },
+  ];
+
+  const contentItems: MenuItem[] = [
+    { title: "Posts", url: "/dashboard/admin/content/posts", icon: FileText },
+    { title: "Analytics", url: "/dashboard/admin/content/analytics", icon: BarChart2 },
+    { title: "Redirects", url: "/dashboard/admin/content/redirects", icon: LinkIcon },
+  ];
+
+  const auditItems: MenuItem[] = [
+    { title: "Activity Logs", url: "/dashboard/admin/audit-logs/activity", icon: History },
+    { title: "Bank Access Logs", url: "/dashboard/admin/audit-logs/bank-access", icon: Shield },
+    { title: "Webhook Events", url: "/dashboard/admin/audit-logs/webhooks", icon: Webhook },
+  ];
+
+  const platformItems: MenuItem[] = [
+    { title: "Verification Queue", url: "/dashboard/admin/verifications", icon: ShieldCheck },
+    { title: "Settings", url: "/dashboard/admin/settings", icon: Settings },
+  ];
+
+  const directoryItems: MenuItem[] = [
+    { title: "Travelers", url: "/dashboard/admin/users/travelers", icon: Users },
+    { title: "Operators", url: "/dashboard/admin/users/operators", icon: Briefcase },
   ];
 
   const userInitials = user?.name
@@ -192,13 +222,37 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
       <SidebarContent className="px-0">
         <NavSection
-          label="Operations & Payouts"
-          items={generalItems}
+          items={overviewItems}
           pathname={pathname}
         />
         <NavSection
-          label="Administration"
-          items={adminItems}
+          label="Financials"
+          items={financialItems}
+          pathname={pathname}
+        />
+        <NavSection
+          label="Operations"
+          items={operationsItems}
+          pathname={pathname}
+        />
+        <NavSection
+          label="Directory"
+          items={directoryItems}
+          pathname={pathname}
+        />
+        <NavSection
+          label="Content"
+          items={contentItems}
+          pathname={pathname}
+        />
+        <NavSection
+          label="Audit & Security"
+          items={auditItems}
+          pathname={pathname}
+        />
+        <NavSection
+          label="Platform"
+          items={platformItems}
           pathname={pathname}
         />
       </SidebarContent>

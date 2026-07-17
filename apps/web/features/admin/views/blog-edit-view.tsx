@@ -263,7 +263,7 @@ export function BlogEditView({ postId }: { postId: string }) {
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900 shrink-0"
-            onClick={() => router.push("/dashboard/admin/blog")}
+            onClick={() => router.push("/dashboard/admin/content/posts")}
           >
             <ArrowLeft className="size-4" />
           </Button>
