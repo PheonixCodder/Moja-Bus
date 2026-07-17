@@ -33,7 +33,7 @@ export function NewBlogPostDialog({ open, onOpenChange }: NewBlogPostDialogProps
     onSuccess: (data: any) => {
       onOpenChange(false);
       setTitle("");
-      router.push(`/dashboard/admin/blog/${data.id}/edit`);
+      router.push(`/dashboard/admin/content/posts/${data.id}/edit`);
     },
     onError: (err: any) => {
       toast.error(err?.message || "Failed to create blog post draft");

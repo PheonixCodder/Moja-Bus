@@ -297,11 +297,11 @@ export class BookingReadService {
       company: { name: string };
       originTripStop: {
         scheduledDeparture: Date | null;
-        terminal: { name: string; cityRelation: { name: string } | null };
+        terminal: { name: string; cityRelation: { name: string } | null; latitude: number | null; longitude: number | null };
       };
       destinationTripStop: {
         scheduledArrival: Date | null;
-        terminal: { name: string; cityRelation: { name: string } | null };
+        terminal: { name: string; cityRelation: { name: string } | null; latitude: number | null; longitude: number | null };
       };
     }>,
   ): PassengerBookingSummary {
@@ -352,6 +352,16 @@ export class BookingReadService {
         first.originTripStopId,
         first.destinationTripStopId,
       ),
+      originCoordinates:
+        first.originTripStop.terminal.longitude != null &&
+        first.originTripStop.terminal.latitude != null
+          ? [first.originTripStop.terminal.longitude, first.originTripStop.terminal.latitude]
+          : null,
+      destinationCoordinates:
+        first.destinationTripStop.terminal.longitude != null &&
+        first.destinationTripStop.terminal.latitude != null
+          ? [first.destinationTripStop.terminal.longitude, first.destinationTripStop.terminal.latitude]
+          : null,
     };
   }
 

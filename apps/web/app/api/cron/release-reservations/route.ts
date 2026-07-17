@@ -35,6 +35,21 @@ export async function GET(request: Request) {
       },
     });
 
+    // Release the reserved balance back to available for each expired reservation
+    if (expiredReservations.length > 0) {
+      await prisma.$transaction(
+        expiredReservations.map((r) =>
+          prisma.financialAccount.update({
+            where: { id: r.accountId },
+            data: {
+              reservedBalance: { decrement: r.amount },
+              availableBalance: { increment: r.amount },
+            },
+          })
+        )
+      );
+    }
+
     return NextResponse.json({ success: true, count });
   } catch (error) {
     console.error("Failed to release expired reservations:", error);

@@ -38,6 +38,13 @@ import {
   DialogTitle,
 } from "@moja/ui/components/ui/dialog";
 import { Badge } from "@moja/ui/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
 
 export function AdminUsersView() {
   const trpc = useTRPC();
@@ -159,19 +166,23 @@ export function AdminUsersView() {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Shield className="size-4 text-slate-400" />
             <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Role:</span>
-            <select
-              className="h-10 rounded border border-border bg-white px-3 py-2 text-xs text-slate-800 outline-none w-full sm:w-40"
-              value={selectedRole}
-              onChange={(e) => {
-                setSelectedRole(e.target.value);
+            <Select
+              value={selectedRole || "ALL"}
+              onValueChange={(val) => {
+                setSelectedRole(val === "ALL" ? "" : val);
                 setCurrentPageParam(1);
               }}
             >
-              <option value="">All Roles</option>
-              <option value="TRAVELER">Traveler</option>
-              <option value="OPERATOR">Operator</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+              <SelectTrigger className="h-10 w-full sm:w-40 bg-white">
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Roles</SelectItem>
+                <SelectItem value="TRAVELER">Traveler</SelectItem>
+                <SelectItem value="OPERATOR">Operator</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </Card>
@@ -368,15 +379,19 @@ export function AdminUsersView() {
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Target System Role
                 </label>
-                <select
-                  className="w-full h-10 rounded-md border border-border bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                <Select
                   value={targetRole}
-                  onChange={(e) => setTargetRole(e.target.value as any)}
+                  onValueChange={(val) => setTargetRole(val as any)}
                 >
-                  <option value="TRAVELER">Traveler</option>
-                  <option value="OPERATOR">Operator</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TRAVELER">Traveler</SelectItem>
+                    <SelectItem value="OPERATOR">Operator</SelectItem>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <DialogFooter className="pt-4 gap-2 sm:gap-0">
