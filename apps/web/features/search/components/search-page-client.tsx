@@ -15,6 +15,7 @@ import { SearchSortBar } from "./search-sort-bar";
 import { SearchDateStrip } from "./search-date-strip";
 import { SearchPromoCard } from "./search-promo-card";
 import { HomeHeader } from "@/features/home/components/home-header";
+import { BookingDialog } from "@/features/booking/components/booking-dialog";
 import type { RouterOutputs } from "@/trpc/client";
 
 type SearchOffer = RouterOutputs["search"]["search"]["offers"][number];
@@ -250,6 +251,7 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
         onOpenChange={setMobileFiltersOpen}
         activeFilterCount={activeFilterCount}
       />
+      <BookingDialog />
     </div>
   );
 }

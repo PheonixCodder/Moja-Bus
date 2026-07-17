@@ -63,7 +63,7 @@ export function BookingDialogFlow({ offerId, onClose }: { offerId: string; onClo
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 overflow-y-auto">
+    <div className="flex flex-col flex-1 min-h-0 bg-slate-50 overflow-y-auto">
       <DialogHeader className="bg-white border-b border-slate-200 p-4 sticky top-0 z-10">
         <DialogTitle className="text-lg font-bold text-slate-900">Book your trip</DialogTitle>
         <DialogDescription className="text-xs text-slate-500">

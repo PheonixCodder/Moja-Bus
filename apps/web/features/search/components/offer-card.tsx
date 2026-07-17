@@ -8,6 +8,8 @@ import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "../lib/format";
 import { AmenityChips } from "@/features/booking/lib/amenities";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import type { RouterOutputs } from "@/trpc/client";
 
 type SearchOffer = RouterOutputs["search"]["search"]["offers"][number];
@@ -21,9 +23,22 @@ export function OfferCard({
 }) {
   const isSoldOut = offer.availability.status === "SOLD_OUT";
   const [, setBookingOfferId] = useQueryState("bookingOfferId", { history: "push" });
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+
+  const handlePrefetch = () => {
+    if (isSoldOut) return;
+    void queryClient.prefetchQuery(trpc.booking.getTripDetails.queryOptions({ offerId: offer.offerId }));
+    void queryClient.prefetchQuery(trpc.booking.getSeatAvailability.queryOptions({ offerId: offer.offerId }));
+    void queryClient.prefetchQuery(trpc.passenger.listSaved.queryOptions());
+  };
 
   return (
-    <Card className="border border-slate-100 hover:border-pink-200 transition-all duration-300 shadow-sm hover:shadow-md rounded-2xl overflow-hidden group">
+    <Card 
+      className="border border-slate-100 hover:border-pink-200 transition-all duration-300 shadow-sm hover:shadow-md rounded-2xl overflow-hidden group"
+      onMouseEnter={handlePrefetch}
+      onTouchStart={handlePrefetch}
+    >
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row items-stretch justify-between gap-6">
           <div className="flex-grow space-y-4">
