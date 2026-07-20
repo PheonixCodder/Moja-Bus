@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/reconcile-payments",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/cron/release-reservations",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/cron/snapshot-accounts",
@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/cron/publish-blogs",
-      "schedule": "* * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/cron/release-escrow",
