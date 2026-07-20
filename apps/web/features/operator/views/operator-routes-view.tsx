@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useQueryState, parseAsString, parseAsBoolean } from "nuqs";
+import Link from "next/link";
 import {
   Plus,
   Map as MapIcon,
@@ -57,6 +58,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@moja/ui/components/ui/empty";
+import { Badge } from "@moja/ui/components/ui/badge";
+
 
 import {
   DndContext,
@@ -78,7 +81,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { useTRPC } from "@/trpc/client";
 import {
-  useSuspenseQuery,
+  useSuspenseQueries,
   useMutation,
   useQuery,
   useQueryClient,
@@ -108,6 +111,16 @@ function formatOffset(minutes: number): string {
   return `+${h}h ${m}m`;
 }
 
+/** Formats a duration in minutes as a human-readable string (no "Origin" edge case). */
+function formatDuration(minutes: number): string {
+  if (!minutes || minutes <= 0) return "";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
 function MapSkeleton() {
   return (
     <div className="h-full w-full bg-slate-100 animate-pulse rounded-r-lg flex items-center justify-center">
@@ -128,6 +141,7 @@ interface WaypointDraft {
   terminalId: string;
   terminal: Terminal;
   offsetMinutes: number;
+  dwellMinutes: number;
   allowPickup: boolean;
   allowDropoff: boolean;
   distanceFromOriginKm?: number | undefined;
@@ -141,19 +155,40 @@ interface RouteCardProps {
   route: RouteType;
   onEdit: (route: RouteType) => void;
   onDelete: (route: RouteType) => void;
+  isReconciling: boolean;
 }
 
-function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
+function RouteCard({ route, onEdit, onDelete, isReconciling }: RouteCardProps) {
   const stopCount = route._count?.waypoints ?? 0;
+  const scheduleCount = (route._count as any)?.schedules ?? 0;
 
   return (
     <Card className="group border-border bg-card shadow-none hover:border-primary/30 hover:shadow-sm transition-all duration-200">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-sm font-bold text-foreground truncate">
-              {route.name}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-bold text-foreground truncate">
+                {route.name}
+              </p>
+              {route.status === "DRAFT" && (
+                <Badge variant="secondary" className="text-[10px] uppercase font-bold py-0 h-4">Draft</Badge>
+              )}
+              {route.status === "ACTIVE" && (
+                <Badge variant="default" className="text-[10px] uppercase font-bold py-0 h-4 bg-emerald-500 hover:bg-emerald-600 text-white">Active</Badge>
+              )}
+              {route.status === "SUSPENDED" && (
+                <Badge variant="outline" className="text-[10px] uppercase font-bold py-0 h-4 text-amber-600 border-amber-600/30 bg-amber-50">Suspended</Badge>
+              )}
+              {route.status === "ARCHIVED" && (
+                <Badge variant="outline" className="text-[10px] uppercase font-bold py-0 h-4">Archived</Badge>
+              )}
+              {isReconciling && (
+                <Link href={`/dashboard/operator/schedules?routeId=${route.id}`}>
+                  <Badge variant="outline" className="text-[10px] uppercase font-bold py-0 h-4 text-amber-600 border-amber-600/30 bg-amber-50 hover:bg-amber-100 cursor-pointer transition-colors">Needs Reconciliation</Badge>
+                </Link>
+              )}
+            </div>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="text-xs text-muted-foreground truncate">
                 {route.originTerminal?.cityRelation?.name ??
@@ -195,22 +230,74 @@ function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
               {stopCount + 2} stops
             </span>
           </div>
+          {scheduleCount > 0 && (
+            <div className="flex items-center gap-1.5">
+              <CalendarClock className="size-3 text-primary/60" />
+              <span className="text-[11px] font-semibold text-primary/80">
+                {scheduleCount} schedule{scheduleCount !== 1 ? "s" : ""}
+              </span>
+            </div>
+          )}
           {route.estimatedMinutes && (
             <div className="flex items-center gap-1.5">
               <Clock className="size-3 text-muted-foreground/60" />
               <span className="text-[11px] text-muted-foreground">
-                {formatOffset(route.estimatedMinutes)}
+                {formatDuration(route.estimatedMinutes)}
               </span>
             </div>
           )}
           {route.distanceKm && (
             <span className="text-[11px] text-muted-foreground ml-auto">
-              {route.distanceKm} km
+              {Number(route.distanceKm).toFixed(1)} km
             </span>
           )}
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Fixed Waypoint Row
+// ──────────────────────────────────────────────
+
+interface FixedWaypointProps {
+  waypoint: WaypointDraft;
+  isOrigin: boolean;
+  isDest: boolean;
+}
+
+function FixedWaypoint({ waypoint, isOrigin, isDest }: FixedWaypointProps) {
+  return (
+    <div className="flex items-start gap-3 p-3 bg-background rounded-md border border-border">
+      <div className="pt-1 w-5 flex justify-center opacity-30 cursor-not-allowed">
+        <GripVertical className="size-4 text-muted-foreground" />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold text-foreground truncate">
+                {waypoint.terminal.name}
+              </span>
+              {(isOrigin || isDest) && (
+                <Badge
+                  variant="secondary"
+                  className="text-[9px] uppercase font-bold py-0 h-4 bg-primary/10 text-primary hover:bg-primary/20 border-primary/20"
+                >
+                  {isOrigin ? "Origin" : "Destination"}
+                </Badge>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+              <MapIcon className="size-3" />
+              {waypoint.terminal.cityRelation?.name ?? waypoint.terminal.city}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -414,6 +501,7 @@ interface RouteFormDrawerProps {
   editingRouteId?: string | null;
   onCreated: (route: RouteType) => void;
   onUpdated: (route: RouteType) => void;
+  onReconcileNeeded?: (id: string) => void;
 }
 
 function RouteFormDrawer({
@@ -423,11 +511,15 @@ function RouteFormDrawer({
   editingRouteId,
   onCreated,
   onUpdated,
+  onReconcileNeeded,
 }: RouteFormDrawerProps) {
+  // ── Form state ─────────────────────────────────────────────────────────
   const [name, setName] = useState("");
   const [originId, setOriginId] = useState("");
   const [destId, setDestId] = useState("");
   const [distanceKm, setDistanceKm] = useState("");
+  const [estimatedDurationMin, setEstimatedDurationMin] = useState("");
+  const [status, setStatus] = useState<string>("ACTIVE");
   const [waypoints, setWaypoints] = useState<WaypointDraft[]>([]);
   const [addingStop, setAddingStop] = useState(false);
   const [newStopId, setNewStopId] = useState("");
@@ -446,30 +538,32 @@ function RouteFormDrawer({
   // Build ordered waypoints list for preview: origin + intermediaries + dest
   const allStops: WaypointDraft[] = [
     ...(originTerminal
-      ? [
-          {
-            id: "__origin__",
-            terminalId: originId,
-            terminal: originTerminal,
-            offsetMinutes: 0,
-            allowPickup: true,
-            allowDropoff: false,
-          },
-        ]
-      : []),
+        ? [
+            {
+              id: "__origin__",
+              terminalId: originId,
+              terminal: originTerminal,
+              offsetMinutes: 0,
+              dwellMinutes: 0,
+              allowPickup: true,
+              allowDropoff: false,
+            },
+          ]
+        : []),
     ...waypoints,
     ...(destTerminal
-      ? [
-          {
-            id: "__dest__",
-            terminalId: destId,
-            terminal: destTerminal,
-            offsetMinutes: 0,
-            allowPickup: false,
-            allowDropoff: true,
-          },
-        ]
-      : []),
+        ? [
+            {
+              id: "__dest__",
+              terminalId: destId,
+              terminal: destTerminal,
+              offsetMinutes: 0,
+              dwellMinutes: 0,
+              allowPickup: false,
+              allowDropoff: true,
+            },
+          ]
+        : []),
   ];
 
   // Available terminals for intermediate stops (exclude origin & dest)
@@ -534,6 +628,7 @@ function RouteFormDrawer({
         terminalId: newStopId,
         terminal,
         offsetMinutes: lastOffset + 60,
+        dwellMinutes: 15,
         allowPickup: true,
         allowDropoff: true,
         distanceFromOriginKm: undefined,
@@ -553,19 +648,36 @@ function RouteFormDrawer({
     );
   }
 
-  // Estimate total duration from last waypoint offset
-  const estimatedDuration =
-    waypoints.length > 0
-      ? waypoints[waypoints.length - 1]!.offsetMinutes + 60
-      : undefined;
+  // Remove the old computed estimatedDuration constant — it used a hardcoded +60
+  // offset that produced fabricated values. estimatedDurationMin is now an
+  // explicit operator-entered field.
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const createMutation = useMutation(trpc.routes.create.mutationOptions());
-  const updateMutation = useMutation(trpc.routes.update.mutationOptions());
+  const createMutation = useMutation({
+    ...trpc.routes.create.mutationOptions(),
+    onSuccess: (newRoute) => {
+      queryClient.setQueryData(trpc.routes.list.queryKey(), (old: any) => {
+        return [newRoute, ...(old ?? [])];
+      });
+      queryClient.invalidateQueries(trpc.routes.list.pathFilter());
+    }
+  });
+  const updateMutation = useMutation({
+    ...trpc.routes.update.mutationOptions(),
+    onSuccess: (response) => {
+      queryClient.setQueryData(trpc.routes.list.queryKey(), (old: any) => {
+        return old?.map((r: any) => r.id === response.route.id ? response.route : r) ?? [];
+      });
+      if (response.needsReconciliation && onReconcileNeeded) {
+        onReconcileNeeded(response.route.id);
+      }
+      queryClient.invalidateQueries(trpc.routes.list.pathFilter());
+    }
+  });
   const isEditing = Boolean(editingRouteId);
 
-  const { data: editingRoute } = useQuery({
+  const { data: editingRoute, isLoading: isLoadingRoute } = useQuery({
     ...trpc.routes.get.queryOptions({ id: editingRouteId ?? "" }),
     enabled: open && Boolean(editingRouteId),
   });
@@ -579,12 +691,19 @@ function RouteFormDrawer({
     setOriginId(editingRoute.originTerminalId);
     setDestId(editingRoute.destTerminalId);
     setDistanceKm(editingRoute.distanceKm?.toString() ?? "");
+    setEstimatedDurationMin(editingRoute.estimatedMinutes?.toString() ?? "");
+    setStatus(editingRoute.status ?? "DRAFT");
     setWaypoints(
-      editingRoute.waypoints.map((wp) => ({
+      editingRoute.waypoints.map((wp: any) => ({
         id: wp.id,
         terminalId: wp.terminalId,
         terminal: wp.terminal as Terminal,
         offsetMinutes: wp.arrivalOffsetMinutes,
+        // Derive dwell time from persisted departure - arrival difference
+        dwellMinutes: Math.max(
+          0,
+          wp.departureOffsetMinutes - wp.arrivalOffsetMinutes,
+        ),
         allowPickup: wp.isPickup,
         allowDropoff: wp.isDropoff,
         distanceFromOriginKm: wp.distanceFromOriginKm ?? undefined,
@@ -620,28 +739,41 @@ function RouteFormDrawer({
       }
       lastOffset = waypoints[i]!.offsetMinutes;
     }
-    
-    // Also ensure estimatedDuration is greater than the last waypoint offset
-    if (estimatedDuration && estimatedDuration <= lastOffset) {
-       toast.error(`Total estimated duration (${estimatedDuration}m) must be greater than the last waypoint offset (${lastOffset}m).`);
-       return;
+
+    // Validate estimated duration is greater than last waypoint offset when provided
+    const parsedDuration = estimatedDurationMin
+      ? parseInt(estimatedDurationMin, 10)
+      : undefined;
+    if (parsedDuration !== undefined && isNaN(parsedDuration)) {
+      toast.error("Estimated duration must be a valid number of minutes");
+      return;
+    }
+    // `lastOffset` is already the max waypoint offset after the loop above
+    if (parsedDuration !== undefined && parsedDuration <= lastOffset) {
+      toast.error(
+        `Total estimated duration (${parsedDuration}m) must be greater than the last waypoint offset (${lastOffset}m).`,
+      );
+      return;
     }
 
     const payload: any = {
       name: name.trim(),
       originTerminalId: originId,
       destTerminalId: destId,
+      status: status,
       waypoints: waypoints.map((w, i) => ({
         terminalId: w.terminalId,
         stopOrder: i + 1,
         offsetMinutes: w.offsetMinutes,
-        isPickup: w.allowPickup,
-        isDropoff: w.allowDropoff,
+        dwellMinutes: w.dwellMinutes ?? 15,
+        allowPickup: w.allowPickup,
+        allowDropoff: w.allowDropoff,
         distanceFromOriginKm: w.distanceFromOriginKm,
       })),
     };
     if (distanceKm) payload.distanceKm = parseFloat(distanceKm);
-    if (estimatedDuration) payload.estimatedDurationMin = estimatedDuration;
+    // Use the operator-specified duration — no more hardcoded +60 fallback
+    if (parsedDuration) payload.estimatedDurationMin = parsedDuration;
 
     if (isEditing && editingRouteId) {
       updateMutation.mutate(
@@ -683,6 +815,8 @@ function RouteFormDrawer({
     setOriginId("");
     setDestId("");
     setDistanceKm("");
+    setEstimatedDurationMin("");
+    setStatus("ACTIVE");
     setWaypoints([]);
     setAddingStop(false);
     setNewStopId("");
@@ -716,7 +850,13 @@ function RouteFormDrawer({
           </DrawerDescription>
         </DrawerHeader>
 
-        <div className="flex flex-1 overflow-hidden">
+        {isEditing && isLoadingRoute && !editingRoute && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm mt-[72px]">
+            <Spinner className="size-6 text-primary" />
+          </div>
+        )}
+
+        <div className="flex flex-1 overflow-hidden relative">
           {/* Left: Form */}
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
             {/* Name */}
@@ -838,6 +978,45 @@ function RouteFormDrawer({
               </div>
             </div>
 
+            {/* Status (Edit mode only) */}
+            {isEditing && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Route Status</Label>
+                <Combobox
+                  items={[
+                    { value: "DRAFT", label: "Draft" },
+                    { value: "ACTIVE", label: "Active" },
+                    { value: "SUSPENDED", label: "Suspended" },
+                    { value: "ARCHIVED", label: "Archived" },
+                  ]}
+                  value={status}
+                  onValueChange={(val) => setStatus(val || "ACTIVE")}
+                >
+                  <ComboboxInput
+                    placeholder="Select status…"
+                    className="text-sm"
+                    value={
+                      ["DRAFT", "ACTIVE", "SUSPENDED", "ARCHIVED"].includes(status)
+                        ? { DRAFT: "Draft", ACTIVE: "Active", SUSPENDED: "Suspended", ARCHIVED: "Archived" }[status as "DRAFT" | "ACTIVE" | "SUSPENDED" | "ARCHIVED"]
+                        : ""
+                    }
+                  />
+                  <ComboboxContent>
+                    <ComboboxEmpty>No status found.</ComboboxEmpty>
+                    <ComboboxList>
+                      <ComboboxItem value="DRAFT">Draft</ComboboxItem>
+                      <ComboboxItem value="ACTIVE">Active</ComboboxItem>
+                      <ComboboxItem value="SUSPENDED">Suspended</ComboboxItem>
+                      <ComboboxItem value="ARCHIVED">Archived</ComboboxItem>
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+                <p className="text-[11px] text-muted-foreground">
+                  Draft routes cannot be scheduled. Archived routes are hidden by default.
+                </p>
+              </div>
+            )}
+
             {/* Distance (optional) */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">
@@ -853,45 +1032,86 @@ function RouteFormDrawer({
               />
             </div>
 
+            {/* Estimated duration (explicit — no more hardcoded +60 guess) */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">
+                Total estimated duration (minutes) — optional
+              </Label>
+              <Input
+                type="number"
+                min={1}
+                placeholder="e.g. 420 for a 7-hour route"
+                value={estimatedDurationMin}
+                onChange={(e) => setEstimatedDurationMin(e.target.value)}
+                className="text-sm"
+              />
+              {estimatedDurationMin && (
+                <p className="text-[11px] text-muted-foreground">
+                  ≈ {formatDuration(parseInt(estimatedDurationMin, 10))}
+                </p>
+              )}
+            </div>
+
             {/* Stop Sequence */}
             {(originId || destId) && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-semibold">Stop sequence</Label>
-                  {estimatedDuration && (
+                  {estimatedDurationMin && (
                     <span className="text-[11px] text-muted-foreground">
-                      ~{formatOffset(estimatedDuration)} total
+                      ~{formatDuration(parseInt(estimatedDurationMin, 10))} total
                     </span>
                   )}
                 </div>
 
                 <div className="border border-border rounded-md p-4 bg-slate-50/50">
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                    accessibility={{ announcements: dndAnnouncements }}
-                  >
-                    <SortableContext
-                      items={waypoints.map((w) => w.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {allStops.map((stop, index) => (
-                        <SortableWaypoint
-                          key={stop.id}
-                          waypoint={stop}
-                          index={index}
-                          isOrigin={stop.id === "__origin__"}
-                          isDest={stop.id === "__dest__"}
-                          onRemove={removeWaypoint}
-                          onOffsetChange={updateOffset}
-                          onConfigChange={(id, updates) => {
-                            setWaypoints((prev) => prev.map((w) => (w.id === id ? { ...w, ...updates } : w)));
-                          }}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
+                  <div className="space-y-2">
+                    {allStops.map((stop, index) => {
+                      const isOrigin = stop.id === "__origin__";
+                      const isDest = stop.id === "__dest__";
+                      
+                      if (isOrigin) {
+                        return <FixedWaypoint key={stop.id} waypoint={stop} isOrigin={true} isDest={false} />;
+                      }
+
+                      if (isDest) {
+                        // Render intermediate waypoints in SortableContext right before the destination
+                        return (
+                          <React.Fragment key={stop.id}>
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={handleDragEnd}
+                              accessibility={{ announcements: dndAnnouncements }}
+                            >
+                              <SortableContext
+                                items={waypoints.map((w) => w.id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                {waypoints.map((wp, wpIndex) => (
+                                  <SortableWaypoint
+                                    key={wp.id}
+                                    waypoint={wp}
+                                    index={wpIndex + 1}
+                                    isOrigin={false}
+                                    isDest={false}
+                                    onRemove={removeWaypoint}
+                                    onOffsetChange={updateOffset}
+                                    onConfigChange={(id, updates) => {
+                                      setWaypoints((prev) => prev.map((w) => (w.id === id ? { ...w, ...updates } : w)));
+                                    }}
+                                  />
+                                ))}
+                              </SortableContext>
+                            </DndContext>
+                            <FixedWaypoint waypoint={stop} isOrigin={false} isDest={true} />
+                          </React.Fragment>
+                        );
+                      }
+                      
+                      return null; // Intermediate waypoints are handled above
+                    })}
+                  </div>
 
                   {/* Add intermediate stop */}
                   {originId && destId && (
@@ -992,6 +1212,12 @@ function RouteFormDrawer({
           <div className="hidden lg:flex w-56 shrink-0 border-l border-border overflow-hidden">
             <RouteMapPreview terminals={mapTerminals} />
           </div>
+
+          {isLoadingRoute && (
+            <div className="absolute inset-0 bg-background/80 z-50 flex items-center justify-center">
+              <Spinner className="size-8 text-primary" />
+            </div>
+          )}
         </div>
 
         <DrawerFooter className="border-t border-border px-5 py-4 shrink-0 flex-row gap-2">
@@ -1006,6 +1232,8 @@ function RouteFormDrawer({
             disabled={
               createMutation.isPending ||
               updateMutation.isPending ||
+              (isEditing && isLoadingRoute) ||
+              (isEditing && !editingRoute) ||
               !name ||
               !originId ||
               !destId
@@ -1043,25 +1271,49 @@ function DeleteRouteDialog({
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const deleteMutation = useMutation(trpc.routes.delete.mutationOptions());
+  const deleteMutation = useMutation({
+    ...trpc.routes.delete.mutationOptions(),
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries(trpc.routes.list.pathFilter());
+      queryClient.setQueryData(trpc.routes.list.queryKey(), (old: any) =>
+        old?.filter((r: any) => r.id !== id) ?? []
+      );
+      return undefined;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(trpc.routes.list.pathFilter());
+    }
+  });
 
   function handleDelete() {
     if (!route) return;
     deleteMutation.mutate(
       { id: route.id },
       {
-        onSuccess: () => {
-          toast.success(`Route "${route.name}" deleted`);
+        onSuccess: (response) => {
+          if (response.archived) {
+            toast.success(
+              `Route "${route.name}" archived — it has booking history and cannot be permanently deleted.`,
+              { duration: 6000 },
+            );
+          } else {
+            toast.success(`Route "${route.name}" deleted`);
+          }
           onDeleted(route.id);
           onClose();
           queryClient.invalidateQueries(trpc.routes.list.pathFilter());
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to delete route");
+          // Surface the booking-conflict error clearly
+          toast.error(err.message || "Failed to delete route", {
+            duration: 8000,
+          });
         },
       },
     );
   }
+
+  const stopCount = (route?._count?.waypoints ?? 0) + 2;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -1071,13 +1323,20 @@ function DeleteRouteDialog({
             <AlertCircle className="size-4" />
             Delete route
           </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete{" "}
-            <span className="font-semibold text-foreground">
-              "{route?.name}"
+          <DialogDescription className="space-y-2">
+            <span>
+              You are about to delete{" "}
+              <span className="font-semibold text-foreground">
+                &quot;{route?.name}&quot;
+              </span>{" "}
+              ({stopCount} stops).
             </span>
-            ? This will also remove all associated schedules and trips. This
-            action cannot be undone.
+            <span className="block text-[11px] leading-relaxed mt-2 text-amber-600 dark:text-amber-400">
+              If this route has been used in past trips, it will be
+              <strong> archived</strong> (not permanently deleted) to preserve
+              booking history. If it has confirmed upcoming bookings, deletion
+              will be blocked.
+            </span>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">
@@ -1096,7 +1355,7 @@ function DeleteRouteDialog({
             {deleteMutation.isPending ? (
               <Spinner className="size-4 mr-2" />
             ) : null}
-            {deleteMutation.isPending ? "Deleting…" : "Delete Route"}
+            {deleteMutation.isPending ? "Processing…" : "Delete Route"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1126,13 +1385,13 @@ function SuccessPanel({
           schedule to start generating trips.
         </p>
         <div className="flex items-center gap-3 mt-3">
-          <a
-            href="/dashboard/operator/schedules"
+          <Link
+            href={`/dashboard/operator/schedules?routeId=${route.id}`}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80"
           >
             <CalendarClock className="size-3.5" />
             Create Schedule →
-          </a>
+          </Link>
           <button
             onClick={onDismiss}
             className="text-xs text-muted-foreground hover:text-foreground"
@@ -1150,46 +1409,30 @@ function SuccessPanel({
 // ──────────────────────────────────────────────
 
 export function OperatorRoutesView() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const trpc = useTRPC();
-  const { data: routesData } = useSuspenseQuery(
-    trpc.routes.list.queryOptions(),
-  );
-  const { data: terminalsData } = useSuspenseQuery(
-    trpc.terminals.list.queryOptions({ bookableOnly: true }),
-  );
+  
+  const [{ data: routesData }, { data: terminalsData }] = useSuspenseQueries({
+    queries: [
+      trpc.routes.list.queryOptions(),
+      trpc.terminals.list.queryOptions({ bookableOnly: true }),
+    ],
+  });
 
-  const [routes, setRoutes] = useState<RouteType[]>([]);
-  const [terminals, setTerminals] = useState<Terminal[]>([]);
-  const [search, setSearch] = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingRouteId, setEditingRouteId] = useState<string | null>(null);
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
+  const [drawerOpen, setDrawerOpen] = useQueryState("open", parseAsBoolean.withDefault(false));
+  const [editingRouteId, setEditingRouteId] = useQueryState("edit", parseAsString);
+
   const [deletingRoute, setDeletingRoute] = useState<RouteType | null>(null);
   const [successRoute, setSuccessRoute] = useState<RouteType | null>(null);
-
-  // Sync state with suspense queries
-  useEffect(() => {
-    setRoutes(routesData);
-    setTerminals(terminalsData);
-  }, [routesData, terminalsData]);
-
-  useEffect(() => {
-    if (searchParams && searchParams.get("action") === "new") {
-      handleOpenCreate();
-      router.replace(window.location.pathname);
-    }
-  }, [searchParams, router]);
+  const [reconcilingRouteIds, setReconcilingRouteIds] = useState<Set<string>>(new Set());
 
   function handleCreated(route: RouteType) {
-    setRoutes((prev) => [route, ...prev]);
     setSuccessRoute(route);
     setDrawerOpen(false);
     setEditingRouteId(null);
   }
 
   function handleUpdated(route: RouteType) {
-    setRoutes((prev) => prev.map((r) => (r.id === route.id ? route : r)));
     setDrawerOpen(false);
     setEditingRouteId(null);
   }
@@ -1205,21 +1448,20 @@ export function OperatorRoutesView() {
   }
 
   function handleDeleted(id: string) {
-    setRoutes((prev) => prev.filter((r) => r.id !== id));
     if (successRoute?.id === id) setSuccessRoute(null);
   }
 
-  const filteredRoutes = routes.filter(
-    (r) =>
-      !search ||
-      r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.originTerminal?.cityRelation?.name
-        ?.toLowerCase()
-        .includes(search.toLowerCase()) ||
-      r.destTerminal?.cityRelation?.name
-        ?.toLowerCase()
-        .includes(search.toLowerCase()),
-  );
+  const filteredRoutes = React.useMemo(() => 
+    (routesData ?? []).filter(
+      (r) =>
+        !search ||
+        r.name.toLowerCase().includes(search.toLowerCase()) ||
+        r.originTerminal?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        r.destTerminal?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        r.originTerminal?.cityRelation?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        r.destTerminal?.cityRelation?.name?.toLowerCase().includes(search.toLowerCase()),
+    ),
+  [routesData, search]);
 
   return (
     <div className="flex flex-col h-full">
@@ -1259,7 +1501,7 @@ export function OperatorRoutesView() {
 
         {/* Route list */}
         {filteredRoutes.length === 0 ? (
-          routes.length === 0 ? (
+          !routesData?.length ? (
             <Empty className="py-16">
               <EmptyMedia>
                 <Route className="size-10 text-muted-foreground/30" />
@@ -1291,15 +1533,16 @@ export function OperatorRoutesView() {
             </Empty>
           )
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredRoutes.map((route) => (
-              <RouteCard
-                key={route.id}
-                route={route}
-                onEdit={handleEdit}
-                onDelete={setDeletingRoute}
-              />
-            ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredRoutes.map((route) => (
+                <RouteCard
+                  key={route.id}
+                  route={route}
+                  isReconciling={reconcilingRouteIds.has(route.id)}
+                  onEdit={handleEdit}
+                  onDelete={setDeletingRoute}
+                />
+              ))}
           </div>
         )}
       </div>
@@ -1311,10 +1554,11 @@ export function OperatorRoutesView() {
           setDrawerOpen(false);
           setEditingRouteId(null);
         }}
-        terminals={terminals}
+        terminals={terminalsData ?? []}
         editingRouteId={editingRouteId}
         onCreated={handleCreated}
         onUpdated={handleUpdated}
+        onReconcileNeeded={(id) => setReconcilingRouteIds(prev => new Set([...prev, id]))}
       />
 
       {/* Delete dialog */}

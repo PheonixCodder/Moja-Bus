@@ -1,56 +1,61 @@
 import { NextResponse } from "next/server";
 import { getPrismaClient } from "@moja/db";
+import { assertCronAuthorized } from "@/lib/cron-auth";
 
 export async function GET(request: Request) {
-  // Verify cron secret if in production
-  const authHeader = request.headers.get("authorization");
-  if (
-    process.env.NODE_ENV === "production" &&
-    authHeader !== `Bearer ${process.env["CRON_SECRET"]}`
-  ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = assertCronAuthorized(request);
+  if (denied) return denied;
 
   const prisma = getPrismaClient();
 
   try {
-    const expiredReservations = await prisma.walletReservation.findMany({
-      where: {
-        status: "ACTIVE",
-        expiresAt: { lt: new Date() },
-      },
+    // 1) Flip newly-expired ACTIVE reservations to EXPIRED (idempotent — guarded
+    //    by `status: "ACTIVE"`, so concurrent runs don't double-flip).
+    await prisma.walletReservation.updateMany({
+      where: { status: "ACTIVE", expiresAt: { lt: new Date() } },
+      data: { status: "EXPIRED" },
     });
 
-    if (expiredReservations.length === 0) {
+    // 2) Collect EXPIRED reservations whose balance has NOT yet been released.
+    //    This also covers the crash-recovery case: a reservation left EXPIRED but
+    //    releasedAt: null by a prior run that died before releasing is retried here.
+    const toRelease = await prisma.walletReservation.findMany({
+      where: { status: "EXPIRED", releasedAt: null },
+      select: { id: true, accountId: true, amount: true },
+    });
+
+    if (toRelease.length === 0) {
       return NextResponse.json({ success: true, count: 0 });
     }
 
-    const { count } = await prisma.walletReservation.updateMany({
-      where: {
-        id: { in: expiredReservations.map((r: { id: string }) => r.id) },
-        status: "ACTIVE",
-      },
-      data: {
-        status: "EXPIRED",
-      },
-    });
+    // 3) Exactly-once release. For each reservation, atomically claim it via the
+    //    `releasedAt: null` guard. Only the run that wins the claim (count === 1)
+    //    releases the balance. Prisma's increment/decrement emit atomic SQL
+    //    (`SET x = x + ?`), so concurrent releases on the SAME account from
+    //    different reservations cannot lose updates. No FOR UPDATE needed.
+    const now = new Date();
+    let released = 0;
+    await prisma.$transaction(async (tx) => {
+      for (const r of toRelease) {
+        const claimed = await tx.walletReservation.updateMany({
+          where: { id: r.id, releasedAt: null },
+          data: { releasedAt: now },
+        });
 
-    // Release the reserved balance back to available for each expired reservation
-    if (expiredReservations.length > 0) {
-      await prisma.$transaction(
-        expiredReservations.map((r) =>
-          prisma.financialAccount.update({
+        if (claimed.count === 1) {
+          await tx.financialAccount.update({
             where: { id: r.accountId },
             data: {
               reservedBalance: { decrement: r.amount },
               availableBalance: { increment: r.amount },
             },
-          })
-        )
-      );
-    }
+          });
+          released++;
+        }
+      }
+    });
 
-    return NextResponse.json({ success: true, count });
+    return NextResponse.json({ success: true, count: released });
   } catch (error) {
     console.error("Failed to release expired reservations:", error);
     return NextResponse.json(

@@ -164,6 +164,9 @@ export function useOperatorOnboarding() {
     currentStep,
     progress: data?.progress,
     operatorData: data?.operator,
+    // L14: surfaced so BankStep can show an honest verification sub-state
+    // (added vs pending admin verification) instead of implying full completion.
+    bankVerified: data?.bankVerified,
     saveStep,
     finalizeOnboarding,
     goToStep,

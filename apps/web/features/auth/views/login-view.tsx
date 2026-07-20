@@ -10,9 +10,18 @@ type LoginViewProps = {
   errorCode?: string | undefined;
   initialStep?: "input" | "otp" | "profile";
   initialUser?: { email?: string; phone?: string } | undefined;
+  callbackUrl?: string | undefined;
 };
 
-export function LoginView({ errorCode, initialStep, initialUser }: LoginViewProps) {
+export function LoginView({
+  errorCode,
+  initialStep,
+  initialUser,
+  callbackUrl,
+}: LoginViewProps) {
+  const isBookingReturn =
+    typeof callbackUrl === "string" && callbackUrl.startsWith("/search");
+
   return (
     <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[500px]">
       {/* Switch to Operator Link (Absolute top right) */}
@@ -25,10 +34,17 @@ export function LoginView({ errorCode, initialStep, initialUser }: LoginViewProp
         </div>
       </div>
 
+      {isBookingReturn ? (
+        <p className="text-center text-sm text-muted-foreground -mb-4">
+          Sign in to continue booking.
+        </p>
+      ) : null}
+
       {/* Dynamic OTP auth flow */}
       <PassengerAuthFlow
         initialStep={initialStep}
         initialUser={initialUser}
+        callbackUrl={callbackUrl}
       />
 
       {/* Footer copyright info (Absolute bottom) */}

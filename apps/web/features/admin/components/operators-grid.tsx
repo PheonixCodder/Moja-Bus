@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal,
 import { toast } from "sonner";
 
 import { Badge } from "@moja/ui/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
 import {
@@ -108,9 +109,12 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                   </div>
                   
                   <div className="flex flex-col items-center px-4 pb-6">
-                    <div className={cn("h-16 w-16 rounded-full flex items-center justify-center text-xl font-medium mb-3 shadow-sm", toneClass)}>
-                      {initials}
-                    </div>
+                    <Avatar className={cn("h-16 w-16 shrink-0 font-medium mb-3 shadow-sm", toneClass)}>
+                      <AvatarImage src={operator.avatar || undefined} alt={operator.fullName} />
+                      <AvatarFallback className={cn("text-xl", toneClass)}>
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
                     <h3 className="font-semibold text-base text-center line-clamp-1">{operator.fullName}</h3>
                     <p className="text-sm text-muted-foreground text-center line-clamp-1 mb-4">{operator.email}</p>
                     

@@ -5,7 +5,8 @@ import {
   assertHoldGroupActive,
   resolveHoldGroup,
 } from "../lib/resolve-hold-group";
-import { AccountingEngine, FinancialAccountService } from "@moja/db";
+import { AccountingEngine, FinancialAccountService, Prisma } from "@moja/db";
+import { toSafeDisplayNumber } from "@/lib/money";
 
 export class BookingConfirmationService {
   private accountService: FinancialAccountService;
@@ -63,27 +64,93 @@ export class BookingConfirmationService {
     const platformConvenienceAcct = await this.accountService.getPlatformConvenienceFeeRevenueAccount();
     const processorFeeAcct = await this.accountService.getPaymentProcessorFeeAccount();
 
-    const confirmed = await this.prisma.$transaction(async (tx) => {
-      const updatedBookings = [];
-      for (const booking of holdGroup.bookings) {
-        updatedBookings.push(
-          await tx.booking.update({
-            where: { id: booking.id },
-            data: {
-              status: "CONFIRMED",
-              paymentStatus: "PAID",
-              issuedAt: new Date(),
-              holdExpiresAt: null,
-              ...(userId ? { userId } : {}),
-            },
-          }),
-        );
-      }
-
-      await tx.holdGroup.update({
-        where: { id: holdGroup.id },
+    let confirmed;
+    try {
+      confirmed = await this.prisma.$transaction(async (tx) => {
+      // Idempotent guard: only one concurrent confirm wins
+      const holdClaim = await tx.holdGroup.updateMany({
+        where: { id: holdGroup.id, status: "ACTIVE" },
         data: { status: "CONFIRMED" },
       });
+      if (holdClaim.count === 0) {
+        const existing = await tx.holdGroup.findUnique({
+          where: { id: holdGroup.id },
+          include: { bookings: true },
+        });
+        if (existing?.status === "CONFIRMED") {
+          return existing.bookings;
+        }
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Hold group is no longer active",
+        });
+      }
+
+      // F-16 defense-in-depth: re-verify no other hold group already holds any of
+      // these seats on an overlapping segment. createHold now serializes holds per
+      // trip (SELECT ... FOR UPDATE), so this should never trip — but it guarantees
+      // no over-sale at confirm time even if a hold somehow slipped through.
+      const holdBookings = await tx.booking.findMany({
+        where: { holdGroupId: holdGroup.id },
+        select: {
+          id: true,
+          seatId: true,
+          boardingStopOrder: true,
+          dropoffStopOrder: true,
+        },
+      });
+
+      const updatedBookings = [];
+      for (const booking of holdBookings) {
+        const clash = await tx.booking.findFirst({
+          where: {
+            tripId: holdGroup.tripId,
+            seatId: booking.seatId,
+            id: { not: booking.id },
+            holdGroupId: { not: holdGroup.id },
+            OR: [
+              { status: "CONFIRMED" },
+              { status: "PENDING_PAYMENT", holdExpiresAt: { gt: new Date() } },
+            ],
+            boardingStopOrder: { lt: booking.dropoffStopOrder },
+            dropoffStopOrder: { gt: booking.boardingStopOrder },
+          },
+        });
+        if (clash) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Seat no longer available for this segment",
+          });
+        }
+
+        const updated = await tx.booking.updateMany({
+          where: {
+            id: booking.id,
+            status: "PENDING_PAYMENT",
+          },
+          data: {
+            status: "CONFIRMED",
+            paymentStatus: "PAID",
+            issuedAt: new Date(),
+            holdExpiresAt: null,
+            ...(userId ? { userId } : {}),
+          },
+        });
+        if (updated.count === 0) {
+          const current = await tx.booking.findUnique({ where: { id: booking.id } });
+          if (current?.status === "CONFIRMED") {
+            updatedBookings.push(current);
+            continue;
+          }
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Booking could not be confirmed",
+          });
+        }
+        updatedBookings.push(
+          await tx.booking.findUniqueOrThrow({ where: { id: booking.id } }),
+        );
+      }
 
       const snapshot = holdGroup.pricingSnapshot;
       if (snapshot && snapshot.operatorNetXOF > 0) {
@@ -91,6 +158,7 @@ export class BookingConfirmationService {
         const engine = new AccountingEngine("BOOKING", {
           externalPaymentId: holdGroup.payment!.id,
           description: `Payment for booking hold ${holdGroup.id}`,
+          idempotencyKey: `CARD_BOOKING_${holdGroup.id}`,
         });
 
         const feesXOF = holdGroup.payment?.feesXOF ?? 0;
@@ -159,7 +227,22 @@ export class BookingConfirmationService {
     }, {
       maxWait: 5000,
       timeout: 15000,
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     });
+    } catch (error: any) {
+      if (error.code === "P2002") {
+        const existing = await this.prisma.booking.findMany({
+          where: { holdGroupId: holdGroup.id, status: "CONFIRMED" },
+        });
+        if (existing.length > 0) {
+          confirmed = existing;
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
 
     const totalAmountXOF =
       holdGroup.pricingSnapshot?.chargeAmountXOF ??
@@ -210,76 +293,68 @@ export class BookingConfirmationService {
       });
     }
 
-    const walletAcct = await this.accountService.getUserWallet(userId);
     const totalToPay = snapshot.subtotalBaseXOF; // Zero convenience fee
+    let confirmed;
+    try {
+      confirmed = await this.prisma.$transaction(async (tx) => {
+      const accountService = new FinancialAccountService(tx as any);
+      const walletAcct = await accountService.getUserWallet(userId);
+      const operatorAcct = await accountService.getOperatorReceivableAccount(
+        holdGroup.companyId,
+      );
+      const platformCommissionAcct =
+        await accountService.getPlatformCommissionRevenueAccount();
 
-    if (walletAcct.availableBalance < BigInt(totalToPay)) {
-      // Trigger passenger-wallet-low-balance
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true, fullName: true },
-      });
-      if (user?.email) {
-        const novuSecret = process.env["NOVU_SECRET_KEY"];
-        if (novuSecret) {
-          try {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
-            await novu.trigger({
-              workflowId: "passenger-wallet-low-balance",
-              to: {
-                subscriberId: user.email,
-                email: user.email,
-              },
-              payload: {
-                email: user.email,
-                passengerName: user.fullName ?? "Passenger",
-                availableBalanceXOF: Number(walletAcct.availableBalance),
-                requiredAmountXOF: Number(totalToPay),
-              },
-            }).catch(() => {});
-          } catch (err) {
-            console.error("Failed to trigger passenger-wallet-low-balance via Novu:", err);
-          }
-        }
-      }
-
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Insufficient wallet balance",
-      });
-    }
-
-    const operatorAcct = await this.accountService.getOperatorReceivableAccount(holdGroup.companyId);
-    const platformCommissionAcct = await this.accountService.getPlatformCommissionRevenueAccount();
-
-    const confirmed = await this.prisma.$transaction(async (tx) => {
-      const updatedBookings = [];
-      for (const booking of holdGroup.bookings) {
-        updatedBookings.push(
-          await tx.booking.update({
-            where: { id: booking.id },
-            data: {
-              status: "CONFIRMED",
-              paymentStatus: "PAID",
-              issuedAt: new Date(),
-              holdExpiresAt: null,
-              userId,
-            },
-          }),
-        );
+      // Lock wallet inside the transaction (TOCTOU fix)
+      const lockedWallet = await tx.$queryRaw<
+        { available_balance: bigint | number }[]
+      >(
+        Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${walletAcct.id} FOR UPDATE`,
+      );
+      const available = BigInt(lockedWallet[0]?.available_balance ?? 0);
+      if (available < BigInt(totalToPay)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Insufficient wallet balance",
+        });
       }
 
       const updatedHold = await tx.holdGroup.updateMany({
         where: { id: holdGroup.id, status: "ACTIVE" },
         data: { status: "CONFIRMED" },
       });
-      
+
       if (updatedHold.count === 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Hold group is no longer active",
         });
+      }
+
+      const updatedBookings = [];
+      for (const booking of holdGroup.bookings) {
+        const claim = await tx.booking.updateMany({
+          where: {
+            id: booking.id,
+            status: "PENDING_PAYMENT",
+          },
+          data: {
+            status: "CONFIRMED",
+            paymentStatus: "PAID",
+            issuedAt: new Date(),
+            holdExpiresAt: null,
+            userId,
+          },
+        });
+        if (claim.count === 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Booking could not be confirmed",
+          });
+        }
+        updatedBookings.push(
+          await tx.booking.findUniqueOrThrow({ where: { id: booking.id } }),
+        );
       }
 
       const engine = new AccountingEngine("BOOKING", {
@@ -304,13 +379,13 @@ export class BookingConfirmationService {
         sequenceNumber: seq++,
         referenceType: "HOLD_GROUP",
         referenceId: holdGroup.id,
-        description: "Operator ticket revenue net of commission (escrowed until departure)",
-        reserveOnCredit: true, // Fix #1: funds go into reservedBalance until trip departs
+        description:
+          "Operator ticket revenue net of commission (escrowed until departure)",
+        reserveOnCredit: true,
       });
 
       const platformCommission = totalToPay - snapshot.operatorNetXOF;
 
-      // Update the PricingSnapshot to accurately reflect the waived convenience fee
       await tx.pricingSnapshot.update({
         where: { holdGroupId: holdGroup.id },
         data: {
@@ -337,7 +412,54 @@ export class BookingConfirmationService {
     }, {
       maxWait: 5000,
       timeout: 15000,
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     });
+    } catch (error: any) {
+      if (error.code === "P2002") {
+        const existing = await this.prisma.booking.findMany({
+          where: { holdGroupId: holdGroup.id, status: "CONFIRMED" },
+        });
+        if (existing.length > 0) {
+          confirmed = existing;
+        } else {
+          throw error;
+        }
+      } else if (error.message && error.message.includes("Insufficient funds")) {
+        // C7: Send the Novu alert if the row-level solvency check failed
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true, fullName: true },
+        });
+        if (user?.email) {
+          const novuSecret = process.env["NOVU_SECRET_KEY"];
+          if (novuSecret) {
+            try {
+              const { Novu } = await import("@novu/api");
+              const novu = new Novu({ secretKey: novuSecret });
+              const walletAcctPreview = await this.accountService.getUserWallet(userId);
+              void novu.trigger({
+                workflowId: "passenger-wallet-low-balance",
+                to: { subscriberId: user.email, email: user.email },
+                payload: {
+                  email: user.email,
+                  passengerName: user.fullName ?? "Passenger",
+                  availableBalanceXOF: toSafeDisplayNumber(walletAcctPreview.availableBalance),
+                  requiredAmountXOF: Number(totalToPay),
+                },
+              }).catch(() => {});
+            } catch (e) {
+              console.error("Failed to trigger passenger-wallet-low-balance via Novu:", e);
+            }
+          }
+        }
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Insufficient wallet balance",
+        });
+      } else {
+        throw error;
+      }
+    }
 
     const result: ConfirmedBookingResult = {
       holdId: holdGroup.id,

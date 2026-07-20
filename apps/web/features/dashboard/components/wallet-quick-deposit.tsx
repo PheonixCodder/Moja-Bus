@@ -109,7 +109,7 @@ export function WalletQuickDeposit({ recentTransactions }: WalletQuickDepositPro
                         isDeposit ? "text-emerald-600" : "text-foreground"
                       }`}
                     >
-                      {isDeposit ? "+" : "-"}{amountNum.toLocaleString("fr-FR")} XOF
+                      {isDeposit ? "+" : "-"}{amountNum.toLocaleString("en-US")} XOF
                     </span>
                   </div>
                 );

@@ -64,11 +64,6 @@ const STATUS_CONFIG: Record<
     color: "bg-red-100 text-red-700 border-red-200",
     icon: XCircle,
   },
-  COMPLETED: {
-    label: "Completed",
-    color: "bg-slate-100 text-slate-700 border-slate-200",
-    icon: CheckCircle2,
-  },
 };
 
 function TripStatusBadge({ status }: { status: string }) {

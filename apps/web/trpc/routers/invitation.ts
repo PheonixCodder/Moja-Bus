@@ -1,8 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "../init";
 import crypto from "node:crypto";
 import { Novu } from "@novu/api";
+import {
+  ROLE_TEMPLATES,
+  type StaffRole,
+} from "@moja/schemas";
+import { createTRPCRouter, publicProcedure } from "../init";
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -139,9 +143,10 @@ export const invitationRouter = createTRPCRouter({
       }
 
       const userId = ctx.user.id;
+      // Better Auth session user exposes `name` (not `fullName` which is the DB field)
       const userName = ctx.user.name ?? "A new member";
 
-      // Check if the user is already a member of this company
+      // Check if the user is already an active member of this company
       const existingMembership = await ctx.prisma.operator.findFirst({
         where: {
           userId,
@@ -157,7 +162,24 @@ export const invitationRouter = createTRPCRouter({
         });
       }
 
-      // Execute in a transaction: update User (emailVerified & role), create Operator, update invitation, log action
+      // Check if this user was previously a member but was soft-deleted (left the company).
+      // If so, restore them instead of creating a duplicate record (avoids unique constraint
+      // violation on @@unique([userId, companyId])).
+      const softDeletedMembership = await ctx.prisma.operator.findFirst({
+        where: {
+          userId,
+          companyId: invitation.companyId,
+          deletedAt: { not: null },
+        },
+      });
+
+      // Copy invitation.permissions onto Operator (IAM source of truth).
+      // Fall back to role template if an old invitation has an empty set.
+      const grantedPermissions =
+        invitation.permissions?.length > 0
+          ? invitation.permissions
+          : (ROLE_TEMPLATES[invitation.role as StaffRole] ?? []);
+
       await ctx.prisma.$transaction([
         ctx.prisma.user.update({
           where: { id: userId },
@@ -166,18 +188,34 @@ export const invitationRouter = createTRPCRouter({
             role: "OPERATOR",
           },
         }),
-        ctx.prisma.operator.create({
-          data: {
-            userId,
-            companyId: invitation.companyId,
-            role: invitation.role,
-            jobTitle: invitation.jobTitle ?? null,
-            status: "ACTIVE",
-            isActive: true,
-            isVerified: false,
-            onboardingStatus: "COMPLETED",
-          },
-        }),
+        softDeletedMembership
+          ? ctx.prisma.operator.update({
+              where: { id: softDeletedMembership.id },
+              data: {
+                role: invitation.role,
+                jobTitle: invitation.jobTitle ?? null,
+                permissions: grantedPermissions,
+                permissionsUpdatedAt: new Date(),
+                status: "ACTIVE",
+                isActive: true,
+                deletedAt: null,
+                onboardingStatus: "COMPLETED",
+              },
+            })
+          : ctx.prisma.operator.create({
+              data: {
+                userId,
+                companyId: invitation.companyId,
+                role: invitation.role,
+                jobTitle: invitation.jobTitle ?? null,
+                permissions: grantedPermissions,
+                permissionsUpdatedAt: new Date(),
+                status: "ACTIVE",
+                isActive: true,
+                isVerified: false,
+                onboardingStatus: "COMPLETED",
+              },
+            }),
         ctx.prisma.staffInvitation.update({
           where: { token: hashedToken },
           data: {
@@ -191,6 +229,7 @@ export const invitationRouter = createTRPCRouter({
             userId,
             action: "MEMBER_JOINED",
             description: `${userName} joined the company as ${invitation.role}.`,
+            metadata: JSON.stringify({ permissions: grantedPermissions }),
           },
         }),
       ]);

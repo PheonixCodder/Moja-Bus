@@ -15,9 +15,13 @@ import { SearchSortBar } from "./search-sort-bar";
 import { SearchDateStrip } from "./search-date-strip";
 import { SearchPromoCard } from "./search-promo-card";
 import { HomeHeader } from "@/features/home/components/home-header";
+import { BookingDialog } from "@/features/booking/components/booking-dialog";
+import { toast } from "sonner";
 import type { RouterOutputs } from "@/trpc/client";
 
 type SearchOffer = RouterOutputs["search"]["search"]["offers"][number];
+
+const RESUME_TOAST_KEY = "moja:search-resume-toast";
 
 interface SearchPageClientProps {
   user?: any;
@@ -32,6 +36,20 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
   });
 
   const searchEnabled = !!params.from && !!params.to && !!params.date;
+
+  useEffect(() => {
+    if (!user?.id) return;
+    if (!params.bookingOfferId) return;
+    if (typeof window === "undefined") return;
+    const key = `${RESUME_TOAST_KEY}:${params.bookingOfferId}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      // ignore storage failures
+    }
+    toast.success("Welcome back — continue your booking.");
+  }, [user?.id, params.bookingOfferId]);
 
   // Mobile filters drawer state
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -250,6 +268,7 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
         onOpenChange={setMobileFiltersOpen}
         activeFilterCount={activeFilterCount}
       />
+      <BookingDialog />
     </div>
   );
 }

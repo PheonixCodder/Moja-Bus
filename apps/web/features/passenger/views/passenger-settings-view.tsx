@@ -32,6 +32,8 @@ import {
 } from "@moja/ui/components/ui/tabs";
 import { authClient } from "@/lib/auth-client";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useStorageUpload } from "@/lib/storage-client";
+import { ImageUploadField } from "@/components/image-upload-field";
 
 export function PassengerSettingsView() {
   const trpc = useTRPC();
@@ -78,6 +80,18 @@ export function PassengerSettingsView() {
     });
   };
 
+  const { upload: uploadAvatar } = useStorageUpload("passenger-avatar");
+  const updateAvatarMutation = useMutation(
+    trpc.passenger.updateAvatar.mutationOptions({
+      onSuccess: () => toast.success("Profile photo updated"),
+      onError: (err) => toast.error(err.message || "Failed to update photo"),
+    }),
+  );
+
+  const handleAvatarUploaded = async (result: { fileUrl: string }) => {
+    await updateAvatarMutation.mutateAsync({ image: result.fileUrl });
+  };
+
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
     saveSettingsMutation.mutate({
@@ -118,6 +132,21 @@ export function PassengerSettingsView() {
                 <CardDescription>Update your personal information used for passenger tickets.</CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
+                <div className="flex items-center gap-4 pb-2">
+                  <ImageUploadField
+                    purpose="passenger-avatar"
+                    value={(profile?.user as { image?: string | null } | undefined)?.image ?? null}
+                    onUploaded={handleAvatarUploaded}
+                    label="Upload photo"
+                    hint="PNG or JPG, up to 2MB"
+                    shape="circle"
+                    previewClassName="h-20 w-20"
+                  />
+                  <p className="text-xs text-text-muted">
+                    Your profile photo is shown on your tickets and account.
+                  </p>
+                </div>
+
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="fullName" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
                     Full Name

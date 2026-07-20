@@ -11,25 +11,47 @@ export type RouteStatus = z.infer<typeof routeStatusEnum>;
 export const waypointSchema = z.object({
   terminalId: z.string().min(1, "Terminal is required"),
   stopOrder: z.coerce.number().int().min(0),
-  offsetMinutes: z.coerce.number().int().min(0, "Offset must be non-negative"),
+  offsetMinutes: z.coerce.number().int().min(1, "Intermediate stop must be at least 1 minute from origin"),
+  dwellMinutes: z.coerce.number().int().min(0).default(15),
   distanceFromOriginKm: z.coerce.number().min(0).optional().nullable(),
   allowPickup: z.boolean().default(true),
   allowDropoff: z.boolean().default(true),
 });
 export type WaypointInput = z.infer<typeof waypointSchema>;
 
-export const createRouteSchema = z.object({
-  name: z.string().min(3, "Route name must be at least 3 characters"),
-  originTerminalId: z.string().min(1, "Origin terminal is required"),
-  destTerminalId: z.string().min(1, "Destination terminal is required"),
-  distanceKm: z.coerce.number().min(0).optional().nullable(),
-  estimatedDurationMin: z.coerce.number().int().min(1).optional().nullable(),
-  status: routeStatusEnum.default("DRAFT"),
-  waypoints: z.array(waypointSchema).max(50, "Maximum of 50 stops allowed").default([]),
-});
+export const createRouteSchema = z
+  .object({
+    name: z.string().min(3, "Route name must be at least 3 characters").max(120, "Route name must be 120 characters or fewer"),
+    originTerminalId: z.string().min(1, "Origin terminal is required"),
+    destTerminalId: z.string().min(1, "Destination terminal is required"),
+    distanceKm: z.coerce.number().min(0).optional().nullable(),
+    estimatedDurationMin: z.coerce.number().int().min(1).optional().nullable(),
+    status: routeStatusEnum.default("ACTIVE"),
+    waypoints: z.array(waypointSchema).max(50, "Maximum of 50 stops allowed").default([]),
+  })
+  .refine(
+    (data) => data.originTerminalId !== data.destTerminalId,
+    { message: "Origin and destination terminals must be different", path: ["destTerminalId"] },
+  );
 export type CreateRouteInput = z.infer<typeof createRouteSchema>;
 
-export const updateRouteSchema = createRouteSchema.partial();
+export const updateRouteSchema = z
+  .object({
+    name: z.string().min(3).max(120).optional(),
+    originTerminalId: z.string().min(1).optional(),
+    destTerminalId: z.string().min(1).optional(),
+    distanceKm: z.coerce.number().min(0).optional().nullable(),
+    estimatedDurationMin: z.coerce.number().int().min(1).optional().nullable(),
+    status: routeStatusEnum.optional(),
+    waypoints: z.array(waypointSchema).max(50).optional(),
+  })
+  .refine(
+    (data) =>
+      !data.originTerminalId ||
+      !data.destTerminalId ||
+      data.originTerminalId !== data.destTerminalId,
+    { message: "Origin and destination terminals must be different", path: ["destTerminalId"] },
+  );
 export type UpdateRouteInput = z.infer<typeof updateRouteSchema>;
 
 export const createTerminalSchema = z.object({

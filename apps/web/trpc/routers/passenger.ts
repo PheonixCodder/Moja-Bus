@@ -11,6 +11,7 @@ import { createTRPCRouter, protectedProcedure } from "../init";
 import { SavedPassengerService } from "@/features/passenger/services/saved-passenger-service";
 import { FinancialAccountService } from "@moja/db";
 import { paystackInitialize } from "@/features/payments/providers/paystack-client";
+import { toSafeDisplayNumber } from "@/lib/money";
 
 export const passengerRouter = createTRPCRouter({
   ensureProfile: protectedProcedure.query(async ({ ctx }) => {
@@ -197,6 +198,16 @@ export const passengerRouter = createTRPCRouter({
       return updatedProfile;
     }),
 
+  updateAvatar: protectedProcedure
+    .input(z.object({ image: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { image: input.image },
+      });
+      return { success: true };
+    }),
+
   submitReview: protectedProcedure
     .input(submitReviewSchema)
     .mutation(async ({ ctx, input }) => {
@@ -276,9 +287,9 @@ export const passengerRouter = createTRPCRouter({
     const accountService = new FinancialAccountService(ctx.prisma);
     const wallet = await accountService.getUserWallet(ctx.user.id);
     return {
-      availableBalance: Number(wallet.availableBalance),
-      postedBalance: Number(wallet.postedBalance),
-      reservedBalance: Number(wallet.reservedBalance),
+      availableBalance: toSafeDisplayNumber(wallet.availableBalance),
+      postedBalance: toSafeDisplayNumber(wallet.postedBalance),
+      reservedBalance: toSafeDisplayNumber(wallet.reservedBalance),
     };
   }),
 
@@ -306,7 +317,7 @@ export const passengerRouter = createTRPCRouter({
       ]);
 
       return { 
-        items: items.map(i => ({ ...i, amount: Number(i.amount) })), 
+        items: items.map(i => ({ ...i, amount: toSafeDisplayNumber(i.amount) })),
         total 
       };
     }),

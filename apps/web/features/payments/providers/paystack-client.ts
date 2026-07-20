@@ -278,13 +278,35 @@ export type PaystackBank = {
   id: number;
 };
 
-export async function paystackListBanks(country?: string): Promise<PaystackBank[]> {
+export async function paystackListBanks(opts?: {
+  country?: string;
+  currency?: string;
+}): Promise<PaystackBank[]> {
+  // Paystack's List Banks `country` param only accepts
+  // ghana | kenya | nigeria | south africa. Côte d'Ivoire (XOF) is NOT a
+  // supported `country` value, so the documented way to fetch a market's banks
+  // is by `currency` (e.g. GET /bank?currency=XOF) — see Paystack
+  // "Creating Transfer Recipients" guide. Default the app to XOF/CI.
   const supportedCountries = ["ghana", "kenya", "nigeria", "south africa"];
-  const normalizedCountry = country?.toLowerCase() ?? "";
+  const country = opts?.country?.toLowerCase();
+  const currency = opts?.currency?.toUpperCase();
 
-  const useCountryParam = supportedCountries.includes(normalizedCountry);
-  const url = useCountryParam
-    ? `https://api.paystack.co/bank?country=${encodeURIComponent(normalizedCountry)}`
+  const params = new URLSearchParams();
+  if (currency) {
+    params.set("currency", currency);
+  } else if (country && supportedCountries.includes(country)) {
+    params.set("country", country);
+  } else if (country) {
+    // Unknown country string (e.g. "cote d'ivoire") — fall back to XOF so we
+    // still return the correct market's banks instead of silently Nigeria.
+    params.set("currency", "XOF");
+  } else {
+    params.set("currency", "XOF"); // app default market: Côte d'Ivoire
+  }
+
+  const query = params.toString();
+  const url = query
+    ? `https://api.paystack.co/bank?${query}`
     : "https://api.paystack.co/bank";
   const res = await fetch(url, {
     method: "GET",

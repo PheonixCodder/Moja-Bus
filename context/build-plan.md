@@ -115,20 +115,24 @@ Each phase delivers **shippable value**:
 #### Sprint 2.5 - Route & Schedule Management (Operator)
 | Task | Status | Priority |
 |------|--------|----------|
-| Define route schema | ⏳ | High |
-| Implement route CRUD tRPC procedures | ⏳ | High |
-| Define schedule schema | ⏳ | High |
-| Implement schedule CRUD tRPC procedures | ⏳ | High |
-| Create route creation UI | ⏳ | Medium |
-| Create schedule creation UI | ⏳ | Medium |
-| Create route list view | ⏳ | Medium |
-| Create schedule calendar view | ⏳ | Low |
+| Define route schema | ✅ | High |
+| Implement route CRUD tRPC procedures | ✅ | High |
+| Define schedule schema | ✅ | High |
+| Implement schedule CRUD tRPC procedures | ✅ | High |
+| Preferred bus + trip window + generate-trips cron | ✅ | High |
+| Create route creation UI | ✅ | Medium |
+| Create schedule creation UI | ✅ | Medium |
+| Create route list view | ✅ | Medium |
+| Create schedule calendar view | ✅ | Medium |
+| Safe exceptions (CANCELLED / EXTRA / MODIFIED) | ✅ | High |
+| Retire vs hard-delete + IAM-safe list | ✅ | High |
 
 **Deliverables**:
 - ✅ Working search functionality on web and mobile
 - ✅ Passengers can find trips from A to B on date D
 - ✅ Passengers can filter and sort results
 - ✅ Operators can create and manage routes and schedules
+- ✅ Rolling trip generation for active schedules
 - ✅ Mock data for testing
 
 **Acceptance Criteria**:
@@ -136,7 +140,7 @@ Each phase delivers **shippable value**:
 - [ ] Filters work correctly
 - [ ] Sorting works correctly
 - [ ] Mobile and web search UIs are functional
-- [ ] Operators can create at least one route with schedule
+- [x] Operators can create at least one route with schedule
 
 ---
 

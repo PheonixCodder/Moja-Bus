@@ -1,26 +1,32 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+import { requirePermission, requireAnyPermission } from "@/lib/permissions/authorize";
 import { createRouteSchema, updateRouteSchema } from "@moja/schemas";
 
 export const routesRouter = createTRPCRouter({
-  list: operatorCompanyProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.route.findMany({
-      where: {
-        companyId: ctx.companyId,
-      },
-      include: {
-        originTerminal: { include: { cityRelation: true } },
-        destTerminal: { include: { cityRelation: true } },
-        _count: {
-          select: { waypoints: true },
+  list: operatorCompanyProcedure
+    .input(z.object({ showArchived: z.boolean().optional().default(false) }).optional())
+    .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "routes:read");
+      return ctx.prisma.route.findMany({
+        where: {
+          companyId: ctx.companyId,
+          ...(input?.showArchived ? {} : { status: { not: "ARCHIVED" } }),
         },
-      },
-      orderBy: { name: "asc" },
-    });
-  }),
+        include: {
+          originTerminal: { include: { cityRelation: true } },
+          destTerminal: { include: { cityRelation: true } },
+          _count: {
+            select: { waypoints: true, schedules: true },
+          },
+        },
+        orderBy: { name: "asc" },
+      });
+    }),
 
   getCities: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requireAnyPermission(ctx, ["routes:read", "terminals:read"]);
     return ctx.prisma.city.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
@@ -30,6 +36,7 @@ export const routesRouter = createTRPCRouter({
   get: operatorCompanyProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "routes:read");
       const route = await ctx.prisma.route.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
         include: {
@@ -54,7 +61,36 @@ export const routesRouter = createTRPCRouter({
   create: operatorCompanyProcedure
     .input(createRouteSchema)
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "routes:create");
       const data = input;
+
+      if (data.originTerminalId === data.destTerminalId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Origin and destination terminals must be different.",
+        });
+      }
+
+      const terminalIds = [
+        data.originTerminalId,
+        data.destTerminalId,
+        ...data.waypoints.map((wp) => wp.terminalId),
+      ];
+      const owned = await ctx.prisma.companyLocation.findMany({
+        where: {
+          id: { in: [...new Set(terminalIds)] },
+          companyId: ctx.companyId,
+          isTerminal: true,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+      if (owned.length !== new Set(terminalIds).size) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "One or more terminals are invalid, inactive, or do not belong to your company.",
+        });
+      }
 
       return ctx.prisma.route.create({
         data: {
@@ -66,11 +102,14 @@ export const routesRouter = createTRPCRouter({
           estimatedMinutes: data.estimatedDurationMin ?? null,
           status: data.status,
           waypoints: {
-            create: data.waypoints.map((wp) => ({
+            // M13: normalize stopOrder to 1..N (sequential, no gaps). The
+            // origin terminal is 0 and the destination is derived as
+            // lastWaypointOrder + 1, so sequential waypoints can never collide.
+            create: data.waypoints.map((wp, idx) => ({
               terminalId: wp.terminalId,
-              stopOrder: wp.stopOrder,
+              stopOrder: idx + 1,
               arrivalOffsetMinutes: wp.offsetMinutes,
-              departureOffsetMinutes: wp.offsetMinutes, // Simplification
+              departureOffsetMinutes: wp.offsetMinutes + (wp.dwellMinutes ?? 15),
               isPickup: wp.allowPickup,
               isDropoff: wp.allowDropoff,
               distanceFromOriginKm: wp.distanceFromOriginKm ?? null,
@@ -88,6 +127,7 @@ export const routesRouter = createTRPCRouter({
   update: operatorCompanyProcedure
     .input(z.object({ id: z.string(), data: updateRouteSchema }))
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "routes:update");
       const existingRoute = await ctx.prisma.route.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });
@@ -97,38 +137,64 @@ export const routesRouter = createTRPCRouter({
       }
 
       const data = input.data;
+      const newOrigin = data.originTerminalId ?? existingRoute.originTerminalId;
+      const newDest = data.destTerminalId ?? existingRoute.destTerminalId;
+      if (newOrigin === newDest) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Origin and destination terminals must be different.",
+        });
+      }
 
-      // Update basic details
-      const updateData: any = {};
-      if (data.name !== undefined) updateData.name = data.name;
+      const terminalIds = [
+        ...(data.originTerminalId ? [data.originTerminalId] : []),
+        ...(data.destTerminalId ? [data.destTerminalId] : []),
+        ...(data.waypoints?.map((wp) => wp.terminalId) ?? []),
+      ];
+      if (terminalIds.length > 0) {
+        const owned = await ctx.prisma.companyLocation.findMany({
+          where: {
+            id: { in: [...new Set(terminalIds)] },
+            companyId: ctx.companyId,
+            isTerminal: true,
+            isActive: true,
+          },
+          select: { id: true },
+        });
+        if (owned.length !== new Set(terminalIds).size) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "One or more terminals are invalid, inactive, or do not belong to your company.",
+          });
+        }
+      }
+
+      const updateData: Record<string, unknown> = {};
+      if (data.name !== undefined) updateData["name"] = data.name;
       if (data.originTerminalId !== undefined)
-        updateData.originTerminalId = data.originTerminalId;
+        updateData["originTerminalId"] = data.originTerminalId;
       if (data.destTerminalId !== undefined)
-        updateData.destTerminalId = data.destTerminalId;
-      if (data.distanceKm !== undefined)
-        updateData.distanceKm = data.distanceKm;
+        updateData["destTerminalId"] = data.destTerminalId;
+      if (data.distanceKm !== undefined) updateData["distanceKm"] = data.distanceKm;
       if (data.estimatedDurationMin !== undefined)
-        updateData.estimatedMinutes = data.estimatedDurationMin;
-      if (data.status !== undefined) updateData.status = data.status;
+        updateData["estimatedMinutes"] = data.estimatedDurationMin;
+      if (data.status !== undefined) updateData["status"] = data.status;
 
-      // Handle waypoints if provided
       let updatedRoute;
       if (data.waypoints) {
         updatedRoute = await ctx.prisma.$transaction(async (tx) => {
-          await tx.routeWaypoint.deleteMany({
-            where: { routeId: input.id },
-          });
-
+          await tx.routeWaypoint.deleteMany({ where: { routeId: input.id } });
           return tx.route.update({
             where: { id: input.id },
             data: {
               ...updateData,
               waypoints: {
-                create: data.waypoints!.map((wp) => ({
+                // M13: normalize stopOrder to 1..N (sequential, no gaps).
+                create: data.waypoints!.map((wp, idx) => ({
                   terminalId: wp.terminalId,
-                  stopOrder: wp.stopOrder,
+                  stopOrder: idx + 1,
                   arrivalOffsetMinutes: wp.offsetMinutes,
-                  departureOffsetMinutes: wp.offsetMinutes,
+                  departureOffsetMinutes: wp.offsetMinutes + (wp.dwellMinutes ?? 15),
                   isPickup: wp.allowPickup,
                   isDropoff: wp.allowDropoff,
                   distanceFromOriginKm: wp.distanceFromOriginKm ?? null,
@@ -158,7 +224,9 @@ export const routesRouter = createTRPCRouter({
         where: {
           schedule: { routeId: input.id },
           departureDate: { gt: new Date() },
-          bookings: { none: { status: "CONFIRMED" } },
+          bookings: {
+            some: { status: { in: ["CONFIRMED", "PENDING_PAYMENT"] } },
+          },
         },
       });
 
@@ -171,6 +239,7 @@ export const routesRouter = createTRPCRouter({
   delete: operatorCompanyProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "routes:delete");
       const existingRoute = await ctx.prisma.route.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });
@@ -179,10 +248,42 @@ export const routesRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Route not found" });
       }
 
-      await ctx.prisma.route.delete({
-        where: { id: input.id },
+      const confirmedBookingsCount = await ctx.prisma.booking.count({
+        where: {
+          trip: {
+            schedule: { routeId: input.id },
+            departureDate: { gte: new Date() },
+          },
+          status: "CONFIRMED",
+        },
       });
 
-      return { success: true };
+      if (confirmedBookingsCount > 0) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Cannot delete: ${confirmedBookingsCount} confirmed booking(s) exist on upcoming trips using this route. Archive the route instead.`,
+        });
+      }
+
+      const anyTripCount = await ctx.prisma.trip.count({
+        where: { schedule: { routeId: input.id } },
+      });
+
+      if (anyTripCount > 0) {
+        await ctx.prisma.$transaction([
+          ctx.prisma.route.update({
+            where: { id: input.id },
+            data: { status: "ARCHIVED" },
+          }),
+          ctx.prisma.schedule.updateMany({
+            where: { routeId: input.id },
+            data: { isActive: false },
+          }),
+        ]);
+        return { success: true, archived: true };
+      }
+
+      await ctx.prisma.route.delete({ where: { id: input.id } });
+      return { success: true, archived: false };
     }),
 });

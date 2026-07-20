@@ -1,6 +1,6 @@
-export function formatXOF(amount: number) {
-  return new Intl.NumberFormat("fr-CI", {
-    style: "decimal",
-    maximumFractionDigits: 0,
-  }).format(amount) + " XOF";
+import { formatXOF as formatXOFInternal, type XOFAmount } from "@/lib/money";
+
+/** Format an XOF amount for display (English locale, grouped, "XOF" suffix). */
+export function formatXOF(amount: XOFAmount): string {
+  return formatXOFInternal(amount);
 }

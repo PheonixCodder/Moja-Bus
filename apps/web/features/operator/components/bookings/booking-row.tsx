@@ -17,7 +17,7 @@ export function BookingRow({
   checkingIn,
 }: {
   booking: OperatorBookingListItem;
-  onCheckIn: (id: string) => void;
+  onCheckIn?: ((id: string) => void) | undefined;
   onViewDetail: (booking: OperatorBookingListItem) => void;
   checkingIn: boolean;
 }) {
@@ -63,7 +63,9 @@ export function BookingRow({
             <Radio className="size-3.5" />
             Manifest
           </Link>
-          {booking.status === "CONFIRMED" && !booking.checkedInAt ? (
+          {onCheckIn &&
+          booking.status === "CONFIRMED" &&
+          !booking.checkedInAt ? (
             <Button
               size="sm"
               className="gap-1.5 ml-auto"

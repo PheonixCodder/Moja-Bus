@@ -15,6 +15,7 @@ import {
 } from "./providers/paystack-client";
 import { BookingConfirmationService } from "./services/booking-confirmation-service";
 import { AccountingEngine, FinancialAccountService } from "@moja/db";
+import { toSafeDisplayNumber } from "@/lib/money";
 
 export type InitiatePaymentResult = {
   holdGroupId: string;
@@ -381,6 +382,7 @@ export class PaymentService {
       if (tx.status !== "FAILED" && tx.status !== "REVERSED") {
         // Reverse the ledger entries
         await this.prisma.$transaction(async (prismaTx) => {
+          try {
           const engine = new AccountingEngine("PAYOUT_REVERSAL", {
             ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
             description: `Reversal for failed transfer ${reference}`,
@@ -393,13 +395,13 @@ export class PaymentService {
             if (entry.side === "DEBIT") {
               engine.addCredit({
                 accountId: entry.accountId,
-                amount: Number(entry.amount),
+                amount: toSafeDisplayNumber(entry.amount),
                 sequenceNumber: entry.sequenceNumber,
               });
             } else {
               engine.addDebit({
                 accountId: entry.accountId,
-                amount: Number(entry.amount),
+                amount: toSafeDisplayNumber(entry.amount),
                 sequenceNumber: entry.sequenceNumber,
               });
             }
@@ -423,6 +425,7 @@ export class PaymentService {
 
             if (feeTx && feeTx.entries.length > 0) {
               const feeReverseEngine = new AccountingEngine("PAYOUT_FEE_REVERSAL", {
+                ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
                 description: `Fee reversal for failed transfer ${reference}`,
                 metadata: { originalFeeTxId: feeTx.id, originalPayoutTxId: reference },
               });
@@ -431,13 +434,13 @@ export class PaymentService {
                 if (entry.side === "DEBIT") {
                   feeReverseEngine.addCredit({
                     accountId: entry.accountId,
-                    amount: Number(entry.amount),
+                    amount: toSafeDisplayNumber(entry.amount),
                     sequenceNumber: entry.sequenceNumber,
                   });
                 } else {
                   feeReverseEngine.addDebit({
                     accountId: entry.accountId,
-                    amount: Number(entry.amount),
+                    amount: toSafeDisplayNumber(entry.amount),
                     sequenceNumber: entry.sequenceNumber,
                   });
                 }
@@ -456,6 +459,14 @@ export class PaymentService {
             where: { id: tx.id },
             data: { status: "FAILED" },
           });
+          } catch (err: any) {
+            // The (externalPaymentId, type) unique constraint on FinancialTransaction makes a
+            // payout reversal exactly-once. A concurrent transfer.failed webhook, or the reconcile
+            // cron's synthetic event, that won the race has already reversed the payout; treat the
+            // collision as idempotent instead of surfacing a 500.
+            if (err?.code === "P2002") return;
+            throw err;
+          }
         });
       }
     }
@@ -478,7 +489,7 @@ export class PaymentService {
           if (novuSecret) {
             const { Novu } = await import("@novu/api");
             const novu = new Novu({ secretKey: novuSecret });
-            const amountXOF = tx.entries[0] ? Number(tx.entries[0].amount) : 0;
+            const amountXOF = tx.entries[0] ? toSafeDisplayNumber(tx.entries[0].amount) : 0;
             const phone = user.phone?.replace(/\s+/g, "");
 
             if (payload.event === "transfer.success") {
@@ -543,6 +554,7 @@ export class PaymentService {
     const clearingAcct = await accountService.getSystemPaystackClearingAccount();
     const processorFeeAcct = await accountService.getPaymentProcessorFeeAccount();
 
+    let posted = false;
     await this.prisma.$transaction(async (tx) => {
       const engine = new AccountingEngine("TOP_UP", {
         externalPaymentId: payment.id,
@@ -582,8 +594,20 @@ export class PaymentService {
       });
 
       engine.validate();
-      await engine.commit(tx as any);
+      try {
+        await engine.commit(tx as any);
+        posted = true;
+      } catch (err: any) {
+        // The (externalPaymentId, type) unique constraint on FinancialTransaction makes a
+        // TOP_UP exactly-once. A concurrent/duplicate delivery that won the race has already
+        // credited the wallet; treat the collision as idempotent success (not a 500).
+        if (err?.code === "P2002") return;
+        throw err;
+      }
     });
+
+    // Duplicate delivery: the wallet was already credited by a concurrent call.
+    if (!posted) return;
 
     if (meta.userId) {
       const novuSecret = process.env["NOVU_SECRET_KEY"];

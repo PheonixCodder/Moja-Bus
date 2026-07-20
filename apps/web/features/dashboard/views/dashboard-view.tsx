@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { getUser } from "@/lib/auth-server";
 import { getPrismaClient, FinancialAccountService } from "@moja/db";
+import { toSafeDisplayNumber } from "@/lib/money";
 import {
   Card,
   CardContent,
@@ -169,7 +170,7 @@ export async function DashboardView() {
   const wallet = walletResult.status === "fulfilled" ? walletResult.value : null;
   const nextDeparture = nextDepartureResult.status === "fulfilled" ? nextDepartureResult.value : null;
 
-  const walletBalance = wallet ? Number(wallet.availableBalance) : 0;
+  const walletBalance = wallet ? toSafeDisplayNumber(wallet.availableBalance) : 0;
 
   // Now fetch recent wallet ledger transactions
   const ledgerEntries = wallet
@@ -208,7 +209,7 @@ export async function DashboardView() {
   const stats = [
     {
       title: "Pre-funded Wallet",
-      value: `${walletBalance.toLocaleString("fr-FR")} XOF`,
+      value: `${walletBalance.toLocaleString("en-US")} XOF`,
       description: "Available travel balance",
       icon: Wallet,
       href: "/dashboard/wallet",

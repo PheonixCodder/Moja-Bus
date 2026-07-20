@@ -72,19 +72,23 @@ export class SearchService {
       })),
     );
 
-    // 4. Transform candidate trips into Journey Offers with pricing, timeline, and amenities
-    let offers: SearchOffer[] = candidates.map((item) => {
+    // 4. Transform candidate trips into Journey Offers with pricing, timeline, and amenities.
+    // Never invent prices — omit trips without an active matching segment fare.
+    let offers: SearchOffer[] = candidates.flatMap((item) => {
       const { trip, originStop, destStop } = item;
 
-      // Pricing logic: Find segment fare, otherwise fallback to any active schedule fare
       const segmentFare = trip.schedule.fares.find(
         (f) =>
           f.fromStopOrder <= item.searchOriginOrder &&
           f.toStopOrder >= item.searchDestinationOrder &&
-          f.isActive,
+          f.isActive &&
+          (!f.validFrom || trip.departureDate.getTime() >= f.validFrom.getTime()) &&
+          (!f.validUntil || trip.departureDate.getTime() <= f.validUntil.getTime()),
       );
-      const fallbackFare = trip.schedule.fares.find((f) => f.isActive);
-      const baseFare = segmentFare?.priceXOF ?? fallbackFare?.priceXOF ?? 5000; // default 5000 XOF fallback
+      if (!segmentFare) {
+        return [];
+      }
+      const baseFare = segmentFare.priceXOF;
       const priceXOF = baseFare * ctx.passengerCount;
 
       // Amenities mapping
@@ -118,37 +122,39 @@ export class SearchService {
         item.searchDestinationOrder - item.searchOriginOrder - 1,
       );
 
-      return {
-        offerId: `${trip.id}_${originStop.id}_${destStop.id}`,
-        tripId: trip.id,
-        companyId: trip.company.id,
-        companyName: trip.company.name,
-        companyLogoUrl: trip.company.logoUrl,
-        companyRating: null, // Expanded when reviews feature is active
-        originTerminalId: originStop.terminal.id,
-        originTerminalName: originStop.terminal.name,
-        originCityName:
-          originStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
-        destinationTerminalId: destStop.terminal.id,
-        destinationTerminalName: destStop.terminal.name,
-        destinationCityName:
-          destStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
-        departureTime: originStop.scheduledDeparture!,
-        arrivalTime: destStop.scheduledArrival!,
-        durationMinutes,
-        stopCount,
-        isExpress: stopCount === 0,
-        priceXOF,
-        busId: trip.bus.id,
-        busTypeName: trip.bus.busType.name,
-        amenities: amenitiesList,
-        availability: {
-          remaining: remainingSeats,
-          occupied: occupiedSeats,
-          total: totalSeats,
-          status,
+      return [
+        {
+          offerId: `${trip.id}_${originStop.id}_${destStop.id}`,
+          tripId: trip.id,
+          companyId: trip.company.id,
+          companyName: trip.company.name,
+          companyLogoUrl: trip.company.logoUrl,
+          companyRating: null, // Expanded when reviews feature is active
+          originTerminalId: originStop.terminal.id,
+          originTerminalName: originStop.terminal.name,
+          originCityName:
+            originStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+          destinationTerminalId: destStop.terminal.id,
+          destinationTerminalName: destStop.terminal.name,
+          destinationCityName:
+            destStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+          departureTime: originStop.scheduledDeparture!,
+          arrivalTime: destStop.scheduledArrival!,
+          durationMinutes,
+          stopCount,
+          isExpress: stopCount === 0,
+          priceXOF,
+          busId: trip.bus.id,
+          busTypeName: trip.bus.busType.name,
+          amenities: amenitiesList,
+          availability: {
+            remaining: remainingSeats,
+            occupied: occupiedSeats,
+            total: totalSeats,
+            status,
+          },
         },
-      };
+      ];
     });
 
     // 5. Apply business filters

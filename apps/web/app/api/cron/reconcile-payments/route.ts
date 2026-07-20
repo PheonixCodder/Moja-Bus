@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
 import { getPrismaClient } from "@moja/db";
 import { PaymentService } from "@/features/payments/payment-service";
-import { paystackVerifyTransfer } from "@/features/payments/providers/paystack-client";
+import {
+  paystackVerifyTransfer,
+  paystackVerify,
+} from "@/features/payments/providers/paystack-client";
+import { assertCronAuthorized } from "@/lib/cron-auth";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  // Verify cron secret if in production
-  const authHeader = request.headers.get("authorization");
-  if (
-    process.env.NODE_ENV === "production" &&
-    authHeader !== `Bearer ${process.env["CRON_SECRET"]}`
-  ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = assertCronAuthorized(request);
+  if (denied) return denied;
 
   const prisma = getPrismaClient();
   const paymentService = new PaymentService(prisma);
@@ -82,14 +80,46 @@ export async function GET(request: Request) {
     if (pendingCharges.length > 0) {
       const chargeResults = await Promise.allSettled(
         pendingCharges.map(async (payment) => {
-          if (payment.paystackReference) {
+          if (!payment.paystackReference) return false;
+
+          const verified = await paystackVerify(payment.paystackReference);
+          // Audit trail: record every reference we verified and its status
+          // so a reconciliation run is fully reconstructable.
+          console.error(
+            `[reconcile-payments] verified ${payment.paystackReference}: ${verified.status}`,
+          );
+          if (verified.status === "success") {
             const result = await paymentService.handleWebhookEvent({
               event: "charge.success",
               data: {
                 reference: payment.paystackReference,
+                status: "success",
+                amount: verified.amountXOF * 100,
               },
             });
             return result.handled;
+          }
+          if (verified.status === "failed") {
+            // M16: a definitively failed charge must not leave a dangling hold.
+            // Mark the payment failed and expire the associated hold so the
+            // seats are released (the passenger can re-book). We do NOT confirm
+            // the booking, and we never invent a `charge.success` event.
+            await prisma.$transaction(async (tx) => {
+              await tx.externalPayment.update({
+                where: { id: payment.id },
+                data: { status: "FAILED" },
+              });
+              if (payment.holdGroupId) {
+                await tx.booking.updateMany({
+                  where: {
+                    holdGroupId: payment.holdGroupId,
+                    status: "PENDING_PAYMENT",
+                  },
+                  data: { status: "EXPIRED", holdExpiresAt: new Date() },
+                });
+              }
+            });
+            return true;
           }
           return false;
         })

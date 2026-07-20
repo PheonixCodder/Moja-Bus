@@ -78,7 +78,7 @@ export function OperatorDashboardView() {
   });
 
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat("fr-CI", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "XOF",
       maximumFractionDigits: 0,
@@ -191,21 +191,25 @@ export function OperatorDashboardView() {
           </CardContent>
         </Card>
 
-        {/* KPI 4: Active Fleet */}
-        <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Active Fleet</CardTitle>
-            <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-              <Bus className="w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
-              {stats?.activeBuses ?? 0} <span className="text-sm font-normal text-text-muted">/ {stats?.totalBuses ?? 0}</span>
-            </div>
-            <p className="text-[10px] text-text-secondary">Active vehicles currently configured</p>
-          </CardContent>
-        </Card>
+        {/* KPI 4: Active Fleet — only rendered when the role can read fleet
+            inventory. getDashboardMetrics returns null bus counts without
+            `fleet:read` (M27), so a null totalBuses means "hide this card". */}
+        {stats?.totalBuses != null && (
+          <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Active Fleet</CardTitle>
+              <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+                <Bus className="w-4 h-4" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
+                {stats.activeBuses} <span className="text-sm font-normal text-text-muted">/ {stats.totalBuses}</span>
+              </div>
+              <p className="text-[10px] text-text-secondary">Active vehicles currently configured</p>
+            </CardContent>
+          </Card>
+        )}
 
       </div>
 
@@ -250,9 +254,10 @@ export function OperatorDashboardView() {
                 <div className="space-y-4">
                   {departures.map((trip) => {
                     const departureDate = new Date(trip.departureTime);
-                    const formattedTime = departureDate.toLocaleTimeString("fr-CI", {
+                    const formattedTime = departureDate.toLocaleTimeString("en-US", {
                       hour: "2-digit",
                       minute: "2-digit",
+                      timeZone: "Africa/Abidjan",
                     });
                     
                     const occupancyPercent = trip.totalSeats > 0 

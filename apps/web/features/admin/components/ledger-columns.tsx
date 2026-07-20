@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDownLeft, ArrowUpRight, Coins, Wallet } from "lucide-react";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { formatAdminDate, formatAdminTime } from "@/lib/format-date";
+import { toSafeDisplayNumber } from "@/lib/money";
 
 export interface LedgerEntryRow {
   id: string;
@@ -127,7 +128,7 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
     cell: ({ row }) => {
       const entry = row.original;
       const formattedAmount = new Intl.NumberFormat("en-US").format(
-        Number(entry.amount)
+        toSafeDisplayNumber(entry.amount)
       );
       return (
         <div className="flex items-center gap-1.5">

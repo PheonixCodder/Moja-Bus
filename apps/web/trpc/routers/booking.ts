@@ -35,33 +35,20 @@ export const bookingRouter = createTRPCRouter({
       return service.getSeatAvailability(input.offerId);
     }),
 
-  createHold: publicProcedure
+  createHold: protectedProcedure
     .input(createHoldSchema)
     .mutation(async ({ ctx, input }) => {
       const service = new BookingHoldService(ctx.prisma);
       const result = await service.createHold({
         offerId: input.offerId,
         passengers: input.passengers,
-        userId: ctx.user?.id ?? null,
+        userId: ctx.user.id,
       });
 
       // Trigger passenger-hold-created
-      const firstPassenger = input.passengers[0];
-      let email: string | null = null;
-      let passengerName = "Passenger";
-      let phone: string | null = null;
-
-      if (ctx.user) {
-        email = ctx.user.email;
-        passengerName = ctx.user.name ?? "Passenger";
-        phone = ctx.user.phone ?? null;
-      } else if (firstPassenger?.passenger) {
-        passengerName = firstPassenger.passenger.passengerName;
-        phone = firstPassenger.passenger.passengerPhone ?? null;
-        if (phone) {
-          email = `${phone.replace(/\s+/g, "")}@guest.mojaride.ci`;
-        }
-      }
+      const email = ctx.user.email;
+      const passengerName = ctx.user.name ?? "Passenger";
+      const phone = ctx.user.phone ?? null;
 
       if (email) {
         const novuSecret = process.env["NOVU_SECRET_KEY"];
@@ -99,9 +86,9 @@ export const bookingRouter = createTRPCRouter({
                   passengerName,
                   originCity,
                   destinationCity: destCity,
-                  departureTime: details.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
+                  departureTime: details.departureDate.toLocaleString("en-US", { timeZone: "Africa/Abidjan" }),
                   holdId: result.holdId,
-                  expiresAt: result.holdExpiresAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+                  expiresAt: result.holdExpiresAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "Africa/Abidjan" }),
                   totalAmountXOF: result.totalAmountXOF,
                   phone: phone ?? undefined,
                 },
@@ -116,38 +103,65 @@ export const bookingRouter = createTRPCRouter({
       return result;
     }),
 
-  initiatePayment: publicProcedure
+  initiatePayment: protectedProcedure
     .input(initiatePaymentSchema)
     .mutation(async ({ ctx, input }) => {
+      const { resolveHoldGroup } = await import(
+        "@/features/payments/lib/resolve-hold-group"
+      );
+      const { assertHoldOwnedByUser } = await import(
+        "@/features/booking/lib/assert-hold-ownership"
+      );
+      const holdGroup = await resolveHoldGroup(ctx.prisma, input.holdId);
+      assertHoldOwnedByUser(holdGroup, ctx.user.id);
+
       const service = new PaymentService(ctx.prisma);
       return service.initiateForHold(
         input.holdId,
-        input.payerEmail ?? ctx.user?.email ?? null,
+        input.payerEmail ?? ctx.user.email ?? null,
       );
     }),
 
-  verifyPayment: publicProcedure
+  verifyPayment: protectedProcedure
     .input(verifyPaymentSchema)
     .mutation(async ({ ctx, input }) => {
       const paymentService = new PaymentService(ctx.prisma);
       return paymentService.verifyAndConfirm(
         input.reference,
-        ctx.user?.id ?? null,
+        ctx.user.id,
       );
     }),
 
-  confirmBooking: publicProcedure
+  confirmBooking: protectedProcedure
     .input(confirmBookingSchema)
     .mutation(async ({ ctx, input }) => {
+      const { resolveHoldGroup } = await import(
+        "@/features/payments/lib/resolve-hold-group"
+      );
+      const { assertHoldOwnedByUser } = await import(
+        "@/features/booking/lib/assert-hold-ownership"
+      );
+      const holdGroup = await resolveHoldGroup(ctx.prisma, input.holdId);
+      assertHoldOwnedByUser(holdGroup, ctx.user.id);
+
       const paymentService = new PaymentService(ctx.prisma);
       await paymentService.assertHoldPaid(input.holdId);
       const service = new BookingHoldService(ctx.prisma);
-      return service.confirmBooking(input.holdId, ctx.user?.id ?? null);
+      return service.confirmBooking(input.holdId, ctx.user.id);
     }),
 
-  releaseHold: publicProcedure
+  releaseHold: protectedProcedure
     .input(releaseHoldSchema)
     .mutation(async ({ ctx, input }) => {
+      const { resolveHoldGroup } = await import(
+        "@/features/payments/lib/resolve-hold-group"
+      );
+      const { assertHoldOwnedByUser } = await import(
+        "@/features/booking/lib/assert-hold-ownership"
+      );
+      const holdGroup = await resolveHoldGroup(ctx.prisma, input.holdId);
+      assertHoldOwnedByUser(holdGroup, ctx.user.id);
+
       const service = new BookingHoldService(ctx.prisma);
       return service.releaseHold(input.holdId);
     }),
@@ -199,6 +213,15 @@ export const bookingRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { resolveHoldGroup } = await import(
+        "@/features/payments/lib/resolve-hold-group"
+      );
+      const { assertHoldOwnedByUser } = await import(
+        "@/features/booking/lib/assert-hold-ownership"
+      );
+      const holdGroup = await resolveHoldGroup(ctx.prisma, input.holdId);
+      assertHoldOwnedByUser(holdGroup, ctx.user.id);
+
       const { BookingConfirmationService } = await import(
         "@/features/payments/services/booking-confirmation-service"
       );

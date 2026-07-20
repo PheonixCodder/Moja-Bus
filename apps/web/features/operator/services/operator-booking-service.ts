@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@moja/db";
+import type { Prisma, PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import type {
   OperatorBookingDetail,
@@ -9,6 +9,10 @@ import type {
   PassengerBookingStatus,
 } from "@moja/types";
 import { parseTicketToken } from "@/features/operator/lib/parse-ticket-token";
+import {
+  endOfAppCalendarDay,
+  startOfAppCalendarDay,
+} from "@/lib/timezone";
 
 export { parseTicketToken };
 
@@ -47,41 +51,20 @@ const bookingInclude = {
   },
 } as const;
 
-function startOfToday(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-function endOfToday(): Date {
-  const start = startOfToday();
-  return new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
-}
-
-function getDepartureTime(booking: {
-  originTripStop: { scheduledDeparture: Date | null };
-  trip: { departureDate: Date };
-}): Date {
-  return booking.originTripStop.scheduledDeparture ?? booking.trip.departureDate;
-}
-
-function matchesFilter(
-  departureTime: Date,
+function departureRangeForFilter(
   filter: OperatorBookingFilter,
-  now: Date,
-): boolean {
-  const todayStart = startOfToday();
-  const todayEnd = endOfToday();
+): Prisma.DateTimeFilter {
+  const now = new Date();
+  const todayStart = startOfAppCalendarDay(now);
+  const todayEnd = endOfAppCalendarDay(now);
 
   if (filter === "today") {
-    return (
-      departureTime.getTime() >= todayStart.getTime() &&
-      departureTime.getTime() <= todayEnd.getTime()
-    );
+    return { gte: todayStart, lte: todayEnd };
   }
   if (filter === "upcoming") {
-    return departureTime.getTime() > todayEnd.getTime();
+    return { gt: todayEnd };
   }
-  return departureTime.getTime() < todayStart.getTime();
+  return { lt: todayStart };
 }
 
 export class OperatorBookingService {
@@ -91,57 +74,69 @@ export class OperatorBookingService {
     companyId: string,
     input: ListInput,
   ): Promise<OperatorBookingsListResult> {
-    const now = new Date();
     const search = input.search?.trim();
+    const departureFilter = departureRangeForFilter(input.filter);
 
-    const bookings = await this.prisma.booking.findMany({
-      where: {
-        companyId,
-        ...(input.tripId ? { tripId: input.tripId } : {}),
-        ...(input.status ? { status: input.status } : {}),
+    const departureClause: Prisma.BookingWhereInput = {
+      OR: [
+        { originTripStop: { scheduledDeparture: departureFilter } },
+        {
+          AND: [
+            { originTripStop: { scheduledDeparture: null } },
+            { trip: { departureDate: departureFilter } },
+          ],
+        },
+      ],
+    };
+
+    const where: Prisma.BookingWhereInput = {
+      companyId,
+      ...(input.tripId ? { tripId: input.tripId } : {}),
+      ...(input.status ? { status: input.status } : {}),
+      AND: [
+        departureClause,
         ...(search
-          ? {
-              OR: [
-                {
-                  bookingReference: {
-                    contains: search,
-                    mode: "insensitive" as const,
+          ? [
+              {
+                OR: [
+                  {
+                    bookingReference: {
+                      contains: search,
+                      mode: "insensitive" as const,
+                    },
                   },
-                },
-                {
-                  passengerName: {
-                    contains: search,
-                    mode: "insensitive" as const,
+                  {
+                    passengerName: {
+                      contains: search,
+                      mode: "insensitive" as const,
+                    },
                   },
-                },
-                { passengerPhone: { contains: search } },
-              ],
-            }
-          : {}),
-      },
-      include: bookingInclude,
-      orderBy: { createdAt: "desc" },
-    });
+                  { passengerPhone: { contains: search } },
+                ],
+              } satisfies Prisma.BookingWhereInput,
+            ]
+          : []),
+      ],
+    };
 
-    const filtered = bookings
-      .map((booking) => ({
-        booking,
-        departureTime: getDepartureTime(booking),
-      }))
-      .filter(({ departureTime }) =>
-        matchesFilter(departureTime, input.filter, now),
-      )
-      .sort(
-        (a, b) => a.departureTime.getTime() - b.departureTime.getTime(),
-      );
-
-    const total = filtered.length;
-    const page = filtered.slice(input.offset, input.offset + input.limit);
+    const [total, bookings] = await Promise.all([
+      this.prisma.booking.count({ where }),
+      this.prisma.booking.findMany({
+        where,
+        include: bookingInclude,
+        orderBy: [{ trip: { departureDate: "asc" } }, { createdAt: "asc" }],
+        skip: input.offset,
+        take: input.limit,
+      }),
+    ]);
 
     return {
-      items: page.map(({ booking, departureTime }) =>
-        this.toListItem(booking, departureTime),
-      ),
+      items: bookings.map((booking) => {
+        const departureTime =
+          booking.originTripStop.scheduledDeparture ??
+          booking.trip.departureDate;
+        return this.toListItem(booking, departureTime);
+      }),
       total,
     };
   }
@@ -149,7 +144,7 @@ export class OperatorBookingService {
   async getCompanyBooking(
     companyId: string,
     bookingId: string,
-  ): Promise<OperatorBookingDetail> {
+  ): Promise<OperatorBookingDetail & { userId: string | null }> {
     const booking = await this.prisma.booking.findFirst({
       where: { id: bookingId, companyId },
       include: bookingInclude,
@@ -162,7 +157,10 @@ export class OperatorBookingService {
       });
     }
 
-    return this.toDetail(booking);
+    return {
+      ...this.toDetail(booking),
+      userId: booking.userId,
+    };
   }
 
   async checkIn(
@@ -173,15 +171,16 @@ export class OperatorBookingService {
 
     if (!bookingId && input.ticketToken) {
       const token = parseTicketToken(input.ticketToken);
-      let byToken = await this.prisma.booking.findUnique({
-        where: { ticketToken: token },
+      // Company-scoped lookup first — avoid cross-tenant existence oracle
+      let byToken = await this.prisma.booking.findFirst({
+        where: { ticketToken: token, companyId },
         select: { id: true },
       });
 
-      // Fallback: search by booking reference (case-insensitive)
       if (!byToken) {
         byToken = await this.prisma.booking.findFirst({
           where: {
+            companyId,
             bookingReference: {
               equals: token,
               mode: "insensitive" as const,
@@ -208,8 +207,11 @@ export class OperatorBookingService {
     }
 
     const booking = await this.prisma.booking.findFirst({
-      where: { id: bookingId },
-      include: { seat: { select: { label: true } } },
+      where: { id: bookingId, companyId },
+      include: {
+        seat: { select: { label: true } },
+        trip: { select: { id: true, status: true } },
+      },
     });
 
     if (!booking) {
@@ -219,17 +221,18 @@ export class OperatorBookingService {
       });
     }
 
-    if (booking.companyId !== companyId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "This ticket belongs to another operator.",
-      });
-    }
-
     if (input.tripId && booking.tripId !== input.tripId) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "This ticket is not valid for this trip.",
+      });
+    }
+
+    const allowedTripStatuses = new Set(["BOARDING", "DELAYED", "DEPARTED"]);
+    if (!allowedTripStatuses.has(booking.trip.status)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Check-in is only allowed when the trip is boarding (current: ${booking.trip.status}).`,
       });
     }
 
@@ -253,10 +256,26 @@ export class OperatorBookingService {
     }
 
     const checkedInAt = new Date();
-    await this.prisma.booking.update({
-      where: { id: booking.id },
-      data: { checkedInAt },
+    const claimed = await this.prisma.booking.updateMany({
+      where: { id: booking.id, checkedInAt: null, status: "CONFIRMED" },
+      data: { checkedInAt, boardedAt: checkedInAt },
     });
+
+    if (claimed.count === 0) {
+      const current = await this.prisma.booking.findUniqueOrThrow({
+        where: { id: booking.id },
+        include: { seat: { select: { label: true } } },
+      });
+      return {
+        success: true,
+        alreadyCheckedIn: true,
+        bookingId: current.id,
+        bookingReference: current.bookingReference,
+        passengerName: current.passengerName,
+        seatLabel: current.seat.label,
+        checkedInAt: current.checkedInAt ?? checkedInAt,
+      };
+    }
 
     return {
       success: true,
@@ -349,7 +368,8 @@ export class OperatorBookingService {
       };
     },
   ): OperatorBookingDetail {
-    const departureTime = getDepartureTime(booking);
+    const departureTime =
+      booking.originTripStop.scheduledDeparture ?? booking.trip.departureDate;
     return {
       ...this.toListItem(booking, departureTime),
       ticketToken: booking.ticketToken,

@@ -8,25 +8,56 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | Polish & Hardening (Phase 6) |
-| **Last major milestone** | Payment System, Novu Integration & BigInt Migration (2026-07-11) |
-| **Web unit tests** | 47 passing (`pnpm test` in `apps/web`) |
-| **Next priority** | Booking Ownership Hardening & Production Prep |
+| **Phase** | Operator Audit Remediation (complete) |
+| **Last major milestone** | Operator Audit Remediation Phases 0–8 (2026-07-19) |
+| **Web unit tests** | 73/73 pass (`pnpm test` in `apps/web`) |
+| **Next priority** | Apply pending Prisma migrations + manual QA matrix from audit §21 |
 
 ### What works end-to-end today
 
 - **Passenger:** Search on `/` → book seats → per-seat passengers → **Paystack card/MoMo/Wallet** → digital ticket + public `/tickets/[token]` page → dashboard bookings/tickets/wallet → Redesigned Passenger Dashboard → Receives Novu Notifications
-- **Operator:** Onboarding → fleet/routes/schedules → dispatch board → manifest (segment occupancy, check-in, QR scanner) → bookings list → Overview Dashboard → Redesigned Onboarding Flow → Receives Novu Notifications → Requests Withdrawals via Wallet
+- **Operator:** Onboarding → fleet/routes/schedules → dispatch board → manifest (segment occupancy, check-in, QR scanner) → bookings list → Overview Dashboard → Redesigned Onboarding Flow → Receives Novu Notifications → Requests Withdrawals via Wallet → **Staff IAM** (role templates + per-user permission overrides) → Revenue CSV exports
 - **Auth:** Email/password, Google, OTP verify, password reset (passenger + operator)
 - **Admin:** Verifies companies, manages treasury (Novu Alerts on failure), manual settlements
 
 ### Known gaps (not blocking dev/demo)
 
 - Mobile app: shell only, no passenger search/booking
+- Deferred: dual-control CASH, OTP bank reveal, heatmaps, monolith splits — _reviews UI + bulk ops now in progress via Phase 7 low-issues (L11, L7)_
 
 ---
 
 ## Milestone Log (newest first)
+
+### Operator Audit Remediation (2026-07-19)
+
+- [x] Escrow release posts `ESCROW_RELEASE` ledger + reserved solvency; fail-closed without snapshot
+- [x] CASH/VOUCHER cancel clawback; card confirm idempotency; withdraw metadata / reserved UI
+- [x] Trips: block `updateStatus` CANCELLED; harden cancel/assign/check-in; SQL `q`
+- [x] Hold ownership; Abidjan/en formatters; inactive schedule blocks holds
+- [x] Trip/exception uniques; generator company-scoped bus; schedule reconcile on calendar/exceptions
+- [x] Route terminal ownership; terminal deactivate guard; last full-route fare; createBus schema
+- [x] Bank recipient reset; role templates (OPERATIONS `trips:cancel`, FINANCE `bookings:read`); demotion reset; invite URL omitted in prod
+- [x] Revenue Abidjan buckets; trips/schedules nuqs wired; bookings/ledger CSV export
+- [x] Tracker: `artifacts/operator-audit-remediation-tracker.md`
+
+### Phase 7 — Low Priority Issues (2026-07-19)
+
+- [x] L2 check-in idempotent; L3 Novu refund `refundStatus` payload; L4 Novu hosted `<Preferences/>`
+- [x] L6 bookings/ledger CSV export; L9 Suspense skeletons; L12 TripStop actual times; L13 `SeatStatus` deprecation comment
+- [x] L14 onboarding `bankVerified` + honest two-stage verification sub-step; L15 withdraw 1-based pagination
+- [ ] In progress: L1 `trips.get` split, L5 operator search coverage, L7 bulk check-in/cancel, L8 a11y pass, L10 stale docs, L11 operator reviews UI
+- [x] Tracker: `artifacts/operator-dashobard-audit-fix-phases/`
+
+### Enterprise Staff IAM (2026-07-19)
+
+- [x] Shared permission catalog + role templates in `@moja/schemas`
+- [x] Prisma `StaffInvitation.permissions` + operator permission audit fields + backfill migration
+- [x] Thin `requirePermission` on operator routers; staff invite/edit grant-subset rules
+- [x] Staff UI permission matrix (invite + edit); sidebar gated on real keys
+- [x] Removed parallel rbac/enhanced-procedures/AuthorizationProvider kit
+- [x] Unit tests for OWNER bypass and grant escalation
+- [x] Staff UI composition: one component per file; `staffParsers` wired via `useQueryStates`
 
 ### Passenger Dashboard Redesign (2026-07-13)
 
@@ -228,18 +259,22 @@
 - [x] `operator-fleet-view` — list, add bus, seat preview
 - [x] Fleet analytics
 
-### Routes & Schedules — COMPLETE (core)
+### Routes & Schedules — COMPLETE (enterprise)
 
 - [x] Route CRUD + waypoints + map preview
 - [x] Schedule CRUD + calendar + fare matrix + exceptions UI
-- [x] `operator-routes-view`, `operator-schedules-view`
+- [x] Preferred bus persistence, shared trip-window helper, rolling `generate-trips` cron
+- [x] Safe CANCELLED exceptions (refund path for booked trips), EXTRA_SERVICE / MODIFIED generation
+- [x] Retire vs hard-delete semantics, IAM-safe list load, list filters/pagination (nuqs)
+- [x] `operator-routes-view`, composed `operator-schedules-view` + `components/schedules/*`
 - [x] Route analytics
 
 ### Operator Portal — MOSTLY COMPLETE
 
 - [x] Single-page onboarding (`/dashboard/operator/onboarding`) with durable step state
 - [x] Dashboard shell: fleet, routes, schedules, trips, terminals, staff, settings, bookings
-- [x] Dispatch board (`operator-trips-view`) — manifest, segment occupancy, scanner
+- [x] Dispatch board (`operator-trips-view`) — split components, nuqs filters/`scheduleId`/`manifest`, IAM-safe fleet load, Abidjan date grouping, bus-only assign, status graph (board/depart/arrive/delay/cancel), guest-aware trip cancel refunds
+- [x] Bookings list — SQL pagination, nuqs filters, `operator.cancelBooking` + `bookings:update`, guest WALLET refund disabled
 - [x] Staff management UI (`operator-staff-view`) — invite, roles, activity
 - [x] Settings: company profile, documents, bank (encrypted), verification checklist
 - [x] Terminals management (`operator-terminals-view`)

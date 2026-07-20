@@ -179,7 +179,7 @@ export function AdminSettingsView() {
     const payload = {
       label: tierLabel,
       minDistanceKm: parseFloat(tierMinDist),
-      maxDistanceKm: tierMaxDist ? parseFloat(tierMaxDist) : null,
+      maxDistanceKm: tierMaxDist ? parseFloat(tierMaxDist) : undefined,
       commissionBps: parseInt(tierCommBps),
       sortOrder: parseInt(tierSortOrder) || 0,
       isActive: tierIsActive,

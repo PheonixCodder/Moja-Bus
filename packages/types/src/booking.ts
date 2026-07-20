@@ -163,6 +163,8 @@ export interface OperatorBookingDetail extends OperatorBookingListItem {
   issuedAt: Date | null;
   boardingStopOrder: number;
   dropoffStopOrder: number;
+  /** Null for legacy guest bookings created before login-required purchase. */
+  userId?: string | null;
 }
 
 export interface OperatorBookingsListResult {

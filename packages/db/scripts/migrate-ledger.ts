@@ -5,7 +5,7 @@ async function main() {
   const prisma = getPrismaClient();
   const accountService = new FinancialAccountService(prisma);
   const clearingAcct = await accountService.getSystemPaystackClearingAccount();
-  const platformAcct = await accountService.getPlatformRevenueAccount();
+
 
   console.log("Starting ledger migration...");
 

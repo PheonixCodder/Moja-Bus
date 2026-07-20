@@ -108,7 +108,7 @@ export function AddBusModal({
       setInternalName(editingBus.internalName ?? "");
       setManufactureYear(editingBus.manufactureYear?.toString() ?? "");
       setBusTypeId(editingBus.busType.id);
-      setSeatLayoutId(editingBus.layoutTemplate.id);
+      setSeatLayoutId(editingBus.layoutTemplateId);
       setStatus(editingBus.status);
       setNotes(editingBus.notes ?? "");
     } else {
@@ -160,9 +160,9 @@ export function AddBusModal({
           id: editingBus.id,
           data: {
             registrationPlate: plateNumber.trim().toUpperCase(),
-            ...(internalName.trim() ? { internalName: internalName.trim() } : {}),
-            ...(manufactureYear ? { manufactureYear: parseInt(manufactureYear, 10) } : {}),
-            ...(notes.trim() ? { notes: notes.trim() } : {}),
+            internalName: internalName.trim() ? internalName.trim() : null,
+            ...(manufactureYear ? { manufactureYear: parseInt(manufactureYear, 10) } : { manufactureYear: null }),
+            notes: notes.trim() ? notes.trim() : null,
             status,
           },
         },

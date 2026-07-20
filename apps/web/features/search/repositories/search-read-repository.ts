@@ -21,6 +21,7 @@ export class TripSearchReadRepository {
     return this.prisma.trip.findMany({
       where: {
         status: { in: ["SCHEDULED", "DELAYED"] },
+        schedule: { isActive: true },
         tripStops: {
           some: {
             terminal: { cityId: originCityId },

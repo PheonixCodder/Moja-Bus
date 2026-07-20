@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { StaffRoleSchema } from "./permissions";
 
 export const businessTypeEnum = z.enum([
   "SOLE_PROPRIETORSHIP",
@@ -22,15 +23,8 @@ export const documentTypeEnum = z.enum([
 ]);
 export type DocumentType = z.infer<typeof documentTypeEnum>;
 
-export const staffRoleEnum = z.enum([
-  "OWNER",
-  "ADMIN",
-  "MANAGER",
-  "OPERATIONS",
-  "FINANCE",
-  "SUPPORT",
-]);
-export type StaffRole = z.infer<typeof staffRoleEnum>;
+/** Alias of StaffRoleSchema for onboarding / legacy imports */
+export const staffRoleEnum = StaffRoleSchema;
 
 export const companyStepSchema = z.object({
   name: z.string().min(2, "Company name must be at least 2 characters"),
@@ -85,7 +79,9 @@ export type LocationsStepInput = z.infer<typeof locationsStepSchema>;
 export const documentSchema = z.object({
   type: documentTypeEnum,
   fileName: z.string().min(1),
-  fileUrl: z.string().url("Invalid file URL"),
+  // Public URL. Empty for private documents served via signed GET.
+  fileUrl: z.string(),
+  objectKey: z.string().min(1),
   fileSize: z.number().int().positive(),
   mimeType: z.string().min(1),
   expiresAt: z.coerce.date().optional().nullable(),
@@ -199,3 +195,12 @@ export const operatorRevenueAnalyticsSchema = z.object({
   to: z.string().datetime(),
 });
 export type OperatorRevenueAnalyticsInput = z.infer<typeof operatorRevenueAnalyticsSchema>;
+
+export const operatorLedgerFilterSchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  type: z.string().default("ALL"), // e.g. "ALL", "TICKET_SALE", "WITHDRAWAL", "REFUND", "ADJUSTMENT"
+  page: z.number().int().positive().default(1),
+  limit: z.number().int().positive().default(10),
+});
+export type OperatorLedgerFilterInput = z.infer<typeof operatorLedgerFilterSchema>;

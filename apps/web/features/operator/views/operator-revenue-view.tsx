@@ -1,137 +1,91 @@
 "use client";
 
 import { useQueryStates } from "nuqs";
-import { revenueParamsSchema } from "../lib/revenue-params";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { revenueParsers } from "../lib/revenue-search-params";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
-import { format, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
 
-import { Calendar } from "@moja/ui/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@moja/ui/components/ui/popover";
-import { Button } from "@moja/ui/components/ui/button";
-import { CalendarIcon, ChevronDown } from "lucide-react";
-import { cn } from "@moja/ui/lib/utils";
-
-import { RevenueKpiCards } from "../components/revenue/revenue-kpi-cards";
-import { RevenueChart } from "../components/revenue/revenue-chart";
-import { TopRoutesTable } from "../components/revenue/top-routes-table";
-import { RevenueLedgerTable } from "../components/revenue/revenue-ledger-table";
+import { RevenueHeader } from "../components/revenue/revenue-header";
+import { ArrearsAlertBanner } from "../components/revenue/arrears-alert-banner";
+import { BalanceOverviewCards } from "../components/revenue/balance-overview-cards";
+import { OperationalMetricsGrid } from "../components/revenue/operational-metrics-grid";
+import { RevenueAnalyticsChart } from "../components/revenue/revenue-analytics-chart";
+import { RoutePerformanceTable } from "../components/revenue/route-performance-table";
+import { TransactionLedgerTable } from "../components/revenue/transaction-ledger-table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
 
 export function OperatorRevenueView() {
   const trpc = useTRPC();
-  const [{ from, to }, setParams] = useQueryStates(revenueParamsSchema, {
+  const [{ from, to, tab }, setParams] = useQueryStates(revenueParsers, {
     shallow: false,
   });
 
-  const { data } = useSuspenseQuery(
-    trpc.operator.getRevenueAnalytics.queryOptions({ from, to })
+  const { data: analytics } = useSuspenseQuery(
+    trpc.operator.getRevenueAnalytics.queryOptions({ 
+      from: from.toISOString(), 
+      to: to.toISOString() 
+    })
   );
 
-  const setPreset = (days: number) => {
-    setParams({
-      from: subDays(new Date(), days).toISOString(),
-      to: new Date().toISOString(),
-    });
-  };
+  const { data: balances } = useSuspenseQuery(
+    trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" })
+  );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
-            Revenue & Earnings
-          </h1>
-          <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-            Track your earnings and transactions over time.
-          </p>
+    <div className="mx-auto max-w-6xl space-y-8">
+      <RevenueHeader />
+
+      <ArrearsAlertBanner availableBalance={balances.liveAvailableBalance} />
+
+      <BalanceOverviewCards 
+        availableBalance={balances.liveAvailableBalance}
+        reservedBalance={balances.liveReservedBalance}
+        netEarnings={analytics.kpis.netRevenueXOF}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <RevenueAnalyticsChart 
+            timeSeries={analytics.timeSeries} 
+            totalNet={analytics.kpis.netRevenueXOF}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <OperationalMetricsGrid kpis={analytics.kpis} />
+        </div>
+      </div>
+
+      <Tabs 
+        value={tab} 
+        onValueChange={(val) => setParams({ tab: val, page: 1 })} 
+        className="space-y-6 flex flex-col"
+      >
+        <div className="flex items-center justify-between border-b pb-2">
+          <TabsList className="bg-transparent space-x-4 p-0">
+            <TabsTrigger 
+              value="overview" 
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-2"
+            >
+              Route Performance
+            </TabsTrigger>
+            <TabsTrigger 
+              value="ledger" 
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-2"
+            >
+              Transaction Ledger
+            </TabsTrigger>
+          </TabsList>
         </div>
 
-        <Popover>
-          <PopoverTrigger 
-            render={
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-[280px] justify-start text-left font-normal",
-                  !from && "text-muted-foreground"
-                )}
-              />
-            }
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {from ? (
-              to ? (
-                <>
-                  {format(new Date(from), "dd MMM, y", { locale: fr })} -{" "}
-                  {format(new Date(to), "dd MMM, y", { locale: fr })}
-                </>
-              ) : (
-                format(new Date(from), "dd MMM, y", { locale: fr })
-              )
-            ) : (
-              <span>Pick a date range</span>
-            )}
-            <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <div className="flex flex-col sm:flex-row">
-              <div className="flex flex-col gap-2 p-3 border-b sm:border-b-0 sm:border-r">
-                <Button
-                  variant="ghost"
-                  className="justify-start text-sm"
-                  onClick={() => setPreset(6)}
-                >
-                  Last 7 days
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start text-sm"
-                  onClick={() => setPreset(29)}
-                >
-                  Last 30 days
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start text-sm"
-                  onClick={() => setPreset(89)}
-                >
-                  Last 90 days
-                </Button>
-              </div>
-              <Calendar
-                mode="range"
-                defaultMonth={new Date(to)}
-                selected={{
-                  from: new Date(from),
-                  to: new Date(to),
-                }}
-                onSelect={(range) => {
-                  if (range?.from) {
-                    setParams({
-                      from: range.from.toISOString(),
-                      to: range.to ? range.to.toISOString() : range.from.toISOString(),
-                    });
-                  }
-                }}
-                numberOfMonths={2}
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+        <TabsContent value="overview" className="mt-0 outline-none">
+          <RoutePerformanceTable topRoutes={analytics.topRoutes} />
+        </TabsContent>
 
-      <RevenueKpiCards kpis={data.kpis} />
-      <RevenueChart timeSeries={data.timeSeries} />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TopRoutesTable topRoutes={data.topRoutes} />
-        <RevenueLedgerTable recentLedger={data.recentLedger} />
-      </div>
+        <TabsContent value="ledger" className="mt-0 outline-none">
+          <TransactionLedgerTable />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+

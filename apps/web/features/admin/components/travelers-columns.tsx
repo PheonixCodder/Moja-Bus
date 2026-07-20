@@ -5,7 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
@@ -31,6 +31,7 @@ export type TravelerStatus = "Verified" | "Unverified";
 
 export type TravelerRow = {
   id: string;
+  image?: string | null;
   email: string;
   joinedDate: string;
   rawDate: number;
@@ -102,6 +103,7 @@ export const travelersColumns: ColumnDef<TravelerRow>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-3">
         <Avatar className="size-10 font-medium">
+          <AvatarImage src={row.original.image ?? undefined} alt={row.original.name} />
           <AvatarFallback className={cn("text-xs", getAvatarTone(row.original.name))}>
             {getInitials(row.original.name)}
           </AvatarFallback>

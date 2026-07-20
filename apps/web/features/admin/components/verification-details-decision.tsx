@@ -47,7 +47,7 @@ export function VerificationDetailsDecision({
               Platform Decision Board
             </CardTitle>
             <CardDescription className="text-xs text-slate-400">
-              Verify operator to activate dynamic subaccounts.
+              Verify operator to activate internal ledger and Transfer Recipient.
             </CardDescription>
           </div>
           <Badge className={cn("gap-1.5 border px-2 py-1 font-semibold text-xs", badgeClass)} variant="outline">
@@ -60,7 +60,7 @@ export function VerificationDetailsDecision({
         {status === "PENDING_VERIFICATION" && (
           <div className="space-y-3">
             <div className="text-xs text-slate-500 leading-relaxed font-medium">
-              Check that all KYC Checklist items are verified before approving. Approvals require a default bank account mappings to generate Paystack subaccount IDs.
+              Check that all KYC Checklist items are verified before approving. Approvals require a default bank account mapping to register a Paystack Transfer Recipient.
             </div>
             <div className="flex flex-col  gap-3 pt-2">
               <Button

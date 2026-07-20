@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 import { Badge } from "@moja/ui/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import {
@@ -114,9 +115,12 @@ export const columns: ColumnDef<OperatorRow>[] = [
 
       return (
         <div className="flex items-center gap-3">
-          <div className={cn("h-9 w-9 rounded-full flex items-center justify-center text-xs font-medium shrink-0", toneClass)}>
-            {initials}
-          </div>
+          <Avatar className={cn("h-9 w-9 shrink-0 font-medium", toneClass)}>
+            <AvatarImage src={operator.avatar || undefined} alt={operator.fullName} />
+            <AvatarFallback className={cn("text-xs", toneClass)}>
+              {initials}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex flex-col">
             <span className="font-medium text-sm text-foreground">{operator.fullName}</span>
             <span className="text-xs text-muted-foreground">{operator.email}</span>
