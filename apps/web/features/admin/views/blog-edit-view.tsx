@@ -40,6 +40,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { useStorageUpload } from "@/lib/storage-client";
+import { ImageUploadField } from "@/components/image-upload-field";
 
 // Lazy-load the MDX editor (browser-only)
 const MdxEditorWrapper = dynamic(
@@ -181,7 +183,9 @@ export function BlogEditView({ postId }: { postId: string }) {
     },
   });
 
-  const { register, control, handleSubmit, watch, formState: { errors, isDirty } } = form;
+  const { register, control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = form;
+
+  const { upload: uploadCover } = useStorageUpload("blog-cover", { slug: post.slug });
 
   const watchedStatus = watch("status");
   const watchedSeoTitle = watch("seoTitle");
@@ -650,19 +654,34 @@ export function BlogEditView({ postId }: { postId: string }) {
 
                   <div className="space-y-3">
                     <SectionLabel>Cover Image</SectionLabel>
-                    {(["coverImage", "coverImageAlt", "coverImageCredit"] as const).map((f) => (
-                      <div key={f} className="space-y-1">
-                        <FieldLabel>
-                          {f === "coverImage" ? "Image URL" : f === "coverImageAlt" ? "Alt Text" : "Credit"}
-                        </FieldLabel>
-                        <Input
-                          {...register(f)}
-                          placeholder={f === "coverImage" ? "https://..." : f === "coverImageAlt" ? "Descriptive alt text..." : "Photo by / Unsplash"}
-                          className="h-8 text-sm bg-white"
-                        />
-                        {errors[f] && <p className="text-[10px] text-red-600">{errors[f]?.message}</p>}
-                      </div>
-                    ))}
+                    {(["coverImage", "coverImageAlt", "coverImageCredit"] as const).map((f) =>
+                      f === "coverImage" ? (
+                        <div key={f} className="space-y-1">
+                          <FieldLabel>Image</FieldLabel>
+                          <ImageUploadField
+                            purpose="blog-cover"
+                            value={watch("coverImage") || null}
+                            onUploaded={(r) => setValue("coverImage", r.fileUrl)}
+                            label="Upload cover"
+                            hint="PNG or JPG, up to 5MB"
+                            shape="square"
+                            previewClassName="h-28 w-48"
+                          />
+                        </div>
+                      ) : (
+                        <div key={f} className="space-y-1">
+                          <FieldLabel>
+                            {f === "coverImageAlt" ? "Alt Text" : "Credit"}
+                          </FieldLabel>
+                          <Input
+                            {...register(f)}
+                            placeholder={f === "coverImageAlt" ? "Descriptive alt text..." : "Photo by / Unsplash"}
+                            className="h-8 text-sm bg-white"
+                          />
+                          {errors[f] && <p className="text-[10px] text-red-600">{errors[f]?.message}</p>}
+                        </div>
+                      ),
+                    )}
                   </div>
                 </>
               )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +26,9 @@ import {
 import { Label } from "@moja/ui/components/ui/label";
 import { useTRPC } from "@/trpc/client";
 import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/format";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+
+type RefundChannel = "CASH" | "VOUCHER" | "WALLET";
 
 export function BookingDetailDrawer({
   bookingId,
@@ -38,8 +41,10 @@ export function BookingDetailDrawer({
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { can } = useStaffPermissions();
+  const canCancel = can("bookings:update");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [refundChannel, setRefundChannel] = useState<"CASH" | "VOUCHER" | "WALLET">("WALLET");
+  const [refundChannel, setRefundChannel] = useState<RefundChannel>("WALLET");
   const [cancelReason, setCancelReason] = useState("");
 
   const { data: booking, isLoading } = useQuery({
@@ -47,18 +52,28 @@ export function BookingDetailDrawer({
     enabled: open,
   });
 
+  const isGuest = !booking?.userId;
+
+  useEffect(() => {
+    if (isGuest && refundChannel === "WALLET") {
+      setRefundChannel("CASH");
+    }
+  }, [isGuest, refundChannel]);
+
   const cancelMutation = useMutation(
-    trpc.payments.cancelBooking.mutationOptions({
+    trpc.operator.cancelBooking.mutationOptions({
       onSuccess: () => {
         toast.success("Booking cancelled and refund initiated.");
         setIsCancelModalOpen(false);
-        void queryClient.invalidateQueries(trpc.operator.listBookings.pathFilter());
+        void queryClient.invalidateQueries(
+          trpc.operator.listBookings.pathFilter(),
+        );
         onClose();
       },
-      onError: (err: any) => {
+      onError: (err) => {
         toast.error(err.message || "Failed to cancel booking");
       },
-    })
+    }),
   );
 
   const handleConfirmCancel = (e: React.FormEvent) => {
@@ -66,6 +81,10 @@ export function BookingDetailDrawer({
     if (!booking) return;
     if (!cancelReason.trim()) {
       toast.error("Please supply a cancellation reason for auditing purposes.");
+      return;
+    }
+    if (isGuest && refundChannel === "WALLET") {
+      toast.error("Wallet refund is not available for guest bookings.");
       return;
     }
     cancelMutation.mutate({
@@ -80,7 +99,9 @@ export function BookingDetailDrawer({
       <Drawer open={open} onOpenChange={(v) => !v && onClose()} direction="right">
         <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-md flex flex-col">
           <DrawerHeader className="border-b border-border px-5 py-4 shrink-0">
-            <DrawerTitle className="text-base font-bold">Booking details</DrawerTitle>
+            <DrawerTitle className="text-base font-bold">
+              Booking details
+            </DrawerTitle>
             <DrawerDescription className="text-xs">
               {booking?.bookingReference ?? "Loading…"}
             </DrawerDescription>
@@ -93,14 +114,26 @@ export function BookingDetailDrawer({
             ) : (
               <>
                 <div>
-                  <p className="text-xs font-bold uppercase text-muted-foreground">Passenger</p>
+                  <p className="text-xs font-bold uppercase text-muted-foreground">
+                    Passenger
+                  </p>
                   <p className="font-semibold mt-1">{booking.passengerName}</p>
-                  <p className="text-muted-foreground">{booking.passengerPhone}</p>
+                  <p className="text-muted-foreground">
+                    {booking.passengerPhone}
+                  </p>
+                  {isGuest ? (
+                    <p className="text-[11px] text-amber-700 mt-1">
+                      Legacy guest booking — cash or voucher refund only.
+                    </p>
+                  ) : null}
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase text-muted-foreground">Route</p>
+                  <p className="text-xs font-bold uppercase text-muted-foreground">
+                    Route
+                  </p>
                   <p className="font-semibold mt-1">
-                    {booking.originTerminalName} → {booking.destinationTerminalName}
+                    {booking.originTerminalName} →{" "}
+                    {booking.destinationTerminalName}
                   </p>
                   <p className="text-muted-foreground text-xs">
                     {booking.originCityName} → {booking.destinationCityName}
@@ -108,22 +141,34 @@ export function BookingDetailDrawer({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase text-muted-foreground">Seat</p>
-                    <p className="font-mono font-bold mt-1">{booking.seatLabel}</p>
+                    <p className="text-xs font-bold uppercase text-muted-foreground">
+                      Seat
+                    </p>
+                    <p className="font-mono font-bold mt-1">
+                      {booking.seatLabel}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase text-muted-foreground">Fare</p>
+                    <p className="text-xs font-bold uppercase text-muted-foreground">
+                      Fare
+                    </p>
                     <p className="font-bold text-neon mt-1">
                       {formatPriceXOF(booking.farePaidXOF)}
                     </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase text-muted-foreground">Departure</p>
-                  <p className="mt-1">{formatDepartureTime(booking.departureTime)}</p>
+                  <p className="text-xs font-bold uppercase text-muted-foreground">
+                    Departure
+                  </p>
+                  <p className="mt-1">
+                    {formatDepartureTime(booking.departureTime)}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase text-muted-foreground">Check-in</p>
+                  <p className="text-xs font-bold uppercase text-muted-foreground">
+                    Check-in
+                  </p>
                   <p className="mt-1">
                     {booking.checkedInAt
                       ? formatDepartureTime(booking.checkedInAt)
@@ -131,7 +176,9 @@ export function BookingDetailDrawer({
                   </p>
                 </div>
 
-                {booking.status === "CONFIRMED" && new Date(booking.departureTime) > new Date() && (
+                {canCancel &&
+                booking.status === "CONFIRMED" &&
+                new Date(booking.departureTime) > new Date() ? (
                   <div className="pt-4 border-t border-border mt-6">
                     <Button
                       variant="destructive"
@@ -141,14 +188,13 @@ export function BookingDetailDrawer({
                       Cancel Booking & Refund
                     </Button>
                   </div>
-                )}
+                ) : null}
               </>
             )}
           </div>
         </DrawerContent>
       </Drawer>
 
-      {/* Operator Cancel Dialog */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
           <DialogHeader className="space-y-1">
@@ -157,11 +203,12 @@ export function BookingDetailDrawer({
               Cancel Booking & Request Refund
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Are you sure you want to cancel this passenger's booking? This action permanently deactivates their ticket.
+              Are you sure you want to cancel this passenger&apos;s booking?
+              This action permanently deactivates their ticket.
             </DialogDescription>
           </DialogHeader>
 
-          {booking && (
+          {booking ? (
             <form onSubmit={handleConfirmCancel} className="space-y-4 py-2">
               <div className="rounded-md border border-slate-100 bg-slate-50 p-3.5 space-y-1">
                 <div className="text-xs text-slate-500">Refund Summary:</div>
@@ -174,63 +221,60 @@ export function BookingDetailDrawer({
                 </p>
               </div>
 
-              {/* Refund Method */}
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Refund Method
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRefundChannel("WALLET")}
-                    className={cn(
-                      "p-2.5 rounded-md border text-center text-xs font-semibold transition-all",
-                      refundChannel === "WALLET"
-                        ? "border-red-600 bg-red-50 text-red-700"
-                        : "border-slate-200 hover:border-slate-300 text-slate-700"
-                    )}
-                  >
-                    Wallet
-                    <span className="block text-[8px] text-slate-400 font-normal mt-0.5">
-                      Moja Wallet
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRefundChannel("VOUCHER")}
-                    className={cn(
-                      "p-2.5 rounded-md border text-center text-xs font-semibold transition-all",
-                      refundChannel === "VOUCHER"
-                        ? "border-red-600 bg-red-50 text-red-700"
-                        : "border-slate-200 hover:border-slate-300 text-slate-700"
-                    )}
-                  >
-                    Voucher
-                    <span className="block text-[8px] text-slate-400 font-normal mt-0.5">
-                      Moja Voucher
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRefundChannel("CASH")}
-                    className={cn(
-                      "p-2.5 rounded-md border text-center text-xs font-semibold transition-all",
-                      refundChannel === "CASH"
-                        ? "border-red-600 bg-red-50 text-red-700"
-                        : "border-slate-200 hover:border-slate-300 text-slate-700"
-                    )}
-                  >
-                    Cash
-                    <span className="block text-[8px] text-slate-400 font-normal mt-0.5">
-                      Manual Cash
-                    </span>
-                  </button>
+                  {(
+                    [
+                      {
+                        id: "WALLET" as const,
+                        label: "Wallet",
+                        hint: "Moja Wallet",
+                        disabled: isGuest,
+                      },
+                      {
+                        id: "VOUCHER" as const,
+                        label: "Voucher",
+                        hint: "Moja Voucher",
+                        disabled: false,
+                      },
+                      {
+                        id: "CASH" as const,
+                        label: "Cash",
+                        hint: "Manual Cash",
+                        disabled: false,
+                      },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      disabled={opt.disabled}
+                      onClick={() => setRefundChannel(opt.id)}
+                      className={cn(
+                        "p-2.5 rounded-md border text-center text-xs font-semibold transition-all",
+                        opt.disabled && "opacity-40 cursor-not-allowed",
+                        refundChannel === opt.id
+                          ? "border-red-600 bg-red-50 text-red-700"
+                          : "border-slate-200 hover:border-slate-300 text-slate-700",
+                      )}
+                    >
+                      {opt.label}
+                      <span className="block text-[8px] text-slate-400 font-normal mt-0.5">
+                        {opt.disabled ? "Unavailable" : opt.hint}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Reason */}
               <div className="space-y-1.5">
-                <Label htmlFor="operator-cancel-reason" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <Label
+                  htmlFor="operator-cancel-reason"
+                  className="text-xs font-bold text-slate-700 uppercase tracking-wider"
+                >
                   Cancellation Reason *
                 </Label>
                 <Input
@@ -268,7 +312,7 @@ export function BookingDetailDrawer({
                 </Button>
               </DialogFooter>
             </form>
-          )}
+          ) : null}
         </DialogContent>
       </Dialog>
     </>

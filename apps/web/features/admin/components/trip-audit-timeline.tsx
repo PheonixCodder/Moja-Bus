@@ -12,7 +12,6 @@ const STATUS_ORDER = [
   "DEPARTED",
   "DELAYED",
   "ARRIVED",
-  "COMPLETED",
   "CANCELLED",
 ];
 
@@ -60,12 +59,6 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
         ? format(new Date(trip.estimatedArrival), "MMM d, h:mm a")
         : null,
       note: trip.actualArrival ? "Actual arrival" : "Estimated arrival",
-    },
-    {
-      label: "Completed",
-      status: "COMPLETED",
-      time: null,
-      note: "Trip concluded",
     },
   ];
 

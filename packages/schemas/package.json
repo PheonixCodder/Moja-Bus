@@ -15,7 +15,8 @@
     "./search": "./src/search.ts",
     "./sync": "./src/sync.ts",
     "./tracking": "./src/tracking.ts",
-    "./operator": "./src/operator.ts"
+    "./operator": "./src/operator.ts",
+    "./permissions": "./src/permissions.ts"
   },
   "files": [
     "src",

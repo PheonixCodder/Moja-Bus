@@ -13,12 +13,12 @@ import {
   Radio,
   Gauge,
   ChevronsUpDown,
-  Layers,
   MapPin,
   Users,
   Ticket,
   TrendingUp,
   Banknote,
+  Star,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -49,20 +49,41 @@ import {
 import type { User } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
 import { getCompanyStatusPresentation } from "@/features/operator/lib/company-status";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import type { PermissionKey } from "@moja/schemas";
 
-interface MenuItem {
-  title: string;
-  url: string;
+type NavItem = {
+  id: string;
+  label: string;
+  path: string;
   icon: LucideIcon;
+  /** Any of these permissions unlocks the item. Omit = always visible. */
+  permissions?: PermissionKey[];
+};
+
+function isActivePath(pathname: string, path: string) {
+  if (path === "/dashboard/operator") {
+    return pathname === path;
+  }
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 interface NavSectionProps {
   label?: string;
-  items: MenuItem[];
+  items: NavItem[];
   pathname: string;
+  can: (key: PermissionKey) => boolean;
 }
 
-function NavSection({ label, items, pathname }: NavSectionProps) {
+function NavSection({ label, items, pathname, can }: NavSectionProps) {
+  const visible = items.filter(
+    (item) =>
+      !item.permissions?.length ||
+      item.permissions.some((key) => can(key)),
+  );
+
+  if (visible.length === 0) return null;
+
   return (
     <SidebarGroup>
       {label ? (
@@ -72,38 +93,19 @@ function NavSection({ label, items, pathname }: NavSectionProps) {
       ) : null}
       <SidebarGroupContent>
         <SidebarMenu className="gap-0.5">
-          {items.map((item) => {
-            // active match: exact for overview, prefix for everything else
-            const isActive =
-              item.url === "/dashboard/operator"
-                ? pathname === item.url
-                : pathname.startsWith(item.url);
-
+          {visible.map((item) => {
+            const Icon = item.icon;
+            const active = isActivePath(pathname, item.path);
             return (
-              <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton
-                  isActive={isActive}
-                  tooltip={item.title}
-                  className={cn(
-                    "h-9 rounded-md border border-transparent px-3 py-2 text-[13px] font-medium tracking-tight transition-colors duration-150",
-                    "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    isActive &&
-                      "border-sidebar-primary/15 bg-sidebar-primary/10 text-sidebar-primary hover:bg-sidebar-primary/10 hover:text-sidebar-primary",
-                  )}
-                  render={
-                    <Link href={item.url}>
-                      <item.icon
-                        className={cn(
-                          "size-4 shrink-0",
-                          isActive
-                            ? "text-sidebar-primary"
-                            : "text-sidebar-foreground/40",
-                        )}
-                      />
-                      <span>{item.title}</span>
-                    </Link>
-                  }
-                />
+                  isActive={active}
+                  tooltip={item.label}
+                  render={<Link href={item.path} />}
+                >
+                  <Icon className="size-4" />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             );
           })}
@@ -122,51 +124,102 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const sidebar = useSidebar();
   const { signOut } = useAuth();
   const trpc = useTRPC();
+  const { can } = useStaffPermissions();
 
-  const { data } = useSuspenseQuery(trpc.operator.getSettings.queryOptions());
+  const { data } = useSuspenseQuery(trpc.operator.getShellContext.queryOptions());
   const status = data?.company?.status;
   const statusPresentation = getCompanyStatusPresentation(status);
 
-  // ── Operations group ──────────────────────────────────────────────
-  const operationsItems: MenuItem[] = [
-    { title: "Overview", url: "/dashboard/operator", icon: Gauge },
-    { title: "Dispatch Board", url: "/dashboard/operator/trips", icon: Radio },
-    { title: "Bookings", url: "/dashboard/operator/bookings", icon: Ticket },
+  const operationsItems: NavItem[] = [
+    { id: "overview", label: "Overview", path: "/dashboard/operator", icon: Gauge },
+    {
+      id: "dispatch-board",
+      label: "Dispatch Board",
+      path: "/dashboard/operator/trips",
+      icon: Radio,
+      permissions: ["trips:read"],
+    },
+    {
+      id: "bookings",
+      label: "Bookings",
+      path: "/dashboard/operator/bookings",
+      icon: Ticket,
+      permissions: ["bookings:read"],
+    },
+    {
+      id: "reviews",
+      label: "Reviews",
+      path: "/dashboard/operator/reviews",
+      icon: Star,
+      permissions: ["reviews:read"],
+    },
   ];
 
-  // ── Planning group ────────────────────────────────────────────────
-  const planningItems: MenuItem[] = [
-    { title: "Terminals", url: "/dashboard/operator/terminals", icon: MapPin },
-    { title: "Routes", url: "/dashboard/operator/routes", icon: Map },
+  const planningItems: NavItem[] = [
     {
-      title: "Schedules",
-      url: "/dashboard/operator/schedules",
+      id: "terminals",
+      label: "Terminals",
+      path: "/dashboard/operator/terminals",
+      icon: MapPin,
+      permissions: ["terminals:read"],
+    },
+    {
+      id: "routes",
+      label: "Routes",
+      path: "/dashboard/operator/routes",
+      icon: Map,
+      permissions: ["routes:read"],
+    },
+    {
+      id: "schedules",
+      label: "Schedules",
+      path: "/dashboard/operator/schedules",
       icon: CalendarClock,
+      permissions: ["schedules:read"],
     },
   ];
 
-  // ── Fleet group ───────────────────────────────────────────────────
-  const fleetItems: MenuItem[] = [
-    { title: "Buses", url: "/dashboard/operator/fleet", icon: BusFront },
-  ];
-
-  // ── Financials group ──────────────────────────────────────────────
-  const financialsItems: MenuItem[] = [
-    { title: "Revenue", url: "/dashboard/operator/revenue", icon: TrendingUp },
-    { title: "Withdrawals", url: "/dashboard/operator/withdraw", icon: Banknote },
-  ];
-
-  // ── Organization group ───────────────────────────────────────────────────
-  const organizationItems: MenuItem[] = [
+  const fleetItems: NavItem[] = [
     {
-      title: "Company",
-      url: "/dashboard/operator/settings",
+      id: "buses",
+      label: "Buses",
+      path: "/dashboard/operator/fleet",
+      icon: BusFront,
+      permissions: ["fleet:read"],
+    },
+  ];
+
+  const financialsItems: NavItem[] = [
+    {
+      id: "revenue",
+      label: "Revenue",
+      path: "/dashboard/operator/revenue",
+      icon: TrendingUp,
+      permissions: ["revenue:view"],
+    },
+    {
+      id: "withdrawals",
+      label: "Withdrawals",
+      path: "/dashboard/operator/withdraw",
+      icon: Banknote,
+      permissions: ["withdrawals:view"],
+    },
+  ];
+
+  const organizationItems: NavItem[] = [
+    {
+      id: "company",
+      label: "Company",
+      path: "/dashboard/operator/settings",
       icon: Settings,
+      permissions: ["company:view"],
     },
     {
-      title: "Staff",
-      url: "/dashboard/operator/staff",
+      id: "staff",
+      label: "Staff",
+      path: "/dashboard/operator/staff",
       icon: Users,
+      permissions: ["staff:read"],
     },
   ];
 
@@ -251,22 +304,31 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
           label="Operations"
           items={operationsItems}
           pathname={pathname}
+          can={can}
         />
         <NavSection
           label="Planning"
           items={planningItems}
           pathname={pathname}
+          can={can}
         />
-        <NavSection label="Fleet" items={fleetItems} pathname={pathname} />
+        <NavSection
+          label="Fleet"
+          items={fleetItems}
+          pathname={pathname}
+          can={can}
+        />
         <NavSection
           label="Financials"
           items={financialsItems}
           pathname={pathname}
+          can={can}
         />
         <NavSection
           label="Organization"
           items={organizationItems}
           pathname={pathname}
+          can={can}
         />
       </SidebarContent>
 
@@ -286,7 +348,13 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                 title={user?.name ?? "Account"}
               >
                 <Avatar className="size-6 shrink-0">
-                  <AvatarImage src={data?.operator?.profilePhotoUrl || user?.image || undefined} />
+                  <AvatarImage
+                    src={
+                      data?.operator?.profilePhotoUrl ||
+                      user?.image ||
+                      undefined
+                    }
+                  />
                   <AvatarFallback className="bg-sidebar-primary/15 text-[10px] font-semibold text-sidebar-primary">
                     {userInitials}
                   </AvatarFallback>

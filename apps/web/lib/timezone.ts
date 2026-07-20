@@ -50,6 +50,23 @@ export function startOfAppCalendarDay(date: Date): Date {
   return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 }
 
+/** Inclusive end of the Abidjan calendar day (23:59:59.999 UTC). */
+export function endOfAppCalendarDay(date: Date): Date {
+  const start = startOfAppCalendarDay(date);
+  return new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
+}
+
+/** Rolling window: start of today through end of today+daysAhead (Abidjan). */
+export function getAppRollingTripWindow(daysAhead = 14): {
+  startDate: Date;
+  endDate: Date;
+} {
+  const now = new Date();
+  const startDate = startOfAppCalendarDay(now);
+  const endDate = endOfAppCalendarDay(addAppCalendarDays(startDate, daysAhead));
+  return { startDate, endDate };
+}
+
 export function addAppCalendarDays(date: Date, days: number): Date {
   const start = startOfAppCalendarDay(date);
   start.setUTCDate(start.getUTCDate() + days);

@@ -1,35 +1,42 @@
 import { Suspense } from "react";
-import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
-import { Separator } from "@moja/ui/components/ui/separator";
-import { OperatorTripsView } from "@/features/operator/views/operator-trips-view";
-import { OperatorQuickActions } from "@/features/operator/components/operator-quick-actions";
+import {
+  OperatorTripsView,
+  OperatorTripsViewFallback,
+} from "@/features/operator/views/operator-trips-view";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+import { tripListParamsCache } from "@/features/operator/lib/trips/trip-search-params";
 
 export const metadata = {
   title: "Dispatch Board — Moja Ride Operator",
   description:
-    "Assign buses and drivers to trips, manage departures, and track live operations.",
+    "Assign buses to trips, manage departures, and track live operations.",
 };
 
-export default async function TripsPage() {
-  await Promise.all([
-    prefetch(trpc.trips.list.queryOptions()),
-    prefetch(trpc.fleet.getBuses.queryOptions()),
-  ]);
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function TripsPage({ searchParams }: PageProps) {
+  const params = await tripListParamsCache.parse(searchParams);
+  const listInput = {
+    status: params.status === "ALL" ? undefined : params.status,
+    scheduleId: params.scheduleId || undefined,
+    // M10: include `q` so the prefetch query key matches the client's first
+    // query key (useDebounce returns the initial value immediately, so the
+    // client query uses the same `q` on first render). Omitting it caused a
+    // prefetch/query key mismatch whenever a search term was present in the URL.
+    q: params.q || undefined,
+    startDate: params.startDate || undefined,
+    endDate: params.endDate || undefined,
+    page: params.page,
+    pageSize: 50,
+  };
+
+  await prefetch(trpc.trips.list.queryOptions(listInput));
 
   return (
     <HydrateClient>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-bg-base px-4">
-        <SidebarTrigger className="text-text-muted hover:text-text-primary" />
-        <Separator orientation="vertical" className="h-4 bg-border" />
-        <nav className="flex items-center gap-1 text-xs text-text-muted">
-          <span>Operations</span>
-          <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">Dispatch Board</span>
-        </nav>
-        <OperatorQuickActions />
-      </header>
-      <Suspense fallback={null}>
+      <Suspense fallback={<OperatorTripsViewFallback />}>
         <OperatorTripsView />
       </Suspense>
     </HydrateClient>

@@ -219,6 +219,7 @@ export function AdminBlogView() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 hover:bg-slate-50">
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Cover</TableHead>
                   <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Title</TableHead>
                   <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Status</TableHead>
                   <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Author</TableHead>
@@ -230,6 +231,19 @@ export function AdminBlogView() {
               <TableBody>
                 {blogData.items.map((post) => (
                   <TableRow key={post.id} className="hover:bg-slate-50/50 transition-colors">
+                    <TableCell className="px-4 py-3">
+                      {post.coverImage ? (
+                        <img
+                          src={post.coverImage}
+                          alt={post.title}
+                          className="h-10 w-16 rounded-md object-cover border border-border"
+                        />
+                      ) : (
+                        <div className="h-10 w-16 rounded-md border border-dashed border-border bg-slate-50 flex items-center justify-center text-[9px] text-slate-400">
+                          N/A
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="px-4 py-3">
                       <div className="font-semibold text-slate-900 line-clamp-1">{post.title}</div>
                       {post.category && (

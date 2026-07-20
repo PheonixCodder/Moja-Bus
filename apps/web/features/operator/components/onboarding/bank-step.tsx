@@ -21,11 +21,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
-import { Banknote, ShieldCheck } from "lucide-react";
+import { Banknote, ShieldCheck, CheckCircle2, Clock } from "lucide-react";
 import { type BankStepInput } from "@moja/schemas";
 
 interface BankStepProps {
   initialData?: any;
+  // L14: true payout-readiness (verified account + Paystack recipient, set
+  // during admin KYC approval). Used to show an honest sub-step instead of
+  // implying the bank step is fully complete.
+  bankVerified?: boolean;
   onSave: (data: BankStepInput) => Promise<boolean>;
   onBack: () => void;
   isSaving: boolean;
@@ -33,10 +37,13 @@ interface BankStepProps {
 
 export function BankStep({
   initialData,
+  bankVerified,
   onSave,
   onBack,
   isSaving,
 }: BankStepProps) {
+  // L14: have bank details been provided yet?
+  const hasBankDetails = Boolean(initialData?.company?.bankAccount);
   const trpc = useTRPC();
   const { data: paystackBanks, isLoading: isLoadingBanks } = useQuery(
     trpc.payments.listBanks.queryOptions({})
@@ -108,6 +115,41 @@ export function BankStep({
         </CardContent>
       </Card>
 
+      {/* L14: honest two-stage verification sub-step.
+          The wizard marks the BANK step complete once details are provided,
+          but payouts only unlock after admin KYC verification. Show both
+          stages so operators aren't misled into thinking onboarding is fully
+          done (the withdrawal gate in operator-withdraw-view already enforces
+          this server-side). */}
+      <Card className="border-amber-200 bg-amber-50/10 rounded-md">
+        <CardContent className="pt-4 pb-4">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              {hasBankDetails ? (
+                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              ) : (
+                <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              )}
+              <span className="text-sm font-medium text-foreground">
+                Bank details added
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {bankVerified ? (
+                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              ) : (
+                <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              )}
+              <span className="text-sm text-muted-foreground">
+                {bankVerified
+                  ? "Verified — payouts enabled"
+                  : "Pending verification — withdrawals enabled after admin approval"}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-border rounded-md shadow-sm">
         <CardHeader className="border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -146,6 +188,7 @@ export function BankStep({
                 <ComboboxInput
                   id="bank-name"
                   placeholder={isLoadingBanks ? "Loading banks..." : "Select bank"}
+                  aria-label="Search and select your bank"
                   className="w-full text-sm"
                   value={bankName || ""}
                 />

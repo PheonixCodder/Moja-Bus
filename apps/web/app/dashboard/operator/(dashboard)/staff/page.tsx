@@ -1,7 +1,4 @@
 import { OperatorStaffView } from "@/features/operator/views/operator-staff-view";
-import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
-import { Separator } from "@moja/ui/components/ui/separator";
-import { OperatorQuickActions } from "@/features/operator/components/operator-quick-actions";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 
 export const metadata = {
@@ -11,25 +8,26 @@ export const metadata = {
 };
 
 export default async function OperatorStaffPage() {
+  // Prefetch with exact default args that match the client-side useQuery defaults.
+  // search: undefined, role: undefined, status: undefined, page: 1, limit: 50
+  // This ensures the SSR cache is a perfect hit on first client render.
   await Promise.all([
-    prefetch(trpc.staff.listStaff.queryOptions({})),
-    prefetch(trpc.staff.listInvitations.queryOptions()),
+    prefetch(
+      trpc.staff.listStaff.queryOptions({
+        search: undefined,
+        role: undefined,
+        status: undefined,
+        page: 1,
+        limit: 50,
+      }),
+    ),
+    prefetch(trpc.staff.listInvitations.queryOptions({ limit: 20 })),
     prefetch(trpc.staff.getActivityLog.queryOptions({ limit: 100 })),
     prefetch(trpc.staff.getMyRole.queryOptions()),
   ]);
 
   return (
     <HydrateClient>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-bg-base px-4">
-        <SidebarTrigger className="text-text-muted hover:text-text-primary" />
-        <Separator orientation="vertical" className="h-4 bg-border" />
-        <nav className="flex items-center gap-1 text-xs text-text-muted">
-          <span>Operations</span>
-          <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">Staff Management</span>
-        </nav>
-        <OperatorQuickActions />
-      </header>
       <OperatorStaffView />
     </HydrateClient>
   );

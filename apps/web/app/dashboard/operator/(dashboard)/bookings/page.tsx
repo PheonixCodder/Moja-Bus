@@ -1,8 +1,10 @@
-import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
-import { Separator } from "@moja/ui/components/ui/separator";
-import { OperatorBookingsView } from "@/features/operator/views/operator-bookings-view";
-import { OperatorQuickActions } from "@/features/operator/components/operator-quick-actions";
+import { Suspense } from "react";
+import {
+  OperatorBookingsView,
+  OperatorBookingsViewFallback,
+} from "@/features/operator/views/operator-bookings-view";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+import { bookingListParamsCache } from "@/features/operator/lib/bookings/booking-search-params";
 
 export const metadata = {
   title: "Bookings — Moja Ride Operator",
@@ -10,24 +12,30 @@ export const metadata = {
     "View passenger bookings, check in tickets, and manage reservations for your company.",
 };
 
-export default async function OperatorBookingsPage() {
+const PAGE_SIZE = 50;
+
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function OperatorBookingsPage({ searchParams }: PageProps) {
+  const params = await bookingListParamsCache.parse(searchParams);
   await prefetch(
-    trpc.operator.listBookings.queryOptions({ filter: "today" }),
+    trpc.operator.listBookings.queryOptions({
+      filter: params.filter,
+      search: params.q.trim() || undefined,
+      status: params.status === "ALL" ? undefined : params.status,
+      tripId: params.tripId || undefined,
+      limit: PAGE_SIZE,
+      offset: (params.page - 1) * PAGE_SIZE,
+    }),
   );
 
   return (
     <HydrateClient>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-bg-base px-4">
-        <SidebarTrigger className="text-text-muted hover:text-text-primary" />
-        <Separator orientation="vertical" className="h-4 bg-border" />
-        <nav className="flex items-center gap-1 text-xs text-text-muted">
-          <span>Operations</span>
-          <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">Bookings</span>
-        </nav>
-        <OperatorQuickActions />
-      </header>
-      <OperatorBookingsView />
+      <Suspense fallback={<OperatorBookingsViewFallback />}>
+        <OperatorBookingsView />
+      </Suspense>
     </HydrateClient>
   );
 }

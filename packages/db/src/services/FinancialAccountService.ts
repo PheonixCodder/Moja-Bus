@@ -77,6 +77,20 @@ export class FinancialAccountService {
     });
   }
 
+  /**
+   * Platform clearing liability for offline (CASH/VOUCHER) passenger reimbursements.
+   * Operator net is clawed back here; settlement to the passenger is offline.
+   */
+  async getOfflineRefundPayableAccount() {
+    return this.getOrCreateAccount({
+      ownerType: "PLATFORM",
+      ownerId: "moja_ride",
+      accountCategory: "LIABILITY",
+      accountClass: "OFFLINE_REFUND_PAYABLE",
+      allowNegativeBalance: true,
+    });
+  }
+
   private async getOrCreateAccount(params: {
     ownerType: AccountOwnerType;
     ownerId: string;

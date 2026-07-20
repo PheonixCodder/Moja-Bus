@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "biome check app components.json next.config.ts package.json postcss.config.mjs tsconfig.json",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/__tests__/trip-generator-dates.test.ts lib/__tests__/segment-overlap.test.ts features/operator/lib/__tests__/parse-ticket-token.test.ts features/operator/services/__tests__/operator-booking-service.test.ts features/booking/lib/__tests__/normalize-phone.test.ts features/booking/lib/__tests__/trip-segments.test.ts features/booking/lib/__tests__/hold-group.test.ts features/payments/lib/__tests__/pricing-resolver.test.ts features/payments/lib/__tests__/paystack-checkout.test.ts",
+    "test": "tsx --test lib/__tests__/trip-generator-dates.test.ts lib/__tests__/segment-overlap.test.ts lib/__tests__/staff-iam.test.ts lib/__tests__/schedule-trip-window.test.ts lib/__tests__/escrow-release.test.ts lib/__tests__/cancel-clawback.test.ts features/operator/lib/__tests__/parse-ticket-token.test.ts features/operator/services/__tests__/operator-booking-service.test.ts features/booking/lib/__tests__/normalize-phone.test.ts features/booking/lib/__tests__/trip-segments.test.ts features/booking/lib/__tests__/hold-group.test.ts features/payments/lib/__tests__/pricing-resolver.test.ts features/payments/lib/__tests__/paystack-checkout.test.ts",
     "format": "biome format --write ."
   },
   "dependencies": {

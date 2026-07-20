@@ -21,6 +21,7 @@ export function AdminTravelersView() {
     return data.items.map((user: any) => ({
       id: user.id,
       name: user.fullName || "Unknown",
+      image: user.image ?? null,
       email: user.email,
       phone: user.phone || "N/A",
       status: user.emailVerified ? "Verified" : "Unverified",

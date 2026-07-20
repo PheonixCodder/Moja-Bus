@@ -42,6 +42,13 @@ export class TripDetailsService {
       throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
     }
 
+    if (!trip.schedule.isActive) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This schedule is no longer available for booking",
+      });
+    }
+
     if (
       !BOOKABLE_TRIP_STATUSES.includes(
         trip.status as (typeof BOOKABLE_TRIP_STATUSES)[number],

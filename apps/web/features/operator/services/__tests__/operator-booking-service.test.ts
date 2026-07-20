@@ -20,6 +20,7 @@ function makeBooking(overrides: Record<string, unknown> = {}) {
     checkedInAt: null as Date | null,
     ticketToken: "token-abc",
     seat: { label: "A1" },
+    trip: { id: TRIP_A, status: "BOARDING" },
     ...overrides,
   };
 }
@@ -28,12 +29,14 @@ function createMockPrisma(handlers: {
   findFirst?: (args: unknown) => Promise<unknown>;
   findUnique?: (args: unknown) => Promise<unknown>;
   update?: (args: unknown) => Promise<unknown>;
+  updateMany?: (args: unknown) => Promise<{ count: number }>;
 }) {
   return {
     booking: {
       findFirst: handlers.findFirst ?? (async () => null),
       findUnique: handlers.findUnique ?? (async () => null),
       update: handlers.update ?? (async () => null),
+      updateMany: handlers.updateMany ?? (async () => ({ count: 1 })),
       findMany: async () => [],
     },
   } as unknown as ConstructorParameters<typeof OperatorBookingService>[0];
@@ -42,13 +45,13 @@ function createMockPrisma(handlers: {
 describe("OperatorBookingService.checkIn", () => {
   it("checks in a confirmed booking for the correct company", async () => {
     const booking = makeBooking();
-    let updatedAt: Date | null = null;
+    let updated = false;
 
     const prisma = createMockPrisma({
       findFirst: async () => booking,
-      update: async (args: any) => {
-        updatedAt = args.data.checkedInAt;
-        return { ...booking, checkedInAt: updatedAt };
+      updateMany: async () => {
+        updated = true;
+        return { count: 1 };
       },
     });
 
@@ -59,7 +62,7 @@ describe("OperatorBookingService.checkIn", () => {
     assert.equal(result.alreadyCheckedIn, false);
     assert.equal(result.bookingReference, "MR-TEST01");
     assert.equal(result.seatLabel, "A1");
-    assert.ok(updatedAt !== null);
+    assert.ok(updated);
   });
 
   it("returns idempotent result when already checked in", async () => {
@@ -78,7 +81,27 @@ describe("OperatorBookingService.checkIn", () => {
   });
 
   it("rejects check-in for another company", async () => {
-    const booking = makeBooking({ companyId: COMPANY_B });
+    // Company-scoped lookup returns null for foreign tickets
+    const prisma = createMockPrisma({
+      findFirst: async () => null,
+    });
+
+    const service = new OperatorBookingService(prisma);
+
+    await assert.rejects(
+      () => service.checkIn(COMPANY_A, { bookingId: "foreign-booking" }),
+      (err: unknown) => {
+        assert.ok(err instanceof TRPCError);
+        assert.equal(err.code, "NOT_FOUND");
+        return true;
+      },
+    );
+  });
+
+  it("rejects check-in when trip is not boarding", async () => {
+    const booking = makeBooking({
+      trip: { id: TRIP_A, status: "SCHEDULED" },
+    });
     const prisma = createMockPrisma({
       findFirst: async () => booking,
     });
@@ -89,7 +112,8 @@ describe("OperatorBookingService.checkIn", () => {
       () => service.checkIn(COMPANY_A, { bookingId: booking.id }),
       (err: unknown) => {
         assert.ok(err instanceof TRPCError);
-        assert.equal(err.code, "FORBIDDEN");
+        assert.equal(err.code, "BAD_REQUEST");
+        assert.match(err.message, /boarding/i);
         return true;
       },
     );
@@ -119,20 +143,26 @@ describe("OperatorBookingService.checkIn", () => {
 
   it("resolves booking by ticket token from QR URL", async () => {
     const booking = makeBooking();
+    const calls: unknown[] = [];
+
     const prisma = createMockPrisma({
-      findUnique: async () => ({ id: booking.id }),
-      findFirst: async () => booking,
-      update: async () => ({ ...booking, checkedInAt: new Date() }),
+      findFirst: async (args) => {
+        calls.push(args);
+        if (calls.length === 1) {
+          return { id: booking.id };
+        }
+        return booking;
+      },
+      updateMany: async () => ({ count: 1 }),
     });
 
     const service = new OperatorBookingService(prisma);
     const result = await service.checkIn(COMPANY_A, {
-      ticketToken: "https://app.test/api/tickets/verify?token=token-abc",
-      tripId: TRIP_A,
+      ticketToken: `https://moja.ci/ticket/${booking.ticketToken}`,
     });
 
     assert.equal(result.success, true);
-    assert.equal(result.passengerName, "Jane Doe");
+    assert.equal(result.alreadyCheckedIn, false);
   });
 
   it("rejects non-confirmed bookings", async () => {

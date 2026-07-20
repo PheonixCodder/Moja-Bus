@@ -1,7 +1,7 @@
-import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
-import { Separator } from "@moja/ui/components/ui/separator";
+
+
 import { OperatorWithdrawView } from "@/features/operator/views/operator-withdraw-view";
-import { OperatorQuickActions } from "@/features/operator/components/operator-quick-actions";
+
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 import { Suspense } from "react";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
@@ -20,16 +20,6 @@ export default async function OperatorWithdrawPage() {
 
   return (
     <HydrateClient>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-bg-base px-4">
-        <SidebarTrigger className="text-text-muted hover:text-text-primary" />
-        <Separator orientation="vertical" className="h-4 bg-border" />
-        <nav className="flex items-center gap-1 text-xs text-text-muted">
-          <span>Financials</span>
-          <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">Withdrawals</span>
-        </nav>
-        <OperatorQuickActions />
-      </header>
       <div className="flex-1 overflow-y-auto p-6 md:p-8">
         <Suspense
           fallback={

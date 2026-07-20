@@ -41,7 +41,7 @@ export function TravelStatsChart({ data }: TravelStatsChartProps) {
       }));
 
   const formatCurrency = (val: number) => {
-    return `${val.toLocaleString("fr-FR")} XOF`;
+    return `${val.toLocaleString("en-US")} XOF`;
   };
 
   return (

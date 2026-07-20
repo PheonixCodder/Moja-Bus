@@ -136,18 +136,6 @@ export const operatorCompanyProcedure = operatorProcedure.use(
   },
 );
 
-export const operatorStaffManageProcedure = operatorCompanyProcedure.use(
-  ({ ctx, next }) => {
-    if (ctx.operator.role !== "OWNER" && ctx.operator.role !== "ADMIN" && ctx.operator.role !== "MANAGER") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You do not have permission to manage staff.",
-      });
-    }
-    return next({ ctx });
-  },
-);
-
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "ADMIN") {
     throw new TRPCError({

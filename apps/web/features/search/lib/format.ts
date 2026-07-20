@@ -1,12 +1,12 @@
 export function formatPriceXOF(value: number): string {
-  return `${new Intl.NumberFormat("fr-FR").format(value)} F`;
+  return `${new Intl.NumberFormat("en-US").format(value)} F`;
 }
 
 export function formatDepartureTime(date: Date | string): string {
-  return new Date(date).toLocaleTimeString("fr-FR", {
+  return new Date(date).toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "UTC",
+    timeZone: "Africa/Abidjan",
   });
 }
 

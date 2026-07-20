@@ -18,8 +18,10 @@ import {
   ThermometerSun,
   Wifi,
   CircleDot,
+  Gauge,
   Luggage,
 } from "lucide-react";
+import { useQueryState, parseAsString, parseAsStringEnum } from "nuqs";
 import { toast } from "sonner";
 import { cn } from "@moja/ui/lib/utils";
 
@@ -65,12 +67,14 @@ import type { RouterOutputs } from "@/trpc/client";
 import { useTRPC } from "@/trpc/client";
 import {
   useSuspenseQuery,
+  useQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
 import { AddBusModal } from "@/features/operator/components/add-bus-modal";
 import { SeatMapPreview } from "@/features/operator/components/seat-map-preview";
 import { LayoutBuilderSheet } from "@/features/operator/components/layout-builder-sheet";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 type Bus = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 type FleetStats = RouterOutputs["fleet"]["getBuses"]["stats"];
@@ -147,12 +151,13 @@ function StatCard({ label, value, icon: Icon, iconClassName, sub }: StatCardProp
 
 interface BusCardProps {
   bus: Bus;
+  canManageFleet: boolean;
   onEdit: (bus: Bus) => void;
   onDelete: (bus: Bus) => void;
   onViewMap: (bus: Bus) => void;
 }
 
-function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
+function BusCard({ bus, canManageFleet, onEdit, onDelete, onViewMap }: BusCardProps) {
   const status = STATUS_CONFIG[bus.status];
 
   return (
@@ -201,7 +206,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
               Configuration
             </p>
             <p className="text-xs font-medium text-foreground/90 truncate mt-0.5">
-              {bus.layoutTemplate.name}
+              {bus.layoutTemplate?.name}
             </p>
           </div>
         </div>
@@ -219,7 +224,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
             <Armchair className="size-3.5" />
             <span>
               <strong className="text-foreground/80 font-semibold">
-                {bus.layoutTemplate.totalSeats}
+                {bus.layoutTemplate?.totalSeats}
               </strong>{" "}
               seats
             </span>
@@ -238,23 +243,27 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
               <LayoutGrid className="size-3.5 mr-1" />
               Plan
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted"
-              onClick={() => onEdit(bus)}
-            >
-              <Pencil className="size-3.5 mr-1" />
-              Edit
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-              onClick={() => onDelete(bus)}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
+            {canManageFleet && (
+              <>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted"
+                  onClick={() => onEdit(bus)}
+                >
+                  <Pencil className="size-3.5 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+                  onClick={() => onDelete(bus)}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </CardContent>
@@ -268,11 +277,12 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
 
 interface LayoutCardProps {
   layout: CustomLayout;
+  canManageFleet: boolean;
   onDelete: (layout: CustomLayout) => void;
   onPreview: (layout: CustomLayout) => void;
 }
 
-function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
+function CustomLayoutCard({ layout, canManageFleet, onDelete, onPreview }: LayoutCardProps) {
   const busCount = layout._count.buses;
 
   return (
@@ -346,16 +356,18 @@ function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
             <LayoutGrid className="size-3.5 mr-1" />
             Preview
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-            onClick={() => onDelete(layout)}
-            disabled={busCount > 0}
-            title={busCount > 0 ? `Used by ${busCount} bus${busCount !== 1 ? "es" : ""}` : "Delete layout"}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
+          {canManageFleet && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+              onClick={() => onDelete(layout)}
+              disabled={busCount > 0}
+              title={busCount > 0 ? `Used by ${busCount} bus${busCount !== 1 ? "es" : ""}` : "Delete layout"}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -438,6 +450,10 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
   const { data: allLayouts } = useSuspenseQuery(
     trpc.fleet.getLayoutTemplates.queryOptions(),
   );
+  const { data: perms } = useSuspenseQuery(
+    trpc.fleet.getPermissions.queryOptions(),
+  );
+  const canManageFleet = perms.canManageFleet;
 
   const platformLayouts = allLayouts.filter((l) => !l.companyId);
 
@@ -480,14 +496,16 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               Custom configurations unique to your company
             </p>
           </div>
-          <Button
-            size="sm"
-            className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
-            onClick={() => setBuilderOpen(true)}
-          >
-            <Plus className="size-4" />
-            Create custom layout
-          </Button>
+          {canManageFleet && (
+            <Button
+              size="sm"
+              className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
+              onClick={() => setBuilderOpen(true)}
+            >
+              <Plus className="size-4" />
+              Create custom layout
+            </Button>
+          )}
         </div>
 
         {customLayouts.length === 0 ? (
@@ -503,16 +521,18 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                   configuration of your fleet.
                 </EmptyDescription>
               </EmptyHeader>
-              <EmptyContent>
-                <Button
-                  size="sm"
-                  className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
-                  onClick={() => setBuilderOpen(true)}
-                >
-                  <Plus className="size-4" />
-                  Create custom layout
-                </Button>
-              </EmptyContent>
+              {canManageFleet && (
+                <EmptyContent>
+                  <Button
+                    size="sm"
+                    className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
+                    onClick={() => setBuilderOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                    Create custom layout
+                  </Button>
+                </EmptyContent>
+              )}
             </Empty>
           </div>
         ) : (
@@ -521,6 +541,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               <CustomLayoutCard
                 key={layout.id}
                 layout={layout}
+                canManageFleet={canManageFleet}
                 onDelete={setDeletingLayout}
                 onPreview={setPreviewLayout}
               />
@@ -651,7 +672,7 @@ function LayoutPreviewCanvas({
   cols: number;
   seatTemplates: { row: number; col: number; seatType: string; label: string }[];
 }) {
-  const { Gauge } = { Gauge: require("lucide-react").Gauge };
+
   const colHeaders = Array.from({ length: cols }, (_, i) =>
     String.fromCharCode(65 + i),
   );
@@ -720,6 +741,40 @@ function LayoutPreviewCanvas({
 // ──────────────────────────────────────────────
 
 export function OperatorFleetView() {
+  const { can, isLoading: permsLoading } = useStaffPermissions();
+  const canReadFleet = can("fleet:read");
+
+  if (permsLoading) {
+    return (
+      <div className="flex justify-center py-24">
+        <Spinner className="size-6 text-primary" />
+      </div>
+    );
+  }
+
+  if (!canReadFleet) {
+    return (
+      <div className="flex-1 p-6 max-w-3xl">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ShieldCheck />
+            </EmptyMedia>
+            <EmptyTitle>Fleet access required</EmptyTitle>
+            <EmptyDescription>
+              Your role does not include fleet read permission. Contact a company
+              admin if you need access.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      </div>
+    );
+  }
+
+  return <OperatorFleetViewContent />;
+}
+
+function OperatorFleetViewContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -727,12 +782,30 @@ export function OperatorFleetView() {
 
   const { data } = useSuspenseQuery(trpc.fleet.getBuses.queryOptions());
   const { data: busTypes } = useSuspenseQuery(trpc.fleet.getBusTypes.queryOptions());
+  const { data: perms } = useSuspenseQuery(trpc.fleet.getPermissions.queryOptions());
+  const canManageFleet = perms.canManageFleet;
   const buses = data.buses;
   const stats = data.stats;
 
-  const [activeTab, setActiveTab] = useState<"buses" | "layouts">("buses");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [activeTab, setActiveTab] = useQueryState(
+    "tab",
+    parseAsStringEnum(["buses", "layouts"]).withDefault("buses")
+  );
+  const [search, setSearch] = useQueryState(
+    "q",
+    parseAsString.withDefault("")
+  );
+  const [statusFilter, setStatusFilter] = useQueryState(
+    "status",
+    parseAsString.withDefault("ALL")
+  );
+
+  const [localSearch, setLocalSearch] = useState(search);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(localSearch), 300);
+    return () => clearTimeout(timer);
+  }, [localSearch, setSearch]);
 
   // Modals
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -776,6 +849,8 @@ export function OperatorFleetView() {
         onSuccess: () => {
           toast.success(`Bus ${plate} deleted`);
           queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
+          queryClient.invalidateQueries(trpc.fleet.getCustomLayouts.pathFilter());
+          queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
           setDeletingBus(null);
         },
         onError: (err) => {
@@ -788,7 +863,7 @@ export function OperatorFleetView() {
   function handleViewMap(bus: Bus) {
     setSeatMapBusTitle({
       plate: bus.registrationPlate,
-      layout: bus.layoutTemplate.name,
+      layout: bus.layoutTemplate?.name,
     });
     setSeatMapBusId(bus.id);
   }
@@ -810,7 +885,7 @@ export function OperatorFleetView() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {activeTab === "buses" ? (
+            {activeTab === "buses" && canManageFleet ? (
               <Button
                 size="sm"
                 className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
@@ -916,8 +991,8 @@ export function OperatorFleetView() {
                 <Input
                   placeholder="Search by plate, name, model..."
                   className="pl-8 h-8 text-xs bg-card border-border"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -990,7 +1065,7 @@ export function OperatorFleetView() {
                       : "Add your first vehicle to start managing your fleet."}
                   </EmptyDescription>
                 </EmptyHeader>
-                {!search && statusFilter === "ALL" && (
+                {!search && statusFilter === "ALL" && canManageFleet && (
                   <EmptyContent>
                     <Button
                       size="sm"
@@ -1013,6 +1088,7 @@ export function OperatorFleetView() {
                 <BusCard
                   key={bus.id}
                   bus={bus}
+                  canManageFleet={canManageFleet}
                   onEdit={(b) => {
                     setEditingBus(b);
                     setAddModalOpen(true);
@@ -1036,6 +1112,8 @@ export function OperatorFleetView() {
         editingBus={editingBus}
         onSuccess={() => {
           queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
+          queryClient.invalidateQueries(trpc.fleet.getCustomLayouts.pathFilter());
+          queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
         }}
       />
 

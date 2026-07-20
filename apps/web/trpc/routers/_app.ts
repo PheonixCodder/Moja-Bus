@@ -14,6 +14,7 @@ import { passengerRouter } from "./passenger";
 import { paymentsRouter } from "./payments";
 import { publicRouter } from "./public";
 import { adminRouter } from "./admin";
+import { storageRouter } from "./storage";
 import { walletRouter } from "./wallet";
 import { blogRouter } from "./blog";
 
@@ -33,6 +34,7 @@ export const appRouter = createTRPCRouter({
   payments: paymentsRouter,
   public: publicRouter,
   admin: adminRouter,
+  storage: storageRouter,
   wallet: walletRouter,
   blog: blogRouter,
 });

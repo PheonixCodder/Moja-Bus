@@ -5,6 +5,7 @@ export * from "./payments";
 export * from "./search";
 export * from "./sync";
 export * from "./tracking";
+export * from "./permissions";
 export * from "./operator";
 export * from "./operator-bookings";
 export * from "./routes";

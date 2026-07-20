@@ -13,8 +13,10 @@ import {
   tripStatusEnum,
 } from "@moja/schemas";
 import { FinancialAccountService, AccountingEngine } from "@moja/db";
+import { toSafeDisplayNumber } from "@/lib/money";
 import { createTRPCRouter, adminProcedure } from "../init";
 import { revealBankAccountNumber } from "@/lib/bank-account";
+import { logBankAccess } from "@/lib/bank-access";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
 
 function slugify(text: string): string {
@@ -360,6 +362,14 @@ export const adminRouter = createTRPCRouter({
       }
 
       const decryptedAccountNumber = revealBankAccountNumber(pendingBank as any);
+
+      // Audit-log the full bank-number reveal (operator reveals are logged;
+      // admin reveals must be too — see F-22).
+      await logBankAccess(ctx.prisma, {
+        companyId: input.companyId,
+        userId: ctx.user.id,
+        action: "VIEW_FULL",
+      });
 
       // Create Paystack Transfer Recipient
       const paystack = new PaystackProvider();
@@ -884,6 +894,14 @@ export const adminRouter = createTRPCRouter({
 
       const decryptedAccountNumber = revealBankAccountNumber(bankAccount);
 
+      // Audit-log the full bank-number reveal (operator reveals are logged;
+      // admin reveals must be too — see F-22).
+      await logBankAccess(ctx.prisma, {
+        companyId: bankAccount.companyId,
+        userId: ctx.user.id,
+        action: "VIEW_FULL",
+      });
+
       // Create Paystack transfer recipient
       const paystack = new PaystackProvider();
       let recipientCode = "";
@@ -903,6 +921,11 @@ export const adminRouter = createTRPCRouter({
       }
 
       await ctx.prisma.$transaction(async (tx) => {
+        // F-23: serialize verifications per company so two concurrent
+        // verifications cannot both observe "no default" and both set
+        // isDefault=true. Lock the company row first.
+        await tx.$queryRaw`SELECT id FROM "company" WHERE id = ${bankAccount.companyId} FOR UPDATE`;
+
         // Check if there is already a default bank account for the company
         const existingDefault = await tx.bankAccount.findFirst({
           where: { companyId: bankAccount.companyId, isDefault: true, isVerified: true },
@@ -922,6 +945,16 @@ export const adminRouter = createTRPCRouter({
         });
 
         if (isDefault) {
+          // Clear any other default for this company so exactly one remains.
+          await tx.bankAccount.updateMany({
+            where: {
+              companyId: bankAccount.companyId,
+              id: { not: input.bankAccountId },
+              isDefault: true,
+            },
+            data: { isDefault: false },
+          });
+
           await tx.company.update({
             where: { id: bankAccount.companyId },
             data: { paystackTransferRecipientCode: recipientCode },
@@ -1130,7 +1163,7 @@ export const adminRouter = createTRPCRouter({
             description: tx.description,
             metadata: tx.metadata,
             createdAt: tx.createdAt,
-            amount: Number(operatorEntry?.amount || 0),
+            amount: toSafeDisplayNumber(operatorEntry?.amount),
             companyId,
             companyName,
           };
@@ -1223,19 +1256,69 @@ export const adminRouter = createTRPCRouter({
             if (entry.side === "DEBIT") {
               engine.addCredit({
                 accountId: entry.accountId,
-                amount: Number(entry.amount),
+                amount: toSafeDisplayNumber(entry.amount),
                 sequenceNumber: entry.sequenceNumber,
               });
             } else {
               engine.addDebit({
                 accountId: entry.accountId,
-                amount: Number(entry.amount),
+                amount: toSafeDisplayNumber(entry.amount),
                 sequenceNumber: entry.sequenceNumber,
               });
             }
           }
 
           await engine.commit(prismaTx as any);
+
+          // F-21: reverse the PAYMENT_PROCESSOR_FEE recorded at payout time.
+          // Without this the platform keeps a phantom fee debit for a payout
+          // that failed. Mirrors the webhook reversal in payment-service.ts.
+          if (tx.externalPaymentId) {
+            const feeTx = await prismaTx.financialTransaction.findFirst({
+              where: {
+                type: "PAYMENT_PROCESSOR_FEE",
+                externalPaymentId: tx.externalPaymentId,
+                status: { notIn: ["FAILED", "REVERSED"] },
+              },
+              include: { entries: true },
+            });
+
+            if (feeTx && feeTx.entries.length > 0) {
+              const feeReverseEngine = new AccountingEngine("PAYOUT_FEE_REVERSAL", {
+                externalPaymentId: tx.externalPaymentId,
+                description: `Fee reversal for manually failed payout ${tx.id}`,
+                metadata: {
+                  originalFeeTxId: feeTx.id,
+                  originalPayoutTxId: tx.id,
+                  reversedBy: ctx.user.id,
+                  reason: input.reason,
+                },
+              });
+
+              for (const entry of feeTx.entries) {
+                if (entry.side === "DEBIT") {
+                  feeReverseEngine.addCredit({
+                    accountId: entry.accountId,
+                    amount: toSafeDisplayNumber(entry.amount),
+                    sequenceNumber: entry.sequenceNumber,
+                  });
+                } else {
+                  feeReverseEngine.addDebit({
+                    accountId: entry.accountId,
+                    amount: toSafeDisplayNumber(entry.amount),
+                    sequenceNumber: entry.sequenceNumber,
+                  });
+                }
+              }
+
+              await feeReverseEngine.commit(prismaTx as any);
+
+              await prismaTx.financialTransaction.update({
+                where: { id: feeTx.id },
+                data: { status: "REVERSED" },
+              });
+            }
+          }
         });
       }
 
@@ -1258,7 +1341,7 @@ export const adminRouter = createTRPCRouter({
         try {
           const { Novu } = await import("@novu/api");
           const novu = new Novu({ secretKey: novuSecret });
-          const amountVal = Number(operatorEntry?.amount || 0);
+          const amountVal = toSafeDisplayNumber(operatorEntry?.amount);
           for (const owner of owners) {
             if (owner.user.email) {
               await novu.trigger({
@@ -1293,7 +1376,7 @@ export const adminRouter = createTRPCRouter({
           try {
             const { Novu } = await import("@novu/api");
             const novu = new Novu({ secretKey: novuSecret });
-            const amountVal = Number(operatorEntry?.amount || 0);
+            const amountVal = toSafeDisplayNumber(operatorEntry?.amount);
             for (const admin of admins) {
               await novu.trigger({
                 workflowId: "admin-payout-failed",
@@ -1391,12 +1474,12 @@ export const adminRouter = createTRPCRouter({
       return {
         pendingCount:
           (countMap.get("CREATED") ?? 0) + (countMap.get("POSTED") ?? 0),
-        pendingVolumeXOF: Number(pendingSum._sum.amount ?? 0),
+        pendingVolumeXOF: toSafeDisplayNumber(pendingSum._sum.amount),
         settledCount: countMap.get("SETTLED") ?? 0,
-        settledVolumeXOF: Number(settledSum._sum.amount ?? 0),
+        settledVolumeXOF: toSafeDisplayNumber(settledSum._sum.amount),
         failedCount:
           (countMap.get("FAILED") ?? 0) + (countMap.get("REVERSED") ?? 0),
-        failedVolumeXOF: Number(failedSum._sum.amount ?? 0),
+        failedVolumeXOF: toSafeDisplayNumber(failedSum._sum.amount),
         totalCount: statusGroups.reduce((s, g) => s + g._count.id, 0),
       };
     }),
@@ -2309,6 +2392,17 @@ export const adminRouter = createTRPCRouter({
       const prevFrom = new Date(from.getTime() - windowMs);
       const prevTo = from;
 
+      // Pre-fetch the real platform revenue account IDs.
+      // "PLATFORM_FEES" is a virtual alias used in the ledger viewer — it does NOT
+      // exist as a database column value. The actual accounts are COMMISSION_REVENUE
+      // and CONVENIENCE_FEE_REVENUE, provisioned by FinancialAccountService.
+      const accountService = new FinancialAccountService(ctx.prisma);
+      const [platformCommAcct, platformFeeAcct] = await Promise.all([
+        accountService.getPlatformCommissionRevenueAccount(),
+        accountService.getPlatformConvenienceFeeRevenueAccount(),
+      ]);
+      const platformAccountIds = [platformCommAcct.id, platformFeeAcct.id];
+
       // 1. Period Ledgers
       const [
         revenueCurrent,
@@ -2321,7 +2415,7 @@ export const adminRouter = createTRPCRouter({
           where: {
             side: "CREDIT",
             status: "POSTED",
-            account: { accountClass: "PLATFORM_FEES" },
+            accountId: { in: platformAccountIds },
             effectiveAt: { gte: from, lte: to },
           },
         }),
@@ -2330,7 +2424,7 @@ export const adminRouter = createTRPCRouter({
           where: {
             side: "CREDIT",
             status: "POSTED",
-            account: { accountClass: "PLATFORM_FEES" },
+            accountId: { in: platformAccountIds },
             effectiveAt: { gte: prevFrom, lt: prevTo },
           },
         }),
@@ -2387,7 +2481,7 @@ export const adminRouter = createTRPCRouter({
         ctx.prisma.user.count({ where: { role: "TRAVELER" } }),
         ctx.prisma.company.count(),
         ctx.prisma.company.count({ where: { status: "PENDING_VERIFICATION" } }),
-        ctx.prisma.trip.count({ where: { status: { in: ["BOARDING", "DEPARTED"] } } }),
+        ctx.prisma.trip.count({ where: { status: { in: ["BOARDING", "DEPARTED", "DELAYED"] } } }),
         ctx.prisma.booking.count({
           where: { status: "CONFIRMED", createdAt: { gte: from, lte: to } },
         }),
@@ -2397,10 +2491,10 @@ export const adminRouter = createTRPCRouter({
       ]);
 
       // Calculate Period GMV (Platform Revenue + Operator Earnings from Bookings)
-      const currentRevenue = Number(revenueCurrent._sum.amount || 0);
-      const prevRevenue = Number(revenuePrev._sum.amount || 0);
-      const currentOperatorEarnings = Number(operatorEarningsCurrent._sum.amount || 0);
-      const prevOperatorEarnings = Number(operatorEarningsPrev._sum.amount || 0);
+      const currentRevenue = toSafeDisplayNumber(revenueCurrent._sum.amount);
+      const prevRevenue = toSafeDisplayNumber(revenuePrev._sum.amount);
+      const currentOperatorEarnings = toSafeDisplayNumber(operatorEarningsCurrent._sum.amount);
+      const prevOperatorEarnings = toSafeDisplayNumber(operatorEarningsPrev._sum.amount);
 
       const currentGMV = currentRevenue + currentOperatorEarnings;
       const previousGMV = prevRevenue + prevOperatorEarnings;
@@ -2410,7 +2504,7 @@ export const adminRouter = createTRPCRouter({
         where: {
           side: "CREDIT",
           status: "POSTED",
-          account: { accountClass: "PLATFORM_FEES" },
+          accountId: { in: platformAccountIds },
           effectiveAt: { gte: from, lte: to },
         },
         select: { amount: true, effectiveAt: true },
@@ -2441,12 +2535,12 @@ export const adminRouter = createTRPCRouter({
       for (const entry of recentRevenueEntries) {
         const key = entry.effectiveAt.toISOString().slice(0, 10);
         const mapEntry = trendMap[key];
-        if (mapEntry) mapEntry.revenue += Number(entry.amount);
+        if (mapEntry) mapEntry.revenue += toSafeDisplayNumber(entry.amount);
       }
       for (const entry of recentEarningsEntries) {
         const key = entry.effectiveAt.toISOString().slice(0, 10);
         const mapEntry = trendMap[key];
-        if (mapEntry) mapEntry.operator += Number(entry.amount);
+        if (mapEntry) mapEntry.operator += toSafeDisplayNumber(entry.amount);
       }
 
       const revenueTrend = Object.entries(trendMap).map(([date, data]) => ({ 
@@ -2473,9 +2567,9 @@ export const adminRouter = createTRPCRouter({
         bookingDeltaPct,
         
         // Treasury Balances
-        systemLiquidity: Number(systemAssetAcc?.postedBalance || 0),
-        operatorPayables: Number(operatorLiabilitySum._sum.postedBalance || 0),
-        passengerWallets: Number(passengerWalletSum._sum.postedBalance || 0),
+        systemLiquidity: toSafeDisplayNumber(systemAssetAcc?.postedBalance),
+        operatorPayables: toSafeDisplayNumber(operatorLiabilitySum._sum.postedBalance),
+        passengerWallets: toSafeDisplayNumber(passengerWalletSum._sum.postedBalance),
 
         // Platform Health
         travelersCount,

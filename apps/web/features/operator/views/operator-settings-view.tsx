@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { NotificationPreferences } from "@/features/notifications/components/notification-preferences";
 import { format } from "date-fns";
 import { useQueryState, parseAsStringEnum } from "nuqs";
@@ -44,7 +44,7 @@ import {
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
-import { createStorageAdapter } from "../lib/storage-adapter";
+import { useStorageUpload } from "@/lib/storage-client";
 import {
   getCompanyStatusPresentation,
   getBankVerificationState,
@@ -152,18 +152,9 @@ export function OperatorSettingsView() {
   const revealBankMutation = useMutation(
     trpc.operator.revealBankAccount.mutationOptions(),
   );
-  const presignUploadMutation = useMutation(
-    trpc.operator.createPresignedUpload.mutationOptions(),
-  );
-
-  const fileStorage = useMemo(
-    () =>
-      createStorageAdapter(async (input) => {
-        const result = await presignUploadMutation.mutateAsync(input);
-        return { uploadUrl: result.uploadUrl, fileUrl: result.fileUrl };
-      }),
-    [presignUploadMutation],
-  );
+  const { upload: uploadLogo } = useStorageUpload("operator-logo");
+  const { upload: uploadProfilePhoto } = useStorageUpload("operator-profile-photo");
+  const { upload: uploadDocument } = useStorageUpload("operator-document");
 
   const [saving, setSaving] = useState(false);
 
@@ -324,14 +315,15 @@ export function OperatorSettingsView() {
     setUploadProgress(0);
 
     try {
-      const fileUrl = await fileStorage.uploadFile(file, (pct) => {
-        setUploadProgress(pct);
-      });
+      setUploadProgress(10);
+      const { fileUrl, objectKey } = await uploadDocument(file);
+      setUploadProgress(100);
 
       await addDocumentMutation.mutateAsync({
         type,
         fileName: file.name,
         fileUrl,
+        objectKey,
         fileSize: file.size,
         mimeType: file.type || "application/pdf",
         expiresAt: docExpiryDates[type] ? new Date(docExpiryDates[type]).toISOString() : undefined,
@@ -369,7 +361,7 @@ export function OperatorSettingsView() {
     try {
       setProfileImageUploading(true);
       toast.loading("Uploading profile photo...", { id: "profile-upload" });
-      const fileUrl = await fileStorage.uploadFile(file);
+      const { fileUrl } = await uploadProfilePhoto(file);
       await updateProfileMutation.mutateAsync({ profilePhotoUrl: fileUrl });
       toast.success("Profile photo updated", { id: "profile-upload" });
     } catch (err: any) {
@@ -386,7 +378,7 @@ export function OperatorSettingsView() {
 
     try {
       toast.loading("Uploading logo...", { id: "logo-upload" });
-      const fileUrl = await fileStorage.uploadFile(file);
+      const { fileUrl } = await uploadLogo(file);
       await updateCompanyMutation.mutateAsync({ logoUrl: fileUrl });
 
       toast.success("Company logo updated successfully", { id: "logo-upload" });

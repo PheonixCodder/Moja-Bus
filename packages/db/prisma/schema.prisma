@@ -202,6 +202,7 @@ model User {
   workPhone String? @unique
 
   passwordHash String?
+  twoFactorEnabled  Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -217,6 +218,7 @@ model User {
   companiesVerified            Company[]             @relation("CompanyVerifiedBy")
   bankAccountsVerified         BankAccount[]         @relation("BankAccountVerifiedBy")
   companyVerificationsReviewed CompanyVerification[] @relation("CompanyVerificationReviewer")
+  platformSettingsAudits PlatformSettingsAudit[] @relation("PlatformSettingsAuditChangedBy")
 
   // Staff & Activity relations
   sentInvitations     StaffInvitation[] @relation("InvitedBy")
@@ -229,9 +231,9 @@ model User {
   reviews    Review[]
 
   // Blog system relations
-  authoredBlogs       BlogPost[]       @relation("BlogAuthor")
-  reviewedBlogs       BlogPost[]       @relation("BlogReviewer")
-  blogRevisions       BlogRevision[]   @relation("BlogRevisionAuthor")
+  authoredBlogs BlogPost[]     @relation("BlogAuthor")
+  reviewedBlogs BlogPost[]     @relation("BlogReviewer")
+  blogRevisions BlogRevision[] @relation("BlogRevisionAuthor")
 
   @@index([role])
   @@map("user")
@@ -285,6 +287,26 @@ model Verification {
   @@map("verification")
 }
 
+// Self-contained 2FA gate for operator withdrawals (F-18). Stores a hashed
+// one-time withdrawal confirmation code, fully isolated from Better Auth.
+model WithdrawalTwoFactorChallenge {
+  id         String   @id @default(cuid())
+  companyId  String
+  userId     String
+  email      String
+  codeHash   String
+  attempts   Int      @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([userId])
+  @@map("withdrawal_2fa_challenge")
+}
+
 model RateLimit {
   id          String @id
   key         String @unique
@@ -293,7 +315,6 @@ model RateLimit {
 
   @@map("rate_limit")
 }
-
 
 model RefreshToken {
   id        String    @id @default(cuid())
@@ -352,6 +373,7 @@ model Company {
   invitations    StaffInvitation[]
   activityLogs   ActivityLog[]
   bankAccessLogs BankAccessLog[]
+  withdrawalTwoFactorChallenges WithdrawalTwoFactorChallenge[]
   verification   CompanyVerification?
 
   // Fleet & Operations
@@ -390,7 +412,8 @@ model CompanyDocument {
   // Document Details
   type     DocumentType
   fileName String
-  fileUrl  String // S3/Cloudflare URL
+  fileUrl  String // S3/Cloudflare URL (empty for private docs served via signed GET)
+  objectKey String? // S3 object key — authoritative for private documents
   fileSize Int // Bytes
   mimeType String // application/pdf, image/jpeg, etc.
 
@@ -507,6 +530,11 @@ model Operator {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Role & Status
+  // permissions[] is the authoritative IAM action set (see @moja/schemas permissions).
+  // OWNER bypasses checks at runtime — stored set may be empty for owners.
+  permissions            String[]  @default([])
+  permissionsUpdatedAt   DateTime?
+  permissionsUpdatedBy   String?
   role       StaffRole      @default(OWNER)
   status     OperatorStatus @default(ACTIVE)
   isActive   Boolean        @default(true)
@@ -678,6 +706,15 @@ enum TripStatus {
   DELAYED
 }
 
+// DEPRECATED — do not rely on SeatStatus for availability logic.
+// The authoritative seat-availability model is derived at query time, not
+// stored here: a seat is AVAILABLE if a TripSeat exists for the trip AND no
+// CONFIRMED or PENDING_PAYMENT booking claims that seatId for the trip.
+// Booking overlap — not this enum — is the source of truth, so reading
+// SeatStatus will cause double-booking or ghost availability.
+// TripSeat.isActive (below) is the only related field still in use: it marks
+// whether the physical seat is usable (e.g. broken seat blocked by operator),
+// NOT whether it is booked.
 enum SeatStatus {
   AVAILABLE
   HELD
@@ -844,9 +881,11 @@ model Bus {
 
   seats Seat[]
   trips Trip[]
+  preferredForSchedules Schedule[] @relation("SchedulePreferredBus")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([companyId])
   @@index([status])
@@ -942,7 +981,10 @@ model Schedule {
   departureTime String // "06:00" — HH:mm, CI timezone is UTC+0 (no DST)
   isActive      Boolean @default(true)
 
-  // Bus NOT assigned here — assigned per Trip
+  // Preferred bus for trip generation only — trips remain per-trip assignable
+  preferredBusId String?
+  preferredBus   Bus?    @relation("SchedulePreferredBus", fields: [preferredBusId], references: [id], onDelete: SetNull)
+
   calendar   ServiceCalendar?
   exceptions ServiceException[]
   fares      Fare[]
@@ -954,6 +996,7 @@ model Schedule {
   @@index([companyId])
   @@index([routeId])
   @@index([isActive])
+  @@index([preferredBusId])
   @@map("schedule")
 }
 
@@ -985,9 +1028,12 @@ model ServiceException {
   type   ExceptionType
   reason ExceptionReason @default(OPERATIONAL)
   notes  String?
+  /// HH:mm override used when type === MODIFIED
+  overrideDepartureTime String?
 
   @@index([scheduleId])
   @@index([date])
+  @@unique([scheduleId, date])
   @@map("service_exception")
 }
 
@@ -1065,6 +1111,7 @@ model Trip {
   @@index([busId])
   @@index([status])
   @@index([departureDate])
+  @@unique([scheduleId, departureDate])
   @@map("trip")
 }
 
@@ -1102,6 +1149,11 @@ model TripSeat {
   seatId String
   seat   Seat   @relation(fields: [seatId], references: [id])
 
+  // Marks whether the PHYSICAL seat is usable (false = blocked/damaged by the
+  // operator). This is independent of booking state. Seat AVAILABILITY for a
+  // trip is NOT stored here — it is derived from booking overlap (see the
+  // SeatStatus enum note). A seat with isActive=false should be excluded from
+  // the selectable seat map entirely.
   isActive      Boolean @default(true) // false = blocked/damaged
   blockedReason String?
 
@@ -1121,20 +1173,39 @@ model TripSeat {
 model PlatformSettings {
   id String @id @default("default")
 
-  defaultCommissionBps      Int @default(500) // 5.00%
-  defaultConvenienceFeeBps  Int @default(250) // 2.50%
+  defaultCommissionBps      Int @default(500)
+  defaultConvenienceFeeBps  Int @default(250)
   paystackFeeLocalCardBps   Int @default(320)
   paystackFeeIntlCardBps    Int @default(380)
   paystackFeeMobileMoneyBps Int @default(195)
 
-  // Withdrawal Limits
-  minWithdrawalAmount      Int @default(5000) // Minimum amount an operator can withdraw
-  withdrawalFrequencyHours Int @default(24) // How often an operator can withdraw
+  minWithdrawalAmount      Int @default(5000)
+  withdrawalFrequencyHours Int @default(24)
+
+  require2FAForWithdrawals Boolean @default(false)
 
   updatedAt DateTime @updatedAt
 
   @@map("platform_settings")
 }
+
+
+model PlatformSettingsAudit {
+  id            String   @id @default(cuid())
+  settingKey    String
+  oldValue      Json?
+  newValue      Json
+  changedById   String
+  changedByUser User     @relation("PlatformSettingsAuditChangedBy", fields: [changedById], references: [id])
+  changeReason  String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([settingKey])
+  @@index([changedById])
+  @@map("platform_settings_audit")
+}
+
 
 model CommissionDistanceTier {
   id            String  @id @default(cuid())
@@ -1409,6 +1480,7 @@ model WalletReservation {
   currency  String            @default("XOF")
   status    ReservationStatus @default(ACTIVE)
   expiresAt DateTime
+  releasedAt DateTime? // null until the reserved balance is released back to available; claim guard for the release-reservations cron (exactly-once + crash recovery)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1506,12 +1578,17 @@ model Review {
   authorId String
   author   User    @relation(fields: [authorId], references: [id])
 
+  // Operator's public response to the passenger's review (L11).
+  response    String?   @db.Text
+  respondedAt DateTime?
+
   bookingId String?  @unique
   booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([companyId])
   @@map("review")
 }
 
@@ -1559,6 +1636,8 @@ model StaffInvitation {
   id           String           @id @default(cuid())
   email        String
   role         StaffRole        @default(OPERATIONS)
+  /// Snapshot of IAM actions granted at invite time; copied onto Operator on accept.
+  permissions  String[]         @default([])
   jobTitle     String?
   message      String?
   companyId    String
@@ -1586,6 +1665,8 @@ model ActivityLog {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   action      String
+  metadata     Json?
+  targetUserId String?
   description String
   createdAt   DateTime @default(now())
 
@@ -1638,9 +1719,9 @@ model BlogCategory {
   slug        String         @unique
   description String?
   posts       BlogPost[]
-  
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("blog_category")
 }
@@ -1655,45 +1736,45 @@ model BlogTag {
 }
 
 model BlogPost {
-  id             String         @id @default(cuid())
-  status         BlogPostStatus @default(DRAFT)
-  
-  title          String
-  slug           String         @unique
-  
-  content        String         @db.Text
-  excerpt        String?        @db.Text
-  
+  id     String         @id @default(cuid())
+  status BlogPostStatus @default(DRAFT)
+
+  title String
+  slug  String @unique
+
+  content String  @db.Text
+  excerpt String? @db.Text
+
   // Author Display Overrides
-  authorId          String
-  author            User     @relation("BlogAuthor", fields: [authorId], references: [id])
-  displayAuthorName String?  
-  displayAuthorBio  String?
+  authorId            String
+  author              User    @relation("BlogAuthor", fields: [authorId], references: [id])
+  displayAuthorName   String?
+  displayAuthorBio    String?
   displayAuthorAvatar String?
-  
+
   // Images & Media
-  coverImage        String?
-  coverImageBlur    String?
-  coverImageAlt     String?
-  coverImageCredit  String?
-  ogImage           String? 
-  
+  coverImage       String?
+  coverImageBlur   String?
+  coverImageAlt    String?
+  coverImageCredit String?
+  ogImage          String?
+
   // Precomputed & Metadata
-  readingTime    Int            @default(0) 
-  wordCount      Int            @default(0)
-  language       String         @default("en")
-  
+  readingTime Int    @default(0)
+  wordCount   Int    @default(0)
+  language    String @default("en")
+
   // Feature flags
-  featured       Boolean        @default(false)
-  featuredOrder  Int?
-  allowIndex     Boolean        @default(true)
-  allowComments  Boolean        @default(false)
-  
+  featured      Boolean @default(false)
+  featuredOrder Int?
+  allowIndex    Boolean @default(true)
+  allowComments Boolean @default(false)
+
   // SEO Metadata
   seoTitle           String?
   seoDescription     String?
   canonicalUrl       String?
-  robots             String? 
+  robots             String?
   ogTitle            String?
   ogDescription      String?
   twitterTitle       String?
@@ -1701,30 +1782,30 @@ model BlogPost {
   twitterImage       String?
 
   // Timestamps & Workflow
-  scheduledFor   DateTime?
-  publishedAt    DateTime?
-  lastReviewedAt DateTime?
+  scheduledFor     DateTime?
+  publishedAt      DateTime?
+  lastReviewedAt   DateTime?
   lastReviewedById String?
-  reviewer          User?    @relation("BlogReviewer", fields: [lastReviewedById], references: [id])
-  
+  reviewer         User?     @relation("BlogReviewer", fields: [lastReviewedById], references: [id])
+
   // Soft Delete
-  deletedAt      DateTime?
-  deletedById    String?
+  deletedAt   DateTime?
+  deletedById String?
 
   // Analytics Base
-  viewCount      Int @default(0)
+  viewCount      Int   @default(0)
   completionRate Float @default(0)
 
   // Relations
-  categoryId     String?
-  category       BlogCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  tags           BlogTag[]
-  
-  revisions      BlogRevision[]
-  events         BlogEvent[]
+  categoryId String?
+  category   BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags       BlogTag[]
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  revisions BlogRevision[]
+  events    BlogEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([slug])
   @@index([status, publishedAt])
@@ -1733,13 +1814,13 @@ model BlogPost {
 }
 
 model BlogRevision {
-  id         String   @id @default(cuid())
-  postId     String
-  post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  content    String   @db.Text
+  id          String   @id @default(cuid())
+  postId      String
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  content     String   @db.Text
   changedById String
-  changedBy  User     @relation("BlogRevisionAuthor", fields: [changedById], references: [id])
-  createdAt  DateTime @default(now())
+  changedBy   User     @relation("BlogRevisionAuthor", fields: [changedById], references: [id])
+  createdAt   DateTime @default(now())
 
   @@map("blog_revision")
 }
@@ -1757,22 +1838,22 @@ model BlogRedirect {
   id          String   @id @default(cuid())
   source      String   @unique
   destination String
-  type        Int      @default(301) 
+  type        Int      @default(301)
   createdAt   DateTime @default(now())
 
   @@map("blog_redirect")
 }
 
 model BlogEvent {
-  id        String   @id @default(cuid())
-  postId    String
-  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  
+  id     String   @id @default(cuid())
+  postId String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   eventType BlogEventType
-  userId    String?  
-  sessionId String?  
+  userId    String?
+  sessionId String?
   metadata  Json?
-  
+
   createdAt DateTime @default(now())
 
   @@index([postId, eventType])

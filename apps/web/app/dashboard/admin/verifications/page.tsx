@@ -8,7 +8,7 @@ import { DashboardHeader } from "@/features/admin/components/dashboard-header";
 export const metadata = {
   title: "Verification Queue — Moja Ride Admin",
   description:
-    "Review operator legal documents, tax clearance files, and bank details. Approve to provision a dynamic Paystack split subaccount.",
+    "Review operator legal documents, tax clearance files, and bank details. Approve to activate the operator's internal ledger account and register them as a Paystack Transfer Recipient.",
 };
 
 export default async function VerificationsQueuePage({
@@ -53,7 +53,7 @@ export default async function VerificationsQueuePage({
               Verification Queue
             </h1>
             <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Review operator legal documents, tax clearance files, and bank details. Approve to provision a dynamic Paystack split subaccount.
+              Review operator legal documents, tax clearance files, and bank details. Approve to activate the operator's internal ledger account and register them as a Paystack Transfer Recipient.
             </p>
           </div>
           <Suspense

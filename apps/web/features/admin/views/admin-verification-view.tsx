@@ -14,6 +14,7 @@ import {
   Mail,
   ExternalLink,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import {
   Table,
@@ -340,18 +341,7 @@ export function AdminVerificationView() {
                           </div>
                         </div>
                         {doc.fileUrl && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 gap-1 text-xs"
-                            nativeButton={false}
-                            render={
-                              <a href={doc.fileUrl} target="_blank" rel="noreferrer">
-                                Open File
-                                <ExternalLink className="size-3" />
-                              </a>
-                            }
-                          />
+                          <VerificationDocumentLink doc={doc} />
                         )}
                       </div>
                     ))
@@ -522,5 +512,51 @@ export function AdminVerificationView() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/**
+ * Opens a compliance document via a short-lived signed GET URL (private docs)
+ * or directly for legacy public documents.
+ */
+function VerificationDocumentLink({ doc }: { doc: any }) {
+  const trpc = useTRPC();
+  const [opening, setOpening] = useState(false);
+  const downloadMutation = useMutation(
+    trpc.storage.presignDownload.mutationOptions(),
+  );
+
+  const handleOpen = async () => {
+    if (!doc.objectKey && doc.fileUrl) {
+      window.open(doc.fileUrl, "_blank", "noreferrer");
+      return;
+    }
+    try {
+      setOpening(true);
+      const { downloadUrl } = await downloadMutation.mutateAsync({
+        purpose: "operator-document",
+        documentId: doc.id,
+      });
+      window.open(downloadUrl, "_blank", "noreferrer");
+    } finally {
+      setOpening(false);
+    }
+  };
+
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      className="h-8 gap-1 text-xs"
+      disabled={opening}
+      onClick={handleOpen}
+    >
+      {opening ? (
+        <Loader2 className="size-3 animate-spin" />
+      ) : (
+        <ExternalLink className="size-3" />
+      )}
+      Open File
+    </Button>
   );
 }

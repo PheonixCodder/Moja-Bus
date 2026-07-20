@@ -31,9 +31,12 @@ After building any component, update this file with the component name, file pat
 - `apps/web/features/operator/views/operator-dashboard-view.tsx`: Operator dashboard landing overview rendering company details and verification status.
 - `apps/web/features/operator/views/operator-fleet-view.tsx`: Fleet management dashboard with bus table grid and Add Bus popover form.
 - `apps/web/features/operator/views/operator-routes-view.tsx`: Full Route Builder page with drag-and-drop stop sequence reordering, Leaflet map previews, and search-equipped Combobox selectors.
-- `apps/web/features/operator/views/operator-schedules-view.tsx`: 4-step Schedule Wizard page with calendar recurrence toggles, triangle fare pricing grid, and date generation preview.
-- `apps/web/features/operator/views/operator-trips-view.tsx`: Dispatch Board page grouped by departure dates with seat fill indicators, inline bus assignments, and manifest drawer supporting passenger lists, check-ins, and board/delay/cancel controls.
-- `apps/web/features/operator/views/operator-withdraw-view.tsx`: Self-serve operator payout withdrawal portal displaying Available vs Escrow (Pending) balances and payout request form.
+- `apps/web/features/operator/views/operator-schedules-view.tsx`: Thin orchestrator — list filters/pagination (nuqs), IAM-gated actions, 4-step wizard, edit drawer. Components under `features/operator/components/schedules/`.
+- `apps/web/features/operator/views/operator-trips-view.tsx`: Thin Dispatch Board orchestrator — nuqs filters, Abidjan day grouping, pagination, IAM-gated fleet/actions. Composes `features/operator/components/trips/*`.
+- `apps/web/features/operator/components/trips/`: Trip card, toolbar, status badge, segment occupancy, manifest drawer (board/depart/arrive/delay/cancel, gate/notes, check-in).
+- `apps/web/features/operator/views/operator-bookings-view.tsx`: Bookings list with nuqs filters/pagination, check-in scanner, CSV export, detail drawer cancel via `operator.cancelBooking`.
+- `apps/web/features/operator/views/operator-withdraw-view.tsx`: Self-serve operator payout withdrawal portal displaying Available vs Escrow (`liveReservedBalance`); bank-not-verified banner gates withdraw.
+- `apps/web/features/operator/components/revenue/transaction-ledger-table.tsx`: Ledger table with CSV export via `operator.exportLedgerCsv`.
 - `apps/web/app/dashboard/operator/(dashboard)/withdraw/page.tsx`: Page wrapper for `OperatorWithdrawView`.
 - `apps/web/features/operator/components/operator-quick-actions.tsx`: Header-level dashboard quick actions supporting query-parameter-driven form automation.
 
@@ -47,9 +50,13 @@ After building any component, update this file with the component name, file pat
 - **`CompanyLocation` (Terminal)**: Operator depots from onboarding. `isTerminal=true` makes them bookable passenger stops. Linked to `City` via `cityId`.
 
 ## Backend Services (tRPC Routers under `apps/web/trpc/routers`)
-- `apps/web/lib/trip-generator.ts`: Auto-generates rolling 14-day `Trip`, `TripStop`, and `TripSeat` records from a Schedule + Bus. Called on schedule creation.
-- `apps/web/trpc/routers/trips.ts`: Trip operations router procedures — list, detail, assign bus/driver, delay, cancel, status lifecycle.
-- `apps/web/trpc/routers/schedules.ts`: Schedule CRUD + calendar exceptions procedures. Exceptions auto-cancel pre-generated trips.
+- `apps/web/features/operator/views/operator-schedules-view.tsx`: Thin orchestrator for schedule list, 4-step create wizard, edit drawer, retire/delete. Composes `features/operator/components/schedules/*`.
+- `apps/web/features/operator/components/schedules/`: Wizard steps, toolbar, card, edit drawer, delete dialog, success banner.
+- `apps/web/lib/schedule-trip-window.ts`: Shared candidate departure dates (preview + generator).
+- `apps/web/lib/trip-generator.ts`: Auto-generates rolling 14-day `Trip`, `TripStop`, and `TripSeat` records from a Schedule + preferred bus. Honors `isActive`, EXTRA_SERVICE, MODIFIED override time.
+- `apps/web/app/api/cron/generate-trips/route.ts`: Daily cron extends active schedules (vercel `0 2 * * *`).
+- `apps/web/trpc/routers/trips.ts`: Trip operations — paginated list (`scheduleId`, status, date window), detail, `assignBus`, delay (incremental), cancel with refunds, status lifecycle graph, gate/notes.
+- `apps/web/trpc/routers/schedules.ts`: Schedule CRUD, retire, reconcileFutureTrips, fare add/update/deactivate, safe exceptions.
 - `apps/web/trpc/routers/routes.ts`: Route + waypoint CRUD procedures.
 - `apps/web/trpc/routers/terminals.ts`: Terminals list procedure.
 - `apps/web/trpc/routers/fleet.ts`: Bus CRUD, bus-types list, seat layout templates list, seat layout per bus.

@@ -7,7 +7,7 @@ import { MoreHorizontal, Mail, Phone } from "lucide-react";
 import type { Table as TableType } from "@tanstack/react-table";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 import { Card, CardContent, CardFooter } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
 import { Badge } from "@moja/ui/components/ui/badge";
@@ -98,6 +98,7 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
                     </DropdownMenu>
                   </div>
                   <Avatar className="size-16 font-medium ring-2 ring-background mt-2">
+                    <AvatarImage src={traveler.image ?? undefined} alt={traveler.name} />
                     <AvatarFallback className={cn("text-lg", getAvatarTone(traveler.name))}>
                       {getInitials(traveler.name)}
                     </AvatarFallback>

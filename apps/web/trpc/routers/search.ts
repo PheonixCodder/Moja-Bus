@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../init";
 import { TripSearchReadRepository } from "@/features/search/repositories/search-read-repository";
 import { SearchFilters, SearchService } from "@/features/search/services/search-service";
+import { toSafeDisplayNumber } from "@/lib/money";
 
 const searchInputSchema = z.object({
   originCityId: z.string(),
@@ -184,7 +185,7 @@ export const searchRouter = createTRPCRouter({
         if (!fare) continue;
 
         const dateStr = originStop.scheduledDeparture.toISOString().split("T")[0]!;
-        const price = Number(fare.priceXOF);
+        const price = toSafeDisplayNumber(fare.priceXOF);
         const existing = priceByDate.get(dateStr);
         if (existing === undefined || price < existing) {
           priceByDate.set(dateStr, price);

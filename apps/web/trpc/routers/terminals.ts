@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+import { requirePermission } from "@/lib/permissions/authorize";
 import { createTerminalSchema, updateTerminalSchema } from "@moja/schemas";
 
 export const terminalsRouter = createTRPCRouter({
@@ -13,6 +14,7 @@ export const terminalsRouter = createTRPCRouter({
         .optional(),
     )
     .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "terminals:read");
       return ctx.prisma.companyLocation.findMany({
         where: {
           companyId: ctx.companyId,
@@ -28,9 +30,9 @@ export const terminalsRouter = createTRPCRouter({
   create: operatorCompanyProcedure
     .input(createTerminalSchema)
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "terminals:create");
       const data = input;
 
-      // Handle isPrimary constraint
       if (data.isPrimary === true) {
         await ctx.prisma.companyLocation.updateMany({
           where: { companyId: ctx.companyId, isPrimary: true },
@@ -69,6 +71,7 @@ export const terminalsRouter = createTRPCRouter({
   update: operatorCompanyProcedure
     .input(z.object({ id: z.string(), data: updateTerminalSchema }))
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "terminals:update");
       const existingLocation = await ctx.prisma.companyLocation.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });
@@ -82,6 +85,37 @@ export const terminalsRouter = createTRPCRouter({
 
       const data = input.data;
 
+      if (data.isActive === false && existingLocation.isActive) {
+        const [linkedRoute, waypoint] = await Promise.all([
+          ctx.prisma.route.findFirst({
+            where: {
+              companyId: ctx.companyId,
+              status: { not: "ARCHIVED" },
+              OR: [
+                { originTerminalId: input.id },
+                { destTerminalId: input.id },
+              ],
+            },
+            select: { id: true, name: true },
+          }),
+          ctx.prisma.routeWaypoint.findFirst({
+            where: {
+              terminalId: input.id,
+              route: { companyId: ctx.companyId, status: { not: "ARCHIVED" } },
+            },
+            select: { id: true },
+          }),
+        ]);
+        if (linkedRoute || waypoint) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: linkedRoute
+              ? `Cannot deactivate this terminal because it is used by route "${linkedRoute.name}".`
+              : "Cannot deactivate this terminal because it is used as a route waypoint.",
+          });
+        }
+      }
+
       if (data.isPrimary === true && !existingLocation.isPrimary) {
         await ctx.prisma.companyLocation.updateMany({
           where: { companyId: ctx.companyId, isPrimary: true },
@@ -89,8 +123,6 @@ export const terminalsRouter = createTRPCRouter({
         });
       }
 
-      // Strip undefined values — Prisma with exactOptionalPropertyTypes
-      // requires fields to be omitted entirely rather than set to undefined.
       const updatePayload = Object.fromEntries(
         Object.entries(data).filter(([, v]) => v !== undefined),
       ) as Parameters<typeof ctx.prisma.companyLocation.update>[0]["data"];
@@ -105,6 +137,7 @@ export const terminalsRouter = createTRPCRouter({
   delete: operatorCompanyProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "terminals:delete");
       const existingLocation = await ctx.prisma.companyLocation.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });

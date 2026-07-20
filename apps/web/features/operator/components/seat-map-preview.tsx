@@ -152,7 +152,8 @@ export function SeatMapPreview({
 
               const isPassenger =
                 seat.seatType === "PASSENGER_WINDOW" ||
-                seat.seatType === "PASSENGER_AISLE";
+                seat.seatType === "PASSENGER_AISLE" ||
+                seat.seatType === "PASSENGER_MIDDLE";
               const isActive = seatStates[seat.id] ?? seat.isActive;
               const isDisabled = seat.seatType === "DRIVER_AREA";
               const isEmpty = seat.seatType === "EMPTY_SPACE";

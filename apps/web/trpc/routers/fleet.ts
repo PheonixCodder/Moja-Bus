@@ -1,16 +1,31 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+import {
+  requirePermission,
+  operatorHasPermission,
+} from "@/lib/permissions/authorize";
+import { createBusSchema } from "@moja/schemas";
 
 export const fleetRouter = createTRPCRouter({
   getBusTypes: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx, "fleet:read");
     return ctx.prisma.busType.findMany({
       where: { isActive: true },
     });
   }),
 
+  getPermissions: operatorCompanyProcedure.query(({ ctx }) => {
+    return {
+      canManageFleet:
+        operatorHasPermission(ctx, "fleet:create") ||
+        operatorHasPermission(ctx, "fleet:update"),
+    };
+  }),
+
   // Platform defaults + calling company's custom layouts
   getLayoutTemplates: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx, "fleet:read");
     return ctx.prisma.seatLayoutTemplate.findMany({
       where: {
         OR: [{ companyId: null }, { companyId: ctx.companyId }],
@@ -27,6 +42,7 @@ export const fleetRouter = createTRPCRouter({
 
   // Company-owned custom layouts only, with bus-use count
   getCustomLayouts: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx, "fleet:read");
     return ctx.prisma.seatLayoutTemplate.findMany({
       where: { companyId: ctx.companyId },
       include: {
@@ -40,37 +56,46 @@ export const fleetRouter = createTRPCRouter({
     });
   }),
 
-  getBuses: operatorCompanyProcedure.query(async ({ ctx }) => {
-    const buses = await ctx.prisma.bus.findMany({
-      where: { companyId: ctx.companyId },
-      include: {
-        busType: true,
-        layoutTemplate: true,
-        _count: { select: { seats: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+  getBuses: operatorCompanyProcedure
+    .input(z.object({ slim: z.boolean().optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:read");
+      const slim = input?.slim ?? false;
+      const buses = await ctx.prisma.bus.findMany({
+        where: { companyId: ctx.companyId, deletedAt: null },
+        include: {
+          busType: true,
+          // Always include layoutTemplate so the return type is uniform across
+          // the slim/non-slim branches (a conditional include would create a
+          // union type where the slim member lacks `layoutTemplate`, breaking
+          // consumers that read the seat layout). `_count` stays slim-only.
+          layoutTemplate: true,
+          ...(slim ? {} : { _count: { select: { seats: true } } }),
+        },
+        orderBy: { createdAt: "desc" },
+      });
 
-    const stats = {
-      total: buses.length,
-      active: buses.filter((b) => b.status === "ACTIVE").length,
-      maintenance: buses.filter((b) => b.status === "MAINTENANCE").length,
-      inactive: buses.filter((b) => b.status === "INACTIVE").length,
-      retired: buses.filter((b) => b.status === "RETIRED").length,
-      totalSeats: buses.reduce(
-        (sum, b) => sum + (b.layoutTemplate?.totalSeats ?? 0),
-        0,
-      ),
-    };
+      const stats = {
+        total: buses.length,
+        active: buses.filter((b) => b.status === "ACTIVE").length,
+        maintenance: buses.filter((b) => b.status === "MAINTENANCE").length,
+        inactive: buses.filter((b) => b.status === "INACTIVE").length,
+        retired: buses.filter((b) => b.status === "RETIRED").length,
+        totalSeats: buses.reduce(
+          (sum, b) => sum + (b.layoutTemplate?.totalSeats ?? 0),
+          0,
+        ),
+      };
 
-    return { buses, stats };
-  }),
+      return { buses, stats };
+    }),
 
   getBusDetails: operatorCompanyProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:read");
       const bus = await ctx.prisma.bus.findFirst({
-        where: { id: input.id, companyId: ctx.companyId },
+        where: { id: input.id, companyId: ctx.companyId, deletedAt: null },
         include: {
           busType: true,
           layoutTemplate: true,
@@ -86,29 +111,20 @@ export const fleetRouter = createTRPCRouter({
     }),
 
   createBus: operatorCompanyProcedure
-    .input(
-      z.object({
-        registrationPlate: z.string().min(1, "Registration plate is required"),
-        busTypeId: z.string(),
-        layoutTemplateId: z.string(),
-        internalName: z.string().optional(),
-        manufactureYear: z.number().int().min(1900).optional(),
-        notes: z.string().optional(),
-      }),
-    )
+    .input(createBusSchema)
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:create");
       // Check if registration plate exists
       const existing = await ctx.prisma.bus.findFirst({
         where: {
           registrationPlate: input.registrationPlate,
-          companyId: ctx.companyId,
         },
       });
 
       if (existing) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: "Bus with this registration plate already exists",
+          message: "This registration plate is already registered to a vehicle in the system. If this is an error, please contact support.",
         });
       }
 
@@ -128,6 +144,13 @@ export const fleetRouter = createTRPCRouter({
         });
       }
 
+      if (template.busTypeId !== input.busTypeId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Selected layout does not match the chosen bus type.",
+        });
+      }
+
       // Use a transaction to create bus and its seats based on template
       return ctx.prisma.$transaction(async (tx) => {
         const bus = await tx.bus.create({
@@ -135,11 +158,11 @@ export const fleetRouter = createTRPCRouter({
             companyId: ctx.companyId,
             registrationPlate: input.registrationPlate,
             internalName: input.internalName ?? null,
-            busTypeId: input.busTypeId,
+            busTypeId: template.busTypeId,
             layoutTemplateId: input.layoutTemplateId,
             manufactureYear: input.manufactureYear ?? null,
             notes: input.notes ?? null,
-            status: "ACTIVE",
+            status: input.status ?? "ACTIVE",
           },
           include: {
             busType: true,
@@ -174,9 +197,9 @@ export const fleetRouter = createTRPCRouter({
         id: z.string(),
         data: z.object({
           registrationPlate: z.string().optional(),
-          internalName: z.string().optional(),
-          manufactureYear: z.number().int().optional(),
-          notes: z.string().optional(),
+          internalName: z.string().nullable().optional(),
+          manufactureYear: z.number().int().nullable().optional(),
+          notes: z.string().nullable().optional(),
           status: z
             .enum(["ACTIVE", "MAINTENANCE", "INACTIVE", "RETIRED"])
             .optional(),
@@ -184,12 +207,28 @@ export const fleetRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:update");
       const bus = await ctx.prisma.bus.findFirst({
-        where: { id: input.id, companyId: ctx.companyId },
+        where: { id: input.id, companyId: ctx.companyId, deletedAt: null },
       });
 
       if (!bus) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Bus not found" });
+      }
+
+      if (input.data.status === "RETIRED" && bus.status !== "RETIRED") {
+        const activeTrip = await ctx.prisma.trip.findFirst({
+          where: {
+            busId: bus.id,
+            status: { in: ["SCHEDULED", "BOARDING"] },
+          },
+        });
+        if (activeTrip) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot retire a vehicle that is assigned to an active trip.",
+          });
+        }
       }
 
       // exactOptionalPropertyTypes compliance: strip undefined
@@ -197,7 +236,23 @@ export const fleetRouter = createTRPCRouter({
         Object.entries(input.data).filter(([, v]) => v !== undefined),
       ) as Parameters<typeof ctx.prisma.bus.update>[0]["data"];
 
-      return ctx.prisma.bus.update({
+      let warning: string | undefined;
+
+      if (input.data.status && input.data.status !== "ACTIVE") {
+        const schedulesCount = await ctx.prisma.schedule.count({
+          where: { preferredBusId: bus.id, companyId: ctx.companyId }
+        });
+        
+        if (schedulesCount > 0) {
+          await ctx.prisma.schedule.updateMany({
+            where: { preferredBusId: bus.id, companyId: ctx.companyId },
+            data: { preferredBusId: null },
+          });
+          warning = `This bus was the preferred vehicle for ${schedulesCount} schedule(s). Those schedules now have no preferred bus and will stop generating trips.`;
+        }
+      }
+
+      const updatedBus = await ctx.prisma.bus.update({
         where: { id: input.id },
         data: updateData,
         include: {
@@ -205,13 +260,19 @@ export const fleetRouter = createTRPCRouter({
           layoutTemplate: true,
         },
       });
+
+      return {
+        ...updatedBus,
+        warning
+      };
     }),
 
   deleteBus: operatorCompanyProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:delete");
       const bus = await ctx.prisma.bus.findFirst({
-        where: { id: input.id, companyId: ctx.companyId },
+        where: { id: input.id, companyId: ctx.companyId, deletedAt: null },
       });
 
       if (!bus) {
@@ -253,8 +314,13 @@ export const fleetRouter = createTRPCRouter({
         });
       }
 
-      await ctx.prisma.bus.delete({
+      await ctx.prisma.bus.update({
         where: { id: input.id },
+        data: {
+          deletedAt: new Date(),
+          status: "RETIRED",
+          registrationPlate: `DELETED_${Date.now()}_${bus.registrationPlate}`,
+        },
       });
 
       return { success: true };
@@ -269,9 +335,10 @@ export const fleetRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:update");
       // First verify the bus belongs to the company
       const bus = await ctx.prisma.bus.findFirst({
-        where: { id: input.busId, companyId: ctx.companyId },
+        where: { id: input.busId, companyId: ctx.companyId, deletedAt: null },
       });
 
       if (!bus) {
@@ -287,13 +354,13 @@ export const fleetRouter = createTRPCRouter({
       }
 
       const futureTrips = await ctx.prisma.trip.findMany({
-        where: { busId: input.busId, status: "SCHEDULED" },
+        where: { busId: input.busId, status: { in: ["SCHEDULED", "BOARDING", "DELAYED"] } },
         select: { id: true },
       });
       const futureTripIds = futureTrips.map((t) => t.id);
 
       let unbookedTripIds = futureTripIds;
-      if (futureTripIds.length > 0) {
+      if (futureTripIds.length > 0 && !input.isActive) {
         const bookedTrips = await ctx.prisma.booking.findMany({
           where: {
             seatId: input.seatId,
@@ -302,8 +369,13 @@ export const fleetRouter = createTRPCRouter({
           },
           select: { tripId: true },
         });
-        const bookedTripIds = bookedTrips.map((b) => b.tripId);
-        unbookedTripIds = futureTripIds.filter((id) => !bookedTripIds.includes(id));
+
+        if (bookedTrips.length > 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot disable seat: It is actively booked on an upcoming/boarding trip. Reassign the passenger first.",
+          });
+        }
       }
 
       return ctx.prisma.$transaction(async (tx) => {
@@ -348,6 +420,7 @@ export const fleetRouter = createTRPCRouter({
             seatType: z.enum([
               "PASSENGER_WINDOW",
               "PASSENGER_AISLE",
+              "PASSENGER_MIDDLE",
               "DRIVER_AREA",
               "EMPTY_SPACE",
             ]),
@@ -357,6 +430,7 @@ export const fleetRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:create");
       // Guard: no duplicate name per company
       const existing = await ctx.prisma.seatLayoutTemplate.findFirst({
         where: { name: input.name, companyId: ctx.companyId },
@@ -371,7 +445,8 @@ export const fleetRouter = createTRPCRouter({
       const totalSeats = input.seats.filter(
         (s) =>
           s.seatType === "PASSENGER_WINDOW" ||
-          s.seatType === "PASSENGER_AISLE",
+          s.seatType === "PASSENGER_AISLE" ||
+          s.seatType === "PASSENGER_MIDDLE",
       ).length;
 
       if (totalSeats === 0) {
@@ -402,6 +477,7 @@ export const fleetRouter = createTRPCRouter({
   deleteCustomLayout: operatorCompanyProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:delete");
       const layout = await ctx.prisma.seatLayoutTemplate.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });

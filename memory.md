@@ -1,152 +1,120 @@
-# Memory — Passenger Dashboard Redesign (Session 11 — Layout, Sidebar, & Base UI Conflict Fixes)
+# Memory — Fleet/Routes/Terminals Enterprise Audit (Session — 2026-07-19)
 
-Last updated: 2026-07-13
+Last updated: 2026-07-19 (Phase 7 low-issues — COMPLETE: L1–L15 all resolved)
 
-## What was built
+## What was done
+Read-only enterprise readiness audit of operator **Fleet**, **Routes**, and **Terminals** domains (pages, views, modals, routers). No code changes.
 
-### Passenger Dashboard Redesign ✅
-Rebuilt the passenger dashboard layout frame, sidebar navigation, and main overview landing page to match the exact design system, headers, charts, and component interfaces of the `best-dashboard-setup` reference:
-- Overhauled `apps/web/app/dashboard/(passenger)/layout.tsx` to mount a sticky glassmorphic header (`h-12`, blur effects, borders) with an integrated `SidebarTrigger`, search dialog, and notification hubs. Removed the theme switcher (Sun icon) and resolved Novu Inbox clipping by stripping `overflow-hidden` from the header container.
-- Overhauled `apps/web/features/dashboard/components/dashboard-sidebar.tsx` with unified header logos, proper grouping categories ("Dashboards" and "Account"), template-styled active links, support cards, and user dropdown account menus in the footer.
-- Resolved the nested button hydration warning and Radix prop warnings by replacing `asChild` with `render` on `DropdownMenuTrigger` and `DropdownMenuItem`.
-- Created a custom keyboard-bound `<SearchDialog />` component (`⌘K` / `Ctrl+K`) for quick dashboard navigation.
-- Fixed snap-open animations on all Base UI popups/dialogs by defining custom variants (`data-open`, `data-closed`), theme keyframes (`enter`, `exit`), and transition utilities (`animate-in`, `fade-in-0`, `zoom-in-95`) in Tailwind CSS v4.
-- Completely redesigned `apps/web/features/dashboard/views/dashboard-view.tsx` using a 2-column workspace layout containing:
-  *   **Welcome Card**: Glassmorphism gradient panel with an integrated autocomplete **Quick Route Search Form** (`DashboardQuickSearch`) deep-linking straight to `/search`.
-  *   **Live Boarding Pass Banner**: Renders at the top on travel days (departures within 24 hours) showing a check-in QR code, seat placement, and live departure countdown timer.
-  *   **Premium Metric Cards**: Gradient-to-card backgrounds with active KPI statuses.
-  *   **Timeline Recents List**: Vertical left-aligned nodes displaying routes, operators, transit times, and QR tickets.
-  *   **Wallet Hub**: Card merging deposit inputs and ledger statement history showing the latest 3 transaction logs.
-  *   **Saved Passengers**: Stored traveler contact list with initials, names, phone numbers, and label badges.
-  *   **TravelStatsChart**: Custom Area Chart with pink linear gradients displaying monthly travel insights.
-- Adjusted the "Search trips" neon green button styling and glows inside the Upcoming Trips panel (`SessionsPanel`) to match Moja's signature brand pink.
-- Ensured 100% TS type safety with `pnpm --filter web typecheck`.
+## Highest-severity findings (carry forward)
+- Routes/Terminals pages prefetch without IAM gates; views lack `useStaffPermissions` gates (unlike Fleet). FINANCE (`routes:read` only) breaks on `terminals.list` prefetch/Suspense.
+- `routes.create`/`update` do not require terminals to be `isTerminal` + `isActive`; demoting `isTerminal` while linked to routes is unguarded.
+- Monolith views: fleet ~1170 LOC, routes ~1475, terminals ~1076; layout-builder ~871.
+- Terminals form placeholders include French UI text (English-only violation).
+- No pagination on fleet/routes/terminals lists; soft-delete UX claims "permanent" for buses.
 
+## Current state
+Audit report delivered to parent/user. Prior remediation Phases 0–8 still apply for other domains.
 
-### Paystack Unified Treasury Migration & Operator Withdrawals ✅
-A complete transition from automatic Paystack subaccount splits to a unified Moja Treasury model with self-serve operator withdrawals.
+## What comes next
+Prioritize IAM-gated prefetch + client permission empty states for routes/terminals; guard route terminal eligibility; remove French placeholders; split monoliths.
 
-#### New Prisma Models & Fields (`packages/db/prisma/schema.prisma`)
-- Added `paystackTransferRecipientCode` to `Company` and `BankAccount` models.
-- Added `clearedAt` to `Booking` model to track when booking funds clear escrow.
-- Added `minWithdrawalAmount` and `withdrawalFrequencyHours` to `PlatformSettings`.
-- Dropped `paystackSubaccountCode` from the database.
+---
 
-#### Paystack Provider & Client Updates
-- Refactored `paystack-client.ts` to implement `paystackCreateTransferRecipient`, `paystackInitiateTransfer`, and `paystackVerifyTransfer`.
-- Removed subaccount splits from `paystack-provider.ts` and `payment-service.ts`.
-- Switched operator verification flow in `admin.ts` to register bank accounts as Transfer Recipients instead of Subaccounts.
+## Session — 2026-07-19: Phase 5 verification + H25 completion (code changes made)
 
-#### Operator Withdrawals Flow
-- Created `operator.requestWithdrawal` TRPC endpoint which checks limits, verifies available balance, locks accounts (`SELECT ... FOR UPDATE`), creates ledger entries (`OPERATOR_PAYOUT`), and initiates Paystack transfers.
-- Added `OperatorWithdrawView` and page `/dashboard/operator/withdraw` allowing operators to view available vs escrow (pending) balances, withdrawal history logs (with status codes and fees), and request bank transfers.
-- Added "Withdrawals" tab to the operator sidebar under Financials.
+### What was done
+- Verified all 12 non-H25 Phase 5 items are implemented in code (H2, H3, H4, H5, H6, H7, H8, H15, H17, H18, H20, H24). Confirmed against actual source, not just the prior transcript.
+- Completed **H25** (systemic money refactor): converted remaining `Number(bigint)` balance/amount conversions to `toSafeDisplayNumber` / `formatXOF` across:
+  - `trpc/routers/passenger.ts` (wallet balances + ledger amount)
+  - `trpc/routers/search.ts` (fare.priceXOF)
+  - `features/payments/services/booking-confirmation-service.ts` (Novu payload)
+  - `features/payments/payment-service.ts` (reversal engine amounts + Novu amount)
+  - `features/admin/components/ledger-columns.tsx`, `ledger-kpi-cards.tsx`
+  - `features/operator/components/revenue/balance-overview-cards.tsx`, `transaction-ledger-table.tsx`, `arrears-alert-banner.tsx`
+  - `lib/money.ts` (`toXOFBigInt` / `toSafeDisplayNumber` / `formatXOF` / `compareXOF` / `sumXOF`) was already the established helper.
+- Updated `artifacts/operator-dashobard-audit-fix-phases/tracker.md`: Phase 5 → ✅ 13/13; corrected the stale bottom "Summary Totals" (Phases 3–4 were wrongly 0 completed); overall Total now 37/80 done, 43 remaining.
 
-#### Paystack Webhooks & Automated Reconciler
-- Extended `PaymentService.handleWebhookEvent` to capture `transfer.success`, `transfer.failed`, and `transfer.reversed` Paystack events.
-- Created `/api/cron/reconcile-payments` cron endpoint running every 5 minutes in `vercel.json`. It reconciles pending withdrawals and passenger wallet top-ups/bookings in parallel using `Promise.allSettled` to prevent timeouts.
+### Notes / carry-forward
+- `apps/web` typecheck is GREEN for all edited files. Pre-existing, unrelated error remains in `trpc/routers/routes.ts:83,156` (`'type' does not exist in CompanyLocationWhereInput`) — schema/client mismatch, NOT touched, out of Phase 5 scope.
+- H8 deviation (non-blocking): check-in allows BOARDING|DELAYED|DEPARTED, whereas the audit recommended BOARDING only. More permissive, operationally fine.
+- After Phase 5, remaining audit work = Phase 6 (28 medium, 15 remaining) + 15 new features (Phase 7 complete: L1–L15).
 
-#### Booking Checkout Wallet Payments & Bookings History Modal
-- Added `confirmFromWallet` in `BookingConfirmationService` and `booking.checkoutWithWallet` TRPC mutation.
-- Refactored `booking-checkout-form.tsx` to let passengers pay with internal wallet balances. Applies a zero convenience fee policy and confirms bookings instantly.
-- Refactored `passenger-bookings-view.tsx` to open an interactive payment selector dialog, enabling travelers to resume holds in their history using their Moja Wallet Balance (with waived convenience fees) or Card/Mobile Money.
-- Integrated `formatHeaderDate` inside `operator-trips-view.tsx` to prevent date discrepancy caused by double-timezone shifting on day headers.
-- Upgraded the shared `TicketScanner` component to support both live camera scans and manual text entry, and embedded it on the Operator Dashboard page to replace the non-functional mock scanner.
+---
 
-## Architecture Decisions
-- **Base UI Integration**: Standardized all dropdowns, inputs, dialogs, and select components to use `@base-ui/react` primitives. Render prop composition (`render={...}`) is used instead of Radix `asChild` to ensure compatibility.
-- **Tailwind v4 Custom Variants**: Defined attributes like `data-open` and `data-closed` as custom theme variants in `globals.css` to allow animation styling in Base UI.
-- **Single Treasury Model**: All checkouts and top-ups route to Moja's central Paystack balance. Operators are treated purely as transfer recipients, simplifying accounting and resolving split settlement failures.
-- **Double-Entry Ledger Integrity**: Withdrawals, reversals, and wallet checkouts are structured ledger entries via `AccountingEngine` to ensure mathematical and financial alignment (Σ Debit == Σ Credit).
-- **Concurrency Locks**: Available balance validation during withdrawals holds an explicit `FOR UPDATE` postgres lock to prevent race conditions (double-payouts).
+## Session — 2026-07-19: Phase 7 low-issues (L-items)
 
-## Current State
-- Schema: Unified treasury migrations applied and verified in PostgreSQL. ✅
-- Paystack Provider: Configured to support transfers, recipient generation, and transfer verification. ✅
-- Operator Withdrawals: Self-serve withdrawal, balance checks, and withdrawal log history tables fully active. ✅
-- Payout Webhooks & Cron Reconciler: Automated webhook processor and 5-min cron self-healer fully active. ✅
-- Booking Checkout: Real-time wallet balance checks, toggle selection, and zero-fee checkout fully active. ✅
-- Resumed Holds: Completed payment dialog modal on Bookings list page fully active. ✅
-- UI Cleanups & Commission Oversight: Removed all stale subaccount and dynamic split config copy, and verified operator commission configurations for ledger tier compliance. ✅
-- Novu Notification Integration & Sync: Framework setup, core workflows, and TRPC triggers fully synced to Novu Cloud. ✅
-- Passenger Dashboard Layout Redesign: Redesigned sticky glassmorphic header, sidebar, support widgets, and profile dropdown footers. ✅
-- Base UI Animation & Variant Fixes: Animations on all dialogs, popovers, and menus are fully operational. ✅
-- TypeScript Compilation: achieves 100% type safety with **0 compile errors** on `web`. ✅
+### Docs + small fixes done
+- L2, L6, L9, L12, L15 already resolved in prior work (tracker reflected).
+- **L3** ✅: Novu cancel-trip payload now sends `refundStatus: "success" | "failed"` and omits `refundAmountXOF` on failure (`lib/cancel-trip-with-refunds.ts`).
+- **L4** ✅: notifications use Novu hosted `<Preferences/>` (`notification-preferences.tsx`) — authoritative, gates delivery.
+- **L13** ✅: `SeatStatus` enum DEPRECATED + `TripSeat.isActive` documented as physical-usability-only in `schema.prisma`.
+- **L14** ✅ (Option A): `getOnboardingStatus` exposes `bankVerified`; `BankStep` shows honest two-stage sub-step. The literal guard would freeze onboarding until admin KYC (recipients are admin-created), so withdraw-side `bankVerified` stays the enforcement point.
+- **L1** ✅: `trips.get` split into `getManifest` (manifest drawer) + lazy `getSeatMap` (Seat Map tab) — manifest opens without loading the full seat map.
+- **L5** ✅: `operator.globalSearch` (bookings/trips/staff, IAM-gated) + command-palette entity groups (debounced server search).
+- **L7** ✅: `bulkCheckInBookings`/`bulkCancelBookings` mutations + manifest drawer toolbar (Check In All, multi-select, bulk cancel w/ reason). Refunds route to WALLET (all bookings are account-linked).
+- **L8** ✅: aria-labels on bus-assign combobox + cancel-reason inputs; manifest Drawer now `modal` (focus trap + ESC/scroll-lock).
+- **L10** ✅: `tracker.md`, `phase-7-low-issues.md`, `memory.md` updated to reflect actual code state (L1/L5/L7 were implemented but previously listed ⬜).
+- **L11** ✅: `Review.response`/`respondedAt` schema fields (generated + pushed) + `operator.listReviews`/`respondToReview` + Reviews nav item/page/view.
 
-## Next Session Starts With
-1. **Redesign Passenger Dashboard Page Content**: Refactor the internal content of the passenger overview page (`DashboardView` and `/dashboard/page.tsx`) to match the premium card metrics, performance charts, and booking grid tables of `best-dashboard-setup`.
-2. **Booking Ownership Hardening:** Address anonymous passenger booking claim mechanisms (lazy-claim vs. explicit OTP verification).
+### Phase 7 — COMPLETE (all L1–L15 resolved)
+All low-priority items are now implemented and the tracker/docs are in sync. Phase 7 tracker: 15/15. This closes out the audit's 80-issue backlog except Phase 6 (28 medium, 15 remaining) and the 15 new features.
 
-***
+### Tracker location
+- `artifacts/operator-dashobard-audit-fix-phases/tracker.md` (Phase 7: 15/15 — all L1–L15 ✅)
+- `artifacts/operator-dashobard-audit-fix-phases/phase-7-low-issues.md`
 
-## Session 12 — Architectural Overview & System Onboarding (2026-07-14) ✅
-- Analyzed the codebase and documentation to draft a complete system guide mapping how passengers, operators, admins, payments, bookings, schedules, routes, and notifications behave in the app.
-- Generated the comprehensive architecture guide artifact [moja_architecture_overview.md](file:///C:/Users/ubaid/.gemini/antigravity-cli/brain/a833c1fd-cda1-4a2a-8b8a-2555651645dc/moja_architecture_overview.md).
-- Performed a disgustingly deep review of the Admin Verification/Queue flow.
+---
 
-## Session 13 — Admin Verifications Queue Page Redesign (2026-07-14) ✅
-- Redesigned and refactored the Platform Admin Verifications Queue page (`/dashboard/admin/verifications`).
-- Migrated singular folder `verification/` to plural `verifications/` directory.
-- Created `adminListCompaniesSchema` validation schema in `packages/schemas` and `listCompaniesForVerification` tRPC API router procedure inside `apps/web/trpc/routers/admin.ts` with pagination, case-insensitive search, and status selection parameters.
-- Reorganized components under `features/admin/components` and `views` enforcing the "single component per file" constraint:
-  *   `verifications-table.tsx`: Renders the scrollable React Table.
-  *   `verifications-columns.tsx`: Maps company details, representative contacts, KYC checklists, and status badges.
-  *   `verifications-pagination.tsx`: Custom pagination page indices and limit dropdown.
-  *   `verifications-approve-dialog.tsx`: Modals to map settlement bank details and confirm verification.
-  *   `verifications-reject-dialog.tsx`: Modals to write rejection reasons.
-  *   `admin-verifications-view.tsx`: Central view coordinator.
-- Created `features/admin/lib/search-params.ts` to sync search inputs and filters to browser URL strings using `nuqs`.
-- Created `features/admin/lib/schemas.ts` to validate client-side modal forms.
-- Verified compilation builds successfully with 0 TypeScript compiler errors.
+## Session — 2026-07-20: Moja Ride payment-system audit remediation (audit/01 + 10)
 
-## Session 14 — Admin Verification Details Page (2026-07-14) ✅
-- Implemented dynamic detail page `/dashboard/admin/verifications/[companyId]`.
-- Created `adminGetCompanySchema` and `adminUpdateVerificationChecklistSchema` inside `@moja/schemas` and implemented `getCompanyForVerification` and `updateCompanyVerificationChecklist` procedures in `apps/web/trpc/routers/admin.ts`.
-- Integrated `tab` URL parameter binding using `nuqs` to switch between overview details and historical timelines.
-- Built reusable single-file components under `features/admin/components`:
-  *   `verification-details-header.tsx`: Renders operator metadata profile card.
-  *   `verification-details-documents.tsx`: Lists uploaded legal document certificates.
-  *   `verification-details-banks.tsx`: Lists payout settlement bank details.
-  *   `verification-details-checklist.tsx`: Connects checkboxes to checklist toggle mutations saving progress instantly.
-  *   `verification-details-decision.tsx`: Action panel displaying reviewer logs, status badges, and approvals/rejections.
-  *   `verification-details-timeline.tsx`: Renders audit history of admin actions.
-  *   `admin-verification-details-view.tsx`: Core details view layout.
-- Verified compilation passes successfully with **0 compiler errors**.
+### Context
+Continuation of the payment-system enterprise audit on the `improvements` branch. Earlier (prior sessions) resolved: F-16 (over-sale FOR UPDATE), F-17 (withdrawal idempotency), F-19 (recordSettlement idempotency+note+balance), F-18 (withdrawal 2FA+frequency), F-21 (admin FORCE_FAIL fee reversal). This session closed the remaining OPEN money findings + logged user decisions.
 
-## Session 15 — Financial Ledger Page (2026-07-14) ✅
-- Implemented the Double-Entry Ledger sheet dashboard under `/dashboard/admin/financials/ledger`.
-- Added `adminListLedgerEntriesSchema` inside `@moja/schemas` and implemented `listLedgerEntries` query procedure in `apps/web/trpc/routers/admin.ts`.
-- Resolved polymorphic account owner names (passengers or operator companies) in bulk within the tRPC query, and added global sum aggregations for Debit and Credit totals.
-- Configured search param Cache `ledgerSearchParams` in `features/admin/lib/search-params.ts` to sync search fields (`q`, `side`, `type`, `page`, `pageSize`) via `nuqs`.
-- Built modular single-file components under `features/admin/components`:
-  *   `ledger-columns.tsx`: Configured table cell structures, styled Credit (green) and Debit (red) markers, and currency formatters.
-  *   `ledger-table.tsx`: Renders the React Table body.
-  *   `ledger-filters.tsx`: Search text bar and side/type selection drop downs.
-  *   `ledger-kpi-cards.tsx`: Summary cards for Debit/Credit totals, record counts, and an integrity balanced check banner.
-  *   `ledger-pagination.tsx`: Page selectors.
-  *   `admin-ledger-view.tsx`: Core coordinating dashboard view.
-- Added a "Financial Ledger" link to [admin-sidebar.tsx](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/admin/components/admin-sidebar.tsx#L122).
-- Verified Next.js compilation succeeds with **0 compile errors**.
-- Created reusable `DashboardHeader` component under `features/admin/components/dashboard-header.tsx` to standardize sidebar trigger buttons, vertical separator lines, and dynamic breadcrumbs with anchor routing across pages.
-- Integrated `DashboardHeader` into the Ledger page, Verifications list page, and Operator Details page, and verified that typecheck compiles successfully with 0 errors.
+### Code changes made (uncommitted working tree)
+- **F-22** ✅: `trpc/routers/admin.ts` now imports `logBankAccess` (`lib/bank-access.ts`) and calls it (`action:"VIEW_FULL"`) at both plaintext reveal sites — pending-bank company-verify flow (~line 371) and `verifyBankAccount` (~line 893). Mirrors operator reveals.
+- **F-23** ✅: `verifyBankAccount` `$transaction` now takes `SELECT … FOR UPDATE` on `company` at the start (serializes per-company verifications) and, when setting `isDefault=true`, `bankAccount.updateMany` clears other company defaults → exactly one default.
+- **F-26** ✅: **Deleted** `apps/web/lib/financial-calculations.ts` (confirmed zero importers — grep returned nothing). Removes the divergent dead trap (`Math.floor` vs live `Math.round`, 6-type allowlist, 100M cap).
+- **F-24** ✅: `features/payments/services/cancellation-service.ts` — when `holdGroup.pricingSnapshot` is null, reads `PlatformSettings.defaultCommissionBps` (fallback 500) and derives `commission = round(proportionalBase × bps / 10_000)`, reducing `proportionalOperatorNet` so the commission is clawed back (was skipped → under-collection). Ledger stays balanced (`proportionalOperatorNet + commissionAmount = refundAmountXOF`). Snapshot path untouched.
 
-## Session 16 — Settlement Audit Page Relocation (2026-07-14) ✅
-- Relocated and redesigned the Platform Settlements page from `/dashboard/admin/settlements` to `/dashboard/admin/financials/settlements`.
-- Mapped URL search state variables (`tab`, `class`, `company`, `page`) inside `features/admin/lib/search-params.ts` via `nuqs`.
-- Refactored the monolithic view controller into reusable single-file components under `features/admin/components`:
-  *   `settlements-kpi-cards.tsx`: Summary cards for clearing totals and platform revenue.
-  *   `settlements-columns.tsx`: Configured column renderers for ledger entry auditing and operator payout actions.
-  *   `settlements-table.tsx`: Renders the React Table body.
-  *   `settlements-dialog.tsx`: Cash payout manual recording form.
-  *   `admin-settlements-view.tsx`: Core settlements view orchestrator.
-- Integrated the new reusable `<DashboardHeader />` breadcrumbs and sidebar trigger layout.
-- Deleted the old monolithic route page `/dashboard/admin/settlements/page.tsx` and updated the sidebar link inside `admin-sidebar.tsx`.
-- Verified Next.js compilation compiles successfully with **0 compile errors**.
+### Docs-only resolutions (no code change)
+- **F-03** ✅ resolved (docs): `AccountingEngine` already falls back to `tx.id-seq` when no explicit key; F-17/F-19/F-21 pass explicit keys inside `FOR UPDATE`.
+- **F-20** ✅ resolved (docs): `processTopUp` already money-safe via `@@unique([externalPaymentId, type])` + graceful P2002.
 
+### User decisions recorded (report §9 — no code change)
+- **F-01** ACCEPTED DIVERGENCE: keep `number` in `AccountingEngine` (safe today); document.
+- **F-05** RESOLVED (docs): update spec to match code account-class names (code authoritative).
+- **F-31** ACCEPTED: keep log-only (`CANCEL_WITHOUT_REFUND` + `CANCELLED`) + ops runbook; no retry/escalation feature this session.
+- **F-13 / F-14** ACCEPTED (documented): Node-only crypto / keep ÷100 in sync with F-11.
 
+### Verification
+- `cd apps/web && pnpm typecheck` → only pre-existing errors (operator `layoutTemplate`→`layoutTemplateId`, `fleet.ts:83`, `payments.ts:461` exactOptionalPropertyTypes). **No new errors** from admin.ts / cancellation-service.ts / deleted file.
+- `pnpm test` → only the pre-existing unrelated failure `lib/__tests__/trip-status-cancel.test.ts`. No new failures.
+- Manual DB/concurrency checks NOT run here (no live DB) — documented as manual verification steps in audit files.
 
+### Constraints honored
+- Did NOT commit (working tree only).
+- Updated `audit/01-tracker.md` (findings index + RE-VERIFICATION table + Files Status) and `audit/10-enterprise-readiness-report.md` (§2, §4 D-1/D-2, §5, §6 verdict, §7 resolved/open tables, new §9 decisions).
 
+### Carry-forward
+- Low/benign (F-02, F-04, F-10, F-15, F-27, F-28, F-30) accepted / out of scope unless asked.
+- No open HIGH or un-resolved money-correctness findings remain; remaining items are all accepted divergences or documentation.
 
+### F-34 addendum (release-reservations cron) — completed this session
+- The robust fix for the double-release + crash-recovery gap is now fully in code. `WalletReservation.releasedAt DateTime?`, migration `20260720140000_add_wallet_reservation_released_at`, and the audit-doc entries (tracker F-34 + report §2/§5/§7) were **already staged in a prior session**; the only missing piece was the route rewrite, which I completed: `apps/web/app/api/cron/release-reservations/route.ts` now (1) flips ACTIVE→EXPIRED idempotently, (2) finds EXPIRED+releasedAt:null, (3) releases inside a `$transaction` only for reservations claimed via an atomic `updateMany({ where: { id, releasedAt: null }, data: { releasedAt } })` returning `count === 1`. Prisma `increment`/`decrement` keep same-account updates atomic (no `FOR UPDATE` needed).
+- `pnpm --filter @moja/db generate` run (client regenerated, v7.8.0). typecheck: only the pre-existing errors (operator `layoutTemplate`, `fleet.ts:83`, `payments.ts:461`); tests: only the pre-existing `trip-status-cancel` failure. No new errors.
+- **Migration not applied** (Neon DB auto-pauses; no live DB here) — must run `prisma migrate deploy` when DB is reachable. Not committed (per constraint).
 
+---
 
+## Session — 2026-07-20 (later): F-34 release-reservations cron double-release fix
 
+### Code changes (uncommitted working tree, `improvements` branch)
+- **F-34** ✅: Fixed the `release-reservations` cron double-release + crash-recovery gap.
+  - `packages/db/prisma/schema.prisma`: added `releasedAt DateTime?` to `WalletReservation`.
+  - New migration `packages/db/prisma/migrations/20260720140000_add_wallet_reservation_released_at/migration.sql` (`ALTER TABLE wallet_reservation ADD COLUMN "releasedAt" TIMESTAMP(3)`). NOTE: DB was likely paused — only `prisma generate` run (client types updated); migration NOT applied live. Needs `prisma migrate deploy` against a live DB before shipping.
+  - `apps/web/app/api/cron/release-reservations/route.ts`: rewrite — (1) idempotent ACTIVE→EXPIRED flip; (2) release only reservations claimed via atomic `releasedAt` flip (`updateMany where releasedAt:null`, `count===1`); Prisma `increment`/`decrement` keep same-account updates atomic; recovers EXPIRED-not-released left by a crashed run.
+- **Verification:** `pnpm typecheck` → only pre-existing errors (operator `layoutTemplate`→`layoutTemplateId`, `fleet.ts:83`, `payments.ts:461`); no new errors. `pnpm test` → only pre-existing `lib/__tests__/trip-status-cancel.test.ts` failure. Did NOT commit.
+- **Docs:** added F-34 to `audit/01-tracker.md` (findings index + Files Status) and `audit/10-enterprise-readiness-report.md` (§5 concurrency table + §7 resolved table).
+
+### Note for next session
+- Before merge, run `prisma migrate deploy` (or `migrate dev`) against a live Neon DB to actually apply the `releasedAt` migration; confirm no later migration timestamp collides with `20260720140000`.

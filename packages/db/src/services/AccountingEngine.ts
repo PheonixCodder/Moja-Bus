@@ -200,10 +200,11 @@ export class AccountingEngine {
             id: string;
             posted_balance: number;
             available_balance: number;
+            reserved_balance: number;
             allow_negative_balance: boolean;
           }[]
         >(
-          Prisma.sql`SELECT id, "postedBalance" as posted_balance, "availableBalance" as available_balance, "allowNegativeBalance" as allow_negative_balance FROM "financial_account" WHERE id = ${accountId} FOR UPDATE`
+          Prisma.sql`SELECT id, "postedBalance" as posted_balance, "availableBalance" as available_balance, "reservedBalance" as reserved_balance, "allowNegativeBalance" as allow_negative_balance FROM "financial_account" WHERE id = ${accountId} FOR UPDATE`
         );
 
         if (lockedAccounts.length === 0) {
@@ -214,11 +215,21 @@ export class AccountingEngine {
         const update = accountUpdates.get(accountId)!;
         // PostgreSQL returns BigInt columns as bigint in Node via pgBigInt/prisma raw
         const currentAvailable = BigInt(lockedAccount.available_balance);
-        const newAvailableBalance = currentAvailable + update.delta;
+        const currentReserved = BigInt(lockedAccount.reserved_balance);
+        const newAvailableBalance = currentAvailable + update.availableDelta;
+        const newReservedBalance = currentReserved + update.reservedDelta;
 
-        // Verify sufficient funds if negative balance is disallowed
-        if (!lockedAccount.allow_negative_balance && newAvailableBalance < 0n) {
-          throw new Error(`Insufficient funds for account ${accountId}`);
+        // Verify sufficient funds if negative balance is disallowed.
+        // Debits that releaseFromReserve consume reservedBalance, not available.
+        if (!lockedAccount.allow_negative_balance) {
+          if (update.reservedDelta < 0n && newReservedBalance < 0n) {
+            throw new Error(
+              `Insufficient reserved funds for account ${accountId}`,
+            );
+          }
+          if (update.availableDelta < 0n && newAvailableBalance < 0n) {
+            throw new Error(`Insufficient funds for account ${accountId}`);
+          }
         }
 
         // Apply atomic update now that we hold the lock and verified invariants

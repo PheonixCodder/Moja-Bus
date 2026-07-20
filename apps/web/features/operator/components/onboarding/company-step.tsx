@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
+import { ImageUploadField } from "@/components/image-upload-field";
 import {
   Building2,
   Mail,
@@ -409,14 +410,16 @@ export function CompanyStep({
                 htmlFor="logo-url"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Company Logo URL
+                Company Logo
               </Label>
-              <Input
-                id="logo-url"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="https://image-bucket.com/logo.png"
-                className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
+              <ImageUploadField
+                purpose="operator-logo"
+                value={logoUrl || null}
+                onUploaded={(r) => setLogoUrl(r.fileUrl)}
+                label="Upload logo"
+                hint="PNG or JPG, up to 2MB"
+                shape="square"
+                previewClassName="h-20 w-20"
               />
             </div>
           </div>

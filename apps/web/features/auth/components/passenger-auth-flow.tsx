@@ -37,14 +37,27 @@ export function PassengerAuthFlow({
                                     userType = "passenger",
                                     initialStep = "input",
                                     initialUser,
+                                    callbackUrl,
                                   }: {
   userType?: "passenger" | "operator" | undefined;
   initialStep?: AuthStep | undefined;
   initialUser?: { email?: string; phone?: string } | undefined;
+  callbackUrl?: string | undefined;
 }) {
   const { isPending: authPending, sendPassengerOtp, verifyPassengerOtp } = useAuth();
   const trpc = useTRPC();
   const router = useRouter();
+
+  function resolvePostAuthPath(fallback = "/dashboard") {
+    if (userType !== "passenger") return fallback;
+    if (!callbackUrl) return fallback;
+    // Inline safe check to avoid circular import issues in client bundle
+    const trimmed = callbackUrl.trim();
+    if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("://")) {
+      return fallback;
+    }
+    return trimmed;
+  }
 
   const [step, setStep] = useState<AuthStep>(initialStep);
   const [direction, setDirection] = useState(1);
@@ -75,7 +88,7 @@ export function PassengerAuthFlow({
       trpc.passenger.updatePreferences.mutationOptions({
         onSuccess: () => {
           toast.success("Profile setup complete!");
-          router.push("/dashboard");
+          router.push(resolvePostAuthPath("/dashboard"));
           router.refresh();
         },
         onError: (err) => {
@@ -273,7 +286,7 @@ export function PassengerAuthFlow({
           setDirection(1);
           setStep("profile");
         } else {
-          router.push("/dashboard");
+          router.push(resolvePostAuthPath("/dashboard"));
           router.refresh();
         }
       }
@@ -356,7 +369,7 @@ export function PassengerAuthFlow({
                         onClick={async () => {
                           await authClient.signIn.social({
                             provider: "google",
-                            callbackURL: "/dashboard",
+                            callbackURL: resolvePostAuthPath("/dashboard"),
                           });
                         }}
                     >

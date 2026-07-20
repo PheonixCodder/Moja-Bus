@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import {
-  useSuspenseQuery,
+  useSuspenseQueries,
   useMutation,
   useQueryClient,
   useQuery,
 } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useQueryState, parseAsString, parseAsBoolean } from "nuqs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@moja/ui/components/ui/tabs";
 import {
   MapPin,
   Plus,
@@ -135,15 +137,15 @@ export function OperatorTerminalsView() {
   const router = useRouter();
 
   // Data queries
-  const { data: locations } = useSuspenseQuery(
-    trpc.terminals.list.queryOptions(),
-  );
-  const { data: cities } = useSuspenseQuery(
-    trpc.routes.getCities.queryOptions(),
-  );
+  const [{ data: locations }, { data: cities }] = useSuspenseQueries({
+    queries: [
+      trpc.terminals.list.queryOptions(),
+      trpc.routes.getCities.queryOptions(),
+    ],
+  });
 
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  const [search, setSearch] = useQueryState("search", parseAsString.withDefault(""));
+  const [typeFilter, setTypeFilter] = useQueryState("typeFilter", parseAsString.withDefault("ALL"));
 
   // Mutations
   const createMutation = useMutation(
@@ -166,7 +168,7 @@ export function OperatorTerminalsView() {
   );
 
   // Form State
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useQueryState("drawer", parseAsBoolean.withDefault(false));
   const [editingLocation, setEditingLocation] = useState<any>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -175,6 +177,8 @@ export function OperatorTerminalsView() {
   const [name, setName] = useState("");
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
+  const [stateValue, setStateValue] = useState("");
+  const [postalCode, setPostalCode] = useState("");
   const [phone, setPhone] = useState("");
   const [cityId, setCityId] = useState("");
   const [latitude, setLatitude] = useState("");
@@ -205,6 +209,8 @@ export function OperatorTerminalsView() {
     setName("");
     setAddressLine1("");
     setAddressLine2("");
+    setStateValue("");
+    setPostalCode("");
     setPhone("");
     setCityId("");
     setLatitude("");
@@ -225,6 +231,8 @@ export function OperatorTerminalsView() {
     setName(loc.name);
     setAddressLine1(loc.addressLine1);
     setAddressLine2(loc.addressLine2 ?? "");
+    setStateValue(loc.state ?? "");
+    setPostalCode(loc.postalCode ?? "");
     setPhone(loc.phone);
     setCityId(loc.cityId ?? "");
     setLatitude(loc.latitude ? String(loc.latitude) : "");
@@ -286,6 +294,8 @@ export function OperatorTerminalsView() {
       name,
       addressLine1,
       addressLine2: addressLine2.trim() || null,
+      state: stateValue.trim() || null,
+      postalCode: postalCode.trim() || null,
       phone,
       cityId: cityId || null,
       latitude: latitude ? parseFloat(latitude) : null,
@@ -293,9 +303,9 @@ export function OperatorTerminalsView() {
       isTerminal,
       isPrimary,
       isActive,
-      managerName: managerName.trim() || null,
-      managerPhone: managerPhone.trim() || null,
-      managerEmail: managerEmail.trim() || null,
+      managerName: managerName?.trim() || null,
+      managerPhone: managerPhone?.trim() || null,
+      managerEmail: managerEmail?.trim() || null,
       operatingHours,
     };
 
@@ -340,24 +350,29 @@ export function OperatorTerminalsView() {
   };
 
   // Filter Locations
-  const filteredLocations = locations.filter((loc) => {
-    const query = search.toLowerCase();
-    const matchesSearch =
-      loc.name.toLowerCase().includes(query) ||
-      loc.addressLine1.toLowerCase().includes(query) ||
-      (loc.cityRelation?.name ?? loc.city ?? "").toLowerCase().includes(query);
+  const filteredLocations = useMemo(() => {
+    return locations.filter((loc) => {
+      const query = (search || "").toLowerCase();
+      const matchesSearch =
+        (loc.name || "").toLowerCase().includes(query) ||
+        (loc.addressLine1 || "").toLowerCase().includes(query) ||
+        (loc.cityRelation?.name ?? loc.city ?? "").toLowerCase().includes(query);
 
-    if (typeFilter === "TERMINAL") return matchesSearch && loc.isTerminal;
-    if (typeFilter === "DEPOT") return matchesSearch && !loc.isTerminal;
-    return matchesSearch;
-  });
+      if (typeFilter === "TERMINAL") return matchesSearch && loc.isTerminal;
+      if (typeFilter === "DEPOT") return matchesSearch && !loc.isTerminal;
+      return matchesSearch;
+    });
+  }, [locations, search, typeFilter]);
 
   // Calculate statistics
-  const totalCount = locations.length;
-  const terminalCount = locations.filter((l) => l.isTerminal).length;
-  const primaryName =
-    locations.find((l) => l.isPrimary)?.name || "Not Configured";
-  const linkedToCityCount = locations.filter((l) => l.cityId).length;
+  const { totalCount, terminalCount, primaryName, linkedToCityCount } = useMemo(() => {
+    return {
+      totalCount: locations.length,
+      terminalCount: locations.filter((l) => l.isTerminal).length,
+      primaryName: locations.find((l) => l.isPrimary)?.name || "Not Configured",
+      linkedToCityCount: locations.filter((l) => l.cityId).length
+    };
+  }, [locations]);
 
 
 
@@ -650,9 +665,17 @@ export function OperatorTerminalsView() {
 
           <form
             onSubmit={handleSave}
-            className="flex-1 overflow-y-auto p-6 space-y-5 min-h-0"
+            className="flex-1 overflow-y-auto p-6 min-h-0 flex flex-col"
           >
-            {/* Location Info */}
+            <Tabs defaultValue="general" className="w-full flex-1 flex flex-col min-h-0">
+              <TabsList className="grid w-full grid-cols-3 mb-4 shrink-0">
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="management">Management</TabsTrigger>
+                <TabsTrigger value="hours">Operating Hours</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="general" className="space-y-5 mt-0 outline-none overflow-y-auto flex-1 pr-1">
+                {/* Location Info */}
             <div className="space-y-3.5">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
                 Location Details
@@ -739,6 +762,33 @@ export function OperatorTerminalsView() {
                   placeholder="e.g. Bureau B-14, 2ème étage"
                   className="h-9 text-xs shadow-none border-border"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="stateValue" className="text-xs font-semibold">
+                    State / Region / District (Optional)
+                  </Label>
+                  <Input
+                    id="stateValue"
+                    value={stateValue}
+                    onChange={(e) => setStateValue(e.target.value)}
+                    placeholder="e.g. Abidjan"
+                    className="h-9 text-xs shadow-none border-border"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="postalCode" className="text-xs font-semibold">
+                    Postal Code (Optional)
+                  </Label>
+                  <Input
+                    id="postalCode"
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value)}
+                    placeholder="e.g. 01 BP 1234"
+                    className="h-9 text-xs shadow-none border-border"
+                  />
+                </div>
               </div>
             </div>
 
@@ -883,6 +933,58 @@ export function OperatorTerminalsView() {
               </div>
             </div>
 
+              </TabsContent>
+
+              <TabsContent value="management" className="space-y-5 mt-0 outline-none overflow-y-auto flex-1 pr-1">
+                <div className="space-y-3.5">
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
+                    Management Details
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="managerName" className="text-xs font-semibold">
+                        Manager Name
+                      </Label>
+                      <Input
+                        id="managerName"
+                        value={managerName}
+                        onChange={(e) => setManagerName(e.target.value)}
+                        placeholder="e.g. Jean Dupont"
+                        className="h-9 text-xs shadow-none border-border"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="managerPhone" className="text-xs font-semibold">
+                          Manager Phone
+                        </Label>
+                        <Input
+                          id="managerPhone"
+                          value={managerPhone}
+                          onChange={(e) => setManagerPhone(e.target.value)}
+                          placeholder="e.g. +225 01000000"
+                          className="h-9 text-xs shadow-none border-border"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="managerEmail" className="text-xs font-semibold">
+                          Manager Email
+                        </Label>
+                        <Input
+                          id="managerEmail"
+                          type="email"
+                          value={managerEmail}
+                          onChange={(e) => setManagerEmail(e.target.value)}
+                          placeholder="e.g. jean.dupont@example.com"
+                          className="h-9 text-xs shadow-none border-border"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="hours" className="space-y-5 mt-0 outline-none overflow-y-auto flex-1 pr-1">
             {/* Operating Hours */}
             <div className="space-y-3.5 pt-1">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
@@ -960,62 +1062,8 @@ export function OperatorTerminalsView() {
               </div>
             </div>
 
-            {/* Manager Contact */}
-            <div className="space-y-3.5 pt-1">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
-                Station Manager Contact (Optional)
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="managerName"
-                    className="text-xs font-semibold"
-                  >
-                    Manager Full Name
-                  </Label>
-                  <Input
-                    id="managerName"
-                    value={managerName}
-                    onChange={(e) => setManagerName(e.target.value)}
-                    placeholder="e.g. Koffi Kouadio"
-                    className="h-9 text-xs shadow-none border-border"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="managerPhone"
-                    className="text-xs font-semibold"
-                  >
-                    Manager Phone
-                  </Label>
-                  <Input
-                    id="managerPhone"
-                    value={managerPhone}
-                    onChange={(e) => setManagerPhone(e.target.value)}
-                    placeholder="e.g. +225 05000000"
-                    className="h-9 text-xs shadow-none border-border"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="managerEmail"
-                    className="text-xs font-semibold"
-                  >
-                    Manager Email
-                  </Label>
-                  <Input
-                    id="managerEmail"
-                    type="email"
-                    value={managerEmail}
-                    onChange={(e) => setManagerEmail(e.target.value)}
-                    placeholder="e.g. manager@moja.com"
-                    className="h-9 text-xs shadow-none border-border"
-                  />
-                </div>
-              </div>
-            </div>
+              </TabsContent>
+            </Tabs>
 
             <button type="submit" className="hidden" />
           </form>

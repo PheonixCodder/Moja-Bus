@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useMutation } from "@tanstack/react-query";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
@@ -21,8 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { type DocumentsStepInput, type DocumentInput } from "@moja/schemas";
-import { createStorageAdapter } from "../../lib/storage-adapter";
-import { useTRPC } from "@/trpc/client";
+import { useStorageUpload } from "@/lib/storage-client";
 
 interface DocumentsStepProps {
   initialData?: any;
@@ -45,18 +43,7 @@ export function DocumentsStep({
   onBack,
   isSaving,
 }: DocumentsStepProps) {
-  const trpc = useTRPC();
-  const presignUploadMutation = useMutation(
-    trpc.operator.createPresignedUpload.mutationOptions(),
-  );
-  const fileStorage = useMemo(
-    () =>
-      createStorageAdapter(async (input) => {
-        const result = await presignUploadMutation.mutateAsync(input);
-        return { uploadUrl: result.uploadUrl, fileUrl: result.fileUrl };
-      }),
-    [presignUploadMutation],
-  );
+  const { upload: uploadDocument } = useStorageUpload("operator-document");
 
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
 
@@ -119,6 +106,7 @@ export function DocumentsStep({
         documentType: doc.type,
         status: "success",
         url: doc.fileUrl || "",
+        objectKey: doc.objectKey || "",
       }));
       setUploadedFiles(mapped);
     }
@@ -141,7 +129,7 @@ export function DocumentsStep({
 
       newFiles.forEach(async (entry) => {
         try {
-          const fileUrl = await fileStorage.uploadFile(entry.file);
+          const { fileUrl, objectKey } = await uploadDocument(entry.file);
           setUploadedFiles((prev) =>
             prev.map((f) =>
               f.id === entry.id
@@ -149,6 +137,7 @@ export function DocumentsStep({
                     ...f,
                     status: "success",
                     url: fileUrl,
+                    objectKey,
                   }
                 : f,
             ),
@@ -162,7 +151,7 @@ export function DocumentsStep({
         }
       });
     },
-    [fileStorage],
+    [uploadDocument],
   );
 
   const removeFile = (id: string) => {
@@ -195,6 +184,7 @@ export function DocumentsStep({
         type: f.documentType,
         fileName: f.name,
         fileUrl: f.url,
+        objectKey: f.objectKey,
         fileSize: f.size,
         mimeType: f.type,
       }));

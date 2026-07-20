@@ -48,7 +48,7 @@ import type { RouterOutputs } from "@/trpc/client";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SeatType = "PASSENGER_WINDOW" | "PASSENGER_AISLE" | "DRIVER_AREA" | "EMPTY_SPACE";
+type SeatType = "PASSENGER_WINDOW" | "PASSENGER_AISLE" | "PASSENGER_MIDDLE" | "DRIVER_AREA" | "EMPTY_SPACE";
 type Tool = SeatType | "ERASE";
 
 interface GridCell {
@@ -112,7 +112,8 @@ function relabelGrid(grid: GridCell[][]): GridCell[][] {
     row.map((cell) => {
       if (
         cell.seatType === "PASSENGER_WINDOW" ||
-        cell.seatType === "PASSENGER_AISLE"
+        cell.seatType === "PASSENGER_AISLE" ||
+        cell.seatType === "PASSENGER_MIDDLE"
       ) {
         return { ...cell, label: `${counter++}`, isBookable: true };
       }
@@ -129,7 +130,7 @@ function countPassengerSeats(grid: GridCell[][]): number {
     .flat()
     .filter(
       (c) =>
-        c.seatType === "PASSENGER_WINDOW" || c.seatType === "PASSENGER_AISLE",
+        c.seatType === "PASSENGER_WINDOW" || c.seatType === "PASSENGER_AISLE" || c.seatType === "PASSENGER_MIDDLE",
     ).length;
 }
 
@@ -158,6 +159,14 @@ const TOOLS: {
     Icon: Armchair,
     cellClass: "bg-card/60 border-border/60 text-foreground/80 hover:border-primary/40",
     paletteDot: "bg-card/60 border border-border/60",
+  },
+  {
+    id: "PASSENGER_MIDDLE",
+    label: "Middle Seat",
+    description: "Passenger seat between window and aisle",
+    Icon: Armchair,
+    cellClass: "bg-card/80 border-border/80 text-foreground/90 hover:border-primary/40",
+    paletteDot: "bg-card/80 border border-border/80",
   },
   {
     id: "DRIVER_AREA",
@@ -447,7 +456,7 @@ export function LayoutBuilderSheet({
 
     const totalPassenger = seats.filter(
       (s) =>
-        s.seatType === "PASSENGER_WINDOW" || s.seatType === "PASSENGER_AISLE",
+        s.seatType === "PASSENGER_WINDOW" || s.seatType === "PASSENGER_AISLE" || s.seatType === "PASSENGER_MIDDLE",
     ).length;
 
     if (totalPassenger === 0) {

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { ShieldCheck, ShieldAlert, Coins, Scale } from "lucide-react";
+import { toSafeDisplayNumber } from "@/lib/money";
 
 interface LedgerKpiCardsProps {
   totalDebitVolume: bigint;
@@ -18,7 +19,7 @@ export function LedgerKpiCards({
   totalEntries,
 }: LedgerKpiCardsProps) {
   const formatCurrency = (val: bigint) => {
-    return new Intl.NumberFormat("en-US").format(Number(val)) + " XOF";
+    return new Intl.NumberFormat("en-US").format(toSafeDisplayNumber(val)) + " XOF";
   };
 
   return (

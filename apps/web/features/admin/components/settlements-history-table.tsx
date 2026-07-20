@@ -27,7 +27,7 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 
 function formatXOF(amount: number): string {
-  return new Intl.NumberFormat("fr-CI", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "XOF",
     minimumFractionDigits: 0,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { Bus } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
@@ -10,6 +11,8 @@ import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "../lib/
 import { AmenityChips } from "@/features/booking/lib/amenities";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
+import { authClient } from "@/lib/auth-client";
+import { buildLoginUrl } from "@/features/auth/lib/safe-callback-url";
 import type { RouterOutputs } from "@/trpc/client";
 
 type SearchOffer = RouterOutputs["search"]["search"]["offers"][number];
@@ -23,15 +26,42 @@ export function OfferCard({
 }) {
   const isSoldOut = offer.availability.status === "SOLD_OUT";
   const [, setBookingOfferId] = useQueryState("bookingOfferId", { history: "push" });
+  const [, setExpectedPrice] = useQueryState("expectedPrice", { history: "push" });
   const queryClient = useQueryClient();
   const trpc = useTRPC();
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
 
   const handlePrefetch = () => {
     if (isSoldOut) return;
     void queryClient.prefetchQuery(trpc.booking.getTripDetails.queryOptions({ offerId: offer.offerId }));
     void queryClient.prefetchQuery(trpc.booking.getSeatAvailability.queryOptions({ offerId: offer.offerId }));
-    void queryClient.prefetchQuery(trpc.passenger.listSaved.queryOptions());
+    if (session?.user) {
+      void queryClient.prefetchQuery(trpc.passenger.listSaved.queryOptions());
+    }
   };
+
+  async function handleSelectSeats() {
+    if (isSoldOut) return;
+
+    const params = new URLSearchParams(
+      typeof window !== "undefined" ? window.location.search : "",
+    );
+    params.set("bookingOfferId", offer.offerId);
+    // M28: carry the price the passenger saw at search time so the booking
+    // flow can warn them if the live fare changed while they were away
+    // (e.g. during the login redirect).
+    params.set("expectedPrice", String(offer.priceXOF));
+    const returnPath = `/search?${params.toString()}`;
+
+    if (!session?.user) {
+      router.push(buildLoginUrl(returnPath));
+      return;
+    }
+
+    await setBookingOfferId(offer.offerId);
+    await setExpectedPrice(String(offer.priceXOF));
+  }
 
   return (
     <Card 
@@ -112,7 +142,7 @@ export function OfferCard({
 
             <div className="space-y-2 w-full md:w-auto">
               <button
-                onClick={() => !isSoldOut && setBookingOfferId(offer.offerId)}
+                onClick={() => void handleSelectSeats()}
                 disabled={isSoldOut}
                 className={cn(
                   buttonVariants(),

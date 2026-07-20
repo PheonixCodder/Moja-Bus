@@ -17,9 +17,10 @@ import {
   isPaystackConfigured,
   paystackListBanks,
 } from "../../features/payments/providers/paystack-client";
-import { FinancialAccountService, AccountingEngine } from "@moja/db";
+import { FinancialAccountService, AccountingEngine, Prisma } from "@moja/db";
 import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { TripDetailsService } from "@/features/booking/services/trip-details-service";
+import { toSafeDisplayNumber } from "@/lib/money";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "ADMIN") {
@@ -259,8 +260,10 @@ export const paymentsRouter = createTRPCRouter({
     ]);
 
     return {
-      clearingBalance: Number(clearing.postedBalance),
-      revenueBalance: Number(commissionRevenue.postedBalance) + Number(convenienceRevenue.postedBalance),
+      clearingBalance: toSafeDisplayNumber(clearing.postedBalance),
+      revenueBalance:
+        toSafeDisplayNumber(commissionRevenue.postedBalance) +
+        toSafeDisplayNumber(convenienceRevenue.postedBalance),
     };
   }),
 
@@ -281,7 +284,7 @@ export const paymentsRouter = createTRPCRouter({
         companyId: input.companyId,
         entryType: e.side === "CREDIT" ? "CREDIT" : "DEBIT",
         sourceType: e.transaction.type,
-        amountXOF: Number(e.amount), // BigInt → Number; individual entries are safe
+        amountXOF: toSafeDisplayNumber(e.amount),
         description: e.description || e.transaction.description,
         createdAt: e.createdAt,
       }));
@@ -289,7 +292,7 @@ export const paymentsRouter = createTRPCRouter({
       return {
         companyId: input.companyId,
         entryCount: entries.length,
-        balanceXOF: Number(operatorAcct.postedBalance),
+        balanceXOF: toSafeDisplayNumber(operatorAcct.postedBalance),
         entries: mappedEntries,
       };
     }),
@@ -299,39 +302,72 @@ export const paymentsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const accountService = new FinancialAccountService(ctx.prisma);
       const operatorAcct = await accountService.getOperatorReceivableAccount(input.companyId);
-      const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+      const amount = input.amountXOF;
 
-      if (BigInt(input.amountXOF) > operatorAcct.availableBalance) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Settlement amount exceeds available ledger balance",
+      // Stable per-attempt nonce (client-supplied when available). Makes the
+      // settlement exactly-once: a duplicate request carrying the same key is
+      // short-circuited instead of double-debiting the operator (F-19).
+      const idempotencyKey = input.idempotencyKey?.trim() || crypto.randomUUID();
+
+      const { txId, duplicate } = await ctx.prisma.$transaction(async (tx) => {
+        const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+
+        // Acquire an exclusive row lock on the operator account FIRST so concurrent
+        // settlements for the same company serialize. This makes the balance check
+        // + ledger post atomic — previously the balance check was a non-locking read
+        // outside the tx, allowing a double-debit race (F-19).
+        const lockedAccounts = await tx.$queryRaw<{ available_balance: number }[]>(
+          Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${operatorAcct.id} FOR UPDATE`,
+        );
+
+        // Idempotency: if a settlement with this key was already recorded, return
+        // it WITHOUT posting a second ledger entry. Safe because we hold the
+        // operator-account lock — a concurrent double-submit cannot commit its
+        // transaction until we release this lock.
+        const existing = await tx.financialTransaction.findFirst({
+          where: {
+            type: "SETTLEMENT",
+            metadata: { path: ["idempotencyKey"], equals: idempotencyKey },
+          },
+          select: { id: true },
         });
-      }
+        if (existing) {
+          return { txId: existing.id, duplicate: true };
+        }
 
-      await ctx.prisma.$transaction(async (tx) => {
+        if (
+          !lockedAccounts.length ||
+          BigInt(lockedAccounts[0]!.available_balance) < BigInt(amount)
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Settlement amount exceeds available ledger balance",
+          });
+        }
+
         const engine = new AccountingEngine("SETTLEMENT", {
-          description: input.note ?? "Manual operator settlement payout",
-          metadata: { settledByUserId: ctx.user.id },
+          description: input.note,
+          metadata: { settledByUserId: ctx.user.id, idempotencyKey },
         });
 
         engine.addDebit({
           accountId: operatorAcct.id,
-          amount: input.amountXOF,
+          amount,
           sequenceNumber: 1,
           referenceType: "SETTLEMENT",
-          description: input.note ?? "Settlement payout",
+          description: input.note,
         });
 
         engine.addCredit({
           accountId: clearingAcct.id,
-          amount: input.amountXOF,
+          amount,
           sequenceNumber: 2,
           referenceType: "SETTLEMENT",
           description: "Settlement sent from clearing",
         });
 
         engine.validate();
-        await engine.commit(tx as any);
+        return { txId: await engine.commit(tx as any), duplicate: false };
       });
 
       // Refetch balance after settlement
@@ -339,7 +375,12 @@ export const paymentsRouter = createTRPCRouter({
         where: { id: operatorAcct.id },
       });
 
-      return { success: true as const, remainingBalanceXOF: updatedAcct.postedBalance };
+      return {
+        success: true as const,
+        transactionId: txId,
+        duplicate,
+        remainingBalanceXOF: updatedAcct.postedBalance,
+      };
     }),
 
   listSettlementHistory: adminProcedure
@@ -395,7 +436,7 @@ export const paymentsRouter = createTRPCRouter({
           id: tx.id,
           operatorId: companyId,
           operatorName: company?.name ?? "Unknown Operator",
-          amountXOF: debitEntry ? Number(debitEntry.amount) : 0,
+          amountXOF: debitEntry ? toSafeDisplayNumber(debitEntry.amount) : 0,
           note: tx.description,
           metadata: tx.metadata as { settledByUserId?: string } | null,
           status: tx.status,
@@ -410,11 +451,17 @@ export const paymentsRouter = createTRPCRouter({
     .input(
       z.object({
         country: z.string().optional(),
+        currency: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
       try {
-        return await paystackListBanks(input.country);
+        // App market is Côte d'Ivoire (XOF). Default to XOF so operators see
+        // Ivorian banks rather than the Nigeria default returned by /bank.
+        return await paystackListBanks({
+          ...(input.country ? { country: input.country } : {}),
+          currency: input.currency ?? "XOF",
+        });
       } catch (err: any) {
         throw new TRPCError({
           code: "BAD_REQUEST",

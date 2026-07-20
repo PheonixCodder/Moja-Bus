@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@moja/db";
+import { Prisma } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import type { BookingHoldResult, ConfirmedBookingResult } from "@moja/types";
 import { SavedPassengerService } from "@/features/passenger/services/saved-passenger-service";
@@ -100,14 +101,38 @@ export class BookingHoldService {
     const trip = await this.prisma.trip.findUnique({
       where: { id: details.tripId },
       select: {
+        status: true,
         schedule: {
           select: {
+            isActive: true,
             route: { select: { distanceKm: true } },
           },
         },
       },
     });
-    const distanceKm = trip?.schedule.route.distanceKm ?? null;
+
+    if (!trip) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+    }
+    if (!trip.schedule.isActive) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This schedule is no longer available for booking",
+      });
+    }
+    if (["CANCELLED", "ARRIVED", "DEPARTED"].includes(trip.status)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This trip can no longer be booked",
+      });
+    }
+
+    // The fare used below (`details.priceXOF`) is always recomputed live by
+    // TripDetailsService from the current schedule fares, so a stale search
+    // price can never reach the hold. The passenger-facing "price changed"
+    // warning for the login-resume case lives in the booking dialog (M28).
+
+    const distanceKm = trip.schedule.route.distanceKm ?? null;
     const { settings, tiers } = await loadPlatformSettings(this.prisma);
     const pricing = resolvePricing({
       baseFareXOF: details.priceXOF,
@@ -118,6 +143,17 @@ export class BookingHoldService {
     });
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // Serialize hold creation per trip so the seat-conflict check + booking
+      // insert below are atomic. Without this lock, two concurrent holds on the
+      // same seat can both pass the non-locking conflict check and both insert a
+      // PENDING_PAYMENT booking — selling one seat to two passengers (F-16
+      // over-sale). The lock is held until this transaction commits, so a
+      // concurrent createHold for the same trip blocks, then re-runs its conflict
+      // check against the now-committed bookings and correctly throws CONFLICT.
+      await tx.$queryRaw<{ id: string }[]>(
+        Prisma.sql`SELECT id FROM "trip" WHERE id = ${details.tripId} FOR UPDATE`,
+      );
+
       const overlappingBookings = await tx.booking.findMany({
         where: {
           tripId: details.tripId,

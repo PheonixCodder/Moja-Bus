@@ -27,7 +27,7 @@ import {
 import { cn } from "@moja/ui/lib/utils";
 
 function formatXOF(amount: number): string {
-  return new Intl.NumberFormat("fr-CI", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "XOF",
     minimumFractionDigits: 0,

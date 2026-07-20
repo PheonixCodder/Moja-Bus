@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "@moja/ui/components/ui/card";
 import { User, IdCard, Calendar, Contact } from "lucide-react";
+import { ImageUploadField } from "@/components/image-upload-field";
 import { type ProfileStepInput, type StaffRole } from "@moja/schemas";
 
 interface ProfileStepProps {
@@ -126,6 +127,22 @@ export function ProfileStep({
           </div>
         </CardHeader>
         <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center gap-4">
+            <ImageUploadField
+              purpose="operator-profile-photo"
+              value={profilePhotoUrl || null}
+              onUploaded={(r) => setProfilePhotoUrl(r.fileUrl)}
+              label="Upload photo"
+              hint="PNG or JPG, up to 2MB"
+              shape="circle"
+              previewClassName="h-20 w-20"
+            />
+            <p className="text-xs text-muted-foreground">
+              This is your personal avatar. It is visible in staff lists and
+              activity logs.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label

@@ -305,7 +305,7 @@ export async function requireServerSession(redirectTo = "/login") {
   return { session: data.session, user: data.user };
 }
 
-export async function redirectIfAuthenticated() {
+export async function redirectIfAuthenticated(callbackUrl?: string | null) {
   const data = await getServerSession();
   if (!data?.session) return;
   const role = data.user?.role ?? "TRAVELER";
@@ -313,7 +313,10 @@ export async function redirectIfAuthenticated() {
     redirect("/dashboard/operator");
   }
   if (data.user?.name) {
-    redirect("/dashboard");
+    const { getSafeCallbackUrl } = await import(
+      "@/features/auth/lib/safe-callback-url"
+    );
+    redirect(getSafeCallbackUrl(callbackUrl, "/dashboard"));
   }
 }
 

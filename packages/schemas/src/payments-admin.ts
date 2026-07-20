@@ -36,7 +36,11 @@ export const exportOperatorLedgerSchema = z.object({
 export const recordSettlementSchema = z.object({
   companyId: z.string().min(1),
   amountXOF: z.number().int().positive(),
-  note: z.string().optional(),
+  note: z.string().min(1),
+  // Client-supplied idempotency nonce. Makes the settlement exactly-once: a
+  // duplicate request carrying the same key is short-circuited instead of
+  // double-debiting the operator (F-19). Falls back to a server UUID if absent.
+  idempotencyKey: z.string().min(8).max(100).optional(),
 });
 
 export const cancelBookingSchema = z.object({
