@@ -42,7 +42,14 @@ export function getPrismaClient(): PrismaClient {
 
   return client;
 }
-export * from "@prisma/client";
+export { Prisma } from "@prisma/client";
+export type {
+  PrismaClient,
+  Booking,
+  CommissionDistanceTier,
+  PlatformSettings,
+  HoldGroup,
+} from "@prisma/client";
 export * from './services/AccountingEngine';
 export * from "./services/FinancialAccountService";
 export * from "./services/SnapshotService";
