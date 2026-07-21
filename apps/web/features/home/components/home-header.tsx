@@ -259,7 +259,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                     Log in
                   </Link>
                   <Link
-                    href="/register"
+                    href="/login"
                     className="px-5 py-2 rounded-full text-sm font-semibold bg-[#ee237c] text-white hover:bg-[#c71d65] hover:shadow-md transition-all shadow-sm"
                   >
                     Sign up
