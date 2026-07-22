@@ -115,7 +115,7 @@ export function PersonalProfileDrawer({ isOpen, onClose }: PersonalProfileDrawer
             <FieldLabel>Profile Photo</FieldLabel>
             <ImageUploadField
               purpose="operator-profile-photo"
-              value={form.watch("profilePhotoUrl")}
+              value={form.watch("profilePhotoUrl") ?? null}
               onUploaded={(res) => form.setValue("profilePhotoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
               label="Upload Avatar"
               hint="Recommended 256x256px, JPG or PNG."

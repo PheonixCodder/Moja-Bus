@@ -95,10 +95,10 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
   }, [isOpen, bankAccounts?.length, form]);
 
   const onSubmit = (data: BankFormValues) => {
-    const selectedBank = paystackBanks?.find((p: any) => p.code === data.bankCode);
+    const selectedBank = paystackBanks?.find((p) => p.code === data.bankCode);
     const payload = {
       bankName: selectedBank ? selectedBank.name : "Unknown Bank",
-      bankCode: data.bankCode,
+      bankCode: data.bankCode ?? "",
       accountNumber: data.accountNumber,
       accountName: data.accountName,
       branch: data.branch || null,
@@ -215,7 +215,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
           <ComboboxInput placeholder={isLoadingBanks ? "Loading banks..." : "Search for a bank..."} />
           <ComboboxContent>
             <ComboboxList>
-              {paystackBanks?.map((provider: any) => (
+              {paystackBanks?.map((provider) => (
                 <ComboboxItem key={provider.code} value={provider.code}>
                   {provider.name}
                 </ComboboxItem>

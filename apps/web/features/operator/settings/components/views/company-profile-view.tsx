@@ -29,14 +29,17 @@ export function CompanyProfileView() {
 
         const previousSettings = queryClient.getQueryData(queryKey);
 
-        queryClient.setQueryData(queryKey, (old: any) => {
+        queryClient.setQueryData(queryKey, (old) => {
           if (!old || !old.company) return old;
+          // Strip undefined values — partial input has `field | undefined` but
+          // the cached type only permits `field | null`. Undefined keys must be
+          // excluded so the cache shape stays compatible.
+          const definedUpdates = Object.fromEntries(
+            Object.entries(variables).filter(([, v]) => v !== undefined),
+          ) as Partial<typeof old.company>;
           return {
             ...old,
-            company: {
-              ...old.company,
-              ...variables
-            }
+            company: { ...old.company, ...definedUpdates },
           };
         });
 
@@ -46,7 +49,7 @@ export function CompanyProfileView() {
         toast.success("Profile saved successfully", { id: "save-profile" });
         form.reset(form.getValues());
       },
-      onError: (err, variables, context) => {
+      onError: (err, _variables, context) => {
         toast.error(err.message || "Failed to save profile", { id: "save-profile" });
         if (context?.previousSettings) {
           queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
@@ -108,7 +111,7 @@ export function CompanyProfileView() {
                 <FieldLabel>Company Logo</FieldLabel>
                 <ImageUploadField
                   purpose="operator-logo"
-                  value={form.watch("logoUrl")}
+                  value={form.watch("logoUrl") ?? null}
                   onUploaded={(res) => form.setValue("logoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
                   label="Upload Logo"
                   hint="Recommended 512x512px, JPG or PNG."

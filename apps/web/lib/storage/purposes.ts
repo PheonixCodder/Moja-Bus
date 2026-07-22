@@ -68,7 +68,7 @@ export const STORAGE_PURPOSES: Record<StoragePurposeId, StoragePurposeConfig> = 
     image: { maxDim: 512, quality: 0.9, toWebp: true },
     cacheControl: "max-age=31536000, immutable",
     keepVersions: false,
-    key: (ctx) => `assets/${ctx.companyId}/logo`,
+    key: (ctx) => `assets/${ctx.companyId}/logo.webp`,
   },
   "operator-profile-photo": {
     id: "operator-profile-photo",
@@ -78,7 +78,7 @@ export const STORAGE_PURPOSES: Record<StoragePurposeId, StoragePurposeConfig> = 
     image: { maxDim: 256, quality: 0.9, toWebp: true },
     cacheControl: "max-age=31536000, immutable",
     keepVersions: false,
-    key: (ctx) => `assets/${ctx.companyId}/staff/${ctx.staffId}`,
+    key: (ctx) => `assets/${ctx.companyId}/staff/${ctx.staffId}.webp`,
   },
   "passenger-avatar": {
     id: "passenger-avatar",

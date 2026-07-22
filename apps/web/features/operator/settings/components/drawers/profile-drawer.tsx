@@ -131,7 +131,7 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
             <FieldLabel>Company Logo</FieldLabel>
             <ImageUploadField
               purpose="operator-logo"
-              value={form.watch("logoUrl")}
+              value={form.watch("logoUrl") ?? null}
               onUploaded={(res) => form.setValue("logoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
               label="Upload Logo"
               hint="Recommended 512x512px, JPG or PNG."

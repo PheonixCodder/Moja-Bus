@@ -21,7 +21,7 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
 
   const { data: settings } = useCompanySettings();
 
-  const companyStatus = getCompanyStatusPresentation(settings?.company?.verificationStatus);
+  const companyStatus = getCompanyStatusPresentation(settings?.company?.status);
   const companyProfileState = getCompanyProfileState(settings?.company);
   const bankVerificationState = getBankVerificationState(settings?.company?.bankAccounts?.[0]);
   const documentsVerificationState = getDocumentsVerificationState(settings?.company?.documents || []);
@@ -44,8 +44,9 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
       await completeOnboardingMutation.mutateAsync();
       toast.success("Verification request submitted", { id: "submit-verification" });
       onClose();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to submit", { id: "submit-verification" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to submit";
+      toast.error(message, { id: "submit-verification" });
     }
   };
 
@@ -55,8 +56,9 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
       await resubmitVerificationMutation.mutateAsync();
       toast.success("Verification request resubmitted", { id: "resubmit-verification" });
       onClose();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to resubmit", { id: "resubmit-verification" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to resubmit";
+      toast.error(message, { id: "resubmit-verification" });
     }
   };
 
@@ -76,13 +78,13 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
     {
       label: "Business registration certificate approved",
       done: company.documents?.some(
-        (d: any) => d.type === "BUSINESS_REGISTRATION_CERTIFICATE" && d.status === "APPROVED"
+        (d) => d.type === "BUSINESS_REGISTRATION_CERTIFICATE" && d.status === "APPROVED"
       ),
     },
     {
       label: "Operating permit approved",
       done: company.documents?.some(
-        (d: any) => d.type === "TRANSPORT_OPERATING_PERMIT" && d.status === "APPROVED"
+        (d) => d.type === "TRANSPORT_OPERATING_PERMIT" && d.status === "APPROVED"
       ),
     },
   ];

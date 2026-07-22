@@ -64,20 +64,30 @@ export const operatorSettingsProcedures = {
         });
       }
 
-      const cleanData = Object.fromEntries(
-        Object.entries(parsed.data).filter(([_, v]) => v !== undefined),
-      );
+      const { data: fields } = parsed;
 
-      if (Object.keys(cleanData).length === 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "No fields to update.",
-        });
+      const updateData = {
+        ...(fields.name !== undefined && { name: fields.name }),
+        ...(fields.slug !== undefined && { slug: fields.slug }),
+        ...(fields.email !== undefined && { email: fields.email }),
+        ...(fields.phone !== undefined && { phone: fields.phone }),
+        ...(fields.website !== undefined && { website: fields.website }),
+        ...(fields.description !== undefined && { description: fields.description }),
+        ...(fields.businessType !== undefined && { businessType: fields.businessType }),
+        ...(fields.registrationNumber !== undefined && { registrationNumber: fields.registrationNumber }),
+        ...(fields.taxId !== undefined && { taxId: fields.taxId }),
+        ...(fields.yearEstablished !== undefined && { yearEstablished: fields.yearEstablished }),
+        ...(fields.estimatedStaffSize !== undefined && { estimatedStaffSize: fields.estimatedStaffSize }),
+        ...(fields.logoUrl !== undefined && { logoUrl: fields.logoUrl }),
+      };
+
+      if (Object.keys(updateData).length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No fields to update." });
       }
 
       const updatedCompany = await ctx.prisma.company.update({
         where: { id: ctx.companyId },
-        data: cleanData as any,
+        data: updateData,
       });
 
       return updatedCompany;
@@ -99,13 +109,21 @@ export const operatorSettingsProcedures = {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Validation failed" });
       }
 
-      const cleanData = Object.fromEntries(
-        Object.entries(parsed.data).filter(([_, v]) => v !== undefined)
-      );
+      const { data: profileFields } = parsed;
 
       const updatedOperator = await ctx.prisma.operator.update({
         where: { id: operator.id },
-        data: cleanData as any,
+        data: {
+          ...(profileFields.fullName !== undefined && { fullName: profileFields.fullName }),
+          ...(profileFields.personalPhone !== undefined && { personalPhone: profileFields.personalPhone }),
+          ...(profileFields.jobTitle !== undefined && { jobTitle: profileFields.jobTitle }),
+          ...(profileFields.dateOfBirth !== undefined && { dateOfBirth: profileFields.dateOfBirth }),
+          ...(profileFields.nationalIdNumber !== undefined && { nationalIdNumber: profileFields.nationalIdNumber }),
+          ...(profileFields.nationalIdType !== undefined && { nationalIdType: profileFields.nationalIdType }),
+          ...(profileFields.profilePhotoUrl !== undefined && { profilePhotoUrl: profileFields.profilePhotoUrl }),
+          ...(profileFields.emergencyContactName !== undefined && { emergencyContactName: profileFields.emergencyContactName }),
+          ...(profileFields.emergencyContactPhone !== undefined && { emergencyContactPhone: profileFields.emergencyContactPhone }),
+        },
       });
       return updatedOperator;
     }),
@@ -137,7 +155,17 @@ export const operatorSettingsProcedures = {
 
       const updatedBank = await ctx.prisma.bankAccount.update({
         where: { id },
-        data: bankPayload,
+        data: {
+          bankName: bankPayload.bankName,
+          accountNumber: bankPayload.accountNumber,
+          accountNumberLast4: bankPayload.accountNumberLast4,
+          accountName: bankPayload.accountName,
+          isVerified: bankPayload.isVerified,
+          ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
+          ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
+          ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
+          ...(bankPayload.iban !== undefined && { iban: bankPayload.iban }),
+        },
       });
 
       return maskBankAccountForClient(updatedBank);
@@ -156,17 +184,16 @@ export const operatorSettingsProcedures = {
         });
       }
 
-      const cleanData = Object.fromEntries(
-        Object.entries(parsed.data).filter(([_, v]) => v !== undefined),
-      );
-
-      const encryptedAccount = prepareBankAccountStorage(
-        cleanData["accountNumber"] as string,
-      );
+      const encryptedAccount = prepareBankAccountStorage(parsed.data.accountNumber);
       const bankPayload = {
-        ...cleanData,
+        bankName: parsed.data.bankName,
+        accountName: parsed.data.accountName,
         accountNumber: encryptedAccount.accountNumber,
         accountNumberLast4: encryptedAccount.accountNumberLast4,
+        bankCode: parsed.data.bankCode,
+        branch: parsed.data.branch,
+        swiftCode: parsed.data.swiftCode,
+        iban: parsed.data.iban,
       };
 
       const existingBank = await ctx.prisma.bankAccount.findFirst({
@@ -178,19 +205,32 @@ export const operatorSettingsProcedures = {
         updatedBank = await ctx.prisma.bankAccount.update({
           where: { id: existingBank.id },
           data: {
-            ...(bankPayload as any),
-            // Changing bank details invalidates Paystack recipient + verification
+            bankName: bankPayload.bankName,
+            accountNumber: bankPayload.accountNumber,
+            accountNumberLast4: bankPayload.accountNumberLast4,
+            accountName: bankPayload.accountName,
             isVerified: false,
             paystackTransferRecipientCode: null,
+            ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
+            ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
+            ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
+            ...(bankPayload.iban !== undefined && { iban: bankPayload.iban }),
           },
         });
       } else {
         updatedBank = await ctx.prisma.bankAccount.create({
           data: {
-            ...(bankPayload as any),
             companyId: ctx.companyId,
+            bankName: bankPayload.bankName,
+            accountNumber: bankPayload.accountNumber,
+            accountNumberLast4: bankPayload.accountNumberLast4,
+            accountName: bankPayload.accountName,
             isActive: true,
             isDefault: true,
+            ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
+            ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
+            ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
+            ...(bankPayload.iban !== undefined && { iban: bankPayload.iban }),
           },
         });
       }

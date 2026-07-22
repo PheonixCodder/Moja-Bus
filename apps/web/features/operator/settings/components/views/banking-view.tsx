@@ -126,10 +126,10 @@ export function BankingView() {
   };
 
   const executeSubmit = (data: BankFormValues) => {
-    const selectedBank = paystackBanks?.find((p: any) => p.code === data.bankCode);
+    const selectedBank = paystackBanks?.find((p) => p.code === data.bankCode);
     const payload = {
       bankName: selectedBank ? selectedBank.name : "Unknown Bank",
-      bankCode: data.bankCode,
+      bankCode: data.bankCode ?? "",
       accountNumber: data.accountNumber,
       accountName: data.accountName,
       branch: data.branch || null,

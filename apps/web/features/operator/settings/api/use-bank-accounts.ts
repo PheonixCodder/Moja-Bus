@@ -22,9 +22,9 @@ export function useDeleteBankAccount() {
 
         const previousAccounts = queryClient.getQueryData(queryKey);
 
-        queryClient.setQueryData(queryKey, (old: any) => {
+        queryClient.setQueryData(queryKey, (old) => {
           if (!old) return old;
-          return old.filter((account: any) => account.id !== variables.bankAccountId);
+          return old.filter((account) => account.id !== variables.bankAccountId);
         });
 
         return { previousAccounts };

@@ -14,7 +14,7 @@ export function SettingsSectionError({ error, resetErrorBoundary }: FallbackProp
           Failed to load
         </CardTitle>
         <CardDescription>
-          {error?.message || "An unexpected error occurred while loading this section."}
+          {error instanceof Error ? error.message : "An unexpected error occurred while loading this section."}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex items-end">

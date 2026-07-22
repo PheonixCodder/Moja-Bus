@@ -44,6 +44,8 @@ export function SearchForm({
   const [destination, setDestination] = useState<CityValue>({ id: initialToId, text: "" });
   const [date, setDate] = useState(initialDate || todayISO());
   const [passengers, setPassengers] = useState(initialPassengers);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
 
   // Resolves city names for ids that arrived via the URL (deep link / SSR hydration)
   const { data: originCity } = useCityDetails(initialFromId);
@@ -121,7 +123,7 @@ export function SearchForm({
               <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
                 Departure
               </label>
-              <Popover>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger
                   render={
                     <button
@@ -137,7 +139,12 @@ export function SearchForm({
                   <CalendarComponent
                     mode="single"
                     selected={parseLocalDate(date)}
-                    onSelect={(d) => d && setDate(format(d, "yyyy-MM-dd"))}
+                    onSelect={(d) => {
+                      if (d) {
+                        setDate(format(d, "yyyy-MM-dd"));
+                        setIsCalendarOpen(false);
+                      }
+                    }}
                     disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
                   />
                 </PopoverContent>
