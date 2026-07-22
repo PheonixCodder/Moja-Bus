@@ -279,6 +279,10 @@ export const auth = betterAuth({
       sendOTP: async ({ phoneNumber: phone, code }) => {
         await sendAuthOtp({ identifier: phone, otp: code, type: "sign-in" });
       },
+      signUpOnVerification: {
+        getTempEmail: (phone) => `${phone.replace(/\s+/g, "")}@guest.mojaride.ci`,
+        getTempName: (phone) => `User ${phone}`,
+      },
     }),
     nextCookies(),
   ],
