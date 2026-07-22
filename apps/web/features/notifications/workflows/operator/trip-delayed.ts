@@ -38,11 +38,11 @@ export const passengerTripDelayedWorkflow = workflow(
     }));
 
     // 3. SMS Notification
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride Alert: Your trip from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)} (scheduled for ${escapeHtml(payload.originalTime)}) is delayed by ${escapeHtml(payload.delayMinutes)} mins. New departure time: ${escapeHtml(payload.newTime)}.${payload.gate ? ` Please board at Gate ${escapeHtml(payload.gate)}.` : ""}`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride Alert: Your trip from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)} (scheduled for ${escapeHtml(payload.originalTime)}) is delayed by ${escapeHtml(payload.delayMinutes)} mins. New departure time: ${escapeHtml(payload.newTime)}.${payload.gate ? ` Please board at Gate ${escapeHtml(payload.gate)}.` : ""}`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Passenger Trip Delayed",

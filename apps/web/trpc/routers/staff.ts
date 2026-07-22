@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import crypto from "node:crypto";
-import { Novu } from "@novu/api";
+import { getNovuClient } from "@/lib/novu";
 import type { PrismaClient, Prisma } from "@moja/db";
 import {
   ROLE_TEMPLATES,
@@ -49,7 +49,6 @@ type Ctx = PermissionContext & {
 };
 
 const memberInclude = {
-  profilePhotoUrl: true,
   user: {
     select: {
       id: true,
@@ -423,10 +422,9 @@ export const staffRouter = createTRPCRouter({
       description: "Requested verification code for ownership transfer",
     });
 
-    const novuSecret = process.env["NOVU_SECRET_KEY"];
-    if (novuSecret) {
+    const novu = getNovuClient();
+    if (novu) {
       try {
-        const novu = new Novu({ secretKey: novuSecret });
         await novu.trigger({
           workflowId: "auth-otp",
           to: { subscriberId: ctx.user.email, email: ctx.user.email },
@@ -436,6 +434,7 @@ export const staffRouter = createTRPCRouter({
             type: "transfer-ownership",
             email: ctx.user.email,
           },
+          transactionId: `transfer-ownership-otp-${ctx.user.id}-${Date.now()}`,
         });
       } catch (err) {
         console.error("Failed to send transfer OTP:", err);
@@ -700,10 +699,9 @@ export const staffRouter = createTRPCRouter({
         minute: "2-digit",
       });
 
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
+      const novu = getNovuClient();
+      if (novu) {
         try {
-          const novu = new Novu({ secretKey: novuSecret });
           await novu.trigger({
             workflowId: "operator-staff-invite",
             to: { subscriberId: invitation.email, email: invitation.email },
@@ -718,6 +716,7 @@ export const staffRouter = createTRPCRouter({
               expiresAt: expiresAtFormatted,
               message: invitation.message,
             },
+            transactionId: `operator-staff-invite-${invitation.id}`,
           });
         } catch (err) {
           console.error("[NOVU] Failed to trigger operator-staff-invite:", err);
@@ -851,10 +850,9 @@ export const staffRouter = createTRPCRouter({
       const appUrl = process.env["APP_URL"] || "http://localhost:3000";
       const inviteUrl = `${appUrl}/invite?token=${newRawToken}`;
 
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
+      const novu = getNovuClient();
+      if (novu) {
         try {
-          const novu = new Novu({ secretKey: novuSecret });
           await novu.trigger({
             workflowId: "operator-staff-invite",
             to: { subscriberId: updated.email, email: updated.email },
@@ -870,6 +868,7 @@ export const staffRouter = createTRPCRouter({
               message: updated.message,
               isResend: true,
             },
+            transactionId: `operator-staff-invite-resend-${updated.id}-${resendCount}`,
           });
         } catch (err) {
           console.error("[NOVU] Failed to resend invitation:", err);

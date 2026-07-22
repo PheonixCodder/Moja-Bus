@@ -15,11 +15,11 @@ export const operatorBusAssignedWorkflow = workflow(
     }));
 
     // 2. SMS Notification
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Operator Alert: You are assigned to Bus ${escapeHtml(payload.busPlate)} for route ${escapeHtml(payload.routeName)} departing ${escapeHtml(payload.departureTime)}. Log in to view manifest.`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Operator Alert: You are assigned to Bus ${escapeHtml(payload.busPlate)} for route ${escapeHtml(payload.routeName)} departing ${escapeHtml(payload.departureTime)}. Log in to view manifest.`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Operator Bus Assigned",

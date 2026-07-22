@@ -36,15 +36,18 @@ export const operatorWithdrawalSettledWorkflow = workflow(
     }));
 
     // 3. SMS Channel
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride Payout: Payout of ${escapeHtml(payload.amountXOF)} XOF to your verified bank account has settled successfully.`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride Payout: Payout of ${escapeHtml(payload.amountXOF)} XOF to your verified bank account has settled successfully.`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Operator Withdrawal Settled",
     description: "Sends successful transfer notifications (email, in-app, and SMS) when the bank payout clears",
+    preferences: {
+      all: { readOnly: true },
+    },
     payloadSchema: z.object({
       email: z.string().email(),
       ownerName: z.string(),

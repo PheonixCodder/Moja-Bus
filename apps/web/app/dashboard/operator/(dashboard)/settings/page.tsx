@@ -1,18 +1,5 @@
-import { OperatorSettingsView } from "@/features/operator/views/operator-settings-view";
-import { trpc, prefetch, HydrateClient } from "@/trpc/server";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Company Settings - Moja Ride Operator Dashboard",
-  description:
-    "Manage company profile details, banking, compliance documents, and verification.",
-};
-
-export default async function OperatorSettingsPage() {
-  await prefetch(trpc.operator.getSettings.queryOptions());
-
-  return (
-    <HydrateClient>
-      <OperatorSettingsView />
-    </HydrateClient>
-  );
+export default function SettingsRootPage() {
+  redirect("/dashboard/operator/settings/company");
 }

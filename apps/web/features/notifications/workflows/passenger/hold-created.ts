@@ -15,11 +15,11 @@ export const passengerHoldCreatedWorkflow = workflow(
     }));
 
     // 2. SMS Notification
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride: Seats reserved for your trip ${escapeHtml(payload.originCity)} -> ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}). Complete payment of ${escapeHtml(payload.totalAmountXOF)} XOF before ${escapeHtml(payload.expiresAt)} to confirm.`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride: Seats reserved for your trip ${escapeHtml(payload.originCity)} -> ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}). Complete payment of ${escapeHtml(payload.totalAmountXOF)} XOF before ${escapeHtml(payload.expiresAt)} to confirm.`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Passenger Hold Created",

@@ -6,14 +6,7 @@ import { escapeHtml } from "@/features/notifications/utils/escape-html";
 export const passengerTicketSharedWorkflow = workflow(
   "passenger-ticket-shared",
   async ({ step, payload }) => {
-    // 1. SMS Notification
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride: ${escapeHtml(payload.senderName)} shared a bus ticket to ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) with you! View ticket here: https://mojaride.com/tickets/${escapeHtml(payload.ticketToken)}`,
-      }));
-    }
-
-    // 2. Email Notification (if email recipient wants it)
+    // 1. Email Notification (if email recipient wants it)
     await step.email("send-email", async () => {
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #ee237c; border-radius: 12px; padding: 24px; color: #1e293b; text-align: center;">
@@ -35,6 +28,13 @@ export const passengerTicketSharedWorkflow = workflow(
         subject: `${escapeHtml(payload.senderName)} shared a Moja Ride ticket with you!`,
         body: html,
       };
+    });
+
+    // 2. SMS Notification
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride: ${escapeHtml(payload.senderName)} shared a bus ticket to ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) with you! View ticket here: https://mojaride.com/tickets/${escapeHtml(payload.ticketToken)}`,
+    }), {
+      skip: () => !payload.phone,
     });
   },
   {

@@ -18,6 +18,7 @@ import { createTRPCRouter, adminProcedure } from "../init";
 import { revealBankAccountNumber } from "@/lib/bank-account";
 import { logBankAccess } from "@/lib/bank-access";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
+import { getNovuClient } from "@/lib/novu";
 
 function slugify(text: string): string {
   return text
@@ -341,7 +342,7 @@ export const adminRouter = createTRPCRouter({
           bankAccounts: true,
           operators: {
             where: { role: "OWNER" },
-            include: { user: { select: { email: true, fullName: true } } },
+            include: { user: { select: { id: true, email: true, fullName: true } } },
           },
         },
       });
@@ -427,11 +428,9 @@ export const adminRouter = createTRPCRouter({
 
       const ownerUser = company.operators[0]?.user;
       if (ownerUser?.email) {
-        const novuSecret = process.env["NOVU_SECRET_KEY"];
-        if (novuSecret) {
+        const novu = getNovuClient();
+        if (novu) {
           try {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
             await novu.trigger({
               workflowId: "operator-verification-approved",
               to: {
@@ -443,6 +442,7 @@ export const adminRouter = createTRPCRouter({
                 ownerName: ownerUser.fullName ?? "Operator Owner",
                 companyName: company.name,
               },
+              transactionId: `operator-verification-approved-${company.id}`,
             });
           } catch (err) {
             console.error("Failed to trigger operator-verification-approved via Novu:", err);
@@ -461,7 +461,7 @@ export const adminRouter = createTRPCRouter({
         include: {
           operators: {
             where: { role: "OWNER" },
-            include: { user: { select: { email: true, fullName: true } } },
+            include: { user: { select: { id: true, email: true, fullName: true } } },
           },
         },
       });
@@ -496,11 +496,9 @@ export const adminRouter = createTRPCRouter({
 
       const ownerUser = company.operators[0]?.user;
       if (ownerUser?.email) {
-        const novuSecret = process.env["NOVU_SECRET_KEY"];
-        if (novuSecret) {
+        const novu = getNovuClient();
+        if (novu) {
           try {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
             await novu.trigger({
               workflowId: "operator-verification-rejected",
               to: {
@@ -513,6 +511,7 @@ export const adminRouter = createTRPCRouter({
                 companyName: company.name,
                 reason: input.reason,
               },
+              transactionId: `operator-verification-rejected-${company.id}`,
             });
           } catch (err) {
             console.error("Failed to trigger operator-verification-rejected via Novu:", err);
@@ -653,11 +652,9 @@ export const adminRouter = createTRPCRouter({
         data: { role: input.role },
       });
 
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && updatedUser.email) {
+      const novu = getNovuClient();
+      if (novu && updatedUser.email) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           await novu.trigger({
             workflowId: "user-role-updated",
             to: {
@@ -669,6 +666,7 @@ export const adminRouter = createTRPCRouter({
               userName: updatedUser.fullName ?? "User",
               newRole: input.role as any,
             },
+            transactionId: `user-role-updated-${updatedUser.id}-${Date.now()}`,
           }).catch(() => {});
         } catch (err) {
           console.error("Failed to trigger user-role-updated:", err);
@@ -716,13 +714,11 @@ export const adminRouter = createTRPCRouter({
       // Trigger operator-account-suspended
       const operators = await ctx.prisma.operator.findMany({
         where: { companyId: input.companyId, deletedAt: null },
-        include: { user: { select: { email: true, fullName: true, phone: true } } },
+        include: { user: { select: { id: true, email: true, fullName: true, phone: true } } },
       });
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && operators.length > 0) {
+      const novu = getNovuClient();
+      if (novu && operators.length > 0) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           for (const op of operators) {
             if (op.user.email) {
               await novu.trigger({
@@ -737,6 +733,7 @@ export const adminRouter = createTRPCRouter({
                   companyName: company.name,
                   phone: op.user.phone ?? undefined,
                 },
+                transactionId: `operator-account-suspended-${op.user.id}-${Date.now()}`,
               }).catch(() => {});
             }
           }
@@ -786,13 +783,11 @@ export const adminRouter = createTRPCRouter({
       // Trigger operator-account-restored
       const owners = await ctx.prisma.operator.findMany({
         where: { companyId: input.companyId, role: "OWNER", deletedAt: null },
-        include: { user: { select: { email: true, fullName: true } } },
+        include: { user: { select: { id: true, email: true, fullName: true } } },
       });
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && owners.length > 0) {
+      const novu = getNovuClient();
+      if (novu && owners.length > 0) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           for (const owner of owners) {
             if (owner.user.email) {
               await novu.trigger({
@@ -806,6 +801,7 @@ export const adminRouter = createTRPCRouter({
                   ownerName: owner.user.fullName ?? "Operator Owner",
                   companyName: company.name,
                 },
+                transactionId: `operator-account-restored-${owner.user.id}-${Date.now()}`,
               }).catch(() => {});
             }
           }
@@ -974,13 +970,11 @@ export const adminRouter = createTRPCRouter({
       // Trigger operator-bank-verified to Owners
       const owners = await ctx.prisma.operator.findMany({
         where: { companyId: bankAccount.companyId, role: "OWNER", deletedAt: null },
-        include: { user: { select: { email: true, fullName: true } } },
+        include: { user: { select: { id: true, email: true, fullName: true } } },
       });
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && owners.length > 0) {
+      const novu = getNovuClient();
+      if (novu && owners.length > 0) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           const hiddenNum = `******${bankAccount.accountNumberLast4}`;
           for (const owner of owners) {
             if (owner.user.email) {
@@ -997,6 +991,7 @@ export const adminRouter = createTRPCRouter({
                   bankName: bankAccount.bankName,
                   accountNumberHidden: hiddenNum,
                 },
+                transactionId: `operator-bank-verified-${bankAccount.id}-${owner.user.id}`,
               }).catch(() => {});
             }
           }
@@ -1045,17 +1040,15 @@ export const adminRouter = createTRPCRouter({
       // Trigger operator-bank-rejected to Owners
       const owners = await ctx.prisma.operator.findMany({
         where: { companyId: bankAccount.companyId, role: "OWNER", deletedAt: null },
-        include: { user: { select: { email: true, fullName: true } } },
+        include: { user: { select: { id: true, email: true, fullName: true } } },
       });
       const company = await ctx.prisma.company.findUnique({
         where: { id: bankAccount.companyId },
         select: { name: true },
       });
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && owners.length > 0 && company) {
+      const novu = getNovuClient();
+      if (novu && owners.length > 0 && company) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           const hiddenNum = `******${bankAccount.accountNumberLast4}`;
           for (const owner of owners) {
             if (owner.user.email) {
@@ -1073,6 +1066,7 @@ export const adminRouter = createTRPCRouter({
                   accountNumberHidden: hiddenNum,
                   reason: input.reason,
                 },
+                transactionId: `operator-bank-rejected-${bankAccount.id}-${owner.user.id}`,
               }).catch(() => {});
             }
           }
@@ -1333,14 +1327,12 @@ export const adminRouter = createTRPCRouter({
       });
       const owners = await ctx.prisma.operator.findMany({
         where: { companyId, role: "OWNER", deletedAt: null },
-        include: { user: { select: { email: true, fullName: true } } },
+        include: { user: { select: { id: true, email: true, fullName: true } } },
       });
 
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && owners.length > 0 && company) {
+      const novu = getNovuClient();
+      if (novu && owners.length > 0 && company) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           const amountVal = toSafeDisplayNumber(operatorEntry?.amount);
           for (const owner of owners) {
             if (owner.user.email) {
@@ -1359,6 +1351,7 @@ export const adminRouter = createTRPCRouter({
                   status: input.action === "FORCE_COMPLETE" ? "SETTLED" : "FAILED",
                   reason: input.reason,
                 },
+                transactionId: `operator-withdrawal-resolved-${input.transactionId}-${owner.user.id}`,
               }).catch(() => {});
             }
           }
@@ -1367,15 +1360,13 @@ export const adminRouter = createTRPCRouter({
         }
       }
 
-      if (input.action === "FORCE_FAIL" && novuSecret && company) {
+      if (input.action === "FORCE_FAIL" && novu && company) {
         const admins = await ctx.prisma.user.findMany({
           where: { role: "ADMIN" },
-          select: { email: true },
+          select: { email: true, id: true },
         });
         if (admins.length > 0) {
           try {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
             const amountVal = toSafeDisplayNumber(operatorEntry?.amount);
             for (const admin of admins) {
               await novu.trigger({
@@ -1392,6 +1383,7 @@ export const adminRouter = createTRPCRouter({
                   errorCode: "FORCE_FAIL",
                   errorMessage: input.reason,
                 },
+                transactionId: `admin-payout-failed-${input.transactionId}-${admin.id}`,
               }).catch(() => {});
             }
           } catch (err) {
@@ -2243,16 +2235,13 @@ export const adminRouter = createTRPCRouter({
       })
     )
     .query(async ({ input }) => {
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (!novuSecret) {
+      const novu = getNovuClient();
+      if (!novu) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "NOVU_SECRET_KEY is not configured",
         });
       }
-
-      const { Novu } = await import("@novu/api");
-      const novu = new Novu({ secretKey: novuSecret });
 
       let templateIds: string[] | undefined = undefined;
       if (input.templates?.length) {

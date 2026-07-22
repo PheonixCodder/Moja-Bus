@@ -16,6 +16,7 @@ import {
   getAppRollingTripWindow,
   getCalendarDateKey,
 } from "@/lib/timezone";
+import { getNovuClient } from "@/lib/novu";
 
 export const tripsRouter = createTRPCRouter({
   create: operatorCompanyProcedure
@@ -592,11 +593,9 @@ export const tripsRouter = createTRPCRouter({
         ? `${assignedTrip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown"} to ${assignedTrip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown"}`
         : "Unknown Route";
 
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && managers.length > 0 && assignedTrip?.bus) {
+      const novu = getNovuClient();
+      if (novu && managers.length > 0 && assignedTrip?.bus) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           for (const manager of managers) {
             if (manager.user?.email) {
               await novu
@@ -617,6 +616,7 @@ export const tripsRouter = createTRPCRouter({
                     ),
                     phone: manager.user.phone ?? undefined,
                   },
+                  transactionId: `operator-bus-assigned-${assignedTrip.id}-${manager.id}`,
                 })
                 .catch(() => {});
             }
@@ -726,11 +726,9 @@ export const tripsRouter = createTRPCRouter({
       });
 
       if (bookings.length > 0) {
-        const novuSecret = process.env["NOVU_SECRET_KEY"];
-        if (novuSecret) {
+        const novu = getNovuClient();
+        if (novu) {
           try {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
             const newDeparture = updatedTrip.departureDate;
             for (const booking of bookings) {
               const email =
@@ -772,6 +770,7 @@ export const tripsRouter = createTRPCRouter({
                         booking.passengerPhone ??
                         undefined,
                     },
+                    transactionId: `passenger-trip-delayed-${trip.id}-${booking.id}`,
                   })
                   .catch(() => {});
               }
@@ -928,11 +927,9 @@ export const tripsRouter = createTRPCRouter({
         });
 
         if (bookings.length > 0) {
-          const novuSecret = process.env["NOVU_SECRET_KEY"];
-          if (novuSecret) {
+          const novu = getNovuClient();
+          if (novu) {
             try {
-              const { Novu } = await import("@novu/api");
-              const novu = new Novu({ secretKey: novuSecret });
               for (const booking of bookings) {
                 const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
                 if (email) {
@@ -954,6 +951,7 @@ export const tripsRouter = createTRPCRouter({
                         busPlate: booking.trip.bus?.registrationPlate ?? undefined,
                         phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
                       },
+                      transactionId: `passenger-trip-boarding-${trip.id}-${booking.id}`,
                     }).catch(() => {});
                   } else if (status === "ARRIVED") {
                     await novu.trigger({
@@ -971,6 +969,7 @@ export const tripsRouter = createTRPCRouter({
                         tripId: trip.id,
                         bookingReference: booking.bookingReference,
                       },
+                      transactionId: `passenger-review-request-${trip.id}-${booking.id}`,
                     }).catch(() => {});
                   }
                 }
@@ -1042,11 +1041,9 @@ export const tripsRouter = createTRPCRouter({
         });
 
         if (bookings.length > 0) {
-          const novuSecret = process.env["NOVU_SECRET_KEY"];
-          if (novuSecret) {
+          const novu = getNovuClient();
+          if (novu) {
             try {
-              const { Novu } = await import("@novu/api");
-              const novu = new Novu({ secretKey: novuSecret });
               for (const booking of bookings) {
                 const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
                 if (email) {
@@ -1067,6 +1064,7 @@ export const tripsRouter = createTRPCRouter({
                       gate: input.gate,
                       phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
                     },
+                    transactionId: `passenger-trip-gate-updated-${trip.id}-${booking.id}`,
                   }).catch(() => {});
                 }
               }

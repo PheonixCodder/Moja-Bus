@@ -27,11 +27,11 @@ export const passengerProfileUpdatedWorkflow = workflow(
     });
 
     // 2. SMS Notification
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride Alert: Profile updates (${payload.changedFields.join(", ")}) were applied to your account. If this wasn't you, contact support.`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride Alert: Profile updates (${payload.changedFields.join(", ")}) were applied to your account. If this wasn't you, contact support.`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Passenger Profile Updated",

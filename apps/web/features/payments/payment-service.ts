@@ -16,6 +16,7 @@ import {
 import { BookingConfirmationService } from "./services/booking-confirmation-service";
 import { AccountingEngine, FinancialAccountService } from "@moja/db";
 import { toSafeDisplayNumber } from "@/lib/money";
+import { getNovuClient } from "@/lib/novu";
 
 export type InitiatePaymentResult = {
   holdGroupId: string;
@@ -485,10 +486,8 @@ export class PaymentService {
         });
 
         if (user?.email && bankAccount) {
-          const novuSecret = process.env["NOVU_SECRET_KEY"];
-          if (novuSecret) {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
+          const novu = getNovuClient();
+          if (novu) {
             const amountXOF = tx.entries[0] ? toSafeDisplayNumber(tx.entries[0].amount) : 0;
             const phone = user.phone?.replace(/\s+/g, "");
 
@@ -510,6 +509,7 @@ export class PaymentService {
                   settledAt: new Date().toLocaleString("en-CI"),
                   ...(phone ? { phone } : {}),
                 },
+                transactionId: `withdrawal-settled-${tx.id}`,
               });
             } else if (payload.event === "transfer.failed" || payload.event === "transfer.reversed") {
               await novu.trigger({
@@ -529,6 +529,7 @@ export class PaymentService {
                   reason: payload.data.reason || "Bank transaction rejected by destination network",
                   ...(phone ? { phone } : {}),
                 },
+                transactionId: `withdrawal-failed-${tx.id}`,
               });
             }
           }
@@ -610,16 +611,14 @@ export class PaymentService {
     if (!posted) return;
 
     if (meta.userId) {
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
+      const novu = getNovuClient();
+      if (novu) {
         try {
           const user = await this.prisma.user.findUnique({
             where: { id: meta.userId },
             select: { email: true, fullName: true },
           });
           if (user?.email) {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
             await novu.trigger({
               workflowId: "passenger-wallet-topup",
               to: {
@@ -633,6 +632,7 @@ export class PaymentService {
                 transactionId: payment.id,
                 paymentMethod: payment.channel || "Paystack",
               },
+              transactionId: `wallet-topup-${payment.id}`,
             });
           }
         } catch (error) {

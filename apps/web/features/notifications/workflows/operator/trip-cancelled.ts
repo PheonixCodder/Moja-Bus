@@ -37,11 +37,11 @@ export const passengerTripCancelledWorkflow = workflow(
     }));
 
     // 3. SMS Notification
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride URGENT: Trip from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) has been CANCELLED due to: ${escapeHtml(payload.cancelReason)}. ${escapeHtml(payload.refundAmountXOF)} XOF has been refunded to your wallet.`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride URGENT: Trip from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) has been CANCELLED due to: ${escapeHtml(payload.cancelReason)}. ${escapeHtml(payload.refundAmountXOF)} XOF has been refunded to your wallet.`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Passenger Trip Cancelled",

@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@moja/db";
 import { CancellationService } from "@/features/payments/services/cancellation-service";
+import { getNovuClient } from "@/lib/novu";
 
 type PrismaLike = PrismaClient;
 
@@ -155,11 +156,9 @@ export async function cancelTripWithRefunds(params: {
   });
 
   if (bookingsToNotify.length > 0) {
-    const novuSecret = process.env["NOVU_SECRET_KEY"];
-    if (novuSecret) {
+    const novu = getNovuClient();
+    if (novu) {
       try {
-        const { Novu } = await import("@novu/api");
-        const novu = new Novu({ secretKey: novuSecret });
         for (const booking of bookingsToNotify) {
           const email =
             booking.user?.email ??
@@ -204,6 +203,7 @@ export async function cancelTripWithRefunds(params: {
                 phone:
                   booking.user?.phone ?? booking.passengerPhone ?? undefined,
               },
+              transactionId: `passenger-trip-cancelled-${booking.id}`,
             })
             .catch(() => {});
         }

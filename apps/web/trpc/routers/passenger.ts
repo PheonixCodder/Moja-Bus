@@ -12,6 +12,7 @@ import { SavedPassengerService } from "@/features/passenger/services/saved-passe
 import { FinancialAccountService } from "@moja/db";
 import { paystackInitialize } from "@/features/payments/providers/paystack-client";
 import { toSafeDisplayNumber } from "@/lib/money";
+import { getNovuClient } from "@/lib/novu";
 
 export const passengerRouter = createTRPCRouter({
   ensureProfile: protectedProcedure.query(async ({ ctx }) => {
@@ -171,11 +172,9 @@ export const passengerRouter = createTRPCRouter({
 
       // Trigger passenger-profile-updated
       if (changedFields.length > 0 && ctx.user.email) {
-        const novuSecret = process.env["NOVU_SECRET_KEY"];
-        if (novuSecret) {
+        const novu = getNovuClient();
+        if (novu) {
           try {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
             await novu.trigger({
               workflowId: "passenger-profile-updated",
               to: {
@@ -188,6 +187,7 @@ export const passengerRouter = createTRPCRouter({
                 changedFields,
                 phone: input.phone || ctx.user.phone || undefined,
               },
+              transactionId: `passenger-profile-updated-${ctx.user.id}-${Date.now()}`,
             }).catch(() => {});
           } catch (err) {
             console.error("Failed to trigger passenger-profile-updated via Novu:", err);
@@ -249,11 +249,9 @@ export const passengerRouter = createTRPCRouter({
         select: { name: true },
       });
 
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && ctx.user.email) {
+      const novu = getNovuClient();
+      if (novu && ctx.user.email) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           await novu.trigger({
             workflowId: "passenger-review-submitted",
             to: {
@@ -267,6 +265,7 @@ export const passengerRouter = createTRPCRouter({
               rating: input.rating,
               content: input.content ?? undefined,
             },
+            transactionId: `passenger-review-submitted-${review.id}`,
           }).catch(() => {});
         } catch (err) {
           console.error("Failed to trigger passenger-review-submitted via Novu:", err);

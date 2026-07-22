@@ -7,6 +7,7 @@ import {
 } from "../lib/resolve-hold-group";
 import { AccountingEngine, FinancialAccountService, Prisma } from "@moja/db";
 import { toSafeDisplayNumber } from "@/lib/money";
+import { getNovuClient } from "@/lib/novu";
 
 export class BookingConfirmationService {
   private accountService: FinancialAccountService;
@@ -431,11 +432,9 @@ export class BookingConfirmationService {
           select: { email: true, fullName: true },
         });
         if (user?.email) {
-          const novuSecret = process.env["NOVU_SECRET_KEY"];
-          if (novuSecret) {
+          const novu = getNovuClient();
+          if (novu) {
             try {
-              const { Novu } = await import("@novu/api");
-              const novu = new Novu({ secretKey: novuSecret });
               const walletAcctPreview = await this.accountService.getUserWallet(userId);
               void novu.trigger({
                 workflowId: "passenger-wallet-low-balance",
@@ -446,6 +445,7 @@ export class BookingConfirmationService {
                   availableBalanceXOF: toSafeDisplayNumber(walletAcctPreview.availableBalance),
                   requiredAmountXOF: Number(totalToPay),
                 },
+                transactionId: `wallet-low-balance-${holdGroupId}-${Date.now()}`,
               }).catch(() => {});
             } catch (e) {
               console.error("Failed to trigger passenger-wallet-low-balance via Novu:", e);

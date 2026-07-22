@@ -19,7 +19,7 @@ import {
 } from "@moja/schemas";
 import { TERMS_VERSION, PRIVACY_VERSION, COMMISSION_VERSION } from "@/lib/constants/legal";
 import crypto from "crypto";
-import { Novu } from "@novu/api";
+import { getNovuClient } from "@/lib/novu";
 import {
   startOfAppCalendarDay,
   addAppCalendarDays,
@@ -50,6 +50,7 @@ import { OperatorBookingService } from "@/features/operator/services/operator-bo
 import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
 import { AccountingEngine } from "@moja/db";
+import { operatorSettingsProcedures } from "./operator/settings";
 
 function maskOperatorCompanyBank<T extends any>(
   operator: T,
@@ -268,13 +269,48 @@ export const operatorRouter = createTRPCRouter({
     const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
-      include: { onboardingProgress: true },
+      include: { 
+        onboardingProgress: true,
+        company: {
+          include: {
+            bankAccounts: true,
+            documents: { where: { supersededAt: null } }
+          }
+        }
+      },
     });
 
     if (!operator) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Operator profile not found. Complete onboarding steps first.",
+      });
+    }
+
+    const { company } = operator;
+    if (!company.name || !company.registrationNumber || !company.taxId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Company profile details are incomplete. Name, registration number, and tax ID are required.",
+      });
+    }
+
+    if (!company.bankAccounts || company.bankAccounts.length === 0) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "At least one bank account must be added before submitting for verification.",
+      });
+    }
+
+    const requiredDocs = ["BUSINESS_REGISTRATION_CERTIFICATE", "TRANSPORT_OPERATING_PERMIT"];
+    const hasRequiredDocs = requiredDocs.every(docType => 
+      company.documents.some(d => d.type === docType)
+    );
+
+    if (!hasRequiredDocs) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Missing required compliance documents.",
       });
     }
 
@@ -303,14 +339,12 @@ export const operatorRouter = createTRPCRouter({
     // Trigger admin-operator-signup-pending to admins
     const admins = await ctx.prisma.user.findMany({
       where: { role: "ADMIN" },
-      select: { email: true },
+      select: { email: true, id: true },
     });
     if (admins.length > 0) {
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
+      const novu = getNovuClient();
+      if (novu) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           const companyInfo = await ctx.prisma.company.findUnique({
             where: { id: companyId },
             include: { operators: { where: { role: "OWNER" }, include: { user: true } } },
@@ -331,6 +365,7 @@ export const operatorRouter = createTRPCRouter({
                 ownerPhone: owner?.phone ?? "N/A",
                 submittedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }),
               },
+              transactionId: `admin-operator-signup-pending-${companyId}-${admin.id}`,
             }).catch(() => {});
           }
         } catch (err) {
@@ -374,14 +409,12 @@ export const operatorRouter = createTRPCRouter({
     // Trigger admin-operator-signup-pending to admins
     const admins = await ctx.prisma.user.findMany({
       where: { role: "ADMIN" },
-      select: { email: true },
+      select: { email: true, id: true },
     });
     if (admins.length > 0) {
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
+      const novu = getNovuClient();
+      if (novu) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           const companyInfo = await ctx.prisma.company.findUnique({
             where: { id: operator.companyId },
             include: { operators: { where: { role: "OWNER" }, include: { user: true } } },
@@ -402,6 +435,7 @@ export const operatorRouter = createTRPCRouter({
                 ownerPhone: owner?.phone ?? "N/A",
                 submittedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }),
               },
+              transactionId: `admin-operator-signup-pending-resubmit-${operator.companyId}-${admin.id}`,
             }).catch(() => {});
           }
         } catch (err) {
@@ -845,415 +879,7 @@ export const operatorRouter = createTRPCRouter({
     };
   }),
 
-  getSettings: operatorCompanyProcedure.query(async ({ ctx }) => {
-    requirePermission(ctx, "company:view");
-    const operator = await ctx.prisma.operator.findFirst({
-      where: { userId: ctx.user.id, deletedAt: null },
-      orderBy: { joinedAt: "desc" },
-      include: {
-        user: true,
-        company: {
-          include: {
-            bankAccounts: true,
-            documents: true,
-          },
-        },
-      },
-    });
-
-    if (!operator) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Operator profile not found.",
-      });
-    }
-
-    if (operator.company.bankAccounts && operator.company.bankAccounts.length > 0) {
-      await logBankAccess(ctx.prisma, {
-        companyId: operator.companyId,
-        userId: ctx.user.id,
-        action: "VIEW_MASKED",
-      });
-    }
-
-    return {
-      company: {
-        ...operator.company,
-        bankAccounts: operator.company.bankAccounts
-          ? operator.company.bankAccounts.map((b: any) => maskBankAccountForClient(b))
-          : [],
-      },
-      operator,
-    };
-  }),
-
-  updateCompany: operatorCompanyProcedure
-    .input(companyStepSchema.partial())
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      const parsed = companyStepSchema.partial().safeParse(input);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
-
-      const cleanData = Object.fromEntries(
-        Object.entries(parsed.data).filter(([_, v]) => v !== undefined),
-      );
-
-      if (Object.keys(cleanData).length === 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "No fields to update.",
-        });
-      }
-
-      const updatedCompany = await ctx.prisma.company.update({
-        where: { id: ctx.companyId },
-        data: cleanData as any,
-      });
-
-      return updatedCompany;
-    }),
-
-  updateProfile: operatorCompanyProcedure
-    .input(z.object({ profilePhotoUrl: z.string().url().optional().nullable() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      const operator = await ctx.prisma.operator.findFirst({
-        where: { userId: ctx.user.id, deletedAt: null },
-        orderBy: { joinedAt: "desc" },
-      });
-      if (!operator)
-        throw new TRPCError({ code: "NOT_FOUND", message: "Operator not found" });
-      const updatedOperator = await ctx.prisma.operator.update({
-        where: { id: operator.id },
-        data: {
-          ...(input.profilePhotoUrl !== undefined && {
-            profilePhotoUrl: input.profilePhotoUrl,
-          }),
-        },
-      });
-      return updatedOperator;
-    }),
-
-  updateBank: operatorCompanyProcedure
-    .input(bankStepSchema)
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      const parsed = bankStepSchema.safeParse(input);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
-
-      const cleanData = Object.fromEntries(
-        Object.entries(parsed.data).filter(([_, v]) => v !== undefined),
-      );
-
-      const encryptedAccount = prepareBankAccountStorage(
-        cleanData["accountNumber"] as string,
-      );
-      const bankPayload = {
-        ...cleanData,
-        accountNumber: encryptedAccount.accountNumber,
-        accountNumberLast4: encryptedAccount.accountNumberLast4,
-      };
-
-      const existingBank = await ctx.prisma.bankAccount.findFirst({
-        where: { companyId: ctx.companyId },
-      });
-
-      let updatedBank;
-      if (existingBank) {
-        updatedBank = await ctx.prisma.bankAccount.update({
-          where: { id: existingBank.id },
-          data: {
-            ...(bankPayload as any),
-            // Changing bank details invalidates Paystack recipient + verification
-            isVerified: false,
-            paystackTransferRecipientCode: null,
-          },
-        });
-      } else {
-        updatedBank = await ctx.prisma.bankAccount.create({
-          data: {
-            ...(bankPayload as any),
-            companyId: ctx.companyId,
-            isActive: true,
-            isDefault: true,
-          },
-        });
-      }
-
-      await logBankAccess(ctx.prisma, {
-        companyId: ctx.companyId,
-        userId: ctx.user.id,
-        action: existingBank ? "UPDATE" : "CREATE",
-      });
-
-      return maskBankAccountForClient(updatedBank);
-    }),
-
-  revealBankAccount: operatorCompanyProcedure
-    .input(z.object({ bankAccountId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:view");
-      if (ctx.operator.role !== "OWNER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only the company owner can reveal the full bank account number.",
-        });
-      }
-
-      const bankAccount = await ctx.prisma.bankAccount.findFirst({
-        where: { id: input.bankAccountId, companyId: ctx.companyId },
-      });
-
-      if (!bankAccount) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bank account not found.",
-        });
-      }
-
-      await logBankAccess(ctx.prisma, {
-        companyId: ctx.companyId,
-        userId: ctx.user.id,
-        action: "VIEW_FULL",
-      });
-
-      return {
-        accountNumber: revealBankAccountNumber(bankAccount),
-      };
-    }),
-
-  listBankAccounts: operatorCompanyProcedure
-    .query(async ({ ctx }) => {
-      requirePermission(ctx, "company:view");
-      const bankAccounts = await ctx.prisma.bankAccount.findMany({
-        where: { companyId: ctx.companyId },
-        orderBy: { createdAt: "desc" },
-      });
-      return bankAccounts.map((b) => maskBankAccountForClient(b));
-    }),
-
-  addBankAccount: operatorCompanyProcedure
-    .input(
-      z.object({
-        bankName: z.string().min(1),
-        bankCode: z.string().min(1),
-        accountNumber: z.string().min(1),
-        accountName: z.string().min(1),
-        branch: z.string().nullable().optional(),
-        swiftCode: z.string().nullable().optional(),
-        iban: z.string().nullable().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      // Use the operator-provided name. Paystack account validation is performed
-      // by the admin approval flow when it creates the transfer recipient.
-      const resolvedName = input.accountName || "Operator Account";
-
-      const encryptedAccount = prepareBankAccountStorage(input.accountNumber);
-      
-      const newAccount = await ctx.prisma.bankAccount.create({
-        data: {
-          companyId: ctx.companyId,
-          bankName: input.bankName,
-          bankCode: input.bankCode,
-          accountNumber: encryptedAccount.accountNumber,
-          accountNumberLast4: encryptedAccount.accountNumberLast4,
-          accountName: resolvedName,
-          branch: input.branch ?? null,
-          swiftCode: input.swiftCode ?? null,
-          iban: input.iban ?? null,
-          isVerified: false,
-          isActive: true,
-          isDefault: false,
-        },
-      });
-
-      await logBankAccess(ctx.prisma, {
-        companyId: ctx.companyId,
-        userId: ctx.user.id,
-        action: "CREATE",
-      });
-
-      // Trigger admin-bank-account-pending to all platform admins
-      const admins = await ctx.prisma.user.findMany({
-        where: { role: "ADMIN" },
-        select: { email: true },
-      });
-      const company = await ctx.prisma.company.findUnique({
-        where: { id: ctx.companyId },
-        select: { name: true },
-      });
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret && admins.length > 0 && company) {
-        try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
-          const hiddenNum = `******${newAccount.accountNumberLast4}`;
-          for (const admin of admins) {
-            await novu.trigger({
-              workflowId: "admin-bank-account-pending",
-              to: {
-                subscriberId: admin.email,
-                email: admin.email,
-              },
-              payload: {
-                adminEmail: admin.email,
-                companyName: company.name,
-                bankName: newAccount.bankName,
-                accountName: newAccount.accountName,
-                accountNumberHidden: hiddenNum,
-                bankAccountId: newAccount.id,
-              },
-            }).catch(() => {});
-          }
-        } catch (err) {
-          console.error("Failed to trigger admin-bank-account-pending:", err);
-        }
-      }
-
-      return maskBankAccountForClient(newAccount);
-    }),
-
-  setDefaultBankAccount: operatorCompanyProcedure
-    .input(z.object({ bankAccountId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      const bankAccount = await ctx.prisma.bankAccount.findFirst({
-        where: { id: input.bankAccountId, companyId: ctx.companyId },
-      });
-
-      if (!bankAccount) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bank account not found",
-        });
-      }
-
-      if (!bankAccount.isVerified) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: "Only verified bank accounts can be set as default.",
-        });
-      }
-
-      await ctx.prisma.$transaction([
-        ctx.prisma.bankAccount.updateMany({
-          where: { companyId: ctx.companyId },
-          data: { isDefault: false },
-        }),
-        ctx.prisma.bankAccount.update({
-          where: { id: input.bankAccountId },
-          data: { isDefault: true },
-        }),
-        ctx.prisma.company.update({
-          where: { id: ctx.companyId },
-          data: { paystackTransferRecipientCode: bankAccount.paystackTransferRecipientCode },
-        }),
-      ]);
-
-      return { success: true };
-    }),
-
-  deleteBankAccount: operatorCompanyProcedure
-    .input(z.object({ bankAccountId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      const bankAccount = await ctx.prisma.bankAccount.findFirst({
-        where: { id: input.bankAccountId, companyId: ctx.companyId },
-      });
-
-      if (!bankAccount) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bank account not found",
-        });
-      }
-
-      if (bankAccount.isDefault) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: "Cannot delete the default bank account.",
-        });
-      }
-
-      await ctx.prisma.bankAccount.delete({
-        where: { id: input.bankAccountId },
-      });
-
-      return { success: true };
-    }),
-
-  addDocument: operatorCompanyProcedure
-    .input(documentSchema)
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      const parsed = documentSchema.safeParse(input);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
-
-      const { expiresAt, ...restData } = parsed.data;
-      const doc = await ctx.prisma.companyDocument.create({
-        data: {
-          ...restData,
-          companyId: ctx.companyId,
-          status: "PENDING",
-          ...(expiresAt !== undefined && { expiresAt }),
-        },
-      });
-
-      return doc;
-    }),
-
-  deleteDocument: operatorCompanyProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      const document = await ctx.prisma.companyDocument.findFirst({
-        where: {
-          id: input.id,
-          companyId: ctx.companyId,
-        },
-      });
-
-      if (!document) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Document not found.",
-        });
-      }
-
-      // Remove the underlying S3 object (if it has a stored key).
-      if (document.objectKey) {
-        await deleteStorageObject({
-          purpose: "operator-document",
-          objectKey: document.objectKey,
-        });
-      }
-
-      await ctx.prisma.companyDocument.delete({
-        where: { id: document.id },
-      });
-
-      return { success: true };
-    }),
+  ...operatorSettingsProcedures,
 
   logOnboardingEvent: operatorCompanyProcedure
     .input(logOnboardingEventSchema)
@@ -2386,11 +2012,9 @@ export const operatorRouter = createTRPCRouter({
           });
         }
 
-        const novuSecret = process.env["NOVU_SECRET_KEY"];
-        if (novuSecret && ctx.user.email) {
+        const novu = getNovuClient();
+        if (novu && ctx.user.email) {
           try {
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
             await novu.trigger({
               workflowId: "operator-withdrawal-requested",
               to: {
@@ -2406,6 +2030,7 @@ export const operatorRouter = createTRPCRouter({
                 accountNumberLast4: bankAccount.accountNumberLast4,
                 transactionId: txId,
               },
+              transactionId: `operator-withdrawal-requested-${txId}`,
             });
           } catch (err) {
             console.error("Failed to trigger operator-withdrawal-requested via Novu:", err);
@@ -2425,16 +2050,13 @@ export const operatorRouter = createTRPCRouter({
           !error?.name?.includes("Timeout") &&
           !error?.name?.includes("Abort");
 
-        const novuSecret = process.env["NOVU_SECRET_KEY"];
-        if (novuSecret) {
+        const novu = getNovuClient();
+        if (novu) {
           try {
             const admins = await ctx.prisma.user.findMany({
               where: { role: "ADMIN" },
-              select: { email: true },
+              select: { email: true, id: true },
             });
-            const { Novu } = await import("@novu/api");
-            const novu = new Novu({ secretKey: novuSecret });
-
             await Promise.all(
               admins.map(async (admin) => {
                 if (admin.email) {
@@ -2451,6 +2073,7 @@ export const operatorRouter = createTRPCRouter({
                       transactionId: txId,
                       reason: message,
                     },
+                    transactionId: `admin-treasury-network-failure-${txId}-${admin.id}`,
                   });
                 }
               }),

@@ -2,6 +2,7 @@ import type { PrismaClient } from "@moja/db";
 import { AccountingEngine, FinancialAccountService, Prisma } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import { resolveHoldGroup } from "../lib/resolve-hold-group";
+import { getNovuClient } from "@/lib/novu";
 
 export type CancelBookingInput = {
   bookingReference: string;
@@ -369,10 +370,8 @@ export class CancellationService {
         ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
         : null);
     if (email) {
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
-        const { Novu } = await import("@novu/api");
-        const novu = new Novu({ secretKey: novuSecret });
+      const novu = getNovuClient();
+      if (novu) {
         void novu
           .trigger({
             workflowId: "passenger-booking-refunded",
@@ -388,6 +387,7 @@ export class CancellationService {
               channel: result.channel as any,
               reason: result.reason ?? "Passenger cancellation before departure",
             },
+            transactionId: `booking-refunded-${result.id}`,
           })
           .catch((err) =>
             console.error("Failed to trigger passenger-booking-refunded via Novu:", err),

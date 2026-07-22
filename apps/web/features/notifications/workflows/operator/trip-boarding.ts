@@ -15,11 +15,11 @@ export const passengerTripBoardingWorkflow = workflow(
     }));
 
     // 2. SMS Notification
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride Boarding: Boarding has started for your trip to ${escapeHtml(payload.destinationCity)}. Proceed to ${payload.gate ? `Gate ${escapeHtml(payload.gate)}` : "the boarding terminal"}. Vehicle Plate: ${payload.busPlate ?? "Assigned bus"}.`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride Boarding: Boarding has started for your trip to ${escapeHtml(payload.destinationCity)}. Proceed to ${payload.gate ? `Gate ${escapeHtml(payload.gate)}` : "the boarding terminal"}. Vehicle Plate: ${payload.busPlate ?? "Assigned bus"}.`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Passenger Trip Boarding Commenced",

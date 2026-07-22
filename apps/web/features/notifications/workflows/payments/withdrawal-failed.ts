@@ -38,11 +38,11 @@ export const operatorWithdrawalFailedWorkflow = workflow(
     }));
 
     // 3. SMS Channel
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride Payout Failed: Transfer of ${escapeHtml(payload.amountXOF)} XOF failed: ${escapeHtml(payload.reason)}. Funds have been restored to your available balance.`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride Payout Failed: Transfer of ${escapeHtml(payload.amountXOF)} XOF failed: ${escapeHtml(payload.reason)}. Funds have been restored to your available balance.`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Operator Payout Failed Alert",

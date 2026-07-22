@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@moja/db";
 import type { ConfirmedBookingResult } from "@moja/types";
+import { getNovuClient } from "@/lib/novu";
 
 export async function sendBookingConfirmedEmails(
   prisma: PrismaClient,
@@ -65,16 +66,14 @@ export async function sendBookingConfirmedEmails(
   const totalAmountXOF = confirmed.totalAmountXOF ?? holdGroup.pricingSnapshot.chargeAmountXOF;
   const passengerPhone = holdGroup.bookings[0]?.passengerPhone?.replace(/\s+/g, "");
 
-  const novuSecret = process.env["NOVU_SECRET_KEY"];
+  const novu = getNovuClient();
   
-  if (!novuSecret) {
+  if (!novu) {
     console.warn("[NOVU] NOVU_SECRET_KEY not configured — passenger booking receipt not sent.");
     return;
   }
 
   try {
-    const { Novu } = await import("@novu/api");
-    const novu = new Novu({ secretKey: novuSecret });
     await novu.trigger({
       workflowId: "passenger-booking-confirmed",
       to: {
@@ -92,6 +91,7 @@ export async function sendBookingConfirmedEmails(
         totalAmountXOF,
         ...(passengerPhone ? { phone: passengerPhone } : {}),
       },
+      transactionId: `booking-receipt-${confirmed.holdId}`,
     });
   } catch (error) {
     console.error("[NOVU] Failed to trigger passenger-booking-confirmed via Novu:", error);

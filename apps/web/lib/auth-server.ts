@@ -232,10 +232,9 @@ export const auth = betterAuth({
             });
 
             // Trigger Novu Welcome (fire and forget)
-            const novuSecret = process.env["NOVU_SECRET_KEY"];
-            if (novuSecret) {
-              import("@novu/api").then(({ Novu }) => {
-                const novu = new Novu({ secretKey: novuSecret });
+            import("@/lib/novu").then(({ getNovuClient }) => {
+              const novu = getNovuClient();
+              if (novu) {
                 const appUrl = process.env["APP_URL"] || "http://localhost:3000";
                 novu.trigger({
                   workflowId: "operator-welcome",
@@ -250,9 +249,10 @@ export const auth = betterAuth({
                     companyName: pending.companyName,
                     dashboardUrl: appUrl,
                   },
+                  transactionId: `operator-welcome-${user.id}`,
                 }).catch(console.error);
-              }).catch(console.error);
-            }
+              }
+            }).catch(console.error);
           }
         },
       },

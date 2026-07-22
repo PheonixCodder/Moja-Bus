@@ -94,7 +94,7 @@ export function getCompanyStatusPresentation(
   return STATUS_MAP.DRAFT;
 }
 
-const REQUIRED_DOC_TYPES = [
+export const REQUIRED_DOC_TYPES = [
   "BUSINESS_REGISTRATION_CERTIFICATE",
   "TRANSPORT_OPERATING_PERMIT",
 ] as const;
@@ -124,4 +124,12 @@ export function getBankVerificationState(
   if (!bankAccount) return "missing";
   if (bankAccount.isVerified) return "verified";
   return "pending";
+}
+
+export function getCompanyProfileState(
+  company: { registrationNumber?: string | null; taxId?: string | null } | null | undefined,
+): "missing" | "complete" {
+  if (!company) return "missing";
+  if (company.registrationNumber && company.taxId) return "complete";
+  return "missing";
 }

@@ -3,28 +3,30 @@ import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
 
-const OTP_SUBJECTS = {
-  "sign-in": "Your Moja Ride sign-in code",
-  "email-verification": "Verify your Moja Ride email",
-  "change-email": "Confirm your Moja Ride email change",
-  "transfer-ownership": "Confirm business ownership transfer",
-} as const;
+const OTP_SUBJECTS: Record<string, string> = {
+  "sign-in": "Your Moja Ride verification code",
+  "email-verification": "Verify your Moja Ride account",
+  "change-email": "Verify your new email address",
+  "transfer-ownership": "Verify ownership transfer code",
+  "withdrawal-2fa": "Verify your withdrawal confirmation code",
+};
 
-const OTP_INTROS = {
-  "sign-in": "Use this code to sign in to your Moja Ride account.",
-  "email-verification": "Use this code to verify your email address and activate your account.",
-  "change-email": "Use this code to confirm your new email address.",
-  "transfer-ownership": "Use this code to confirm the transfer of your business ownership. This action is irreversible.",
-} as const;
+const OTP_INTROS: Record<string, string> = {
+  "sign-in": "Use the verification code below to sign in to your Moja Ride account:",
+  "email-verification": "Welcome to Moja Ride! Use the verification code below to verify your email and activate your account:",
+  "change-email": "Use the verification code below to confirm your new email address:",
+  "transfer-ownership": "Use the verification code below to confirm and authorize the business ownership transfer:",
+  "withdrawal-2fa": "Use the verification code below to confirm and authorize your withdrawal request:",
+};
 
 export const authOtpWorkflow = workflow(
   "auth-otp",
   async ({ step, payload }) => {
-    // 1. Send Email (SendGrid) if email is provided
-    if (payload.email) {
-      await step.email("send-email", async () => {
-        const subject = OTP_SUBJECTS[payload.type];
-        const intro = OTP_INTROS[payload.type];
+    await step.email(
+      "send-email",
+      async () => {
+        const subject = OTP_SUBJECTS[payload.type] || "Your Moja Ride verification code";
+        const intro = OTP_INTROS[payload.type] || "Use the verification code below:";
 
         const html = `
           <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; color: #1e293b;">
@@ -41,15 +43,21 @@ export const authOtpWorkflow = workflow(
           subject,
           body: html,
         };
-      });
-    }
+      },
+      {
+        skip: () => !payload.email,
+      }
+    );
 
-    // 2. Conditionally send SMS (Twilio) if phone is provided
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
+    await step.sms(
+      "send-sms",
+      async () => ({
         body: `Moja Ride: Use code ${escapeHtml(payload.otpCode)} to complete your verification. Valid for 10 minutes.`,
-      }));
-    }
+      }),
+      {
+        skip: () => !payload.phone,
+      }
+    );
   },
   {
     name: "Unified Auth OTP",
@@ -60,7 +68,7 @@ export const authOtpWorkflow = workflow(
     payloadSchema: z.object({
       email: z.string().email().optional(),
       otpCode: z.string().length(6),
-      type: z.enum(["sign-in", "email-verification", "change-email", "transfer-ownership"]),
+      type: z.string(),
       phone: z.string().optional(),
     }),
   }

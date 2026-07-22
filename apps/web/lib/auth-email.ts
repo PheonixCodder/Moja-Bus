@@ -1,5 +1,5 @@
 import { getPrismaClient } from "@moja/db";
-import { Novu } from "@novu/api";
+import { getNovuClient } from "@/lib/novu";
 
 export type AuthOtpType =
   | "sign-in"
@@ -21,9 +21,9 @@ export async function sendAuthOtp({
 }: AuthOtpPayload): Promise<void> {
   console.log(`\n=== 🔐 OTP verification for ${identifier}: ${otp} ===\n`);
 
-  const novuSecret = process.env["NOVU_SECRET_KEY"];
+  const novu = getNovuClient();
 
-  if (!novuSecret) {
+  if (!novu) {
     console.warn("[NOVU] NOVU_SECRET_KEY not configured — OTP not sent.");
     return;
   }
@@ -40,7 +40,6 @@ export async function sendAuthOtp({
 
       if (pending) {
         // Trigger branded operator-signup-otp
-        const novu = new Novu({ secretKey: novuSecret });
         await novu.trigger({
           workflowId: "operator-signup-otp",
           to: {
@@ -53,13 +52,13 @@ export async function sendAuthOtp({
             companyName: pending.companyName,
             ownerName: pending.ownerName,
           },
+          transactionId: `operator-signup-otp-${identifier}-${Date.now()}`,
         });
         console.log(`[NOVU] Successfully triggered operator-signup-otp for ${identifier}`);
         return;
       }
     }
 
-    const novu = new Novu({ secretKey: novuSecret });
     await novu.trigger({
       workflowId: "auth-otp",
       to: {
@@ -73,6 +72,7 @@ export async function sendAuthOtp({
         type,
         ...(isEmail ? { email: identifier } : { phone: identifier }),
       },
+      transactionId: `auth-otp-${identifier}-${type}-${Date.now()}`,
     });
 
     console.log(`[NOVU] Successfully triggered auth-otp for ${identifier}`);

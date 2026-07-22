@@ -58,13 +58,25 @@ function DocumentRow({ doc }: { doc: any }) {
       return;
     }
 
+    const newWindow = window.open('about:blank', '_blank', 'noreferrer');
+    if (!newWindow) {
+      // Fallback if blocked
+      return;
+    }
+
     try {
       setOpening(true);
       const { downloadUrl } = await downloadMutation.mutateAsync({
         purpose: "operator-document",
         documentId: doc.id,
       });
-      window.open(downloadUrl, "_blank", "noreferrer");
+      if (downloadUrl) {
+        newWindow.location.href = downloadUrl;
+      } else {
+        newWindow.close();
+      }
+    } catch (e) {
+      newWindow.close();
     } finally {
       setOpening(false);
     }

@@ -125,7 +125,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
                   >
                   <MapPin className="w-4 h-4" />
-                  Explore
+                  Popular Routes
                   <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", destOpen && "rotate-180")} />
                 </button>
 
@@ -254,7 +254,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                 <div className="flex items-center gap-2">
                   <Link
                     href="/login"
-                    className="px-5 py-2 rounded-full text-sm font-semibold border-2 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                    className="px-5 py-2 rounded-full text-sm font-semibold bg-[#ee237c] text-white hover:bg-[#c71d65] hover:shadow-md transition-all shadow-sm"
                   >
                     Log in
                   </Link>

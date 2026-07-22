@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import crypto from "node:crypto";
-import { Novu } from "@novu/api";
+import { getNovuClient } from "@/lib/novu";
 import {
   ROLE_TEMPLATES,
   type StaffRole,
@@ -237,10 +237,9 @@ export const invitationRouter = createTRPCRouter({
       // Session is managed by Better Auth natively — no manual createSession needed.
 
       // Trigger Novu staff invitation acceptance alert to the inviter
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
+      const novu = getNovuClient();
+      if (novu) {
         try {
-          const novu = new Novu({ secretKey: novuSecret });
           await novu.trigger({
             workflowId: "staff-acceptance-alert",
             to: {
@@ -252,6 +251,7 @@ export const invitationRouter = createTRPCRouter({
               staffEmail: invitation.email,
               role: invitation.role,
             },
+            transactionId: `staff-acceptance-alert-${invitation.id}-${userId}`,
           });
           console.log(`[NOVU] Triggered staff-acceptance-alert for inviter ${invitation.invitedById}`);
         } catch (err) {

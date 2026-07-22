@@ -118,3 +118,12 @@ Continuation of the payment-system enterprise audit on the `improvements` branch
 
 ### Note for next session
 - Before merge, run `prisma migrate deploy` (or `migrate dev`) against a live Neon DB to actually apply the `releasedAt` migration; confirm no later migration timestamp collides with `20260720140000`.
+
+---
+
+## Session — 2026-07-21: Novu Notifications Inspection
+
+### What was done
+- Audited all 30 notification workflows matching `docs/novu` documentation against codebase implementations in `apps/web/features/notifications/workflows`.
+- Created a comprehensive status report in `novu_infrastructure_audit.md`.
+- Identified a critical discrepancy: `auth-otp.ts` has been replaced with a dummy/mock endpoint, which breaks authentication OTP dispatch (missing fields in payload schema, hardcoded "Test" subject and "Hello" body).

@@ -42,11 +42,11 @@ export const passengerBookingConfirmedWorkflow = workflow(
     }));
 
     // 3. Conditional SMS Channel (Twilio) if phone exists
-    if (payload.phone) {
-      await step.sms("send-sms", async () => ({
-        body: `Moja Ride: Booking confirmed! Route: ${escapeHtml(payload.originCityName)} -> ${escapeHtml(payload.destinationCityName)} at ${escapeHtml(payload.departureTime)}. Refs: ${payload.bookingReferences.join(", ")}. Total paid: ${escapeHtml(payload.totalAmountXOF)} XOF.`,
-      }));
-    }
+    await step.sms("send-sms", async () => ({
+      body: `Moja Ride: Booking confirmed! Route: ${escapeHtml(payload.originCityName)} -> ${escapeHtml(payload.destinationCityName)} at ${escapeHtml(payload.departureTime)}. Refs: ${payload.bookingReferences.join(", ")}. Total paid: ${escapeHtml(payload.totalAmountXOF)} XOF.`,
+    }), {
+      skip: () => !payload.phone,
+    });
   },
   {
     name: "Passenger Booking Confirmed",

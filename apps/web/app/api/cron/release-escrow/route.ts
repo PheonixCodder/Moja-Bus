@@ -6,7 +6,7 @@ import {
   Prisma,
 } from "@moja/db";
 import { computeEscrowReleaseNet } from "@/lib/escrow-release";
-import { Novu } from "@novu/api";
+import { getNovuClient } from "@/lib/novu";
 
 export const runtime = "nodejs";
 
@@ -263,13 +263,13 @@ export async function GET(request: Request) {
   }
 
   // H3: alert ops whenever we had to fall back (missing snapshots) or skipped.
-  if ((skipped > 0 || fallbackCount > 0) && process.env["NOVU_SECRET_KEY"]) {
+  const novu = getNovuClient();
+  if ((skipped > 0 || fallbackCount > 0) && novu) {
     try {
       const admins = await prisma.user.findMany({
         where: { role: "ADMIN" },
-        select: { email: true },
+        select: { email: true, id: true },
       });
-      const novu = new Novu({ secretKey: process.env["NOVU_SECRET_KEY"] });
       await Promise.all(
         admins
           .filter((a) => a.email)
@@ -288,6 +288,7 @@ export async function GET(request: Request) {
                   transactionId: "release-escrow-cron",
                   reason: `Escrow release ran with ${fallbackCount} booking(s) released via missing-snapshot fallback and ${skipped} skipped (no fares). Review pricing snapshots.`,
                 },
+                transactionId: `admin-treasury-network-failure-cron-${Date.now()}-${a.id}`,
               })
               .catch(() => {}),
           ),

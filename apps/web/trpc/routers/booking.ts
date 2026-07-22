@@ -19,6 +19,7 @@ import { SeatAvailabilityService } from "@/features/booking/services/seat-availa
 import { BookingHoldService } from "@/features/booking/services/booking-hold-service";
 import { BookingReadService } from "@/features/booking/services/booking-read-service";
 import { PaymentService } from "@/features/payments/payment-service";
+import { getNovuClient } from "@/lib/novu";
 
 export const bookingRouter = createTRPCRouter({
   getTripDetails: publicProcedure
@@ -51,8 +52,8 @@ export const bookingRouter = createTRPCRouter({
       const phone = ctx.user.phone ?? null;
 
       if (email) {
-        const novuSecret = process.env["NOVU_SECRET_KEY"];
-        if (novuSecret) {
+        const novu = getNovuClient();
+        if (novu) {
           try {
             const details = await ctx.prisma.trip.findFirst({
               where: { bookings: { some: { holdGroupId: result.holdId } } },
@@ -73,8 +74,6 @@ export const bookingRouter = createTRPCRouter({
             if (details) {
               const originCity = details.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
               const destCity = details.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
-              const { Novu } = await import("@novu/api");
-              const novu = new Novu({ secretKey: novuSecret });
               await novu.trigger({
                 workflowId: "passenger-hold-created",
                 to: {
@@ -92,6 +91,7 @@ export const bookingRouter = createTRPCRouter({
                   totalAmountXOF: result.totalAmountXOF,
                   phone: phone ?? undefined,
                 },
+                transactionId: `passenger-hold-created-${result.holdId}`,
               }).catch(() => {});
             }
           } catch (err) {
@@ -269,11 +269,9 @@ export const bookingRouter = createTRPCRouter({
       const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
       const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
 
-      const novuSecret = process.env["NOVU_SECRET_KEY"];
-      if (novuSecret) {
+      const novu = getNovuClient();
+      if (novu) {
         try {
-          const { Novu } = await import("@novu/api");
-          const novu = new Novu({ secretKey: novuSecret });
           await novu.trigger({
             workflowId: "passenger-ticket-shared",
             to: {
@@ -290,7 +288,8 @@ export const bookingRouter = createTRPCRouter({
               ticketToken: booking.ticketToken,
               phone: input.recipientPhone || undefined,
             },
-          });
+            transactionId: `passenger-ticket-shared-${booking.id}-${input.recipientEmail}`,
+          }).catch(() => {});
         } catch (err) {
           console.error("Failed to trigger passenger-ticket-shared via Novu:", err);
         }
