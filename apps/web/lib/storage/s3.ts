@@ -47,6 +47,7 @@ export async function signPutObject(params: {
   contentType: string;
   contentLength: number;
   cacheControl?: string | undefined;
+  acl?: "public-read" | undefined;
 }): Promise<string> {
   const command = new PutObjectCommand({
     Bucket: params.bucket,
@@ -54,6 +55,7 @@ export async function signPutObject(params: {
     ContentType: params.contentType,
     ContentLength: params.contentLength,
     ...(params.cacheControl ? { CacheControl: params.cacheControl } : {}),
+    ...(params.acl ? { ACL: params.acl } : {}),
   });
   return getSignedUrl(getS3Client(), command, { expiresIn: 900 });
 }

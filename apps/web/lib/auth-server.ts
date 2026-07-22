@@ -279,6 +279,16 @@ export const auth = betterAuth({
       sendOTP: async ({ phoneNumber: phone, code }) => {
         await sendAuthOtp({ identifier: phone, otp: code, type: "sign-in" });
       },
+      schema: {
+        user: {
+          fields: {
+            // Remap plugin's "phoneNumber" → our existing "phone" column
+            phoneNumber: "phone",
+            // Map plugin's "phoneNumberVerified" → our new column
+            phoneNumberVerified: "phoneNumberVerified",
+          },
+        },
+      },
     }),
     nextCookies(),
   ],

@@ -64,6 +64,7 @@ export async function createPresignedUpload(
     contentLength: input.fileSize,
     cacheControl:
       purpose.visibility === "public" ? purpose.cacheControl : undefined,
+    acl: purpose.visibility === "public" ? "public-read" : undefined,
   });
 
   const fileUrl =

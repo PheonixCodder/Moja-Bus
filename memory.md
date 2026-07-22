@@ -127,3 +127,54 @@ Continuation of the payment-system enterprise audit on the `improvements` branch
 - Audited all 30 notification workflows matching `docs/novu` documentation against codebase implementations in `apps/web/features/notifications/workflows`.
 - Created a comprehensive status report in `novu_infrastructure_audit.md`.
 - Identified a critical discrepancy: `auth-otp.ts` has been replaced with a dummy/mock endpoint, which breaks authentication OTP dispatch (missing fields in payload schema, hardcoded "Test" subject and "Hello" body).
+
+---
+
+## Session — 2026-07-22: Operator Settings Refactor (Settings Hub → Sidebar Layout)
+
+### What was done
+
+**Architecture:**
+- Replaced the old `SettingsHub` drawer-based single-page design with a proper sidebar layout using Next.js nested routes under `apps/web/app/dashboard/operator/(dashboard)/settings/`
+- Created 5 sub-routes: `/settings/company`, `/settings/personal`, `/settings/banking`, `/settings/compliance`, `/settings/notifications`
+- Root `/settings` page now redirects automatically to `/settings/company`
+
+**Files created/refactored:**
+- `apps/web/app/dashboard/operator/(dashboard)/settings/layout.tsx` — sidebar grid layout
+- `apps/web/app/dashboard/operator/(dashboard)/settings/page.tsx` — redirect to /company
+- `apps/web/app/dashboard/operator/(dashboard)/settings/[sub]/page.tsx` for each sub-route
+- `apps/web/features/operator/settings/components/settings-sidebar.tsx` — permission-aware sidebar (OWNER/role/permissions gating)
+- `apps/web/features/operator/settings/components/views/company-profile-view.tsx` — full-page form
+- `apps/web/features/operator/settings/components/views/personal-profile-view.tsx` — full-page form
+- `apps/web/features/operator/settings/components/views/banking-view.tsx` — list + drawer for add/edit
+- `apps/web/features/operator/settings/components/views/compliance-view.tsx` — documents grid with delete friction
+- `apps/web/features/operator/settings/hooks/use-profile-form.ts` — refactored to use `companyStepSchema.partial()`, added `CompanyInitialData` typed interface
+
+**TRPC / backend fixes:**
+- `apps/web/trpc/routers/operator/settings.ts`: Removed all `as any` casts; rewrote `updateCompany`, `updateProfile`, `updateBank`, `updateBankAccount` to use explicit typed field objects that satisfy Prisma's `exactOptionalPropertyTypes`
+- `apps/web/lib/storage/s3.ts` + `apps/web/lib/storage/index.ts`: Added `ACL: "public-read"` to `PutObjectCommand` for public-visibility purposes (fixes company logo/avatar not displaying — objects were created private)
+- `apps/web/lib/storage/purposes.ts`: Added `.webp` extension to `operator-logo` and `operator-profile-photo` keys so CDN serves correct `Content-Type`
+
+**Type safety cleanup (zero `as any` remaining in settings module):**
+- Fixed `verificationStatus` → `status` in `verification-drawer.tsx`
+- Fixed all `err: any` catch blocks → `err instanceof Error` narrowing
+- Fixed `ImageUploadField value` prop: `form.watch() ?? null` to satisfy `string | null` type
+- Fixed `bankCode: string | null | undefined` → `?? ""` for mutation payload
+- Removed all `(old: any)`, `(d: any)`, `(p: any)` annotations from callbacks
+- Replaced `Object.fromEntries(...)` spreads into Prisma with explicit conditional spreads
+- Fixed `FallbackProps` error access via `error instanceof Error ? error.message : fallback`
+- Fixed `zodResolver(...) as Resolver<T>` with proper import to resolve pnpm TS2719 duplicate-instance error
+
+**Bugs fixed:**
+- Save Changes button on Company Profile was silently failing: `slug` was required by full schema but missing from form + `estimatedStaffSize` default was string `"1-10"` instead of number
+- S3 public images returning 403: `PutObjectCommand` never set `ACL: "public-read"`, all uploads were private
+
+### Verification
+- `pnpm typecheck --filter web` → ✅ 0 errors
+- `pnpm build --filter web` → ✅ 6/6 tasks successful, all 5 settings routes compiled
+
+### Carry-forward / next steps
+- Remove legacy `SettingsHub` component and `nuqs` drawer state once all operators have migrated
+- Notifications tab (`/settings/notifications`) page/view not yet implemented (empty route shell exists)
+- Existing logos/avatars uploaded before the ACL fix need to be re-uploaded once to get `public-read` grant
+- If S3 bucket has "Block Public ACLs" enabled, switch to CloudFront OAC + bucket policy instead of per-object ACLs
