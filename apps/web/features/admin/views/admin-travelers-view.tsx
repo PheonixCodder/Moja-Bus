@@ -23,7 +23,7 @@ export function AdminTravelersView() {
       name: user.fullName || "Unknown",
       image: user.image ?? null,
       email: user.email,
-      phone: user.phone || "N/A",
+      phone: user.phoneNumber || "N/A",
       status: user.emailVerified ? "Verified" : "Unverified",
       joinedDate: format(new Date(user.createdAt), "dd MMM yyyy, h:mm a"),
       rawDate: new Date(user.createdAt).getTime(),

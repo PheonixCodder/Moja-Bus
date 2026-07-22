@@ -101,7 +101,7 @@ export const passengerRouter = createTRPCRouter({
   getPreferences: protectedProcedure.query(async ({ ctx }) => {
     const profile = await ctx.prisma.passengerProfile.findUnique({
       where: { userId: ctx.user.id },
-      include: { user: { select: { fullName: true, email: true, phone: true } } },
+      include: { user: { select: { fullName: true, email: true, phoneNumber: true } } },
     });
 
     if (!profile) {
@@ -109,7 +109,7 @@ export const passengerRouter = createTRPCRouter({
       await service.ensureProfile(ctx.user.id);
       return ctx.prisma.passengerProfile.findUnique({
         where: { userId: ctx.user.id },
-        include: { user: { select: { fullName: true, email: true, phone: true } } },
+        include: { user: { select: { fullName: true, email: true, phoneNumber: true } } },
       });
     }
 
@@ -185,7 +185,7 @@ export const passengerRouter = createTRPCRouter({
                 email: ctx.user.email,
                 passengerName: input.fullName || ctx.user.name || "Passenger",
                 changedFields,
-                phone: input.phone || ctx.user.phone || undefined,
+                phone: input.phone || ctx.user.phoneNumber || undefined,
               },
               transactionId: `passenger-profile-updated-${ctx.user.id}-${Date.now()}`,
             }).catch(() => {});
@@ -332,7 +332,7 @@ export const passengerRouter = createTRPCRouter({
       const wallet = await accountService.getUserWallet(ctx.user.id);
       
       const reference = `ref_topup_${wallet.id.slice(-6)}_${Date.now()}`;
-      const phone = ctx.user.phone ? ctx.user.phone.replace(/\s+/g, "") : "guest";
+      const phone = ctx.user.phoneNumber ? ctx.user.phoneNumber.replace(/\s+/g, "") : "guest";
       const email = ctx.user.email || `${phone}@guest.mojaride.ci`;
 
       const payment = await ctx.prisma.externalPayment.create({

@@ -57,7 +57,7 @@ export interface CompanyRow {
     user: {
       fullName: string;
       email: string;
-      phone: string | null;
+      phoneNumber: string | null;
     };
   }[];
 }
@@ -142,10 +142,10 @@ export function getCompanyColumns({
               <Mail className="size-3 text-slate-400 shrink-0" />
               {rep.email}
             </div>
-            {rep.phone && (
+            {rep.phoneNumber && (
               <div className="text-slate-400 flex items-center gap-1.5 font-medium">
                 <Phone className="size-3 text-slate-400 shrink-0" />
-                {rep.phone}
+                {rep.phoneNumber}
               </div>
             )}
           </div>

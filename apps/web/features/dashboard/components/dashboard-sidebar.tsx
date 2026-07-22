@@ -194,7 +194,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                         {user?.name ?? "Guest User"}
                       </span>
                       <span className="truncate text-muted-foreground text-xs">
-                        {user?.email ?? user?.phone ?? "No contact details"}
+                        {user?.email ?? user?.phoneNumber ?? "No contact details"}
                       </span>
                     </div>
                     <EllipsisVertical className="ml-auto size-4 shrink-0 group-data-[collapsible=icon]:hidden text-muted-foreground" />
@@ -221,7 +221,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                           {user?.name ?? "Guest User"}
                         </span>
                         <span className="truncate text-muted-foreground text-xs">
-                          {user?.email ?? user?.phone}
+                          {user?.email ?? user?.phoneNumber}
                         </span>
                       </div>
                     </div>

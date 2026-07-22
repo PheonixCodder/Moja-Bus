@@ -60,7 +60,7 @@ export function Operators() {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
-        phone: user.phone || "Not provided",
+        phone: user.phoneNumber || "Not provided",
         role: user.role,
         status,
         companies,

@@ -568,7 +568,7 @@ export const tripsRouter = createTRPCRouter({
           role: { in: ["OWNER", "MANAGER"] },
         },
         include: {
-          user: { select: { email: true, fullName: true, phone: true } },
+          user: { select: { email: true, fullName: true, phoneNumber: true } },
         },
       });
 
@@ -614,7 +614,7 @@ export const tripsRouter = createTRPCRouter({
                       "en-US",
                       { timeZone: "Africa/Abidjan" },
                     ),
-                    phone: manager.user.phone ?? undefined,
+                    phone: manager.user.phoneNumber ?? undefined,
                   },
                   transactionId: `operator-bus-assigned-${assignedTrip.id}-${manager.id}`,
                 })
@@ -707,7 +707,7 @@ export const tripsRouter = createTRPCRouter({
           status: "CONFIRMED",
         },
         include: {
-          user: { select: { email: true, fullName: true, phone: true } },
+          user: { select: { email: true, fullName: true, phoneNumber: true } },
           trip: {
             include: {
               schedule: {
@@ -766,7 +766,7 @@ export const tripsRouter = createTRPCRouter({
                       delayMinutes: updatedTrip.delayMinutes ?? delayMinutes,
                       gate: trip.gate ?? undefined,
                       phone:
-                        booking.user?.phone ??
+                        booking.user?.phoneNumber ??
                         booking.passengerPhone ??
                         undefined,
                     },
@@ -906,7 +906,7 @@ export const tripsRouter = createTRPCRouter({
             status: "CONFIRMED",
           },
           include: {
-            user: { select: { email: true, fullName: true, phone: true } },
+            user: { select: { email: true, fullName: true, phoneNumber: true } },
             company: { select: { name: true } },
             trip: {
               include: {
@@ -949,7 +949,7 @@ export const tripsRouter = createTRPCRouter({
                         destinationCity: destCity,
                         gate: trip.gate ?? undefined,
                         busPlate: booking.trip.bus?.registrationPlate ?? undefined,
-                        phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
+                        phone: booking.user?.phoneNumber ?? booking.passengerPhone ?? undefined,
                       },
                       transactionId: `passenger-trip-boarding-${trip.id}-${booking.id}`,
                     }).catch(() => {});
@@ -1023,7 +1023,7 @@ export const tripsRouter = createTRPCRouter({
             status: "CONFIRMED",
           },
           include: {
-            user: { select: { email: true, fullName: true, phone: true } },
+            user: { select: { email: true, fullName: true, phoneNumber: true } },
             trip: {
               include: {
                 schedule: {
@@ -1062,7 +1062,7 @@ export const tripsRouter = createTRPCRouter({
                         timeZone: "Africa/Abidjan",
                       }),
                       gate: input.gate,
-                      phone: booking.user?.phone ?? booking.passengerPhone ?? undefined,
+                      phone: booking.user?.phoneNumber ?? booking.passengerPhone ?? undefined,
                     },
                     transactionId: `passenger-trip-gate-updated-${trip.id}-${booking.id}`,
                   }).catch(() => {});

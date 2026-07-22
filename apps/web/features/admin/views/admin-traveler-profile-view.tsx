@@ -34,7 +34,7 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
         id={user.id}
         fullName={user.fullName}
         email={user.email}
-        phone={user.phone}
+        phone={user.phoneNumber}
         role={user.role as "TRAVELER"}
         emailVerified={user.emailVerified}
         createdAt={user.createdAt}

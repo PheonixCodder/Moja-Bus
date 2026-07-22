@@ -36,9 +36,9 @@ export class BookingReadService {
   private async getUserPhone(userId: string): Promise<string | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { phone: true },
+      select: { phoneNumber: true },
     });
-    return user?.phone ?? null;
+    return user?.phoneNumber ?? null;
   }
 
   private canAccessBooking(

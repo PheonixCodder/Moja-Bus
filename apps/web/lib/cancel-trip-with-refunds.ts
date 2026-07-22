@@ -75,7 +75,7 @@ export async function cancelTripWithRefunds(params: {
     const bookings = await tx.booking.findMany({
       where: { tripId: trip.id, status: "CONFIRMED" },
       include: {
-        user: { select: { email: true, fullName: true, phone: true } },
+        user: { select: { email: true, fullName: true, phoneNumber: true } },
         trip: {
           include: {
             schedule: {
@@ -201,7 +201,7 @@ export async function cancelTripWithRefunds(params: {
                   ? (refundResult?.amountXOF ?? 0)
                   : undefined,
                 phone:
-                  booking.user?.phone ?? booking.passengerPhone ?? undefined,
+                  booking.user?.phoneNumber ?? booking.passengerPhone ?? undefined,
               },
               transactionId: `passenger-trip-cancelled-${booking.id}`,
             })

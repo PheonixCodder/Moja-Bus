@@ -29,7 +29,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       initialStep={initialStep}
       initialUser={
         user
-          ? { email: user.email, ...(user.phone ? { phone: user.phone } : {}) }
+          ? { email: user.email, ...(user.phoneNumber ? { phone: user.phoneNumber } : {}) }
           : undefined
       }
       callbackUrl={callbackUrl}

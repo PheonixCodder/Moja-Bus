@@ -194,7 +194,7 @@ model User {
   email         String   @unique
   emailVerified Boolean  @default(false)
   image         String?
-  phone                 String?  @unique
+  phoneNumber           String?  @unique
   phoneNumberVerified   Boolean  @default(false)
   role                  UserRole @default(TRAVELER)
 

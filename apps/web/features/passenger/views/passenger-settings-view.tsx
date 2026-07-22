@@ -48,7 +48,7 @@ export function PassengerSettingsView() {
 
   // Form State
   const [fullName, setFullName] = useState(profile?.user?.fullName || "");
-  const [phone, setPhone] = useState(profile?.user?.phone || "");
+  const [phone, setPhone] = useState(profile?.user?.phoneNumber || "");
   const [preferredSeat, setPreferredSeat] = useState(preferences.preferredSeat || "NONE");
   const [preferredClass, setPreferredClass] = useState(preferences.preferredClass || "ECONOMY");
   const [marketingOptIn, setMarketingOptIn] = useState(profile?.marketingOptIn ?? false);

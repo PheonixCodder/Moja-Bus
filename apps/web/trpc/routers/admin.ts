@@ -118,7 +118,7 @@ export const adminRouter = createTRPCRouter({
                   select: {
                     fullName: true,
                     email: true,
-                    phone: true,
+                    phoneNumber: true,
                   },
                 },
               },
@@ -147,7 +147,7 @@ export const adminRouter = createTRPCRouter({
                 select: {
                   fullName: true,
                   email: true,
-                  phone: true,
+                  phoneNumber: true,
                 },
               },
             },
@@ -322,7 +322,7 @@ export const adminRouter = createTRPCRouter({
               select: {
                 fullName: true,
                 email: true,
-                phone: true,
+                phoneNumber: true,
               },
             },
           },
@@ -714,7 +714,7 @@ export const adminRouter = createTRPCRouter({
       // Trigger operator-account-suspended
       const operators = await ctx.prisma.operator.findMany({
         where: { companyId: input.companyId, deletedAt: null },
-        include: { user: { select: { id: true, email: true, fullName: true, phone: true } } },
+        include: { user: { select: { id: true, email: true, fullName: true, phoneNumber: true } } },
       });
       const novu = getNovuClient();
       if (novu && operators.length > 0) {
@@ -731,7 +731,7 @@ export const adminRouter = createTRPCRouter({
                   email: op.user.email,
                   operatorName: op.user.fullName ?? "Operator Staff",
                   companyName: company.name,
-                  phone: op.user.phone ?? undefined,
+                  phone: op.user.phoneNumber ?? undefined,
                 },
                 transactionId: `operator-account-suspended-${op.user.id}-${Date.now()}`,
               }).catch(() => {});

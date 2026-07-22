@@ -478,7 +478,7 @@ export class PaymentService {
       try {
         const user = await this.prisma.user.findUnique({
           where: { id: meta.requestedBy },
-          select: { email: true, fullName: true, phone: true },
+          select: { email: true, fullName: true, phoneNumber: true },
         });
         const bankAccount = await this.prisma.bankAccount.findUnique({
           where: { id: meta.bankAccountId },
@@ -489,7 +489,7 @@ export class PaymentService {
           const novu = getNovuClient();
           if (novu) {
             const amountXOF = tx.entries[0] ? toSafeDisplayNumber(tx.entries[0].amount) : 0;
-            const phone = user.phone?.replace(/\s+/g, "");
+            const phone = user.phoneNumber?.replace(/\s+/g, "");
 
             if (payload.event === "transfer.success") {
               await novu.trigger({

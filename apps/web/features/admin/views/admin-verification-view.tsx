@@ -241,7 +241,7 @@ export function AdminVerificationView() {
                     </div>
                     <div>
                       <span className="font-semibold text-slate-700">Phone:</span>{" "}
-                      {selectedCompany.operators[0].user.phone || "N/A"}
+                      {selectedCompany.operators[0].user.phoneNumber || "N/A"}
                     </div>
                   </div>
                 ) : (

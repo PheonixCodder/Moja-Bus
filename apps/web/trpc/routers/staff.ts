@@ -157,7 +157,7 @@ export const staffRouter = createTRPCRouter({
         where["OR"] = [
           { user: { fullName: { contains: search, mode: "insensitive" } } },
           { user: { email: { contains: search, mode: "insensitive" } } },
-          { user: { phone: { contains: search, mode: "insensitive" } } },
+          { user: { phoneNumber: { contains: search, mode: "insensitive" } } },
           { jobTitle: { contains: search, mode: "insensitive" } },
         ];
       }

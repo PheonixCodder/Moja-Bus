@@ -48,7 +48,7 @@ export class SavedPassengerService {
   async ensureProfile(userId: string): Promise<EnsurePassengerProfileResult> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { fullName: true, phone: true },
+      select: { fullName: true, phoneNumber: true },
     });
 
     if (!user) {
@@ -69,12 +69,12 @@ export class SavedPassengerService {
 
     let selfPassenger = profile.savedPassengers[0] ?? null;
 
-    if (!selfPassenger && user.fullName && user.phone) {
+    if (!selfPassenger && user.fullName && user.phoneNumber) {
       selfPassenger = await this.prisma.savedPassenger.create({
         data: {
           profileId: profile.id,
           fullName: user.fullName,
-          phone: user.phone,
+          phone: user.phoneNumber,
           isSelf: true,
           label: "Me",
         },

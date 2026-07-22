@@ -53,10 +53,10 @@ export const walletRouter = createTRPCRouter({
 
       const user = await ctx.prisma.user.findUnique({
         where: { id: ctx.user.id },
-        select: { email: true, phone: true },
+        select: { email: true, phoneNumber: true },
       });
 
-      const email = user?.email || (user?.phone?.replace(/\s+/g, "") + "@guest.mojaride.ci");
+      const email = user?.email || (user?.phoneNumber?.replace(/\s+/g, "") + "@guest.mojaride.ci");
 
       let initialized;
       try {

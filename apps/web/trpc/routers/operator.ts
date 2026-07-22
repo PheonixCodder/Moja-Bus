@@ -92,7 +92,7 @@ export const operatorRouter = createTRPCRouter({
       const user = await ctx.prisma.user.findFirst({
         where: isEmail
           ? { OR: [{ email: cleanIdentifier }, { workEmail: cleanIdentifier }] }
-          : { phone: cleanIdentifier },
+          : { phoneNumber: cleanIdentifier },
       });
 
       return {
@@ -362,7 +362,7 @@ export const operatorRouter = createTRPCRouter({
                 companyId: companyId,
                 companyName: companyInfo?.name ?? "Transport Operator",
                 ownerName: owner?.fullName ?? "Operator Owner",
-                ownerPhone: owner?.phone ?? "N/A",
+                ownerPhone: owner?.phoneNumber ?? "N/A",
                 submittedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }),
               },
               transactionId: `admin-operator-signup-pending-${companyId}-${admin.id}`,
@@ -432,7 +432,7 @@ export const operatorRouter = createTRPCRouter({
                 companyId: operator.companyId,
                 companyName: companyInfo?.name ?? "Transport Operator",
                 ownerName: owner?.fullName ?? "Operator Owner",
-                ownerPhone: owner?.phone ?? "N/A",
+                ownerPhone: owner?.phoneNumber ?? "N/A",
                 submittedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }),
               },
               transactionId: `admin-operator-signup-pending-resubmit-${operator.companyId}-${admin.id}`,
@@ -993,7 +993,7 @@ export const operatorRouter = createTRPCRouter({
                 OR: [
                   { user: { fullName: insensitive } },
                   { user: { email: insensitive } },
-                  { user: { phone: insensitive } },
+                  { user: { phoneNumber: insensitive } },
                   { jobTitle: insensitive },
                 ],
               },

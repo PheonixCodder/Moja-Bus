@@ -236,10 +236,10 @@ export function AdminUsersView() {
                           <Mail className="size-3 text-slate-400" />
                           <span>{user.email}</span>
                         </div>
-                        {user.phone && (
+                        {user.phoneNumber && (
                           <div className="flex items-center gap-1">
                             <Phone className="size-3 text-slate-400" />
-                            <span>{user.phone}</span>
+                            <span>{user.phoneNumber}</span>
                           </div>
                         )}
                       </TableCell>

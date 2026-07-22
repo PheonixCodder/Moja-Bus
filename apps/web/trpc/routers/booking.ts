@@ -49,7 +49,7 @@ export const bookingRouter = createTRPCRouter({
       // Trigger passenger-hold-created
       const email = ctx.user.email;
       const passengerName = ctx.user.name ?? "Passenger";
-      const phone = ctx.user.phone ?? null;
+      const phone = ctx.user.phoneNumber ?? null;
 
       if (email) {
         const novu = getNovuClient();

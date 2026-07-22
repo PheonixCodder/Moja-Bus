@@ -38,7 +38,7 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
         id={user.id}
         fullName={user.fullName}
         email={user.email}
-        phone={user.phone}
+        phone={user.phoneNumber}
         role={user.role as "OPERATOR"}
         emailVerified={user.emailVerified}
         createdAt={user.createdAt}

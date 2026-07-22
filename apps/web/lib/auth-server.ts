@@ -134,7 +134,7 @@ export const auth = betterAuth({
       name: "fullName",
     },
     additionalFields: {
-      phone: {
+      phoneNumber: {
         type: "string",
         required: false,
         input: true,
@@ -157,7 +157,7 @@ export const auth = betterAuth({
       create: {
         before: async (user) => {
           const prisma = getPrismaClient();
-          const userPhone = user["phone"] || (user as any).phoneNumber;
+          const userPhone = (user as any).phoneNumber || (user as any).phone;
           const pending = await prisma.pendingOperatorSignup.findFirst({
             where: {
               OR: [
@@ -176,14 +176,14 @@ export const auth = betterAuth({
                 email: user.email || pending.email,
                 fullName: pending.ownerName,
                 name: pending.ownerName,
-                phone: pending.phone,
+                phoneNumber: pending.phone,
               },
             };
           }
         },
         after: async (user) => {
           const prisma = getPrismaClient();
-          const userPhone = user["phone"] || (user as any).phoneNumber;
+          const userPhone = (user as any).phoneNumber || (user as any).phone;
           const pending = await prisma.pendingOperatorSignup.findFirst({
             where: {
               OR: [
@@ -278,16 +278,6 @@ export const auth = betterAuth({
     phoneNumber({
       sendOTP: async ({ phoneNumber: phone, code }) => {
         await sendAuthOtp({ identifier: phone, otp: code, type: "sign-in" });
-      },
-      schema: {
-        user: {
-          fields: {
-            // Remap plugin's "phoneNumber" → our existing "phone" column
-            phoneNumber: "phone",
-            // Map plugin's "phoneNumberVerified" → our new column
-            phoneNumberVerified: "phoneNumberVerified",
-          },
-        },
       },
     }),
     nextCookies(),
