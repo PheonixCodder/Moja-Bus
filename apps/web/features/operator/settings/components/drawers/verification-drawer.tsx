@@ -116,6 +116,7 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
         </div>
       }
     >
+      
       <div className="p-6 space-y-8">
         <div className="relative pl-6 border-l-2 border-border space-y-8">
           {/* Step 1: Company Profile */}

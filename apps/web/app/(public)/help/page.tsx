@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronDown, Search, ArrowRight } from "lucide-react";
+import { ChevronDown, ArrowRight } from "lucide-react";
 import { PublicPageShell } from "@/features/home/components/public-page-shell";
 
 export const metadata: Metadata = {
   title: "Help Center — Moja Ride",
   description:
-    "Find answers to your questions about booking, payment, tickets, and more on Moja Ride.",
+    "Find answers to your questions about booking, payment, cancellations, vouchers, and more on Moja Ride.",
 };
 
 const faqs = [
@@ -38,11 +38,11 @@ const faqs = [
     items: [
       {
         q: "What payment methods are accepted?",
-        a: "We currently accept card payments (Visa, Mastercard) and Mobile Money (MTN MoMo, Orange Money, Wave) via Paystack. All transactions are secured with industry-standard encryption.",
+        a: "Online: Mobile money and wallets (Wave, Orange Money, MTN MoMo) and bank cards (Mastercard / Visa / Amex) via Paystack. At points of sale: cash is always accepted, and card payments may also be available depending on location. On board: cash only.",
       },
       {
         q: "Is my payment information secure?",
-        a: "Absolutely. Moja Ride never stores your card or Mobile Money credentials. All payments are processed by Paystack, a PCI-DSS Level 1 certified payment processor. We use HTTPS everywhere and your data is always encrypted.",
+        a: "Absolutely. Moja Ride never stores your card or Mobile Money credentials. All payments are processed by Paystack, a PCI-DSS Level 1 certified payment processor, or Wave. We use HTTPS everywhere and your data is always encrypted.",
       },
       {
         q: "What currency are prices shown in?",
@@ -50,7 +50,7 @@ const faqs = [
       },
       {
         q: "Is there a booking fee?",
-        a: "A small service convenience fee (2.5% of the ticket price) is added at checkout. This fee helps us operate the platform and provide 24/7 support. The final price is always shown before you confirm payment.",
+        a: "A service fee of 500 FCFA is added per order (not per ticket) at checkout. This fee helps us operate the platform, the booking management tools, and provide customer support. The final price is always shown before you confirm payment. Service fees are non-refundable in the event of a cancellation.",
       },
     ],
   },
@@ -78,17 +78,47 @@ const faqs = [
     items: [
       {
         q: "What is the cancellation policy?",
-        a: "Cancellation policies vary by operator. Generally, cancellations made more than 24 hours before departure may be eligible for a partial refund. Check the operator's policy on your booking confirmation. You can initiate a cancellation from your dashboard.",
+        a: "You can cancel your ticket up to 15 minutes before departure on the website, app, by phone, or at a partner agency. Cancellations cannot be processed with the driver. Upon cancellation, you receive a non-refundable voucher valid for 12 months, calculated as the ticket price minus the applicable cancellation fee.",
+      },
+      {
+        q: "How much will I get back if I cancel?",
+        a: "The refund percentage depends on how early you cancel: 30+ days before departure → 100%; 7–29 days → 75%; 2–6 days → 50%; less than 2 days → 25%. Extras like seat reservations and additional luggage are refunded at 100%. The 500 FCFA service fee is non-refundable.",
       },
       {
         q: "How long do refunds take?",
-        a: "Refunds are processed within 3–5 business days to your original payment method. Mobile Money refunds are typically faster (1–2 days).",
+        a: "Cancellation vouchers are issued immediately to your account and can be used for future bookings. If you are entitled to a monetary refund (e.g., due to a Moja Ride fault), processing takes 3–7 business days.",
+      },
+      {
+        q: "Can I modify my ticket instead of cancelling?",
+        a: "Yes. You can modify the traveler name, date, or time of your trip up to 15 minutes before departure via the website, app, phone, or partner agency. If the new journey costs more, you pay the difference. If it costs less, you receive a non-refundable 12-month voucher for the difference. A modification fee applies per trip per passenger (except phone number changes, which are free).",
+      },
+    ],
+  },
+  {
+    category: "Vouchers & Promotions",
+    color: "bg-pink-50 text-pink-700",
+    items: [
+      {
+        q: "How do I use a voucher?",
+        a: "You can apply a maximum of one voucher per booking, online or at a partner agency. Monetary vouchers can be applied to the entire cart. Discount or free-trip vouchers apply to the ticket price only — service fees and add-ons (luggage, bicycle) are not discounted.",
+      },
+      {
+        q: "Do vouchers expire?",
+        a: "Discount codes are valid for 3 months from issue. Cancellation vouchers are valid for 12 months. Vouchers issued free of charge for marketing purposes expire after the first completed booking.",
+      },
+      {
+        q: "Can I use multiple vouchers on one booking?",
+        a: "No. Only one voucher or discount code may be used per booking. During promotions, each person is limited to 3 promotional vouchers total.",
+      },
+      {
+        q: "Can I sell or transfer my voucher?",
+        a: "No. Commercial resale of vouchers is strictly prohibited and may result in ticket blocking and/or legal action. Personal vouchers are non-transferable. Cash refunds of vouchers are not possible.",
       },
     ],
   },
   {
     category: "Operators",
-    color: "bg-pink-50 text-pink-700",
+    color: "bg-teal-50 text-teal-700",
     items: [
       {
         q: "How do I become a bus operator on Moja Ride?",
@@ -97,6 +127,10 @@ const faqs = [
       {
         q: "How does the commission work for operators?",
         a: "Moja Ride charges a 5% platform commission on each completed booking. Operators receive 95% of the ticket price, minus any applicable payment gateway fees. Detailed earnings are available in the operator dashboard.",
+      },
+      {
+        q: "Can price comparison platforms list Moja Ride fares?",
+        a: "Yes, price comparison services may enter into a separate commercial agreement with Moja Ride authorizing them to receive, process, and publish Moja Ride prices and schedules. Please contact us at legal@mojaride.com for more information.",
       },
     ],
   },
