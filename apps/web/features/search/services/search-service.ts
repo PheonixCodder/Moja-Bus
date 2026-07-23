@@ -5,6 +5,7 @@ export interface SearchFilters {
   operators: string[];
   amenities: string[];
   departureTime: ("MORNING" | "AFTERNOON" | "EVENING")[];
+  seatClass?: ("ECONOMY" | "STANDARD" | "VIP")[] | undefined;
   maxPrice?: number | undefined;
 }
 
@@ -99,8 +100,17 @@ export class SearchService {
       if (layout.hasToilet) amenitiesList.push("TOILET");
       if (layout.hasLuggage) amenitiesList.push("LUGGAGE");
 
-      // Compute availability metrics
-      const totalSeats = trip.totalSeats;
+      // Compute availability metrics — prioritize template's configured bookable seat count
+      const activeSeatsCount = trip.bus.seats.filter(
+        (s) =>
+          s.isActive &&
+          s.seatType !== "DRIVER_AREA" &&
+          s.seatType !== "EMPTY_SPACE",
+      ).length;
+      const totalSeats =
+        layout?.totalSeats && layout.totalSeats > 0 && layout.totalSeats < activeSeatsCount
+          ? layout.totalSeats
+          : activeSeatsCount || layout?.totalSeats || trip.totalSeats;
       const occupiedSeats = occupancyData.get(trip.id) ?? 0;
       const remainingSeats = Math.max(0, totalSeats - occupiedSeats);
 
@@ -146,6 +156,7 @@ export class SearchService {
           priceXOF,
           busId: trip.bus.id,
           busTypeName: trip.bus.busType.name,
+          seatClass: trip.bus.seatClass,
           amenities: amenitiesList,
           availability: {
             remaining: remainingSeats,
@@ -167,6 +178,12 @@ export class SearchService {
     if (ctx.filters.amenities && ctx.filters.amenities.length > 0) {
       offers = offers.filter((o) =>
         ctx.filters.amenities?.every((a) => o.amenities.includes(a as Amenity)),
+      );
+    }
+
+    if (ctx.filters.seatClass && ctx.filters.seatClass.length > 0) {
+      offers = offers.filter((o) =>
+        ctx.filters.seatClass?.includes(o.seatClass),
       );
     }
 

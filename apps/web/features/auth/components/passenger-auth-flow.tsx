@@ -15,6 +15,13 @@ import { Field, FieldContent, FieldGroup, FieldLabel } from "@moja/ui/components
 import { Switch } from "@moja/ui/components/ui/switch";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
 
 type AuthStep = "input" | "otp" | "profile" | "details";
 
@@ -327,7 +334,7 @@ export function PassengerAuthFlow({
       initSignupMutation.isPending;
 
   return (
-      <div className="w-full overflow-hidden">
+      <div className="w-full overflow-hidden max-w-[500px] mx-auto px-4 sm:px-6">
         <motion.div
             layout
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -561,35 +568,39 @@ export function PassengerAuthFlow({
 
                       <Field className="gap-1.5">
                         <FieldLabel htmlFor="preferredSeat">Seat Preference</FieldLabel>
-                        <select
-                            id="preferredSeat"
+                        <Select
                             value={preferredSeat}
-                            onChange={(e) => setPreferredSeat(e.target.value as any)}
+                            onValueChange={(val) => setPreferredSeat(val as "NONE" | "WINDOW" | "AISLE")}
                             disabled={isPending}
-                            className="w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary box-border"
-                            style={{ boxSizing: "border-box" }}
                         >
-                          <option value="NONE">No preference</option>
-                          <option value="WINDOW">Window Seat</option>
-                          <option value="AISLE">Aisle Seat</option>
-                        </select>
+                          <SelectTrigger id="preferredSeat" className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
+                            <SelectValue placeholder="No preference" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="NONE">No preference</SelectItem>
+                            <SelectItem value="WINDOW">Window Seat</SelectItem>
+                            <SelectItem value="AISLE">Aisle Seat</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </Field>
 
                       <Field className="gap-1.5">
                         <FieldLabel htmlFor="preferredClass">Travel Class</FieldLabel>
-                        <select
-                            id="preferredClass"
+                        <Select
                             value={preferredClass}
-                            onChange={(e) => setPreferredClass(e.target.value as any)}
+                            onValueChange={(val) => setPreferredClass(val as "ECONOMY" | "STANDARD" | "VIP" | "BUSINESS")}
                             disabled={isPending}
-                            className="w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary box-border"
-                            style={{ boxSizing: "border-box" }}
                         >
-                          <option value="ECONOMY">Economy Class</option>
-                          <option value="STANDARD">Standard Class</option>
-                          <option value="BUSINESS">Business Class</option>
-                          <option value="VIP">VIP Class</option>
-                        </select>
+                          <SelectTrigger id="preferredClass" className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
+                            <SelectValue placeholder="Economy Class" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ECONOMY">Economy Class</SelectItem>
+                            <SelectItem value="STANDARD">Standard Class</SelectItem>
+                            <SelectItem value="BUSINESS">Business Class</SelectItem>
+                            <SelectItem value="VIP">VIP Class</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </Field>
 
                       <Field orientation="horizontal" className="border-t border-border pt-4 justify-between">

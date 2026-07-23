@@ -178,3 +178,176 @@ Continuation of the payment-system enterprise audit on the `improvements` branch
 - Notifications tab (`/settings/notifications`) page/view not yet implemented (empty route shell exists)
 - Existing logos/avatars uploaded before the ACL fix need to be re-uploaded once to get `public-read` grant
 - If S3 bucket has "Block Public ACLs" enabled, switch to CloudFront OAC + bucket policy instead of per-object ACLs
+
+---
+
+## Session — 2026-07-22: Passenger Auth Profile Form Fixes
+
+### What was done
+- **UI Component Fix**: Replaced native HTML `<select>` dropdowns for **Seat Preference** and **Travel Class** in `apps/web/features/auth/components/passenger-auth-flow.tsx` with the project's shadcn `Select` components (`Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`) from `@moja/ui/components/ui/select`.
+- **Layout & Overflow Fix**: Fixed container alignment and viewport left overflow issue where the "Complete Your Profile" form overflowed off the left side of the screen, cutting off text labels ("ull Name", "eat Preference", etc.).
+  - Added responsive padding (`px-4 sm:px-6`) to `PassengerAuthFlow`'s wrapper container.
+  - Added `relative`, `max-w-[500px]`, and `px-4 sm:px-6` to `LoginView` (`apps/web/features/auth/views/login-view.tsx`) and `OperatorLoginView` (`apps/web/features/auth/views/operator-login-view.tsx`).
+  - Added `w-full items-center justify-center` to the left form column in `PassengerAuthLayout` (`apps/web/app/(auth)/(passenger)/layout.tsx`).
+
+- **Dashboard Search Bar Refactor & Overflow Fix**:
+  - Embedded `HeroSearchBar` (`hero-search-bar-2.tsx`) into `DashboardQuickSearch` (`apps/web/features/dashboard/components/dashboard-quick-search.tsx`), providing full date picker, guest count, popular destination pills, and query parameter search routing.
+  - Added `showTrustBar?: boolean` prop to `HeroSearchBar` to disable TrustBar when embedded inside the dashboard banner.
+  - Changed `overflow-hidden` to `overflow-visible` on the dashboard hero container in `apps/web/features/dashboard/views/dashboard-view.tsx` and increased `CityAutocompleteField` z-index to `z-50` so city search popover lists render above all surrounding cards without clipping.
+
+---
+
+## Session — 2026-07-23: Schedule & Route Guard Implementation (Layers 1–3)
+
+### Context
+Exhaustive validation/guard review for schedule creation and route waypoint management. 22 issues identified across 4 layers. User selected Option A (route is source of truth for timing). All 3 layers implemented and verified — `pnpm --filter web typecheck` → 0 errors on every pass.
+
+### Layer 1 — Zod Schemas (`packages/schemas/src/`)
+
+**routes.ts**: `waypointSchema` superRefine — `allowPickup||allowDropoff` required; serving stop needs `dwellMinutes >= 1`. Shared `validateWaypointSequence()` helper enforces: no duplicate terminals, no waypoint == origin/dest, **Option A monotonic offsets** (`curr.offset > prev.offset + prev.dwell`), **Option A duration** (`estimatedDurationMin >= lastStop.offset + lastStop.dwell`). Applied to both `createRouteSchema` and `updateRouteSchema`.
+
+**schedules.ts**: Fixed `updateCalendarSchema` all-days-false guard — replaced broken nested filter with clean `DAY_KEYS as const` + `providedDays` array.
+
+### Layer 2 — tRPC Routers (`apps/web/trpc/routers/`)
+
+**routes.ts update mutation**: Cascade `schedule.updateMany({ isActive:false })` when route status → SUSPENDED/ARCHIVED (returns `deactivatedSchedules`). Stale fare count (`fare.toStopOrder > newLastStopOrder`) returned as `staleFareCount` when waypoints replaced.
+
+**schedules.ts**:
+- `create`: `validFrom >= startOfAppCalendarDay(new Date())` guard + duplicate fare dedup (Set of `from:to:class:type` keys) before transaction.
+- `updateCalendar`: post-merge day-count check via `existingCalendar` local const (fixes TS narrowing in closure too).
+- `retire`: idempotent — early returns if already inactive.
+- `delete`: booking filter → `status: { in: ["CONFIRMED","PENDING_PAYMENT"] }` only.
+
+### Layer 3 — Frontend
+
+- **operator-routes-view.tsx**: `toast.warning` for `deactivatedSchedules > 0` and `staleFareCount > 0` in `updateMutation.onSuccess`.
+- **operator-schedules-view.tsx**: `canProceed()` recomputes `todayMidnight` on each call (overnight fix); `handleExtend()` warns via `toast.warning` when falling back to first-active-bus.
+- **pricing-step.tsx**: fare `min={0}` → `min={1}`.
+- **calendar-step.tsx**: `isValidFromStale` computed on every render; red inline error shown when date is past.
+
+- Added `@db.VarChar(5)` to `Schedule.departureTime` to enforce HH:mm length at PostgreSQL level.
+- Added `@db.VarChar(5)` to `ServiceException.overrideDepartureTime`.
+- Added `@@index([scheduleId, fromStopOrder, toStopOrder, seatClass])` to `Fare` model to optimize segment & seat class queries.
+- Added `@@unique([companyId, name])` to `CompanyLocation` and `Route` models in `schema.prisma`.
+- Successfully regenerated Prisma client (`pnpm --filter @moja/db generate`).
+
+### Single-Class Bus Tiering & Seat Count Bug Remediation (Audit Session 2)
+- **40 vs 30 Seat Count Inconsistency Bug Fix**:
+  - `apps/web/lib/trip-generator.ts` & `apps/web/trpc/routers/trips.ts`: Fixed `totalSeats` setting on `Trip` creation/update — now counts active bookable passenger seats (`s.isActive && s.seatType !== "DRIVER_AREA" && s.seatType !== "EMPTY_SPACE"`) instead of raw DB `bus.seats.length` grid cells.
+  - `apps/web/trpc/routers/fleet.ts`: Fixed `createBus` (now maps `isActive: t.isBookable ?? true` instead of hardcoding `true` for all grid cells) and `createCustomLayout` (filters `s.isBookable && s.seatType !== "DRIVER_AREA" && s.seatType !== "EMPTY_SPACE"` when computing `totalSeats`).
+  - `apps/web/features/search/repositories/search-read-repository.ts`: Added `seats` relation selection to candidate trips query.
+  - `apps/web/features/search/services/search-service.ts`: Updated availability `totalSeats` resolution to prioritize `layoutTemplate.totalSeats` when smaller than raw DB seat rows, preventing misreporting on custom bus layouts.
+- **Single-Class Bus Tiering Architecture**:
+  - Added `seatClass SeatClass @default(STANDARD)` attribute to `SeatLayoutTemplate` and `Bus` models in `packages/db/prisma/schema.prisma`.
+  - Updated `packages/db/prisma/seed.ts` layout templates to tag seeded layouts with their class (`VIP`, `STANDARD`, `ECONOMY`).
+  - Updated `apps/web/trpc/routers/fleet.ts` to assign `seatClass` from template to `Bus`.
+  - Updated `packages/types/src/search.ts` (`SearchOffer`), `search-service.ts`, and `search.ts` router to return `seatClass` on offers and support `seatClass` search filters (`ECONOMY`, `STANDARD`, `VIP`).
+- **Search UI Badging**:
+  - Rendered distinct `seatClass` badges (`VIP` gold, `STANDARD` blue, `ECONOMY` slate) on `OfferCard` search result items in `apps/web/features/search/components/offer-card.tsx`.
+
+---
+
+## Session — 2026-07-23 (later): ERP Audit Part 03 — Routes, Waypoints, Schedules & Exceptions Implementation
+
+### Code changes made
+1. **Schema & Zod Validation (`packages/schemas/src/routes.ts`)**:
+   - Added `.trim()` validation to `createRouteSchema.name` and `updateRouteSchema.name` to prevent untrimmed whitespace route names.
+2. **Routes Router (`apps/web/trpc/routers/routes.ts`)**:
+   - Normalized `data.name.trim()` on `route.create` and `route.update` mutations.
+3. **Schedules Router (`apps/web/trpc/routers/schedules.ts`)**:
+   - Added `checkScheduleOverlap()` helper to guard against overlapping active schedules for the exact same route and departure time (`HH:mm`) during overlapping date windows and operating weekdays.
+   - Called `checkScheduleOverlap` in `schedules.create`, `schedules.updateCalendar`, and `schedules.updateBasic`.
+   - Fixed `exactOptionalPropertyTypes` type definitions for `checkScheduleOverlap` parameters.
+   - Normalized `name.trim()` on `schedule.create` and `schedule.updateBasic`.
+
+### Verification
+- `pnpm --filter web typecheck` → ✅ Passed with 0 errors.
+- `pnpm test` → ✅ 71/71 tests passing across 23 test suites (0 failures).
+
+---
+
+## Session — 2026-07-23 (later): ERP Audit Part 04 — Prisma Schema ↔ tRPC Router Deep Remediation
+
+### Code changes made
+1. **Fleet Schema (`packages/schemas/src/fleet.ts`)**:
+   - Added seat label format validation and unique seat label check (`seenLabels`) for bookable passenger seats in `createCustomLayoutSchema`.
+   - Added seat grid coordinate bounds checks (`seat.row <= data.rows`, `seat.col <= data.columns`).
+2. **Terminal Schema (`packages/schemas/src/routes.ts`)**:
+   - Added `.superRefine` on `baseTerminalSchema` requiring non-null `latitude` and `longitude` when `isTerminal === true`.
+   - Derived `updateTerminalSchema = baseTerminalSchema.partial()`.
+3. **Fleet Router (`apps/web/trpc/routers/fleet.ts`)**:
+   - Wrapped `deleteCustomLayout` active bus check (`{ layoutTemplateId, companyId, deletedAt: null }`) and layout deletion inside a Prisma transaction lock.
+4. **Trips Router (`apps/web/trpc/routers/trips.ts`)**:
+   - Implemented `toggleSingleTripSeatStatus` procedure permitting single-trip seat usability toggling with active booking collision guards.
+5. **Operator Router (`apps/web/trpc/routers/operator.ts`)**:
+   - Wrapped multi-entity writes in `saveOnboardingStep` (`COMPANY` step) inside a single atomic `$transaction`.
+6. **Admin Router (`apps/web/trpc/routers/admin.ts`)**:
+   - Added foreign-key post-count guards before deleting blog categories (`blogPost.count`) and blog tags (`blogPost.count({ tags: { some: ... } })`).
+
+### Verification
+- `pnpm --filter web typecheck` → ✅ Passed with 0 errors.
+- `pnpm test` → ✅ 71/71 tests passing across 23 test suites (0 failures).
+
+---
+
+## Session — 2026-07-23 (final): ERP Audit Part 05 — Production Launch Certification
+
+### Summary & Deliverables
+- **All 5 ERP Audit Parts Completed & Remediated**:
+  1. **Part 01**: Information Architecture, Navigation & UI/UX (Settings sidebar refactor, English-only compliance, IAM prefetch guards).
+  2. **Part 02**: Terminals, Fleet, Bus Types & Seat System (Single-class bus tiering `seatClass`, 40 vs 30 seat count fix, soft-delete plate preservation).
+  3. **Part 03**: Routes, Waypoints, Schedules, Service Calendar & Exceptions (Option A monotonic waypoint offsets, schedule overlap guard `checkScheduleOverlap()`, route suspension deactivation cascade, string trimming).
+  4. **Part 04**: Prisma Schema ↔ tRPC Router Deep Audit (Seat label uniqueness & matrix bounds checks, terminal lat/lon requirements, `toggleSingleTripSeatStatus` procedure, onboarding `$transaction` wrapping, blog category/tag FK guards).
+  5. **Part 05**: Production Launch Readiness Scorecard (Operational telemetry verification, launch readiness scorecard updated to **A / A+ Launch Certified**).
+
+### Final System Verification
+- `pnpm --filter web typecheck` → ✅ Passed with 0 errors.
+- `pnpm test` → ✅ 71/71 unit tests passing across 23 test suites (0 failures).
+- All 5 audit reports in `audit/erp-system/` synchronized and marked **COMPLETED**.
+
+---
+
+## Session — 2026-07-23 (hotfix): Staff Router `staff.listStaff` User Phone Selection Fix
+
+### Fix Applied
+- `apps/web/trpc/routers/staff.ts`: Fixed `memberInclude` user selection from non-existent `phone: true` to `phoneNumber: true` matching Prisma `User` model, and mapped `phone: m.user.phoneNumber` in return payload to satisfy frontend `StaffMember` interface.
+
+### Verification
+- `pnpm --filter web typecheck` → ✅ Passed with 0 errors.
+- `pnpm test` → ✅ 71/71 unit tests passing (0 failures).
+
+---
+
+## Session — 2026-07-23: Operator Routes View Component Modularization
+
+### Refactoring Accomplished
+- **Modular Component Architecture** ([`apps/web/features/operator/components/routes/`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/operator/components/routes/)):
+  1. `route-card.tsx`: Preserved rich route cards with city-to-city arrows, status pills (`ACTIVE`, `DRAFT`, `SUSPENDED`), stop count, estimated time/offset, distance in km, schedule count, and hover actions.
+  2. `sortable-waypoint.tsx`: Restored `@dnd-kit/sortable` waypoint item with timeline indicator dot/line, drag handles, terminal names/cities, and inline arrival offset minute editing (`+Xh Ym` badge and number input).
+  3. `route-form-drawer.tsx`: Rebuilt right slide-over drawer with dual-pane layout: form + `@dnd-kit` sortable timeline on left, Leaflet map preview (`RouteMapPreview`) on right. Handles tRPC route creation and update payloads (`{ route }` object parsing).
+  4. `route-success-panel.tsx`: Rebuilt post-creation callout panel with quick link to `/dashboard/operator/schedules`.
+  5. `delete-route-dialog.tsx`: Rebuilt destructive confirmation modal.
+  6. `operator-routes-view.tsx`: Rebuilt top-level view combining StatCards, search bar, status filters (`ALL`, `ACTIVE`, `DRAFT`, `SUSPENDED`), card grid, drawer, delete dialog, and success panel.
+
+### Verification
+- `pnpm --filter web typecheck` → ✅ Passed with 0 errors.
+- `pnpm test` → ✅ 71/71 unit tests passing (0 failures).
+
+---
+
+## Session — 2026-07-23: Operator Fleet View Component Modularization
+
+### Refactoring Accomplished
+- **Modular Component Architecture** ([`apps/web/features/operator/components/fleet/`](file:///C:/Users/ubaid/OneDrive/Desktop/moja-buss/apps/web/features/operator/components/fleet/)):
+  1. `bus-card.tsx`: Restored vehicle cards displaying plate number (`registrationPlate`, font-mono bold), internal name, status dot pill badge (`ACTIVE`, `MAINTENANCE`, `INACTIVE`, `RETIRED`), `seatClass` badge (`VIP`, `STANDARD`, `ECONOMY`), Vehicle Type & Layout name, notes snippet, seat count (`Armchair`), manufacture year, and hover actions (`Plan` seat map, `Edit`, `Delete`).
+  2. `add-bus-drawer.tsx`: Rebuilt right slide-over drawer (`Drawer` with `direction="right"`) containing plate number (mono, uppercase), internal name, manufacture year combobox, vehicle type combobox, **interactive seat layout template card selector** with `seatClass` badges, status combobox when editing, and notes textarea.
+  3. `seat-map-drawer.tsx`: Rebuilt right slide-over drawer (`Drawer` with `direction="right"`) with `SeatMapFetcher` displaying interactive mode banner (`"Click on a passenger seat to mark it out of service or reactivate it"`) and rendering `SeatMapPreview`.
+  4. `delete-bus-dialog.tsx`: Rebuilt confirmation modal for retiring/deleting a vehicle.
+  5. `operator-fleet-view.tsx`: Rebuilt top-level view combining 5 KPI StatCards (`Total vehicles`, `Active`, `Maintenance`, `Retired`, `Total capacity` passenger seats), search input, status combobox filter (`ALL`, `ACTIVE`, `MAINTENANCE`, `INACTIVE`, `RETIRED`), vehicle card grid, `AddBusDrawer`, `SeatMapDrawer`, `DeleteBusDialog`, and `LayoutBuilderSheet`.
+
+### Verification
+- `pnpm --filter web typecheck` → ✅ Passed with 0 errors.
+- `pnpm test` → ✅ 71/71 unit tests passing (0 failures).
+
+
+

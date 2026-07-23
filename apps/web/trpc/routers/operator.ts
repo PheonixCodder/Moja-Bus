@@ -530,67 +530,69 @@ export const operatorRouter = createTRPCRouter({
             message: "Company data required",
           });
 
-        try {
-          await ctx.prisma.company.update({
-            where: { id: existingOperator.companyId },
-            data: {
-              name: companyData.name,
-              slug: companyData.slug,
-              email: companyData.email,
-              phone: companyData.phone,
-              website: companyData.website ?? null,
-              description: companyData.description ?? null,
-              businessType: companyData.businessType,
-              registrationNumber: companyData.registrationNumber,
-              taxId: companyData.taxId,
-              yearEstablished: companyData.yearEstablished ?? null,
-              estimatedStaffSize: companyData.estimatedStaffSize,
-              logoUrl: companyData.logoUrl ?? null,
+        await ctx.prisma.$transaction(async (tx) => {
+          try {
+            await tx.company.update({
+              where: { id: existingOperator.companyId },
+              data: {
+                name: companyData.name,
+                slug: companyData.slug,
+                email: companyData.email,
+                phone: companyData.phone,
+                website: companyData.website ?? null,
+                description: companyData.description ?? null,
+                businessType: companyData.businessType,
+                registrationNumber: companyData.registrationNumber,
+                taxId: companyData.taxId,
+                yearEstablished: companyData.yearEstablished ?? null,
+                estimatedStaffSize: companyData.estimatedStaffSize,
+                logoUrl: companyData.logoUrl ?? null,
+              },
+            });
+          } catch (err) {
+            if (
+              err instanceof Prisma.PrismaClientKnownRequestError &&
+              err.code === "P2002"
+            ) {
+              const field =
+                (err.meta?.["target"] as string[] | undefined)?.[0] ?? "field";
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: `A company with this ${field} already exists. Please use a different value.`,
+              });
+            }
+            throw err;
+          }
+
+          const existingCompleted = getCompleted();
+          const newCompleted = existingCompleted.includes("COMPANY")
+            ? existingCompleted
+            : [...existingCompleted, "COMPANY"];
+          const nextStep = computeNextStep(newCompleted) ?? "TERMS";
+
+          await tx.operatorOnboarding.upsert({
+            where: { operatorId: existingOperator.id },
+            create: {
+              operatorId: existingOperator.id,
+              currentStep: nextStep as any,
+              completedSteps: newCompleted,
+              completedStepCount: newCompleted.length,
+            },
+            update: {
+              currentStep: nextStep as any,
+              completedSteps: newCompleted,
+              completedStepCount: newCompleted.length,
             },
           });
-        } catch (err) {
-          if (
-            err instanceof Prisma.PrismaClientKnownRequestError &&
-            err.code === "P2002"
-          ) {
-            const field =
-              (err.meta?.["target"] as string[] | undefined)?.[0] ?? "field";
-            throw new TRPCError({
-              code: "CONFLICT",
-              message: `A company with this ${field} already exists. Please use a different value.`,
-            });
-          }
-          throw err;
-        }
-
-        const existingCompleted = getCompleted();
-        const newCompleted = existingCompleted.includes("COMPANY")
-          ? existingCompleted
-          : [...existingCompleted, "COMPANY"];
-        const nextStep = computeNextStep(newCompleted) ?? "TERMS";
-
-        await ctx.prisma.operatorOnboarding.upsert({
-          where: { operatorId: existingOperator.id },
-          create: {
-            operatorId: existingOperator.id,
-            currentStep: nextStep as any,
-            completedSteps: newCompleted,
-            completedStepCount: newCompleted.length,
-          },
-          update: {
-            currentStep: nextStep as any,
-            completedSteps: newCompleted,
-            completedStepCount: newCompleted.length,
-          },
-        });
-        await ctx.prisma.operator.update({
-          where: { id: existingOperator.id },
-          data: { onboardingStatus: "IN_PROGRESS" },
-        });
-        
-        await ctx.prisma.user.update({
-          where: { id: ctx.user.id },
-          data: { workEmail: companyData.email },
+          await tx.operator.update({
+            where: { id: existingOperator.id },
+            data: { onboardingStatus: "IN_PROGRESS" },
+          });
+          
+          await tx.user.update({
+            where: { id: ctx.user.id },
+            data: { workEmail: companyData.email },
+          });
         });
 
         resultOperator = await ctx.prisma.operator.findUnique({

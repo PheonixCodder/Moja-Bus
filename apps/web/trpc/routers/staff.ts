@@ -54,7 +54,7 @@ const memberInclude = {
       id: true,
       fullName: true,
       email: true,
-      phone: true,
+      phoneNumber: true,
       image: true,
       sessions: {
         orderBy: { createdAt: "desc" as const },
@@ -188,7 +188,10 @@ export const staffRouter = createTRPCRouter({
           isActive: m.isActive,
           joinedAt: m.joinedAt,
           permissions: m.permissions,
-          user: m.user,
+          user: {
+            ...m.user,
+            phone: m.user.phoneNumber,
+          },
           personalPhone: callerIsPrivileged ? m.personalPhone : null,
           emergencyContactName: callerIsPrivileged ? m.emergencyContactName : null,
           emergencyContactPhone: callerIsPrivileged ? m.emergencyContactPhone : null,

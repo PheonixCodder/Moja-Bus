@@ -172,6 +172,78 @@ async function reconcileScheduleTrips(
   };
 }
 
+/**
+ * Guard against overlapping active schedules for the exact same route & departure time.
+ */
+async function checkScheduleOverlap(
+  prisma: any,
+  companyId: string,
+  routeId: string,
+  departureTime: string,
+  calendar: {
+    monday?: boolean | undefined;
+    tuesday?: boolean | undefined;
+    wednesday?: boolean | undefined;
+    thursday?: boolean | undefined;
+    friday?: boolean | undefined;
+    saturday?: boolean | undefined;
+    sunday?: boolean | undefined;
+    validFrom: string | Date;
+    validUntil?: string | Date | null | undefined;
+  },
+  excludeScheduleId?: string | undefined,
+) {
+  const existingSchedules = await prisma.schedule.findMany({
+    where: {
+      companyId,
+      routeId,
+      departureTime,
+      isActive: true,
+      ...(excludeScheduleId ? { id: { not: excludeScheduleId } } : {}),
+    },
+    include: {
+      calendar: true,
+    },
+  });
+
+  if (existingSchedules.length === 0) return;
+
+  const newFrom = new Date(calendar.validFrom).getTime();
+  const newUntil = calendar.validUntil ? new Date(calendar.validUntil).getTime() : Infinity;
+
+  const days = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+  ] as const;
+
+  for (const existing of existingSchedules) {
+    if (!existing.calendar) continue;
+
+    const existingFrom = new Date(existing.calendar.validFrom).getTime();
+    const existingUntil = existing.calendar.validUntil
+      ? new Date(existing.calendar.validUntil).getTime()
+      : Infinity;
+
+    const datesOverlap = newFrom <= existingUntil && newUntil >= existingFrom;
+
+    if (datesOverlap) {
+      for (const day of days) {
+        if (Boolean(calendar[day]) && Boolean(existing.calendar[day])) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `An active schedule ("${existing.name || existing.id}") already operates on ${day.toUpperCase()}s at ${departureTime} during this date window.`,
+          });
+        }
+      }
+    }
+  }
+}
+
 export const schedulesRouter = createTRPCRouter({
   list: operatorCompanyProcedure
     .input(listSchedulesSchema.optional())
@@ -374,12 +446,45 @@ export const schedulesRouter = createTRPCRouter({
         });
       }
 
+      // Guard: validFrom cannot be in the past (resolved to Abidjan calendar day)
+      const todayStart = startOfAppCalendarDay(new Date());
+      if (new Date(calendar.validFrom) < todayStart) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Schedule start date (Valid from) cannot be in the past",
+        });
+      }
+
+      // Guard: Overlapping active schedule check
+      await checkScheduleOverlap(
+        ctx.prisma,
+        ctx.companyId,
+        routeId,
+        departureTime,
+        calendar,
+      );
+
+      // Guard: no duplicate fares in the submitted batch (same segment + class + type)
+      const fareKeysSeen = new Set<string>();
+      for (const f of fares) {
+        const key = `${f.fromStopOrder}:${f.toStopOrder}:${f.seatClass}:${f.type}`;
+        if (fareKeysSeen.has(key)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              `Duplicate fare in submission: ${f.seatClass} ${f.type} fare ` +
+              `from stop ${f.fromStopOrder} to stop ${f.toStopOrder}. Remove the duplicate and try again.`,
+          });
+        }
+        fareKeysSeen.add(key);
+      }
+
       const newSchedule = await ctx.prisma.$transaction(async (tx) => {
         const schedule = await tx.schedule.create({
           data: {
             companyId: ctx.companyId,
             routeId,
-            name: name ?? null,
+            name: name ? name.trim() : null,
             departureTime,
             isActive: true,
             preferredBusId,
@@ -482,6 +587,11 @@ export const schedulesRouter = createTRPCRouter({
         });
       }
 
+      // Idempotent: already inactive — nothing to do
+      if (!schedule.isActive) {
+        return { success: true, prunedTrips: 0 };
+      }
+
       await ctx.prisma.schedule.update({
         where: { id: schedule.id },
         data: { isActive: false },
@@ -514,9 +624,12 @@ export const schedulesRouter = createTRPCRouter({
         });
       }
 
+      // Only active bookings block deletion — completed, cancelled, or expired
+      // historical bookings should not prevent cleanup of old schedules.
       const bookingsCount = await ctx.prisma.booking.count({
         where: {
           trip: { scheduleId: schedule.id },
+          status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
         },
       });
 
@@ -524,7 +637,7 @@ export const schedulesRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
-            "Cannot delete schedule while any bookings exist on its trips. Retire (deactivate) the schedule instead.",
+            `Cannot delete schedule: ${bookingsCount} active booking(s) exist on its trips. Retire (deactivate) the schedule instead.`,
         });
       }
 
@@ -563,6 +676,9 @@ export const schedulesRouter = createTRPCRouter({
             status: "ACTIVE",
             deletedAt: null,
           },
+          include: {
+            layoutTemplate: true,
+          },
         });
         if (!bus) {
           throw new TRPCError({
@@ -570,11 +686,63 @@ export const schedulesRouter = createTRPCRouter({
             message: "Selected bus is invalid or is not active",
           });
         }
+
+        // Guard: Bus capacity downgrade protection for active schedules with future trip bookings
+        const totalSeats = bus.layoutTemplate?.totalSeats;
+        if (schedule.isActive && totalSeats) {
+          const maxBookedTrip = await ctx.prisma.trip.findFirst({
+            where: {
+              scheduleId: schedule.id,
+              departureDate: { gt: new Date() },
+              status: { notIn: ["CANCELLED", "ARRIVED"] },
+            },
+            include: {
+              _count: {
+                select: {
+                  bookings: {
+                    where: { status: { in: ["CONFIRMED", "PENDING_PAYMENT"] } },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              bookings: { _count: "desc" },
+            },
+          });
+
+          if (maxBookedTrip && maxBookedTrip._count.bookings > totalSeats) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: `Cannot assign bus (${bus.registrationPlate ?? bus.id}): existing future trip has ${maxBookedTrip._count.bookings} active booking(s), exceeding this bus's capacity of ${totalSeats} seats.`,
+            });
+          }
+        }
       }
 
       const updateData = Object.fromEntries(
         Object.entries(input.data).filter(([, v]) => v !== undefined),
       );
+      if (input.data.name !== undefined) {
+        updateData["name"] = input.data.name ? input.data.name.trim() : null;
+      }
+
+      const willBeActive = input.data.isActive ?? schedule.isActive;
+      const newDepartureTime = input.data.departureTime ?? schedule.departureTime;
+      if (willBeActive && (input.data.departureTime !== undefined || input.data.isActive === true)) {
+        const calendar = await ctx.prisma.serviceCalendar.findUnique({
+          where: { scheduleId: schedule.id },
+        });
+        if (calendar) {
+          await checkScheduleOverlap(
+            ctx.prisma,
+            ctx.companyId,
+            schedule.routeId,
+            newDepartureTime,
+            calendar,
+            schedule.id,
+          );
+        }
+      }
 
       const updated = await ctx.prisma.schedule.update({
         where: { id: input.id },
@@ -643,6 +811,49 @@ export const schedulesRouter = createTRPCRouter({
         updateData["validUntil"] = data["validUntil"]
           ? new Date(data["validUntil"])
           : null;
+
+      // Guard: after applying this patch, at least one operating day must remain active.
+      // We merge the incoming patch over the stored calendar to get the effective state.
+      // Extract to a local const so TypeScript narrows correctly inside the .some() callback
+      // (property-access narrowing is not preserved in closures).
+      const existingCalendar = schedule.calendar;
+      const DAY_FIELDS = [
+        "monday", "tuesday", "wednesday", "thursday",
+        "friday", "saturday", "sunday",
+      ] as const;
+      const hasActiveDay = DAY_FIELDS.some((k) =>
+        updateData[k] !== undefined
+          ? Boolean(updateData[k])
+          : Boolean(existingCalendar[k]),
+      );
+      if (!hasActiveDay) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Schedule must run on at least one day. Select at least one operating day.",
+        });
+      }
+
+      if (schedule.isActive) {
+        const mergedCalendar = {
+          monday: updateData["monday"] !== undefined ? Boolean(updateData["monday"]) : existingCalendar.monday,
+          tuesday: updateData["tuesday"] !== undefined ? Boolean(updateData["tuesday"]) : existingCalendar.tuesday,
+          wednesday: updateData["wednesday"] !== undefined ? Boolean(updateData["wednesday"]) : existingCalendar.wednesday,
+          thursday: updateData["thursday"] !== undefined ? Boolean(updateData["thursday"]) : existingCalendar.thursday,
+          friday: updateData["friday"] !== undefined ? Boolean(updateData["friday"]) : existingCalendar.friday,
+          saturday: updateData["saturday"] !== undefined ? Boolean(updateData["saturday"]) : existingCalendar.saturday,
+          sunday: updateData["sunday"] !== undefined ? Boolean(updateData["sunday"]) : existingCalendar.sunday,
+          validFrom: updateData["validFrom"] !== undefined ? (updateData["validFrom"] as Date) : existingCalendar.validFrom,
+          validUntil: updateData["validUntil"] !== undefined ? (updateData["validUntil"] as Date | null) : existingCalendar.validUntil,
+        };
+        await checkScheduleOverlap(
+          ctx.prisma,
+          ctx.companyId,
+          schedule.routeId,
+          schedule.departureTime,
+          mergedCalendar,
+          schedule.id,
+        );
+      }
 
       const updated = await ctx.prisma.serviceCalendar.update({
         where: { id: schedule.calendar.id },
@@ -994,6 +1205,49 @@ export const schedulesRouter = createTRPCRouter({
         0,
         0,
       );
+
+      // Guard: Exception date must be within schedule calendar bounds & match an active day
+      const calendar = await ctx.prisma.serviceCalendar.findUnique({
+        where: { scheduleId: input.scheduleId },
+      });
+      if (calendar) {
+        const targetDate = new Date(`${input.date}T00:00:00.000Z`);
+        const validFromStart = new Date(calendar.validFrom);
+        validFromStart.setUTCHours(0, 0, 0, 0);
+        if (targetDate < validFromStart) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Exception date cannot be prior to the schedule's Valid From date.",
+          });
+        }
+        if (calendar.validUntil) {
+          const validUntilEnd = new Date(calendar.validUntil);
+          validUntilEnd.setUTCHours(23, 59, 59, 999);
+          if (targetDate > validUntilEnd) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Exception date cannot be after the schedule's Valid Until date.",
+            });
+          }
+        }
+        const dayIndex = targetDate.getUTCDay(); // 0 = Sunday, 1 = Monday, etc.
+        const DAY_NAMES = [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ] as const;
+        const dayKey = DAY_NAMES[dayIndex]!;
+        if (!calendar[dayKey]) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Schedule does not operate on ${dayKey}s. Cannot add an exception on an inactive operating day.`,
+          });
+        }
+      }
 
       const existing = await ctx.prisma.serviceException.findFirst({
         where: {

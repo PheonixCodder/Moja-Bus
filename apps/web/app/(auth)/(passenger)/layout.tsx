@@ -37,7 +37,7 @@ export default function PassengerAuthLayout({
         </div>
 
         {/* Left Form Column */}
-        <div className="relative order-1 flex h-full">{children}</div>
+        <div className="relative order-1 flex h-full w-full items-center justify-center">{children}</div>
       </div>
     </main>
   );

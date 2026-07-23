@@ -799,6 +799,7 @@ model CompanyLocation {
   @@index([cityId])
   @@index([isTerminal])
   @@index([isPrimary])
+  @@unique([companyId, name])
   @@map("company_location")
 }
 
@@ -828,14 +829,15 @@ model SeatLayoutTemplate {
   companyId String?
   company   Company? @relation("CompanyLayoutTemplates", fields: [companyId], references: [id])
 
-  name       String // "Coaster Standard 22", "Coach VIP 18", "Coach 2+2 45"
+  name       String    // "Coaster Standard 22", "Coach VIP 18", "Coach 2+2 45"
+  seatClass  SeatClass @default(STANDARD)
   totalSeats Int
   rows       Int
   columns    Int
-  hasAC      Boolean @default(false)
-  hasWifi    Boolean @default(false)
-  hasToilet  Boolean @default(false)
-  hasLuggage Boolean @default(true)
+  hasAC      Boolean   @default(false)
+  hasWifi    Boolean   @default(false)
+  hasToilet  Boolean   @default(false)
+  hasLuggage Boolean   @default(true)
 
   seatTemplates SeatTemplate[]
   buses         Bus[]
@@ -876,6 +878,7 @@ model Bus {
 
   registrationPlate String    @unique
   internalName      String? // "Bus Alpha", operator's own reference
+  seatClass         SeatClass @default(STANDARD)
   manufactureYear   Int?
   status            BusStatus @default(ACTIVE)
   notes             String?
@@ -944,6 +947,7 @@ model Route {
   @@index([status])
   @@index([originTerminalId])
   @@index([destTerminalId])
+  @@unique([companyId, name])
   @@map("route")
 }
 
@@ -979,7 +983,7 @@ model Schedule {
   route     Route   @relation(fields: [routeId], references: [id])
 
   name          String? // "Morning Express", "Night Service"
-  departureTime String // "06:00" — HH:mm, CI timezone is UTC+0 (no DST)
+  departureTime String  @db.VarChar(5) // "06:00" — HH:mm, CI timezone is UTC+0 (no DST)
   isActive      Boolean @default(true)
 
   // Preferred bus for trip generation only — trips remain per-trip assignable
@@ -1030,7 +1034,7 @@ model ServiceException {
   reason ExceptionReason @default(OPERATIONAL)
   notes  String?
   /// HH:mm override used when type === MODIFIED
-  overrideDepartureTime String?
+  overrideDepartureTime String? @db.VarChar(5)
 
   @@index([scheduleId])
   @@index([date])
@@ -1061,6 +1065,7 @@ model Fare {
   isActive   Boolean   @default(true)
 
   @@index([scheduleId])
+  @@index([scheduleId, fromStopOrder, toStopOrder, seatClass])
   @@index([type])
   @@map("fare")
 }

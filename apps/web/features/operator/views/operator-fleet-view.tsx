@@ -18,10 +18,8 @@ import {
   ThermometerSun,
   Wifi,
   CircleDot,
-  Gauge,
   Luggage,
 } from "lucide-react";
-import { useQueryState, parseAsString, parseAsStringEnum } from "nuqs";
 import { toast } from "sonner";
 import { cn } from "@moja/ui/lib/utils";
 
@@ -67,14 +65,12 @@ import type { RouterOutputs } from "@/trpc/client";
 import { useTRPC } from "@/trpc/client";
 import {
   useSuspenseQuery,
-  useQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
 import { AddBusModal } from "@/features/operator/components/add-bus-modal";
 import { SeatMapPreview } from "@/features/operator/components/seat-map-preview";
 import { LayoutBuilderSheet } from "@/features/operator/components/layout-builder-sheet";
-import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 type Bus = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 type FleetStats = RouterOutputs["fleet"]["getBuses"]["stats"];
@@ -151,14 +147,13 @@ function StatCard({ label, value, icon: Icon, iconClassName, sub }: StatCardProp
 
 interface BusCardProps {
   bus: Bus;
-  canManageFleet: boolean;
   onEdit: (bus: Bus) => void;
   onDelete: (bus: Bus) => void;
   onViewMap: (bus: Bus) => void;
 }
 
-function BusCard({ bus, canManageFleet, onEdit, onDelete, onViewMap }: BusCardProps) {
-  const status = STATUS_CONFIG[bus.status];
+function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
+  const status = STATUS_CONFIG[bus.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.INACTIVE;
 
   return (
     <Card className="group/bus-card border-border bg-card shadow-none hover:border-primary/30 hover:shadow-sm transition-all duration-200">
@@ -206,7 +201,7 @@ function BusCard({ bus, canManageFleet, onEdit, onDelete, onViewMap }: BusCardPr
               Configuration
             </p>
             <p className="text-xs font-medium text-foreground/90 truncate mt-0.5">
-              {bus.layoutTemplate?.name}
+              {bus.layoutTemplate.name}
             </p>
           </div>
         </div>
@@ -224,7 +219,7 @@ function BusCard({ bus, canManageFleet, onEdit, onDelete, onViewMap }: BusCardPr
             <Armchair className="size-3.5" />
             <span>
               <strong className="text-foreground/80 font-semibold">
-                {bus.layoutTemplate?.totalSeats}
+                {bus.layoutTemplate.totalSeats}
               </strong>{" "}
               seats
             </span>
@@ -243,27 +238,23 @@ function BusCard({ bus, canManageFleet, onEdit, onDelete, onViewMap }: BusCardPr
               <LayoutGrid className="size-3.5 mr-1" />
               Plan
             </Button>
-            {canManageFleet && (
-              <>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={() => onEdit(bus)}
-                >
-                  <Pencil className="size-3.5 mr-1" />
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-                  onClick={() => onDelete(bus)}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              </>
-            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted"
+              onClick={() => onEdit(bus)}
+            >
+              <Pencil className="size-3.5 mr-1" />
+              Edit
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+              onClick={() => onDelete(bus)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
           </div>
         </div>
       </CardContent>
@@ -277,12 +268,11 @@ function BusCard({ bus, canManageFleet, onEdit, onDelete, onViewMap }: BusCardPr
 
 interface LayoutCardProps {
   layout: CustomLayout;
-  canManageFleet: boolean;
   onDelete: (layout: CustomLayout) => void;
   onPreview: (layout: CustomLayout) => void;
 }
 
-function CustomLayoutCard({ layout, canManageFleet, onDelete, onPreview }: LayoutCardProps) {
+function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
   const busCount = layout._count.buses;
 
   return (
@@ -356,18 +346,16 @@ function CustomLayoutCard({ layout, canManageFleet, onDelete, onPreview }: Layou
             <LayoutGrid className="size-3.5 mr-1" />
             Preview
           </Button>
-          {canManageFleet && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-              onClick={() => onDelete(layout)}
-              disabled={busCount > 0}
-              title={busCount > 0 ? `Used by ${busCount} bus${busCount !== 1 ? "es" : ""}` : "Delete layout"}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+            onClick={() => onDelete(layout)}
+            disabled={busCount > 0}
+            title={busCount > 0 ? `Used by ${busCount} bus${busCount !== 1 ? "es" : ""}` : "Delete layout"}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -433,6 +421,84 @@ function PlatformLayoutCard({ layout }: PlatformLayoutCardProps) {
 }
 
 // ──────────────────────────────────────────────
+// Layout Preview Canvas
+// ──────────────────────────────────────────────
+
+import { Gauge } from "lucide-react";
+
+function LayoutPreviewCanvas({
+  rows,
+  cols,
+  seatTemplates,
+}: {
+  rows: number;
+  cols: number;
+  seatTemplates: { row: number; col: number; seatType: string; label: string }[];
+}) {
+  const colHeaders = Array.from({ length: cols }, (_, i) =>
+    String.fromCharCode(65 + i),
+  );
+
+  const grid = Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: cols }, (_, c) =>
+      seatTemplates.find((s) => s.row === r + 1 && s.col === c + 1),
+    ),
+  );
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="inline-block rounded-xl border border-border bg-muted/20 p-4 select-none">
+        <div
+          className="grid gap-1.5 mb-1.5"
+          style={{ gridTemplateColumns: `1.5rem repeat(${cols}, 2.5rem)` }}
+        >
+          <div />
+          {colHeaders.map((h) => (
+            <div key={h} className="text-center text-[10px] font-semibold text-muted-foreground">{h}</div>
+          ))}
+        </div>
+        {grid.map((row, rIdx) => (
+          <div
+            key={rIdx}
+            className="grid gap-1.5 mb-1.5"
+            style={{ gridTemplateColumns: `1.5rem repeat(${cols}, 2.5rem)` }}
+          >
+            <div className="flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
+              {rIdx + 1}
+            </div>
+            {row.map((seat, cIdx) => {
+              if (!seat) {
+                return <div key={cIdx} className="h-9 w-10 rounded-md border border-transparent" />;
+              }
+              const isEmpty = seat.seatType === "EMPTY_SPACE";
+              const isDriver = seat.seatType === "DRIVER_AREA";
+              return (
+                <div
+                  key={cIdx}
+                  className={cn(
+                    "h-9 w-10 rounded-md border text-[10px] font-semibold flex flex-col items-center justify-center",
+                    isDriver && "bg-foreground/80 border-transparent text-background",
+                    !isDriver && !isEmpty && "bg-card border-border text-foreground",
+                    isEmpty && "border-dashed border-border/60 bg-muted/20 opacity-40",
+                  )}
+                >
+                  {isDriver ? <Gauge className="size-3.5" /> : isEmpty ? null : <span>{seat.label}</span>}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+        <div className="mt-3 text-center text-[10px] text-muted-foreground tracking-widest uppercase flex items-center justify-center gap-2">
+          <div className="flex-1 border-t border-dashed border-border" />
+          <span>Entrance door</span>
+          <div className="flex-1 border-t border-dashed border-border" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
 // Layouts Tab Panel
 // ──────────────────────────────────────────────
 
@@ -450,10 +516,6 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
   const { data: allLayouts } = useSuspenseQuery(
     trpc.fleet.getLayoutTemplates.queryOptions(),
   );
-  const { data: perms } = useSuspenseQuery(
-    trpc.fleet.getPermissions.queryOptions(),
-  );
-  const canManageFleet = perms.canManageFleet;
 
   const platformLayouts = allLayouts.filter((l) => !l.companyId);
 
@@ -496,16 +558,14 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               Custom configurations unique to your company
             </p>
           </div>
-          {canManageFleet && (
-            <Button
-              size="sm"
-              className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
-              onClick={() => setBuilderOpen(true)}
-            >
-              <Plus className="size-4" />
-              Create custom layout
-            </Button>
-          )}
+          <Button
+            size="sm"
+            className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
+            onClick={() => setBuilderOpen(true)}
+          >
+            <Plus className="size-4" />
+            Create custom layout
+          </Button>
         </div>
 
         {customLayouts.length === 0 ? (
@@ -521,18 +581,16 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                   configuration of your fleet.
                 </EmptyDescription>
               </EmptyHeader>
-              {canManageFleet && (
-                <EmptyContent>
-                  <Button
-                    size="sm"
-                    className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
-                    onClick={() => setBuilderOpen(true)}
-                  >
-                    <Plus className="size-4" />
-                    Create custom layout
-                  </Button>
-                </EmptyContent>
-              )}
+              <EmptyContent>
+                <Button
+                  size="sm"
+                  className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
+                  onClick={() => setBuilderOpen(true)}
+                >
+                  <Plus className="size-4" />
+                  Create custom layout
+                </Button>
+              </EmptyContent>
             </Empty>
           </div>
         ) : (
@@ -541,7 +599,6 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               <CustomLayoutCard
                 key={layout.id}
                 layout={layout}
-                canManageFleet={canManageFleet}
                 onDelete={setDeletingLayout}
                 onPreview={setPreviewLayout}
               />
@@ -573,7 +630,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
         onOpenChange={setBuilderOpen}
         busTypes={busTypes}
         onSuccess={() => {
-          // query already invalidated inside the drawer
+          // query already invalidated inside the sheet
         }}
       />
 
@@ -662,77 +719,34 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
   );
 }
 
-// Simple read-only canvas for layout preview using seatTemplates
-function LayoutPreviewCanvas({
-  rows,
-  cols,
-  seatTemplates,
-}: {
-  rows: number;
-  cols: number;
-  seatTemplates: { row: number; col: number; seatType: string; label: string }[];
-}) {
+// ──────────────────────────────────────────────
+// Seat Map Fetcher
+// ──────────────────────────────────────────────
 
-  const colHeaders = Array.from({ length: cols }, (_, i) =>
-    String.fromCharCode(65 + i),
+function SeatMapFetcher({ busId }: { busId: string }) {
+  const trpc = useTRPC();
+  const { data: seatMapBus } = useSuspenseQuery(
+    trpc.fleet.getBusDetails.queryOptions({ id: busId }),
   );
 
-  const grid = Array.from({ length: rows }, (_, r) =>
-    Array.from({ length: cols }, (_, c) =>
-      seatTemplates.find((s) => s.row === r + 1 && s.col === c + 1),
-    ),
-  );
+  if (!seatMapBus || !seatMapBus.seats) return null;
 
   return (
-    <div className="overflow-x-auto">
-      <div className="inline-block rounded-xl border border-border bg-muted/20 p-4 select-none">
-        <div
-          className="grid gap-1.5 mb-1.5"
-          style={{ gridTemplateColumns: `1.5rem repeat(${cols}, 2.5rem)` }}
-        >
-          <div />
-          {colHeaders.map((h) => (
-            <div key={h} className="text-center text-[10px] font-semibold text-muted-foreground">{h}</div>
-          ))}
-        </div>
-        {grid.map((row, rIdx) => (
-          <div
-            key={rIdx}
-            className="grid gap-1.5 mb-1.5"
-            style={{ gridTemplateColumns: `1.5rem repeat(${cols}, 2.5rem)` }}
-          >
-            <div className="flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
-              {rIdx + 1}
-            </div>
-            {row.map((seat, cIdx) => {
-              if (!seat) {
-                return <div key={cIdx} className="h-9 w-10 rounded-md border border-transparent" />;
-              }
-              const isEmpty = seat.seatType === "EMPTY_SPACE";
-              const isDriver = seat.seatType === "DRIVER_AREA";
-              return (
-                <div
-                  key={cIdx}
-                  className={cn(
-                    "h-9 w-10 rounded-md border text-[10px] font-semibold flex flex-col items-center justify-center",
-                    isDriver && "bg-foreground/80 border-transparent text-background",
-                    !isDriver && !isEmpty && "bg-card border-border text-foreground",
-                    isEmpty && "border-dashed border-border/60 bg-muted/20 opacity-40",
-                  )}
-                >
-                  {isDriver ? <Gauge className="size-3.5" /> : isEmpty ? null : <span>{seat.label}</span>}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-        <div className="mt-3 text-center text-[10px] text-muted-foreground tracking-widest uppercase flex items-center justify-center gap-2">
-          <div className="flex-1 border-t border-dashed border-border" />
-          <span>Entrance door</span>
-          <div className="flex-1 border-t border-dashed border-border" />
-        </div>
+    <>
+      <div className="mb-4 rounded-lg border border-primary/15 bg-primary/5 px-4 py-3">
+        <p className="text-xs text-primary font-semibold">Interactive mode active</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          Click on a passenger seat to mark it out of service or reactivate it.
+        </p>
       </div>
-    </div>
+      <SeatMapPreview
+        busId={seatMapBus.id}
+        seats={seatMapBus.seats}
+        rows={seatMapBus.layoutTemplate.rows}
+        columns={seatMapBus.layoutTemplate.columns}
+        interactive
+      />
+    </>
   );
 }
 
@@ -741,40 +755,6 @@ function LayoutPreviewCanvas({
 // ──────────────────────────────────────────────
 
 export function OperatorFleetView() {
-  const { can, isLoading: permsLoading } = useStaffPermissions();
-  const canReadFleet = can("fleet:read");
-
-  if (permsLoading) {
-    return (
-      <div className="flex justify-center py-24">
-        <Spinner className="size-6 text-primary" />
-      </div>
-    );
-  }
-
-  if (!canReadFleet) {
-    return (
-      <div className="flex-1 p-6 max-w-3xl">
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <ShieldCheck />
-            </EmptyMedia>
-            <EmptyTitle>Fleet access required</EmptyTitle>
-            <EmptyDescription>
-              Your role does not include fleet read permission. Contact a company
-              admin if you need access.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
-
-  return <OperatorFleetViewContent />;
-}
-
-function OperatorFleetViewContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -782,30 +762,12 @@ function OperatorFleetViewContent() {
 
   const { data } = useSuspenseQuery(trpc.fleet.getBuses.queryOptions());
   const { data: busTypes } = useSuspenseQuery(trpc.fleet.getBusTypes.queryOptions());
-  const { data: perms } = useSuspenseQuery(trpc.fleet.getPermissions.queryOptions());
-  const canManageFleet = perms.canManageFleet;
   const buses = data.buses;
   const stats = data.stats;
 
-  const [activeTab, setActiveTab] = useQueryState(
-    "tab",
-    parseAsStringEnum(["buses", "layouts"]).withDefault("buses")
-  );
-  const [search, setSearch] = useQueryState(
-    "q",
-    parseAsString.withDefault("")
-  );
-  const [statusFilter, setStatusFilter] = useQueryState(
-    "status",
-    parseAsString.withDefault("ALL")
-  );
-
-  const [localSearch, setLocalSearch] = useState(search);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setSearch(localSearch), 300);
-    return () => clearTimeout(timer);
-  }, [localSearch, setSearch]);
+  const [activeTab, setActiveTab] = useState<"buses" | "layouts">("buses");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   // Modals
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -849,8 +811,6 @@ function OperatorFleetViewContent() {
         onSuccess: () => {
           toast.success(`Bus ${plate} deleted`);
           queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
-          queryClient.invalidateQueries(trpc.fleet.getCustomLayouts.pathFilter());
-          queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
           setDeletingBus(null);
         },
         onError: (err) => {
@@ -863,7 +823,7 @@ function OperatorFleetViewContent() {
   function handleViewMap(bus: Bus) {
     setSeatMapBusTitle({
       plate: bus.registrationPlate,
-      layout: bus.layoutTemplate?.name,
+      layout: bus.layoutTemplate.name,
     });
     setSeatMapBusId(bus.id);
   }
@@ -885,7 +845,7 @@ function OperatorFleetViewContent() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {activeTab === "buses" && canManageFleet ? (
+            {activeTab === "buses" ? (
               <Button
                 size="sm"
                 className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
@@ -991,8 +951,8 @@ function OperatorFleetViewContent() {
                 <Input
                   placeholder="Search by plate, name, model..."
                   className="pl-8 h-8 text-xs bg-card border-border"
-                  value={localSearch}
-                  onChange={(e) => setLocalSearch(e.target.value)}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -1065,7 +1025,7 @@ function OperatorFleetViewContent() {
                       : "Add your first vehicle to start managing your fleet."}
                   </EmptyDescription>
                 </EmptyHeader>
-                {!search && statusFilter === "ALL" && canManageFleet && (
+                {!search && statusFilter === "ALL" && (
                   <EmptyContent>
                     <Button
                       size="sm"
@@ -1088,7 +1048,6 @@ function OperatorFleetViewContent() {
                 <BusCard
                   key={bus.id}
                   bus={bus}
-                  canManageFleet={canManageFleet}
                   onEdit={(b) => {
                     setEditingBus(b);
                     setAddModalOpen(true);
@@ -1112,8 +1071,6 @@ function OperatorFleetViewContent() {
         editingBus={editingBus}
         onSuccess={() => {
           queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
-          queryClient.invalidateQueries(trpc.fleet.getCustomLayouts.pathFilter());
-          queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
         }}
       />
 
@@ -1216,33 +1173,5 @@ function OperatorFleetViewContent() {
         </DrawerContent>
       </Drawer>
     </div>
-  );
-}
-
-// Separate component to handle suspense query fetching for the drawer
-function SeatMapFetcher({ busId }: { busId: string }) {
-  const trpc = useTRPC();
-  const { data: seatMapBus } = useSuspenseQuery(
-    trpc.fleet.getBusDetails.queryOptions({ id: busId }),
-  );
-
-  if (!seatMapBus || !seatMapBus.seats) return null;
-
-  return (
-    <>
-      <div className="mb-4 rounded-lg border border-primary/15 bg-primary/5 px-4 py-3">
-        <p className="text-xs text-primary font-semibold">Interactive mode active</p>
-        <p className="text-[11px] text-muted-foreground mt-0.5">
-          Click on a passenger seat to mark it out of service or reactivate it.
-        </p>
-      </div>
-      <SeatMapPreview
-        busId={seatMapBus.id}
-        seats={seatMapBus.seats}
-        rows={seatMapBus.layoutTemplate.rows}
-        columns={seatMapBus.layoutTemplate.columns}
-        interactive
-      />
-    </>
   );
 }

@@ -200,19 +200,36 @@ export const createScheduleSchema = z
     }
     const last = data.routeLastStopOrder;
     if (last !== undefined) {
-      const hasFullRoute = data.fares.some(
-        (f) =>
-          f.fromStopOrder === 0 &&
-          f.toStopOrder === last &&
-          f.priceXOF > 0,
+      const fullRouteFares = data.fares.filter(
+        (f) => f.fromStopOrder === 0 && f.toStopOrder === last && f.priceXOF > 0,
       );
-      if (!hasFullRoute) {
+      if (fullRouteFares.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
             "At least one fare covering origin to destination is required",
           path: ["fares"],
         });
+      } else {
+        // Guard: Sub-segment fares should not cost more than the full route fare of the same class & type
+        for (let i = 0; i < data.fares.length; i++) {
+          const fare = data.fares[i]!;
+          const isFullRoute =
+            fare.fromStopOrder === 0 && fare.toStopOrder === last;
+          if (!isFullRoute) {
+            const matchingFullFare = fullRouteFares.find(
+              (ff) => ff.seatClass === fare.seatClass && ff.type === fare.type,
+            );
+            if (matchingFullFare && fare.priceXOF > matchingFullFare.priceXOF) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message:
+                  `Sub-segment fare (${fare.priceXOF} XOF) cannot exceed full route fare (${matchingFullFare.priceXOF} XOF) for ${fare.seatClass} ${fare.type}`,
+                path: ["fares", i, "priceXOF"],
+              });
+            }
+          }
+        }
       }
     }
   })
@@ -252,27 +269,34 @@ export const updateCalendarSchema = z
       .refine((val) => !val || !isNaN(Date.parse(val)), "Invalid date format"),
   })
   .superRefine((data, ctx) => {
-    const dayKeys = [
-      data.monday,
-      data.tuesday,
-      data.wednesday,
-      data.thursday,
-      data.friday,
-      data.saturday,
-      data.sunday,
-    ];
-    const anyDayProvided = dayKeys.some((d) => d !== undefined);
-    if (anyDayProvided && dayKeys.every((d) => d === false || d === undefined)) {
-      // Only reject if all provided days are explicitly false and at least one day key was set
-      const explicitlySet = dayKeys.filter((d) => d !== undefined);
-      if (explicitlySet.length === 7 && explicitlySet.every((d) => d === false)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Select at least one operating day",
-          path: ["monday"],
-        });
-      }
+    const DAY_KEYS = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday",
+    ] as const;
+
+    // Collect only the day keys that are explicitly provided in this patch
+    const providedDays = DAY_KEYS.filter((k) => data[k] !== undefined);
+
+    // Guard: if the caller is explicitly setting ALL 7 days and every one is false, reject.
+    // For partial patches (< 7 days provided) we cannot know the full stored state from the
+    // schema alone — that check must happen in the tRPC router after merging with DB values.
+    if (
+      providedDays.length === 7 &&
+      providedDays.every((k) => data[k] === false)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select at least one operating day",
+        path: ["monday"],
+      });
     }
+
+    // validUntil must not be before validFrom
     if (
       data.validUntil &&
       data.validFrom &&

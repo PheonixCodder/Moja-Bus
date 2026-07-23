@@ -1740,6 +1740,15 @@ export const adminRouter = createTRPCRouter({
   deleteBlogCategory: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const postsCount = await ctx.prisma.blogPost.count({
+        where: { categoryId: input.id },
+      });
+      if (postsCount > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Cannot delete category: ${postsCount} blog post(s) are using this category. Reassign them first.`,
+        });
+      }
       return ctx.prisma.blogCategory.delete({
         where: { id: input.id },
       });
@@ -1786,6 +1795,15 @@ export const adminRouter = createTRPCRouter({
   deleteBlogTag: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const postsCount = await ctx.prisma.blogPost.count({
+        where: { tags: { some: { id: input.id } } },
+      });
+      if (postsCount > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Cannot delete tag: ${postsCount} blog post(s) are tagged with this tag.`,
+        });
+      }
       return ctx.prisma.blogTag.delete({
         where: { id: input.id },
       });

@@ -10,7 +10,7 @@ type OperatorLoginViewProps = {
 
 export function OperatorLoginView({ errorCode }: OperatorLoginViewProps) {
   return (
-    <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[500px]">
+    <div className="relative mx-auto flex w-full flex-col justify-center space-y-8 px-4 sm:px-6">
       {/* Switch to Passenger Link (Absolute top right) */}
       <div className="absolute top-5 flex w-full justify-end px-10 left-0">
         <div className="text-muted-foreground text-sm">

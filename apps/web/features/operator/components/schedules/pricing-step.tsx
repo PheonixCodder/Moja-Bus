@@ -203,7 +203,7 @@ export function PricingStep({
                 <div className="w-28">
                   <Input
                     type="number"
-                    min={0}
+                    min={1}
                     placeholder="0"
                     value={fare?.priceXOF || ""}
                     onChange={(e) => {

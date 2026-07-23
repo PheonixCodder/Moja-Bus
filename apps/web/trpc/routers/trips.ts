@@ -50,7 +50,13 @@ export const tripsRouter = createTRPCRouter({
             busId: input.busId,
             departureDate: departureTimestamp,
             estimatedArrival: new Date(departureTimestamp.getTime() + (schedule.route.estimatedMinutes ?? 0) * 60000),
-            totalSeats: bus.seats.length,
+            totalSeats:
+              bus.seats.filter(
+                (s) =>
+                  s.isActive &&
+                  s.seatType !== "DRIVER_AREA" &&
+                  s.seatType !== "EMPTY_SPACE",
+              ).length || bus.seats.length,
             status: "SCHEDULED",
             routeSnapshotJson: {
               ...schedule.route,
@@ -517,7 +523,13 @@ export const tripsRouter = createTRPCRouter({
           where: { id: trip.id },
           data: {
             busId,
-            totalSeats: newBus.seats.length,
+            totalSeats:
+              newBus.seats.filter(
+                (s) =>
+                  s.isActive &&
+                  s.seatType !== "DRIVER_AREA" &&
+                  s.seatType !== "EMPTY_SPACE",
+              ).length || newBus.seats.length,
           },
         });
 
@@ -1076,5 +1088,73 @@ export const tripsRouter = createTRPCRouter({
       }
 
       return updatedTrip;
+    }),
+
+  toggleSingleTripSeatStatus: operatorCompanyProcedure
+    .input(
+      z.object({
+        tripId: z.string(),
+        seatId: z.string(),
+        isActive: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "trips:update");
+      const trip = await ctx.prisma.trip.findFirst({
+        where: {
+          id: input.tripId,
+          companyId: ctx.companyId,
+        },
+      });
+
+      if (!trip) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Trip not found",
+        });
+      }
+
+      if (trip.status === "CANCELLED" || trip.status === "ARRIVED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot update seat status for a trip that is ${trip.status}.`,
+        });
+      }
+
+      // Check if seat is currently booked on this trip before disabling
+      if (!input.isActive) {
+        const activeBooking = await ctx.prisma.booking.findFirst({
+          where: {
+            tripId: input.tripId,
+            seatId: input.seatId,
+            status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+          },
+        });
+        if (activeBooking) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Cannot disable seat: An active booking exists for this seat on this trip.",
+          });
+        }
+      }
+
+      const tripSeat = await ctx.prisma.tripSeat.upsert({
+        where: {
+          tripId_seatId: {
+            tripId: input.tripId,
+            seatId: input.seatId,
+          },
+        },
+        create: {
+          tripId: input.tripId,
+          seatId: input.seatId,
+          isActive: input.isActive,
+        },
+        update: {
+          isActive: input.isActive,
+        },
+      });
+
+      return tripSeat;
     }),
 });

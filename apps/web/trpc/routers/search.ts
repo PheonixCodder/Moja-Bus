@@ -14,6 +14,9 @@ const searchInputSchema = z.object({
   departureTime: z
     .array(z.enum(["MORNING", "AFTERNOON", "EVENING"]))
     .optional(),
+  seatClass: z
+    .array(z.enum(["ECONOMY", "STANDARD", "VIP"]))
+    .optional(),
   maxPrice: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().optional()),
   sort: z.string().default("BEST"),
   page: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().min(1).default(1)),
@@ -72,8 +75,9 @@ export const searchRouter = createTRPCRouter({
         passengerCount: input.passengers,
         filters: {
           operators: input.operators as SearchFilters['operators'],
-          amenities: input.amenities  as SearchFilters['amenities'],
+          amenities: input.amenities as SearchFilters['amenities'],
           departureTime: input.departureTime as SearchFilters['departureTime'],
+          seatClass: input.seatClass as SearchFilters['seatClass'],
           maxPrice: input.maxPrice as SearchFilters['maxPrice'],
         },
         sort: input.sort,

@@ -11,7 +11,6 @@ import {
   Layers,
   Luggage,
   Save,
-  Settings2,
   Square,
   ThermometerSun,
   Wifi,
@@ -43,12 +42,12 @@ import {
 import { cn } from "@moja/ui/lib/utils";
 
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SeatType = "PASSENGER_WINDOW" | "PASSENGER_AISLE" | "PASSENGER_MIDDLE" | "DRIVER_AREA" | "EMPTY_SPACE";
+type SeatType = "PASSENGER_WINDOW" | "PASSENGER_AISLE" | "DRIVER_AREA" | "EMPTY_SPACE";
 type Tool = SeatType | "ERASE";
 
 interface GridCell {
@@ -61,11 +60,11 @@ interface GridCell {
 
 type BusType = RouterOutputs["fleet"]["getBusTypes"][number];
 
-interface LayoutBuilderSheetProps {
+export interface LayoutBuilderSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  busTypes: BusType[];
-  onSuccess: (newLayoutId: string) => void;
+  busTypes?: BusType[];
+  onSuccess?: (newLayoutId: string) => void;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -112,8 +111,7 @@ function relabelGrid(grid: GridCell[][]): GridCell[][] {
     row.map((cell) => {
       if (
         cell.seatType === "PASSENGER_WINDOW" ||
-        cell.seatType === "PASSENGER_AISLE" ||
-        cell.seatType === "PASSENGER_MIDDLE"
+        cell.seatType === "PASSENGER_AISLE"
       ) {
         return { ...cell, label: `${counter++}`, isBookable: true };
       }
@@ -130,7 +128,7 @@ function countPassengerSeats(grid: GridCell[][]): number {
     .flat()
     .filter(
       (c) =>
-        c.seatType === "PASSENGER_WINDOW" || c.seatType === "PASSENGER_AISLE" || c.seatType === "PASSENGER_MIDDLE",
+        c.seatType === "PASSENGER_WINDOW" || c.seatType === "PASSENGER_AISLE",
     ).length;
 }
 
@@ -159,14 +157,6 @@ const TOOLS: {
     Icon: Armchair,
     cellClass: "bg-card/60 border-border/60 text-foreground/80 hover:border-primary/40",
     paletteDot: "bg-card/60 border border-border/60",
-  },
-  {
-    id: "PASSENGER_MIDDLE",
-    label: "Middle Seat",
-    description: "Passenger seat between window and aisle",
-    Icon: Armchair,
-    cellClass: "bg-card/80 border-border/80 text-foreground/90 hover:border-primary/40",
-    paletteDot: "bg-card/80 border border-border/80",
   },
   {
     id: "DRIVER_AREA",
@@ -359,16 +349,19 @@ function GridCanvas({ grid, activeTool, onPaint, readOnly = false }: GridCanvasP
   );
 }
 
-// ── Main Drawer ───────────────────────────────────────────────────────────────
+// ── Main Sheet ────────────────────────────────────────────────────────────────
 
 export function LayoutBuilderSheet({
   open,
   onOpenChange,
-  busTypes,
+  busTypes: busTypesProp,
   onSuccess,
 }: LayoutBuilderSheetProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  const { data: busTypesFetched } = useSuspenseQuery(trpc.fleet.getBusTypes.queryOptions());
+  const busTypes = busTypesProp ?? busTypesFetched;
 
   const createMutation = useMutation(
     trpc.fleet.createCustomLayout.mutationOptions(),
@@ -456,7 +449,7 @@ export function LayoutBuilderSheet({
 
     const totalPassenger = seats.filter(
       (s) =>
-        s.seatType === "PASSENGER_WINDOW" || s.seatType === "PASSENGER_AISLE" || s.seatType === "PASSENGER_MIDDLE",
+        s.seatType === "PASSENGER_WINDOW" || s.seatType === "PASSENGER_AISLE",
     ).length;
 
     if (totalPassenger === 0) {
@@ -485,7 +478,7 @@ export function LayoutBuilderSheet({
           queryClient.invalidateQueries(
             trpc.fleet.getCustomLayouts.pathFilter(),
           );
-          onSuccess(created.id);
+          if (onSuccess) onSuccess(created.id);
           onOpenChange(false);
         },
         onError: (err) => {
@@ -576,6 +569,7 @@ export function LayoutBuilderSheet({
                   <ComboboxInput
                     placeholder="Select vehicle type..."
                     className="w-full"
+                    value={busTypes.find((bt) => bt.id === busTypeId)?.name || ""}
                   />
                   <ComboboxContent>
                     <ComboboxEmpty>No vehicle type found.</ComboboxEmpty>
@@ -811,7 +805,7 @@ export function LayoutBuilderSheet({
             <div className="p-6 max-w-2xl mx-auto space-y-6">
               <div className="space-y-0.5">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Review & save
+                  Review &amp; save
                 </h2>
                 <p className="text-xs text-muted-foreground">
                   Confirm your layout before saving. This cannot be edited after saving.

@@ -183,10 +183,15 @@ export function OperatorSchedulesView() {
     if (step === "Route") return !!routePick;
     if (step === "Calendar") {
       const hasDays = Object.values(calConfig.days).some(Boolean);
+      // Re-validate validFrom on every check so an overnight-open wizard is caught
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+      const validFromDate = calConfig.validFrom ? new Date(calConfig.validFrom) : null;
+      const validFromOk = validFromDate !== null && validFromDate >= todayMidnight;
       return (
         hasDays &&
         !!calConfig.departureTime &&
-        !!calConfig.validFrom &&
+        validFromOk &&
         !!calConfig.preferredBusId
       );
     }
@@ -255,12 +260,21 @@ export function OperatorSchedulesView() {
   async function handleExtend(schedule: ScheduleListItem | ScheduleDetail) {
     setExtendingScheduleId(schedule.id);
     try {
-      const busId =
-        ("preferredBusId" in schedule && schedule.preferredBusId) ||
-        buses.find((b) => b.status === "ACTIVE")?.id;
+      const preferredBusId =
+        "preferredBusId" in schedule ? schedule.preferredBusId : undefined;
+      const fallbackBus = !preferredBusId
+        ? buses.find((b) => b.status === "ACTIVE")
+        : undefined;
+      const busId = preferredBusId || fallbackBus?.id;
       if (!busId) {
         toast.error("No preferred or active bus available");
         return;
+      }
+      if (fallbackBus) {
+        toast.warning(
+          `No preferred bus set — using ${fallbackBus.registrationPlate ?? "an active bus"} as fallback. ` +
+          `Edit this schedule to assign a permanent preferred bus.`,
+        );
       }
       if (!schedule.isActive) {
         toast.error("Reactivate the schedule before extending trips");

@@ -69,7 +69,7 @@ export function CityAutocompleteField({
         />
       </div>
       {isOpen && isSearchable && (
-        <div className="absolute z-30 left-0 right-0 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl max-h-60 overflow-y-auto divide-y divide-slate-100">
+        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl max-h-60 overflow-y-auto divide-y divide-slate-100">
           {cities.length > 0 ? (
             cities.map((city) => (
               <button

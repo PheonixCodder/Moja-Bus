@@ -135,7 +135,13 @@ export async function generateTripsForSchedule(
               departureTimestamp.getTime() +
                 (route.estimatedMinutes ?? 0) * 60000,
             ),
-            totalSeats: bus.seats.length,
+            totalSeats:
+              bus.seats.filter(
+                (s) =>
+                  s.isActive &&
+                  s.seatType !== "DRIVER_AREA" &&
+                  s.seatType !== "EMPTY_SPACE",
+              ).length || bus.seats.length,
             status: "SCHEDULED",
             routeSnapshotJson: { ...route, version: 1 },
           },

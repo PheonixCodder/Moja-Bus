@@ -52,11 +52,6 @@ export default async function DashboardLayout({
                 <SearchDialog />
               </div>
               <div className="flex items-center gap-2">
-                {/* Layout matching mock buttons */}
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
-                  <Settings className="size-4" />
-                </Button>
-                <div className="h-4 w-px bg-border/80 mx-1" />
                 <NotificationInbox />
               </div>
             </div>

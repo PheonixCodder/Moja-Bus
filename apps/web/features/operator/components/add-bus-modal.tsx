@@ -61,6 +61,7 @@ const yearOptions = Array.from(
 );
 
 type BusStatus = "ACTIVE" | "MAINTENANCE" | "INACTIVE" | "RETIRED";
+type SeatClass = "ECONOMY" | "STANDARD" | "VIP";
 
 export function AddBusModal({
   open,
@@ -87,6 +88,7 @@ export function AddBusModal({
   const [plateNumber, setPlateNumber] = useState("");
   const [internalName, setInternalName] = useState("");
   const [manufactureYear, setManufactureYear] = useState<string>("");
+  const [seatClass, setSeatClass] = useState<SeatClass>("STANDARD");
   const [busTypeId, setBusTypeId] = useState<string>("");
   const [seatLayoutId, setSeatLayoutId] = useState<string>("");
   const [status, setStatus] = useState<BusStatus>("ACTIVE");
@@ -107,6 +109,7 @@ export function AddBusModal({
       setPlateNumber(editingBus.registrationPlate);
       setInternalName(editingBus.internalName ?? "");
       setManufactureYear(editingBus.manufactureYear?.toString() ?? "");
+      setSeatClass(((editingBus as any).seatClass as SeatClass) ?? "STANDARD");
       setBusTypeId(editingBus.busType.id);
       setSeatLayoutId(editingBus.layoutTemplateId);
       setStatus(editingBus.status);
@@ -115,6 +118,7 @@ export function AddBusModal({
       setPlateNumber("");
       setInternalName("");
       setManufactureYear("");
+      setSeatClass("STANDARD");
       setBusTypeId("");
       setSeatLayoutId("");
       setStatus("ACTIVE");
@@ -161,6 +165,7 @@ export function AddBusModal({
           data: {
             registrationPlate: plateNumber.trim().toUpperCase(),
             internalName: internalName.trim() ? internalName.trim() : null,
+            seatClass,
             ...(manufactureYear ? { manufactureYear: parseInt(manufactureYear, 10) } : { manufactureYear: null }),
             notes: notes.trim() ? notes.trim() : null,
             status,
@@ -183,6 +188,7 @@ export function AddBusModal({
           registrationPlate: plateNumber.trim().toUpperCase(),
           busTypeId,
           layoutTemplateId: seatLayoutId,
+          seatClass,
           ...(internalName.trim() ? { internalName: internalName.trim() } : {}),
           ...(manufactureYear
             ? { manufactureYear: parseInt(manufactureYear, 10) }
@@ -295,6 +301,32 @@ export function AddBusModal({
                           {y}
                         </ComboboxItem>
                       ))}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </div>
+
+              {/* Seat Class */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground/80">
+                  Seat class *
+                </Label>
+                <Combobox
+                  items={[
+                    { value: "STANDARD", label: "Standard" },
+                    { value: "VIP", label: "VIP" },
+                    { value: "ECONOMY", label: "Economy" },
+                  ]}
+                  value={seatClass}
+                  onValueChange={(v) => { if (v !== null) setSeatClass(v as SeatClass); }}
+                >
+                  <ComboboxInput placeholder="Select seat class..." className="w-full" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>No seat class found.</ComboboxEmpty>
+                    <ComboboxList>
+                      <ComboboxItem value="STANDARD">Standard</ComboboxItem>
+                      <ComboboxItem value="VIP">VIP</ComboboxItem>
+                      <ComboboxItem value="ECONOMY">Economy</ComboboxItem>
                     </ComboboxList>
                   </ComboboxContent>
                 </Combobox>
@@ -526,7 +558,7 @@ export function AddBusModal({
         open={builderOpen}
         onOpenChange={setBuilderOpen}
         busTypes={busTypes}
-        onSuccess={(newLayoutId) => {
+        onSuccess={(newLayoutId: string) => {
           // Invalidate layouts and auto-select the new one
           queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
           setSeatLayoutId(newLayoutId);

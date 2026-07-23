@@ -260,7 +260,7 @@ export async function DashboardView() {
         )}
 
         {/* Welcome Section & Quick Route Search Form */}
-        <div className="bg-linear-to-r from-primary/10 via-primary/5 to-card border border-border/80 rounded-xl p-6 relative overflow-hidden shadow-xs dark:bg-card">
+        <div className="bg-linear-to-r from-primary/10 via-primary/5 to-card border border-border/80 rounded-xl p-6 relative overflow-visible shadow-xs dark:bg-card">
 
           <div className="relative z-10 space-y-4">
             <div className="space-y-1">

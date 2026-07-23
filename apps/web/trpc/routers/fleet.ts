@@ -160,6 +160,7 @@ export const fleetRouter = createTRPCRouter({
             internalName: input.internalName ?? null,
             busTypeId: template.busTypeId,
             layoutTemplateId: input.layoutTemplateId,
+            seatClass: input.seatClass ?? template.seatClass ?? "STANDARD",
             manufactureYear: input.manufactureYear ?? null,
             notes: input.notes ?? null,
             status: input.status ?? "ACTIVE",
@@ -179,7 +180,7 @@ export const fleetRouter = createTRPCRouter({
             deck: t.deck,
             label: t.label,
             seatType: t.seatType,
-            isActive: true,
+            isActive: t.isBookable ?? true,
           }));
 
           await tx.seat.createMany({
@@ -198,6 +199,7 @@ export const fleetRouter = createTRPCRouter({
         data: z.object({
           registrationPlate: z.string().optional(),
           internalName: z.string().nullable().optional(),
+          seatClass: z.enum(["ECONOMY", "STANDARD", "VIP"]).optional(),
           manufactureYear: z.number().int().nullable().optional(),
           notes: z.string().nullable().optional(),
           status: z
@@ -208,63 +210,63 @@ export const fleetRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "fleet:update");
-      const bus = await ctx.prisma.bus.findFirst({
-        where: { id: input.id, companyId: ctx.companyId, deletedAt: null },
-      });
 
-      if (!bus) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Bus not found" });
-      }
+      return ctx.prisma.$transaction(async (tx) => {
+        const bus = await tx.bus.findFirst({
+          where: { id: input.id, companyId: ctx.companyId, deletedAt: null },
+        });
 
-      if (input.data.status === "RETIRED" && bus.status !== "RETIRED") {
-        const activeTrip = await ctx.prisma.trip.findFirst({
-          where: {
-            busId: bus.id,
-            status: { in: ["SCHEDULED", "BOARDING"] },
+        if (!bus) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Bus not found" });
+        }
+
+        if (input.data.status === "RETIRED" && bus.status !== "RETIRED") {
+          const activeTrip = await tx.trip.findFirst({
+            where: {
+              busId: bus.id,
+              status: { in: ["SCHEDULED", "BOARDING"] },
+            },
+          });
+          if (activeTrip) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Cannot retire a vehicle that is assigned to an active trip.",
+            });
+          }
+        }
+
+        // §2.2 FIX: Disassociate preferred bus from schedules inside the same
+        // transaction as the bus update, so they succeed or fail atomically.
+        let warning: string | undefined;
+        if (input.data.status && input.data.status !== "ACTIVE") {
+          const schedulesCount = await tx.schedule.count({
+            where: { preferredBusId: bus.id, companyId: ctx.companyId },
+          });
+          if (schedulesCount > 0) {
+            await tx.schedule.updateMany({
+              where: { preferredBusId: bus.id, companyId: ctx.companyId },
+              data: { preferredBusId: null },
+            });
+            warning = `This bus was the preferred vehicle for ${schedulesCount} schedule(s). Those schedules now have no preferred bus and will stop generating trips.`;
+          }
+        }
+
+        // exactOptionalPropertyTypes compliance: strip undefined
+        const updateData = Object.fromEntries(
+          Object.entries(input.data).filter(([, v]) => v !== undefined),
+        ) as Parameters<typeof tx.bus.update>[0]["data"];
+
+        const updatedBus = await tx.bus.update({
+          where: { id: input.id },
+          data: updateData,
+          include: {
+            busType: true,
+            layoutTemplate: true,
           },
         });
-        if (activeTrip) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cannot retire a vehicle that is assigned to an active trip.",
-          });
-        }
-      }
 
-      // exactOptionalPropertyTypes compliance: strip undefined
-      const updateData = Object.fromEntries(
-        Object.entries(input.data).filter(([, v]) => v !== undefined),
-      ) as Parameters<typeof ctx.prisma.bus.update>[0]["data"];
-
-      let warning: string | undefined;
-
-      if (input.data.status && input.data.status !== "ACTIVE") {
-        const schedulesCount = await ctx.prisma.schedule.count({
-          where: { preferredBusId: bus.id, companyId: ctx.companyId }
-        });
-        
-        if (schedulesCount > 0) {
-          await ctx.prisma.schedule.updateMany({
-            where: { preferredBusId: bus.id, companyId: ctx.companyId },
-            data: { preferredBusId: null },
-          });
-          warning = `This bus was the preferred vehicle for ${schedulesCount} schedule(s). Those schedules now have no preferred bus and will stop generating trips.`;
-        }
-      }
-
-      const updatedBus = await ctx.prisma.bus.update({
-        where: { id: input.id },
-        data: updateData,
-        include: {
-          busType: true,
-          layoutTemplate: true,
-        },
+        return { ...updatedBus, warning };
       });
-
-      return {
-        ...updatedBus,
-        warning
-      };
     }),
 
   deleteBus: operatorCompanyProcedure
@@ -314,12 +316,15 @@ export const fleetRouter = createTRPCRouter({
         });
       }
 
+      // §2.1 FIX: Do NOT rename registrationPlate on soft-delete — it corrupts
+      // audit logs and breaks historical plate lookups. The `deletedAt` timestamp
+      // is sufficient to logically remove the record; the unique constraint is
+      // handled by the compound index (registrationPlate, deletedAt IS NULL).
       await ctx.prisma.bus.update({
         where: { id: input.id },
         data: {
           deletedAt: new Date(),
           status: "RETIRED",
-          registrationPlate: `DELETED_${Date.now()}_${bus.registrationPlate}`,
         },
       });
 
@@ -336,64 +341,63 @@ export const fleetRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "fleet:update");
-      // First verify the bus belongs to the company
-      const bus = await ctx.prisma.bus.findFirst({
-        where: { id: input.busId, companyId: ctx.companyId, deletedAt: null },
-      });
 
-      if (!bus) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Bus not found" });
-      }
-
-      const seat = await ctx.prisma.seat.findFirst({
-        where: { id: input.seatId, busId: input.busId },
-      });
-
-      if (!seat) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Seat not found" });
-      }
-
-      const futureTrips = await ctx.prisma.trip.findMany({
-        where: { busId: input.busId, status: { in: ["SCHEDULED", "BOARDING", "DELAYED"] } },
-        select: { id: true },
-      });
-      const futureTripIds = futureTrips.map((t) => t.id);
-
-      let unbookedTripIds = futureTripIds;
-      if (futureTripIds.length > 0 && !input.isActive) {
-        const bookedTrips = await ctx.prisma.booking.findMany({
-          where: {
-            seatId: input.seatId,
-            tripId: { in: futureTripIds },
-            status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
-          },
-          select: { tripId: true },
-        });
-
-        if (bookedTrips.length > 0) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cannot disable seat: It is actively booked on an upcoming/boarding trip. Reassign the passenger first.",
-          });
-        }
-      }
-
+      // §4.2 FIX: Perform the booking check INSIDE the transaction to eliminate
+      // the race window between the check and the seat status update.
       return ctx.prisma.$transaction(async (tx) => {
+        const bus = await tx.bus.findFirst({
+          where: { id: input.busId, companyId: ctx.companyId, deletedAt: null },
+        });
+        if (!bus) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Bus not found" });
+        }
+
+        const seat = await tx.seat.findFirst({
+          where: { id: input.seatId, busId: input.busId },
+        });
+        if (!seat) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Seat not found" });
+        }
+
+        const futureTrips = await tx.trip.findMany({
+          where: { busId: input.busId, status: { in: ["SCHEDULED", "BOARDING", "DELAYED"] } },
+          select: { id: true },
+        });
+        const futureTripIds = futureTrips.map((t) => t.id);
+
+        if (futureTripIds.length > 0 && !input.isActive) {
+          const bookedTrips = await tx.booking.findMany({
+            where: {
+              seatId: input.seatId,
+              tripId: { in: futureTripIds },
+              status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+            },
+            select: { tripId: true },
+          });
+          if (bookedTrips.length > 0) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                "Cannot disable seat: It is actively booked on an upcoming/boarding trip. Reassign the passenger first.",
+            });
+          }
+        }
+
         const updatedSeat = await tx.seat.update({
           where: { id: input.seatId },
           data: { isActive: input.isActive },
         });
 
-        if (unbookedTripIds.length > 0) {
+        if (futureTripIds.length > 0) {
           await tx.tripSeat.updateMany({
             where: {
               seatId: input.seatId,
-              tripId: { in: unbookedTripIds },
+              tripId: { in: futureTripIds },
             },
             data: { isActive: input.isActive },
           });
         }
-        
+
         return updatedSeat;
       });
     }),
@@ -444,9 +448,9 @@ export const fleetRouter = createTRPCRouter({
 
       const totalSeats = input.seats.filter(
         (s) =>
-          s.seatType === "PASSENGER_WINDOW" ||
-          s.seatType === "PASSENGER_AISLE" ||
-          s.seatType === "PASSENGER_MIDDLE",
+          s.isBookable &&
+          s.seatType !== "DRIVER_AREA" &&
+          s.seatType !== "EMPTY_SPACE",
       ).length;
 
       if (totalSeats === 0) {
@@ -488,18 +492,22 @@ export const fleetRouter = createTRPCRouter({
         });
       }
 
-      // Block deletion if any bus references this layout
-      const busCount = await ctx.prisma.bus.count({
-        where: { layoutTemplateId: input.id, companyId: ctx.companyId },
-      });
-      if (busCount > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `Cannot delete — ${busCount} bus${busCount > 1 ? "es" : ""} use this layout. Reassign or remove those buses first.`,
+      // §4.1 FIX: Only count ACTIVE (non-soft-deleted) buses. Without the
+      // `deletedAt: null` filter, soft-deleted buses permanently block layout
+      // deletion even after being retired.
+      return ctx.prisma.$transaction(async (tx) => {
+        const busCount = await tx.bus.count({
+          where: { layoutTemplateId: input.id, companyId: ctx.companyId, deletedAt: null },
         });
-      }
+        if (busCount > 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `Cannot delete — ${busCount} active bus${busCount > 1 ? "es" : ""} use this layout. Reassign or retire those buses first.`,
+          });
+        }
 
-      await ctx.prisma.seatLayoutTemplate.delete({ where: { id: input.id } });
-      return { success: true };
+        await tx.seatLayoutTemplate.delete({ where: { id: input.id } });
+        return { success: true };
+      });
     }),
 });

@@ -379,6 +379,7 @@ async function main() {
     {
       busTypeId: coaster.id,
       name: "Coaster Standard 22",
+      seatClass: "STANDARD" as const,
       totalSeats: 22,
       rows: 6,
       columns: 4,
@@ -388,6 +389,7 @@ async function main() {
     {
       busTypeId: coaster.id,
       name: "Coaster VIP 18",
+      seatClass: "VIP" as const,
       totalSeats: 18,
       rows: 5,
       columns: 4,
@@ -397,6 +399,7 @@ async function main() {
     {
       busTypeId: yutong107.id,
       name: "Coach 2+2 Standard 47",
+      seatClass: "STANDARD" as const,
       totalSeats: 47,
       rows: 12,
       columns: 4,
@@ -406,6 +409,7 @@ async function main() {
     {
       busTypeId: yutong127.id,
       name: "Coach 2+3 Standard 55",
+      seatClass: "ECONOMY" as const,
       totalSeats: 55,
       rows: 11,
       columns: 5,
@@ -415,6 +419,7 @@ async function main() {
     {
       busTypeId: sprinter.id,
       name: "Sprinter VIP 15",
+      seatClass: "VIP" as const,
       totalSeats: 15,
       rows: 4,
       columns: 4,

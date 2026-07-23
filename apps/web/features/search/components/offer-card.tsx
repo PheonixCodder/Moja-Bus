@@ -85,7 +85,21 @@ export function OfferCard({
                     </Badge>
                   )}
                 </h4>
-                <span className="text-xs font-semibold text-slate-400">{offer.busTypeName}</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xs font-semibold text-slate-400">{offer.busTypeName}</span>
+                  <Badge
+                    className={cn(
+                      "text-[10px] font-bold py-0.5 px-2 rounded-full border",
+                      offer.seatClass === "VIP"
+                        ? "bg-amber-100 text-amber-900 border-amber-300 shadow-sm"
+                        : offer.seatClass === "STANDARD"
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-slate-100 text-slate-700 border-slate-200",
+                    )}
+                  >
+                    {offer.seatClass}
+                  </Badge>
+                </div>
               </div>
             </div>
 

@@ -10,6 +10,13 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@moja/ui/components/ui/popover";
 import { Calendar as CalendarComponent } from "@moja/ui/components/ui/calendar";
 import { TrustBar } from "@/features/home/components/trustbar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
 
 const todayISO = () => new Date().toISOString().split("T")[0]!;
 
@@ -21,7 +28,12 @@ function parseLocalDate(dateStr: string) {
 
 const POPULAR = ["Abidjan", "Yamoussoukro", "San Pedro", "Bouaké", "Korhogo"];
 
-export function HeroSearchBar() {
+export interface HeroSearchBarProps {
+  showTrustBar?: boolean;
+  className?: string;
+}
+
+export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarProps = {}) {
   const router = useRouter();
 
   const [origin, setOrigin] = useState<CityValue>({ id: "", text: "" });
@@ -60,7 +72,7 @@ export function HeroSearchBar() {
   }
 
   return (
-    <div className="w-full">
+    <div className={className || "w-full"}>
       <form onSubmit={handleSearch} className="p-5 w-full">
         <div className="flex flex-col md:flex-row gap-4 items-end">
           {/* From */}
@@ -122,22 +134,23 @@ export function HeroSearchBar() {
           </div>
 
           {/* Passengers */}
-          <div className="w-full md:w-[120px]">
+          <div className="w-full md:w-[130px]">
             <label className="block text-sm font-bold text-slate-900 mb-2">Guests</label>
-            <div className="relative group">
-              <select
-                value={travelers}
-                onChange={(e) => setTravelers(Number(e.target.value))}
-                className="w-full h-12 px-4 pr-10 rounded-xl border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none appearance-none cursor-pointer"
-              >
-                {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <option key={n} value={n}>
+            <Select
+              value={String(travelers)}
+              onValueChange={(val) => setTravelers(Number(val))}
+            >
+              <SelectTrigger className="w-full h-[48px]! px-4 rounded-lg border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none">
+                <SelectValue placeholder="1 Guest" />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <SelectItem className={"h-12!"} key={n} value={String(n)}>
                     {n} {n === 1 ? "Guest" : "Guests"}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-              <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-            </div>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Search button */}
@@ -167,7 +180,7 @@ export function HeroSearchBar() {
           ))}
         </div>
       </form>
-      <TrustBar />
+      {showTrustBar && <TrustBar />}
     </div>
   );
 }

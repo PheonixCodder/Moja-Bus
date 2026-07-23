@@ -23,9 +23,9 @@ export function LoginView({
     typeof callbackUrl === "string" && callbackUrl.startsWith("/search");
 
   return (
-    <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[500px]">
+    <div className="relative h-full mx-auto flex w-full flex-col justify-center space-y-8 px-4 sm:px-6">
       {/* Switch to Operator Link (Absolute top right) */}
-      <div className="absolute top-5 flex w-full justify-end px-10 left-0">
+      <div className="absolute top-5 flex w-full justify-end px-10 right-0">
         <div className="text-muted-foreground text-sm">
           Are you a transport operator?{" "}
           <Link href="/operator/login" className="text-foreground font-semibold hover:underline">

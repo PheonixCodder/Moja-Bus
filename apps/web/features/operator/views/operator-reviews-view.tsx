@@ -84,7 +84,7 @@ export function OperatorReviewsView() {
   const { reviews, total, averageRating, distribution } = data;
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
         <h1 className="text-xl font-bold tracking-tight text-foreground">
           Reviews

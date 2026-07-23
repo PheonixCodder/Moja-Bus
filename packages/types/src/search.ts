@@ -31,6 +31,7 @@ export interface SearchOffer {
   // Vehicle Details
   busId: string;
   busTypeName: string;
+  seatClass: "ECONOMY" | "STANDARD" | "VIP";
   amenities: Amenity[];
 
   // Rich Segment-Specific Availability

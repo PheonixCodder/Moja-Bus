@@ -46,6 +46,14 @@ export function CalendarStep({
   const activeDays = DAYS.filter((d) => config.days[d.key]).length;
   const activeBuses = buses.filter((b) => b.status === "ACTIVE");
 
+  // Re-compute on every render: if the wizard was left open overnight the previously
+  // valid "today" date will have become yesterday without the operator noticing.
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+  const validFromDate = parseLocalDate(config.validFrom);
+  const isValidFromStale =
+    validFromDate !== undefined && validFromDate < todayMidnight;
+
   return (
     <div className="space-y-6">
       <div>
@@ -151,6 +159,11 @@ export function CalendarStep({
               />
             </PopoverContent>
           </Popover>
+          {isValidFromStale && (
+            <p className="text-xs text-destructive mt-1">
+              This date is in the past. Please select today or a future date.
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-semibold text-muted-foreground">
