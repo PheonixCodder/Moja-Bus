@@ -163,7 +163,7 @@ export function BankingView() {
             Manage your settlement bank accounts and mobile money wallets.
           </p>
         </div>
-        <Button onClick={handleOpenAdd}>
+        <Button onClick={handleOpenAdd} className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Add Account
         </Button>
       </div>
@@ -201,7 +201,7 @@ export function BankingView() {
               </div>
             </div>
 
-            <div className="absolute -top-3 -right-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+            <div className="absolute -top-3 -right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center gap-1">
               <Button
                 variant="secondary"
                 size="icon"
@@ -241,11 +241,11 @@ export function BankingView() {
         title={isEditing ? "Edit Settlement Account" : "Add Settlement Account"}
         description={isEditing ? "Update your bank account details." : "Register a Côte d'Ivoire Bank or Mobile Money wallet."}
         footer={
-          <div className="flex w-full justify-end gap-3">
-            <Button variant="outline" onClick={handleCloseDrawer}>
+          <div className="flex flex-col-reverse sm:flex-row w-full justify-end gap-2 sm:gap-3">
+            <Button variant="outline" onClick={handleCloseDrawer} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={form.handleSubmit(onSubmit)} disabled={addBankAccountMutation.isPending || updateBankAccountMutation.isPending}>
+            <Button onClick={form.handleSubmit(onSubmit)} disabled={addBankAccountMutation.isPending || updateBankAccountMutation.isPending} className="w-full sm:w-auto">
               {(addBankAccountMutation.isPending || updateBankAccountMutation.isPending) ? "Submitting..." : "Save Account"}
             </Button>
           </div>

@@ -2,6 +2,7 @@ import * as React from "react";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import * as RPNInput from "react-phone-number-input";
 import flags from "react-phone-number-input/flags";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 import { Button } from "#components/ui/button";
 import {
@@ -21,6 +22,21 @@ import {
 import { ScrollArea } from "#components/ui/scroll-area";
 import { cn } from "#lib/utils";
 
+/**
+ * Validates whether a phone number is a valid Ivory Coast (CI) phone number.
+ *
+ * @param phone - The phone number string to validate
+ * @returns boolean - true if structurally valid for Ivory Coast (Côte d'Ivoire)
+ */
+function validateIvoryCoastPhone(phone?: string | null): boolean {
+  if (!phone) return false;
+  // Parses the string using 'CI' (Côte d'Ivoire) as the default country fallback
+  const phoneNumber = parsePhoneNumberFromString(phone, "CI");
+
+  // Checks if the number is structurally valid for Ivory Coast
+  return phoneNumber ? phoneNumber.isValid() : false;
+}
+
 type PhoneInputProps = Omit<
   React.ComponentProps<"input">,
   "onChange" | "value" | "ref"
@@ -33,37 +49,54 @@ type PhoneInputProps = Omit<
 const PhoneInput = React.forwardRef<
   React.ElementRef<typeof RPNInput.default>,
   PhoneInputProps
->(({ className, onChange, value, country, ...props }, ref) => {
-  const CountrySelectComponent: React.ElementType = country
-    ? FixedCountrySelect
-    : CountrySelect;
+>(
+  (
+    {
+      className,
+      onChange,
+      value,
+      country = "CI",
+      defaultCountry = "CI",
+      countries = ["CI"],
+      placeholder = "+225 07 00 00 00 00",
+      ...props
+    },
+    ref,
+  ) => {
+    const CountrySelectComponent: React.ElementType = country
+      ? FixedCountrySelect
+      : CountrySelect;
 
-  return (
-    <RPNInput.default
-      ref={ref}
-      className={cn("flex", className)}
-      flagComponent={FlagComponent}
-      countrySelectComponent={CountrySelectComponent}
-      inputComponent={InputComponent}
-      smartCaret={false}
-      {...(value ? { value: value as RPNInput.Value } : {})}
-      /**
-       * Handles the onChange event.
-       *
-       * react-phone-number-input might trigger the onChange event as undefined
-       * when a valid phone number is not entered. To prevent this,
-       * the value is coerced to an empty string.
-       *
-       * @param {E164Number | undefined} value - The entered value
-       */
-      onChange={(value: RPNInput.Value | undefined) =>
-        onChange?.(value || ("" as RPNInput.Value))
-      }
-      country={country as any}
-      {...props}
-    />
-  );
-});
+    return (
+      <RPNInput.default
+        ref={ref}
+        className={cn("flex", className)}
+        flagComponent={FlagComponent}
+        countrySelectComponent={CountrySelectComponent}
+        inputComponent={InputComponent}
+        smartCaret={false}
+        country={country as any}
+        defaultCountry={defaultCountry as any}
+        countries={countries as any}
+        placeholder={placeholder}
+        {...(value ? { value: value as RPNInput.Value } : {})}
+        /**
+         * Handles the onChange event.
+         *
+         * react-phone-number-input might trigger the onChange event as undefined
+         * when a valid phone number is not entered. To prevent this,
+         * the value is coerced to an empty string.
+         *
+         * @param {E164Number | undefined} value - The entered value
+         */
+        onChange={(val: RPNInput.Value | undefined) =>
+          onChange?.(val || ("" as RPNInput.Value))
+        }
+        {...props}
+      />
+    );
+  },
+);
 PhoneInput.displayName = "PhoneInput";
 
 const InputComponent = React.forwardRef<
@@ -182,12 +215,11 @@ const FixedCountrySelect = ({
     <Button
       type="button"
       variant="outline"
-      className="flex gap-1 rounded-e-none rounded-s-lg border-r-0 px-3"
+      className="flex items-center gap-1.5 rounded-e-none rounded-s-lg border-r-0 px-3 bg-muted/40 text-foreground cursor-default opacity-100 disabled:opacity-100"
       disabled
     >
       <FlagComponent country={selectedCountry} countryName={countryName} />
-      <span className="text-sm font-medium">{countryName}</span>
-      <span className="text-sm text-foreground/50">
+      <span className="text-xs font-semibold text-foreground/80">
         {`+${RPNInput.getCountryCallingCode(selectedCountry)}`}
       </span>
     </Button>
@@ -236,4 +268,4 @@ const FlagComponent = ({ country, countryName }: RPNInput.FlagProps) => {
   );
 };
 
-export { PhoneInput };
+export { PhoneInput, validateIvoryCoastPhone };

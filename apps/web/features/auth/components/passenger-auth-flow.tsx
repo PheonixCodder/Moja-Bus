@@ -436,10 +436,6 @@ export function PassengerAuthFlow({
                                 id="operatorPhone"
                                 value={operatorCollectedPhone}
                                 onChange={(value) => setOperatorCollectedPhone(value ?? "")}
-                                placeholder="+225 07 00 00 00 00"
-                                country="CI"
-                                defaultCountry="CI"
-                                international={false}
                                 required
                                 disabled={isPending}
                                 className="w-full box-border"

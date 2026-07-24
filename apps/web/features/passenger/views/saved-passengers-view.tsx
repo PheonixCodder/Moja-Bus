@@ -6,6 +6,7 @@ import { Pencil, Plus, Trash2, Search, UserRound, Mail, Phone, Tag } from "lucid
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
+import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
@@ -347,14 +348,12 @@ export function SavedPassengersView() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sp-phone" className="text-xs font-bold text-slate-600">Phone Number</Label>
-              <Input
+              <PhoneInput
                 id="sp-phone"
-                type="tel"
                 value={form.phone}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, phone: e.target.value }))
+                onChange={(val) =>
+                  setForm((f) => ({ ...f, phone: val || "" }))
                 }
-                placeholder="+225 07 00 00 00 00"
                 required
                 className="rounded-xl border-slate-200 h-10 text-sm focus-visible:ring-primary"
               />

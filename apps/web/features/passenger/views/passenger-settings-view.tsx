@@ -182,10 +182,6 @@ export function PassengerSettingsView() {
                       id="phone"
                       value={phone}
                       onChange={(value) => setPhone(value || "")}
-                      placeholder="+225 XX XX XX XX"
-                      country="CI"
-                      defaultCountry="CI"
-                      international={false}
                       className="h-10 rounded-lg border-border"
                     />
                   </div>

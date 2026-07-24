@@ -2,6 +2,7 @@
 
 import { Search, X } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
+import { DatePicker } from "@moja/ui/components/ui/date-picker";
 import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
@@ -73,21 +74,37 @@ export function TripsToolbar({
           </SelectContent>
         </Select>
         {onStartDateChange ? (
-          <Input
-            type="date"
+          <DatePicker
             value={startDate ?? ""}
-            onChange={(e) => onStartDateChange(e.target.value)}
+            onChange={(date) => {
+              if (date) {
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, "0");
+                const dd = String(date.getDate()).padStart(2, "0");
+                onStartDateChange(`${yyyy}-${mm}-${dd}`);
+              } else {
+                onStartDateChange("");
+              }
+            }}
+            placeholder="From date"
             className="h-9 w-full sm:w-[150px] text-sm"
-            aria-label="Start date"
           />
         ) : null}
         {onEndDateChange ? (
-          <Input
-            type="date"
+          <DatePicker
             value={endDate ?? ""}
-            onChange={(e) => onEndDateChange(e.target.value)}
+            onChange={(date) => {
+              if (date) {
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, "0");
+                const dd = String(date.getDate()).padStart(2, "0");
+                onEndDateChange(`${yyyy}-${mm}-${dd}`);
+              } else {
+                onEndDateChange("");
+              }
+            }}
+            placeholder="To date"
             className="h-9 w-full sm:w-[150px] text-sm"
-            aria-label="End date"
           />
         ) : null}
       </div>

@@ -1,11 +1,21 @@
-# Memory — Fleet/Routes/Terminals Enterprise Audit (Session — 2026-07-19)
+# Memory — Fleet/Routes/Terminals & Shadcn Date/Time Refactor
 
-Last updated: 2026-07-19 (Phase 7 low-issues — COMPLETE: L1–L15 all resolved)
+Last updated: 2026-07-23 (Shadcn Date/Time Components & Time Centralization - COMPLETE)
 
-## What was done
-Read-only enterprise readiness audit of operator **Fleet**, **Routes**, and **Terminals** domains (pages, views, modals, routers). No code changes.
+## Session — 2026-07-23: Shadcn UI Date/Time Components & Time Centralization
+- **UI Components Created:**
+  - `packages/ui/src/components/ui/date-picker.tsx` — Shadcn single date picker (`Popover` + `Calendar` + `Button`).
+  - `packages/ui/src/components/ui/time-picker.tsx` — Shadcn time picker (`Popover` + `Select` + preset time shortcuts).
+  - `packages/ui/src/components/ui/date-time-picker.tsx` — Shadcn combined Date & Time picker for `datetime-local` input replacements.
+- **Time Centralization:**
+  - Standardized `apps/web/lib/format-date.ts` to export `formatDate`, `formatTime`, `formatDateTime`, `formatDateShort`, and `formatDepartureTime` bound to `Africa/Abidjan` (UTC+0) to eliminate server/client hydration mismatches.
+- **Component Refactoring:**
+  - Replaced all native `<input type="date">`, `<input type="time">`, and `<input type="datetime-local">` across Operator Schedules (`calendar-step.tsx`, `schedule-edit-drawer.tsx`), Operator Trips Toolbar (`trips-toolbar.tsx`), Operator Onboarding (`profile-step.tsx`), Compliance Settings (`documents-drawer.tsx`, `compliance-view.tsx`), and Admin Blog Publishing (`blog-edit-view.tsx`).
+- **Context Updates:**
+  - Updated `context/ui-registry.md` and `context/progress-tracker.md`.
 
-## Highest-severity findings (carry forward)
+---
+
 - Routes/Terminals pages prefetch without IAM gates; views lack `useStaffPermissions` gates (unlike Fleet). FINANCE (`routes:read` only) breaks on `terminals.list` prefetch/Suspense.
 - `routes.create`/`update` do not require terminals to be `isTerminal` + `isActive`; demoting `isTerminal` while linked to routes is unguarded.
 - Monolith views: fleet ~1170 LOC, routes ~1475, terminals ~1076; layout-builder ~871.

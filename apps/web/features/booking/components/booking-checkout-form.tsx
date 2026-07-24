@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
+import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { CreditCard, Wallet } from "lucide-react";
@@ -403,16 +404,14 @@ export function BookingCheckoutForm({
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor={`phone-${row.seatId}`}>Phone number</Label>
-                    <Input
+                    <PhoneInput
                       id={`phone-${row.seatId}`}
-                      type="tel"
                       value={row.passengerPhone}
-                      onChange={(e) =>
+                      onChange={(val) =>
                         updateAssignment(row.seatId, {
-                          passengerPhone: e.target.value,
+                          passengerPhone: val || "",
                         })
                       }
-                      placeholder="+225 07 00 00 00 00"
                       required
                     />
                   </div>

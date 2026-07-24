@@ -8,7 +8,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
 import { UserCircle, Save } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileStepSchema } from "@moja/schemas";
 import { ImageUploadField } from "@/components/image-upload-field";
@@ -121,13 +122,24 @@ export function PersonalProfileView() {
 
               <Field>
                 <FieldLabel>Personal Phone</FieldLabel>
-                <Input type="tel" placeholder="+225 00000000" {...form.register("personalPhone")} />
+                <Controller
+                  name="personalPhone"
+                  control={form.control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled ?? false}
+                    />
+                  )}
+                />
                 <FieldError errors={[form.formState.errors.personalPhone]} />
               </Field>
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field>
                   <FieldLabel>ID Type</FieldLabel>
                   <select
@@ -156,16 +168,27 @@ export function PersonalProfileView() {
 
               <Field>
                 <FieldLabel>Emergency Contact Phone</FieldLabel>
-                <Input type="tel" placeholder="+225 00000000" {...form.register("emergencyContactPhone")} />
+                <Controller
+                  name="emergencyContactPhone"
+                  control={form.control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled ?? false}
+                    />
+                  )}
+                />
                 <FieldError errors={[form.formState.errors.emergencyContactPhone]} />
               </Field>
             </div>
           </CardContent>
-          <CardFooter className="border-t border-border bg-muted/20 px-6 py-4">
+          <CardFooter className="border-t border-border bg-muted/20 px-6 py-4 flex justify-end">
             <Button 
               type="submit" 
               disabled={!form.formState.isDirty || mutation.isPending}
-              className="ml-auto"
+              className="w-full sm:w-auto"
             >
               <Save className="w-4 h-4 mr-2" />
               {mutation.isPending ? "Saving..." : "Save Changes"}

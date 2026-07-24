@@ -27,6 +27,7 @@ import {
   Hash,
 } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
+import { DateTimePicker } from "@moja/ui/components/ui/date-time-picker";
 import { Input } from "@moja/ui/components/ui/input";
 import { Textarea } from "@moja/ui/components/ui/textarea";
 import { Badge } from "@moja/ui/components/ui/badge";
@@ -446,7 +447,18 @@ export function BlogEditView({ postId }: { postId: string }) {
                   {watchedStatus === "SCHEDULED" && (
                     <div className="space-y-1.5">
                       <SectionLabel>Publish Date & Time</SectionLabel>
-                      <Input type="datetime-local" {...register("scheduledFor")} className="h-9 text-sm bg-white" />
+                      <Controller
+                        name="scheduledFor"
+                        control={control}
+                        render={({ field }) => (
+                          <DateTimePicker
+                            value={field.value ? new Date(field.value) : undefined}
+                            onChange={(date) => field.onChange(date ? date.toISOString().slice(0, 16) : "")}
+                            placeholder="Select publication time"
+                            className="bg-white text-sm"
+                          />
+                        )}
+                      />
                     </div>
                   )}
 

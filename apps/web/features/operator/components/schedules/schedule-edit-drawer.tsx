@@ -5,6 +5,8 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
+import { DatePicker } from "@moja/ui/components/ui/date-picker";
+import { TimePicker } from "@moja/ui/components/ui/time-picker";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Spinner } from "@moja/ui/components/ui/spinner";
@@ -18,6 +20,13 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
 import {
   Combobox,
   ComboboxInput,
@@ -366,12 +375,10 @@ export function ScheduleEditDrawer({
                 <Label htmlFor="edit-time" className="text-xs font-semibold">
                   Departure Time *
                 </Label>
-                <Input
-                  id="edit-time"
-                  type="time"
+                <TimePicker
                   value={editDepartureTime}
-                  onChange={(e) => setEditDepartureTime(e.target.value)}
-                  className="h-9 text-xs shadow-none border-border font-mono"
+                  onChange={(newTime) => setEditDepartureTime(newTime)}
+                  className="h-9 text-xs"
                 />
               </div>
             </div>
@@ -500,17 +507,20 @@ export function ScheduleEditDrawer({
                   >
                     Valid From *
                   </Label>
-                  <Input
-                    id="edit-valid-from"
-                    type="date"
+                  <DatePicker
                     value={editCalConfig.validFrom}
-                    onChange={(e) =>
-                      setEditCalConfig({
-                        ...editCalConfig,
-                        validFrom: e.target.value,
-                      })
-                    }
-                    className="h-9 text-xs shadow-none border-border"
+                    onChange={(date) => {
+                      if (date) {
+                        const yyyy = date.getFullYear();
+                        const mm = String(date.getMonth() + 1).padStart(2, "0");
+                        const dd = String(date.getDate()).padStart(2, "0");
+                        setEditCalConfig({
+                          ...editCalConfig,
+                          validFrom: `${yyyy}-${mm}-${dd}`,
+                        });
+                      }
+                    }}
+                    className="h-9 text-xs"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -520,17 +530,25 @@ export function ScheduleEditDrawer({
                   >
                     Valid Until (Optional)
                   </Label>
-                  <Input
-                    id="edit-valid-until"
-                    type="date"
+                  <DatePicker
                     value={editCalConfig.validUntil ?? ""}
-                    onChange={(e) =>
-                      setEditCalConfig({
-                        ...editCalConfig,
-                        validUntil: e.target.value,
-                      })
-                    }
-                    className="h-9 text-xs shadow-none border-border"
+                    onChange={(date) => {
+                      if (date) {
+                        const yyyy = date.getFullYear();
+                        const mm = String(date.getMonth() + 1).padStart(2, "0");
+                        const dd = String(date.getDate()).padStart(2, "0");
+                        setEditCalConfig({
+                          ...editCalConfig,
+                          validUntil: `${yyyy}-${mm}-${dd}`,
+                        });
+                      } else {
+                        setEditCalConfig({
+                          ...editCalConfig,
+                          validUntil: "",
+                        });
+                      }
+                    }}
+                    className="h-9 text-xs"
                   />
                 </div>
               </div>
@@ -581,61 +599,73 @@ export function ScheduleEditDrawer({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Date</Label>
-                <Input
-                  type="date"
+                <DatePicker
                   value={exceptionDate}
-                  onChange={(e) => setExceptionDate(e.target.value)}
+                  onChange={(date) => {
+                    if (date) {
+                      const yyyy = date.getFullYear();
+                      const mm = String(date.getMonth() + 1).padStart(2, "0");
+                      const dd = String(date.getDate()).padStart(2, "0");
+                      setExceptionDate(`${yyyy}-${mm}-${dd}`);
+                    } else {
+                      setExceptionDate("");
+                    }
+                  }}
                   className="h-9 text-xs"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Type</Label>
-                <select
+                <Select
                   value={exceptionType}
-                  onChange={(e) =>
+                  onValueChange={(val) =>
                     setExceptionType(
-                      e.target.value as
-                        | "CANCELLED"
-                        | "EXTRA_SERVICE"
-                        | "MODIFIED",
+                      (val ?? "CANCELLED") as "CANCELLED" | "EXTRA_SERVICE" | "MODIFIED",
                     )
                   }
-                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
                 >
-                  <option value="CANCELLED">Cancelled</option>
-                  <option value="MODIFIED">Modified</option>
-                  <option value="EXTRA_SERVICE">Extra service</option>
-                </select>
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    <SelectItem value="MODIFIED">Modified</SelectItem>
+                    <SelectItem value="EXTRA_SERVICE">Extra service</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               {exceptionType === "MODIFIED" && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">
                     Override departure time
                   </Label>
-                  <Input
-                    type="time"
+                  <TimePicker
                     value={exceptionOverrideTime}
-                    onChange={(e) => setExceptionOverrideTime(e.target.value)}
+                    onChange={(newTime) => setExceptionOverrideTime(newTime)}
                     className="h-9 text-xs"
                   />
                 </div>
               )}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Reason</Label>
-                <select
+                <Select
                   value={exceptionReason}
-                  onChange={(e) => setExceptionReason(e.target.value)}
-                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
+                  onValueChange={(val) => setExceptionReason(val ?? "OPERATIONAL")}
                 >
-                  <option value="OPERATIONAL">Operational</option>
-                  <option value="HOLIDAY_NATIONAL">National holiday</option>
-                  <option value="HOLIDAY_ISLAMIC">Islamic holiday</option>
-                  <option value="HOLIDAY_CHRISTIAN">Christian holiday</option>
-                  <option value="WEATHER">Weather</option>
-                  <option value="MAINTENANCE">Maintenance</option>
-                  <option value="STRIKE">Strike</option>
-                  <option value="OTHER">Other</option>
-                </select>
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue placeholder="Select reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="OPERATIONAL">Operational</SelectItem>
+                    <SelectItem value="HOLIDAY_NATIONAL">National holiday</SelectItem>
+                    <SelectItem value="HOLIDAY_ISLAMIC">Islamic holiday</SelectItem>
+                    <SelectItem value="HOLIDAY_CHRISTIAN">Christian holiday</SelectItem>
+                    <SelectItem value="WEATHER">Weather</SelectItem>
+                    <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                    <SelectItem value="STRIKE">Strike</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Notes</Label>

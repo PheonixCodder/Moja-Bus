@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { MapPin, Building, Shield, User, Phone, CheckCircle, Navigation } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
+import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Switch } from "@moja/ui/components/ui/switch";
 import { Spinner } from "@moja/ui/components/ui/spinner";
@@ -243,12 +244,11 @@ export function TerminalEditorSheet({
                 <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider">
                   Contact Phone *
                 </Label>
-                <Input
+                <PhoneInput
                   id="phone"
-                  placeholder="e.g. +225 07 00 00 00 00"
                   value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
+                  onChange={(val) => {
+                    setPhone(val || "");
                     setIsDirty(true);
                   }}
                   className={formErrors["phone"] ? "border-destructive" : ""}

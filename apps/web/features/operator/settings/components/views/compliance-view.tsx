@@ -5,6 +5,7 @@ import { useCompanySettings } from "../../api/use-company-settings";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Label } from "@moja/ui/components/ui/label";
+import { DatePicker } from "@moja/ui/components/ui/date-picker";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Eye, Trash2, FileUp, AlertTriangle } from "lucide-react";
@@ -238,8 +239,8 @@ export function ComplianceView() {
                 ) : uploaded ? (
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-foreground truncate max-w-[150px] inline-block">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-foreground truncate max-w-[120px] sm:max-w-[180px] inline-block">
                           {uploaded.fileName}
                         </span>
                         {uploaded.status === "APPROVED" && (
@@ -258,7 +259,7 @@ export function ComplianceView() {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground truncate">
+                      <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
                         <span>{uploaded.mimeType === "application/pdf" ? "PDF" : "IMG"}</span>
                         <span>•</span>
                         <span>
@@ -279,7 +280,7 @@ export function ComplianceView() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 pl-2">
+                    <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 sm:pl-2 border-t sm:border-t-0 border-border/40 w-full sm:w-auto justify-end">
                       <button
                         type="button"
                         onClick={() => handleViewDocument(uploaded.id, uploaded.objectKey!)}
@@ -321,12 +322,20 @@ export function ComplianceView() {
                     </Label>
                     <div className="mt-3 space-y-1.5 w-full">
                       <Label htmlFor={`expiry-${slot.key}`} className="text-xs text-muted-foreground">Expiry Date (Optional)</Label>
-                      <Input
-                        id={`expiry-${slot.key}`}
-                        type="date"
-                        className="h-9 text-sm w-full"
+                      <DatePicker
                         value={docExpiryDates[slot.key] || ""}
-                        onChange={(e) => setDocExpiryDates(prev => ({ ...prev, [slot.key]: e.target.value }))}
+                        onChange={(date) => {
+                          if (date) {
+                            const yyyy = date.getFullYear();
+                            const mm = String(date.getMonth() + 1).padStart(2, "0");
+                            const dd = String(date.getDate()).padStart(2, "0");
+                            setDocExpiryDates(prev => ({ ...prev, [slot.key]: `${yyyy}-${mm}-${dd}` }));
+                          } else {
+                            setDocExpiryDates(prev => ({ ...prev, [slot.key]: "" }));
+                          }
+                        }}
+                        placeholder="Select expiry"
+                        className="h-9 text-sm w-full"
                       />
                     </div>
                   </div>

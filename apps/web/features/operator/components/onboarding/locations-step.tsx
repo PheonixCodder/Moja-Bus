@@ -308,7 +308,6 @@ export function LocationsStep({
                       onChange={(val: string | undefined) =>
                         updateLocationField(location.id, "phone", val || "")
                       }
-                      placeholder="e.g. +225 07 00 00 00 00"
                       required
                     />
                   </div>
@@ -475,7 +474,6 @@ export function LocationsStep({
                             val || "",
                           )
                         }
-                        placeholder="Manager phone"
                       />
                     </div>
 

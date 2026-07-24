@@ -2,8 +2,10 @@
 
 import { useProfileForm } from "../../hooks/use-profile-form";
 import { useCompanySettings } from "../../api/use-company-settings";
+import { Controller } from "react-hook-form";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
+import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { Textarea } from "@moja/ui/components/ui/textarea";
 import { Field, FieldLabel, FieldError } from "@moja/ui/components/ui/field";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -103,7 +105,18 @@ export function CompanyProfileView() {
 
               <Field>
                 <FieldLabel>Contact Phone</FieldLabel>
-                <Input type="tel" placeholder="+225 00000000" {...form.register("phone")} />
+                <Controller
+                  name="phone"
+                  control={form.control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled ?? false}
+                    />
+                  )}
+                />
                 <FieldError errors={[form.formState.errors.phone]} />
               </Field>
 
@@ -123,7 +136,7 @@ export function CompanyProfileView() {
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field>
                   <FieldLabel>Tax ID (NIF)</FieldLabel>
                   <Input placeholder="Tax ID" {...form.register("taxId")} />
@@ -153,7 +166,7 @@ export function CompanyProfileView() {
                 <FieldError errors={[form.formState.errors.businessType]} />
               </Field>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field>
                   <FieldLabel>Year Established</FieldLabel>
                   <Input type="number" placeholder="YYYY" {...form.register("yearEstablished", { valueAsNumber: true })} />
@@ -185,11 +198,11 @@ export function CompanyProfileView() {
               </Field>
             </div>
           </CardContent>
-          <CardFooter className="border-t border-border bg-muted/20 px-6 py-4">
+          <CardFooter className="border-t border-border bg-muted/20 px-6 py-4 flex justify-end">
             <Button 
               type="submit" 
               disabled={!form.formState.isDirty || mutation.isPending}
-              className="ml-auto"
+              className="w-full sm:w-auto"
             >
               <Save className="w-4 h-4 mr-2" />
               {mutation.isPending ? "Saving..." : "Save Changes"}

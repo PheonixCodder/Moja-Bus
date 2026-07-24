@@ -6,6 +6,7 @@ import { useMutation, useQueryClient, useQuery, useSuspenseQuery } from "@tansta
 import { toast } from "sonner";
 import { ActionDrawer } from "@moja/ui/components/ui/action-drawer";
 import { Label } from "@moja/ui/components/ui/label";
+import { DatePicker } from "@moja/ui/components/ui/date-picker";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Eye, Trash2, FileUp, AlertTriangle } from "lucide-react";
@@ -309,12 +310,20 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                       </Label>
                       <div className="mt-2 space-y-1 w-full max-w-[200px] mx-auto text-left">
                         <Label htmlFor={`expiry-${slot.key}`} className="text-[10px] text-muted-foreground ml-1">Expiry Date (Optional)</Label>
-                        <Input
-                          id={`expiry-${slot.key}`}
-                          type="date"
-                          className="h-8 text-xs w-full"
+                        <DatePicker
                           value={docExpiryDates[slot.key] || ""}
-                          onChange={(e) => setDocExpiryDates(prev => ({ ...prev, [slot.key]: e.target.value }))}
+                          onChange={(date) => {
+                            if (date) {
+                              const yyyy = date.getFullYear();
+                              const mm = String(date.getMonth() + 1).padStart(2, "0");
+                              const dd = String(date.getDate()).padStart(2, "0");
+                              setDocExpiryDates(prev => ({ ...prev, [slot.key]: `${yyyy}-${mm}-${dd}` }));
+                            } else {
+                              setDocExpiryDates(prev => ({ ...prev, [slot.key]: "" }));
+                            }
+                          }}
+                          placeholder="Select expiry"
+                          className="h-8 text-xs w-full"
                         />
                       </div>
                     </div>

@@ -250,7 +250,7 @@ export function PassengerTicketsView() {
           <p className="text-sm text-text-secondary">Complete a booking to get your digital boarding passes here.</p>
         </div>
         <Link
-          href="/"
+          href="/search"
           className={cn(
             buttonVariants(),
             "mt-4 bg-primary hover:bg-primary/95 text-white font-bold h-11 px-8 rounded-full shadow-sm",

@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock8 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
+import { TimePicker } from "@moja/ui/components/ui/time-picker";
 import { Label } from "@moja/ui/components/ui/label";
 import { Calendar } from "@moja/ui/components/ui/calendar";
 import {
@@ -100,21 +100,13 @@ export function CalendarStep({
         <Label htmlFor="time-picker" className="text-xs font-semibold">
           Departure time *
         </Label>
-        <div className="relative">
-          <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3">
-            <Clock8 className="size-4" />
-            <span className="sr-only">Departure Time</span>
-          </div>
-          <Input
-            type="time"
-            id="time-picker"
-            value={config.departureTime}
-            onChange={(e) =>
-              onChange({ ...config, departureTime: e.target.value })
-            }
-            className="peer bg-background appearance-none pl-9 [&::-webkit-calendar-picker-indicator]:hidden text-sm w-full"
-          />
-        </div>
+        <TimePicker
+          value={config.departureTime}
+          onChange={(newTime) =>
+            onChange({ ...config, departureTime: newTime })
+          }
+          className="w-full"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

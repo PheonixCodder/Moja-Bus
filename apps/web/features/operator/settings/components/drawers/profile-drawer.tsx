@@ -3,8 +3,10 @@
 import { ActionDrawer } from "@moja/ui/components/ui/action-drawer";
 import { useProfileForm } from "../../hooks/use-profile-form";
 import { useCompanySettings } from "../../api/use-company-settings";
+import { Controller } from "react-hook-form";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
+import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { Textarea } from "@moja/ui/components/ui/textarea";
 import { Field, FieldLabel, FieldError } from "@moja/ui/components/ui/field";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -123,7 +125,18 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
 
           <Field>
             <FieldLabel>Contact Phone</FieldLabel>
-            <Input type="tel" placeholder="+225 00000000" {...form.register("phone")} />
+            <Controller
+              name="phone"
+              control={form.control}
+              render={({ field }) => (
+                <PhoneInput
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={field.disabled ?? false}
+                />
+              )}
+            />
             <FieldError errors={[form.formState.errors.phone]} />
           </Field>
 

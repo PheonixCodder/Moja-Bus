@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@moja/ui/components/ui/button";
+import { DatePicker } from "@moja/ui/components/ui/date-picker";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
@@ -174,7 +175,6 @@ export function ProfileStep({
                 onChange={(val: string | undefined) =>
                   setPersonalPhone(val || "")
                 }
-                placeholder="Enter personal phone"
               />
             </div>
           </div>
@@ -238,16 +238,21 @@ export function ProfileStep({
               >
                 Date of Birth
               </Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="dob"
-                  type="date"
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="pl-10 rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
-                />
-              </div>
+              <DatePicker
+                value={dateOfBirth}
+                onChange={(date) => {
+                  if (date) {
+                    const yyyy = date.getFullYear();
+                    const mm = String(date.getMonth() + 1).padStart(2, "0");
+                    const dd = String(date.getDate()).padStart(2, "0");
+                    setDateOfBirth(`${yyyy}-${mm}-${dd}`);
+                  } else {
+                    setDateOfBirth("");
+                  }
+                }}
+                placeholder="Select date of birth"
+                className="w-full"
+              />
             </div>
           </div>
 
@@ -346,7 +351,6 @@ export function ProfileStep({
                   onChange={(val: string | undefined) =>
                     setEmergencyContactPhone(val || "")
                   }
-                  placeholder="Emergency contact phone"
                 />
               </div>
             </div>

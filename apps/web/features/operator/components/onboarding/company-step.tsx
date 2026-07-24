@@ -260,7 +260,6 @@ export function CompanyStep({
                 id="company-phone"
                 value={phone}
                 onChange={(val: string | undefined) => setPhone(val || "")}
-                placeholder="Enter phone number"
                 required
               />
             </div>
