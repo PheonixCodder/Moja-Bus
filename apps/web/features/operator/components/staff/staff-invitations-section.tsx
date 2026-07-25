@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Mail } from "lucide-react";
 import { StaffInvitationCard } from "@/features/operator/components/staff/staff-invitation-card";
 import type { StaffInvitation } from "@/features/operator/lib/staff";
@@ -15,10 +16,11 @@ export function StaffInvitationsSection({
   onResend,
   onCancel,
 }: StaffInvitationsSectionProps) {
+  const t = useTranslations("operatorDashboard.staff.invitationsSection");
   return (
     <section>
       <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        Pending Invitations · {invitations.length}
+        {t("title", { count: invitations.length })}
       </h2>
 
       {invitations.length === 0 ? (
@@ -26,7 +28,7 @@ export function StaffInvitationsSection({
           <div>
             <Mail className="h-7 w-7 text-muted-foreground/30 mx-auto mb-2" />
             <p className="text-[13px] text-muted-foreground">
-              No pending invitations
+              {t("empty")}
             </p>
           </div>
         </div>

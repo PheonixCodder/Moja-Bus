@@ -19,7 +19,6 @@ export type FareDraft = {
   toStopOrder: number;
   priceXOF: number;
   type: "FIXED" | "PROMO" | "HOLIDAY_SURGE" | "EARLY_BIRD";
-  seatClass: "ECONOMY" | "STANDARD" | "VIP";
 };
 
 export type CalendarConfig = {

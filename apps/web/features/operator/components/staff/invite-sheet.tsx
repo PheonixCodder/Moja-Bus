@@ -29,6 +29,7 @@ import {
   type StaffRole,
 } from "@/features/operator/lib/staff";
 import type { CreateInvitationInput } from "@/features/operator/lib/validations/staff";
+import { useTranslations } from "next-intl";
 import { PermissionMatrix } from "./permission-matrix";
 
 const INVITABLE_ROLES: StaffRole[] = [
@@ -71,6 +72,7 @@ export function InviteSheet({
     [assignableRoles],
   );
 
+  const t = useTranslations("operatorDashboard.staff");
   const defaultRole = (roles[0] ?? "OPERATIONS") as StaffRole;
   const [form, setForm] = useState<{
     email: string;
@@ -109,11 +111,11 @@ export function InviteSheet({
 
   async function handleSend() {
     if (!form.email) {
-      toast.error("Email is required");
+      toast.error(t("inviteSheet.emailRequired"));
       return;
     }
     if (permissions.length === 0) {
-      toast.error("Select at least one permission");
+      toast.error(t("inviteSheet.permissionRequired"));
       return;
     }
     setSending(true);
@@ -151,28 +153,27 @@ export function InviteSheet({
       >
         <SheetHeader className="mb-6">
           <SheetTitle className="text-lg font-semibold">
-            Invite Team Member
+            {t("inviteSheet.title")}
           </SheetTitle>
           <SheetDescription className="text-[13px]">
-            Choose a role template, then adjust individual permissions. They
-            will receive an email invite link.
+            {t("inviteSheet.description")}
           </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="invite-email">Email</Label>
+            <Label htmlFor="invite-email">{t("inviteSheet.emailLabel")}</Label>
             <Input
               id="invite-email"
               type="email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              placeholder="colleague@company.com"
+              placeholder={t("inviteSheet.emailPlaceholder")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Role template</Label>
+            <Label>{t("inviteSheet.roleLabel")}</Label>
             <Select
               value={form.role}
               onValueChange={(v) =>
@@ -193,7 +194,7 @@ export function InviteSheet({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invite-title">Job title (optional)</Label>
+            <Label htmlFor="invite-title">{t("inviteSheet.jobTitleLabel")}</Label>
             <Input
               id="invite-title"
               value={form.jobTitle}
@@ -204,7 +205,7 @@ export function InviteSheet({
           </div>
 
           <div className="space-y-2">
-            <Label>Permissions</Label>
+            <Label>{t("permissions")}</Label>
             <PermissionMatrix
               selected={permissions}
               onChange={setPermissions}
@@ -213,7 +214,7 @@ export function InviteSheet({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invite-message">Message (optional)</Label>
+            <Label htmlFor="invite-message">{t("inviteSheet.messageLabel")}</Label>
             <Textarea
               id="invite-message"
               value={form.message}
@@ -227,7 +228,7 @@ export function InviteSheet({
 
         <div className="mt-6 flex gap-2 border-t border-border pt-4">
           <Button variant="outline" className="flex-1" onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button className="flex-1" onClick={handleSend} disabled={sending}>
             {sending ? (
@@ -235,7 +236,7 @@ export function InviteSheet({
             ) : (
               <>
                 <Send className="mr-2 size-4" />
-                Send invite
+                {t("inviteSheet.send")}
               </>
             )}
           </Button>

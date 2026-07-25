@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useSuspenseQueries,
   useMutation,
@@ -30,6 +31,7 @@ import type { RouterOutputs } from "@/trpc/client";
 type RouteType = RouterOutputs["routes"]["list"][number];
 
 export function OperatorRoutesView() {
+  const t = useTranslations("operatorDashboard.routes");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -105,24 +107,24 @@ export function OperatorRoutesView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Routes & Waypoints
+            {t("pageTitle")}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Configure transit routes, origin/destination hubs, intermediate waypoints, and distance metrics.
+            {t("pageDescription")}
           </p>
         </div>
         <Button onClick={handleAddNew} className="shrink-0">
           <Plus className="mr-2 size-4" />
-          Create Route
+          {t("createRoute")}
         </Button>
       </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Total Routes" value={stats.total} icon={RouteIcon} />
-        <StatCard label="Active Routes" value={stats.active} icon={CheckCircle2} />
-        <StatCard label="Draft Routes" value={stats.drafts} icon={MapIcon} />
-        <StatCard label="Suspended" value={stats.suspended} icon={Clock} />
+        <StatCard label={t("kpi.totalRoutes")} value={stats.total} icon={RouteIcon} />
+        <StatCard label={t("kpi.activeRoutes")} value={stats.active} icon={CheckCircle2} />
+        <StatCard label={t("kpi.draftRoutes")} value={stats.drafts} icon={MapIcon} />
+        <StatCard label={t("kpi.suspended")} value={stats.suspended} icon={Clock} />
       </div>
 
       {/* Success Callout Panel */}
@@ -136,7 +138,7 @@ export function OperatorRoutesView() {
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search route name or terminal..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -152,7 +154,7 @@ export function OperatorRoutesView() {
               onClick={() => setStatusFilter(s)}
               className="text-xs uppercase tracking-wider font-semibold"
             >
-              {s === "ALL" ? "All Routes" : s}
+              {s === "ALL" ? t("status.ALL") : t(`status.${s}`)}
             </Button>
           ))}
         </div>
@@ -166,15 +168,15 @@ export function OperatorRoutesView() {
               <RouteIcon className="size-10 text-muted-foreground/30" />
             </EmptyMedia>
             <EmptyHeader>
-              <EmptyTitle>No routes yet</EmptyTitle>
+              <EmptyTitle>{t("noRoutesTitle")}</EmptyTitle>
               <EmptyDescription>
-                Create your first intercity route to start building schedules.
+                {t("noRoutesDesc")}
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button size="sm" onClick={handleAddNew}>
                 <Plus className="size-3.5 mr-1.5" />
-                Create Route
+{t("createRoute")}
               </Button>
             </EmptyContent>
           </Empty>
@@ -184,9 +186,9 @@ export function OperatorRoutesView() {
               <MapIcon className="size-10 text-muted-foreground/30" />
             </EmptyMedia>
             <EmptyHeader>
-              <EmptyTitle>No routes match</EmptyTitle>
+              <EmptyTitle>{t("noMatchTitle")}</EmptyTitle>
               <EmptyDescription>
-                Try a different route name, origin, destination, or status filter.
+                {t("noMatchDesc")}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>

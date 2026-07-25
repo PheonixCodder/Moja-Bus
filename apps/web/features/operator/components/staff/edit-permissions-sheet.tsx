@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
 import { Label } from "@moja/ui/components/ui/label";
@@ -36,6 +37,7 @@ export function EditPermissionsSheet({
   onSave,
   grantable,
 }: EditPermissionsSheetProps) {
+  const t = useTranslations("operatorDashboard.staff");
   const [permissions, setPermissions] = useState<PermissionKey[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -48,7 +50,7 @@ export function EditPermissionsSheet({
   async function handleSave() {
     if (!member) return;
     if (permissions.length === 0) {
-      toast.error("Select at least one permission");
+      toast.error(t("inviteSheet.permissionRequired"));
       return;
     }
     setSaving(true);
@@ -67,10 +69,9 @@ export function EditPermissionsSheet({
         className="flex w-full flex-col max-w-md sm:max-w-lg border-l border-border bg-card p-6 overflow-y-auto"
       >
         <SheetHeader className="mb-6">
-          <SheetTitle>Edit permissions</SheetTitle>
+          <SheetTitle>{t("editPermissionsSheet.title")}</SheetTitle>
           <SheetDescription>
-            Adjust what this team member can do. You can only grant permissions
-            you hold.
+            {t("editPermissionsSheet.description")}
           </SheetDescription>
         </SheetHeader>
 
@@ -95,7 +96,7 @@ export function EditPermissionsSheet({
             </div>
 
             <div className="space-y-2">
-              <Label>Permissions</Label>
+              <Label>{t("permissions")}</Label>
               <PermissionMatrix
                 selected={permissions}
                 onChange={setPermissions}
@@ -105,10 +106,10 @@ export function EditPermissionsSheet({
 
             <div className="mt-6 flex gap-2 border-t border-border pt-4">
               <Button variant="outline" className="flex-1" onClick={onClose}>
-                Cancel
+                {t("cancel")}
               </Button>
               <Button className="flex-1" onClick={handleSave} disabled={saving}>
-                {saving ? <Spinner className="size-4" /> : "Save permissions"}
+                {saving ? <Spinner className="size-4" /> : t("editPermissionsSheet.save")}
               </Button>
             </div>
           </>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -49,12 +50,14 @@ export function DashboardKpiCards({
   travelersCount,
   operatorsCount,
 }: DashboardKpiCardsProps) {
+  const t = useTranslations("adminDashboard.overview.kpiCards");
+  const currency = t("currency");
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {/* GMV */}
       <Card>
         <CardHeader>
-          <CardDescription>Platform GMV</CardDescription>
+          <CardDescription>{t("gmv")}</CardDescription>
           <Link
             href="/dashboard/admin/financials/ledger"
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -67,11 +70,11 @@ export function DashboardKpiCards({
             <span className="text-3xl leading-none tracking-tight font-semibold tabular-nums">
               {gmv.toLocaleString()}
             </span>
-            <span className="text-sm text-muted-foreground">XOF</span>
+            <span className="text-sm text-muted-foreground">{currency}</span>
             <DeltaBadge pct={gmvDeltaPct} />
           </div>
           <p className="text-sm text-muted-foreground">
-            Total passenger payments in window
+            {t("gmvDesc")}
           </p>
         </CardContent>
       </Card>
@@ -79,7 +82,7 @@ export function DashboardKpiCards({
       {/* Commission */}
       <Card>
         <CardHeader>
-          <CardDescription>Commission Earned</CardDescription>
+          <CardDescription>{t("commission")}</CardDescription>
           <Link
             href="/dashboard/admin/financials/settlements"
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -92,10 +95,10 @@ export function DashboardKpiCards({
             <span className="text-3xl leading-none tracking-tight font-semibold tabular-nums">
               {commission.toLocaleString()}
             </span>
-            <span className="text-sm text-muted-foreground">XOF</span>
+            <span className="text-sm text-muted-foreground">{currency}</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Platform fees + commission share
+            {t("commissionDesc")}
           </p>
         </CardContent>
       </Card>
@@ -103,7 +106,7 @@ export function DashboardKpiCards({
       {/* Bookings */}
       <Card>
         <CardHeader>
-          <CardDescription>Confirmed Bookings</CardDescription>
+          <CardDescription>{t("bookings")}</CardDescription>
           <Link
             href="/dashboard/admin/operations/trips"
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -120,7 +123,7 @@ export function DashboardKpiCards({
           </div>
           <p className="text-sm text-muted-foreground">
             <span className="font-medium text-foreground">{travelersCount.toLocaleString()}</span>{" "}
-            total registered travelers
+            {t("bookingsDesc", { count: travelersCount })}
           </p>
         </CardContent>
       </Card>
@@ -128,7 +131,7 @@ export function DashboardKpiCards({
       {/* Pending Verifications */}
       <Card className={pendingOperatorsCount > 0 ? "border-amber-200 bg-amber-50/40 dark:bg-amber-950/10 dark:border-amber-900/30" : ""}>
         <CardHeader>
-          <CardDescription>Pending Verifications</CardDescription>
+          <CardDescription>{t("pendingVerifications")}</CardDescription>
           <Link
             href="/dashboard/admin/verifications"
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -143,13 +146,13 @@ export function DashboardKpiCards({
             </span>
             {pendingOperatorsCount > 0 && (
               <Badge variant="outline" className="border-amber-300 bg-amber-500/10 text-amber-700">
-                Action needed
+                {t("actionNeeded")}
               </Badge>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
             <span className="font-medium text-foreground">{operatorsCount}</span>{" "}
-            total operators registered
+            {t("pendingVerificationsDesc", { count: operatorsCount })}
           </p>
         </CardContent>
       </Card>

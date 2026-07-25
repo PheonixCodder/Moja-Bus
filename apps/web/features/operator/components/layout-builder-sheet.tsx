@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Armchair,
   ChevronLeft,
@@ -134,42 +135,32 @@ function countPassengerSeats(grid: GridCell[][]): number {
 
 // ── Tool Palette Config ───────────────────────────────────────────────────────
 
-const TOOLS: {
+const TOOL_STYLES: {
   id: Tool;
-  label: string;
-  description: string;
   Icon: React.ElementType;
   cellClass: string;
   paletteDot: string;
 }[] = [
   {
     id: "PASSENGER_WINDOW",
-    label: "Window Seat",
-    description: "Passenger seat beside the window",
     Icon: Armchair,
     cellClass: "bg-card border-border text-foreground hover:border-primary/50",
     paletteDot: "bg-card border border-border",
   },
   {
     id: "PASSENGER_AISLE",
-    label: "Aisle Seat",
-    description: "Passenger seat beside the aisle",
     Icon: Armchair,
     cellClass: "bg-card/60 border-border/60 text-foreground/80 hover:border-primary/40",
     paletteDot: "bg-card/60 border border-border/60",
   },
   {
     id: "DRIVER_AREA",
-    label: "Driver Area",
-    description: "Non-bookable driver/cockpit area",
     Icon: Gauge,
     cellClass: "bg-foreground/80 border-transparent text-background",
     paletteDot: "bg-foreground/80",
   },
   {
     id: "EMPTY_SPACE",
-    label: "Empty Space",
-    description: "Aisle, door, or other non-seat gap",
     Icon: Square,
     cellClass:
       "border-dashed border-border/60 bg-muted/20 text-muted-foreground/50",
@@ -177,8 +168,6 @@ const TOOLS: {
   },
   {
     id: "ERASE",
-    label: "Erase",
-    description: "Reset cell to empty space",
     Icon: Eraser,
     cellClass: "",
     paletteDot: "bg-destructive/20 border border-destructive/30",
@@ -186,16 +175,17 @@ const TOOLS: {
 ];
 
 function getCellConfig(seatType: SeatType) {
-  return TOOLS.find((t) => t.id === seatType) ?? TOOLS[3]!;
+  return TOOL_STYLES.find((t) => t.id === seatType) ?? TOOL_STYLES[3]!;
 }
 
 // ── Step Indicator ────────────────────────────────────────────────────────────
 
 function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
+  const t = useTranslations("operatorDashboard.fleet.layoutBuilder.stepIndicator");
   const steps = [
-    { n: 1, label: "Configure" },
-    { n: 2, label: "Design" },
-    { n: 3, label: "Preview" },
+    { n: 1, label: t("configure") },
+    { n: 2, label: t("design") },
+    { n: 3, label: t("preview") },
   ] as const;
 
   return (
@@ -248,6 +238,7 @@ interface GridCanvasProps {
 }
 
 function GridCanvas({ grid, activeTool, onPaint, readOnly = false }: GridCanvasProps) {
+  const t = useTranslations("operatorDashboard.fleet.layoutBuilder.gridCanvas");
   const isPaintingRef = useRef(false);
   const cols = grid[0]?.length ?? 0;
 
@@ -342,7 +333,7 @@ function GridCanvas({ grid, activeTool, onPaint, readOnly = false }: GridCanvasP
       {/* Front of bus indicator */}
       <div className="mt-3 text-center text-[10px] text-muted-foreground tracking-widest uppercase flex items-center justify-center gap-2">
         <div className="flex-1 border-t border-dashed border-border" />
-        <span>Entrance door</span>
+        <span>{t("entranceDoor")}</span>
         <div className="flex-1 border-t border-dashed border-border" />
       </div>
     </div>
@@ -409,10 +400,10 @@ export function LayoutBuilderSheet({
   function handleConfigNext() {
     const errors: Record<string, string> = {};
     if (!name.trim() || name.trim().length < 2)
-      errors["name"] = "Name must be at least 2 characters";
-    if (!busTypeId) errors["busTypeId"] = "Please select a vehicle type";
-    if (rows < 2 || rows > 20) errors["rows"] = "Rows must be between 2 and 20";
-    if (cols < 2 || cols > 6) errors["cols"] = "Columns must be between 2 and 6";
+      errors["name"] = t("step1.errors.name");
+    if (!busTypeId) errors["busTypeId"] = t("step1.errors.busTypeId");
+    if (rows < 2 || rows > 20) errors["rows"] = t("step1.errors.rows");
+    if (cols < 2 || cols > 6) errors["cols"] = t("step1.errors.cols");
     setConfigErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
@@ -453,7 +444,7 @@ export function LayoutBuilderSheet({
     ).length;
 
     if (totalPassenger === 0) {
-      toast.error("Your layout must have at least one passenger seat.");
+      toast.error(t("toast.noPassengerSeats"));
       return;
     }
 
@@ -471,7 +462,7 @@ export function LayoutBuilderSheet({
       },
       {
         onSuccess: (created) => {
-          toast.success(`Layout "${created.name}" saved!`);
+          toast.success(t("toast.saved", { name: created.name }));
           queryClient.invalidateQueries(
             trpc.fleet.getLayoutTemplates.pathFilter(),
           );
@@ -482,12 +473,13 @@ export function LayoutBuilderSheet({
           onOpenChange(false);
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to save layout.");
+          toast.error(err.message || t("toast.saveFailed"));
         },
       },
     );
   }
 
+  const t = useTranslations("operatorDashboard.fleet.layoutBuilder");
   const passengerCount = countPassengerSeats(grid);
   const selectedBusType = busTypes.find((bt) => bt.id === busTypeId);
 
@@ -503,17 +495,17 @@ export function LayoutBuilderSheet({
               </div>
               <div>
                 <SheetTitle className="text-base font-semibold text-foreground">
-                  Create custom layout
+                  {t("title")}
                 </SheetTitle>
                 <SheetDescription className="text-xs text-muted-foreground mt-0.5">
-                  Design a seat configuration unique to your fleet
+                  {t("description")}
                 </SheetDescription>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <StepIndicator step={step} />
               <SheetClose
-                aria-label="Close"
+                aria-label={t("closeAria")}
                 className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <X className="size-4" />
@@ -529,21 +521,21 @@ export function LayoutBuilderSheet({
             <div className="p-6 max-w-xl mx-auto space-y-6">
               <div className="space-y-0.5">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Layout configuration
+                  {t("step1.title")}
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Set the basic properties before painting the seat grid.
+                  {t("step1.subtitle")}
                 </p>
               </div>
 
               {/* Name */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground/80">
-                  Layout name *
+                  {t("step1.nameLabel")}
                 </Label>
                 <Input
                   id="layout-name"
-                  placeholder='e.g. "VIP Coach 30", "Mini-bus Express 18"'
+                  placeholder={t("step1.namePlaceholder")}
                   className="h-9 text-sm bg-card border-border"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -556,7 +548,7 @@ export function LayoutBuilderSheet({
               {/* Bus Type */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground/80">
-                  Vehicle type *
+                  {t("step1.vehicleTypeLabel")}
                 </Label>
                 <Combobox
                   items={busTypes.map((bt) => ({
@@ -567,12 +559,12 @@ export function LayoutBuilderSheet({
                   onValueChange={(v) => { if (v !== null) setBusTypeId(v); }}
                 >
                   <ComboboxInput
-                    placeholder="Select vehicle type..."
+                    placeholder={t("step1.vehicleTypePlaceholder")}
                     className="w-full"
                     value={busTypes.find((bt) => bt.id === busTypeId)?.name || ""}
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No vehicle type found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("step1.noVehicleType")}</ComboboxEmpty>
                     <ComboboxList>
                       {busTypes.map((bt) => (
                         <ComboboxItem key={bt.id} value={bt.id}>
@@ -598,7 +590,7 @@ export function LayoutBuilderSheet({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-foreground/80">
-                    Rows (2 – 20) *
+                    {t("step1.rowsLabel")}
                   </Label>
                   <Input
                     id="layout-rows"
@@ -619,7 +611,7 @@ export function LayoutBuilderSheet({
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-foreground/80">
-                    Columns (2 – 6) *
+                    {t("step1.colsLabel")}
                   </Label>
                   <Input
                     id="layout-cols"
@@ -643,14 +635,14 @@ export function LayoutBuilderSheet({
               {/* Amenities */}
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-foreground/80">
-                  Amenities
+                  {t("step1.amenitiesLabel")}
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { key: "hasAC", label: "Air conditioning", Icon: ThermometerSun, val: hasAC, set: setHasAC },
-                    { key: "hasWifi", label: "Wi-Fi", Icon: Wifi, val: hasWifi, set: setHasWifi },
-                    { key: "hasToilet", label: "Toilet", Icon: CircleDot, val: hasToilet, set: setHasToilet },
-                    { key: "hasLuggage", label: "Luggage storage", Icon: Luggage, val: hasLuggage, set: setHasLuggage },
+                    { key: "hasAC", label: t("step1.ac"), Icon: ThermometerSun, val: hasAC, set: setHasAC },
+                    { key: "hasWifi", label: t("step1.wifi"), Icon: Wifi, val: hasWifi, set: setHasWifi },
+                    { key: "hasToilet", label: t("step1.toilet"), Icon: CircleDot, val: hasToilet, set: setHasToilet },
+                    { key: "hasLuggage", label: t("step1.luggage"), Icon: Luggage, val: hasLuggage, set: setHasLuggage },
                   ].map(({ key, label, Icon, val, set }) => (
                     <label
                       key={key}
@@ -688,7 +680,7 @@ export function LayoutBuilderSheet({
                       {name}
                     </h2>
                     <p className="text-xs text-muted-foreground">
-                      Click or drag on cells to paint. Current tool is highlighted.
+                      {t("step2.paintHint")}
                     </p>
                   </div>
                   <GridCanvas
@@ -704,23 +696,23 @@ export function LayoutBuilderSheet({
                 {/* Live stats */}
                 <div className="rounded-lg border border-border bg-card p-3 space-y-2">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Layout stats
+                    {t("step2.statsLabel")}
                   </p>
                   <div className="flex items-end justify-between">
-                    <span className="text-xs text-muted-foreground">Passenger seats</span>
+                    <span className="text-xs text-muted-foreground">{t("step2.passengerSeats")}</span>
                     <span className="text-xl font-bold text-foreground tabular-nums">
                       {passengerCount}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Grid</span>
+                    <span>{t("step2.grid")}</span>
                     <span className="font-medium text-foreground/80">
                       {rows} × {cols}
                     </span>
                   </div>
                   {selectedBusType && (
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Vehicle type</span>
+                      <span>{t("step2.vehicleType")}</span>
                       <span className="font-medium text-foreground/80 truncate max-w-[100px] text-right">
                         {selectedBusType.name}
                       </span>
@@ -731,10 +723,18 @@ export function LayoutBuilderSheet({
                 {/* Tool palette */}
                 <div className="space-y-2">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-0.5">
-                    Paint tools
+                    {t("step2.paintTools")}
                   </p>
                   <div className="space-y-1">
-                    {TOOLS.map((tool) => {
+                    {TOOL_STYLES.map((tool) => {
+                      const toolKeyMap: Record<string, string> = {
+                        PASSENGER_WINDOW: "windowSeat",
+                        PASSENGER_AISLE: "aisleSeat",
+                        DRIVER_AREA: "driverArea",
+                        EMPTY_SPACE: "emptySpace",
+                        ERASE: "erase",
+                      };
+                      const tk = toolKeyMap[tool.id];
                       const isActive = activeTool === tool.id;
                       return (
                         <button
@@ -761,10 +761,10 @@ export function LayoutBuilderSheet({
                                 isActive ? "text-primary" : "text-foreground",
                               )}
                             >
-                              {tool.label}
+                              {t(`step2.tools.${tk}`)}
                             </p>
                             <p className="text-[10px] text-muted-foreground truncate">
-                              {tool.description}
+                              {t(`step2.tools.${tk}Desc`)}
                             </p>
                           </div>
                           {isActive && (
@@ -779,20 +779,20 @@ export function LayoutBuilderSheet({
                 {/* Legend */}
                 <div className="rounded-lg border border-border bg-card/50 p-3 mt-auto">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                    Legend
+                    {t("step2.legend")}
                   </p>
                   <div className="space-y-1.5 text-[10px] text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <div className="h-3.5 w-3.5 rounded-[3px] bg-card border border-border shrink-0" />
-                      <span>Passenger seat (numbered)</span>
+                      <span>{t("step2.legendPassenger")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="h-3.5 w-3.5 rounded-[3px] bg-foreground/80 shrink-0" />
-                      <span>Driver area (DRV)</span>
+                      <span>{t("step2.legendDriver")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="h-3.5 w-3.5 rounded-[3px] border border-dashed border-border/60 bg-muted/20 shrink-0 opacity-50" />
-                      <span>Empty space / aisle</span>
+                      <span>{t("step2.legendEmpty")}</span>
                     </div>
                   </div>
                 </div>
@@ -805,10 +805,10 @@ export function LayoutBuilderSheet({
             <div className="p-6 max-w-2xl mx-auto space-y-6">
               <div className="space-y-0.5">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Review &amp; save
+                  {t("step3.title")}
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Confirm your layout before saving. This cannot be edited after saving.
+                  {t("step3.subtitle")}
                 </p>
               </div>
 
@@ -825,7 +825,7 @@ export function LayoutBuilderSheet({
                     <p className="text-xl font-bold text-primary tabular-nums">
                       {passengerCount}
                     </p>
-                    <p className="text-[10px] text-primary/70 font-medium">seats</p>
+                    <p className="text-[10px] text-primary/70 font-medium">{t("step3.seats")}</p>
                   </div>
                 </div>
 
@@ -852,7 +852,7 @@ export function LayoutBuilderSheet({
                     </span>
                   )}
                   {!hasAC && !hasWifi && !hasToilet && !hasLuggage && (
-                    <span className="text-xs text-muted-foreground">No amenities selected</span>
+                    <span className="text-xs text-muted-foreground">{t("step3.noAmenities")}</span>
                   )}
                 </div>
               </div>
@@ -870,7 +870,7 @@ export function LayoutBuilderSheet({
               {passengerCount === 0 && (
                 <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
                   <p className="text-xs text-destructive font-semibold">
-                    No passenger seats found. Go back and paint at least one passenger seat before saving.
+                    {t("step3.noPassengerError")}
                   </p>
                 </div>
               )}
@@ -892,7 +892,7 @@ export function LayoutBuilderSheet({
             disabled={createMutation.isPending}
           >
             <ChevronLeft className="size-4" />
-            {step === 1 ? "Cancel" : "Back"}
+            {step === 1 ? t("footer.cancel") : t("footer.back")}
           </Button>
 
           {/* Next / Save */}
@@ -905,7 +905,7 @@ export function LayoutBuilderSheet({
                 else setStep(3);
               }}
             >
-              {step === 2 ? "Preview" : "Next"}
+              {step === 2 ? t("footer.previewBtn") : t("footer.next")}
               <ChevronRight className="size-4" />
             </Button>
           ) : (
@@ -920,7 +920,7 @@ export function LayoutBuilderSheet({
               ) : (
                 <Save className="size-4" />
               )}
-              Save layout
+              {t("footer.save")}
             </Button>
           )}
         </div>

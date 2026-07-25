@@ -14,11 +14,27 @@ export const passengerHoldCreatedWorkflow = workflow(
       redirect: { url: `/book/${escapeHtml(payload.holdId)}`, target: "_self" },
     }));
 
-    // 2. SMS Notification
-    await step.sms("send-sms", async () => ({
-      body: `Moja Ride: Seats reserved for your trip ${escapeHtml(payload.originCity)} -> ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}). Complete payment of ${escapeHtml(payload.totalAmountXOF)} XOF before ${escapeHtml(payload.expiresAt)} to confirm.`,
-    }), {
-      skip: () => !payload.phone,
+    // 2. Email Notification
+    await step.email("send-email", async () => {
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; color: #1e293b;">
+          <h2 style="color: #0081F1; margin-top: 0; font-size: 24px; font-weight: bold; letter-spacing: -0.5px;">Seats Temporarily Held</h2>
+          <p style="font-size: 15px; line-height: 1.5; color: #334155;">Hello ${escapeHtml(payload.passengerName)},</p>
+          <p style="font-size: 15px; line-height: 1.5; color: #334155;">Your seat reservation from <strong>${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)}</strong> (${escapeHtml(payload.departureTime)}) has been placed on hold.</p>
+          
+          <div style="background: #f8fafc; border-left: 4px solid #0081F1; padding: 16px; border-radius: 6px; margin: 20px 0; font-size: 14px; color: #334155;">
+            <p style="margin: 0 0 8px 0;">Total Amount: <strong>${escapeHtml(payload.totalAmountXOF)} XOF</strong></p>
+            <p style="margin: 0;">Payment Deadline: <strong style="color: #ef4444;">${escapeHtml(payload.expiresAt)}</strong></p>
+          </div>
+          
+          <p style="font-size: 14px; color: #64748b; line-height: 1.5;">Please complete your checkout before the deadline to confirm your booking.</p>
+        </div>
+      `;
+
+      return {
+        subject: `Seats Held: Complete checkout for your trip to ${escapeHtml(payload.destinationCity)}`,
+        body: html,
+      };
     });
   },
   {

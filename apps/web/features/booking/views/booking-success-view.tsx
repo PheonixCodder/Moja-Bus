@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
@@ -31,6 +32,7 @@ export function BookingSuccessView({
   tokens,
   total,
 }: BookingSuccessViewProps) {
+  const t = useTranslations("booking.success");
   const trpc = useTRPC();
   const { data: tripDetails } = useSuspenseQuery(
     trpc.booking.getTripDetails.queryOptions({ offerId }),
@@ -41,13 +43,13 @@ export function BookingSuccessView({
       <div className="max-w-lg mx-auto space-y-6">
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm text-center space-y-3">
           <CheckCircle2 className="size-12 text-emerald-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-slate-900">Booking confirmed</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{t("title")}</h1>
           <p className="text-sm text-slate-600">
-            Your digital tickets are ready. Show the QR code when boarding.
+            {t("subtitle")}
           </p>
           {total > 0 && (
             <p className="text-sm font-bold text-[#ee237c]">
-              Total paid: {formatPriceXOF(total)}
+              {t("totalPaid", { amount: formatPriceXOF(total) })}
             </p>
           )}
         </div>
@@ -59,7 +61,7 @@ export function BookingSuccessView({
         {references.length > 0 && (
           <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 text-left space-y-2">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Booking references
+              {t("bookingReferences")}
             </p>
             <ul className="text-sm font-mono text-slate-800 space-y-1">
               {references.map((ref) => (
@@ -85,13 +87,13 @@ export function BookingSuccessView({
               "bg-[#ee237c] hover:bg-[#d01867] justify-center",
             )}
           >
-            Search more trips
+            {t("searchTrips")}
           </Link>
           <Link
             href="/dashboard/bookings"
             className={cn(buttonVariants({ variant: "outline" }), "justify-center")}
           >
-            View my bookings
+            {t("viewBookings")}
           </Link>
         </div>
       </div>

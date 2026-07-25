@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   type LucideIcon,
   BusFront,
@@ -57,20 +58,21 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ user }: DashboardSidebarProps) {
+  const tNav = useTranslations("passengerDashboard.nav");
   const pathname = usePathname();
   const { isMobile } = useSidebar();
   const { signOut } = useAuth();
 
   const mainMenuItems: MenuItem[] = [
-    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-    { title: "Bookings", url: "/dashboard/bookings", icon: CalendarDays },
-    { title: "Tickets", url: "/dashboard/tickets", icon: Ticket },
-    { title: "Wallet", url: "/dashboard/wallet", icon: Wallet },
-    { title: "Passengers", url: "/dashboard/passengers", icon: Users },
+    { title: tNav("overview"), url: "/dashboard", icon: LayoutDashboard },
+    { title: tNav("bookings"), url: "/dashboard/bookings", icon: CalendarDays },
+    { title: tNav("tickets"), url: "/dashboard/tickets", icon: Ticket },
+    { title: tNav("wallet"), url: "/dashboard/wallet", icon: Wallet },
+    { title: tNav("passengers"), url: "/dashboard/passengers", icon: Users },
   ];
 
   const otherMenuItems: MenuItem[] = [
-    { title: "Settings", url: "/dashboard/settings", icon: Settings },
+    { title: tNav("settings"), url: "/dashboard/settings", icon: Settings },
   ];
 
   const userInitials = user?.name
@@ -80,7 +82,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         .join("")
         .toUpperCase()
         .slice(0, 2)
-    : "MB";
+    : "?";
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
@@ -92,10 +94,10 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
               <Link prefetch={false} href="/dashboard" className="flex items-center gap-2">
                 <BusFront className="size-4 text-primary" />
                 <span className="font-semibold text-base tracking-tight text-sidebar-foreground">
-                  Moja<span className="text-primary font-bold">Ride</span>
+                  {tNav("appName")}<span className="text-primary font-bold">{tNav("appSuffix")}</span>
                 </span>
               </Link>
-            } tooltip="Moja Ride" />
+            } tooltip={`${tNav("appName")} ${tNav("appSuffix")}`} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -104,7 +106,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         {/* Main Passenger Menu Group */}
         <SidebarGroup>
           <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
-            Dashboards
+            {tNav("dashboards")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -135,7 +137,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         {/* Secondary Account Menu Group */}
         <SidebarGroup>
           <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
-            Account
+            {tNav("account")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -167,10 +169,10 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         <Card className="overflow-hidden shadow-none border border-sidebar-border bg-sidebar group-data-[collapsible=icon]:hidden mx-2">
           <CardHeader className="min-w-0 p-3">
             <CardTitle className="truncate text-xs font-semibold text-sidebar-foreground flex items-center gap-1.5">
-              <LifeBuoy className="size-3.5 text-primary" /> Need booking support?
+              <LifeBuoy className="size-3.5 text-primary" /> {tNav("needSupport")}
             </CardTitle>
             <CardDescription className="line-clamp-2 text-[10px] text-muted-foreground leading-normal mt-1">
-              Contact us at support@mojaride.com for help.
+              {tNav("supportEmail", { email: "support@mojaride.com" })}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -191,10 +193,10 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden min-w-0">
                       <span className="truncate font-medium text-sidebar-foreground">
-                        {user?.name ?? "Guest User"}
+                        {user?.name ?? tNav("guestUser")}
                       </span>
                       <span className="truncate text-muted-foreground text-xs">
-                        {user?.email ?? user?.phoneNumber ?? "No contact details"}
+                        {user?.email ?? user?.phoneNumber ?? tNav("noContactDetails")}
                       </span>
                     </div>
                     <EllipsisVertical className="ml-auto size-4 shrink-0 group-data-[collapsible=icon]:hidden text-muted-foreground" />
@@ -218,7 +220,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                       </Avatar>
                       <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
                         <span className="truncate font-medium text-sidebar-foreground">
-                          {user?.name ?? "Guest User"}
+                          {user?.name ?? tNav("guestUser")}
                         </span>
                         <span className="truncate text-muted-foreground text-xs">
                           {user?.email ?? user?.phoneNumber}
@@ -233,7 +235,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                     render={
                       <Link href="/dashboard/settings" className="flex w-full items-center gap-2">
                         <CircleUser className="size-4 text-muted-foreground" />
-                        Account Settings
+                        {tNav("accountSettings")}
                       </Link>
                     }
                   />
@@ -241,7 +243,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                     render={
                       <Link href="/dashboard/wallet" className="flex w-full items-center gap-2">
                         <Wallet className="size-4 text-muted-foreground" />
-                        Wallet Ledger
+                        {tNav("walletLedger")}
                       </Link>
                     }
                   />
@@ -252,7 +254,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                   className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive hover:text-destructive"
                 >
                   <LogOut className="size-4 mr-2" />
-                  <span>Sign out</span>
+                  <span>{tNav("signOut")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

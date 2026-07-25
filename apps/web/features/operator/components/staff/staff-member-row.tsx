@@ -20,6 +20,7 @@ import {
 import { MemberAvatar } from "@/features/operator/components/staff/member-avatar";
 import { RoleBadge } from "@/features/operator/components/staff/role-badge";
 import { StatusBadge } from "@/features/operator/components/staff/status-badge";
+import { useTranslations } from "next-intl";
 import {
   formatRelativeTime,
   type OperatorStatus,
@@ -54,6 +55,7 @@ export function StaffMemberRow({
   onTransfer,
   onRemove,
 }: StaffMemberRowProps) {
+  const t = useTranslations("operatorDashboard.staff");
   const lastActive =
     member.user.sessions?.[0]?.createdAt ?? member.joinedAt;
 
@@ -90,11 +92,11 @@ export function StaffMemberRow({
         <div className="flex items-center gap-2">
           {member.isVerified ? (
             <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-600 border border-emerald-500/20">
-              Verified
+              {t("verified")}
             </span>
           ) : (
             <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-medium text-amber-600 border border-amber-500/20">
-              Unverified
+              {t("unverified")}
             </span>
           )}
           <StatusBadge status={member.status} />
@@ -124,14 +126,14 @@ export function StaffMemberRow({
                 onClick={() => onEditRole(member)}
               >
                 <ShieldCheck className="mr-2 h-3.5 w-3.5" />
-                Edit Role
+                {t("editRole")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-[13px] cursor-pointer"
                 onClick={() => onEditPermissions(member)}
               >
                 <ShieldCheck className="mr-2 h-3.5 w-3.5" />
-                Edit Permissions
+                {t("editPermissions")}
               </DropdownMenuItem>
             </>
           ) : null}
@@ -143,7 +145,7 @@ export function StaffMemberRow({
                 onClick={() => onStatusChange(member, "SUSPENDED")}
               >
                 <PauseCircle className="mr-2 h-3.5 w-3.5" />
-                Suspend
+                {t("suspend")}
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem
@@ -151,7 +153,7 @@ export function StaffMemberRow({
                 onClick={() => onStatusChange(member, "ACTIVE")}
               >
                 <PlayCircle className="mr-2 h-3.5 w-3.5" />
-                Activate
+                {t("activate")}
               </DropdownMenuItem>
             )
           ) : null}
@@ -164,7 +166,7 @@ export function StaffMemberRow({
                 onClick={() => onTransfer(member)}
               >
                 <ArrowRightLeft className="mr-2 h-3.5 w-3.5" />
-                Transfer Ownership
+                {t("transferOwnership")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -172,7 +174,7 @@ export function StaffMemberRow({
                 onClick={() => onRemove(member)}
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Remove from Company
+                {t("removeFromCompany")}
               </DropdownMenuItem>
             </>
           ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryStates } from "nuqs";
+import { useTranslations } from "next-intl";
 import { dashboardSearchParams } from "../../lib/search-params";
 import { Calendar } from "@moja/ui/components/ui/calendar";
 import {
@@ -14,6 +15,7 @@ import { cn } from "@moja/ui/lib/utils";
 import { format, subDays } from "date-fns";
 
 export function DashboardDatePicker() {
+  const t = useTranslations("adminDashboard.overview.revenueChart.datePicker");
   const [{ from, to }, setParams] = useQueryStates(dashboardSearchParams, {
     shallow: false,
   });
@@ -49,7 +51,7 @@ export function DashboardDatePicker() {
             format(new Date(from), "dd MMM, y")
           )
         ) : (
-          <span>Pick a date range</span>
+          <span>{t("placeholder")}</span>
         )}
         <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
       </PopoverTrigger>
@@ -62,7 +64,7 @@ export function DashboardDatePicker() {
               className="justify-start text-sm"
               onClick={() => setPreset(6)}
             >
-              Last 7 days
+              {t("last7Days")}
             </Button>
             <Button
               variant="ghost"
@@ -70,7 +72,7 @@ export function DashboardDatePicker() {
               className="justify-start text-sm"
               onClick={() => setPreset(29)}
             >
-              Last 30 days
+              {t("last30Days")}
             </Button>
             <Button
               variant="ghost"
@@ -78,7 +80,7 @@ export function DashboardDatePicker() {
               className="justify-start text-sm"
               onClick={() => setPreset(89)}
             >
-              Last 90 days
+              {t("last90Days")}
             </Button>
           </div>
           <Calendar

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { Label } from "@moja/ui/components/ui/label";
@@ -27,6 +28,8 @@ export function TermsStep({
   onBack,
   isSaving,
 }: TermsStepProps) {
+  const t = useTranslations("onboarding.termsAgreement");
+  const tRoot = useTranslations("onboarding");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptCommission, setAcceptCommission] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
@@ -72,11 +75,10 @@ export function TermsStep({
             </div>
             <div>
               <CardTitle className="text-base font-bold">
-                Almost Finished!
+                {t("almostFinished")}
               </CardTitle>
               <CardDescription className="text-xs">
-                You've completed all details. Review and accept the operational
-                terms to launch.
+                {t("almostFinishedDesc")}
               </CardDescription>
             </div>
           </div>
@@ -91,10 +93,10 @@ export function TermsStep({
             </div>
             <div>
               <CardTitle className="text-lg font-bold">
-                Terms & Conditions
+                {t("title")}
               </CardTitle>
               <CardDescription>
-                Review and accept our platform service agreement policies.
+                {t("description")}
               </CardDescription>
             </div>
           </div>
@@ -116,12 +118,10 @@ export function TermsStep({
                 htmlFor="terms-accept"
                 className="text-sm font-bold text-foreground cursor-pointer flex items-center gap-1.5"
               >
-                Operator Service Agreement *
+                {t("operatorAgreement")}
               </Label>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                I agree to the Moja Ride Operator Terms of Service. I certify
-                that my bus company possesses all valid operating permits and
-                complies with Côte d'Ivoire transit regulations.
+                {t("operatorAgreementDesc")}
               </p>
             </div>
           </div>
@@ -142,12 +142,10 @@ export function TermsStep({
                 htmlFor="commission-accept"
                 className="text-sm font-bold text-foreground cursor-pointer flex items-center gap-1.5"
               >
-                Platform Payout & Commission Rates *
+                {t("commissionRates")}
               </Label>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                I understand and accept that Moja Ride deducts a standard
-                platform commission (e.g. 5%) on all online passenger bookings.
-                Payouts are generated on a bi-weekly cycle.
+                {t("commissionRatesDesc")}
               </p>
             </div>
           </div>
@@ -168,12 +166,10 @@ export function TermsStep({
                 htmlFor="privacy-accept"
                 className="text-sm font-bold text-foreground cursor-pointer flex items-center gap-1.5"
               >
-                Privacy Policy & Data Sharing *
+                {t("privacyPolicy")}
               </Label>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                I authorize Moja Ride to process my company details, vehicle
-                information, and routing details to list ticket bookings for
-                passengers and verify account legitimacy.
+                {t("privacyPolicyDesc")}
               </p>
             </div>
           </div>
@@ -189,7 +185,7 @@ export function TermsStep({
           disabled={isSaving}
           className="border-border hover:bg-slate-100 rounded-md px-6 py-2"
         >
-          Back
+          {tRoot("back")}
         </Button>
         <Button
           type="submit"
@@ -197,10 +193,10 @@ export function TermsStep({
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-md px-6 py-2"
         >
           {isSaving
-            ? "Completing..."
+            ? tRoot("completing")
             : stepSavedState
-              ? "Retry Verification"
-              : "Complete & Finalize Onboarding"}
+              ? tRoot("retryVerification")
+              : tRoot("completeAndFinalize")}
         </Button>
       </div>
     </form>

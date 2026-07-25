@@ -2,16 +2,12 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { HeroSearchBar } from "./hero-search-bar-2";
 
-const STATS = [
-  { value: "50K+", label: "Happy Travelers" },
-  { value: "4.9★", label: "Global Rating" },
-  { value: "35+", label: "Cities Served" },
-  { value: "24/7", label: "Customer Support" },
-];
-
 export function HomeHero() {
+  const t = useTranslations("landing.hero");
+
   return (
     <section className="relative min-h-[105vh] flex items-center overflow-hidden">
       {/* Background */}
@@ -38,7 +34,7 @@ export function HomeHero() {
             className="flex justify-start mb-6"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-white/40 text-slate-800 shadow-sm text-sm font-medium">
-              Côte d&apos;Ivoire&apos;s Most Trusted Bus Booking Platform
+              {t("badge")}
             </div>
           </motion.div>
 
@@ -49,9 +45,9 @@ export function HomeHero() {
             transition={{ delay: 0.3, duration: 0.8 }}
             className="text-left text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 leading-[1.08] mb-4"
           >
-            Discover Your
+            {t("titleLine1")}
             <span className="block text-slate-900">
-              Next Adventure
+              {t("titleLine2")}
             </span>
           </motion.h1>
 
@@ -61,7 +57,7 @@ export function HomeHero() {
             transition={{ delay: 0.45 }}
             className="text-left text-slate-700 text-lg sm:text-xl mb-12 max-w-2xl font-medium"
           >
-            Book your dream vacation with exclusive deals and top-rated destinations across Côte d&apos;Ivoire.
+            {t("subtitle")}
           </motion.p>
 
           {/* Search Card */}

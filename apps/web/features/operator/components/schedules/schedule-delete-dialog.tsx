@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
@@ -24,13 +25,15 @@ export function ScheduleDeleteDialog({
   onClose: () => void;
   onConfirm: () => void;
 }) {
+  const t = useTranslations("operatorDashboard.schedules");
+  const tc = useTranslations("common");
   return (
     <Dialog open={!!schedule} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertCircle className="size-4" />
-            Delete schedule
+            {tc("delete")} schedule
           </DialogTitle>
           <DialogDescription>
             This permanently deletes the schedule and all of its trips. It is
@@ -41,11 +44,11 @@ export function ScheduleDeleteDialog({
         </DialogHeader>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={pending}>
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={pending}>
             {pending ? <Spinner className="size-4 mr-2" /> : null}
-            {pending ? "Deleting…" : "Delete Schedule"}
+            {pending ? "Deleting…" : tc("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

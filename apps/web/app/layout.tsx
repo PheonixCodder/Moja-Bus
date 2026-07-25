@@ -1,38 +1,28 @@
-import type { Metadata } from "next";
-import { Inter, Montserrat } from "next/font/google";
+// Root layout — required by Next.js 16 to define <html> and <body>.
+// Locale-specific providers and lang-attribution are handled in [locale]/layout.tsx.
+// suppressHydrationWarning is set on <html> because the lang attribute is
+// set dynamically on the client via a LangSetter component.
+
+import { Montserrat } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "sonner";
-import { TRPCReactProvider } from "@/trpc/client";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Moja Ride",
-    template: "%s | Moja Ride",
-  },
-  description: "Travel marketplace auth for passengers and operators.",
-};
-
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className={`${montserrat.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">
-        <TRPCReactProvider>
-          <NuqsAdapter>
-            <Toaster />
-            {children}
-          </NuqsAdapter>
-        </TRPCReactProvider>
-      </body>
+    <html
+      lang="en"
+      className={`${montserrat.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
   );
 }

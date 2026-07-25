@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { Button } from "@moja/ui/components/ui/button";
@@ -45,6 +46,8 @@ export function CompanyStep({
   onSave,
   isSaving,
 }: CompanyStepProps) {
+  const t = useTranslations("onboarding.company");
+  const tRoot = useTranslations("onboarding");
   const trpc = useTRPC();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -62,12 +65,12 @@ export function CompanyStep({
   const [logoUrl, setLogoUrl] = useState("");
 
   const businessTypes = [
-    { value: "SOLE_PROPRIETORSHIP", label: "Sole Proprietorship" },
-    { value: "LLC", label: "LLC (Limited Liability Company)" },
-    { value: "CORPORATION", label: "Corporation" },
-    { value: "PARTNERSHIP", label: "Partnership" },
-    { value: "COOPERATIVE", label: "Cooperative" },
-    { value: "OTHER", label: "Other" },
+    { value: "SOLE_PROPRIETORSHIP", label: t("soleProprietorship") },
+    { value: "LLC", label: t("llc") },
+    { value: "CORPORATION", label: t("corporation") },
+    { value: "PARTNERSHIP", label: t("partnership") },
+    { value: "COOPERATIVE", label: t("cooperative") },
+    { value: "OTHER", label: t("other") },
   ];
 
   // Pre-fill form if initialData exists
@@ -177,10 +180,10 @@ export function CompanyStep({
             </div>
             <div>
               <CardTitle className="text-lg font-bold">
-                Company Profile
+                {t("title")}
               </CardTitle>
               <CardDescription>
-                Provide official information about your transportation company.
+                {t("description")}
               </CardDescription>
             </div>
           </div>
@@ -192,13 +195,13 @@ export function CompanyStep({
                 htmlFor="company-name"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Company Name *
+                {t("name")}
               </Label>
               <Input
                 id="company-name"
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="e.g. UTB Transport"
+                placeholder={t("namePlaceholder")}
                 required
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
@@ -209,19 +212,19 @@ export function CompanyStep({
                 htmlFor="slug"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Slug / Web Identifier *
+                {t("slug")}
               </Label>
               <Input
                 id="slug"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                placeholder="e.g. utb-transport"
+                placeholder={t("slugPlaceholder")}
                 required
                 className={`rounded-md focus-visible:ring-primary focus-visible:border-primary ${isSlugTaken ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive' : 'border-border'}`}
               />
               {isSlugTaken && (
                 <p className="text-xs text-destructive mt-1 font-semibold">
-                  This slug is already taken. Please choose another.
+                  {t("slugTaken")}
                 </p>
               )}
             </div>
@@ -233,7 +236,7 @@ export function CompanyStep({
                 htmlFor="company-email"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Company Email *
+                {t("email")}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -242,7 +245,7 @@ export function CompanyStep({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="contact@company.com"
+                  placeholder={t("emailPlaceholder")}
                   required
                   className="pl-10 rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
@@ -254,7 +257,7 @@ export function CompanyStep({
                 htmlFor="company-phone"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Company Phone *
+                {t("phone")}
               </Label>
               <PhoneInput
                 id="company-phone"
@@ -271,7 +274,7 @@ export function CompanyStep({
                 htmlFor="business-type"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Business Type *
+                {t("businessType")}
               </Label>
               <Combobox
                 items={businessTypes}
@@ -280,7 +283,7 @@ export function CompanyStep({
               >
                 <ComboboxInput
                   id="business-type"
-                  placeholder="Select Business Type"
+                  placeholder={t("businessTypePlaceholder")}
                   className="w-full text-sm"
                   value={
                     businessType
@@ -290,7 +293,7 @@ export function CompanyStep({
                   }
                 />
                 <ComboboxContent>
-                  <ComboboxEmpty>No business type found.</ComboboxEmpty>
+                  <ComboboxEmpty>{t("noBusinessType")}</ComboboxEmpty>
                   <ComboboxList>
                     {businessTypes.map((type) => (
                       <ComboboxItem key={type.value} value={type.value}>
@@ -307,7 +310,7 @@ export function CompanyStep({
                 htmlFor="registration-number"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Business Registration Number *
+                {t("registrationNumber")}
               </Label>
               <div className="relative">
                 <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -315,7 +318,7 @@ export function CompanyStep({
                   id="registration-number"
                   value={registrationNumber}
                   onChange={(e) => setRegistrationNumber(e.target.value)}
-                  placeholder="e.g. CI-ABJ-2026-B-1234"
+                  placeholder={t("registrationPlaceholder")}
                   required
                   className="pl-10 rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
@@ -329,13 +332,13 @@ export function CompanyStep({
                 htmlFor="tax-id"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Tax ID / NUI *
+                {t("taxId")}
               </Label>
               <Input
                 id="tax-id"
                 value={taxId}
                 onChange={(e) => setTaxId(e.target.value)}
-                placeholder="e.g. 1234567 A"
+                placeholder={t("taxIdPlaceholder")}
                 required
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
@@ -346,7 +349,7 @@ export function CompanyStep({
                 htmlFor="year-established"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Year Established
+                {t("yearEstablished")}
               </Label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -355,7 +358,7 @@ export function CompanyStep({
                   type="number"
                   value={yearEstablished}
                   onChange={(e) => setYearEstablished(e.target.value)}
-                  placeholder="e.g. 2018"
+                  placeholder={t("yearPlaceholder")}
                   className="pl-10 rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
               </div>
@@ -366,7 +369,7 @@ export function CompanyStep({
                 htmlFor="staff-size"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Estimated Staff Size *
+                {t("estimatedStaff")}
               </Label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -375,7 +378,7 @@ export function CompanyStep({
                   type="number"
                   value={estimatedStaffSize}
                   onChange={(e) => setEstimatedStaffSize(e.target.value)}
-                  placeholder="e.g. 15"
+                  placeholder={t("staffPlaceholder")}
                   required
                   className="pl-10 rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
@@ -389,7 +392,7 @@ export function CompanyStep({
                 htmlFor="website"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Website URL
+                {t("website")}
               </Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -398,7 +401,7 @@ export function CompanyStep({
                   type="url"
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
-                  placeholder="https://company.com"
+                  placeholder={t("websitePlaceholder")}
                   className="pl-10 rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
               </div>
@@ -409,14 +412,14 @@ export function CompanyStep({
                 htmlFor="logo-url"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Company Logo
+                {t("logo")}
               </Label>
               <ImageUploadField
                 purpose="operator-logo"
                 value={logoUrl || null}
                 onUploaded={(r) => setLogoUrl(r.fileUrl)}
-                label="Upload logo"
-                hint="PNG or JPG, up to 2MB"
+                label={t("logoLabel")}
+                hint={t("logoHint")}
                 shape="square"
                 previewClassName="h-20 w-20"
               />
@@ -428,13 +431,13 @@ export function CompanyStep({
               htmlFor="description"
               className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
             >
-              Company Description
+              {t("description")}
             </Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell passengers and admins about your fleet and services..."
+              placeholder={t("descriptionPlaceholder")}
               className="rounded-md border-border min-h-[100px] focus-visible:ring-primary focus-visible:border-primary"
             />
           </div>
@@ -448,7 +451,7 @@ export function CompanyStep({
           disabled={isSaving || !canContinue}
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-md px-6 py-2"
         >
-          {isSaving ? "Saving..." : "Save & Continue"}
+          {isSaving ? tRoot("saving") : tRoot("saveAndContinue")}
         </Button>
       </div>
     </form>

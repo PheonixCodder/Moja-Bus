@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   ArrowRight,
   Bus,
@@ -44,6 +45,7 @@ export function TripCard({
   canUpdate: boolean;
   onViewManifest: (id: string) => void;
 }) {
+  const t = useTranslations("operatorDashboard.trips");
   const [expanded, setExpanded] = useState(false);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -51,11 +53,11 @@ export function TripCard({
   const assignBusMutation = useMutation({
     ...trpc.trips.assignBus.mutationOptions(),
     onSuccess: () => {
-      toast.success("Bus assigned");
+      toast.success(t("busAssigned"));
       void queryClient.invalidateQueries(trpc.trips.list.pathFilter());
     },
     onError: (err) =>
-      toast.error(err.message || "Failed to assign bus"),
+      toast.error(err.message || t("failedAssignBus")),
   });
 
   const route = trip.schedule?.route;
@@ -63,12 +65,12 @@ export function TripCard({
     route?.originTerminal?.cityRelation?.name ??
     route?.originTerminal?.city ??
     route?.originTerminal?.name ??
-    "—";
+    "\u2014";
   const dest =
     route?.destTerminal?.cityRelation?.name ??
     route?.destTerminal?.city ??
     route?.destTerminal?.name ??
-    "—";
+    "\u2014";
   const passengerCount = trip._count?.bookings ?? 0;
   const canAssign =
     canUpdate && !["CANCELLED", "ARRIVED"].includes(trip.status);
@@ -117,7 +119,7 @@ export function TripCard({
           </div>
           {passengerCount > 0 ? (
             <p className="mt-2 text-[11px] text-muted-foreground">
-              {passengerCount} passenger{passengerCount !== 1 ? "s" : ""}
+              {t("passengerCount", { count: passengerCount })}
             </p>
           ) : null}
         </div>
@@ -134,7 +136,7 @@ export function TripCard({
                     .filter((b) => b.status === "ACTIVE")
                     .map((b) => ({
                       value: b.id,
-                      label: `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""}`,
+                      label: `${b.registrationPlate}${b.internalName ? ` \u2014 ${b.internalName}` : ""}`,
                     }))}
                   value={trip.busId ?? ""}
                   onValueChange={(val) => {
@@ -150,8 +152,8 @@ export function TripCard({
                   <ComboboxInput
                     placeholder={
                       assignBusMutation.isPending
-                        ? "Assigning..."
-                        : "Assign bus…"
+                        ? t("assigning")
+                        : t("assignBusPlaceholder")
                     }
                     className="w-full text-xs h-8"
                     value={
@@ -159,14 +161,14 @@ export function TripCard({
                         ? (() => {
                             const b = buses.find((x) => x.id === trip.busId);
                             return b
-                              ? `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""}`
+                              ? `${b.registrationPlate}${b.internalName ? ` \u2014 ${b.internalName}` : ""}`
                               : "";
                           })()
                         : ""
                     }
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No active bus found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("noActiveBus")}</ComboboxEmpty>
                     <ComboboxList>
                       {buses
                         .filter((b) => b.status === "ACTIVE")
@@ -177,7 +179,7 @@ export function TripCard({
                             className="text-xs"
                           >
                             {b.registrationPlate}
-                            {b.internalName ? ` — ${b.internalName}` : ""}
+                            {b.internalName ? ` \u2014 ${b.internalName}` : ""}
                           </ComboboxItem>
                         ))}
                     </ComboboxList>
@@ -189,7 +191,7 @@ export function TripCard({
             <p className="text-xs text-muted-foreground flex items-center gap-2">
               <Bus className="size-3.5" />
               {trip.bus.registrationPlate}
-              {trip.bus.internalName ? ` — ${trip.bus.internalName}` : ""}
+              {trip.bus.internalName ? ` \u2014 ${trip.bus.internalName}` : ""}
             </p>
           ) : null}
           <Button
@@ -198,7 +200,7 @@ export function TripCard({
             className="h-7 text-xs"
             onClick={() => onViewManifest(trip.id)}
           >
-            View Manifest
+            {t("viewManifest")}
           </Button>
         </div>
       ) : null}

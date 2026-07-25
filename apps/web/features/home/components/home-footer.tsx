@@ -1,26 +1,27 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Globe, Mail, Camera } from "lucide-react";
 
-const services = [
-  { label: "Book a Bus", href: "/search" },
-  { label: "VIP Destinations", href: "/search" },
-  { label: "Corporate Offers", href: "/contact" },
-  { label: "Become a Partner", href: "/dashboard/operator/onboarding" },
-];
+const serviceLinks = [
+  { key: "bookBus", href: "/search" },
+  { key: "vipDestinations", href: "/search" },
+  { key: "corporateOffers", href: "/contact" },
+  { key: "becomePartner", href: "/dashboard/operator/onboarding" },
+] as const;
 
-const support = [
-  { label: "Help Center", href: "/help" },
-  { label: "Payment & Security", href: "/help#payment" },
-  { label: "Cancellations", href: "/help#cancellations" },
-  { label: "Contact Us", href: "/contact" },
-];
+const supportLinks = [
+  { key: "helpCenter", href: "/help" },
+  { key: "paymentSecurity", href: "/help#payment" },
+  { key: "cancellations", href: "/help#cancellations" },
+  { key: "contactUs", href: "/contact" },
+] as const;
 
-const company = [
-  { label: "About Moja Ride", href: "/about" },
-  { label: "Our Operators", href: "/operators" },
-  { label: "Terms of Use", href: "/terms" },
-  { label: "Privacy Policy", href: "/privacy" },
-];
+const companyLinks = [
+  { key: "aboutMojaRide", href: "/about" },
+  { key: "ourOperators", href: "/operators" },
+  { key: "termsOfUse", href: "/terms" },
+  { key: "privacyPolicy", href: "/privacy" },
+] as const;
 
 const socials = [
   { icon: Globe, href: "#", label: "Website" },
@@ -28,7 +29,9 @@ const socials = [
   { icon: Camera, href: "#", label: "Instagram" },
 ];
 
-export function HomeFooter() {
+export async function HomeFooter() {
+  const t = await getTranslations("footer");
+
   return (
     <footer className="bg-white border-t border-slate-100 pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-6 md:px-8">
@@ -39,8 +42,7 @@ export function HomeFooter() {
               Moja Ride
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed mb-8">
-              The premium platform for intercity transport in Côte d&apos;Ivoire. Ease, comfort,
-              and security on every journey.
+              {t("brandDescription")}
             </p>
             <div className="flex gap-3">
               {socials.map(({ icon: Icon, href, label }) => (
@@ -58,15 +60,15 @@ export function HomeFooter() {
 
           {/* Services */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6">Services</h4>
+            <h4 className="font-bold text-slate-900 mb-6">{t("services")}</h4>
             <ul className="space-y-4">
-              {services.map(({ label, href }) => (
-                <li key={label}>
+              {serviceLinks.map(({ key, href }) => (
+                <li key={key}>
                   <Link
                     href={href}
                     className="text-sm text-slate-500 hover:text-[#ee237c] transition-colors"
                   >
-                    {label}
+                    {t(key)}
                   </Link>
                 </li>
               ))}
@@ -75,15 +77,15 @@ export function HomeFooter() {
 
           {/* Support */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6">Support</h4>
+            <h4 className="font-bold text-slate-900 mb-6">{t("support")}</h4>
             <ul className="space-y-4">
-              {support.map(({ label, href }) => (
-                <li key={label}>
+              {supportLinks.map(({ key, href }) => (
+                <li key={key}>
                   <Link
                     href={href}
                     className="text-sm text-slate-500 hover:text-[#ee237c] transition-colors"
                   >
-                    {label}
+                    {t(key)}
                   </Link>
                 </li>
               ))}
@@ -92,15 +94,15 @@ export function HomeFooter() {
 
           {/* Company */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6">Company</h4>
+            <h4 className="font-bold text-slate-900 mb-6">{t("company")}</h4>
             <ul className="space-y-4">
-              {company.map(({ label, href }) => (
-                <li key={label}>
+              {companyLinks.map(({ key, href }) => (
+                <li key={key}>
                   <Link
                     href={href}
                     className="text-sm text-slate-500 hover:text-[#ee237c] transition-colors"
                   >
-                    {label}
+                    {t(key)}
                   </Link>
                 </li>
               ))}
@@ -111,19 +113,19 @@ export function HomeFooter() {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-xs text-slate-400">
-            © {new Date().getFullYear()} Moja Ride Inc. All rights reserved. The adventure awaits you.
+            {t("copyright", { year: new Date().getFullYear() })}
           </p>
           <div className="flex gap-8">
             {[
-              { label: "Terms of Use", href: "/terms" },
-              { label: "Privacy", href: "/privacy" },
-            ].map(({ label, href }) => (
+              { key: "termsOfUse", href: "/terms" },
+              { key: "privacyPolicy", href: "/privacy" },
+            ].map(({ key, href }) => (
               <Link
-                key={label}
+                key={key}
                 href={href}
                 className="text-xs font-bold text-slate-400 hover:text-[#ee237c] transition-colors"
               >
-                {label}
+                {t(key)}
               </Link>
             ))}
           </div>

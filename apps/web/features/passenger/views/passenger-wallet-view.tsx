@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -16,20 +17,18 @@ import { WalletProtection } from "../components/wallet-protection";
 import { TravelBenefits } from "../components/travel-benefits";
 
 export function PassengerWalletView() {
+  const t = useTranslations("passengerDashboard.wallet");
   const trpc = useTRPC();
 
-  // URL state management via nuqs
   const [currentPageParam, setCurrentPageParam] = useQueryState("page", parseAsInteger.withDefault(1));
   const [topupStatus, setTopupStatus] = useQueryState("topup", { defaultValue: "" });
   const [pendingRef, setPendingRef] = useQueryState("ref", { defaultValue: "" });
 
-  const currentPage = currentPageParam - 1; // 0-indexed for API pagination offset
+  const currentPage = currentPageParam - 1;
   const pageSize = 20;
 
-  // Modals / Dialog state
   const [isTopupOpen, setIsTopupOpen] = useState(false);
 
-  // Suspense Queries (prefetching is done on the page router layer)
   const { data: balance, refetch: refetchBalance } = useSuspenseQuery(
     trpc.passenger.getWalletBalance.queryOptions()
   );
@@ -41,15 +40,14 @@ export function PassengerWalletView() {
     })
   );
 
-  // Top up mutations
   const topupMutation = useMutation(
     trpc.passenger.initiateWalletTopUp.mutationOptions({
       onSuccess: (res) => {
-        toast.success("Redirecting to Paystack checkout...");
+        toast.success(t("redirecting"));
         window.location.href = res.authorizationUrl;
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to initialize top-up");
+        toast.error(err.message || t("initFailed"));
       },
     })
   );
@@ -62,7 +60,6 @@ export function PassengerWalletView() {
     topupMutation.mutate({ amountXOF: amount });
   };
 
-  // Poll balance if a topup is pending in the URL params
   useEffect(() => {
     if (topupStatus === "pending") {
       const interval = setInterval(async () => {
@@ -78,8 +75,7 @@ export function PassengerWalletView() {
         const { data: newBalance } = await refetchBalance();
         
         if (newBalance && newBalance.availableBalance > prevAvailable) {
-          toast.success("Wallet topped up successfully!");
-          // Clear query params to end polling
+          toast.success(t("topUpSuccess"));
           void setTopupStatus(null);
           void setPendingRef(null);
           void refetchLedger();
@@ -97,9 +93,9 @@ export function PassengerWalletView() {
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs shadow-sm">
           <AlertCircle className="size-4 text-amber-600 shrink-0" />
           <div className="space-y-0.5">
-            <span className="font-bold">Top-Up Verification Pending</span>
+            <span className="font-bold">{t("verificationPending")}</span>
             <p className="text-amber-700">
-              We are waiting for confirmation from Paystack. This page will automatically update once payment settles. Reference: <span className="font-mono">{pendingRef}</span>.
+              {t("verificationPendingDesc", { ref: pendingRef ?? "" })}
             </p>
           </div>
           <Spinner className="size-4 text-amber-600 ml-auto" />

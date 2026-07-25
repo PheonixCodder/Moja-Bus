@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useQueryStates } from "nuqs";
+import { useTranslations } from "next-intl";
 import {
   CalendarClock,
   Plus,
@@ -53,6 +54,8 @@ export function OperatorSchedulesView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { can } = useStaffPermissions();
+  const t = useTranslations("operatorDashboard.schedules");
+  const tc = useTranslations("common");
   const canCreate = can("schedules:create");
   const canUpdate = can("schedules:update");
   const canDelete = can("schedules:delete");
@@ -152,7 +155,7 @@ export function OperatorSchedulesView() {
     queryClient
       .fetchQuery(trpc.routes.get.queryOptions({ id: routePick }))
       .then((data) => setSelectedRoute(data))
-      .catch(() => toast.error("Failed to load route details"))
+      .catch(() => toast.error(t("toast.loadRouteFailed")))
       .finally(() => setLoadingRouteDetail(false));
   }, [routePick, queryClient, trpc.routes.get]);
 
@@ -166,7 +169,7 @@ export function OperatorSchedulesView() {
       .fetchQuery(trpc.schedules.get.queryOptions({ id: editId }))
       .then((detail) => setEditingDetail(detail))
       .catch(() => {
-        toast.error("Failed to load schedule details");
+        toast.error(t("toast.loadScheduleFailed"));
         setParams({ edit: "" });
       });
   }, [editId, canUpdate, queryClient, trpc.schedules.get, setParams]);
@@ -224,15 +227,14 @@ export function OperatorSchedulesView() {
           validFrom: calConfig.validFrom,
           ...(calConfig.validUntil ? { validUntil: calConfig.validUntil } : {}),
         },
-        fares: fares
-          .filter((f) => f.priceXOF > 0)
-          .map((f) => ({
-            type: f.type,
-            seatClass: f.seatClass,
-            fromStopOrder: f.fromStopOrder,
-            toStopOrder: f.toStopOrder,
-            priceXOF: f.priceXOF,
-          })),
+fares: fares
+           .filter((f) => f.priceXOF > 0)
+           .map((f) => ({
+             type: f.type,
+             fromStopOrder: f.fromStopOrder,
+             toStopOrder: f.toStopOrder,
+             priceXOF: f.priceXOF,
+           })),
       });
       setSuccessCount(result.tripsCreated ?? result._count?.trips ?? 0);
       if (result.warning) {
@@ -241,7 +243,7 @@ export function OperatorSchedulesView() {
       resetWizard();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to publish schedule",
+        err instanceof Error ? err.message : t("toast.publishFailed"),
       );
     } finally {
       setSaving(false);
@@ -267,17 +269,16 @@ export function OperatorSchedulesView() {
         : undefined;
       const busId = preferredBusId || fallbackBus?.id;
       if (!busId) {
-        toast.error("No preferred or active bus available");
+        toast.error(t("toast.extendNoBus"));
         return;
       }
       if (fallbackBus) {
         toast.warning(
-          `No preferred bus set — using ${fallbackBus.registrationPlate ?? "an active bus"} as fallback. ` +
-          `Edit this schedule to assign a permanent preferred bus.`,
+          t("toast.extendFallback", { plate: fallbackBus.registrationPlate ?? "an active bus" }),
         );
       }
       if (!schedule.isActive) {
-        toast.error("Reactivate the schedule before extending trips");
+        toast.error(t("toast.extendInactive"));
         return;
       }
       const res = await regenerateTripsMutation.mutateAsync({
@@ -287,10 +288,10 @@ export function OperatorSchedulesView() {
       });
       toast.success(
         res?.message ||
-          `Successfully generated ${res?.tripsCreated ?? 0} trips.`,
+          t("toast.extendSuccess", { count: res?.tripsCreated ?? 0 }),
       );
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to extend trips");
+      toast.error(err instanceof Error ? err.message : t("toast.extendFailed"));
     } finally {
       setExtendingScheduleId(null);
     }
@@ -298,19 +299,17 @@ export function OperatorSchedulesView() {
 
   async function handleRetire(schedule: ScheduleListItem) {
     if (
-      !window.confirm(
-        "Retire this schedule? It will be deactivated and unbooked future trips will be pruned.",
-      )
+      !window.confirm(t("toast.retireConfirm"))
     ) {
       return;
     }
     try {
       const res = await retireMutation.mutateAsync({ id: schedule.id });
       toast.success(
-        `Schedule retired. ${res.prunedTrips} empty future trip(s) pruned.`,
+        t("toast.scheduleRetired", { pruned: res.prunedTrips }),
       );
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to retire");
+      toast.error(err instanceof Error ? err.message : t("toast.retireFailed"));
     }
   }
 
@@ -349,7 +348,7 @@ export function OperatorSchedulesView() {
               <div className="flex items-center gap-2 py-10 justify-center">
                 <Spinner className="size-4 text-primary" />
                 <span className="text-sm text-muted-foreground">
-                  Loading route stops…
+                  {t("loadingRouteStops")}
                 </span>
               </div>
             ) : (
@@ -369,7 +368,7 @@ export function OperatorSchedulesView() {
 
         <div className="border-t border-border px-5 py-4 flex items-center gap-3 shrink-0 bg-background">
           <Button variant="outline" onClick={resetWizard} disabled={saving}>
-            Cancel
+            {t("cancel")}
           </Button>
           <div className="flex-1" />
           {step !== "Route" && (
@@ -381,7 +380,7 @@ export function OperatorSchedulesView() {
               }}
               disabled={saving}
             >
-              Back
+              {t("back")}
             </Button>
           )}
           {step !== "Preview" ? (
@@ -394,12 +393,12 @@ export function OperatorSchedulesView() {
               }}
               disabled={!canProceed()}
             >
-              Continue →
+              {t("continue")} →
             </Button>
           ) : (
             <Button onClick={handlePublish} disabled={saving || !canProceed()}>
               {saving ? <Spinner className="size-4 mr-2" /> : null}
-              {saving ? "Publishing…" : "Publish Schedule"}
+              {saving ? t("publishing") : t("publish")}
             </Button>
           )}
         </div>
@@ -440,10 +439,9 @@ export function OperatorSchedulesView() {
               <CalendarClock className="size-10 text-muted-foreground/30" />
             </EmptyMedia>
             <EmptyHeader>
-              <EmptyTitle>No schedules yet</EmptyTitle>
+              <EmptyTitle>{t("noSchedulesTitle")}</EmptyTitle>
               <EmptyDescription>
-                A schedule turns a route into recurring trips. Create your first
-                one to start accepting bookings.
+                {t("noSchedulesDesc")}
               </EmptyDescription>
             </EmptyHeader>
             {canCreate && (
@@ -453,7 +451,7 @@ export function OperatorSchedulesView() {
                   onClick={() => setParams({ new: true, step: "Route" })}
                 >
                   <Plus className="size-3.5 mr-1.5" />
-                  Create Schedule
+                  {t("createSchedule")}
                 </Button>
               </EmptyContent>
             )}
@@ -483,10 +481,10 @@ export function OperatorSchedulesView() {
                   disabled={page <= 1}
                   onClick={() => setParams({ page: page - 1 })}
                 >
-                  Previous
+                  {t("previous")}
                 </Button>
                 <span className="text-xs text-muted-foreground">
-                  Page {listData.page} of {listData.pageCount}
+                  {t("pageOf", { page: listData.page, pageCount: listData.pageCount })}
                 </span>
                 <Button
                   size="sm"
@@ -494,7 +492,7 @@ export function OperatorSchedulesView() {
                   disabled={page >= listData.pageCount}
                   onClick={() => setParams({ page: page + 1 })}
                 >
-                  Next
+                  {t("next")}
                 </Button>
               </div>
             )}
@@ -523,11 +521,11 @@ export function OperatorSchedulesView() {
             await deleteScheduleMutation.mutateAsync({
               id: deletingSchedule.id,
             });
-            toast.success("Schedule deleted");
+            toast.success(t("toast.scheduleDeleted"));
             setDeletingSchedule(null);
           } catch (err) {
             toast.error(
-              err instanceof Error ? err.message : "Failed to delete schedule",
+              err instanceof Error ? err.message : t("toast.deleteFailed"),
             );
           }
         }}

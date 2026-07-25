@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   BusFront,
@@ -51,6 +52,7 @@ function BrandHeader() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function InvitationView() {
+  const t = useTranslations("invite");
   const params = useSearchParams();
   const router = useRouter();
   const token = params.get("token") ?? "";
@@ -102,7 +104,7 @@ export function InvitationView() {
       type: "sign-in",
     });
     if (error) {
-      toast.error(error.message ?? "Failed to send verification code.");
+      toast.error(error.message ?? t("toastSendFailed"));
       return false;
     }
     startResendCooldown();
@@ -113,7 +115,7 @@ export function InvitationView() {
 
   async function handleSendOtpNewUser() {
     if (!fullName.trim()) {
-      toast.error("Full name is required");
+      toast.error(t("toastNameRequired"));
       return;
     }
     if (!invitation) return;
@@ -141,13 +143,13 @@ export function InvitationView() {
     if (!invitation || resendCooldown > 0) return;
     setSubmitting(true);
     await sendOtp(invitation.email);
-    toast.success("Code resent!");
+    toast.success(t("toastCodeResent"));
     setSubmitting(false);
   }
 
   async function handleVerifyOtp() {
     if (otpCode.length < 6) {
-      toast.error("Please enter the full 6-digit code");
+      toast.error(t("toastEnterCode"));
       return;
     }
     if (!invitation) return;
@@ -162,13 +164,13 @@ export function InvitationView() {
       });
 
       if (error) {
-        let msg = error.message ?? "Invalid verification code.";
+        let msg = error.message ?? t("toastInvalidCode");
         if (error.code === "TOO_MANY_ATTEMPTS") {
-          msg = "Too many attempts. Please request a new code later.";
+          msg = t("toastTooManyAttempts");
         } else if (error.code === "INVALID_OTP") {
-          msg = "Invalid verification code. Please check and try again.";
+          msg = t("toastInvalidOtp");
         } else if (error.code === "OTP_EXPIRED") {
-          msg = "Verification code has expired. Please request a new code.";
+          msg = t("toastOtpExpired");
         }
         toast.error(msg);
         setSubmitting(false);
@@ -181,7 +183,7 @@ export function InvitationView() {
       setStep("done");
       setTimeout(() => router.push("/dashboard/operator"), 2500);
     } catch (err: any) {
-      toast.error(err.message ?? "Failed to accept invitation");
+      toast.error(err.message ?? t("toastAcceptFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -201,10 +203,10 @@ export function InvitationView() {
           <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
             <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
             <h1 className="text-[18px] font-semibold text-foreground mb-2">
-              Invalid Link
+              {t("invalidLink")}
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
-              No invitation token found in the URL. Please check your email link.
+              {t("invalidLinkDesc")}
             </p>
             <Button
               variant="outline"
@@ -212,7 +214,7 @@ export function InvitationView() {
               className="text-[13px]"
               onClick={() => router.push("/")}
             >
-              Go to Homepage
+              {t("goHome")}
             </Button>
           </div>
         )}
@@ -222,7 +224,7 @@ export function InvitationView() {
           <div className="flex flex-col items-center gap-4 py-16">
             <Loader2 className="h-8 w-8 animate-spin text-[#ee237c]" />
             <p className="text-[14px] text-muted-foreground">
-              Validating your invitation…
+              {t("validating")}
             </p>
           </div>
         )}
@@ -232,10 +234,10 @@ export function InvitationView() {
           <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
             <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
             <h1 className="text-[18px] font-semibold text-foreground mb-2">
-              Invitation Invalid
+              {t("invitationInvalid")}
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
-              {error.message ?? "This invitation is invalid or has expired."}
+              {error.message ?? t("invitationInvalidFallback")}
             </p>
             <Button
               variant="outline"
@@ -243,7 +245,7 @@ export function InvitationView() {
               className="text-[13px]"
               onClick={() => router.push("/")}
             >
-              Go to Homepage
+              {t("goHome")}
             </Button>
           </div>
         )}
@@ -260,21 +262,20 @@ export function InvitationView() {
                   {invitation.company.name}
                 </h1>
                 <p className="text-[12px] text-muted-foreground">
-                  Company invitation
+                  {t("companyInvitation")}
                 </p>
               </div>
             </div>
 
             <div className="rounded-xl border border-border bg-accent/30 p-4 mb-6 space-y-2">
               <p className="text-[13px] text-muted-foreground">
-                <strong className="text-foreground">
-                  {invitation.invitedBy.fullName}
-                </strong>{" "}
-                has invited you to join{" "}
-                <strong className="text-foreground">
-                  {invitation.company.name}
-                </strong>{" "}
-                as:
+                {t.rich("invitedYou", {
+                  name: invitation.invitedBy.fullName,
+                  company: invitation.company.name,
+                  strong: (chunks) => (
+                    <strong className="text-foreground">{chunks}</strong>
+                  ),
+                })}
               </p>
               <div className="flex items-center gap-2">
                 <InviteRoleBadge role={invitation.role} />
@@ -296,14 +297,14 @@ export function InvitationView() {
                 className="h-10 text-[13px] bg-[#ee237c] hover:bg-[#d11f6e] text-white"
                 onClick={() => setStep("create-account")}
               >
-                Create Account & Join
+                {t("createAccountJoin")}
               </Button>
               <Button
                 variant="outline"
                 className="h-10 text-[13px] border-border"
                 onClick={() => setStep("sign-in")}
               >
-                Sign In Instead
+                {t("signInInstead")}
               </Button>
             </div>
           </div>
@@ -313,17 +314,21 @@ export function InvitationView() {
         {!!token && !isLoading && invitation && step === "create-account" && (
           <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
             <h1 className="text-[17px] font-bold text-foreground mb-1">
-              Create your account
+              {t("createYourAccount")}
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
-              Join <strong>{invitation.company.name}</strong> as{" "}
-              <strong>{ROLE_LABELS[invitation.role]}</strong>. We'll send a
-              verification code to confirm your identity.
+              {t.rich("joinCompanyAs", {
+                company: invitation.company.name,
+                role: ROLE_LABELS[invitation.role],
+                strong: (chunks) => (
+                  <strong className="text-foreground">{chunks}</strong>
+                ),
+              })}
             </p>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-[12px] font-medium">Email</Label>
+                <Label className="text-[12px] font-medium">{t("email")}</Label>
                 <Input
                   type="email"
                   value={invitation.email}
@@ -334,11 +339,11 @@ export function InvitationView() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="fullname" className="text-[12px] font-medium">
-                  Full Name *
+                  {t("fullName")}
                 </Label>
                 <Input
                   id="fullname"
-                  placeholder="Your full name"
+                  placeholder={t("namePlaceholder")}
                   className="h-9 text-[13px] border-border"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -356,7 +361,7 @@ export function InvitationView() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Send Verification Code <ArrowRight className="ml-1.5 h-4 w-4" />
+                    {t("sendCode")} <ArrowRight className="ml-1.5 h-4 w-4" />
                   </>
                 )}
               </Button>
@@ -365,7 +370,7 @@ export function InvitationView() {
                 className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setStep("welcome")}
               >
-                ← Back
+                {t("back")}
               </button>
             </div>
           </div>
@@ -375,16 +380,20 @@ export function InvitationView() {
         {!!token && !isLoading && invitation && step === "sign-in" && (
           <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
             <h1 className="text-[17px] font-bold text-foreground mb-1">
-              Sign in to your account
+              {t("signInTitle")}
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
-              We'll send a one-time code to your email to verify your identity
-              before joining <strong>{invitation.company.name}</strong>.
+              {t.rich("signInDesc", {
+                company: invitation.company.name,
+                strong: (chunks) => (
+                  <strong className="text-foreground">{chunks}</strong>
+                ),
+              })}
             </p>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-[12px] font-medium">Email</Label>
+                <Label className="text-[12px] font-medium">{t("email")}</Label>
                 <Input
                   type="email"
                   value={invitation.email}
@@ -402,7 +411,7 @@ export function InvitationView() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Send Verification Code <ArrowRight className="ml-1.5 h-4 w-4" />
+                    {t("sendCode")} <ArrowRight className="ml-1.5 h-4 w-4" />
                   </>
                 )}
               </Button>
@@ -411,7 +420,7 @@ export function InvitationView() {
                 className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setStep("welcome")}
               >
-                ← Back
+                {t("back")}
               </button>
             </div>
           </div>
@@ -424,22 +433,25 @@ export function InvitationView() {
               <Mail className="h-5 w-5 text-[#ee237c]" />
             </div>
             <h1 className="text-[17px] font-bold text-foreground mb-1">
-              Check your inbox
+              {t("checkInbox")}
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
-              We sent a 6-digit code to{" "}
-              <strong className="text-foreground">{invitation.email}</strong>.
-              Enter it below to continue.
+              {t.rich("checkInboxDesc", {
+                email: invitation.email,
+                strong: (chunks) => (
+                  <strong className="text-foreground">{chunks}</strong>
+                ),
+              })}
             </p>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="otp-code" className="text-[12px] font-medium">
-                  Verification Code
+                  {t("verificationCode")}
                 </Label>
                 <Input
                   id="otp-code"
-                  placeholder="000000"
+                  placeholder={t("codePlaceholder")}
                   maxLength={6}
                   inputMode="numeric"
                   autoComplete="one-time-code"
@@ -460,7 +472,7 @@ export function InvitationView() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Verify &amp; Join {invitation.company.name}{" "}
+                    {t("verifyAndJoin", { company: invitation.company.name })}{" "}
                     <ArrowRight className="ml-1.5 h-4 w-4" />
                   </>
                 )}
@@ -473,7 +485,9 @@ export function InvitationView() {
                   disabled={resendCooldown > 0 || submitting}
                 >
                   <RefreshCw className="h-3 w-3" />
-                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                  {resendCooldown > 0
+                    ? t("resendIn", { count: resendCooldown })
+                    : t("resendCode")}
                 </button>
               </div>
 
@@ -484,7 +498,7 @@ export function InvitationView() {
                   setStep(isNewUser ? "create-account" : "sign-in");
                 }}
               >
-                ← Back
+                {t("back")}
               </button>
             </div>
           </div>
@@ -495,11 +509,15 @@ export function InvitationView() {
           <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
             <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
             <h1 className="text-[20px] font-bold text-foreground mb-2">
-              Welcome to {invitation.company.name}!
+              {t("welcomeTo", { company: invitation.company.name })}
             </h1>
             <p className="text-[13px] text-muted-foreground">
-              You have joined as <strong>{ROLE_LABELS[invitation.role]}</strong>
-              . Redirecting to your dashboard…
+              {t.rich("joinedAs", {
+                role: ROLE_LABELS[invitation.role],
+                strong: (chunks) => (
+                  <strong className="text-foreground">{chunks}</strong>
+                ),
+              })}
             </p>
             <div className="mt-6 flex justify-center">
               <Loader2 className="h-5 w-5 animate-spin text-[#ee237c]" />
@@ -509,7 +527,7 @@ export function InvitationView() {
       </div>
 
       <p className="mt-8 text-[12px] text-muted-foreground">
-        © {new Date().getFullYear()} Moja Ride. All rights reserved.
+        {t("footer", { year: new Date().getFullYear() })}
       </p>
     </div>
   );

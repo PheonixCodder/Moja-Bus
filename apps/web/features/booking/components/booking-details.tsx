@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   Check,
   Copy,
@@ -35,7 +36,6 @@ import type { PassengerBookingSummary } from "@moja/types";
 import dynamic from "next/dynamic";
 import { Map as MapIcon } from "lucide-react";
 
-// Dynamically import Leaflet map to avoid window is not defined error on SSR
 const BookingRouteMap = dynamic(() => import("./booking-route-map"), {
   ssr: false,
   loading: () => (
@@ -45,29 +45,33 @@ const BookingRouteMap = dynamic(() => import("./booking-route-map"), {
   ),
 });
 
-// ─────────────────────────────────────────────────────────
-// Status badge
-// ─────────────────────────────────────────────────────────
+const BADGE_LABEL_KEY: Record<string, string> = {
+  CONFIRMED: "badgeConfirmed",
+  PENDING_PAYMENT: "badgePendingPayment",
+  COMPLETED: "badgeCompleted",
+  CANCELLED: "badgeCancelled",
+  EXPIRED: "badgeExpired",
+};
+
 function StatusBadge({ status }: { status: PassengerBookingSummary["status"] }) {
-  const map = {
+  const t = useTranslations("passengerDashboard.bookingDetails");
+  const map: Record<string, string> = {
     CONFIRMED: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
     PENDING_PAYMENT: "bg-amber-500/10 text-amber-700 border-amber-500/20",
     COMPLETED: "bg-muted text-muted-foreground border-muted",
     CANCELLED: "bg-destructive/10 text-destructive border-destructive/20",
     EXPIRED: "bg-muted text-muted-foreground border-muted",
-  } as const;
+  };
 
   return (
     <Badge variant="outline" className={map[status]}>
-      {status.replace(/_/g, " ")}
+      {t(BADGE_LABEL_KEY[status] ?? "statusUnknown")}
     </Badge>
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// Copy button
-// ─────────────────────────────────────────────────────────
 function CopyButton({ text }: { text: string }) {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   const [copied, setCopied] = React.useState(false);
   function handleCopy() {
     void navigator.clipboard.writeText(text);
@@ -77,7 +81,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       type="button"
-      aria-label="Copy to clipboard"
+      aria-label={t("copyAria")}
       onClick={handleCopy}
       className="rounded-md p-1 transition-colors hover:bg-muted"
     >
@@ -86,10 +90,8 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// Overview tab
-// ─────────────────────────────────────────────────────────
 function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   const countdown = useHoldCountdown(
     booking.status === "PENDING_PAYMENT" ? booking.holdExpiresAt : null,
   );
@@ -103,7 +105,6 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
   return (
     <ScrollArea className="h-full">
       <div className="flex flex-col gap-4 p-4">
-        {/* Ref + status */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="flex items-center gap-2">
             <h1 className="font-medium text-lg tabular-nums tracking-tight sm:text-xl">
@@ -114,26 +115,24 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
           <div className="flex items-center gap-2 text-xs sm:text-sm">
             <StatusBadge status={booking.status} />
             <span className="text-muted-foreground">·</span>
-            <span className="text-foreground tabular-nums">Departs: {formatDepartureTime(booking.departureTime)}</span>
+            <span className="text-foreground tabular-nums">{t("departsLabel", { time: formatDepartureTime(booking.departureTime) })}</span>
           </div>
         </div>
 
         <Separator />
 
-        {/* Pending payment alert */}
         {booking.status === "PENDING_PAYMENT" && (
           <Alert className="border-amber-500/20 bg-amber-500/10 text-amber-800 dark:text-amber-300">
             <AlertDescription>
               {countdown?.expired
-                ? "Hold expired. Please search again for a new ticket."
+                ? t("holdExpired")
                 : countdown?.label
-                  ? `Complete payment within ${countdown.label} to secure your seats.`
-                  : "Complete payment to secure your seats."}
+                  ? t("completePaymentWithin", { time: countdown.label })
+                  : t("secureSeats")}
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Operator Profile */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="size-9 after:rounded-sm">
@@ -143,23 +142,22 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
             </Avatar>
             <div className="flex flex-col gap-1">
               <div className="font-medium text-sm leading-none">{booking.companyName}</div>
-              <div className="text-muted-foreground text-xs leading-none">Bus Operator</div>
+              <div className="text-muted-foreground text-xs leading-none">{t("busOperator")}</div>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
             <Badge variant="secondary">
-              {durationMin > 0 ? formatTripDuration(durationMin) : "Direct"}
+              {durationMin > 0 ? formatTripDuration(durationMin) : t("directDuration")}
             </Badge>
-            <div className="text-muted-foreground text-xs leading-none">Duration</div>
+            <div className="text-muted-foreground text-xs leading-none">{t("duration")}</div>
           </div>
         </div>
 
         <Separator />
 
-        {/* Passenger info */}
         <div className="space-y-2">
           <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-            Passenger Details
+            {t("passengerDetails")}
           </Label>
           <div className="flex flex-col gap-1">
             <p className="font-semibold text-sm">{booking.passengerName}</p>
@@ -169,46 +167,43 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
 
         <Separator />
 
-        {/* Journey details grid */}
         <div className="space-y-2">
           <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-            Journey Details
+            {t("journeyDetails")}
           </Label>
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl border bg-muted/30 p-3 text-sm">
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">From</span>
+              <span className="text-xs text-muted-foreground">{t("from")}</span>
               <span className="font-semibold">{booking.originCityName}</span>
               <span className="text-xs text-muted-foreground">{booking.originTerminalName}</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">To</span>
+              <span className="text-xs text-muted-foreground">{t("to")}</span>
               <span className="font-semibold">{booking.destinationCityName}</span>
               <span className="text-xs text-muted-foreground">{booking.destinationTerminalName}</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Departs</span>
+              <span className="text-xs text-muted-foreground">{t("departs")}</span>
               <span className="font-semibold tabular-nums">{formatDepartureTime(booking.departureTime)}</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Arrives</span>
+              <span className="text-xs text-muted-foreground">{t("arrives")}</span>
               <span className="font-semibold tabular-nums">{formatDepartureTime(booking.arrivalTime)}</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Seats</span>
+              <span className="text-xs text-muted-foreground">{t("seats")}</span>
               <span className="font-semibold">{booking.seats.map((s) => s.seatLabel).join(", ")}</span>
             </div>
           </div>
         </div>
 
-        {/* Total */}
         <div className="flex items-center justify-between rounded-xl border bg-primary/5 px-4 py-3">
-          <span className="text-sm font-semibold">Total paid</span>
+          <span className="text-sm font-semibold">{t("totalPaid")}</span>
           <span className="font-black text-primary text-lg tabular-nums">
             {formatPriceXOF(booking.totalAmountXOF)}
           </span>
         </div>
 
-        {/* Action */}
         {ticketHref && (
           <Link
             href={ticketHref}
@@ -218,7 +213,7 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
             )}
           >
             <Ticket className="size-4" />
-            View Ticket
+            {t("viewTicket")}
             <ExternalLink className="size-3.5" />
           </Link>
         )}
@@ -227,10 +222,9 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// Passengers tab
-// ─────────────────────────────────────────────────────────
 function PassengersTab({ booking }: { booking: PassengerBookingSummary }) {
+  const t = useTranslations("passengerDashboard.bookingDetails");
+
   return (
     <ScrollArea className="h-full">
       <div className="p-4">
@@ -238,10 +232,10 @@ function PassengersTab({ booking }: { booking: PassengerBookingSummary }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Seat</th>
-                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Name</th>
-                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold hidden sm:table-cell">Ref</th>
-                <th className="px-3 py-2 text-right text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Fare</th>
+                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("seatCol")}</th>
+                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("nameCol")}</th>
+                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold hidden sm:table-cell">{t("refCol")}</th>
+                <th className="px-3 py-2 text-right text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("fareCol")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -264,7 +258,7 @@ function PassengersTab({ booking }: { booking: PassengerBookingSummary }) {
             <tfoot>
               <tr className="border-t bg-muted/30">
                 <td colSpan={3} className="px-3 py-2 text-xs font-bold text-muted-foreground">
-                  Total ({booking.seats.length} seat{booking.seats.length !== 1 ? "s" : ""})
+                  {t("totalSeats", { count: booking.seats.length })}
                 </td>
                 <td className="px-3 py-2 text-right font-black text-primary tabular-nums">
                   {formatPriceXOF(booking.totalAmountXOF)}
@@ -278,9 +272,6 @@ function PassengersTab({ booking }: { booking: PassengerBookingSummary }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// Payment tab
-// ─────────────────────────────────────────────────────────
 type PaymentTabProps = {
   booking: PassengerBookingSummary;
   paymentMethod: "PAYSTACK" | "WALLET";
@@ -296,6 +287,7 @@ function PaymentTab({
   isPaying,
   onExecutePayment,
 }: PaymentTabProps) {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   const trpc = useTRPC();
 
   const walletQuery = useQuery({
@@ -320,9 +312,9 @@ function PaymentTab({
     return (
       <div className="grid h-full min-h-40 place-items-center p-4">
         <div className="text-center space-y-2">
-          <p className="text-muted-foreground text-sm">This hold has expired.</p>
+          <p className="text-muted-foreground text-sm">{t("holdExpired")}</p>
           <Link href="/" className={buttonVariants({ variant: "outline", size: "sm" })}>
-            Search again →
+            {t("searchAgain")} →
           </Link>
         </div>
       </div>
@@ -332,29 +324,27 @@ function PaymentTab({
   return (
     <ScrollArea className="h-full">
       <div className="space-y-4 p-4">
-        {/* Pricing summary */}
         <div className="rounded-xl border bg-muted/30 p-3 space-y-1.5">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Summary</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">{t("summary")}</p>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Fare</span>
+            <span className="text-muted-foreground">{t("fare")}</span>
             <span className="tabular-nums">{formatPriceXOF(subtotalBaseXOF)}</span>
           </div>
           {convenienceFeeXOF > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Service fee</span>
+              <span className="text-muted-foreground">{t("serviceFee")}</span>
               <span className="tabular-nums">{formatPriceXOF(convenienceFeeXOF)}</span>
             </div>
           )}
           <Separator className="my-1.5" />
           <div className="flex justify-between text-sm font-black text-primary">
-            <span>Total</span>
+            <span>{t("total")}</span>
             <span className="tabular-nums">{formatPriceXOF(totalAmount)}</span>
           </div>
         </div>
 
-        {/* Method selector */}
         <div className="space-y-2">
-          <Label className="text-xs uppercase tracking-widest text-muted-foreground">Payment Method</Label>
+          <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("paymentMethod")}</Label>
           <div className="grid grid-cols-1 gap-2">
             <button
               type="button"
@@ -368,8 +358,8 @@ function PaymentTab({
             >
               <CreditCard className="size-4 shrink-0" />
               <div>
-                <p className="text-xs font-bold">Card / Mobile Money</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Pay via Paystack checkout</p>
+                <p className="text-xs font-bold">{t("cardMobileMoney")}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{t("payViaPaystack")}</p>
               </div>
             </button>
 
@@ -387,52 +377,41 @@ function PaymentTab({
             >
               <Wallet className="size-4 shrink-0" />
               <div>
-                <p className="text-xs font-bold">Moja Wallet</p>
+                <p className="text-xs font-bold">{t("mojaWallet")}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-                  Available: {formatPriceXOF(Number(walletBalance))}
+                  {t("available", { balance: formatPriceXOF(Number(walletBalance)) })}
                 </p>
               </div>
             </button>
           </div>
         </div>
 
-        {/* Info banners */}
         {paymentMethod === "WALLET" && (
           <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
-            <strong>0 XOF</strong> convenience fee when paying with your Moja Wallet.
+            <strong>{t("convenienceFee", { fee: "0 XOF" })}</strong>
           </div>
         )}
         {walletInsufficient && (
           <div className="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700">
-            <span>Wallet balance insufficient.</span>
+            <span>{t("walletInsufficient")}</span>
             <Link href="/dashboard/wallet" className="font-bold text-primary hover:underline" target="_blank">
-              Top-Up →
+              {t("topUp")} →
             </Link>
           </div>
         )}
 
-        {/* CTA */}
         <Button
           className="w-full gap-2 bg-primary hover:bg-primary/90 text-white font-bold"
           disabled={isPaying || (paymentMethod === "WALLET" && walletInsufficient)}
           onClick={onExecutePayment}
         >
           {isPaying && <Spinner className="size-4 text-white" />}
-          {paymentMethod === "WALLET" ? "Complete with Wallet" : "Complete Payment"}
+          {paymentMethod === "WALLET" ? t("completeWithWallet") : t("completePayment")}
         </Button>
       </div>
     </ScrollArea>
   );
 }
-
-// ─────────────────────────────────────────────────────────
-// Activity tab (timeline + review)
-// ─────────────────────────────────────────────────────────
-type ActivityTabProps = {
-  booking: PassengerBookingSummary;
-  onOpenReview: () => void;
-  isReviewed: boolean;
-};
 
 function TimelineNode({
   label,
@@ -466,7 +445,14 @@ function TimelineNode({
   );
 }
 
+type ActivityTabProps = {
+  booking: PassengerBookingSummary;
+  onOpenReview: () => void;
+  isReviewed: boolean;
+};
+
 function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   const [rating, setRating] = React.useState(5);
   const [hoverRating, setHoverRating] = React.useState<number | null>(null);
   const [reviewContent, setReviewContent] = React.useState("");
@@ -481,26 +467,26 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
     <ScrollArea className="h-full">
       <div className="space-y-0 p-4">
         <TimelineNode
-          label="Booking requested"
+          label={t("bookingRequested")}
           time={booking.issuedAt
             ? null
             : formatDepartureTime(booking.departureTime)}
           done={true}
         />
         <TimelineNode
-          label="Seats reserved"
+          label={t("seatsReserved")}
           time={booking.holdExpiresAt
-            ? `Hold until ${formatDepartureTime(booking.holdExpiresAt)}`
+            ? t("holdUntil", { time: formatDepartureTime(booking.holdExpiresAt) })
             : null}
           done={true}
         />
         <TimelineNode
-          label="Payment confirmed"
+          label={t("paymentConfirmed")}
           time={booking.issuedAt ? formatDepartureTime(booking.issuedAt) : null}
           done={booking.issuedAt !== null}
         />
         <TimelineNode
-          label="Ticket issued"
+          label={t("ticketIssued")}
           time={booking.issuedAt ? formatDepartureTime(booking.issuedAt) : null}
           done={booking.status === "CONFIRMED" || booking.status === "COMPLETED"}
         />
@@ -516,11 +502,11 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
               {isReviewed ? (
                 <div className="flex items-center gap-2 text-sm font-medium text-emerald-600">
                   <Check className="size-4" />
-                  Review submitted
+                  {t("reviewSubmitted")}
                 </div>
               ) : (
                 <div className="space-y-3 rounded-xl border bg-muted/30 p-3">
-                  <p className="text-sm font-semibold">Rate your trip</p>
+                  <p className="text-sm font-semibold">{t("rateYourTrip")}</p>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => {
                       const filled = (hoverRating ?? rating) >= star;
@@ -546,7 +532,7 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
                   <Textarea
                     value={reviewContent}
                     onChange={(e) => setReviewContent(e.target.value)}
-                    placeholder="Tell us about your journey..."
+                    placeholder={t("tellUsAboutJourney")}
                     className="min-h-[72px] text-sm resize-none"
                     maxLength={1000}
                   />
@@ -555,7 +541,7 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
                     className="w-full bg-primary hover:bg-primary/90 text-white font-bold"
                     onClick={onOpenReview}
                   >
-                    Submit Review
+                    {t("submitReview")}
                   </Button>
                 </div>
               )}
@@ -567,25 +553,20 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// Empty state
-// ─────────────────────────────────────────────────────────
 function EmptyDetailsState() {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   return (
     <div className="grid h-full min-h-0 grid-rows-[280px_1fr] overflow-hidden">
       <div className="min-h-0 overflow-hidden border-b border-border">
         <BookingRouteMap booking={null} />
       </div>
       <div className="grid min-h-40 place-items-center text-muted-foreground text-sm">
-        Select a booking to view details.
+        {t("emptyState")}
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// Public component
-// ─────────────────────────────────────────────────────────
 export type BookingDetailsProps = {
   booking: PassengerBookingSummary | null;
   isPaying: boolean;
@@ -605,6 +586,7 @@ export function BookingDetails({
   onOpenReview,
   isReviewedFn,
 }: BookingDetailsProps) {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   if (!booking) return <EmptyDetailsState />;
 
   const isPendingPayment = booking.status === "PENDING_PAYMENT";
@@ -616,24 +598,22 @@ export function BookingDetails({
 
   return (
     <div className="grid h-full min-h-0 grid-rows-[280px_1fr] overflow-hidden lg:grid-rows-[320px_1fr]">
-      {/* Top — geo map / CSS banner */}
       <div className="min-h-0 overflow-hidden border-b border-border">
         <BookingRouteMap booking={booking} />
       </div>
 
-      {/* Bottom — tabs */}
       <div className="min-h-0 overflow-hidden py-2">
         <Tabs defaultValue="overview" className="flex h-full flex-col gap-0">
           <TabsList
             className="w-full justify-start gap-2 border-b px-4 **:data-[slot=tabs-trigger]:text-xs sm:gap-4 sm:**:data-[slot=tabs-trigger]:text-sm"
             variant="line"
           >
-            <TabsTrigger className="flex-none" value="overview">Overview</TabsTrigger>
-            <TabsTrigger className="flex-none" value="passengers">Passengers</TabsTrigger>
+            <TabsTrigger className="flex-none" value="overview">{t("tabOverview")}</TabsTrigger>
+            <TabsTrigger className="flex-none" value="passengers">{t("tabPassengers")}</TabsTrigger>
             {isPendingPayment && (
-              <TabsTrigger className="flex-none" value="payment">Payment</TabsTrigger>
+              <TabsTrigger className="flex-none" value="payment">{t("tabPayment")}</TabsTrigger>
             )}
-            <TabsTrigger className="flex-none" value="activity">Activity</TabsTrigger>
+            <TabsTrigger className="flex-none" value="activity">{t("tabActivity")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-0 h-0 flex-1 overflow-hidden">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -24,6 +25,7 @@ import { Card } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
 
 export function BlogIndexView() {
+  const t = useTranslations("blog");
   const trpc = useTRPC();
 
   const [params, setParams] = useQueryStates(blogParamsSchema, {
@@ -92,13 +94,13 @@ export function BlogIndexView() {
       <div className="bg-rose-50/70 border-b border-rose-100/50 pt-28 md:pt-36 pb-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <Badge className="bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-100 text-xs py-0.5 px-3 rounded-full font-semibold uppercase tracking-wider">
-            Travel Guide
+            {t("badge")}
           </Badge>
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-            Moja Ride Blog
+            {t("heroTitle")}
           </h1>
           <p className="max-w-2xl mx-auto text-sm md:text-base text-slate-600 leading-relaxed">
-            Discover route maps, transit advisories, safety guides, and partner company news directly from our transport team.
+            {t("heroDesc")}
           </p>
 
           {/* Inline search bar */}
@@ -106,7 +108,7 @@ export function BlogIndexView() {
             <Search className="absolute left-3.5 top-[25px] size-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search guides, news, or articles..."
+              placeholder={t("searchPlaceholder")}
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               className="w-full pl-10 pr-4 h-11 text-sm bg-white border-slate-200 rounded-full shadow-sm focus:border-rose-400 focus:ring-rose-400/20"
@@ -126,7 +128,7 @@ export function BlogIndexView() {
             <Card className="bg-white border-slate-200 shadow-3xs p-4 rounded-xl">
               <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2 mb-3">
                 <FolderOpen className="size-3.5 text-rose-500" />
-                Categories
+                {t("categories")}
               </h3>
               <div className="space-y-1">
                 <button
@@ -138,7 +140,7 @@ export function BlogIndexView() {
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
                 >
-                  <span>All Categories</span>
+                  <span>{t("allCategories")}</span>
                 </button>
 
                 {categories.map((cat) => {
@@ -170,7 +172,7 @@ export function BlogIndexView() {
             <Card className="bg-white border-slate-200 shadow-3xs p-4 rounded-xl">
               <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2 mb-3">
                 <TagIcon className="size-3.5 text-rose-500" />
-                Popular Tags
+                {t("popularTags")}
               </h3>
               <div className="flex flex-wrap gap-1.5">
                 <button
@@ -182,7 +184,7 @@ export function BlogIndexView() {
                       : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-800"
                   }`}
                 >
-                  All Tags
+                  {t("allTags")}
                 </button>
                 {tags.map((tag) => {
                   const isSelected = params.tag === tag.slug;
@@ -212,17 +214,17 @@ export function BlogIndexView() {
             {hasActiveFilters && (
               <div className="flex items-center justify-between bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-3xs text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500">Active Filters:</span>
-                  {params.q && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">Search: {params.q}</Badge>}
-                  {params.category && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">Category: {params.category}</Badge>}
-                  {params.tag && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">Tag: #{params.tag}</Badge>}
+                  <span className="text-slate-500">{t("activeFilters")}</span>
+                  {params.q && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">{t("filterSearch", { query: params.q })}</Badge>}
+                  {params.category && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">{t("filterCategory", { category: params.category })}</Badge>}
+                  {params.tag && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">{t("filterTag", { tag: params.tag })}</Badge>}
                 </div>
                 <button
                   type="button"
                   onClick={handleClearFilters}
                   className="text-rose-600 hover:text-rose-700 font-semibold underline"
                 >
-                  Clear all
+                  {t("clearAll")}
                 </button>
               </div>
             )}
@@ -234,13 +236,13 @@ export function BlogIndexView() {
                   <SearchX className="size-6" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-slate-800">No matching articles found</h3>
+                  <h3 className="text-base font-bold text-slate-800">{t("noResults")}</h3>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                    We couldn't find any published blog posts matching your search criteria. Try removing filters or searching for something else.
+                    {t("noResultsDesc")}
                   </p>
                 </div>
                 <Button onClick={handleClearFilters} className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs">
-                  Reset Search Filters
+                  {t("resetFilters")}
                 </Button>
               </div>
             ) : (
@@ -281,7 +283,7 @@ export function BlogIndexView() {
                       </h3>
                       
                       <p className="text-xs text-slate-500 line-clamp-3 mb-4 leading-relaxed flex-1">
-                        {post.excerpt || "No description provided."}
+                        {post.excerpt || t("noExcerpt")}
                       </p>
 
                       <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-medium">
@@ -291,7 +293,7 @@ export function BlogIndexView() {
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="flex items-center gap-0.5">
                             <Clock className="size-3 text-slate-300" />
-                            {post.readingTime}m read
+                            {t("minuteRead", { count: post.readingTime })}
                           </span>
                         </div>
                       </div>
@@ -313,10 +315,10 @@ export function BlogIndexView() {
                   onClick={() => handlePageChange(params.page - 1)}
                   className="h-8 font-semibold text-xs border-slate-200"
                 >
-                  Previous
+                  {t("previous")}
                 </Button>
                 <span className="text-slate-500 font-semibold">
-                  Page {params.page}
+                  {t("page", { page: params.page })}
                 </span>
                 <Button
                   size="sm"
@@ -325,7 +327,7 @@ export function BlogIndexView() {
                   onClick={() => handlePageChange(params.page + 1)}
                   className="h-8 font-semibold text-xs border-slate-200"
                 >
-                  Next
+                  {t("next")}
                 </Button>
               </div>
             )}

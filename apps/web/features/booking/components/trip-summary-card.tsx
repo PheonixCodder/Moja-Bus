@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Bus } from "lucide-react";
 import { Badge } from "@moja/ui/components/ui/badge";
 import type { Amenity } from "@moja/types";
@@ -48,23 +49,24 @@ function AvailabilityBadge({
 }: {
   availability: TripSummaryData["availability"];
 }) {
+  const t = useTranslations("booking.tripSummary");
   if (availability.status === "SOLD_OUT") {
     return (
       <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 text-[10px] font-semibold py-0.5">
-        Fully Booked
+        {t("fullyBooked")}
       </Badge>
     );
   }
   if (availability.status === "FEW_LEFT") {
     return (
       <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 border border-amber-200 text-[10px] font-semibold py-0.5">
-        Only {availability.remaining} seats left
+        {t("seatsLeft", { count: availability.remaining })}
       </Badge>
     );
   }
   return (
     <span className="text-[10px] font-semibold text-emerald-600">
-      {availability.remaining} seats available
+      {t("seatsAvailable", { count: availability.remaining })}
     </span>
   );
 }
@@ -74,6 +76,7 @@ export function TripSummaryCard({
   seatCount = 1,
   showStops = true,
 }: TripSummaryCardProps) {
+  const t = useTranslations("booking.tripSummary");
   const totalPrice = trip.priceXOF * seatCount;
 
   return (
@@ -99,7 +102,7 @@ export function TripSummaryCard({
                 {trip.companyName}
                 {trip.isExpress && (
                   <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-semibold py-0">
-                    Express
+                    {t("express")}
                   </Badge>
                 )}
               </h2>
@@ -136,8 +139,8 @@ export function TripSummaryCard({
               </div>
               <span className="text-[10px] font-semibold text-slate-400 mt-1">
                 {trip.stopCount === 0
-                  ? "Direct Route"
-                  : `${trip.stopCount} intermediate stop${trip.stopCount > 1 ? "s" : ""}`}
+                  ? t("directRoute")
+                  : t("intermediateStops", { count: trip.stopCount })}
               </span>
             </div>
 
@@ -160,14 +163,14 @@ export function TripSummaryCard({
         <div className="flex flex-col items-start md:items-end gap-2 min-w-[140px]">
           <div className="text-left md:text-right">
             <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">
-              {seatCount > 1 ? "Total" : "Per seat"}
+              {seatCount > 1 ? t("total") : t("perSeat")}
             </span>
             <span className="text-2xl font-black font-montserrat text-[#ee237c] tracking-tight">
               {formatPriceXOF(seatCount > 1 ? totalPrice : trip.priceXOF)}
             </span>
             {seatCount > 1 && (
               <p className="text-[10px] text-slate-500 mt-0.5">
-                {formatPriceXOF(trip.priceXOF)} × {seatCount} seats
+                {t("seatsMultiplier", { price: formatPriceXOF(trip.priceXOF), count: seatCount })}
               </p>
             )}
           </div>
@@ -184,14 +187,14 @@ export function TripSummaryCard({
       {showStops && trip.stops && trip.stops.length > 2 && (
         <div className="pt-4 border-t border-slate-100">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-            Stops on your segment
+            {t("stopsOnSegment")}
           </p>
           <ol className="text-xs text-slate-600 space-y-1">
             {trip.stops.map((stop) => (
               <li key={stop.id}>
                 {stop.terminalName} ({stop.cityName})
                 {stop.scheduledDeparture
-                  ? ` — dep ${formatDepartureTime(stop.scheduledDeparture)}`
+                  ? ` — ${t("departing", { time: formatDepartureTime(stop.scheduledDeparture) })}`
                   : ""}
               </li>
             ))}

@@ -24,12 +24,6 @@ export const operatorAccountSuspendedWorkflow = workflow(
       };
     });
 
-    // 2. SMS Notification
-    await step.sms("send-sms", async () => ({
-      body: `Moja Ride: Account for ${escapeHtml(payload.companyName)} has been suspended. All scheduling and sales are offline. Contact support.`,
-    }), {
-      skip: () => !payload.phone,
-    });
   },
   {
     name: "Operator Account Suspended",

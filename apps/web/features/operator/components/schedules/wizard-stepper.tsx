@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import {
   WIZARD_STEPS,
@@ -16,6 +17,13 @@ export function WizardStepper({
   onStepClick: (s: WizardStep) => void;
   maxReached: number;
 }) {
+  const t = useTranslations("operatorDashboard.schedules");
+  const stepLabels: Record<string, string> = {
+    Route: t("wizard.route"),
+    Calendar: t("wizard.calendar"),
+    Pricing: t("wizard.pricing"),
+    Preview: t("wizard.preview"),
+  };
   return (
     <div className="flex items-center gap-0 border-b border-border bg-slate-50/50 px-5 py-3 shrink-0">
       {WIZARD_STEPS.map((step, i) => {
@@ -51,7 +59,7 @@ export function WizardStepper({
               >
                 {isCompleted ? <CheckCircle2 className="size-3" /> : i + 1}
               </span>
-              {step}
+              {stepLabels[step]}
             </button>
             {i < WIZARD_STEPS.length - 1 && (
               <ChevronRight className="size-3.5 text-border mx-1 shrink-0" />

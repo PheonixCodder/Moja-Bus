@@ -3,6 +3,7 @@
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { Building2, Ticket, ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -42,10 +43,10 @@ function statusVariant(status: string) {
   return "bg-muted text-muted-foreground";
 }
 
-function statusLabel(status: string) {
-  if (status === "PENDING_VERIFICATION") return "Pending";
-  if (status === "ACTIVE") return "Active";
-  if (status === "REJECTED") return "Rejected";
+function statusLabel(status: string, t: any) {
+  if (status === "PENDING_VERIFICATION") return t("PENDING_VERIFICATION");
+  if (status === "ACTIVE") return t("ACTIVE");
+  if (status === "REJECTED") return t("REJECTED");
   return status;
 }
 
@@ -53,23 +54,25 @@ export function DashboardActivityFeed({
   recentCompanies,
   recentBookings,
 }: DashboardActivityFeedProps) {
+  const t = useTranslations("adminDashboard.overview.activityFeed");
+  const statusT = useTranslations("adminDashboard.overview.activityFeed.status");
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {/* Recent Operator Signups */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-semibold">Recent Operators</CardTitle>
-          <CardDescription>Latest company registrations</CardDescription>
+          <CardTitle className="text-sm font-semibold">{t("recentOperators")}</CardTitle>
+          <CardDescription>{t("recentOperatorsDesc")}</CardDescription>
           <Button variant="ghost" size="sm" className="ml-auto h-7 px-2"
             nativeButton={false}
             render={<Link href="/dashboard/admin/verifications" />}
           >
-            View all <ArrowRight className="ml-1 size-3" />
+            {t("viewAll")} <ArrowRight className="ml-1 size-3" />
           </Button>
         </CardHeader>
         <CardContent className="space-y-3">
           {recentCompanies.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">No operators yet</p>
+            <p className="text-sm text-muted-foreground py-4 text-center">{t("noOperators")}</p>
           ) : (
             recentCompanies.map((company) => (
               <div key={company.id} className="flex items-center gap-3">
@@ -86,7 +89,7 @@ export function DashboardActivityFeed({
                   variant="outline"
                   className={`text-[10px] px-1.5 shrink-0 ${statusVariant(company.status)}`}
                 >
-                  {statusLabel(company.status)}
+                  {statusLabel(company.status, statusT)}
                 </Badge>
               </div>
             ))
@@ -97,18 +100,18 @@ export function DashboardActivityFeed({
       {/* Recent Bookings */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-semibold">Recent Bookings</CardTitle>
-          <CardDescription>Latest confirmed ticket purchases</CardDescription>
+          <CardTitle className="text-sm font-semibold">{t("recentBookings")}</CardTitle>
+          <CardDescription>{t("recentBookingsDesc")}</CardDescription>
           <Button variant="ghost" size="sm" className="ml-auto h-7 px-2"
             nativeButton={false}
             render={<Link href="/dashboard/admin/operations/trips" />}
           >
-            View all <ArrowRight className="ml-1 size-3" />
+            {t("viewAll")} <ArrowRight className="ml-1 size-3" />
           </Button>
         </CardHeader>
         <CardContent className="space-y-3">
           {recentBookings.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">No bookings yet</p>
+            <p className="text-sm text-muted-foreground py-4 text-center">{t("noBookings")}</p>
           ) : (
             recentBookings.map((booking) => (
               <div key={booking.id} className="flex items-center gap-3">

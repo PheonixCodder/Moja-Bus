@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { Clock, RefreshCw, XCircle } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
@@ -21,6 +22,7 @@ export function StaffInvitationCard({
   onResend,
   onCancel,
 }: StaffInvitationCardProps) {
+  const t = useTranslations("operatorDashboard.staff.invitationCard");
   const expiry = formatInvitationExpiry(invitation.expiresAt);
   const createdAt = invitation.createdAt ?? invitation.expiresAt;
 
@@ -46,8 +48,7 @@ export function StaffInvitationCard({
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Clock className="h-3 w-3" />
           <span>
-            Sent by {invitation.invitedBy.fullName} ·{" "}
-            {format(new Date(createdAt), "MMM d, HH:mm")}
+            {t("sentBy", { name: invitation.invitedBy.fullName ?? "", date: format(new Date(createdAt), "MMM d, HH:mm") })}
           </span>
         </div>
         <div
@@ -68,7 +69,7 @@ export function StaffInvitationCard({
           onClick={() => onResend(invitation)}
         >
           <RefreshCw className="h-3 w-3" />
-          Resend
+          {t("resend")}
         </Button>
         <Button
           variant="outline"
@@ -77,7 +78,7 @@ export function StaffInvitationCard({
           onClick={() => onCancel(invitation)}
         >
           <XCircle className="h-3 w-3" />
-          Cancel
+          {t("cancel")}
         </Button>
       </div>
     </div>

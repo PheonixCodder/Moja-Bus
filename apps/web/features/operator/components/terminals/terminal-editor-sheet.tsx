@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MapPin, Building, Shield, User, Phone, CheckCircle, Navigation } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
@@ -57,6 +58,8 @@ export function TerminalEditorSheet({
   editingLocation,
   cities = [],
 }: TerminalEditorSheetProps) {
+  const t = useTranslations("operatorDashboard.terminals");
+  const tc = useTranslations("common");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -212,10 +215,10 @@ export function TerminalEditorSheet({
           <DrawerHeader className="px-0">
             <DrawerTitle className="text-xl font-bold flex items-center gap-2">
               <MapPin className="size-5 text-primary" />
-              {editingLocation ? "Edit Location" : "Add Location"}
+              {editingLocation ? `${tc("edit")} Location` : t("addLocation")}
             </DrawerTitle>
             <DrawerDescription>
-              Configure passenger terminal or depot properties, manager contacts, and operating hours.
+              {t("pageDescription")}
             </DrawerDescription>
           </DrawerHeader>
 
@@ -223,7 +226,7 @@ export function TerminalEditorSheet({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider">
-                  Location Name *
+                  {tc("name")} *
                 </Label>
                 <Input
                   id="name"
@@ -242,7 +245,7 @@ export function TerminalEditorSheet({
 
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider">
-                  Contact Phone *
+                  {tc("phone")} *
                 </Label>
                 <PhoneInput
                   id="phone"
@@ -262,7 +265,7 @@ export function TerminalEditorSheet({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="addressLine1" className="text-xs font-semibold uppercase tracking-wider">
-                  Address Line 1 *
+                  {tc("address")} *
                 </Label>
                 <Input
                   id="addressLine1"
@@ -281,7 +284,7 @@ export function TerminalEditorSheet({
 
               <div className="space-y-2">
                 <Label htmlFor="cityId" className="text-xs font-semibold uppercase tracking-wider">
-                  City
+                  {tc("city")}
                 </Label>
                 <select
                   id="cityId"
@@ -394,12 +397,12 @@ export function TerminalEditorSheet({
             <DrawerFooter className="px-0 pt-4 flex-row justify-end gap-3">
               <DrawerClose asChild>
                 <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-                  Cancel
+                  {tc("cancel")}
                 </Button>
               </DrawerClose>
               <Button type="submit" disabled={submitting}>
                 {submitting && <Spinner className="mr-2 size-4" />}
-                {editingLocation ? "Save Changes" : "Create Location"}
+                {editingLocation ? `${tc("save")} Changes` : t("addLocation")}
               </Button>
             </DrawerFooter>
           </form>

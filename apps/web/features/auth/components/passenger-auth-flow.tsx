@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
@@ -51,6 +52,7 @@ export function PassengerAuthFlow({
   initialUser?: { email?: string; phone?: string } | undefined;
   callbackUrl?: string | undefined;
 }) {
+  const t = useTranslations("auth");
   const { isPending: authPending, sendPassengerOtp, verifyPassengerOtp } = useAuth();
   const trpc = useTRPC();
   const router = useRouter();
@@ -79,7 +81,7 @@ export function PassengerAuthFlow({
   // Passenger Profile setup states (for new travelers)
   const [fullName, setFullName] = useState("");
   const [preferredSeat, setPreferredSeat] = useState<"WINDOW" | "AISLE" | "NONE">("NONE");
-  const [preferredClass, setPreferredClass] = useState<"ECONOMY" | "STANDARD" | "VIP" | "BUSINESS">("ECONOMY");
+  const [preferredClass, setPreferredClass] = useState<"ECONOMY" | "STANDARD" | "VIP">("ECONOMY");
   const [marketingOptIn, setMarketingOptIn] = useState(false);
 
   // Operator Company details states (for new operators)
@@ -94,12 +96,12 @@ export function PassengerAuthFlow({
   const updatePreferencesMutation = useMutation(
       trpc.passenger.updatePreferences.mutationOptions({
         onSuccess: () => {
-          toast.success("Profile setup complete!");
+          toast.success(t("passenger.toastProfileComplete"));
           router.push(resolvePostAuthPath("/dashboard"));
           router.refresh();
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to complete profile setup.");
+          toast.error(err.message || t("passenger.toastProfileFailed"));
           setLocalPending(false);
         },
       })
@@ -147,7 +149,7 @@ export function PassengerAuthFlow({
 
         if (res.exists) {
           if (res.role === "TRAVELER") {
-            toast.error("This identifier is registered to a passenger account. Please use a unique business credential.");
+            toast.error(t("operator.toastPassengerIdentifier"));
             return;
           }
           // Operator exists -> send sign-in OTP directly
@@ -166,14 +168,14 @@ export function PassengerAuthFlow({
 
           setDirection(1);
           setStep("otp");
-          toast.success("Verification code sent!");
+          toast.success(t("operator.toastCodeSent"));
         } else {
           // New Operator -> transition to details form
           setDirection(1);
           setStep("details");
         }
       } catch (err: any) {
-        toast.error(err.message || "Failed to check account status.");
+        toast.error(err.message || t("operator.toastCheckFailed"));
       }
     } else {
       // Passenger flow
@@ -193,15 +195,15 @@ export function PassengerAuthFlow({
     const phoneVal = method === "phone" ? identifier.trim() : operatorCollectedPhone.trim();
 
     if (!emailVal) {
-      toast.error("Please enter a valid work email address.");
+      toast.error(t("operator.toastEmailRequired"));
       return;
     }
     if (!phoneVal) {
-      toast.error("Please enter a valid phone number.");
+      toast.error(t("operator.toastPhoneRequired"));
       return;
     }
     if (!acceptTerms) {
-      toast.error("Please accept the terms and conditions to continue.");
+      toast.error(t("operator.toastTermsRequired"));
       return;
     }
 
@@ -231,9 +233,9 @@ export function PassengerAuthFlow({
 
       setDirection(1);
       setStep("otp");
-      toast.success("Verification code sent!");
+      toast.success(t("operator.toastCodeSent"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to initialize business registration.");
+      toast.error(err.message || t("operator.toastInitFailed"));
     }
   }
 
@@ -260,7 +262,7 @@ export function PassengerAuthFlow({
         }
         if (res.error) throw res.error;
 
-        toast.success(`Welcome to ${process.env["NEXT_PUBLIC_APP_NAME"] || "Moja Ride"}!`);
+        toast.success(t("operator.toastWelcome", { appName: process.env["NEXT_PUBLIC_APP_NAME"] || "Moja Ride" }));
 
         const isNewUser = new Date(res.data.user.createdAt).getTime() > Date.now() - 10000;
         if (isNewUser) {
@@ -270,15 +272,15 @@ export function PassengerAuthFlow({
         }
         router.refresh();
       } catch (err: any) {
-        let msg = "Invalid verification code.";
+        let msg = t("operator.toastInvalidCode");
         if (err && typeof err === "object") {
           const code = err.code;
           if (code === "TOO_MANY_ATTEMPTS") {
-            msg = "Too many attempts. Please request a new code later.";
+            msg = t("operator.toastTooMany");
           } else if (code === "INVALID_OTP") {
-            msg = "Invalid verification code. Please check and try again.";
+            msg = t("operator.toastInvalidOtp");
           } else if (code === "OTP_EXPIRED") {
-            msg = "Verification code has expired. Please request a new code.";
+            msg = t("operator.toastOtpExpired");
           } else if (err.message) {
             msg = err.message;
           }
@@ -303,7 +305,7 @@ export function PassengerAuthFlow({
   async function handleCompleteProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!fullName.trim() || fullName.trim().length < 2) {
-      toast.error("Please enter a valid name (at least 2 characters).");
+      toast.error(t("passenger.toastInvalidName"));
       return;
     }
 
@@ -321,7 +323,7 @@ export function PassengerAuthFlow({
         marketingOptIn,
       });
     } catch (err: any) {
-      toast.error(err.message || "Failed to update profile name.");
+      toast.error(err.message || t("passenger.toastUpdateFailed"));
       setLocalPending(false);
     }
   }
@@ -354,16 +356,16 @@ export function PassengerAuthFlow({
               {/* Header section based on step */}
               <div className="space-y-3 text-center mb-4">
                 <h1 className="font-medium text-4xl tracking-tight text-text-primary">
-                  {step === "input" && (userType === "passenger" ? "Welcome to Moja Ride" : "Business Portal")}
-                  {step === "details" && "Register Your Business"}
-                  {step === "otp" && "Verify Your Account"}
-                  {step === "profile" && "Complete Your Profile"}
+                  {step === "input" && (userType === "passenger" ? t("passenger.inputHeading") : t("operator.inputHeading"))}
+                  {step === "details" && t("operator.detailsHeading")}
+                  {step === "otp" && (userType === "passenger" ? t("passenger.otpHeading") : t("operator.otpHeading"))}
+                  {step === "profile" && t("passenger.profileHeading")}
                 </h1>
                 <p className="text-muted-foreground text-base">
-                  {step === "input" && (userType === "passenger" ? "Enter your phone number or email to continue." : "Enter your work email or phone to sign in.")}
-                  {step === "details" && "Tell us about your company to get started."}
-                  {step === "otp" && `We sent a 6-digit verification code to ${identifier}.`}
-                  {step === "profile" && "Please enter your name and preferences to complete registration."}
+                  {step === "input" && (userType === "passenger" ? t("passenger.inputDescription") : t("operator.inputDescription"))}
+                  {step === "details" && t("operator.detailsDescription")}
+                  {step === "otp" && t(userType === "passenger" ? "passenger.otpDescription" : "operator.otpDescription", { identifier })}
+                  {step === "profile" && t("passenger.profileDescription")}
                 </p>
               </div>
 
@@ -373,14 +375,14 @@ export function PassengerAuthFlow({
                     <FieldGroup className="gap-4">
                       <Field className="gap-1.5">
                         <FieldLabel htmlFor="identifier">
-                          {userType === "passenger" ? "Phone Number or Email" : "Work Email or Phone"}
+                          {userType === "passenger" ? t("passenger.inputLabel") : t("operator.inputLabel")}
                         </FieldLabel>
                         <Input
                             id="identifier"
                             type="text"
                             value={identifier}
                             onChange={(e) => setIdentifier(e.target.value)}
-                            placeholder={userType === "passenger" ? "07 00 00 00 00 or you@example.com" : "you@company.com or phone"}
+                            placeholder={userType === "passenger" ? t("passenger.inputPlaceholder") : t("operator.inputPlaceholder")}
                             required
                             disabled={isPending}
                             autoFocus
@@ -390,7 +392,7 @@ export function PassengerAuthFlow({
                       </Field>
                     </FieldGroup>
                     <Button type="submit" className="w-full" disabled={isPending || !identifier.trim()}>
-                      {isPending ? "Checking status..." : "Continue"}
+                      {isPending ? t(`${userType}.inputChecking`) : t(`${userType}.inputContinue`)}
                     </Button>
                   </form>
               )}
@@ -400,12 +402,12 @@ export function PassengerAuthFlow({
                   <form onSubmit={handleOperatorDetailsSubmit} className="flex flex-col gap-4">
                     <FieldGroup className="gap-4">
                       <Field className="gap-1.5">
-                        <FieldLabel htmlFor="companyName">Company Name</FieldLabel>
+                        <FieldLabel htmlFor="companyName">{t("operator.detailsCompanyLabel")}</FieldLabel>
                         <Input
                             id="companyName"
                             value={companyName}
                             onChange={(e) => setCompanyName(e.target.value)}
-                            placeholder="e.g. Express Transit"
+                            placeholder={t("operator.detailsCompanyPlaceholder")}
                             required
                             disabled={isPending}
                             autoFocus
@@ -415,12 +417,12 @@ export function PassengerAuthFlow({
                       </Field>
 
                       <Field className="gap-1.5">
-                        <FieldLabel htmlFor="ownerName">Your Full Name</FieldLabel>
+                        <FieldLabel htmlFor="ownerName">{t("operator.detailsOwnerLabel")}</FieldLabel>
                         <Input
                             id="ownerName"
                             value={ownerName}
                             onChange={(e) => setOwnerName(e.target.value)}
-                            placeholder="Your legal name"
+                            placeholder={t("operator.detailsOwnerPlaceholder")}
                             required
                             disabled={isPending}
                             className="h-11 px-4 w-full box-border"
@@ -431,7 +433,7 @@ export function PassengerAuthFlow({
                       {/* Conditional fields based on first step input type */}
                       {method === "email" ? (
                           <Field className="gap-1.5">
-                            <FieldLabel htmlFor="operatorPhone">Phone Number</FieldLabel>
+                            <FieldLabel htmlFor="operatorPhone">{t("operator.detailsPhoneLabel")}</FieldLabel>
                             <PhoneInput
                                 id="operatorPhone"
                                 value={operatorCollectedPhone}
@@ -444,13 +446,13 @@ export function PassengerAuthFlow({
                           </Field>
                       ) : (
                           <Field className="gap-1.5">
-                            <FieldLabel htmlFor="operatorEmail">Work Email</FieldLabel>
+                            <FieldLabel htmlFor="operatorEmail">{t("operator.detailsEmailLabel")}</FieldLabel>
                             <Input
                                 id="operatorEmail"
                                 type="email"
                                 value={operatorCollectedEmail}
                                 onChange={(e) => setOperatorCollectedEmail(e.target.value)}
-                                placeholder="you@company.com"
+                                placeholder={t("operator.detailsEmailPlaceholder")}
                                 required
                                 disabled={isPending}
                                 className="h-11 px-4 w-full box-border"
@@ -468,21 +470,25 @@ export function PassengerAuthFlow({
                         />
                         <FieldContent>
                           <FieldLabel htmlFor="terms" className="font-normal">
-                            I accept the{" "}
-                            <Link href="/terms" className="text-primary hover:underline font-medium">
-                              Terms and Conditions
-                            </Link>{" "}
-                            and{" "}
-                            <Link href="/privacy" className="text-primary hover:underline font-medium">
-                              Privacy Policy
-                            </Link>
+                            {t.rich("operator.detailsTerms", {
+                              linkTerms: (chunks) => (
+                                <Link href="/terms" className="text-primary hover:underline font-medium">
+                                  {chunks}
+                                </Link>
+                              ),
+                              linkPrivacy: (chunks) => (
+                                <Link href="/privacy" className="text-primary hover:underline font-medium">
+                                  {chunks}
+                                </Link>
+                              ),
+                            })}
                           </FieldLabel>
                         </FieldContent>
                       </Field>
                     </FieldGroup>
 
                     <Button type="submit" className="w-full" disabled={isPending}>
-                      {isPending ? "Submitting..." : "Continue"}
+                      {isPending ? t("operator.detailsSubmitting") : t("operator.detailsContinue")}
                     </Button>
 
                     <Button
@@ -495,7 +501,7 @@ export function PassengerAuthFlow({
                         }}
                         disabled={isPending}
                     >
-                      Go Back
+                      {t("operator.detailsGoBack")}
                     </Button>
                   </form>
               )}
@@ -505,7 +511,7 @@ export function PassengerAuthFlow({
                   <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
                     <FieldGroup className="gap-4">
                       <Field className="gap-1.5">
-                        <FieldLabel htmlFor="otp">Verification Code</FieldLabel>
+                        <FieldLabel htmlFor="otp">{t(`${userType}.otpLabel`)}</FieldLabel>
                         <Input
                             id="otp"
                             type="text"
@@ -514,7 +520,7 @@ export function PassengerAuthFlow({
                             maxLength={6}
                             value={otp}
                             onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                            placeholder="123456"
+                            placeholder={t(`${userType}.otpPlaceholder`)}
                             required
                             disabled={isPending}
                             className="h-11 w-full text-center font-mono text-lg tracking-[0.5em] box-border"
@@ -524,7 +530,7 @@ export function PassengerAuthFlow({
                       </Field>
                     </FieldGroup>
                     <Button type="submit" className="w-full" disabled={isPending || otp.length < 6}>
-                      {isPending ? "Verifying..." : "Verify and Sign In"}
+                      {isPending ? t(`${userType}.otpVerifying`) : t(`${userType}.otpVerify`)}
                     </Button>
                     <Button
                         type="button"
@@ -537,7 +543,7 @@ export function PassengerAuthFlow({
                         }}
                         disabled={isPending}
                     >
-                      Use a different phone or email
+                      {t(`${userType}.otpDifferent`)}
                     </Button>
                   </form>
               )}
@@ -547,13 +553,13 @@ export function PassengerAuthFlow({
                   <form onSubmit={handleCompleteProfile} className="flex flex-col gap-4">
                     <FieldGroup className="gap-4">
                       <Field className="gap-1.5">
-                        <FieldLabel htmlFor="fullName">Full Name</FieldLabel>
+                        <FieldLabel htmlFor="fullName">{t("passenger.profileNameLabel")}</FieldLabel>
                         <Input
                             id="fullName"
                             type="text"
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
-                            placeholder="e.g. John Doe"
+                            placeholder={t("passenger.profileNamePlaceholder")}
                             required
                             disabled={isPending}
                             autoFocus
@@ -563,47 +569,46 @@ export function PassengerAuthFlow({
                       </Field>
 
                       <Field className="gap-1.5">
-                        <FieldLabel htmlFor="preferredSeat">Seat Preference</FieldLabel>
+                        <FieldLabel htmlFor="preferredSeat">{t("passenger.profileSeatLabel")}</FieldLabel>
                         <Select
                             value={preferredSeat}
                             onValueChange={(val) => setPreferredSeat(val as "NONE" | "WINDOW" | "AISLE")}
                             disabled={isPending}
                         >
                           <SelectTrigger id="preferredSeat" className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
-                            <SelectValue placeholder="No preference" />
+                            <SelectValue placeholder={t("passenger.profileSeatNone")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="NONE">No preference</SelectItem>
-                            <SelectItem value="WINDOW">Window Seat</SelectItem>
-                            <SelectItem value="AISLE">Aisle Seat</SelectItem>
+                            <SelectItem value="NONE">{t("passenger.profileSeatNone")}</SelectItem>
+                            <SelectItem value="WINDOW">{t("passenger.profileSeatWindow")}</SelectItem>
+                            <SelectItem value="AISLE">{t("passenger.profileSeatAisle")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </Field>
 
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="preferredClass">Travel Class</FieldLabel>
-                        <Select
-                            value={preferredClass}
-                            onValueChange={(val) => setPreferredClass(val as "ECONOMY" | "STANDARD" | "VIP" | "BUSINESS")}
-                            disabled={isPending}
-                        >
-                          <SelectTrigger id="preferredClass" className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
-                            <SelectValue placeholder="Economy Class" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ECONOMY">Economy Class</SelectItem>
-                            <SelectItem value="STANDARD">Standard Class</SelectItem>
-                            <SelectItem value="BUSINESS">Business Class</SelectItem>
-                            <SelectItem value="VIP">VIP Class</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
+<Field className="gap-1.5">
+                         <FieldLabel htmlFor="preferredClass">{t("passenger.profileClassLabel")}</FieldLabel>
+                         <Select
+                             value={preferredClass}
+                             onValueChange={(val) => setPreferredClass(val as "ECONOMY" | "STANDARD" | "VIP")}
+                             disabled={isPending}
+                         >
+                           <SelectTrigger id="preferredClass" className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
+                             <SelectValue placeholder={t("passenger.profileClassPlaceholder")} />
+                           </SelectTrigger>
+                           <SelectContent>
+                             <SelectItem value="ECONOMY">{t("passenger.profileClassEconomy")}</SelectItem>
+                             <SelectItem value="STANDARD">{t("passenger.profileClassStandard")}</SelectItem>
+                             <SelectItem value="VIP">{t("passenger.profileClassVip")}</SelectItem>
+                           </SelectContent>
+                         </Select>
+                       </Field>
 
                       <Field orientation="horizontal" className="border-t border-border pt-4 justify-between">
                         <FieldContent>
-                          <FieldLabel htmlFor="marketing">Marketing & Promotions</FieldLabel>
+                          <FieldLabel htmlFor="marketing">{t("passenger.profileMarketingLabel")}</FieldLabel>
                           <p className="text-sm text-muted-foreground leading-normal">
-                            Receive discount codes, vouchers, and travel deal alerts.
+                            {t("passenger.profileMarketingDesc")}
                           </p>
                         </FieldContent>
                         <Switch
@@ -616,7 +621,7 @@ export function PassengerAuthFlow({
                     </FieldGroup>
 
                     <Button type="submit" className="w-full mt-2" disabled={isPending || !fullName.trim()}>
-                      Complete Registration
+                      {t("passenger.profileComplete")}
                     </Button>
                   </form>
               )}

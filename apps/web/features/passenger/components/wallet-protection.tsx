@@ -1,15 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ShieldCheck, CheckCircle2, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 
 export function WalletProtection() {
+  const t = useTranslations("passengerDashboard.wallet");
   return (
     <Card className="border-border bg-bg-surface overflow-hidden shadow-sm">
       <CardHeader className="pb-3">
         <CardTitle className="text-xs font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
           <ShieldCheck className="size-4 text-emerald-500" />
-          Wallet Protection
+          {t("protectionTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-xs">
@@ -17,18 +19,18 @@ export function WalletProtection() {
           <div className="flex gap-3">
             <CheckCircle2 className="size-4 text-emerald-500 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-text-primary block">Consolidated Treasury</span>
+              <span className="font-semibold text-text-primary block">{t("consolidatedTreasury")}</span>
               <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
-                All wallet balances are securely held in Moja's consolidated clearing treasury account.
+                {t("consolidatedTreasuryDesc")}
               </p>
             </div>
           </div>
           <div className="flex gap-3">
             <Lock className="size-4 text-emerald-500 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-text-primary block">Paystack Verified</span>
+              <span className="font-semibold text-text-primary block">{t("paystackVerifiedTitle")}</span>
               <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
-                Encrypted checkouts and instant settlements via verified SSL pipelines.
+                {t("paystackVerifiedDesc")}
               </p>
             </div>
           </div>

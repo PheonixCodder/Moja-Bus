@@ -4,8 +4,9 @@ import type { SearchOffer, SearchResponse, Amenity } from "@moja/types";
 export interface SearchFilters {
   operators: string[];
   amenities: string[];
-  departureTime: ("MORNING" | "AFTERNOON" | "EVENING")[];
+  departureTime: ("MORNING" | "AFTERNOON" | "EVENING" | "LATE_NIGHT")[];
   seatClass?: ("ECONOMY" | "STANDARD" | "VIP")[] | undefined;
+  isExpress?: boolean | undefined;
   maxPrice?: number | undefined;
 }
 
@@ -190,22 +191,13 @@ export class SearchService {
     if (ctx.filters.departureTime && ctx.filters.departureTime.length > 0) {
       offers = offers.filter((o) => {
         const hour = o.departureTime.getUTCHours();
-        if (
-          ctx.filters.departureTime?.includes("MORNING") &&
-          hour >= 5 &&
-          hour < 12
-        )
+        if (ctx.filters.departureTime?.includes("MORNING") && hour >= 5 && hour < 12)
           return true;
-        if (
-          ctx.filters.departureTime?.includes("AFTERNOON") &&
-          hour >= 12 &&
-          hour < 17
-        )
+        if (ctx.filters.departureTime?.includes("AFTERNOON") && hour >= 12 && hour < 17)
           return true;
-        if (
-          ctx.filters.departureTime?.includes("EVENING") &&
-          (hour >= 17 || hour < 5)
-        )
+        if (ctx.filters.departureTime?.includes("EVENING") && hour >= 17 && hour < 22)
+          return true;
+        if (ctx.filters.departureTime?.includes("LATE_NIGHT") && (hour >= 22 || hour < 5))
           return true;
         return false;
       });
@@ -213,6 +205,10 @@ export class SearchService {
 
     if (ctx.filters.maxPrice !== undefined) {
       offers = offers.filter((o) => o.priceXOF <= ctx.filters.maxPrice!);
+    }
+
+    if (ctx.filters.isExpress) {
+      offers = offers.filter((o) => o.isExpress);
     }
 
     // 6. Apply sorting

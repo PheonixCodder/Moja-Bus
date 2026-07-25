@@ -80,16 +80,19 @@ export function BookingCheckoutForm({
       offerId,
       seatCount: selectedSeatIds.length,
     }),
+    staleTime: 10 * 1000,
   });
 
   const savedQuery = useQuery({
     ...trpc.passenger.listSaved.queryOptions(),
     enabled: isLoggedIn,
+    staleTime: 5 * 60 * 1000,
   });
 
   const walletQuery = useQuery({
     ...trpc.passenger.getWalletBalance.queryOptions(),
     enabled: isLoggedIn,
+    staleTime: 30 * 1000,
   });
 
   const savedPassengers = savedQuery.data?.items ?? [];

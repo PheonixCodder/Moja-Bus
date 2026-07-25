@@ -1,6 +1,7 @@
 "use client";
 
 import { Building2, Wallet, Landmark } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -20,6 +21,8 @@ export function DashboardTreasuryCards({
   operatorPayables,
   passengerWallets,
 }: DashboardTreasuryCardsProps) {
+  const t = useTranslations("adminDashboard.overview.treasuryCards");
+  const currency = t("currency");
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       {/* System Liquidity */}
@@ -28,11 +31,11 @@ export function DashboardTreasuryCards({
           <div className="flex items-center gap-2">
             <Landmark className="size-4 text-emerald-600 dark:text-emerald-400" />
             <CardTitle className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-              System Liquidity (Asset)
+              {t("systemLiquidity")}
             </CardTitle>
           </div>
           <CardDescription className="text-xs">
-            Total funds held in Moja Treasury
+            {t("systemLiquidityDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -41,7 +44,7 @@ export function DashboardTreasuryCards({
               {systemLiquidity.toLocaleString()}
             </span>
             <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-              XOF
+              {currency}
             </span>
           </div>
         </CardContent>
@@ -53,11 +56,11 @@ export function DashboardTreasuryCards({
           <div className="flex items-center gap-2">
             <Building2 className="size-4 text-amber-600 dark:text-amber-400" />
             <CardTitle className="text-sm font-medium text-amber-800 dark:text-amber-300">
-              Operator Payables (Liability)
+              {t("operatorPayables")}
             </CardTitle>
           </div>
           <CardDescription className="text-xs">
-            Total funds owed to bus operators
+            {t("operatorPayablesDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -66,7 +69,7 @@ export function DashboardTreasuryCards({
               {operatorPayables.toLocaleString()}
             </span>
             <span className="text-sm font-medium text-amber-700 dark:text-amber-400">
-              XOF
+              {currency}
             </span>
           </div>
         </CardContent>
@@ -78,11 +81,11 @@ export function DashboardTreasuryCards({
           <div className="flex items-center gap-2">
             <Wallet className="size-4 text-blue-600 dark:text-blue-400" />
             <CardTitle className="text-sm font-medium text-blue-800 dark:text-blue-300">
-              Passenger Wallets (Liability)
+              {t("passengerWallets")}
             </CardTitle>
           </div>
           <CardDescription className="text-xs">
-            Total funds in passenger top-ups
+            {t("passengerWalletsDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -91,7 +94,7 @@ export function DashboardTreasuryCards({
               {passengerWallets.toLocaleString()}
             </span>
             <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
-              XOF
+              {currency}
             </span>
           </div>
         </CardContent>

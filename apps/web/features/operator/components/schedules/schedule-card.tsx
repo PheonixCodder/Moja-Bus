@@ -10,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Spinner } from "@moja/ui/components/ui/spinner";
@@ -39,6 +40,8 @@ export function ScheduleCard({
   onRetire: (s: ScheduleListItem) => void;
 }) {
   const cal = schedule.calendar;
+  const tc = useTranslations("common");
+  const t = useTranslations("operatorDashboard.schedules.card");
   const activeDays = cal
     ? DAYS.filter((d) => cal[d.key as keyof typeof cal]).map((d) => d.label)
     : [];
@@ -49,7 +52,7 @@ export function ScheduleCard({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-sm font-bold text-foreground truncate">
-              {schedule.name ?? schedule.route?.name ?? "Unnamed Schedule"}
+              {schedule.name ?? schedule.route?.name ?? t("unnamed")}
             </p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-xs text-muted-foreground">
@@ -71,7 +74,7 @@ export function ScheduleCard({
                 : "bg-slate-50 text-slate-500 border-slate-200",
             )}
           >
-            {schedule.isActive ? "Active" : "Inactive"}
+            {schedule.isActive ? t("active") : t("inactive")}
           </span>
         </div>
 
@@ -98,16 +101,15 @@ export function ScheduleCard({
             href={`/dashboard/operator/trips?scheduleId=${schedule.id}`}
             className="text-[11px] text-muted-foreground hover:text-primary ml-auto"
           >
-            {schedule.futureTripsInWindow ?? 0} upcoming ·{" "}
-            {schedule._count?.trips ?? 0} total
+            {t("upcomingAndTotal", { upcoming: schedule.futureTripsInWindow ?? 0, total: schedule._count?.trips ?? 0 })}
           </Link>
         </div>
 
         {!schedule.preferredBus || schedule.preferredBus.status !== "ACTIVE" ? (
           <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-md px-2 py-1.5">
             {schedule.preferredBus
-              ? `Preferred bus ${schedule.preferredBus.registrationPlate} is ${schedule.preferredBus.status.toLowerCase()} — assign an active bus before generating trips.`
-              : "No preferred bus assigned — trip generation is blocked until one is set."}
+              ? t("busInactiveWarning", { plate: schedule.preferredBus.registrationPlate, status: schedule.preferredBus.status.toLowerCase() })
+              : t("noBusWarning")}
           </p>
         ) : null}
 
@@ -120,14 +122,14 @@ export function ScheduleCard({
                 className="h-7 px-2 text-[10px] text-muted-foreground hover:text-primary hover:bg-primary/5 font-semibold gap-1"
                 onClick={() => onExtend(schedule)}
                 disabled={extending}
-                aria-label="Extend trip window"
+                aria-label={t("extendAria")}
               >
                 {extending ? (
                   <Spinner className="size-3" />
                 ) : (
                   <RefreshCw className="size-3" />
                 )}
-                Extend
+                {t("extend")}
               </Button>
             )}
             {canUpdate && (
@@ -136,10 +138,10 @@ export function ScheduleCard({
                 variant="ghost"
                 className="h-7 px-2 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted font-semibold gap-1"
                 onClick={() => onEdit(schedule)}
-                aria-label="Edit schedule"
+                aria-label={t("editAria")}
               >
                 <Pencil className="size-3" />
-                Edit
+                {tc("edit")}
               </Button>
             )}
             {canUpdate && schedule.isActive && (
@@ -148,10 +150,10 @@ export function ScheduleCard({
                 variant="ghost"
                 className="h-7 px-2 text-[10px] text-muted-foreground hover:text-amber-700 hover:bg-amber-50 font-semibold gap-1"
                 onClick={() => onRetire(schedule)}
-                aria-label="Retire schedule"
+                aria-label={t("retireAria")}
               >
                 <Power className="size-3" />
-                Retire
+                {t("retire")}
               </Button>
             )}
             {canDelete && (
@@ -160,7 +162,7 @@ export function ScheduleCard({
                 variant="ghost"
                 className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
                 onClick={() => onDelete(schedule)}
-                aria-label="Delete schedule"
+                aria-label={t("deleteAria")}
               >
                 <Trash2 className="size-3.5" />
               </Button>

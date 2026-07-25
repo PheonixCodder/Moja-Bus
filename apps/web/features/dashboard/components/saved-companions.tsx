@@ -1,5 +1,6 @@
 import { Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { cn } from "@moja/ui/lib/utils";
@@ -16,14 +17,16 @@ interface SavedCompanionsProps {
   companions: Companion[];
 }
 
-export function SavedCompanions({ companions }: SavedCompanionsProps) {
+export async function SavedCompanions({ companions }: SavedCompanionsProps) {
+  const t = await getTranslations("passengerDashboard.savedPassengers");
+
   return (
     <Card className="border-border bg-card shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <div className="space-y-1">
-          <CardTitle className="text-sm font-bold text-foreground">Saved Passengers</CardTitle>
+          <CardTitle className="text-sm font-bold text-foreground">{t("title")}</CardTitle>
           <CardDescription className="text-[10px] text-muted-foreground">
-            Quick access contacts for travel booking checkout.
+            {t("quickDescription")}
           </CardDescription>
         </div>
         <Link
@@ -40,7 +43,7 @@ export function SavedCompanions({ companions }: SavedCompanionsProps) {
         {companions.length === 0 ? (
           <div className="text-center py-4 border border-dashed rounded-lg border-muted">
             <Users className="size-5 mx-auto text-muted-foreground/60 mb-1" />
-            <p className="text-[10px] text-muted-foreground">No contacts saved yet.</p>
+            <p className="text-[10px] text-muted-foreground">{t("noContacts")}</p>
           </div>
         ) : (
           <div className="space-y-2">

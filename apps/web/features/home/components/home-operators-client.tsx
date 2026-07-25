@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { Bus, Route, Star, ArrowRight } from "lucide-react";
@@ -46,6 +47,7 @@ const DEMO_OPERATORS = [
 ];
 
 export function HomeOperatorsClient() {
+  const t = useTranslations("operators");
   const trpc = useTRPC();
   const { data: operators } = useQuery(trpc.public.listOperators.queryOptions());
 
@@ -62,7 +64,7 @@ export function HomeOperatorsClient() {
             .join("")
             .slice(0, 3)
             .toUpperCase(),
-          description: op.description ?? "Verified passenger transport operator on Moja-Bus.",
+          description: op.description ?? t("fallbackDescription"),
           rating: 4.8,
           routes: op._count.routes,
           fleet: op._count.fleet,
@@ -107,7 +109,7 @@ export function HomeOperatorsClient() {
                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
                     <span>{op.rating}</span>
                   </div>
-                  <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Partner</span>
+                  <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{t("partner")}</span>
                 </div>
               </div>
             </div>
@@ -122,7 +124,7 @@ export function HomeOperatorsClient() {
             {/* Hub Cities list */}
             {op.cityNames.length > 0 && (
               <div className="mb-5 pb-5 border-b border-slate-100">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">Key Hubs</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">{t("keyHubs")}</span>
                 <div className="flex flex-wrap gap-1.5">
                   {op.cityNames.slice(0, 3).map((city) => (
                     <span
@@ -141,16 +143,16 @@ export function HomeOperatorsClient() {
               <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <Route className="h-4 w-4 text-slate-400" />
-                  {op.routes} routes
+                  {t("routes", { count: op.routes })}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Bus className="h-4 w-4 text-slate-400" />
-                  {op.fleet} buses
+                  {t("buses", { count: op.fleet })}
                 </span>
               </div>
               
               <span className="text-xs font-extrabold text-[#ee237c] flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
-                Schedules <ArrowRight className="h-3.5 w-3.5" />
+                {t("schedules")} <ArrowRight className="h-3.5 w-3.5" />
               </span>
             </div>
           </div>

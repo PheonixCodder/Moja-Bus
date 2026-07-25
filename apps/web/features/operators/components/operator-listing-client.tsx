@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { Bus, Route, MapPin, Star, ArrowRight } from "lucide-react";
 
 export function OperatorListingClient() {
+  const t = useTranslations("operators");
   const trpc = useTRPC();
   const { data: operators, isLoading } = useQuery(
     trpc.public.listOperators.queryOptions()
@@ -26,15 +28,15 @@ export function OperatorListingClient() {
     return (
       <div className="text-center py-24">
         <Bus className="h-16 w-16 text-slate-300 mx-auto mb-6" />
-        <h3 className="text-xl font-bold text-slate-700 mb-2">No operators yet</h3>
+        <h3 className="text-xl font-bold text-slate-700 mb-2">{t("emptyTitle")}</h3>
         <p className="text-slate-400 mb-8">
-          Be the first to join Moja Ride as an operator.
+          {t("emptyDesc")}
         </p>
         <Link
           href="/dashboard/operator/onboarding"
           className="inline-flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all"
         >
-          Get started <ArrowRight className="h-4 w-4" />
+          {t("emptyButton")} <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
     );
@@ -85,11 +87,11 @@ export function OperatorListingClient() {
             <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
               <span className="flex items-center gap-1.5">
                 <Route className="h-3.5 w-3.5 text-[#ee237c]/60" />
-                {op._count.routes} routes
+                {t("routes", { count: op._count.routes })}
               </span>
               <span className="flex items-center gap-1.5">
                 <Bus className="h-3.5 w-3.5 text-[#ee237c]/60" />
-                {op._count.fleet} buses
+                {t("buses", { count: op._count.fleet })}
               </span>
             </div>
 
@@ -109,7 +111,7 @@ export function OperatorListingClient() {
             )}
 
             <div className="mt-auto flex items-center gap-2 text-[#ee237c] font-bold text-sm group-hover:gap-4 transition-all">
-              <span>View operator</span>
+              <span>{t("viewOperator")}</span>
               <ArrowRight className="h-4 w-4" />
             </div>
           </Link>

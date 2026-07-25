@@ -92,29 +92,37 @@ export class TripSearchReadRepository {
 
     const activeHoldsThreshold = new Date();
 
-    const occupiedCounts = await this.prisma.booking.groupBy({
-      by: ["tripId"],
-      where: {
-        OR: candidateTrips.map((trip) => ({
-          tripId: trip.id,
-          boardingStopOrder: { lt: trip.searchDestinationOrder },
-          dropoffStopOrder: { gt: trip.searchOriginOrder },
-          OR: [
-            { status: "CONFIRMED" },
-            {
-              status: "PENDING_PAYMENT",
-              holdExpiresAt: { gt: activeHoldsThreshold },
-            },
-          ],
-        })),
-      },
-      _count: {
-        seatId: true,
-      },
-    });
+    const tripConditions = candidateTrips.map((trip) => ({
+      tripId: trip.id,
+      boardingStopOrder: { lt: trip.searchDestinationOrder },
+      dropoffStopOrder: { gt: trip.searchOriginOrder },
+    }));
 
-    return new Map<string, number>(
-      occupiedCounts.map((c) => [c.tripId, c._count.seatId]),
-    );
+    const [confirmedCounts, pendingCounts] = await Promise.all([
+      this.prisma.booking.groupBy({
+        by: ["tripId"],
+        where: { OR: tripConditions, status: "CONFIRMED" },
+        _count: { seatId: true },
+      }),
+      this.prisma.booking.groupBy({
+        by: ["tripId"],
+        where: {
+          OR: tripConditions,
+          status: "PENDING_PAYMENT",
+          holdExpiresAt: { gt: activeHoldsThreshold },
+        },
+        _count: { seatId: true },
+      }),
+    ]);
+
+    const occupancy = new Map<string, number>();
+    for (const c of confirmedCounts) {
+      occupancy.set(c.tripId, (occupancy.get(c.tripId) ?? 0) + c._count.seatId);
+    }
+    for (const c of pendingCounts) {
+      occupancy.set(c.tripId, (occupancy.get(c.tripId) ?? 0) + c._count.seatId);
+    }
+
+    return occupancy;
   }
 }

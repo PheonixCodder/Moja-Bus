@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PassengerAuthFlow } from "@/features/auth/components/passenger-auth-flow";
 import { Button } from "@moja/ui/components/ui/button";
 import { authClient } from "@/lib/auth-client";
@@ -19,6 +20,8 @@ export function LoginView({
   initialUser,
   callbackUrl,
 }: LoginViewProps) {
+  const t = useTranslations("auth.passenger");
+  const ta = useTranslations("auth");
   const isBookingReturn =
     typeof callbackUrl === "string" && callbackUrl.startsWith("/search");
 
@@ -27,16 +30,16 @@ export function LoginView({
       {/* Switch to Operator Link (Absolute top right) */}
       <div className="absolute top-5 flex w-full justify-end px-10 right-0">
         <div className="text-muted-foreground text-sm">
-          Are you a transport operator?{" "}
+          {t("loginOperatorLink")}{" "}
           <Link href="/operator/login" className="text-foreground font-semibold hover:underline">
-            Business Portal
+            {t("loginOperatorPortal")}
           </Link>
         </div>
       </div>
 
       {isBookingReturn ? (
         <p className="text-center text-sm text-muted-foreground -mb-4">
-          Sign in to continue booking.
+          {t("bookingBanner")}
         </p>
       ) : null}
 
@@ -49,10 +52,10 @@ export function LoginView({
 
       {/* Footer copyright info (Absolute bottom) */}
       <div className="absolute bottom-5 flex w-full justify-between px-10 left-0 right-0 text-sm text-muted-foreground">
-        <span>© 2026 Moja Ride. All rights reserved.</span>
+        <span>{ta("copyright")}</span>
         <div className="flex items-center gap-1 text-sm font-bold">
           <Globe className="size-4 text-muted-foreground" />
-          ENG
+          {ta("eng")}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Input } from "@moja/ui/components/ui/input";
 import type {
   FareDraft,
@@ -16,35 +17,34 @@ export function PricingStep({
   fares: FareDraft[];
   onChange: (fares: FareDraft[]) => void;
 }) {
-  function getFare(from: number, to: number, seatClass: FareDraft["seatClass"]) {
+  const t = useTranslations("operatorDashboard.schedules");
+
+  function getFare(from: number, to: number): FareDraft | undefined {
     return fares.find(
       (f) =>
         f.fromStopOrder === from &&
-        f.toStopOrder === to &&
-        f.seatClass === seatClass,
+        f.toStopOrder === to,
     );
   }
 
   function upsertFare(
     from: number,
     to: number,
-    patch: Partial<FareDraft> & { seatClass: FareDraft["seatClass"] },
+    patch: Partial<FareDraft>,
   ) {
     const existing = fares.filter(
       (f) =>
         !(
           f.fromStopOrder === from &&
-          f.toStopOrder === to &&
-          f.seatClass === patch.seatClass
+          f.toStopOrder === to
         ),
     );
-    const prev = getFare(from, to, patch.seatClass);
+    const prev = getFare(from, to);
     const next: FareDraft = {
       fromStopOrder: from,
       toStopOrder: to,
       priceXOF: patch.priceXOF ?? prev?.priceXOF ?? 0,
       type: patch.type ?? prev?.type ?? "FIXED",
-      seatClass: patch.seatClass,
     };
     if (next.priceXOF <= 0 && patch.priceXOF !== undefined) {
       onChange(existing);
@@ -56,7 +56,7 @@ export function PricingStep({
   if (stops.length < 2) {
     return (
       <div className="text-center py-10 text-sm text-muted-foreground">
-        At least 2 stops are required to configure pricing.
+        {t("wizard.minStopsRequired")}
       </div>
     );
   }
@@ -76,14 +76,13 @@ export function PricingStep({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-foreground">Segment pricing</h3>
+        <h3 className="text-sm font-bold text-foreground">{t("wizard.segmentPricingTitle")}</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Set ticket fares (in FCFA). At least one origin→destination fare is
-          required.
+          {t("wizard.segmentPricingDesc")}
         </p>
         {!hasFullRoute && (
           <p className="text-xs text-amber-700 mt-1">
-            Add a full-route fare (first stop → last stop) before publishing.
+            {t("wizard.segmentPricingFullRoute")}
           </p>
         )}
       </div>
@@ -92,42 +91,32 @@ export function PricingStep({
         <div className="grid bg-slate-50 border-b border-border px-4 py-2.5">
           <div
             className="grid gap-2"
-            style={{ gridTemplateColumns: "1fr 1fr auto auto auto" }}
+            style={{ gridTemplateColumns: "1fr 1fr auto auto" }}
           >
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              From
+              {t("wizard.from")}
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              To
+              {t("wizard.to")}
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Type
-            </span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Class
+              {t("wizard.type")}
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground w-28">
-              Fare (FCFA)
+              {t("wizard.fare")}
             </span>
           </div>
         </div>
 
         <div className="divide-y divide-border">
           {segmentPairs.map(([from, to]) => {
-            const seatClass: FareDraft["seatClass"] =
-              getFare(from.order, to.order, "ECONOMY")?.seatClass ??
-              getFare(from.order, to.order, "STANDARD")?.seatClass ??
-              getFare(from.order, to.order, "VIP")?.seatClass ??
-              "ECONOMY";
-            const fare =
-              getFare(from.order, to.order, seatClass) ??
-              getFare(from.order, to.order, "ECONOMY");
+            const fare = getFare(from.order, to.order);
 
             return (
               <div
                 key={`${from.order}-${to.order}`}
                 className="grid gap-2 px-4 py-3 items-center hover:bg-slate-50/50 transition-colors"
-                style={{ gridTemplateColumns: "1fr 1fr auto auto auto" }}
+                style={{ gridTemplateColumns: "1fr 1fr auto auto" }}
               >
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-foreground truncate">
@@ -146,65 +135,30 @@ export function PricingStep({
                 </div>
                 <div className="w-24">
                   <label className="sr-only" htmlFor={`type-${from.order}-${to.order}`}>
-                    Fare type
+                    {t("wizard.fareType")}
                   </label>
                   <select
                     id={`type-${from.order}-${to.order}`}
                     value={fare?.type ?? "FIXED"}
                     onChange={(e) =>
                       upsertFare(from.order, to.order, {
-                        seatClass: fare?.seatClass ?? "ECONOMY",
                         type: e.target.value as FareDraft["type"],
                         priceXOF: fare?.priceXOF ?? 0,
                       })
                     }
                     className="w-full h-8 text-xs border border-input rounded-md bg-background px-1"
                   >
-                    <option value="FIXED">Fixed</option>
-                    <option value="PROMO">Promo</option>
-                    <option value="HOLIDAY_SURGE">Holiday Surge</option>
-                    <option value="EARLY_BIRD">Early Bird</option>
-                  </select>
-                </div>
-                <div className="w-24">
-                  <label className="sr-only" htmlFor={`class-${from.order}-${to.order}`}>
-                    Seat class
-                  </label>
-                  <select
-                    id={`class-${from.order}-${to.order}`}
-                    value={fare?.seatClass ?? "ECONOMY"}
-                    onChange={(e) => {
-                      const nextClass = e.target.value as FareDraft["seatClass"];
-                      const without = fares.filter(
-                        (f) =>
-                          !(
-                            f.fromStopOrder === from.order &&
-                            f.toStopOrder === to.order
-                          ),
-                      );
-                      onChange([
-                        ...without,
-                        {
-                          fromStopOrder: from.order,
-                          toStopOrder: to.order,
-                          priceXOF: fare?.priceXOF ?? 0,
-                          type: fare?.type ?? "FIXED",
-                          seatClass: nextClass,
-                        },
-                      ]);
-                    }}
-                    className="w-full h-8 text-xs border border-input rounded-md bg-background px-1"
-                  >
-                    <option value="ECONOMY">Economy</option>
-                    <option value="STANDARD">Standard</option>
-                    <option value="VIP">VIP</option>
+                    <option value="FIXED">{t("wizard.fareFixed")}</option>
+                    <option value="PROMO">{t("wizard.farePromo")}</option>
+                    <option value="HOLIDAY_SURGE">{t("wizard.fareHolidaySurge")}</option>
+                    <option value="EARLY_BIRD">{t("wizard.fareEarlyBird")}</option>
                   </select>
                 </div>
                 <div className="w-28">
                   <Input
                     type="number"
                     min={1}
-                    placeholder="0"
+                    placeholder={t("wizard.farePlaceholder")}
                     value={fare?.priceXOF || ""}
                     onChange={(e) => {
                       const parsed = parseInt(
@@ -212,13 +166,12 @@ export function PricingStep({
                         10,
                       );
                       upsertFare(from.order, to.order, {
-                        seatClass: fare?.seatClass ?? "ECONOMY",
                         type: fare?.type ?? "FIXED",
                         priceXOF: Number.isNaN(parsed) ? 0 : parsed,
                       });
                     }}
                     className="h-8 text-sm text-right font-mono"
-                    aria-label={`Fare ${from.name} to ${to.name}`}
+                    aria-label={t("wizard.fareAria", { fromName: from.name, toName: to.name })}
                   />
                 </div>
               </div>
@@ -228,8 +181,7 @@ export function PricingStep({
       </div>
 
       <p className="text-[11px] text-muted-foreground">
-        Leave a field at 0 to omit that segment. All prices are in West African
-        CFA franc (FCFA).
+        {t("wizard.segmentPricingFooter")}
       </p>
     </div>
   );

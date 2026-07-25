@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,6 +16,7 @@ import {
 } from "recharts";
 
 export function RevenueAnalyticsChart({ timeSeries, totalNet }: { timeSeries: any[]; totalNet: number }) {
+  const t = useTranslations("operatorDashboard.revenue.chart");
   const data = useMemo(() => {
     return timeSeries.map((d) => ({
       ...d,
@@ -25,16 +27,16 @@ export function RevenueAnalyticsChart({ timeSeries, totalNet }: { timeSeries: an
   return (
     <div className="bg-white rounded-xl border shadow-sm p-6">
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-slate-900">Net Earnings Trend</h3>
+        <h3 className="text-sm font-semibold text-slate-900">{t("title")}</h3>
         <p className="text-sm text-slate-500">
-          Showing daily net earnings for the selected period.
+          {t("description")}
         </p>
       </div>
 
       <div className="h-[300px] w-full">
         {data.length === 0 ? (
           <div className="h-full w-full flex items-center justify-center text-sm text-slate-500 bg-slate-50/50 rounded-lg border border-dashed">
-            No data for this period
+            {t("noData")}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
@@ -73,7 +75,7 @@ export function RevenueAnalyticsChart({ timeSeries, totalNet }: { timeSeries: an
                         <p className="text-sm font-medium text-slate-900 mb-2">{label}</p>
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="text-sm text-slate-500">Net Earnings:</span>
+                          <span className="text-sm text-slate-500">{t("tooltipLabel")}</span>
                           <span className="text-sm font-semibold text-emerald-600">
                             {formatXOF(payload[0]?.value as number)}
                           </span>

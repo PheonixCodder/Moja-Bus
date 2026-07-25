@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations, useLocale } from "next-intl";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import {
@@ -17,40 +18,41 @@ interface TravelStatsChartProps {
   }>;
 }
 
-const chartConfig = {
-  trips: {
-    label: "Trips Taken",
-    color: "#ee237c",
-  },
-  spent: {
-    label: "Amount Spent (XOF)",
-    color: "var(--color-muted-foreground)",
-  },
-} satisfies ChartConfig;
-
 export function TravelStatsChart({ data }: TravelStatsChartProps) {
-  // If no trips, show a beautiful visual baseline
+  const t = useTranslations("passengerDashboard.tickets");
+  const locale = useLocale();
+
+  const chartConfig = {
+    trips: {
+      label: t("chartTripsLabel"),
+      color: "#ee237c",
+    },
+    spent: {
+      label: t("chartSpentLabel"),
+      color: "var(--color-muted-foreground)",
+    },
+  } satisfies ChartConfig;
+
   const hasData = data.some((item) => item.trips > 0);
   const chartData = hasData
     ? data
     : data.map((item, idx) => ({
         ...item,
-        // Mock a subtle baseline curve so the dashboard doesn't look empty for new signups
         trips: [2, 1, 3, 2, 4, 3][idx] || 0,
         spent: ([2, 1, 3, 2, 4, 3][idx] || 0) * 7500,
       }));
 
   const formatCurrency = (val: number) => {
-    return `${val.toLocaleString("en-US")} XOF`;
+    return `${val.toLocaleString(locale)} XOF`;
   };
 
   return (
     <Card className="border-border bg-card shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div className="space-y-1">
-          <CardTitle className="text-base font-bold text-foreground">Travel Insights</CardTitle>
+          <CardTitle className="text-base font-bold text-foreground">{t("chartTitle")}</CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
-            Monthly summary of your journeys and spending.
+            {t("chartDescription")}
           </CardDescription>
         </div>
       </CardHeader>
@@ -86,7 +88,7 @@ export function TravelStatsChart({ data }: TravelStatsChartProps) {
                   formatter={(value, name) => (
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-xs leading-none">
-                        {name === "spent" ? formatCurrency(Number(value)) : `${value} Trips`}
+                        {name === "spent" ? formatCurrency(Number(value)) : t("chartTooltipTrips", { value: String(value) })}
                       </span>
                     </div>
                   )}

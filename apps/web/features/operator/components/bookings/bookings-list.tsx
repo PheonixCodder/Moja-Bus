@@ -1,6 +1,7 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import { useTRPC } from "@/trpc/client";
@@ -39,6 +40,7 @@ export function BookingsList({
   onViewDetail: (booking: OperatorBookingListItem) => void;
   checkingInId: string | null;
 }) {
+  const t = useTranslations("operatorDashboard.bookings");
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.operator.listBookings.queryOptions(listInput),
@@ -50,7 +52,7 @@ export function BookingsList({
     return (
       <div className="text-center py-16 text-text-secondary text-sm">
         <CalendarDays className="size-10 mx-auto mb-3 text-text-muted" />
-        <p>No bookings found for this period.</p>
+        <p>{t("emptyText")}</p>
       </div>
     );
   }
@@ -58,8 +60,8 @@ export function BookingsList({
   return (
     <div className="space-y-3">
       <p className="text-xs text-text-muted">
-        {data.total} booking(s)
-        {pageCount > 1 ? ` · page ${page} of ${pageCount}` : ""}
+        {t("results", { total: data.total })}
+        {pageCount > 1 ? ` · ${t("pagination.pageOf", { page, total: pageCount })}` : ""}
       </p>
       {data.items.map((booking) => (
         <BookingRow
@@ -78,10 +80,10 @@ export function BookingsList({
             disabled={page <= 1}
             onClick={() => onPageChange(Math.max(1, page - 1))}
           >
-            Previous
+            {t("pagination.previous")}
           </Button>
           <span className="text-xs text-muted-foreground">
-            Page {page} of {pageCount}
+            {t("pagination.pageOf", { page, total: pageCount })}
           </span>
           <Button
             variant="outline"
@@ -89,7 +91,7 @@ export function BookingsList({
             disabled={page >= pageCount}
             onClick={() => onPageChange(Math.min(pageCount, page + 1))}
           >
-            Next
+            {t("pagination.next")}
           </Button>
         </div>
       ) : null}

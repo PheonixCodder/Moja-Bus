@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Plane, Calendar, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { CityAutocompleteField, type CityValue } from "@/features/search/components/city-autocomplete-field";
@@ -35,6 +36,7 @@ export interface HeroSearchBarProps {
 
 export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarProps = {}) {
   const router = useRouter();
+  const t = useTranslations("landing.hero");
 
   const [origin, setOrigin] = useState<CityValue>({ id: "", text: "" });
   const [destination, setDestination] = useState<CityValue>({ id: "", text: "" });
@@ -51,15 +53,15 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
     const destVal = destination.id || destination.text.trim();
 
     if (!originVal) {
-      toast.error("Please select a departure city");
+      toast.error(t("validation.noOrigin"));
       return;
     }
     if (!destVal) {
-      toast.error("Please select a destination city");
+      toast.error(t("validation.noDestination"));
       return;
     }
     if (originVal === destVal) {
-      toast.error("Origin and destination cannot be the same");
+      toast.error(t("validation.sameCity"));
       return;
     }
     const params = new URLSearchParams({
@@ -77,9 +79,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
         <div className="flex flex-col md:flex-row gap-4 items-end">
           {/* From */}
           <div className="flex-1 w-full">
-            <label className="block text-sm font-bold text-slate-900 mb-2">From</label>
+            <label className="block text-sm font-bold text-slate-900 mb-2">{t("from")}</label>
             <CityAutocompleteField
-              placeholder="Departure city"
+              placeholder={t("departurePlaceholder")}
               value={origin}
               onChange={setOrigin}
               hideIcon={true}
@@ -89,9 +91,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
 
           {/* To */}
           <div className="flex-1 w-full">
-            <label className="block text-sm font-bold text-slate-900 mb-2">Destination</label>
+            <label className="block text-sm font-bold text-slate-900 mb-2">{t("to")}</label>
             <CityAutocompleteField
-              placeholder="Destination city"
+              placeholder={t("destinationPlaceholder")}
               value={destination}
               onChange={setDestination}
               hideIcon={true}
@@ -101,7 +103,7 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
 
           {/* Date */}
           <div className="w-full md:w-[220px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">Dates</label>
+            <label className="block text-sm font-bold text-slate-900 mb-2">{t("date")}</label>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger
                 render={
@@ -113,7 +115,7 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
               >
                 <Calendar className="w-4 h-4 text-slate-500 mr-2 shrink-0 pointer-events-none" />
                 <span className="flex-1 truncate">
-                  {date ? format(parseLocalDate(date)!, "PPP") : "Pick a date"}
+                  {date ? format(parseLocalDate(date)!, "PPP") : t("pickDate")}
                 </span>
                 <ChevronDown className="w-4 h-4 text-slate-500 ml-2 shrink-0 pointer-events-none" />
               </PopoverTrigger>
@@ -135,18 +137,18 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
 
           {/* Passengers */}
           <div className="w-full md:w-[130px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">Guests</label>
+            <label className="block text-sm font-bold text-slate-900 mb-2">{t("passengers")}</label>
             <Select
               value={String(travelers)}
               onValueChange={(val) => setTravelers(Number(val))}
             >
               <SelectTrigger className="w-full h-[48px]! px-4 rounded-lg border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none">
-                <SelectValue placeholder="1 Guest" />
+                <SelectValue placeholder={t("guest", { count: 1 })} />
               </SelectTrigger>
               <SelectContent>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                   <SelectItem className={"h-12!"} key={n} value={String(n)}>
-                    {n} {n === 1 ? "Guest" : "Guests"}
+                    {n === 1 ? t("guest", { count: n }) : t("guests", { count: n })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -159,7 +161,7 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
               type="submit"
               className="w-full md:w-auto h-12 px-8 rounded-xl bg-[#ee237c] text-white font-bold text-sm hover:bg-[#c71d65] hover:shadow-lg transition-all flex items-center justify-center border-0"
             >
-              Search Trips
+              {t("search")}
               <Plane className="w-4 h-4 ml-2" />
             </Button>
           </div>
@@ -167,7 +169,7 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
 
         {/* Popular destinations */}
         <div className="flex flex-wrap items-center gap-2 mt-5">
-          <span className="text-xs text-slate-500 font-medium">Popular:</span>
+          <span className="text-xs text-slate-500 font-medium">{t("popular")}</span>
           {POPULAR.map((dest) => (
             <button
               key={dest}

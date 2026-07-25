@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, ChevronDown, LogOut,
@@ -41,6 +42,7 @@ interface HomeHeaderProps {
 }
 
 export function HomeHeader({ user }: HomeHeaderProps) {
+  const t = useTranslations("nav");
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [destOpen, setDestOpen] = useState(false);
@@ -125,7 +127,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
                   >
                   <MapPin className="w-4 h-4" />
-                  Popular Routes
+                  {t("popularRoutes")}
                   <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", destOpen && "rotate-180")} />
                 </button>
 
@@ -139,7 +141,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                       className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[440px] bg-white border border-slate-100 rounded-3xl shadow-xl overflow-hidden"
                     >
                       <div className="p-5">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 mb-3">Popular Routes</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 mb-3">{t("popularRoutes")}</p>
                         <div className="grid grid-cols-2 gap-x-6 gap-y-1">
                           {POPULAR_ROUTES.map((r) => (
                             <Link
@@ -161,7 +163,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                             href="/search"
                             className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-[#ee237c]/5 text-[#ee237c] transition-colors text-sm font-bold"
                           >
-                            View all routes
+                            {t("viewAllRoutes")}
                             <span>→</span>
                           </Link>
                         </div>
@@ -175,14 +177,14 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                 href="/blog"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
               >
-                Blog
+                {t("blog")}
               </Link>
               <Link
                 href="/contact"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
               >
                 <HelpCircle className="w-4 h-4" />
-                Contact
+                {t("contact")}
               </Link>
             </div>
           </div>
@@ -223,19 +225,19 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                     <div className="flex flex-col gap-1">
                       <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors">
                         <LayoutDashboard className="h-4 w-4 text-slate-400" />
-                        <span className="font-medium text-sm">Dashboard</span>
+                        <span className="font-medium text-sm">{t("dashboard")}</span>
                       </Link>
                       <Link href="/dashboard/bookings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors">
                         <Ticket className="h-4 w-4 text-slate-400" />
-                        <span className="font-medium text-sm">Bookings</span>
+                        <span className="font-medium text-sm">{t("bookings")}</span>
                       </Link>
                       <Link href="/dashboard/passengers" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors">
                         <Users className="h-4 w-4 text-slate-400" />
-                        <span className="font-medium text-sm">Passengers</span>
+                        <span className="font-medium text-sm">{t("passengers")}</span>
                       </Link>
                       <Link href="/dashboard/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors">
                         <Settings className="h-4 w-4 text-slate-400" />
-                        <span className="font-medium text-sm">Settings</span>
+                        <span className="font-medium text-sm">{t("settings")}</span>
                       </Link>
                     </div>
                     <div className="h-px bg-slate-100 my-2" />
@@ -245,7 +247,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                         className="flex items-center gap-3 px-3 py-2.5 w-full text-left rounded-xl hover:bg-red-50 text-red-600 transition-colors"
                       >
                         <LogOut className="h-4 w-4" />
-                        <span className="font-medium text-sm">Log out</span>
+                        <span className="font-medium text-sm">{t("logout")}</span>
                       </button>
                     </div>
                   </PopoverContent>
@@ -256,13 +258,13 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                     href="/login"
                     className="px-5 py-2 rounded-full text-sm font-semibold bg-[#ee237c] text-white hover:bg-[#c71d65] hover:shadow-md transition-all shadow-sm"
                   >
-                    Log in
+                    {t("login")}
                   </Link>
                   <Link
                     href="/login"
                     className="px-5 py-2 rounded-full text-sm font-semibold bg-[#ee237c] text-white hover:bg-[#c71d65] hover:shadow-md transition-all shadow-sm"
                   >
-                    Sign up
+                    {t("signup")}
                   </Link>
                 </div>
               )}
@@ -307,14 +309,14 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                   className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors"
                 >
                   <MapPin className="w-5 h-5 text-slate-400" />
-                  Explore Destinations
+                  {t("exploreDestinations")}
                 </Link>
                 <Link
                   href="/help"
                   className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors"
                 >
                   <HelpCircle className="w-5 h-5 text-slate-400" />
-                  Help & Support
+                  {t("helpSupport")}
                 </Link>
 
                 <div className="h-px bg-slate-100 my-1" />
@@ -323,26 +325,26 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                   <>
                     <Link href="/dashboard" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors">
                       <LayoutDashboard className="w-5 h-5 text-slate-400" />
-                      Dashboard
+                      {t("dashboard")}
                     </Link>
                     <Link href="/dashboard/bookings" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors">
                       <Ticket className="w-5 h-5 text-slate-400" />
-                      My Bookings
+                      {t("myBookings")}
                     </Link>
                     <Link href="/dashboard/passengers" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors">
                       <Users className="w-5 h-5 text-slate-400" />
-                      Passengers
+                      {t("passengers")}
                     </Link>
                     <Link href="/dashboard/settings" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors">
                       <Settings className="w-5 h-5 text-slate-400" />
-                      Settings
+                      {t("settings")}
                     </Link>
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-3 p-3 mt-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-medium transition-colors w-full text-left"
                     >
                       <LogOut className="w-5 h-5" />
-                      Log out
+                      {t("logout")}
                     </button>
                   </>
                 ) : (
@@ -350,7 +352,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                     href="/login"
                     className="flex justify-center p-3 rounded-xl bg-[#ee237c] hover:bg-[#c71d65] text-white font-semibold transition-colors w-full mt-2"
                   >
-                    Log in or Sign up
+                    {t("logInOrSignUp")}
                   </Link>
                 )}
               </div>

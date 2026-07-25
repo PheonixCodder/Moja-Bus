@@ -17,6 +17,10 @@ After building any component, update this file with the component name, file pat
 - `apps/app/src/components/auth-shell.tsx`: mobile auth screen shell with dark background, decorative glow views, `SafeAreaView`, and a glass card container.
 - `apps/app/src/components/auth-field.tsx`: mobile auth text input rows with rounded 18px borders, dark fill, and secondary helper text.
 - `apps/app/src/components/auth-button.tsx`: shared pressable auth action with primary/secondary variants, loading spinner, and disabled state styling.
+- `packages/ui/src/components/ui/date-picker.tsx`: Shared Shadcn Popover + Calendar single date picker re-exported to `@moja/ui/components/ui/date-picker`.
+- `packages/ui/src/components/ui/time-picker.tsx`: Shared Shadcn Popover + Select time picker (`HH:mm`) with preset times re-exported to `@moja/ui/components/ui/time-picker`.
+- `packages/ui/src/components/ui/date-time-picker.tsx`: Shared Shadcn Popover + Calendar + TimePicker combo component for datetime selection re-exported to `@moja/ui/components/ui/date-time-picker`.
+- `apps/web/lib/format-date.ts`: Centralized application date & time formatting module (`formatDate`, `formatTime`, `formatDateTime`, `formatDepartureTime`) anchored to `Africa/Abidjan` (UTC+0).
 - `packages/ui/src/components/ui/*`: shared shadcn component source of truth mirrored from `demo-ui` and exposed to apps through `@moja/ui/components/ui/*`.
 - `apps/web/features/dashboard/components/dashboard-sidebar.tsx`: passenger dashboard sidebar redesigned to match best-dashboard-setup layout structure, custom grouped nav, traveler support card, and NavUser ellipsis dropdown footer.
 - `apps/web/features/dashboard/components/dashboard-header.tsx`: dashboard welcome header with session-aware greeting and search CTA.

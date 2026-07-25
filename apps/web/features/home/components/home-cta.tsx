@@ -1,6 +1,9 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 
-export function HomeCta() {
+export async function HomeCta() {
+  const t = await getTranslations("landing.cta");
+
   return (
     <section className="py-32 px-6 md:px-8 overflow-hidden">
         <div className="max-w-7xl mx-auto rounded-[3rem] bg-gradient-to-br from-[#ee237c] to-[#ee237c]/95 text-slate-800 relative overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[600px] shadow-2xl border border-slate-100">
@@ -13,7 +16,7 @@ export function HomeCta() {
             {/* Badge */}
             <div className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-100 shadow-sm mb-6 select-none">
               <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
-              100% Mobile Ticket Guarantee
+              {t("badge")}
             </div>
 
             {/* Heading */}
@@ -25,13 +28,15 @@ export function HomeCta() {
                   lineHeight: 1.1,
                 }}
             >
-              Travel in Your Pocket. <br className="hidden md:block" />
-              Get the <span className="text-[#ee237c]">Moja-Bus</span> App!
+              {t.rich("title", {
+                br: () => <br className="hidden md:block" />,
+                span: (chunks) => <span className="text-[#ee237c]">{chunks}</span>,
+              })}
             </h2>
 
             {/* Description */}
             <p className="text-slate-500 text-base leading-relaxed mb-10 max-w-lg">
-              Download our top-rated app for the fastest way to search schedules, pick seats, pay securely via Mobile Money, and access your digital QR boarding passes anywhere.
+              {t("subtitle")}
             </p>
 
             {/* Download Buttons */}
@@ -45,8 +50,8 @@ export function HomeCta() {
                   <path d="M18.71,19.5 C17.88,20.74 17,21.95 15.66,21.97 C14.32,22 13.89,21.18 12.37,21.18 C10.84,21.18 10.37,21.95 9.1,22 C7.79,22.05 6.8,20.68 5.96,19.47 C4.25,17 2.94,12.45 4.7,9.39 C5.57,7.87 7.13,6.91 8.82,6.88 C10.1,6.86 11.32,7.75 12.11,7.75 C12.89,7.75 14.37,6.68 15.92,6.84 C16.57,6.87 18.39,7.1 19.56,8.82 C19.47,8.88 17.39,10.1 17.41,12.63 C17.44,15.65 20.06,16.66 20.1,16.67 C20.08,16.74 19.67,18.11 18.71,19.5 M15.97,4.17 C16.63,3.37 17.07,2.28 16.95,1 C15.98,1.04 14.8,1.65 14.1,2.47 C13.5,3.17 12.98,4.28 13.13,5.55 C14.21,5.63 15.31,5 15.97,4.17 Z" />
                 </svg>
                 <div className="text-left leading-none">
-                  <span className="text-[10px] text-slate-400 block uppercase font-medium">Download on the</span>
-                  <span className="text-sm font-bold tracking-tight block mt-0.5">App Store</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-medium">{t("downloadOn")}</span>
+                  <span className="text-sm font-bold tracking-tight block mt-0.5">{t("appStore")}</span>
                 </div>
               </a>
 
@@ -59,8 +64,8 @@ export function HomeCta() {
                   <path d="M5 3.5c-.2 0-.4.1-.5.3l10.3 10.3 3.3-3.3L5 3.5zm-1.2 1c-.2.2-.3.5-.3.8v13.4c0 .3.1.6.3.8L14 9.5 3.8 4.5zM15 10.5l4.1 4.1c.3.3.3.8 0 1.1l-3.3-3.3L15 10.5zm-.7-.7L4.1 20.1c.1.2.3.4.5.4h.4l12.7-7.1-3.4-3.6z" />
                 </svg>
                 <div className="text-left leading-none">
-                  <span className="text-[10px] text-slate-400 block uppercase font-medium">Get it on</span>
-                  <span className="text-sm font-bold tracking-tight block mt-0.5">Google Play</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-medium">{t("getItOn")}</span>
+                  <span className="text-sm font-bold tracking-tight block mt-0.5">{t("googlePlay")}</span>
                 </div>
               </a>
             </div>

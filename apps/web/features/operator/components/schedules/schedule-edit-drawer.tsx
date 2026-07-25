@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
@@ -65,6 +66,8 @@ export function ScheduleEditDrawer({
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const t = useTranslations("operatorDashboard.schedules");
+  const tc = useTranslations("common");
 
   const [editName, setEditName] = useState("");
   const [editDepartureTime, setEditDepartureTime] = useState("");
@@ -170,11 +173,11 @@ export function ScheduleEditDrawer({
     ? buildStopsFromRoute(schedule.route as never)
     : [];
   const stopName = (order: number) =>
-    stops.find((s) => s.order === order)?.name ?? `Stop ${order}`;
+    stops.find((s) => s.order === order)?.name ?? t("editDrawer.stopName", { order });
 
   async function handleAddException() {
     if (!schedule || !exceptionDate) {
-      toast.error("Select a date for the exception");
+      toast.error(t("editDrawer.selectDateForException"));
       return;
     }
     try {
@@ -198,10 +201,10 @@ export function ScheduleEditDrawer({
       setEditExceptions((prev) => [...prev, created]);
       setExceptionDate("");
       setExceptionNotes("");
-      toast.success("Service exception added");
+      toast.success(t("editDrawer.exceptionAdded"));
       await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to add exception");
+      toast.error(err instanceof Error ? err.message : t("editDrawer.exceptionAddFailed"));
     }
   }
 
@@ -209,11 +212,11 @@ export function ScheduleEditDrawer({
     try {
       await removeExceptionMutation.mutateAsync({ exceptionId });
       setEditExceptions((prev) => prev.filter((e) => e.id !== exceptionId));
-      toast.success("Service exception removed");
+      toast.success(t("editDrawer.exceptionRemoved"));
       await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to remove exception",
+        err instanceof Error ? err.message : t("editDrawer.exceptionRemoveFailed"),
       );
     }
   }
@@ -261,13 +264,13 @@ export function ScheduleEditDrawer({
 
       toast.success(
         applyForward
-          ? "Schedule updated and future empty trips reconciled"
-          : "Schedule updated successfully",
+          ? t("editDrawer.scheduleUpdatedReconciled")
+          : t("editDrawer.scheduleUpdated"),
       );
       await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
       onOpenChange(false);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to update schedule");
+      toast.error(err instanceof Error ? err.message : t("editDrawer.scheduleUpdateFailed"));
     } finally {
       setEditSaving(false);
     }
@@ -297,7 +300,7 @@ export function ScheduleEditDrawer({
         queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
       } catch (err: unknown) {
         toast.error(
-          err instanceof Error ? err.message : "Failed to update fare price",
+          err instanceof Error ? err.message : t("editDrawer.fareUpdateFailed"),
         );
       } finally {
         setSavingFareIds((prev) => {
@@ -311,15 +314,36 @@ export function ScheduleEditDrawer({
 
   const activeBuses = buses.filter((b) => b.status === "ACTIVE");
 
+  const exceptionTypeLabel = (type: string) => {
+    const map: Record<string, string> = {
+      CANCELLED: t("editDrawer.typeCancelled"),
+      MODIFIED: t("editDrawer.typeModified"),
+      EXTRA_SERVICE: t("editDrawer.typeExtraService"),
+    };
+    return map[type] ?? type;
+  };
+
+  const exceptionReasonLabel = (reason: string) => {
+    const map: Record<string, string> = {
+      OPERATIONAL: t("editDrawer.reasonOperational"),
+      HOLIDAY_NATIONAL: t("editDrawer.reasonNationalHoliday"),
+      HOLIDAY_ISLAMIC: t("editDrawer.reasonIslamicHoliday"),
+      HOLIDAY_CHRISTIAN: t("editDrawer.reasonChristianHoliday"),
+      WEATHER: t("editDrawer.reasonWeather"),
+      MAINTENANCE: t("editDrawer.reasonMaintenance"),
+      STRIKE: t("editDrawer.reasonStrike"),
+      OTHER: t("editDrawer.reasonOther"),
+    };
+    return map[reason] ?? reason;
+  };
+
   return (
     <Drawer
       open={open}
       onOpenChange={(next) => {
         if (!next && isDirty()) {
           if (
-            !window.confirm(
-              "You have unsaved changes. Are you sure you want to discard them?",
-            )
+            !window.confirm(t("editDrawer.unsavedChanges"))
           ) {
             return;
           }
@@ -330,11 +354,10 @@ export function ScheduleEditDrawer({
       <DrawerContent className="max-h-[92vh] flex flex-col">
         <DrawerHeader className="border-b border-border py-4 shrink-0">
           <DrawerTitle className="text-base font-bold tracking-tight">
-            Edit Operating Schedule:{" "}
-            {schedule?.name ?? schedule?.route?.name ?? "Schedule"}
+            {t("editDrawer.title", { name: schedule?.name ?? schedule?.route?.name ?? t("editDrawer.scheduleName") })}
           </DrawerTitle>
           <DrawerDescription className="text-xs">
-            Modify timing, recurrence calendar, preferred bus, and pricing.
+            {t("editDrawer.description")}
           </DrawerDescription>
         </DrawerHeader>
 
@@ -345,35 +368,31 @@ export function ScheduleEditDrawer({
           <div className="border border-amber-200 bg-amber-50 rounded-md p-3.5 flex items-start gap-2.5 text-amber-800">
             <AlertCircle className="size-4 shrink-0 mt-0.5" />
             <div className="text-xs leading-relaxed">
-              <p className="font-bold">Important Notice</p>
-              <p className="mt-0.5">
-                Departure time and calendar updates only apply to newly
-                generated trips unless you enable “Apply to future empty trips”
-                below.
-              </p>
+              <p className="font-bold">{t("editDrawer.alertTitle")}</p>
+              <p className="mt-0.5">{t("editDrawer.alertDesc")}</p>
             </div>
           </div>
 
           <div className="space-y-3.5">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
-              Basic Info & Status
+                {t("editDrawer.basicInfo")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="edit-name" className="text-xs font-semibold">
-                  Schedule Name (Optional)
+                  {t("editDrawer.scheduleName")}
                 </Label>
                 <Input
                   id="edit-name"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  placeholder="e.g. Morning Express"
+                  placeholder={t("editDrawer.scheduleNamePlaceholder")}
                   className="h-9 text-xs shadow-none border-border"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="edit-time" className="text-xs font-semibold">
-                  Departure Time *
+                  {t("editDrawer.departureTime")} *
                 </Label>
                 <TimePicker
                   value={editDepartureTime}
@@ -384,7 +403,7 @@ export function ScheduleEditDrawer({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Preferred bus</Label>
+              <Label className="text-xs font-semibold">{t("editDrawer.preferredBus")}</Label>
               <Combobox
                 items={activeBuses.map((b) => ({
                   value: b.id,
@@ -396,7 +415,7 @@ export function ScheduleEditDrawer({
                 }}
               >
                 <ComboboxInput
-                  placeholder="Select preferred bus…"
+                  placeholder={t("editDrawer.selectPreferredBus")}
                   className="w-full text-sm"
                   value={
                     editPreferredBusId
@@ -412,7 +431,7 @@ export function ScheduleEditDrawer({
                   }
                 />
                 <ComboboxContent>
-                  <ComboboxEmpty>No active bus found.</ComboboxEmpty>
+                  <ComboboxEmpty>{t("editDrawer.noActiveBus")}</ComboboxEmpty>
                   <ComboboxList>
                     {activeBuses.map((b) => (
                       <ComboboxItem key={b.id} value={b.id}>
@@ -431,10 +450,10 @@ export function ScheduleEditDrawer({
                   htmlFor="edit-active-toggle"
                   className="text-xs font-semibold"
                 >
-                  Status Active
+                  {t("editDrawer.statusActive")}
                 </Label>
                 <p className="text-[10px] text-muted-foreground">
-                  Active schedules are included in the daily trip generation job
+                  {t("editDrawer.statusActiveDesc")}
                 </p>
               </div>
               <Switch
@@ -450,11 +469,10 @@ export function ScheduleEditDrawer({
                   htmlFor="apply-forward"
                   className="text-xs font-semibold"
                 >
-                  Apply to future empty trips
+                  {t("editDrawer.applyForward")}
                 </Label>
                 <p className="text-[10px] text-muted-foreground">
-                  Prune unbooked future trips that no longer match, then
-                  regenerate the 14-day window
+                  {t("editDrawer.applyForwardDesc")}
                 </p>
               </div>
               <Switch
@@ -468,7 +486,7 @@ export function ScheduleEditDrawer({
           {editCalConfig && (
             <div className="space-y-3.5">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
-                Recurrence Calendar
+                {t("editDrawer.recurrenceCalendar")}
               </h3>
               <div className="flex flex-wrap gap-2" role="group">
                 {DAYS.map((d) => {
@@ -505,7 +523,7 @@ export function ScheduleEditDrawer({
                     htmlFor="edit-valid-from"
                     className="text-xs font-semibold"
                   >
-                    Valid From *
+                    {t("editDrawer.validFrom")} *
                   </Label>
                   <DatePicker
                     value={editCalConfig.validFrom}
@@ -528,7 +546,7 @@ export function ScheduleEditDrawer({
                     htmlFor="edit-valid-until"
                     className="text-xs font-semibold"
                   >
-                    Valid Until (Optional)
+                    {t("editDrawer.validUntil")}
                   </Label>
                   <DatePicker
                     value={editCalConfig.validUntil ?? ""}
@@ -557,11 +575,11 @@ export function ScheduleEditDrawer({
 
           <div className="space-y-3.5">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
-              Service Exceptions
+              {t("editDrawer.serviceExceptions")}
             </h3>
             {editExceptions.length === 0 ? (
               <p className="text-xs text-muted-foreground">
-                No exceptions configured.
+                {t("editDrawer.noExceptions")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -573,13 +591,13 @@ export function ScheduleEditDrawer({
                     <div>
                       <p className="font-semibold">
                         {new Date(exception.date).toISOString().slice(0, 10)} —{" "}
-                        {humanizeEnum(exception.type)}
+                        {exceptionTypeLabel(exception.type)}
                         {exception.overrideDepartureTime
                           ? ` @ ${exception.overrideDepartureTime}`
                           : ""}
                       </p>
                       <p className="text-muted-foreground">
-                        {humanizeEnum(exception.reason)}
+                        {exceptionReasonLabel(exception.reason)}
                         {exception.notes ? ` — ${exception.notes}` : ""}
                       </p>
                     </div>
@@ -589,7 +607,7 @@ export function ScheduleEditDrawer({
                       variant="ghost"
                       onClick={() => handleRemoveException(exception.id)}
                     >
-                      Remove
+                      {tc("remove")}
                     </Button>
                   </div>
                 ))}
@@ -598,7 +616,7 @@ export function ScheduleEditDrawer({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">Date</Label>
+                <Label className="text-xs font-semibold">{t("editDrawer.date")}</Label>
                 <DatePicker
                   value={exceptionDate}
                   onChange={(date) => {
@@ -615,7 +633,7 @@ export function ScheduleEditDrawer({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">Type</Label>
+                <Label className="text-xs font-semibold">{t("editDrawer.type")}</Label>
                 <Select
                   value={exceptionType}
                   onValueChange={(val) =>
@@ -625,19 +643,19 @@ export function ScheduleEditDrawer({
                   }
                 >
                   <SelectTrigger className="h-9 text-xs">
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t("editDrawer.selectType")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    <SelectItem value="MODIFIED">Modified</SelectItem>
-                    <SelectItem value="EXTRA_SERVICE">Extra service</SelectItem>
+                    <SelectItem value="CANCELLED">{t("editDrawer.typeCancelled")}</SelectItem>
+                    <SelectItem value="MODIFIED">{t("editDrawer.typeModified")}</SelectItem>
+                    <SelectItem value="EXTRA_SERVICE">{t("editDrawer.typeExtraService")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {exceptionType === "MODIFIED" && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">
-                    Override departure time
+                    {t("editDrawer.overrideDepartureTime")}
                   </Label>
                   <TimePicker
                     value={exceptionOverrideTime}
@@ -647,32 +665,32 @@ export function ScheduleEditDrawer({
                 </div>
               )}
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">Reason</Label>
+                <Label className="text-xs font-semibold">{t("editDrawer.reason")}</Label>
                 <Select
                   value={exceptionReason}
                   onValueChange={(val) => setExceptionReason(val ?? "OPERATIONAL")}
                 >
                   <SelectTrigger className="h-9 text-xs">
-                    <SelectValue placeholder="Select reason" />
+                    <SelectValue placeholder={t("editDrawer.selectReason")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="OPERATIONAL">Operational</SelectItem>
-                    <SelectItem value="HOLIDAY_NATIONAL">National holiday</SelectItem>
-                    <SelectItem value="HOLIDAY_ISLAMIC">Islamic holiday</SelectItem>
-                    <SelectItem value="HOLIDAY_CHRISTIAN">Christian holiday</SelectItem>
-                    <SelectItem value="WEATHER">Weather</SelectItem>
-                    <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-                    <SelectItem value="STRIKE">Strike</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
+                    <SelectItem value="OPERATIONAL">{t("editDrawer.reasonOperational")}</SelectItem>
+                    <SelectItem value="HOLIDAY_NATIONAL">{t("editDrawer.reasonNationalHoliday")}</SelectItem>
+                    <SelectItem value="HOLIDAY_ISLAMIC">{t("editDrawer.reasonIslamicHoliday")}</SelectItem>
+                    <SelectItem value="HOLIDAY_CHRISTIAN">{t("editDrawer.reasonChristianHoliday")}</SelectItem>
+                    <SelectItem value="WEATHER">{t("editDrawer.reasonWeather")}</SelectItem>
+                    <SelectItem value="MAINTENANCE">{t("editDrawer.reasonMaintenance")}</SelectItem>
+                    <SelectItem value="STRIKE">{t("editDrawer.reasonStrike")}</SelectItem>
+                    <SelectItem value="OTHER">{t("editDrawer.reasonOther")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">Notes</Label>
+                <Label className="text-xs font-semibold">{t("editDrawer.notes")}</Label>
                 <Input
                   value={exceptionNotes}
                   onChange={(e) => setExceptionNotes(e.target.value)}
-                  placeholder="Optional notes"
+                  placeholder={t("editDrawer.notesPlaceholder")}
                   className="h-9 text-xs"
                 />
               </div>
@@ -684,71 +702,66 @@ export function ScheduleEditDrawer({
               onClick={handleAddException}
               disabled={addExceptionMutation.isPending}
             >
-              Add Exception
+              {t("editDrawer.addException")}
             </Button>
           </div>
 
           <div className="space-y-3.5">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
-              Fare Matrix
-            </h3>
-            {editFares.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                No fares configured for this schedule.
-              </p>
-            ) : (
-              <div className="border border-border rounded-md overflow-hidden bg-card">
-                <div className="grid bg-slate-50 border-b border-border px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <div
-                    className="grid gap-2"
-                    style={{ gridTemplateColumns: "1fr 1fr auto auto" }}
-                  >
-                    <span>From</span>
-                    <span>To</span>
-                    <span>Class</span>
-                    <span className="w-32 text-right">Price (FCFA)</span>
-                  </div>
-                </div>
-                <div className="divide-y divide-border">
-                  {editFares.map((f) => (
-                    <div
-                      key={f.id}
-                      className="grid gap-2 px-4 py-2.5 items-center hover:bg-slate-50/50"
-                      style={{ gridTemplateColumns: "1fr 1fr auto auto" }}
-                    >
-                      <span className="text-xs font-semibold text-foreground">
-                        {stopName(f.fromStopOrder)}
-                      </span>
-                      <span className="text-xs font-semibold text-foreground">
-                        {stopName(f.toStopOrder)}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {f.seatClass}
-                        {!f.isActive ? " (off)" : ""}
-                      </span>
-                      <div className="w-32 flex flex-col gap-1 items-end">
-                        <Input
-                          type="number"
-                          min={0}
-                          value={f.priceXOF}
-                          onChange={(e) =>
-                            handleFarePriceChange(f.id, e.target.value)
-                          }
-                          className="h-8 text-xs font-mono text-right"
-                          aria-label={`Price ${stopName(f.fromStopOrder)} to ${stopName(f.toStopOrder)}`}
-                        />
-                        {savingFareIds.has(f.id) && (
-                          <span className="text-[10px] text-muted-foreground">
-                            Saving…
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+<h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
+               {t("editDrawer.fareMatrix")}
+             </h3>
+             {editFares.length === 0 ? (
+               <p className="text-xs text-muted-foreground">
+                 {t("editDrawer.noFares")}
+               </p>
+             ) : (
+               <div className="border border-border rounded-md overflow-hidden bg-card">
+                 <div className="grid bg-slate-50 border-b border-border px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                   <div
+                     className="grid gap-2"
+                     style={{ gridTemplateColumns: "1fr 1fr auto" }}
+                   >
+                     <span>{t("editDrawer.from")}</span>
+                     <span>{t("editDrawer.to")}</span>
+                     <span className="w-32 text-right">{t("editDrawer.price")}</span>
+                   </div>
+                 </div>
+                 <div className="divide-y divide-border">
+                   {editFares.map((f) => (
+                     <div
+                       key={f.id}
+                       className="grid gap-2 px-4 py-2.5 items-center hover:bg-slate-50/50"
+                       style={{ gridTemplateColumns: "1fr 1fr auto" }}
+                     >
+                       <span className="text-xs font-semibold text-foreground">
+                         {stopName(f.fromStopOrder)}
+                       </span>
+                       <span className="text-xs font-semibold text-foreground">
+                         {stopName(f.toStopOrder)}
+                       </span>
+                       <div className="w-32 flex flex-col gap-1 items-end">
+                         <Input
+                           type="number"
+                           min={0}
+                           value={f.priceXOF}
+                           onChange={(e) =>
+                             handleFarePriceChange(f.id, e.target.value)
+                           }
+                           className="h-8 text-xs font-mono text-right"
+                           aria-label={t("editDrawer.priceAria", { fromName: stopName(f.fromStopOrder), toName: stopName(f.toStopOrder) })}
+                         />
+                           {savingFareIds.has(f.id) && (
+                           <span className="text-[10px] text-muted-foreground">
+                             {tc("saving")}
+                           </span>
+                         )}
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}
+           </div>
         </form>
 
         <DrawerFooter className="border-t border-border py-4 shrink-0 flex-row justify-between bg-card">
@@ -765,7 +778,7 @@ export function ScheduleEditDrawer({
             ) : (
               <RefreshCw className="size-3.5" />
             )}
-            Extend Trip Window
+            {t("editDrawer.extendTripWindow")}
           </Button>
           <div className="flex gap-2">
             <DrawerClose asChild>
@@ -774,7 +787,7 @@ export function ScheduleEditDrawer({
                 size="sm"
                 className="h-8.5 text-xs font-semibold"
               >
-                Cancel
+                {tc("cancel")}
               </Button>
             </DrawerClose>
             <Button
@@ -784,7 +797,7 @@ export function ScheduleEditDrawer({
               onClick={handleSave}
             >
               {editSaving && <Spinner className="size-3 mr-1.5" />}
-              Save Changes
+              {tc("save")}
             </Button>
           </div>
         </DrawerFooter>

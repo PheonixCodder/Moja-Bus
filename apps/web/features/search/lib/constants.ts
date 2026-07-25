@@ -14,7 +14,8 @@ export const AMENITY_OPTIONS: {
 export const DEPARTURE_TIME_OPTIONS = [
   { id: "MORNING", label: "Morning (05:00 - 12:00)" },
   { id: "AFTERNOON", label: "Afternoon (12:00 - 17:00)" },
-  { id: "EVENING", label: "Evening (17:00 - 05:00)" },
+  { id: "EVENING", label: "Evening (17:00 - 22:00)" },
+  { id: "LATE_NIGHT", label: "Late Night (22:00 - 05:00)" },
 ] as const;
 
 export const SORT_OPTIONS_UI = [

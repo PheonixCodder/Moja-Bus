@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { startTransition, useEffect, useState } from "react";
 import {
   useQuery,
@@ -38,6 +39,7 @@ import { useTRPC } from "@/trpc/client";
 const PAGE_SIZE = 50;
 
 export function OperatorStaffView() {
+  const t = useTranslations("operatorDashboard.staff");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -192,10 +194,10 @@ export function OperatorStaffView() {
   async function handleInvite(payload: CreateInvitationInput) {
     try {
       await createInviteMutation.mutateAsync(payload);
-      toast.success(`Invitation sent to ${payload.email}`);
+      toast.success(t("toast.invitationSent", { email: payload.email }));
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to invite member",
+        err instanceof Error ? err.message : t("toast.inviteFailed"),
       );
     }
   }
@@ -211,10 +213,10 @@ export function OperatorStaffView() {
         role: nextRole,
         resetPermissions,
       });
-      toast.success("Role updated successfully");
+      toast.success(t("toast.roleUpdated"));
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to update role",
+        err instanceof Error ? err.message : t("toast.roleUpdateFailed"),
       );
       throw err;
     }
@@ -229,11 +231,11 @@ export function OperatorStaffView() {
         memberId: id,
         permissions,
       });
-      toast.success("Permissions updated");
+      toast.success(t("toast.permissionsUpdated"));
       void setParams({ member: "" });
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to update permissions",
+        err instanceof Error ? err.message : t("toast.permissionsUpdateFailed"),
       );
       throw err;
     }
@@ -249,11 +251,11 @@ export function OperatorStaffView() {
         status: nextStatus,
       });
       toast.success(
-        `${target.user.fullName} is now ${STATUS_CONFIG[nextStatus].label}`,
+        t("toast.statusChanged", { name: target.user.fullName ?? "", status: STATUS_CONFIG[nextStatus].label }),
       );
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to update status",
+        err instanceof Error ? err.message : t("toast.statusUpdateFailed"),
       );
     }
   }
@@ -263,11 +265,11 @@ export function OperatorStaffView() {
     try {
       await removeStaffMutation.mutateAsync({ memberId: removeMember.id });
       toast.success(
-        `${removeMember.user.fullName} has been removed from the company`,
+        t("toast.removed", { name: removeMember.user.fullName ?? "" }),
       );
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to remove staff member",
+        err instanceof Error ? err.message : t("toast.removeFailed"),
       );
     }
   }
@@ -279,10 +281,10 @@ export function OperatorStaffView() {
         otp,
         confirmationText: "TRANSFER OWNERSHIP",
       });
-      toast.success("Ownership transferred successfully");
+      toast.success(t("toast.ownershipTransferred"));
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to transfer ownership",
+        err instanceof Error ? err.message : t("toast.ownershipTransferFailed"),
       );
       throw err;
     }
@@ -291,10 +293,10 @@ export function OperatorStaffView() {
   async function handleCancelInvite(inv: StaffInvitation) {
     try {
       await cancelInviteMutation.mutateAsync({ invitationId: inv.id });
-      toast.success(`Invitation to ${inv.email} cancelled`);
+      toast.success(t("toast.invitationCancelled", { email: inv.email }));
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to cancel invitation",
+        err instanceof Error ? err.message : t("toast.cancelInviteFailed"),
       );
     }
   }
@@ -302,10 +304,10 @@ export function OperatorStaffView() {
   async function handleResendInvite(inv: StaffInvitation) {
     try {
       await resendInviteMutation.mutateAsync({ invitationId: inv.id });
-      toast.success(`Invitation resent to ${inv.email}`);
+      toast.success(t("toast.invitationResent", { email: inv.email }));
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to resend invitation",
+        err instanceof Error ? err.message : t("toast.resendInviteFailed"),
       );
     }
   }

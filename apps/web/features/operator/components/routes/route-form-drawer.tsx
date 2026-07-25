@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import { Plus, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
@@ -93,6 +94,8 @@ export function RouteFormDrawer({
   onCreated,
   onUpdated,
 }: RouteFormDrawerProps) {
+  const t = useTranslations("operatorDashboard.routes");
+  const tc = useTranslations("common");
   const [name, setName] = useState("");
   const [originId, setOriginId] = useState("");
   const [destId, setDestId] = useState("");
@@ -351,7 +354,7 @@ export function RouteFormDrawer({
       <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-2xl flex flex-col">
         <DrawerHeader className="border-b border-border px-5 py-4 shrink-0">
           <DrawerTitle className="text-base font-bold">
-            {isEditing ? "Edit Route" : "Create New Route"}
+            {isEditing ? `${tc("edit")} Route` : t("createRoute")}
           </DrawerTitle>
           <DrawerDescription className="text-xs text-muted-foreground">
             {isEditing
@@ -598,7 +601,7 @@ export function RouteFormDrawer({
                               setNewStopId("");
                             }}
                           >
-                            Cancel
+                            {tc("cancel")}
                           </Button>
                         </div>
                       ) : (
@@ -628,7 +631,7 @@ export function RouteFormDrawer({
         <DrawerFooter className="border-t border-border px-5 py-4 shrink-0 flex-row gap-2">
           <DrawerClose asChild>
             <Button variant="outline" className="flex-1" onClick={handleClose}>
-              Cancel
+              {tc("cancel")}
             </Button>
           </DrawerClose>
           <Button
@@ -646,10 +649,10 @@ export function RouteFormDrawer({
               <Spinner className="size-4 mr-2" />
             ) : null}
             {createMutation.isPending || updateMutation.isPending
-              ? "Saving…"
+              ? tc("saving")
               : isEditing
-                ? "Save Changes"
-                : "Create Route"}
+                ? tc("save")
+                : t("createRoute")}
           </Button>
         </DrawerFooter>
       </DrawerContent>

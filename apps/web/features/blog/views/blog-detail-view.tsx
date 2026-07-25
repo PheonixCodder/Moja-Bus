@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { format } from "date-fns";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
@@ -13,25 +14,10 @@ import {
 import { Card } from "@moja/ui/components/ui/card";
 import { BlogTelemetry } from "../components/blog-telemetry";
 import { BlogShareButtons } from "../components/blog-share-buttons";
+import { BookingCTA } from "../components/booking-cta";
 
-// Custom MDX Components for Moja Ride Domain
 const components = {
-  BookingCTA: (props: any) => (
-    <div className="my-8 p-6 bg-rose-50/70 border border-rose-100 rounded-xl text-center space-y-4">
-      <h3 className="text-base font-extrabold text-slate-900 mb-1">
-        Ready to travel from {props.origin || "Abidjan"} to {props.destination || "Yamoussoukro"}?
-      </h3>
-      <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-        Compare ticket departures from top operators and book securely on Moja Ride today.
-      </p>
-      <Link
-        href="/search"
-        className="inline-flex items-center justify-center bg-rose-600 text-white font-bold px-5 py-2.5 rounded-lg hover:bg-rose-700 transition-colors text-xs"
-      >
-        Find Intercity Tickets
-      </Link>
-    </div>
-  ),
+  BookingCTA,
 };
 
 export interface SerializedPost {
@@ -65,6 +51,7 @@ export interface SerializedPost {
 }
 
 interface BlogDetailViewProps {
+  locale: string;
   post: SerializedPost;
   recommendedPosts: {
     id: string;
@@ -92,7 +79,8 @@ function unescapeMarkdown(content: string): string {
     .replace(/\\!/g, "!");
 }
 
-export function BlogDetailView({ post, recommendedPosts }: BlogDetailViewProps) {
+export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDetailViewProps) {
+  const t = await getTranslations({ locale, namespace: "blog" });
   const formattedDate = post.publishedAt
     ? format(new Date(post.publishedAt), "MMMM d, yyyy")
     : "";
@@ -109,7 +97,7 @@ export function BlogDetailView({ post, recommendedPosts }: BlogDetailViewProps) 
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="size-3.5" />
-          Back to all articles
+          {t("backToArticles")}
         </Link>
       </div>
 
@@ -167,7 +155,7 @@ export function BlogDetailView({ post, recommendedPosts }: BlogDetailViewProps) 
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <Clock className="size-3" />
-                      {post.readingTime} min read
+                      {t("minuteRead", { count: post.readingTime })}
                     </span>
                   </div>
                 </div>
@@ -232,7 +220,7 @@ export function BlogDetailView({ post, recommendedPosts }: BlogDetailViewProps) 
                   ) : null}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900 mb-0.5">About the author</p>
+                  <p className="font-bold text-slate-900 mb-0.5">{t("aboutAuthor")}</p>
                   <p className="text-slate-500">{post.displayAuthorBio}</p>
                 </div>
               </div>
@@ -246,12 +234,12 @@ export function BlogDetailView({ post, recommendedPosts }: BlogDetailViewProps) 
             <Card className="bg-white border-slate-200 shadow-3xs p-4 rounded-xl space-y-4">
               <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
                 <BookOpen className="size-3.5 text-rose-500" />
-                Recommended Reading
+                {t("recommendedReading")}
               </h3>
 
               <div className="space-y-4">
                 {recommendedPosts.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic">No recommendations found.</p>
+                  <p className="text-xs text-slate-400 italic">{t("noRecommendations")}</p>
                 ) : (
                   recommendedPosts.map((rp) => (
                     <Link
@@ -272,7 +260,7 @@ export function BlogDetailView({ post, recommendedPosts }: BlogDetailViewProps) 
                         {rp.title}
                       </p>
                       <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                        {rp.category?.name || "Uncategorized"}
+                        {rp.category?.name || t("uncategorized")}
                       </p>
                     </Link>
                   ))
@@ -282,15 +270,15 @@ export function BlogDetailView({ post, recommendedPosts }: BlogDetailViewProps) 
 
             {/* Quick search CTA */}
             <Card className="bg-gradient-to-br from-rose-500 to-rose-600 text-white p-5 rounded-xl space-y-3 shadow-sm border-none">
-              <h4 className="font-extrabold text-sm leading-tight">Need to book travel in Côte d'Ivoire?</h4>
+              <h4 className="font-extrabold text-sm leading-tight">{t("ctaTitle")}</h4>
               <p className="text-[11px] text-rose-100 leading-relaxed">
-                Moja Ride aggregates all intercity coach schedules. Compare prices, features, and buy your tickets online in seconds.
+                {t("ctaDesc")}
               </p>
               <Link
                 href="/search"
                 className="w-full inline-flex items-center justify-center bg-white text-rose-600 font-bold px-4 py-2 rounded-lg hover:bg-rose-50 transition-colors text-xs"
               >
-                Search Tickets
+                {t("ctaButton")}
               </Link>
             </Card>
           </div>

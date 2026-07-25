@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+import { useTranslations } from "next-intl";
 import { Smartphone, Star } from "lucide-react";
 
 // Inline SVG for Apple logo
@@ -20,49 +22,47 @@ function GooglePlayLogo() {
   );
 }
 
-export function SearchPromoCard() {
+export const SearchPromoCard = memo(function SearchPromoCard() {
+  const t = useTranslations("search");
+
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ee237c] via-rose-500 to-pink-400 p-6 shadow-lg shadow-pink-200/40 mb-4">
-      {/* Background decorative circles */}
       <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white/10" />
       <div className="absolute -bottom-12 -right-4 h-56 w-56 rounded-full bg-white/10" />
       <div className="absolute top-4 right-24 h-12 w-12 rounded-full bg-white/10" />
 
       <div className="relative flex items-start justify-between gap-4">
-        {/* Left: text content */}
         <div className="flex-1">
-          {/* Rating badge */}
           <div className="flex items-center gap-1.5 mb-3">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Star key={i} className="h-3 w-3 fill-yellow-300 text-yellow-300" />
               ))}
             </div>
-            <span className="text-white/80 text-xs font-semibold">4.9 · 12k reviews</span>
+            <span className="text-white/80 text-xs font-semibold">{t("ratingText")}</span>
           </div>
 
           <h3 className="text-white font-extrabold text-xl leading-tight mb-1 font-montserrat">
-            Travel smarter.
+            {t("promoTitle1")}
             <br />
-            Book on the go.
+            {t("promoTitle2")}
           </h3>
           <p className="text-white/75 text-sm leading-relaxed mb-5 max-w-xs">
-            Manage your tickets, boarding passes, and payments — even offline.
+            {t("promoDesc")}
           </p>
 
-          {/* Store buttons */}
           <div className="flex flex-col sm:flex-row gap-2">
             <a
               href="https://apps.apple.com"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2.5 bg-white text-slate-900 rounded-xl px-4 py-2.5 hover:bg-slate-50 transition-colors shadow-sm group"
-              aria-label="Download on the App Store"
+              aria-label={t("appStoreAria")}
             >
               <AppleLogo />
               <div className="leading-none">
-                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Download on the</p>
-                <p className="text-sm font-bold text-slate-900 -mt-0.5">App Store</p>
+                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">{t("downloadOn")}</p>
+                <p className="text-sm font-bold text-slate-900 -mt-0.5">{t("appStore")}</p>
               </div>
             </a>
 
@@ -71,35 +71,29 @@ export function SearchPromoCard() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2.5 bg-white text-slate-900 rounded-xl px-4 py-2.5 hover:bg-slate-50 transition-colors shadow-sm group"
-              aria-label="Get it on Google Play"
+              aria-label={t("googlePlayAria")}
             >
               <GooglePlayLogo />
               <div className="leading-none">
-                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Get it on</p>
-                <p className="text-sm font-bold text-slate-900 -mt-0.5">Google Play</p>
+                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">{t("getItOn")}</p>
+                <p className="text-sm font-bold text-slate-900 -mt-0.5">{t("googlePlay")}</p>
               </div>
             </a>
           </div>
         </div>
 
-        {/* Right: phone icon decoration */}
         <div className="hidden sm:flex shrink-0 items-center justify-center w-24 h-24 mt-2">
           <div className="relative">
-            {/* Phone outline */}
             <div className="w-14 h-24 rounded-2xl border-4 border-white/60 bg-white/20 backdrop-blur-sm flex flex-col items-center justify-between py-2 shadow-xl">
-              {/* Speaker */}
               <div className="w-6 h-1 bg-white/50 rounded-full" />
-              {/* Screen content mockup */}
               <div className="flex flex-col gap-1 w-full px-1.5">
                 <div className="h-1.5 bg-white/50 rounded-full w-full" />
                 <div className="h-1.5 bg-white/40 rounded-full w-3/4" />
                 <div className="h-1.5 bg-white/30 rounded-full w-5/6" />
                 <div className="mt-1 h-4 bg-white/60 rounded-lg w-full" />
               </div>
-              {/* Home indicator */}
               <div className="w-6 h-1 bg-white/50 rounded-full" />
             </div>
-            {/* Moja pink dot */}
             <div className="absolute -top-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow">
               <Smartphone className="h-2.5 w-2.5 text-[#ee237c]" />
             </div>
@@ -108,4 +102,4 @@ export function SearchPromoCard() {
       </div>
     </div>
   );
-}
+});

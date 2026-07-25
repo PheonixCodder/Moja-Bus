@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { useMutation, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Sheet,
@@ -17,6 +18,7 @@ import { BookingDetails } from "@/features/booking/components/booking-details";
 type BookingFilter = "upcoming" | "pending" | "past";
 
 export function PassengerBookingsView() {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -85,7 +87,7 @@ export function PassengerBookingsView() {
     const holdId = selectedBooking.holdGroupId;
 
     if (!isHoldActive(selectedBooking.holdExpiresAt)) {
-      toast.error("Hold has expired. Please search and book again.");
+      toast.error(t("toastHoldExpired"));
       return;
     }
 
@@ -94,19 +96,19 @@ export function PassengerBookingsView() {
       if (paymentMethod === "PAYSTACK") {
         const confirmed = await completePayment({ holdId });
         if (!confirmed) return;
-        toast.success("Payment confirmed. Your tickets are ready.");
+        toast.success(t("toastPaymentConfirmed"));
         await refetch();
       } else {
         await walletCheckoutMutation.mutateAsync({ holdId });
-        toast.success("Payment confirmed using wallet balance. Your tickets are ready.");
+        toast.success(t("toastWalletPaymentConfirmed"));
         await refetch();
       }
     } catch (err: unknown) {
       if (err instanceof PaystackPaymentCancelledError) {
-        toast.error("Payment was cancelled.");
+        toast.error(t("toastPaymentCancelled"));
         return;
       }
-      toast.error(err instanceof Error ? err.message : "Payment failed. Please try again.");
+      toast.error(err instanceof Error ? err.message : t("toastPaymentFailed"));
     } finally {
       setIsPaying(false);
     }
@@ -116,14 +118,14 @@ export function PassengerBookingsView() {
   const submitReviewMutation = useMutation(
     trpc.passenger.submitReview.mutationOptions({
       onSuccess: () => {
-        toast.success("Review submitted. Thank you!");
+        toast.success(t("toastReviewSubmitted"));
         queryClient.invalidateQueries(trpc.passenger.getUserReviews.pathFilter());
         setReviewBooking(null);
         setReviewContent("");
         setRating(5);
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to submit review.");
+        toast.error(err.message || t("toastReviewFailed"));
       },
     }),
   );
@@ -131,7 +133,7 @@ export function PassengerBookingsView() {
   function handleOpenReview(booking: PassengerBookingSummary) {
     const firstBookingId = booking.seats[0]?.bookingId;
     if (!firstBookingId) {
-      toast.error("Cannot submit review: missing booking ID.");
+      toast.error(t("toastMissingBookingId"));
       return;
     }
     submitReviewMutation.mutate({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
@@ -21,6 +22,7 @@ interface TopupDialogProps {
 }
 
 export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: TopupDialogProps) {
+  const t = useTranslations("passengerDashboard.wallet");
   const [topupAmount, setTopupAmount] = useState("");
 
   const handleTopupSubmit = (e: React.FormEvent) => {
@@ -39,18 +41,16 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md border border-border bg-white rounded-2xl p-6 shadow-xl">
         <DialogHeader className="space-y-1">
-          <DialogTitle className="text-xl font-extrabold text-slate-900 tracking-tight">Top Up Wallet</DialogTitle>
+          <DialogTitle className="text-xl font-extrabold text-slate-900 tracking-tight">{t("topupDialogTitle")}</DialogTitle>
           <DialogDescription className="text-xs text-slate-500 leading-relaxed">
-            Load prepaid balance into your Moja Ride digital wallet using credit card or mobile money. Minimum deposit is 100 XOF.
+            {t("topupDialogDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleTopupSubmit} className="space-y-5 py-2">
-          
-          {/* Amount Presets */}
           <div className="space-y-2">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              Select Quick Amount
+              {t("quickAmount")}
             </label>
             <div className="grid grid-cols-4 gap-2">
               {[1000, 5000, 10000, 25000].map((amount) => (
@@ -73,12 +73,12 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
 
           <div className="space-y-2">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              Or Enter Custom Amount (XOF)
+              {t("customAmount")}
             </label>
             <div className="relative">
               <Input
                 type="number"
-                placeholder="e.g. 5000"
+                placeholder={t("amountPlaceholder")}
                 min="100"
                 value={topupAmount}
                 onChange={(e) => setTopupAmount(e.target.value)}
@@ -96,7 +96,7 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
               className="h-10 rounded-xl border-slate-200 text-slate-700 font-semibold"
               onClick={onClose}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -106,10 +106,10 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
               {isPending ? (
                 <>
                   <Spinner className="mr-2 size-4 text-white" />
-                  Initializing...
+                  {t("initializing")}
                 </>
               ) : (
-                "Proceed to Paystack"
+                t("proceedToPaystack")
               )}
             </Button>
           </DialogFooter>

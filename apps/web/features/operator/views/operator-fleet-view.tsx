@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   BusFront,
   Plus,
@@ -82,22 +83,18 @@ type CustomLayout = RouterOutputs["fleet"]["getCustomLayouts"][number];
 
 const STATUS_CONFIG = {
   ACTIVE: {
-    label: "Active",
     className: "bg-chart-2/10 text-chart-2 border-chart-2/20",
     dot: "bg-chart-2",
   },
   MAINTENANCE: {
-    label: "Maintenance",
     className: "bg-chart-4/10 text-chart-4 border-chart-4/20",
     dot: "bg-chart-4",
   },
   INACTIVE: {
-    label: "Inactive",
     className: "bg-muted text-muted-foreground border-border",
     dot: "bg-muted-foreground",
   },
   RETIRED: {
-    label: "Retired",
     className: "bg-muted/50 text-muted-foreground/70 border-border/50",
     dot: "bg-muted-foreground/50",
   },
@@ -153,6 +150,7 @@ interface BusCardProps {
 }
 
 function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
+  const t = useTranslations("operatorDashboard.fleet");
   const status = STATUS_CONFIG[bus.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.INACTIVE;
 
   return (
@@ -182,7 +180,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
             )}
           >
             <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
-            {status.label}
+            {t(`status.${bus.status}`)}
           </span>
         </div>
 
@@ -190,7 +188,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-md bg-muted/50 px-2.5 py-1.5">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-              Type
+{t("busCard.type")}
             </p>
             <p className="text-xs font-medium text-foreground/90 truncate mt-0.5">
               {bus.busType.name}
@@ -198,7 +196,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
           </div>
           <div className="rounded-md bg-muted/50 px-2.5 py-1.5">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-              Configuration
+              {t("busCard.configuration")}
             </p>
             <p className="text-xs font-medium text-foreground/90 truncate mt-0.5">
               {bus.layoutTemplate.name}
@@ -208,7 +206,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
 
         {bus.notes && (
           <div className="rounded-md bg-amber-50/60 border border-amber-200/60 px-2.5 py-1.5">
-            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">Notes</p>
+            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">{t("busCard.notes")}</p>
             <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">{bus.notes}</p>
           </div>
         )}
@@ -221,7 +219,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
               <strong className="text-foreground/80 font-semibold">
                 {bus.layoutTemplate.totalSeats}
               </strong>{" "}
-              seats
+              {t("busCard.seats")}
             </span>
             {bus.manufactureYear && (
               <span className="text-muted-foreground/70">· {bus.manufactureYear}</span>
@@ -236,7 +234,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
               onClick={() => onViewMap(bus)}
             >
               <LayoutGrid className="size-3.5 mr-1" />
-              Plan
+              {t("busCard.plan")}
             </Button>
             <Button
               size="sm"
@@ -245,7 +243,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
               onClick={() => onEdit(bus)}
             >
               <Pencil className="size-3.5 mr-1" />
-              Edit
+              {t("busCard.edit")}
             </Button>
             <Button
               size="sm"
@@ -273,6 +271,7 @@ interface LayoutCardProps {
 }
 
 function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
+  const t = useTranslations("operatorDashboard.fleet");
   const busCount = layout._count.buses;
 
   return (
@@ -291,7 +290,7 @@ function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
             </div>
           </div>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-            {layout.totalSeats} seats
+            {layout.totalSeats} {t("busCard.seats")}
           </span>
         </div>
 
@@ -302,22 +301,22 @@ function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
           </span>
           {layout.hasAC && (
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-              <ThermometerSun className="size-3" /> AC
+              <ThermometerSun className="size-3" /> {t("layouts.amenities.ac")}
             </span>
           )}
           {layout.hasWifi && (
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Wifi className="size-3" /> Wi-Fi
+              <Wifi className="size-3" /> {t("layouts.amenities.wifi")}
             </span>
           )}
           {layout.hasToilet && (
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-              <CircleDot className="size-3" /> Toilet
+              <CircleDot className="size-3" /> {t("layouts.amenities.toilet")}
             </span>
           )}
           {layout.hasLuggage && (
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Luggage className="size-3" /> Luggage
+              <Luggage className="size-3" /> {t("layouts.amenities.luggage")}
             </span>
           )}
         </div>
@@ -325,12 +324,10 @@ function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
         {/* Bus usage */}
         <div className="text-[11px] text-muted-foreground">
           {busCount === 0 ? (
-            <span className="text-muted-foreground/60">Not assigned to any bus</span>
+            <span className="text-muted-foreground/60">{t("layouts.notAssigned")}</span>
           ) : (
             <span>
-              Used by{" "}
-              <strong className="text-foreground/80 font-semibold">{busCount}</strong>{" "}
-              bus{busCount !== 1 ? "es" : ""}
+              {t("layouts.usedBy", { count: busCount })}
             </span>
           )}
         </div>
@@ -344,7 +341,7 @@ function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
             onClick={() => onPreview(layout)}
           >
             <LayoutGrid className="size-3.5 mr-1" />
-            Preview
+            {t("layouts.previewBtn")}
           </Button>
           <Button
             size="sm"
@@ -352,7 +349,7 @@ function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
             className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
             onClick={() => onDelete(layout)}
             disabled={busCount > 0}
-            title={busCount > 0 ? `Used by ${busCount} bus${busCount !== 1 ? "es" : ""}` : "Delete layout"}
+            title={busCount > 0 ? t("layouts.layoutDeleteTooltip", { count: busCount }) : t("layouts.deleteLayout")}
           >
             <Trash2 className="size-3.5" />
           </Button>
@@ -373,6 +370,7 @@ interface PlatformLayoutCardProps {
 }
 
 function PlatformLayoutCard({ layout }: PlatformLayoutCardProps) {
+  const t = useTranslations("operatorDashboard.fleet");
   return (
     <Card className="border-border bg-muted/30 shadow-none opacity-80">
       <CardContent className="p-4 space-y-3">
@@ -391,7 +389,7 @@ function PlatformLayoutCard({ layout }: PlatformLayoutCardProps) {
             </div>
           </div>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-            {layout.totalSeats} seats
+            {layout.totalSeats} {t("busCard.seats")}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -400,21 +398,21 @@ function PlatformLayoutCard({ layout }: PlatformLayoutCardProps) {
           </span>
           {layout.hasAC && (
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/70">
-              <ThermometerSun className="size-3" /> AC
+              <ThermometerSun className="size-3" /> {t("layouts.amenities.ac")}
             </span>
           )}
           {layout.hasWifi && (
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/70">
-              <Wifi className="size-3" /> Wi-Fi
+              <Wifi className="size-3" /> {t("layouts.amenities.wifi")}
             </span>
           )}
           {layout.hasLuggage && (
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/70">
-              <Luggage className="size-3" /> Luggage
+              <Luggage className="size-3" /> {t("layouts.amenities.luggage")}
             </span>
           )}
         </div>
-        <p className="text-[10px] text-muted-foreground/60">Platform default — read only</p>
+        <p className="text-[10px] text-muted-foreground/60">{t("layouts.platformReadOnly")}</p>
       </CardContent>
     </Card>
   );
@@ -435,6 +433,7 @@ function LayoutPreviewCanvas({
   cols: number;
   seatTemplates: { row: number; col: number; seatType: string; label: string }[];
 }) {
+  const t = useTranslations("operatorDashboard.fleet");
   const colHeaders = Array.from({ length: cols }, (_, i) =>
     String.fromCharCode(65 + i),
   );
@@ -490,7 +489,7 @@ function LayoutPreviewCanvas({
         ))}
         <div className="mt-3 text-center text-[10px] text-muted-foreground tracking-widest uppercase flex items-center justify-center gap-2">
           <div className="flex-1 border-t border-dashed border-border" />
-          <span>Entrance door</span>
+          <span>{t("layouts.preview.entranceDoor")}</span>
           <div className="flex-1 border-t border-dashed border-border" />
         </div>
       </div>
@@ -507,6 +506,8 @@ interface LayoutsPanelProps {
 }
 
 function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
+  const t = useTranslations("operatorDashboard.fleet");
+  const tc = useTranslations("common");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -533,13 +534,13 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
       { id: deletingLayout.id },
       {
         onSuccess: () => {
-          toast.success(`Layout "${deletingLayout.name}" deleted`);
+          toast.success(t("layouts.deleteLayoutSuccess", { name: deletingLayout.name }));
           queryClient.invalidateQueries(trpc.fleet.getCustomLayouts.pathFilter());
           queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
           setDeletingLayout(null);
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to delete layout");
+          toast.error(err.message || t("layouts.deleteLayoutError"));
         },
       },
     );
@@ -552,10 +553,10 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-foreground">
-              My layouts
+              {t("layouts.myLayouts")}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Custom configurations unique to your company
+              {t("layouts.myLayoutsDesc")}
             </p>
           </div>
           <Button
@@ -564,7 +565,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
             onClick={() => setBuilderOpen(true)}
           >
             <Plus className="size-4" />
-            Create custom layout
+            {t("layouts.createCustomLayout")}
           </Button>
         </div>
 
@@ -575,10 +576,9 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                 <Layers />
               </EmptyMedia>
               <EmptyHeader>
-                <EmptyTitle>No custom layouts yet</EmptyTitle>
+                <EmptyTitle>{t("layouts.noLayoutsTitle")}</EmptyTitle>
                 <EmptyDescription>
-                  Create your first custom bus layout to design the exact seat
-                  configuration of your fleet.
+                  {t("layouts.noLayoutsDesc")}
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>
@@ -588,7 +588,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                   onClick={() => setBuilderOpen(true)}
                 >
                   <Plus className="size-4" />
-                  Create custom layout
+                  {t("layouts.createCustomLayout")}
                 </Button>
               </EmptyContent>
             </Empty>
@@ -611,10 +611,10 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
       <div className="space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-foreground/70">
-            Platform defaults
+            {t("layouts.platformDefaults")}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Standard templates provided by the platform — available to all operators
+            {t("layouts.platformDefaultsDesc")}
           </p>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -642,11 +642,10 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
         <DialogContent className="sm:max-w-sm bg-background border-border">
           <DialogHeader>
             <DialogTitle className="text-foreground text-base">
-              Delete layout?
+              {t("layouts.deleteLayoutTitle")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs">
-              <strong className="text-foreground">{deletingLayout?.name}</strong>{" "}
-              will be permanently deleted. This cannot be undone.
+              {t("layouts.deleteLayoutDesc", { name: deletingLayout?.name ?? "" })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2">
@@ -656,7 +655,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               className="flex-1 h-8 text-muted-foreground"
               onClick={() => setDeletingLayout(null)}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               size="sm"
@@ -665,7 +664,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? <Spinner className="size-3.5 mr-1.5" /> : null}
-              Delete
+              {tc("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -688,7 +687,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                   {previewLayout?.name}
                 </DrawerTitle>
                 <DrawerDescription className="text-xs text-muted-foreground">
-                  {previewLayout?.busType.name} · {previewLayout?.rows}r × {previewLayout?.columns}c · {previewLayout?.totalSeats} seats
+                  {previewLayout?.busType.name} · {t("layouts.preview.rowsAndCols", { rows: previewLayout?.rows ?? 0, columns: previewLayout?.columns ?? 0 })} · {previewLayout?.totalSeats} {t("busCard.seats")}
                 </DrawerDescription>
               </div>
             </div>
@@ -709,7 +708,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                 size="sm"
                 className="h-8 text-muted-foreground hover:text-foreground"
               >
-                Close
+                {tc("close")}
               </Button>
             </DrawerClose>
           </DrawerFooter>
@@ -724,6 +723,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
 // ──────────────────────────────────────────────
 
 function SeatMapFetcher({ busId }: { busId: string }) {
+  const t = useTranslations("operatorDashboard.fleet");
   const trpc = useTRPC();
   const { data: seatMapBus } = useSuspenseQuery(
     trpc.fleet.getBusDetails.queryOptions({ id: busId }),
@@ -734,9 +734,9 @@ function SeatMapFetcher({ busId }: { busId: string }) {
   return (
     <>
       <div className="mb-4 rounded-lg border border-primary/15 bg-primary/5 px-4 py-3">
-        <p className="text-xs text-primary font-semibold">Interactive mode active</p>
+        <p className="text-xs text-primary font-semibold">{t("seatMap.interactiveTitle")}</p>
         <p className="text-[11px] text-muted-foreground mt-0.5">
-          Click on a passenger seat to mark it out of service or reactivate it.
+          {t("seatMap.interactiveDescription")}
         </p>
       </div>
       <SeatMapPreview
@@ -755,6 +755,8 @@ function SeatMapFetcher({ busId }: { busId: string }) {
 // ──────────────────────────────────────────────
 
 export function OperatorFleetView() {
+  const t = useTranslations("operatorDashboard.fleet");
+  const tc = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -809,12 +811,12 @@ export function OperatorFleetView() {
       { id: deletingBus.id },
       {
         onSuccess: () => {
-          toast.success(`Bus ${plate} deleted`);
+          toast.success(t("deleteVehicle.success", { plate }));
           queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
           setDeletingBus(null);
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to delete vehicle");
+          toast.error(err.message || t("deleteVehicle.error"));
         },
       },
     );
@@ -837,11 +839,10 @@ export function OperatorFleetView() {
         <div className="px-6 py-4 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-lg font-bold tracking-tight text-foreground">
-              Fleet management
+              {t("pageTitle")}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {stats?.total ?? 0} vehicle{(stats?.total ?? 0) !== 1 ? "s" : ""}{" "}
-              registered
+              {t("vehicleRegistered", { count: stats?.total ?? 0 })}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -855,7 +856,7 @@ export function OperatorFleetView() {
                 }}
               >
                 <Plus className="size-4" />
-                Add vehicle
+                {t("addVehicle")}
               </Button>
             ) : null}
           </div>
@@ -865,8 +866,8 @@ export function OperatorFleetView() {
         <div className="px-6 flex items-center gap-1">
           {(
             [
-              { id: "buses", label: "Buses", count: stats?.total },
-              { id: "layouts", label: "Layouts", count: undefined },
+              { id: "buses", label: t("tabs.buses"), count: stats?.total },
+              { id: "layouts", label: t("tabs.layouts"), count: undefined },
             ] as const
           ).map((tab) => (
             <button
@@ -915,30 +916,30 @@ export function OperatorFleetView() {
           {/* ── KPI Stats ── */}
           {stats && (
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-              <StatCard label="Total vehicles" value={stats.total} icon={BusFront} />
+              <StatCard label={t("kpi.totalVehicles")} value={stats.total} icon={BusFront} />
               <StatCard
-                label="Active"
+                label={t("kpi.active")}
                 value={stats.active}
                 icon={Activity}
                 iconClassName="bg-chart-2/10 [&>svg]:text-chart-2"
               />
               <StatCard
-                label="Maintenance"
+                label={t("kpi.maintenance")}
                 value={stats.maintenance}
                 icon={Wrench}
                 iconClassName="bg-chart-4/10 [&>svg]:text-chart-4"
               />
               <StatCard
-                label="Retired"
+                label={t("kpi.retired")}
                 value={stats.retired}
                 icon={Archive}
                 iconClassName="bg-muted [&>svg]:text-muted-foreground"
               />
               <StatCard
-                label="Total capacity"
+                label={t("kpi.totalCapacity")}
                 value={stats.totalSeats}
                 icon={Armchair}
-                sub="passenger seats"
+                sub={t("kpi.passengerSeats")}
               />
             </div>
           )}
@@ -949,7 +950,7 @@ export function OperatorFleetView() {
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                 <Input
-                  placeholder="Search by plate, name, model..."
+                  placeholder={t("searchPlaceholder")}
                   className="pl-8 h-8 text-xs bg-card border-border"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -961,41 +962,41 @@ export function OperatorFleetView() {
                 </label>
                 <Combobox
                   items={[
-                    { value: "ALL", label: "All statuses" },
-                    { value: "ACTIVE", label: "Active" },
-                    { value: "MAINTENANCE", label: "Maintenance" },
-                    { value: "INACTIVE", label: "Inactive" },
-                    { value: "RETIRED", label: "Retired" },
+                    { value: "ALL", label: t("allStatuses") },
+                    { value: "ACTIVE", label: t("status.ACTIVE") },
+                    { value: "MAINTENANCE", label: t("status.MAINTENANCE") },
+                    { value: "INACTIVE", label: t("status.INACTIVE") },
+                    { value: "RETIRED", label: t("status.RETIRED") },
                   ]}
                   value={statusFilter}
                   onValueChange={(v) => setStatusFilter(v ?? "ALL")}
                 >
                   <ComboboxInput
                     id="fleet-status-filter"
-                    placeholder="Select status..."
+                    placeholder={t("selectStatus")}
                     className="h-8 text-xs bg-card border-border w-full sm:w-[160px]"
                     value={
                       statusFilter === "ALL"
-                        ? "All statuses"
+                        ? t("allStatuses")
                         : statusFilter === "ACTIVE"
-                        ? "Active"
+                        ? t("status.ACTIVE")
                         : statusFilter === "MAINTENANCE"
-                        ? "Maintenance"
+                        ? t("status.MAINTENANCE")
                         : statusFilter === "INACTIVE"
-                        ? "Inactive"
+                        ? t("status.INACTIVE")
                         : statusFilter === "RETIRED"
-                        ? "Retired"
+                        ? t("status.RETIRED")
                         : ""
                     }
                   />
                   <ComboboxContent className="bg-popover border-border text-xs">
-                    <ComboboxEmpty>No status found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("noStatusFound")}</ComboboxEmpty>
                     <ComboboxList>
-                      <ComboboxItem value="ALL">All statuses</ComboboxItem>
-                      <ComboboxItem value="ACTIVE">Active</ComboboxItem>
-                      <ComboboxItem value="MAINTENANCE">Maintenance</ComboboxItem>
-                      <ComboboxItem value="INACTIVE">Inactive</ComboboxItem>
-                      <ComboboxItem value="RETIRED">Retired</ComboboxItem>
+                      <ComboboxItem value="ALL">{t("allStatuses")}</ComboboxItem>
+                      <ComboboxItem value="ACTIVE">{t("status.ACTIVE")}</ComboboxItem>
+                      <ComboboxItem value="MAINTENANCE">{t("status.MAINTENANCE")}</ComboboxItem>
+                      <ComboboxItem value="INACTIVE">{t("status.INACTIVE")}</ComboboxItem>
+                      <ComboboxItem value="RETIRED">{t("status.RETIRED")}</ComboboxItem>
                     </ComboboxList>
                   </ComboboxContent>
                 </Combobox>
@@ -1003,7 +1004,7 @@ export function OperatorFleetView() {
             </div>
             {(search || statusFilter !== "ALL") && (
               <span className="text-xs text-muted-foreground shrink-0">
-                {filteredBuses.length} result{filteredBuses.length !== 1 ? "s" : ""}
+                {t("results", { count: filteredBuses.length })}
               </span>
             )}
           </div>
@@ -1017,12 +1018,12 @@ export function OperatorFleetView() {
                 </EmptyMedia>
                 <EmptyHeader>
                   <EmptyTitle>
-                    {search || statusFilter !== "ALL" ? "No results found" : "Empty fleet"}
+                    {search || statusFilter !== "ALL" ? t("empty.noResultsTitle") : t("empty.emptyTitle")}
                   </EmptyTitle>
                   <EmptyDescription>
                     {search || statusFilter !== "ALL"
-                      ? "Try adjusting your search or filters."
-                      : "Add your first vehicle to start managing your fleet."}
+                      ? t("empty.noResultsDescription")
+                      : t("empty.emptyDescription")}
                   </EmptyDescription>
                 </EmptyHeader>
                 {!search && statusFilter === "ALL" && (
@@ -1036,7 +1037,7 @@ export function OperatorFleetView() {
                       }}
                     >
                       <Plus className="size-4" />
-                      Add vehicle
+                      {t("addVehicle")}
                     </Button>
                   </EmptyContent>
                 )}
@@ -1082,15 +1083,10 @@ export function OperatorFleetView() {
         <DialogContent className="sm:max-w-sm bg-background border-border">
           <DialogHeader>
             <DialogTitle className="text-foreground text-base">
-              Delete vehicle?
+              {t("deleteVehicle.title")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs">
-              The vehicle{" "}
-              <strong className="text-foreground font-mono">
-                {deletingBus?.registrationPlate}
-              </strong>{" "}
-              will be permanently removed from your fleet. This action is
-              irreversible.
+              {t("deleteVehicle.description", { plate: deletingBus?.registrationPlate ?? "" })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2 sm:flex-row">
@@ -1100,7 +1096,7 @@ export function OperatorFleetView() {
               className="flex-1 h-8 text-muted-foreground"
               onClick={() => setDeletingBus(null)}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               size="sm"
@@ -1109,7 +1105,7 @@ export function OperatorFleetView() {
               disabled={deleteBusMutation.isPending}
             >
               {deleteBusMutation.isPending ? <Spinner className="size-3.5 mr-1.5" /> : null}
-              Delete
+              {tc("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1134,12 +1130,12 @@ export function OperatorFleetView() {
               </div>
               <div>
                 <DrawerTitle className="text-base font-semibold text-foreground">
-                  Seat map
+                  {t("seatMap.title")}
                 </DrawerTitle>
                 <DrawerDescription className="text-xs text-muted-foreground">
                   {seatMapBusTitle
                     ? `${seatMapBusTitle.plate} — ${seatMapBusTitle.layout}`
-                    : "Loading..."}
+                    : t("seatMap.loading")}
                 </DrawerDescription>
               </div>
             </div>
@@ -1166,7 +1162,7 @@ export function OperatorFleetView() {
                 size="sm"
                 className="h-8 text-muted-foreground hover:text-foreground"
               >
-                Close
+                {t("seatMap.close")}
               </Button>
             </DrawerClose>
           </DrawerFooter>

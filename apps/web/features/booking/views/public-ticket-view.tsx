@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
 import { useTRPC } from "@/trpc/client";
@@ -10,6 +11,7 @@ interface PublicTicketViewProps {
 }
 
 export function PublicTicketView({ ticketToken }: PublicTicketViewProps) {
+  const t = useTranslations("ticket");
   const trpc = useTRPC();
   const { data: ticket } = useSuspenseQuery(
     trpc.booking.getTicketByToken.queryOptions({ ticketToken }),
@@ -20,10 +22,9 @@ export function PublicTicketView({ ticketToken }: PublicTicketViewProps) {
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex gap-3 items-start">
         <ShieldCheck className="size-5 text-emerald-600 shrink-0 mt-0.5" />
         <div className="text-sm text-emerald-900">
-          <p className="font-semibold">Valid ticket</p>
+          <p className="font-semibold">{t("validTicket")}</p>
           <p className="text-emerald-800/90 mt-0.5">
-            Show this screen or the QR code below to staff when boarding. Keep
-            your phone brightness up for faster scanning.
+            {t("validTicketDesc")}
           </p>
         </div>
       </div>
@@ -31,7 +32,7 @@ export function PublicTicketView({ ticketToken }: PublicTicketViewProps) {
       <DigitalTicketCard ticket={ticket} />
 
       <p className="text-center text-xs text-slate-500">
-        Reference {ticket.bookingReference} · Seat {ticket.seatLabel}
+        {t("refSeat", { ref: ticket.bookingReference, seat: ticket.seatLabel })}
       </p>
     </div>
   );

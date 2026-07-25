@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations, useLocale } from "next-intl";
 import { History, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
@@ -35,17 +36,19 @@ export function TransactionHistory({
   currentPageParam,
   setCurrentPageParam,
 }: TransactionHistoryProps) {
-  const currentPage = currentPageParam - 1; // 0-indexed offset
+  const t = useTranslations("passengerDashboard.wallet");
+  const locale = useLocale();
+  const currentPage = currentPageParam - 1;
 
   return (
     <Card className="border-border bg-bg-surface overflow-hidden shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between py-5 px-6 border-b border-border bg-bg-base">
         <div>
           <CardTitle className="text-base font-extrabold text-text-primary tracking-tight font-display">
-            Transaction History
+            {t("history")}
           </CardTitle>
           <CardDescription className="text-xs">
-            Prepaid deposits, refunds, and ticket bookings.
+            {t("historyDesc")}
           </CardDescription>
         </div>
         <History className="w-4 h-4 text-text-muted" />
@@ -56,8 +59,8 @@ export function TransactionHistory({
             <div className="w-12 h-12 bg-bg-elevated rounded-full flex items-center justify-center text-text-muted">
               <History className="w-6 h-6" />
             </div>
-            <p className="font-medium">No transactions found.</p>
-            <p className="text-xs text-text-muted max-w-[280px]">Your wallet deposits and ticket receipts will appear here.</p>
+            <p className="font-medium">{t("noTransactions")}</p>
+            <p className="text-xs text-text-muted max-w-[280px]">{t("noTransactionsDesc")}</p>
           </div>
         ) : ledgerResult ? (
           <div className="space-y-0">
@@ -65,10 +68,10 @@ export function TransactionHistory({
               <Table>
                 <TableHeader className="bg-bg-base">
                   <TableRow className="border-b border-border/80 hover:bg-transparent">
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">Transaction</TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">Amount</TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">Method/Detail</TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">Date</TableHead>
+                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">{t("colTransaction")}</TableHead>
+                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">{t("colAmount")}</TableHead>
+                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">{t("colMethod")}</TableHead>
+                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">{t("colDate")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -103,11 +106,11 @@ export function TransactionHistory({
                         </TableCell>
                         <TableCell className="px-6 py-4">
                           <span className="text-[10px] uppercase font-bold tracking-wider text-text-muted px-2 py-0.5 bg-bg-base rounded-md border border-border">
-                            {isCredit ? "Paystack" : "Wallet"}
+                            {isCredit ? "Paystack" : t("methodWallet")}
                           </span>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-text-secondary text-xs font-medium">
-                          {new Date(entry.createdAt).toLocaleDateString("en-US", {
+                          {new Date(entry.createdAt).toLocaleDateString(locale, {
                             month: "short",
                             day: "numeric",
                             hour: "2-digit",
@@ -121,11 +124,14 @@ export function TransactionHistory({
               </Table>
             </div>
 
-            {/* Pagination */}
             {ledgerResult.total > pageSize && (
               <div className="flex justify-between items-center text-xs p-5 border-t border-border bg-bg-base/50">
                 <span className="text-text-secondary font-medium">
-                  Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, ledgerResult.total)} of {ledgerResult.total} entries
+                  {t("showingEntries", {
+                    start: currentPage * pageSize + 1,
+                    end: Math.min((currentPage + 1) * pageSize, ledgerResult.total),
+                    total: ledgerResult.total,
+                  })}
                 </span>
                 <div className="flex gap-2">
                   <Button
@@ -135,7 +141,7 @@ export function TransactionHistory({
                     onClick={() => setCurrentPageParam((p) => p - 1)}
                     className="h-8 text-xs font-semibold rounded-lg border-border"
                   >
-                    Previous
+                    {t("previous")}
                   </Button>
                   <Button
                     size="sm"
@@ -144,7 +150,7 @@ export function TransactionHistory({
                     onClick={() => setCurrentPageParam((p) => (p as number) + 1)}
                     className="h-8 text-xs font-semibold rounded-lg border-border"
                   >
-                    Next
+                    {t("next")}
                   </Button>
                 </div>
               </div>

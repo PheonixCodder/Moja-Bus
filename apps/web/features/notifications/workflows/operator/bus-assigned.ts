@@ -14,11 +14,25 @@ export const operatorBusAssignedWorkflow = workflow(
       redirect: { url: "/dashboard/operator/trips", target: "_self" },
     }));
 
-    // 2. SMS Notification
-    await step.sms("send-sms", async () => ({
-      body: `Moja Operator Alert: You are assigned to Bus ${escapeHtml(payload.busPlate)} for route ${escapeHtml(payload.routeName)} departing ${escapeHtml(payload.departureTime)}. Log in to view manifest.`,
-    }), {
-      skip: () => !payload.phone,
+    // 2. Email Notification
+    await step.email("send-email", async () => {
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; color: #1e293b;">
+          <h2 style="color: #0081F1; margin-top: 0; font-size: 20px; font-weight: bold;">Bus Assignment Updated</h2>
+          <p>Hello ${escapeHtml(payload.staffName)},</p>
+          <p>You have been assigned to vehicle <strong>${escapeHtml(payload.busPlate)}</strong> for the following route:</p>
+          <div style="background: #f8fafc; border-left: 4px solid #0081F1; padding: 16px; border-radius: 4px; margin: 16px 0; font-size: 14px;">
+            <p style="margin: 0 0 8px 0;">Route: <strong>${escapeHtml(payload.routeName)}</strong></p>
+            <p style="margin: 0;">Departure: <strong>${escapeHtml(payload.departureTime)}</strong></p>
+          </div>
+          <p style="font-size: 13px; color: #64748b;">Log in to the operator dashboard to view passenger manifests and trip status.</p>
+        </div>
+      `;
+
+      return {
+        subject: `Bus Assignment: ${escapeHtml(payload.busPlate)} assigned for ${escapeHtml(payload.routeName)}`,
+        body: html,
+      };
     });
   },
   {

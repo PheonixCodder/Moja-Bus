@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ import { useStorageUpload } from "@/lib/storage-client";
 import { ImageUploadField } from "@/components/image-upload-field";
 
 export function PassengerSettingsView() {
+  const t = useTranslations("passengerDashboard.settings");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -59,11 +61,11 @@ export function PassengerSettingsView() {
   const saveSettingsMutation = useMutation(
     trpc.passenger.updatePreferences.mutationOptions({
       onSuccess: () => {
-        toast.success("Settings updated successfully!");
+        toast.success(t("toastUpdated"));
         queryClient.invalidateQueries(trpc.passenger.getPreferences.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to save settings");
+        toast.error(err.message || t("toastFailed"));
       },
     })
   );
@@ -71,7 +73,7 @@ export function PassengerSettingsView() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
-      toast.error("Full name is required");
+      toast.error(t("validationName"));
       return;
     }
     saveSettingsMutation.mutate({
@@ -83,8 +85,8 @@ export function PassengerSettingsView() {
   const { upload: uploadAvatar } = useStorageUpload("passenger-avatar");
   const updateAvatarMutation = useMutation(
     trpc.passenger.updateAvatar.mutationOptions({
-      onSuccess: () => toast.success("Profile photo updated"),
-      onError: (err) => toast.error(err.message || "Failed to update photo"),
+      onSuccess: () => toast.success(t("toastPhotoUpdated")),
+      onError: (err) => toast.error(err.message || t("toastPhotoFailed")),
     }),
   );
 
@@ -111,25 +113,24 @@ export function PassengerSettingsView() {
           className="w-full justify-start text-xs font-semibold px-4 py-2.5 rounded-md text-left gap-2 text-text-secondary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
         >
           <User className="w-4 h-4" />
-          Profile Details
+          {t("tabProfile")}
         </TabsTrigger>
         <TabsTrigger
           value="preferences"
           className="w-full justify-start text-xs font-semibold px-4 py-2.5 rounded-md text-left gap-2 text-text-secondary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
         >
           <Settings2 className="w-4 h-4" />
-          Travel Preferences
+          {t("tabPreferences")}
         </TabsTrigger>
       </TabsList>
 
       <div className="flex-1 w-full space-y-6">
-        {/* Profile Tab */}
         <TabsContent value="profile" className="m-0 focus-visible:outline-none">
           <form onSubmit={handleSaveProfile}>
             <Card className="border-border bg-bg-surface shadow-sm">
               <CardHeader className="border-b border-border/50 pb-4">
-                <CardTitle className="text-base font-bold text-text-primary">Profile Details</CardTitle>
-                <CardDescription>Update your personal information used for passenger tickets.</CardDescription>
+                <CardTitle className="text-base font-bold text-text-primary">{t("tabProfile")}</CardTitle>
+                <CardDescription>{t("profileDescription")}</CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
                 <div className="flex items-center gap-4 pb-2">
@@ -137,25 +138,25 @@ export function PassengerSettingsView() {
                     purpose="passenger-avatar"
                     value={(profile?.user as { image?: string | null } | undefined)?.image ?? null}
                     onUploaded={handleAvatarUploaded}
-                    label="Upload photo"
-                    hint="PNG or JPG, up to 2MB"
+                    label={t("uploadPhoto")}
+                    hint={t("uploadHint")}
                     shape="circle"
                     previewClassName="h-20 w-20"
                   />
                   <p className="text-xs text-text-muted">
-                    Your profile photo is shown on your tickets and account.
+                    {t("photoDescription")}
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="fullName" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                    Full Name
+                    {t("fullName")}
                   </Label>
                   <Input
                     id="fullName"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
+                    placeholder={t("namePlaceholder")}
                     required
                     className="h-10 rounded-lg border-border focus-visible:ring-primary"
                   />
@@ -164,19 +165,19 @@ export function PassengerSettingsView() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
                     <Label className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1">
-                      <Mail className="w-3.5 h-3.5 text-text-muted" /> Email Address
+                      <Mail className="w-3.5 h-3.5 text-text-muted" /> {t("emailLabel")}
                     </Label>
                     <Input
                       value={profile?.user?.email || ""}
                       disabled
                       className="h-10 rounded-lg border-border bg-bg-elevated/50 text-text-muted cursor-not-allowed"
                     />
-                    <p className="text-[10px] text-text-muted">Registered email address cannot be changed.</p>
+                    <p className="text-[10px] text-text-muted">{t("emailDisabledHint")}</p>
                   </div>
 
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="phone" className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1">
-                      <Smartphone className="w-3.5 h-3.5 text-text-muted" /> Phone Number
+                      <Smartphone className="w-3.5 h-3.5 text-text-muted" /> {t("phoneLabel")}
                     </Label>
                     <PhoneInput
                       id="phone"
@@ -190,7 +191,7 @@ export function PassengerSettingsView() {
                 <div className="pt-4 border-t border-border flex justify-end">
                   <Button type="submit" disabled={isSaving} className="bg-primary text-white hover:bg-primary/95 font-semibold h-10 px-6 rounded-lg gap-2">
                     {isSaving && <Spinner className="w-4 h-4 text-white" />}
-                    Save Profile Changes
+                    {t("saveProfile")}
                   </Button>
                 </div>
               </CardContent>
@@ -198,64 +199,60 @@ export function PassengerSettingsView() {
           </form>
         </TabsContent>
 
-        {/* Preferences Tab */}
         <TabsContent value="preferences" className="m-0 focus-visible:outline-none">
           <form onSubmit={handleSavePreferences}>
             <Card className="border-border bg-bg-surface shadow-sm">
               <CardHeader className="border-b border-border/50 pb-4">
-                <CardTitle className="text-base font-bold text-text-primary">Travel Preferences</CardTitle>
-                <CardDescription>Tailor your ticket purchases and passenger details by default.</CardDescription>
+                <CardTitle className="text-base font-bold text-text-primary">{t("tabPreferences")}</CardTitle>
+                <CardDescription>{t("preferencesDescription")}</CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Seating preference */}
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="preferredSeat" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                      Seating Preference
+                      {t("seatingPreference")}
                     </Label>
                     <Select value={preferredSeat} onValueChange={setPreferredSeat}>
                       <SelectTrigger className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
-                        <SelectValue placeholder="No seating preference" />
+                        <SelectValue placeholder={t("seatingNone")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="NONE">No seating preference</SelectItem>
-                        <SelectItem value="WINDOW">Window Seats</SelectItem>
-                        <SelectItem value="AISLE">Aisle Seats</SelectItem>
+                        <SelectItem value="NONE">{t("seatingNone")}</SelectItem>
+                        <SelectItem value="WINDOW">{t("seatingWindow")}</SelectItem>
+                        <SelectItem value="AISLE">{t("seatingAisle")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Seat Class preference */}
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="preferredClass" className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                      Preferred Seating Class
+                      {t("seatingClass")}
                     </Label>
                     <Select value={preferredClass} onValueChange={setPreferredClass}>
                       <SelectTrigger className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
-                        <SelectValue placeholder="Economy Class" />
+                        <SelectValue placeholder={t("classEconomy")} />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ECONOMY">Economy Class</SelectItem>
-                        <SelectItem value="STANDARD">Standard Class</SelectItem>
-                        <SelectItem value="BUSINESS">Business Class</SelectItem>
-                        <SelectItem value="VIP">VIP Class</SelectItem>
-                      </SelectContent>
+<SelectContent>
+                         <SelectItem value="ECONOMY">{t("classEconomy")}</SelectItem>
+                         <SelectItem value="STANDARD">{t("classStandard")}</SelectItem>
+                         <SelectItem value="VIP">{t("classVip")}</SelectItem>
+                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="border-t border-border pt-5 space-y-4">
                   <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-primary" /> Notification Settings
+                    <Sparkles className="w-3.5 h-3.5 text-primary" /> {t("notificationTitle")}
                   </h4>
                   
                   <div className="flex items-center justify-between p-4 border border-border/60 rounded-lg">
                     <div className="space-y-0.5 max-w-md">
                       <Label htmlFor="marketing" className="text-sm font-semibold text-text-primary">
-                        Marketing & Promotions
+                        {t("marketingLabel")}
                       </Label>
                       <p className="text-xs text-text-muted">
-                        Receive customized vouchers, discount codes, and seasonal travel deal notifications via email.
+                        {t("marketingDescription")}
                       </p>
                     </div>
                     <Switch
@@ -269,7 +266,7 @@ export function PassengerSettingsView() {
                 <div className="pt-4 border-t border-border flex justify-end">
                   <Button type="submit" disabled={isSaving} className="bg-primary text-white hover:bg-primary/95 font-semibold h-10 px-6 rounded-lg gap-2">
                     {isSaving && <Spinner className="w-4 h-4 text-white" />}
-                    Save Travel Preferences
+                    {t("savePreferences")}
                   </Button>
                 </div>
               </CardContent>

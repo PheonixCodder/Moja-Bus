@@ -12,6 +12,7 @@ import {
   Search,
 } from "lucide-react";
 import Link from "next/link";
+import { getTranslations, getLocale } from "next-intl/server";
 import { getUser } from "@/lib/auth-server";
 import { getPrismaClient, FinancialAccountService } from "@moja/db";
 import { toSafeDisplayNumber } from "@/lib/money";
@@ -34,6 +35,8 @@ import { DashboardQuickSearch } from "@/features/dashboard/components/dashboard-
 import { LiveBoardingPass } from "@/features/dashboard/components/live-boarding-pass";
 
 export async function DashboardView() {
+  const t = await getTranslations("passengerDashboard.overview");
+  const locale = await getLocale();
   const user = await getUser();
   if (!user) {
     return null;
@@ -42,13 +45,11 @@ export async function DashboardView() {
   const userId = user.id;
   const now = new Date();
 
-  // Range start for last 6 months trip activity chart
   const startOfRange = new Date();
   startOfRange.setMonth(startOfRange.getMonth() - 5);
   startOfRange.setDate(1);
   startOfRange.setHours(0, 0, 0, 0);
 
-  // Fetch stats, recent bookings, passenger profile, saved contacts, and monthly spending in parallel
   const [
     upcomingTripsResult,
     pendingPaymentsResult,
@@ -172,7 +173,6 @@ export async function DashboardView() {
 
   const walletBalance = wallet ? toSafeDisplayNumber(wallet.availableBalance) : 0;
 
-  // Now fetch recent wallet ledger transactions
   const ledgerEntries = wallet
     ? await prisma.ledgerEntry.findMany({
         where: { accountId: wallet.id },
@@ -181,12 +181,10 @@ export async function DashboardView() {
       })
     : [];
 
-  // Display boarding pass if departures occur within 24 hours
   const showLivePass = nextDeparture
     ? new Date(nextDeparture.trip.departureDate).getTime() - now.getTime() <= 24 * 60 * 60 * 1000
     : false;
 
-  // Compute last 6 months list labels and trip progression
   const last6Months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date();
     d.setMonth(d.getMonth() - i);
@@ -194,7 +192,7 @@ export async function DashboardView() {
   }).reverse();
 
   const chartData = last6Months.map((date) => {
-    const monthLabel = date.toLocaleDateString("en-US", { month: "short" });
+    const monthLabel = date.toLocaleDateString(locale, { month: "short" });
     const count = monthlyBookings.filter((b) => {
       const bDate = new Date(b.createdAt);
       return bDate.getMonth() === date.getMonth() && bDate.getFullYear() === date.getFullYear();
@@ -202,45 +200,45 @@ export async function DashboardView() {
     return {
       month: monthLabel,
       trips: count,
-      spent: count * 7500, // approximation based on 7,500 XOF avg fare
+      spent: count * 7500,
     };
   });
 
   const stats = [
     {
-      title: "Pre-funded Wallet",
-      value: `${walletBalance.toLocaleString("en-US")} XOF`,
-      description: "Available travel balance",
+      title: t("walletTitle"),
+      value: `${walletBalance.toLocaleString(locale)} XOF`,
+      description: t("walletDescription"),
       icon: Wallet,
       href: "/dashboard/wallet",
-      badge: "Fast Pay",
+      badge: t("walletBadge"),
       badgeVariant: "default" as const,
     },
     {
-      title: "Upcoming Journeys",
+      title: t("upcomingTitle"),
       value: upcomingTripsCount,
-      description: "Confirmed upcoming trips",
+      description: t("upcomingDescription"),
       icon: BusFront,
       href: "/dashboard/bookings?tab=upcoming",
-      badge: "Schedules",
+      badge: t("upcomingBadge"),
       badgeVariant: "secondary" as const,
     },
     {
-      title: "Pending Payments",
+      title: t("pendingTitle"),
       value: pendingPaymentsCount,
-      description: "Awaiting checkout confirmation",
+      description: t("pendingDescription"),
       icon: CalendarDays,
       href: "/dashboard/bookings?tab=pending",
-      badge: pendingPaymentsCount > 0 ? "Action Required" : "All Clear",
+      badge: pendingPaymentsCount > 0 ? t("pendingBadgeAction") : t("pendingBadgeClear"),
       badgeVariant: (pendingPaymentsCount > 0 ? "destructive" : "outline") as any,
     },
     {
-      title: "Saved Passengers",
+      title: t("passengersTitle"),
       value: savedContactsCount,
-      description: "For rapid booking checkout",
+      description: t("passengersDescription"),
       icon: Users,
       href: "/dashboard/passengers",
-      badge: "Contacts",
+      badge: t("passengersBadge"),
       badgeVariant: "outline" as const,
     },
   ];
@@ -248,39 +246,34 @@ export async function DashboardView() {
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6">
-        {/* Live Boarding Pass Gate Banner (Departing in <24 Hours) */}
         {showLivePass && nextDeparture && (
           <LiveBoardingPass
-            origin={nextDeparture.originTripStop?.terminal?.name || "Origin Terminal"}
-            destination={nextDeparture.destinationTripStop?.terminal?.name || "Destination Terminal"}
+            origin={nextDeparture.originTripStop?.terminal?.name || t("originTerminal")}
+            destination={nextDeparture.destinationTripStop?.terminal?.name || t("destinationTerminal")}
             departureTime={new Date(nextDeparture.trip.departureDate)}
             seatId={nextDeparture.seatId}
             qrPayload={nextDeparture.ticketToken}
           />
         )}
 
-        {/* Welcome Section & Quick Route Search Form */}
         <div className="bg-linear-to-r from-primary/10 via-primary/5 to-card border border-border/80 rounded-xl p-6 relative overflow-visible shadow-xs dark:bg-card">
-
           <div className="relative z-10 space-y-4">
             <div className="space-y-1">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                Passenger Portal
+                {t("portal")}
               </span>
               <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-foreground">
-                Welcome back, {user.name?.split(" ")[0] ?? "Traveler"}!
+                {t("greeting", { name: user.name?.split(" ")[0] ?? "Traveler" })}
               </h1>
               <p className="text-muted-foreground text-sm max-w-md leading-relaxed">
-                Ready for your next journey? Search for active routes, manage your bookings, and travel securely across Côte d'Ivoire.
+                {t("welcomeDescription")}
               </p>
             </div>
 
-            {/* Inline Quick Search Widget */}
             <DashboardQuickSearch />
           </div>
         </div>
 
-        {/* Premium Stats Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs dark:*:data-[slot=card]:bg-card">
           {stats.map((stat) => {
             const Icon = stat.icon;
@@ -314,15 +307,13 @@ export async function DashboardView() {
           })}
         </div>
 
-        {/* 2-Column Core Section */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Timeline-style Recent Bookings */}
           <Card className="border-border bg-card shadow-xs lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 pb-4">
               <div>
-                <CardTitle className="text-base font-bold text-foreground">Recent Bookings</CardTitle>
+                <CardTitle className="text-base font-bold text-foreground">{t("recentBookings")}</CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Your latest travel schedules and QR ticket tokens.
+                  {t("recentBookingsDesc")}
                 </CardDescription>
               </div>
               <Link
@@ -332,7 +323,7 @@ export async function DashboardView() {
                   "text-primary hover:text-primary/90 font-semibold gap-1 flex items-center"
                 )}
               >
-                View All <ArrowRight className="size-4" />
+                {t("viewAll")} <ArrowRight className="size-4" />
               </Link>
             </CardHeader>
             <CardContent className="pt-6">
@@ -342,9 +333,9 @@ export async function DashboardView() {
                     <Ticket className="size-6" />
                   </div>
                   <div className="space-y-1 max-w-xs">
-                    <p className="font-bold text-foreground">No Travel Bookings Yet</p>
+                    <p className="font-bold text-foreground">{t("noBookingsTitle")}</p>
                     <p className="text-xs text-muted-foreground">
-                      Book tickets to popular destinations like Bouaké, Yamoussoukro, or San Pédro.
+                      {t("noBookingsDesc", { cities: "Bouaké, Yamoussoukro, or San Pédro" })}
                     </p>
                   </div>
                   <Link
@@ -354,21 +345,20 @@ export async function DashboardView() {
                       "bg-primary text-white hover:bg-primary/95 mt-2 font-semibold px-4 py-2 rounded-lg"
                     )}
                   >
-                    Book a Ticket
+                    {t("bookTicket")}
                   </Link>
                 </div>
               ) : (
                 <div className="relative border-l border-muted pl-4 ml-2 space-y-6">
                   {recentBookings.map((booking) => {
                     const departureDate = booking.trip.departureDate;
-                    const originName = booking.originTripStop?.terminal?.name || "Origin Terminal";
-                    const destName = booking.destinationTripStop?.terminal?.name || "Destination Terminal";
+                    const originName = booking.originTripStop?.terminal?.name || t("originTerminal");
+                    const destName = booking.destinationTripStop?.terminal?.name || t("destinationTerminal");
                     const isConfirmed = booking.status === "CONFIRMED";
                     const isPending = booking.status === "PENDING_PAYMENT";
 
                     return (
                       <div key={booking.id} className="relative group">
-                        {/* Timeline Node Point */}
                         <div
                           className={cn(
                             "absolute -left-[21px] top-1.5 size-2.5 rounded-full border-2 bg-background transition-all group-hover:scale-110",
@@ -388,14 +378,13 @@ export async function DashboardView() {
                                   isPending && "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                                 )}
                               >
-                                {booking.status.replace("_", " ")}
+                                {isConfirmed ? t("statusConfirmed") : isPending ? t("statusPendingPayment") : booking.status.replace("_", " ")}
                               </Badge>
                               <span className="text-[10px] text-muted-foreground font-mono">
-                                REF: {booking.bookingReference}
+                                {t("refLabel", { ref: booking.bookingReference })}
                               </span>
                             </div>
 
-                            {/* Node Route Path representation */}
                             <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                               <span className="truncate">{originName}</span>
                               <ArrowRight className="size-3.5 text-muted-foreground" />
@@ -406,7 +395,7 @@ export async function DashboardView() {
                               <span>{booking.company.name}</span>
                               <span>•</span>
                               <span>
-                                {new Date(departureDate).toLocaleDateString("en-US", {
+                                {new Date(departureDate).toLocaleDateString(locale, {
                                   month: "short",
                                   day: "numeric",
                                   year: "numeric",
@@ -416,7 +405,7 @@ export async function DashboardView() {
                               </span>
                               <span>•</span>
                               <span className="font-semibold text-foreground">
-                                Seat {booking.seatId}
+                                {t("timelineSeat", { id: booking.seatId })}
                               </span>
                             </div>
                           </div>
@@ -431,7 +420,7 @@ export async function DashboardView() {
                                 )}
                               >
                                 <Ticket className="size-3.5" />
-                                QR Code
+                                {t("qrCode")}
                               </Link>
                             ) : isPending ? (
                               <Link
@@ -442,7 +431,7 @@ export async function DashboardView() {
                                 )}
                               >
                                 <CreditCard className="size-3.5" />
-                                Pay
+                                {t("pay")}
                               </Link>
                             ) : (
                               <Link
@@ -452,7 +441,7 @@ export async function DashboardView() {
                                   "h-8 text-xs font-semibold flex items-center justify-center"
                                 )}
                               >
-                                Details
+                                {t("details")}
                               </Link>
                             )}
                           </div>
@@ -465,18 +454,16 @@ export async function DashboardView() {
             </CardContent>
           </Card>
 
-          {/* Wallet Deposit and Contact list sidebar */}
           <div className="flex flex-col gap-6">
             <WalletQuickDeposit recentTransactions={ledgerEntries} />
             
             <SavedCompanions companions={savedPassengers} />
 
-            {/* Support and Safety Guidelines Card */}
             <Card className="border-border bg-card shadow-xs">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold text-foreground">Travel Guidelines</CardTitle>
+                <CardTitle className="text-sm font-bold text-foreground">{t("travelGuidelines")}</CardTitle>
                 <CardDescription className="text-[10px] text-muted-foreground">
-                  Essential safety guidelines for Moja Ride travelers.
+                  {t("travelGuidelinesDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-xs text-muted-foreground leading-relaxed">
@@ -485,8 +472,8 @@ export async function DashboardView() {
                     <ShieldCheck className="size-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-foreground block mb-0.5">Verified Operators</span>
-                    Every transport operator is verified for permits and safety compliance.
+                    <span className="font-bold text-foreground block mb-0.5">{t("verifiedOperators")}</span>
+                    {t("verifiedOperatorsDesc")}
                   </div>
                 </div>
 
@@ -495,8 +482,8 @@ export async function DashboardView() {
                     <CreditCard className="size-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-foreground block mb-0.5">Secure Payments</span>
-                    Transactions are securely processed with verified escrows via Paystack.
+                    <span className="font-bold text-foreground block mb-0.5">{t("securePayments")}</span>
+                    {t("securePaymentsDesc")}
                   </div>
                 </div>
               </CardContent>
@@ -504,7 +491,6 @@ export async function DashboardView() {
           </div>
         </div>
 
-        {/* Travel Analytics Composed Chart */}
         <TravelStatsChart data={chartData} />
 
         <SessionsPanel />

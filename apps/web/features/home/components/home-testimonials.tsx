@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Star, ShieldCheck } from "lucide-react";
 
 const testimonials = [
@@ -27,7 +28,9 @@ const testimonials = [
   },
 ];
 
-export function HomeTestimonials() {
+export async function HomeTestimonials() {
+  const t = await getTranslations("testimonials");
+
   return (
     <section className="py-32 px-6 md:px-8 bg-white relative overflow-hidden border-t border-b border-slate-100">
       {/* Background shapes */}
@@ -38,7 +41,7 @@ export function HomeTestimonials() {
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-20">
           <span className="text-[#ee237c] text-xs uppercase font-extrabold tracking-widest block mb-3 bg-pink-50 px-3.5 py-1.5 rounded-full w-max mx-auto border border-pink-100/50">
-            Commuter Feedback
+            {t("badge")}
           </span>
           <h2
             className="text-slate-900 font-extrabold tracking-tight mb-4"
@@ -48,18 +51,18 @@ export function HomeTestimonials() {
               lineHeight: 1.15,
             }}
           >
-            What Our Passengers Say
+            {t("title")}
           </h2>
           <p className="text-slate-500 text-sm leading-relaxed">
-            Join thousands of commuters, students, and tourists who book their intercity journeys across Côte d'Ivoire with Moja-Bus.
+            {t("subtitle")}
           </p>
         </div>
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((t) => (
+          {testimonials.map((review) => (
             <div
-              key={t.name}
+              key={review.name}
               className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between relative group hover:shadow-md hover:-translate-y-1.5 hover:border-[#ee237c]/20 transition-all duration-300"
             >
               {/* Decorative Quote Bubble Mark (positioned in the background) */}
@@ -72,7 +75,7 @@ export function HomeTestimonials() {
               {/* Green Verified Pill in corner */}
               <div className="absolute top-8 right-8 flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-[10px] font-bold border border-green-100/50 shadow-sm select-none z-10">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                Verified
+                {t("verified")}
               </div>
 
               <div className="relative z-10">
@@ -85,23 +88,23 @@ export function HomeTestimonials() {
 
                 {/* Review Text */}
                 <p className="text-slate-700 text-sm md:text-[14.5px] leading-relaxed mb-8 italic">
-                  "{t.quote}"
+                  &ldquo;{review.quote}&rdquo;
                 </p>
               </div>
 
               {/* User Bio */}
               <div className="flex items-center gap-4 border-t border-slate-50 pt-6 mt-auto relative z-10">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${t.gradient} text-white font-extrabold flex items-center justify-center text-sm shadow-sm select-none group-hover:ring-4 group-hover:ring-[#ee237c]/10 transition-all duration-300`}>
-                  {t.initials}
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${review.gradient} text-white font-extrabold flex items-center justify-center text-sm shadow-sm select-none group-hover:ring-4 group-hover:ring-[#ee237c]/10 transition-all duration-300`}>
+                  {review.initials}
                 </div>
                 <div className="text-left">
-                  <h4 className="font-extrabold text-slate-900 text-[14.5px]">{t.name}</h4>
+                  <h4 className="font-extrabold text-slate-900 text-[14.5px]">{review.name}</h4>
                   <div className="flex items-center gap-1.5 mt-1">
                     <span className="text-[10px] text-[#ee237c] font-bold tracking-wider uppercase bg-pink-50 px-2 py-0.5 rounded border border-pink-100/40">
-                      {t.route}
+                      {review.route}
                     </span>
                     <span className="text-[10px] text-slate-400 font-medium">
-                      • {t.date}
+                      • {review.date}
                     </span>
                   </div>
                 </div>
@@ -134,9 +137,9 @@ export function HomeTestimonials() {
 
             {/* Trustpilot Stats */}
             <div className="text-sm text-slate-500 flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
-              <span className="font-extrabold text-slate-900 text-base">TrustScore 4.8 / 5</span>
+              <span className="font-extrabold text-slate-900 text-base">{t("trustpilot.trustScore")}</span>
               <span className="hidden md:inline text-slate-300">|</span>
-              <span>Based on <span className="font-bold text-slate-700">12,450+ verified ratings</span></span>
+              <span>{t.rich("trustpilot.basedOn", { count: "12,450+", strong: (chunks) => <span className="font-bold text-slate-700">{chunks}</span> })}</span>
             </div>
           </div>
         </div>

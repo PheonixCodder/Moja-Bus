@@ -2,6 +2,7 @@
 
 import { Users, UserPlus } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
+import { useTranslations } from "next-intl";
 
 interface StaffPageHeaderProps {
   canInvite: boolean;
@@ -9,16 +10,17 @@ interface StaffPageHeaderProps {
 }
 
 export function StaffPageHeader({ canInvite, onInvite }: StaffPageHeaderProps) {
+  const t = useTranslations("operatorDashboard.staff");
   return (
     <div className="border-b border-border bg-card px-6 py-5 shrink-0">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold font-display tracking-tight text-foreground flex items-center gap-2">
             <Users className="size-5.5 text-primary" />
-            Staff
+            {t("title")}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Manage your team, roles, and invitations.
+            {t("headerDescription")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -29,7 +31,7 @@ export function StaffPageHeader({ canInvite, onInvite }: StaffPageHeaderProps) {
               onClick={onInvite}
             >
               <UserPlus className="size-4 mr-1.5" />
-              Invite Member
+              {t("invite")}
             </Button>
           ) : null}
         </div>

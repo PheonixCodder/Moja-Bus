@@ -4,6 +4,7 @@ import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { Label } from "@moja/ui/components/ui/label";
 import { Input } from "@moja/ui/components/ui/input";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   getPermissionsByGroup,
   type PermissionKey,
@@ -23,6 +24,7 @@ export function PermissionMatrix({
   grantable,
   disabled,
 }: PermissionMatrixProps) {
+  const t = useTranslations("operatorDashboard.staff.permissionMatrix");
   const [filter, setFilter] = useState("");
   const groups = useMemo(() => getPermissionsByGroup(), []);
   const grantableSet = useMemo(
@@ -60,7 +62,7 @@ export function PermissionMatrix({
   return (
     <div className="space-y-4">
       <Input
-        placeholder="Filter permissions..."
+        placeholder={t("filterPlaceholder")}
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
         className="h-9"

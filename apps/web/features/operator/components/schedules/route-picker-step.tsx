@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
@@ -29,17 +30,19 @@ export function RoutePickerStep({
   name: string;
   onNameChange: (val: string) => void;
 }) {
+  const t = useTranslations("operatorDashboard.schedules");
+  const tc = useTranslations("common");
   const activeRoutes = routes.filter((r) => r.status === "ACTIVE");
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="schedule-name" className="text-sm font-bold text-foreground">
-          Schedule Name (optional)
+          {t("wizard.scheduleName")}
         </Label>
         <Input
           id="schedule-name"
-          placeholder="e.g. Morning Express"
+          placeholder={t("wizard.scheduleNamePlaceholder")}
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           className="max-w-md"
@@ -47,9 +50,9 @@ export function RoutePickerStep({
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-foreground">Select a route</h3>
+        <h3 className="text-sm font-bold text-foreground">{t("wizard.selectRoute")}</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Only active routes can be scheduled.
+          {t("wizard.onlyActiveRoutes")}
         </p>
       </div>
 
@@ -59,15 +62,15 @@ export function RoutePickerStep({
             <ArrowRight className="size-8 text-muted-foreground/30" />
           </EmptyMedia>
           <EmptyHeader>
-            <EmptyTitle>No active routes available</EmptyTitle>
+            <EmptyTitle>{t("wizard.noActiveRoutes")}</EmptyTitle>
             <EmptyDescription>
-              Activate a route first before scheduling it.
+              {t("wizard.noActiveRoutesDesc")}
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Link href="/dashboard/operator/routes">
               <Button size="sm" variant="outline">
-                Go to Routes →
+                {t("wizard.goToRoutes")}
               </Button>
             </Link>
           </EmptyContent>

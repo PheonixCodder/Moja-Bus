@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Building, MapPin, Pencil, Trash2, SwitchCamera, CheckCircle, Navigation } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Switch } from "@moja/ui/components/ui/switch";
 import {
@@ -28,6 +29,9 @@ export function TerminalsTable({
   onDelete,
   togglingId,
 }: TerminalsTableProps) {
+  const t = useTranslations("operatorDashboard.terminals");
+  const tc = useTranslations("common");
+
   if (!locations || locations.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed rounded-lg bg-card/50">
@@ -45,12 +49,12 @@ export function TerminalsTable({
       <table className="w-full text-left text-sm border-collapse min-w-[700px]">
         <thead>
           <tr className="border-b border-border bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            <th className="px-4 py-3">Location Name</th>
+            <th className="px-4 py-3">{tc("name")}</th>
             <th className="px-4 py-3">Type</th>
-            <th className="px-4 py-3">City & Address</th>
-            <th className="px-4 py-3">Phone</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-4 py-3">{tc("city")} & {tc("address")}</th>
+            <th className="px-4 py-3">{tc("phone")}</th>
+            <th className="px-4 py-3">{tc("status")}</th>
+            <th className="px-4 py-3 text-right">{tc("actions")}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -79,12 +83,12 @@ export function TerminalsTable({
                     onCheckedChange={() => onToggleTerminal(loc, loc.isTerminal)}
                   />
                   <span className="text-xs font-medium text-muted-foreground">
-                    {loc.isTerminal ? "Passenger Terminal" : "Depot / Operations"}
+                    {loc.isTerminal ? t("terminals") : t("depots")}
                   </span>
                 </div>
               </td>
               <td className="px-4 py-3.5 text-xs text-muted-foreground">
-                <div>{loc.cityRelation?.name ?? loc.city ?? "Unassigned"}</div>
+                <div>{loc.cityRelation?.name ?? loc.city ?? tc("noData")}</div>
                 <div className="text-[11px] text-muted-foreground/70 truncate max-w-[200px]">
                   {loc.addressLine1}
                 </div>
@@ -109,7 +113,7 @@ export function TerminalsTable({
                   size="icon"
                   className="size-8"
                   onClick={() => onEdit(loc)}
-                  title="Edit Location"
+                  title={tc("edit")}
                 >
                   <Pencil className="size-3.5" />
                 </Button>
@@ -118,7 +122,7 @@ export function TerminalsTable({
                   size="icon"
                   className="size-8 text-destructive hover:bg-destructive/10"
                   onClick={() => onDelete(loc)}
-                  title="Delete Location"
+                  title={t("deleteLocation")}
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

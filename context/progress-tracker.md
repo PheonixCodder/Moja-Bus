@@ -8,10 +8,22 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | Operator Audit Remediation (complete) |
-| **Last major milestone** | Operator Audit Remediation Phases 0–8 (2026-07-19) |
-| **Web unit tests** | 73/73 pass (`pnpm test` in `apps/web`) |
-| **Next priority** | Apply pending Prisma migrations + manual QA matrix from audit §21 |
+| **Phase** | Fare.seatClass Removal + Search Filters |
+| **Last major milestone** | Removed Fare.seatClass from pricing model, added Bus Class & Express filters to search |
+| **Web unit tests** | 73/73 pass |
+| **Next priority** | Test search filters UI, add i18n translations |
+
+### Changes Made:
+- ✅ Removed `seatClass` field from `Fare` model in Prisma schema
+- ✅ Updated Zod schemas to remove `seatClass` from fare definitions
+- ✅ Refactored `PricingStep` to remove class column UI (fares now per-segment, not per-class)
+- ✅ Updated tRPC schedules router to remove `seatClass` from fare operations
+- ✅ Fixed schedule edit drawer to remove class column
+- ✅ Added `seatClass` and `isExpress` filters to search params
+- ✅ Added bus class and express filter UI to search filters sidebar
+- ✅ Added `handleToggleSeatClass` and `handleToggleExpress` handlers in search page client
+- ✅ Updated passenger preferences to remove "BUSINESS" option
+- ✅ Updated search service to support `isExpress` filter
 
 ### What works end-to-end today
 
@@ -28,6 +40,47 @@
 ---
 
 ## Milestone Log (newest first)
+
+### i18n Phase 1 — Public Pages (2026-07-24)
+
+- [x] Installed `next-intl` with i18n routing, middleware, type declarations, message files (EN + FR).
+- [x] Wired landing page (11 components), Contact, About, Operators listing, and Operator detail pages.
+- [x] Fixed JSON nesting bug (missing `public` block closure caused corrupted parse).
+- [x] Merged duplicate `operators` top-level keys, added `operatorProfile` namespace.
+- [x] Clean TypeScript compilation (`tsc --noEmit` passes).
+
+### i18n Phase A4-2 — Operator Core ERP Pages (2026-07-24)
+
+- [x] Expanded 4 namespaces (`fleet`, `routes`, `schedules`, `terminals`) with 250+ i18n keys across EN + FR.
+- [x] Wired Fleet page: `page.tsx` metadata + `operator-fleet-view.tsx` (all inline components: BusCard, CustomLayoutCard, LayoutPreviewCanvas, LayoutsPanel).
+- [x] Wired Routes page: `page.tsx` + view + sub-components (`route-card`, `route-form-drawer`, `delete-route-dialog`, `route-success-panel`).
+- [x] Wired Schedules page: `page.tsx` + view + 8 sub-components (`schedule-toolbar`, `schedule-card`, `schedule-success-banner`, `schedule-delete-dialog`, `schedule-edit-drawer`, `wizard-stepper`, `route-picker-step`, `calendar-step`, `pricing-step`, `preview-step`).
+- [x] Wired Terminals page: `page.tsx` + view + sub-components (`terminals-table`, `terminal-editor-sheet`).
+- [x] Clean TypeScript compilation (only pre-existing errors remain).
+
+### Shadcn UI Date/Time Components & Time Formatting Centralization (2026-07-23)
+
+- [x] Built reusable Shadcn `DatePicker`, `TimePicker`, and `DateTimePicker` components in `@moja/ui/components/ui/`.
+- [x] Centralized application date and time formatting module (`apps/web/lib/format-date.ts`) bound to `Africa/Abidjan` (UTC+0).
+- [x] Replaced native HTML `<input type="date">`, `<input type="time">`, and `<input type="datetime-local">` across Operator Schedules, Operator Trips Toolbar, Operator Onboarding, Compliance Settings, and Admin Blog Publishing.
+- [x] Verified clean TypeScript compilation and component integration across `apps/web`.
+
+### Terminals, Fleet & Seat Layouts Audit Remediation (2026-07-23)
+
+- [x] Wrapped `isPrimary` terminal demotions and location operations in atomic `$transaction` blocks (`terminals.ts`).
+- [x] Fixed `deleteBus` soft-delete registration plate mutation bug (`fleet.ts`).
+- [x] Wrapped schedule preferred bus disassociation and bus status updates in atomic `$transaction` (`fleet.ts`).
+- [x] Added `deletedAt: null` filter to `deleteCustomLayout` bus reference count check (`fleet.ts`).
+- [x] Moved seat active booking verification inside `$transaction` for `toggleSeatStatus` (`fleet.ts`).
+- [x] Verified clean TypeScript compilation (`tsc --noEmit`).
+
+### ERP Information Architecture & UI/UX Refactoring (2026-07-23)
+
+- [x] Refactored monolithic views (`operator-routes-view.tsx`, `operator-terminals-view.tsx`, `operator-fleet-view.tsx`, `layout-builder-sheet.tsx`) into modular sub-components.
+- [x] Extracted `RoutesTable`, `RouteEditorSheet`, `TerminalsTable`, `TerminalEditorSheet`, `BusesTable`, `BusEditModal`, and `SeatGridMatrix`.
+- [x] Added accidental form dismissal protection (`isDirty` checks) on all drawer sheets and modal dialogs.
+- [x] Added `overflow-x-auto` responsive table containers and created reusable `<AccessDeniedCard />` component for IAM fallbacks.
+- [x] Verified full TypeScript compilation clean (`tsc --noEmit`).
 
 ### Operator Audit Remediation (2026-07-19)
 
@@ -437,5 +490,5 @@ Agent app, driver app, multi-country, cargo, subscriptions, loyalty, public API
 4. **When blocked** — add to Blockers & Risks
 5. **End of session** — run `/remember save` and sync this file
 
-**Last updated:** 2026-07-11  
-**Updated by:** Antigravity agent (Payment System, Novu Integration & BigInt Migration)
+**Last updated:** 2026-07-24  
+**Updated by:** i18n Phase A4-2 — Operator core ERP pages

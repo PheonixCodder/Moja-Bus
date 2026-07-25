@@ -1,11 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryState, parseAsInteger, parseAsFloat } from "nuqs";
-import { AlertTriangle } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
-import { formatPriceXOF } from "@/features/search/lib/format";
 import { buttonVariants } from "@moja/ui/components/ui/button";
 import { Button } from "@moja/ui/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@moja/ui/components/ui/dialog";
@@ -14,32 +11,24 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { PassengerSeatMap } from "./passenger-seat-map";
 import { BookingCheckoutForm } from "./booking-checkout-form";
 import { TripSummaryCard } from "./trip-summary-card";
-import { clampPassengerCount } from "../lib/params";
+import { authClient } from "@/lib/auth-client";
+import { buildLoginUrl } from "@/features/auth/lib/safe-callback-url";
+import { useBooking } from "./booking-context";
 
 export function BookingDialogFlow({ offerId, onClose }: { offerId: string; onClose: () => void }) {
   const trpc = useTRPC();
   const router = useRouter();
-  const [step, setStep] = useState<"seats" | "checkout">("seats");
-  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
-  const [passengersParam] = useQueryState(
-    "passengers",
-    parseAsInteger.withDefault(1),
-  );
-  const passengerCount = clampPassengerCount(passengersParam);
+  const { data: session } = authClient.useSession();
+  const { step, setStep, selectedSeatIds, toggleSeat, passengerCount } = useBooking();
 
-  const { data: tripDetails } = useSuspenseQuery(
-    trpc.booking.getTripDetails.queryOptions({ offerId }),
-  );
-  const { data: seatAvailability } = useSuspenseQuery(
-    trpc.booking.getSeatAvailability.queryOptions({ offerId }),
-  );
-
-  // M28: detect when the live fare differs from the price the passenger saw
-  // at search time (e.g. the operator raised fares during the login
-  // redirect). We surface a warning and block checkout until they accept.
-  const [expectedPrice] = useQueryState("expectedPrice", parseAsFloat);
-  const priceChanged = expectedPrice != null && expectedPrice !== tripDetails.priceXOF;
-  const [priceAccepted, setPriceAccepted] = useState(false);
+  const { data: tripDetails } = useSuspenseQuery({
+    ...trpc.booking.getTripDetails.queryOptions({ offerId }),
+    staleTime: 60 * 1000,
+  });
+  const { data: seatAvailability } = useSuspenseQuery({
+    ...trpc.booking.getSeatAvailability.queryOptions({ offerId }),
+    staleTime: 15 * 1000,
+  });
 
   const selectedLabels = useMemo(
     () =>
@@ -52,27 +41,21 @@ export function BookingDialogFlow({ offerId, onClose }: { offerId: string; onClo
 
   const isSoldOut = tripDetails.availability.status === "SOLD_OUT";
 
-  function toggleSeat(seatId: string) {
-    setSelectedSeatIds((prev) => {
-      if (prev.includes(seatId)) {
-        return prev.filter((id) => id !== seatId);
-      }
-      if (prev.length >= passengerCount) {
-        return prev;
-      }
-      return [...prev, seatId];
-    });
-  }
-
   function handleContinue() {
     if (selectedSeatIds.length !== passengerCount) {
       return;
     }
-    // M28: require explicit acknowledgement of a price change before allowing
-    // the passenger to reach the payment step.
-    if (priceChanged && !priceAccepted) {
+    if (!session?.user) {
+      // Guest — persist state and redirect to login
+      const searchParams = new URLSearchParams(
+        typeof window !== "undefined" ? window.location.search : "",
+      );
+      searchParams.set("bookingOfferId", offerId);
+      const returnPath = `/search?${searchParams.toString()}`;
+      router.push(buildLoginUrl(returnPath));
       return;
     }
+
     setStep("checkout");
   }
 
@@ -86,30 +69,6 @@ export function BookingDialogFlow({ offerId, onClose }: { offerId: string; onClo
       </DialogHeader>
 
       <main className="flex-1 p-4 sm:p-6 space-y-6">
-        {priceChanged && (
-          <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 flex items-start gap-2">
-            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-            <div className="flex-1">
-              <p className="font-semibold">Price updated since you searched</p>
-              <p className="text-xs text-amber-800">
-                The fare for this trip changed from{" "}
-                {formatPriceXOF(expectedPrice as number)} to{" "}
-                {formatPriceXOF(tripDetails.priceXOF)}. Please review the new
-                price before continuing.
-              </p>
-              {!priceAccepted && (
-                <button
-                  type="button"
-                  onClick={() => setPriceAccepted(true)}
-                  className="mt-2 inline-flex items-center rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700"
-                >
-                  I understand, continue
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
         <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
           <TripSummaryCard
             trip={tripDetails}
@@ -148,10 +107,7 @@ export function BookingDialogFlow({ offerId, onClose }: { offerId: string; onClo
             <div className="flex justify-end pt-2">
               <Button
                 onClick={handleContinue}
-                disabled={
-                  selectedSeatIds.length !== passengerCount ||
-                  (priceChanged && !priceAccepted)
-                }
+                disabled={selectedSeatIds.length !== passengerCount}
                 className="bg-[#ee237c] hover:bg-[#d01867] text-white font-bold"
               >
                 Continue to checkout

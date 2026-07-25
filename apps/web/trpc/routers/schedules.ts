@@ -379,9 +379,9 @@ export const schedulesRouter = createTRPCRouter({
           exceptions: {
             orderBy: { date: "asc" },
           },
-          fares: {
-            orderBy: [{ seatClass: "asc" }, { fromStopOrder: "asc" }],
-          },
+fares: {
+             orderBy: [{ fromStopOrder: "asc" }],
+           },
         },
       });
 
@@ -464,15 +464,15 @@ export const schedulesRouter = createTRPCRouter({
         calendar,
       );
 
-      // Guard: no duplicate fares in the submitted batch (same segment + class + type)
+      // Guard: no duplicate fares in the submitted batch (same segment + type)
       const fareKeysSeen = new Set<string>();
       for (const f of fares) {
-        const key = `${f.fromStopOrder}:${f.toStopOrder}:${f.seatClass}:${f.type}`;
+        const key = `${f.fromStopOrder}:${f.toStopOrder}:${f.type}`;
         if (fareKeysSeen.has(key)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message:
-              `Duplicate fare in submission: ${f.seatClass} ${f.type} fare ` +
+              `Duplicate fare in submission: ${f.type} fare ` +
               `from stop ${f.fromStopOrder} to stop ${f.toStopOrder}. Remove the duplicate and try again.`,
           });
         }
@@ -519,7 +519,6 @@ export const schedulesRouter = createTRPCRouter({
             data: {
               scheduleId: schedule.id,
               type: f.type,
-              seatClass: f.seatClass,
               fromStopOrder: f.fromStopOrder,
               toStopOrder: f.toStopOrder,
               priceXOF: f.priceXOF,
@@ -1001,7 +1000,6 @@ export const schedulesRouter = createTRPCRouter({
           scheduleId: schedule.id,
           isActive: true,
           type: f.type,
-          seatClass: f.seatClass,
           fromStopOrder: f.fromStopOrder,
           toStopOrder: f.toStopOrder,
         }
@@ -1030,7 +1028,6 @@ export const schedulesRouter = createTRPCRouter({
         data: {
           scheduleId: schedule.id,
           type: f.type,
-          seatClass: f.seatClass,
           fromStopOrder: f.fromStopOrder,
           toStopOrder: f.toStopOrder,
           priceXOF: f.priceXOF,

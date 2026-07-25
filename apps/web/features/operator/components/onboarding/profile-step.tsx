@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { DatePicker } from "@moja/ui/components/ui/date-picker";
 import { Input } from "@moja/ui/components/ui/input";
@@ -38,6 +39,8 @@ export function ProfileStep({
   onBack,
   isSaving,
 }: ProfileStepProps) {
+  const t = useTranslations("onboarding.profile");
+  const tRoot = useTranslations("onboarding");
   const [fullName, setFullName] = useState("");
   const [personalPhone, setPersonalPhone] = useState("");
   const [role, setRole] = useState<StaffRole>("OWNER");
@@ -50,18 +53,18 @@ export function ProfileStep({
   const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
 
   const staffRoles: { value: StaffRole; label: string }[] = [
-    { value: "OWNER", label: "Owner" },
-    { value: "ADMIN", label: "Administrator" },
-    { value: "MANAGER", label: "Manager" },
-    { value: "OPERATIONS", label: "Operations" },
-    { value: "FINANCE", label: "Finance" },
-    { value: "SUPPORT", label: "Customer Support" },
+    { value: "OWNER", label: t("owner") },
+    { value: "ADMIN", label: t("administrator") },
+    { value: "MANAGER", label: t("manager") },
+    { value: "OPERATIONS", label: t("operations") },
+    { value: "FINANCE", label: t("finance") },
+    { value: "SUPPORT", label: t("customerSupport") },
   ];
 
   const idTypes = [
-    { value: "passport", label: "Passport" },
-    { value: "national_id", label: "National ID Card" },
-    { value: "driver_license", label: "Driver's License" },
+    { value: "passport", label: t("passport") },
+    { value: "national_id", label: t("nationalIdCard") },
+    { value: "driver_license", label: t("driversLicense") },
   ];
 
   // Pre-fill form if initialData exists
@@ -118,11 +121,10 @@ export function ProfileStep({
             </div>
             <div>
               <CardTitle className="text-lg font-bold">
-                Personal Profile
+                {t("title")}
               </CardTitle>
               <CardDescription>
-                Provide details about your personal profile and role within the
-                company.
+                {t("description")}
               </CardDescription>
             </div>
           </div>
@@ -133,14 +135,13 @@ export function ProfileStep({
               purpose="operator-profile-photo"
               value={profilePhotoUrl || null}
               onUploaded={(r) => setProfilePhotoUrl(r.fileUrl)}
-              label="Upload photo"
-              hint="PNG or JPG, up to 2MB"
+              label={t("uploadPhoto")}
+              hint={t("photoHint")}
               shape="circle"
               previewClassName="h-20 w-20"
             />
             <p className="text-xs text-muted-foreground">
-              This is your personal avatar. It is visible in staff lists and
-              activity logs.
+              {t("photoDesc")}
             </p>
           </div>
 
@@ -150,13 +151,13 @@ export function ProfileStep({
                 htmlFor="fullname"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Your Full Name *
+                {t("fullName")}
               </Label>
               <Input
                 id="fullname"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Jean-Marc Kouassi"
+                placeholder={t("fullNamePlaceholder")}
                 required
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
@@ -167,7 +168,7 @@ export function ProfileStep({
                 htmlFor="personal-phone"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Personal Phone Number
+                {t("phone")}
               </Label>
               <PhoneInput
                 id="personal-phone"
@@ -185,7 +186,7 @@ export function ProfileStep({
                 htmlFor="staff-role"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Role in Company *
+                {t("role")}
               </Label>
               <Combobox
                 items={staffRoles}
@@ -194,7 +195,7 @@ export function ProfileStep({
               >
                 <ComboboxInput
                   id="staff-role"
-                  placeholder="Select role"
+                  placeholder={t("rolePlaceholder")}
                   className="w-full text-sm"
                   value={
                     role
@@ -203,7 +204,7 @@ export function ProfileStep({
                   }
                 />
                 <ComboboxContent>
-                  <ComboboxEmpty>No role found.</ComboboxEmpty>
+                  <ComboboxEmpty>{t("noRoleFound")}</ComboboxEmpty>
                   <ComboboxList>
                     {staffRoles.map((r) => (
                       <ComboboxItem key={r.value} value={r.value}>
@@ -220,13 +221,13 @@ export function ProfileStep({
                 htmlFor="job-title"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Job Title
+                {t("jobTitle")}
               </Label>
               <Input
                 id="job-title"
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
-                placeholder="e.g. Operations Director"
+                placeholder={t("jobTitlePlaceholder")}
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
             </div>
@@ -236,7 +237,7 @@ export function ProfileStep({
                 htmlFor="dob"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Date of Birth
+                {t("dateOfBirth")}
               </Label>
               <DatePicker
                 value={dateOfBirth}
@@ -250,7 +251,7 @@ export function ProfileStep({
                     setDateOfBirth("");
                   }
                 }}
-                placeholder="Select date of birth"
+                placeholder={t("dateOfBirthPlaceholder")}
                 className="w-full"
               />
             </div>
@@ -259,7 +260,7 @@ export function ProfileStep({
           {/* Identification Details */}
           <div className="pt-2 border-t border-border mt-4">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <IdCard className="w-4 h-4" /> Identity Verification (Optional)
+              <IdCard className="w-4 h-4" /> {t("identityVerification")}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex flex-col gap-2">
@@ -267,7 +268,7 @@ export function ProfileStep({
                   htmlFor="id-type"
                   className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                 >
-                  ID Document Type
+                  {t("idDocumentType")}
                 </Label>
                 <Combobox
                   items={idTypes}
@@ -276,7 +277,7 @@ export function ProfileStep({
                 >
                   <ComboboxInput
                     id="id-type"
-                    placeholder="Select document type"
+                    placeholder={t("idDocumentPlaceholder")}
                     className="w-full text-sm"
                     value={
                       nationalIdType
@@ -286,7 +287,7 @@ export function ProfileStep({
                     }
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No document type found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("noDocumentType")}</ComboboxEmpty>
                     <ComboboxList>
                       {idTypes.map((type) => (
                         <ComboboxItem key={type.value} value={type.value}>
@@ -303,13 +304,13 @@ export function ProfileStep({
                   htmlFor="id-number"
                   className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                 >
-                  ID Number
+                  {t("idNumber")}
                 </Label>
                 <Input
                   id="id-number"
                   value={nationalIdNumber}
                   onChange={(e) => setNationalIdNumber(e.target.value)}
-                  placeholder="Enter passport or national ID number"
+                  placeholder={t("idNumberPlaceholder")}
                   className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
               </div>
@@ -319,7 +320,7 @@ export function ProfileStep({
           {/* Emergency Contacts */}
           <div className="pt-2 border-t border-border mt-4">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <Contact className="w-4 h-4" /> Emergency Contact
+              <Contact className="w-4 h-4" /> {t("emergencyContact")}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
@@ -327,13 +328,13 @@ export function ProfileStep({
                   htmlFor="emergency-name"
                   className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                 >
-                  Contact Person Name
+                  {t("contactName")}
                 </Label>
                 <Input
                   id="emergency-name"
                   value={emergencyContactName}
                   onChange={(e) => setEmergencyContactName(e.target.value)}
-                  placeholder="e.g. Marie Kouassi"
+                  placeholder={t("contactNamePlaceholder")}
                   className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
               </div>
@@ -343,7 +344,7 @@ export function ProfileStep({
                   htmlFor="emergency-phone"
                   className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                 >
-                  Emergency Phone Number
+                  {t("contactPhone")}
                 </Label>
                 <PhoneInput
                   id="emergency-phone"
@@ -367,14 +368,14 @@ export function ProfileStep({
           disabled={isSaving}
           className="border-border hover:bg-slate-100 rounded-md px-6 py-2"
         >
-          Back
+          {tRoot("back")}
         </Button>
         <Button
           type="submit"
           disabled={isSaving || !canContinue}
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-md px-6 py-2"
         >
-          {isSaving ? "Saving..." : "Save & Continue"}
+          {isSaving ? tRoot("saving") : tRoot("saveAndContinue")}
         </Button>
       </div>
     </form>

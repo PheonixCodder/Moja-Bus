@@ -1,6 +1,7 @@
 "use client";
 
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useTRPC } from "@/trpc/client";
 import { useState } from "react";
 import {
@@ -20,8 +21,6 @@ import {
   MapPin,
   Calendar,
   Sparkles,
-  Search,
-  ScanLine,
 } from "lucide-react";
 import { getCompanyStatusPresentation } from "@/features/operator/lib/company-status";
 import { cn } from "@moja/ui/lib/utils";
@@ -30,12 +29,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja
 import { Button, buttonVariants } from "@moja/ui/components/ui/button";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Progress } from "@moja/ui/components/ui/progress";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@moja/ui/components/ui/dialog";
-import { Input } from "@moja/ui/components/ui/input";
-import { toast } from "sonner";
 import { TicketScanner } from "@/features/operator/components/ticket-scanner";
 
 export function OperatorDashboardView() {
+  const t = useTranslations("operatorDashboard.overview");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   
@@ -72,7 +69,6 @@ export function OperatorDashboardView() {
   const checkInMutation = useMutation({
     ...trpc.operator.checkInBooking.mutationOptions(),
     onSuccess: () => {
-      // Invalidate queries to refresh stats
       queryClient.invalidateQueries(trpc.operator.getDashboardMetrics.queryFilter());
     },
   });
@@ -88,6 +84,9 @@ export function OperatorDashboardView() {
   const stats = metrics?.stats;
   const departures = metrics?.departures ?? [];
   const activities = metrics?.activities ?? [];
+
+  const statusLabel = t(`status.${company?.status ?? "DRAFT"}.label`);
+  const statusDesc = t(`status.${company?.status ?? "DRAFT"}.description`);
 
   return (
     <div className="space-y-8 max-w-[1400px] mx-auto pb-10">
@@ -112,17 +111,17 @@ export function OperatorDashboardView() {
                       : "text-amber-400 bg-amber-500/10 border-amber-500/30",
               )}
             >
-              <StatusIcon className="w-3.5 h-3.5" /> {statusPresentation.label}
+              <StatusIcon className="w-3.5 h-3.5" /> {statusLabel}
             </span>
             <h1 className="text-2xl md:text-3xl font-extrabold font-display tracking-tight text-white">
-              {company?.name || "Moja Ride Operator Portal"}
+              {company?.name || t("portalFallback")}
             </h1>
             <p className="text-slate-400 text-xs md:text-sm max-w-2xl leading-relaxed">
-              {statusPresentation.description}
+              {statusDesc}
             </p>
             {company?.rejectionReason && (
               <p className="text-red-400 text-xs font-semibold">
-                Reason: {company.rejectionReason}
+                {t("rejectionReason", { reason: company.rejectionReason })}
               </p>
             )}
           </div>
@@ -130,8 +129,8 @@ export function OperatorDashboardView() {
           <div className="shrink-0 flex items-center gap-2 bg-slate-800/40 border border-slate-700/50 rounded-xl px-4 py-3 backdrop-blur-xs">
             <Sparkles className="w-5 h-5 text-primary" />
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quick Portal</p>
-              <p className="text-xs font-semibold text-slate-200">System Online & Synced</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("quickPortal")}</p>
+              <p className="text-xs font-semibold text-slate-200">{t("systemOnline")}</p>
             </div>
           </div>
         </div>
@@ -143,7 +142,7 @@ export function OperatorDashboardView() {
         {/* KPI 1: Today's Revenue */}
         <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Today's Revenue</CardTitle>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{t("revenueTitle")}</CardTitle>
             <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
               <CreditCard className="w-4 h-4" />
             </div>
@@ -152,14 +151,14 @@ export function OperatorDashboardView() {
             <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
               {formatCurrency(stats?.revenueTodayXOF ?? 0)}
             </div>
-            <p className="text-[10px] text-text-secondary">Confirmed operator settlements today</p>
+            <p className="text-[10px] text-text-secondary">{t("revenueDesc")}</p>
           </CardContent>
         </Card>
 
         {/* KPI 2: Today's Bookings */}
         <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Today's Bookings</CardTitle>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{t("bookingsTitle")}</CardTitle>
             <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
               <Ticket className="w-4 h-4" />
             </div>
@@ -168,14 +167,14 @@ export function OperatorDashboardView() {
             <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
               {stats?.totalBookingsToday ?? 0}
             </div>
-            <p className="text-[10px] text-text-secondary">Seats sold across today's departures</p>
+            <p className="text-[10px] text-text-secondary">{t("bookingsDesc")}</p>
           </CardContent>
         </Card>
 
         {/* KPI 3: Occupancy Rate */}
         <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Occupancy Rate</CardTitle>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{t("occupancyTitle")}</CardTitle>
             <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
@@ -185,19 +184,17 @@ export function OperatorDashboardView() {
               <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
                 {stats?.occupancyRateToday ?? 0}%
               </div>
-              <span className="text-[9px] font-semibold text-text-muted">Target: 70%+</span>
+              <span className="text-[9px] font-semibold text-text-muted">{t("occupancyTarget")}</span>
             </div>
             <Progress value={stats?.occupancyRateToday ?? 0} className="h-1.5 bg-border" />
           </CardContent>
         </Card>
 
-        {/* KPI 4: Active Fleet — only rendered when the role can read fleet
-            inventory. getDashboardMetrics returns null bus counts without
-            `fleet:read` (M27), so a null totalBuses means "hide this card". */}
+        {/* KPI 4: Active Fleet */}
         {stats?.totalBuses != null && (
           <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Active Fleet</CardTitle>
+              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{t("fleetTitle")}</CardTitle>
               <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
                 <Bus className="w-4 h-4" />
               </div>
@@ -206,7 +203,7 @@ export function OperatorDashboardView() {
               <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
                 {stats.activeBuses} <span className="text-sm font-normal text-text-muted">/ {stats.totalBuses}</span>
               </div>
-              <p className="text-[10px] text-text-secondary">Active vehicles currently configured</p>
+              <p className="text-[10px] text-text-secondary">{t("fleetDesc")}</p>
             </CardContent>
           </Card>
         )}
@@ -222,11 +219,11 @@ export function OperatorDashboardView() {
             <CardHeader className="border-b border-border/60 pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base font-bold text-text-primary">Today's Dispatch Board</CardTitle>
-                  <CardDescription>Scheduled routes and occupancy statuses for today's departures.</CardDescription>
+                  <CardTitle className="text-base font-bold text-text-primary">{t("dispatchTitle")}</CardTitle>
+                  <CardDescription>{t("dispatchDesc")}</CardDescription>
                 </div>
                 <Badge variant="outline" className="border-border text-text-secondary font-semibold font-mono">
-                  {departures.length} Trip{departures.length === 1 ? "" : "s"}
+                  {t("tripCount", { count: departures.length })}
                 </Badge>
               </div>
             </CardHeader>
@@ -237,8 +234,8 @@ export function OperatorDashboardView() {
                     <Calendar className="w-6 h-6" />
                   </div>
                   <div className="space-y-1 max-w-xs">
-                    <p className="font-bold text-text-primary">No Departures Scheduled Today</p>
-                    <p className="text-xs">Configure schedules or create extra routes to start dispatching trips.</p>
+                    <p className="font-bold text-text-primary">{t("noTripsTitle")}</p>
+                    <p className="text-xs">{t("noTripsDesc")}</p>
                   </div>
                   <Link
                     href="/dashboard/operator/schedules"
@@ -247,7 +244,7 @@ export function OperatorDashboardView() {
                       "mt-2 border-border text-text-primary hover:bg-bg-elevated"
                     )}
                   >
-                    Manage Schedules
+                    {t("manageSchedules")}
                   </Link>
                 </div>
               ) : (
@@ -299,13 +296,13 @@ export function OperatorDashboardView() {
                               {trip.routeLabel}
                             </h4>
                             <p className="text-[11px] text-text-muted mt-0.5 font-medium">
-                              Bus: {trip.busLabel}
+                              {t("busLabel", { label: trip.busLabel })}
                             </p>
                           </div>
 
                           <div className="w-full max-w-xs space-y-1">
                             <div className="flex justify-between text-[10px] font-semibold text-text-secondary">
-                              <span>{trip.bookedSeats} / {trip.totalSeats} Seats Sold</span>
+                              <span>{t("seatsSold", { booked: trip.bookedSeats, total: trip.totalSeats })}</span>
                               <span>{occupancyPercent}%</span>
                             </div>
                             <Progress value={occupancyPercent} className="h-1 bg-slate-100" />
@@ -320,7 +317,7 @@ export function OperatorDashboardView() {
                               "border-border text-text-primary hover:bg-bg-elevated h-8 text-xs font-bold gap-1 flex items-center justify-center"
                             )}
                           >
-                            Go to Dispatch <ArrowRight className="w-3.5 h-3.5 text-text-muted" />
+                            {t("goToDispatch")} <ArrowRight className="w-3.5 h-3.5 text-text-muted" />
                           </Link>
                         </div>
                       </div>
@@ -338,7 +335,7 @@ export function OperatorDashboardView() {
           {/* Quick Actions Panel */}
           <Card className="border-border bg-bg-surface">
             <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-sm font-bold text-text-primary">Quick Actions</CardTitle>
+              <CardTitle className="text-sm font-bold text-text-primary">{t("quickActionsTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-3">
               <Button
@@ -346,7 +343,7 @@ export function OperatorDashboardView() {
                 className="w-full bg-primary hover:bg-primary/95 text-white font-semibold flex items-center justify-center gap-2 h-10 shadow-sm"
               >
                 <QrCode className="w-4 h-4" />
-                Scan & Check-In Ticket
+                {t("scanCheckIn")}
               </Button>
               
               <div className="grid grid-cols-2 gap-3">
@@ -358,7 +355,7 @@ export function OperatorDashboardView() {
                   )}
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  New Route
+                  {t("newRoute")}
                 </Link>
                 <Link
                   href="/dashboard/operator/fleet"
@@ -368,7 +365,7 @@ export function OperatorDashboardView() {
                   )}
                 >
                   <Bus className="w-3.5 h-3.5" />
-                  Manage Fleet
+                  {t("manageFleet")}
                 </Link>
               </div>
             </CardContent>
@@ -377,23 +374,25 @@ export function OperatorDashboardView() {
           {/* Live Activity Stream */}
           <Card className="border-border bg-bg-surface">
             <CardHeader className="border-b border-border/60 pb-3">
-              <CardTitle className="text-sm font-bold text-text-primary">Recent Booking Activity</CardTitle>
+              <CardTitle className="text-sm font-bold text-text-primary">{t("activityTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               {activities.length === 0 ? (
-                <p className="text-xs text-text-muted text-center py-6">No recent activity detected.</p>
+                <p className="text-xs text-text-muted text-center py-6">{t("noActivity")}</p>
               ) : (
                 <div className="space-y-4">
                   {activities.map((act) => {
                     const timeDiff = Math.max(0, Date.now() - new Date(act.timestamp).getTime());
                     const minutesAgo = Math.floor(timeDiff / 60000);
-                    let timeLabel = "Just now";
-                    if (minutesAgo > 0 && minutesAgo < 60) {
-                      timeLabel = `${minutesAgo}m ago`;
-                    } else if (minutesAgo >= 60 && minutesAgo < 1440) {
-                      timeLabel = `${Math.floor(minutesAgo / 60)}h ago`;
-                    } else if (minutesAgo >= 1440) {
-                      timeLabel = `${Math.floor(minutesAgo / 1440)}d ago`;
+                    let timeLabel: string;
+                    if (minutesAgo < 1) {
+                      timeLabel = t("justNow");
+                    } else if (minutesAgo < 60) {
+                      timeLabel = t("minutesAgo", { n: minutesAgo });
+                    } else if (minutesAgo < 1440) {
+                      timeLabel = t("hoursAgo", { n: Math.floor(minutesAgo / 60) });
+                    } else {
+                      timeLabel = t("daysAgo", { n: Math.floor(minutesAgo / 1440) });
                     }
 
                     const isCheckIn = act.action === "Checked in";
@@ -409,7 +408,7 @@ export function OperatorDashboardView() {
                             {act.passengerName}
                           </p>
                           <p className="text-[11px] text-text-secondary">
-                            <span className="font-medium">{act.action}</span> for <span className="font-medium">{act.routeLabel}</span>
+                            {t("activityAction", { action: act.action, routeLabel: act.routeLabel })}
                           </p>
                           <div className="flex items-center justify-between text-[10px] text-text-muted pt-0.5 font-medium">
                             <span className="font-mono">{act.bookingReference}</span>
@@ -434,14 +433,14 @@ export function OperatorDashboardView() {
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-foreground">
-                Business Operations
+                {t("readinessTitle")}
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Complete these steps to start selling tickets.
+                {t("readinessDesc")}
               </p>
             </div>
             <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded">
-              {readinessCompleted}/{readinessTotal} Complete
+              {t("readinessProgress", { completed: readinessCompleted, total: readinessTotal })}
             </span>
           </div>
           <div className="divide-y divide-border">
@@ -498,7 +497,6 @@ export function OperatorDashboardView() {
           };
         }}
       />
-
     </div>
   );
 }

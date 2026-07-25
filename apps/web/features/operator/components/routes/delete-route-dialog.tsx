@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
@@ -31,6 +32,8 @@ export function DeleteRouteDialog({
   onClose,
   onDeleted,
 }: DeleteRouteDialogProps) {
+  const t = useTranslations("operatorDashboard.routes");
+  const tc = useTranslations("common");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const deleteMutation = useMutation(trpc.routes.delete.mutationOptions());
@@ -59,7 +62,7 @@ export function DeleteRouteDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertCircle className="size-4" />
-            Delete route
+            {tc("delete")} route
           </DialogTitle>
           <DialogDescription>
             Are you sure you want to delete{" "}
@@ -75,7 +78,7 @@ export function DeleteRouteDialog({
             onClick={onClose}
             disabled={deleteMutation.isPending}
           >
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -85,7 +88,7 @@ export function DeleteRouteDialog({
             {deleteMutation.isPending ? (
               <Spinner className="size-4 mr-2" />
             ) : null}
-            {deleteMutation.isPending ? "Deleting…" : "Delete Route"}
+            {deleteMutation.isPending ? "Deleting…" : tc("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

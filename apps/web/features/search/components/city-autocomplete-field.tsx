@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { MapPin } from "lucide-react";
 import { Input } from "@moja/ui/components/ui/input";
 import { Badge } from "@moja/ui/components/ui/badge";
@@ -28,6 +29,7 @@ export function CityAutocompleteField({
   inputClassName,
   hideIcon = false,
 }: CityAutocompleteFieldProps) {
+  const t = useTranslations("search");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { cities, isSearchable } = useCitySearch(value.text);
@@ -86,7 +88,7 @@ export function CityAutocompleteField({
                   <span>{city.name}</span>
                   {city.isMajorHub && (
                     <Badge className="ml-2 bg-pink-100 text-pink-700 hover:bg-pink-100 text-[10px]">
-                      Major Hub
+                      {t("majorHub")}
                     </Badge>
                   )}
                 </div>
@@ -94,7 +96,7 @@ export function CityAutocompleteField({
             ))
           ) : (
             <div className="px-4 py-3 text-sm text-slate-500">
-              No matching cities found
+              {t("noCitiesFound")}
             </div>
           )}
         </div>

@@ -30,12 +30,6 @@ export const passengerTicketSharedWorkflow = workflow(
       };
     });
 
-    // 2. SMS Notification
-    await step.sms("send-sms", async () => ({
-      body: `Moja Ride: ${escapeHtml(payload.senderName)} shared a bus ticket to ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) with you! View ticket here: https://mojaride.com/tickets/${escapeHtml(payload.ticketToken)}`,
-    }), {
-      skip: () => !payload.phone,
-    });
   },
   {
     name: "Passenger Ticket Shared",

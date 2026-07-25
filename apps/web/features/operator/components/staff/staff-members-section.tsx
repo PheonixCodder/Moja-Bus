@@ -3,6 +3,7 @@
 import { Users, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
+import { useTranslations } from "next-intl";
 import { StaffMemberRow } from "@/features/operator/components/staff/staff-member-row";
 import type {
   OperatorStatus,
@@ -55,13 +56,15 @@ export function StaffMembersSection({
   onTransfer,
   onRemove,
 }: StaffMembersSectionProps) {
+  const t = useTranslations("operatorDashboard.staff.membersSection");
+  const tp = useTranslations("operatorDashboard.staff");
   return (
     <section>
       <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
         <span>
-          Team Members · {total}
+          {t("title", { total })}
           {isFetching ? (
-            <span className="ml-2 text-muted-foreground/50">(loading…)</span>
+            <span className="ml-2 text-muted-foreground/50">{t("loading")}</span>
           ) : null}
         </span>
       </h2>
@@ -69,7 +72,7 @@ export function StaffMembersSection({
       {isError ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-200 bg-red-50 py-16 text-center">
           <p className="text-[14px] font-medium text-red-600">
-            Failed to load staff
+            {t("loadError")}
           </p>
           <Button
             size="sm"
@@ -77,7 +80,7 @@ export function StaffMembersSection({
             className="mt-3 text-xs"
             onClick={onRetry}
           >
-            Retry
+            {t("retry")}
           </Button>
         </div>
       ) : members.length === 0 && !isLoading ? (
@@ -86,19 +89,19 @@ export function StaffMembersSection({
           {hasActiveFilters ? (
             <>
               <p className="text-[14px] font-medium text-foreground">
-                No results found
+                {t("noResults")}
               </p>
               <p className="mt-1 text-[13px] text-muted-foreground">
-                Try adjusting your search or filters.
+                {t("adjustFilters")}
               </p>
             </>
           ) : (
             <>
               <p className="text-[14px] font-medium text-foreground">
-                No team members yet
+                {t("empty")}
               </p>
               <p className="mt-1 text-[13px] text-muted-foreground">
-                Invite your first employee to get started.
+                {t("emptyDescription")}
               </p>
               {canInvite ? (
                 <Button
@@ -107,7 +110,7 @@ export function StaffMembersSection({
                   onClick={onInvite}
                 >
                   <UserPlus className="size-4" />
-                  Invite Member
+                  {tp("invite")}
                 </Button>
               ) : null}
             </>
@@ -156,13 +159,11 @@ export function StaffMembersSection({
           {totalPages > 1 ? (
             <div className="mt-4 flex items-center justify-between px-1">
               <p className="text-[12px] text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {(page - 1) * PAGE_SIZE + 1}–
-                  {Math.min(page * PAGE_SIZE, total)}
-                </span>{" "}
-                of <span className="font-medium text-foreground">{total}</span>{" "}
-                members
+                {t("showing", {
+                  start: (page - 1) * PAGE_SIZE + 1,
+                  end: Math.min(page * PAGE_SIZE, total),
+                  total,
+                })}
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -173,10 +174,10 @@ export function StaffMembersSection({
                   onClick={() => onPageChange(page - 1)}
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
-                  Previous
+                  {t("previous")}
                 </Button>
                 <span className="text-[12px] text-muted-foreground font-medium px-1">
-                  Page {page} of {totalPages}
+                  {t("pageInfo", { page, totalPages })}
                 </span>
                 <Button
                   size="sm"
@@ -185,7 +186,7 @@ export function StaffMembersSection({
                   disabled={page >= totalPages || isFetching}
                   onClick={() => onPageChange(page + 1)}
                 >
-                  Next
+                  {t("next")}
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>

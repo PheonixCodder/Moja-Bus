@@ -9,6 +9,7 @@ import {
 import { useQueryState, parseAsString, parseAsBoolean } from "nuqs";
 import { Plus, Search, Building, MapPin, CheckCircle, Navigation } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
@@ -44,6 +45,8 @@ export function OperatorTerminalsView() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [locationToDelete, setLocationToDelete] = useState<any>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const t = useTranslations("operatorDashboard.terminals");
+  const tc = useTranslations("common");
 
   const updateMutation = useMutation(
     trpc.terminals.update.mutationOptions({
@@ -104,11 +107,9 @@ export function OperatorTerminalsView() {
         id: loc.id,
         data: { isTerminal: !currentVal },
       });
-      toast.success(
-        `Location updated to ${!currentVal ? "Passenger Terminal" : "Depot / Operations"}`,
-      );
+      toast.success(t("toast.locationUpdated", { type: !currentVal ? "Passenger Terminal" : "Depot / Operations" }));
     } catch (err: any) {
-      toast.error(err.message || "Failed to update terminal status");
+      toast.error(err.message || t("toast.updateFailed"));
     } finally {
       setTogglingId(null);
     }
@@ -118,11 +119,11 @@ export function OperatorTerminalsView() {
     if (!locationToDelete) return;
     try {
       await deleteMutation.mutateAsync({ id: locationToDelete.id });
-      toast.success("Location deleted successfully");
+      toast.success(t("toast.locationDeleted"));
       setDeleteConfirmOpen(false);
       setLocationToDelete(null);
     } catch (err: any) {
-      toast.error(err.message || "Failed to delete location");
+      toast.error(err.message || t("toast.deleteFailed"));
     }
   };
 
@@ -131,30 +132,30 @@ export function OperatorTerminalsView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Terminals & Locations
+            {t("pageTitle")}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Manage passenger terminals, regional depots, operating hours, and location hubs.
+            {t("pageDescription")}
           </p>
         </div>
         <Button onClick={handleAddNew} className="shrink-0">
           <Plus className="mr-2 size-4" />
-          Add Location
+          {t("addLocation")}
         </Button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Total Locations" value={stats.total} icon={Building} />
-        <StatCard label="Passenger Terminals" value={stats.terminals} icon={MapPin} />
-        <StatCard label="Depots / Offices" value={stats.depots} icon={Navigation} />
-        <StatCard label="Active Sites" value={stats.active} icon={CheckCircle} />
+        <StatCard label={t("kpi.totalLocations")} value={stats.total} icon={Building} />
+        <StatCard label={t("kpi.passengerTerminals")} value={stats.terminals} icon={MapPin} />
+        <StatCard label={t("kpi.depotsOffices")} value={stats.depots} icon={Navigation} />
+        <StatCard label={t("kpi.activeSites")} value={stats.active} icon={CheckCircle} />
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search location name or address..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -170,7 +171,7 @@ export function OperatorTerminalsView() {
               onClick={() => setTypeFilter(type)}
               className="text-xs uppercase tracking-wider font-semibold"
             >
-              {type === "ALL" ? "All Locations" : type === "TERMINAL" ? "Terminals" : "Depots"}
+              {type === "ALL" ? t("allLocations") : type === "TERMINAL" ? t("terminals") : t("depots")}
             </Button>
           ))}
         </div>
@@ -200,17 +201,17 @@ export function OperatorTerminalsView() {
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Location</DialogTitle>
+            <DialogTitle>{t("deleteLocation")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete <span className="font-semibold text-foreground">{locationToDelete?.name}</span>? This action cannot be undone if no active routes depend on it.
+              {t("deleteConfirm", { name: locationToDelete?.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleDeleteConfirm}>
-              Delete Location
+              {t("deleteLocation")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
@@ -45,6 +46,7 @@ export function BookingList({
   upcomingCount,
   pendingCount,
 }: BookingListProps) {
+  const t = useTranslations("passengerDashboard.bookings");
   const [search, setSearch] = React.useState("");
 
   const filtered = React.useMemo(() => {
@@ -64,36 +66,34 @@ export function BookingList({
   return (
     <Card className="h-full rounded-none ring-0">
       <CardHeader>
-        <CardTitle className="font-normal text-xl">My Bookings</CardTitle>
+        <CardTitle className="font-normal text-xl">{t("title")}</CardTitle>
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden px-0">
 
-        {/* Filter tabs */}
         <Tabs
           value={filter}
           onValueChange={(v) => onFilterChange(v as BookingFilter)}
         >
           <TabsList className="w-full border-b px-4" variant="line">
             <TabsTrigger className="text-xs" value="upcoming">
-              Upcoming{upcomingCount !== undefined ? ` (${upcomingCount})` : ""}
+              {t("upcoming")}{upcomingCount !== undefined ? ` (${upcomingCount})` : ""}
             </TabsTrigger>
             <TabsTrigger className="text-xs" value="pending">
-              Pending{pendingCount !== undefined && pendingCount > 0 ? ` (${pendingCount})` : ""}
+              {t("pending")}{pendingCount !== undefined && pendingCount > 0 ? ` (${pendingCount})` : ""}
             </TabsTrigger>
             <TabsTrigger className="text-xs" value="past">
-              Past
+              {t("past")}
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        {/* Search */}
         <div className="px-4">
           <InputGroup className="h-8">
             <InputGroupInput
               className="h-8"
-              aria-label="Search bookings"
-              placeholder="Search by city or ref..."
+              aria-label={t("searchAria")}
+              placeholder={t("searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -103,7 +103,6 @@ export function BookingList({
           </InputGroup>
         </div>
 
-        {/* List */}
         <ScrollArea className="h-0 flex-1">
           <div className="flex flex-col gap-3 px-4 pb-4">
             {isLoading ? (
@@ -116,12 +115,12 @@ export function BookingList({
             ) : filtered.length === 0 ? (
               <div className="grid min-h-48 place-items-center rounded-xl border border-dashed text-muted-foreground text-sm">
                 {search
-                  ? "No bookings match your search."
+                  ? t("emptySearch")
                   : filter === "upcoming"
-                    ? "No upcoming trips."
+                    ? t("emptyUpcoming")
                     : filter === "pending"
-                      ? "No pending payments."
-                      : "No past bookings."}
+                      ? t("emptyPending")
+                      : t("emptyPast")}
               </div>
             ) : (
               filtered.map((booking) => (
@@ -136,11 +135,9 @@ export function BookingList({
           </div>
         </ScrollArea>
 
-        {/* Footer count */}
         {!isLoading && filtered.length > 0 && (
           <div className="px-4 pb-2 text-muted-foreground text-xs">
-            Showing {filtered.length} of {total} booking
-            {total !== 1 ? "s" : ""}
+            {t(total !== 1 ? "showingCountPlural" : "showingCountSingular", { count: filtered.length, total })}
           </div>
         )}
       </CardContent>

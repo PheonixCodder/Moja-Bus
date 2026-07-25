@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { BusFront, X } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -105,13 +106,13 @@ export function AddBusDrawer({
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
     if (!plateNumber.trim() || plateNumber.trim().length < 4) {
-      newErrors["plateNumber"] = "Registration plate is required (min 4 chars)";
+      newErrors["plateNumber"] = t("addBusDrawer.errors.plate");
     }
     if (!isEditing && !busTypeId) {
-      newErrors["busTypeId"] = "Please select a vehicle type";
+      newErrors["busTypeId"] = t("addBusDrawer.errors.busType");
     }
     if (!isEditing && !seatLayoutId) {
-      newErrors["seatLayoutId"] = "Please select a seat configuration";
+      newErrors["seatLayoutId"] = t("addBusDrawer.errors.seatLayout");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -139,12 +140,12 @@ export function AddBusDrawer({
         },
         {
           onSuccess: () => {
-            toast.success("Vehicle updated successfully");
+            toast.success(t("addBusDrawer.toast.updated"));
             onSuccess();
             onOpenChange(false);
           },
           onError: (err) => {
-            toast.error(err.message || "Unexpected error");
+            toast.error(err.message || t("addBusDrawer.toast.error"));
           },
         },
       );
@@ -162,12 +163,12 @@ export function AddBusDrawer({
         },
         {
           onSuccess: () => {
-            toast.success("Vehicle added to the fleet!");
+            toast.success(t("addBusDrawer.toast.created"));
             onSuccess();
             onOpenChange(false);
           },
           onError: (err) => {
-            toast.error(err.message || "Unexpected error");
+            toast.error(err.message || t("addBusDrawer.toast.error"));
           },
         },
       );
@@ -175,6 +176,7 @@ export function AddBusDrawer({
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;
+  const t = useTranslations("operatorDashboard.fleet");
 
   return (
     <Drawer
@@ -191,12 +193,10 @@ export function AddBusDrawer({
             </div>
             <div>
               <DrawerTitle className="text-base font-semibold text-foreground">
-                {isEditing ? "Edit vehicle" : "Add vehicle"}
+                {isEditing ? t("addBusDrawer.titleEdit") : t("addBusDrawer.titleAdd")}
               </DrawerTitle>
               <DrawerDescription className="text-xs text-muted-foreground mt-0.5">
-                {isEditing
-                  ? "Update the details of this vehicle."
-                  : "Fill in the details to register a new vehicle."}
+                {isEditing ? t("addBusDrawer.descEdit") : t("addBusDrawer.descAdd")}
               </DrawerDescription>
             </div>
           </div>
@@ -213,11 +213,11 @@ export function AddBusDrawer({
                 htmlFor="plateNumber"
                 className="text-xs font-semibold text-foreground/80"
               >
-                Registration plate *
+                {t("addBusDrawer.plateLabel")}
               </Label>
               <Input
                 id="plateNumber"
-                placeholder="e.g. 1234AB01"
+                placeholder={t("addBusDrawer.platePlaceholder")}
                 className="h-9 text-sm bg-card border-border font-mono uppercase"
                 value={plateNumber}
                 onChange={(e) => setPlateNumber(e.target.value)}
@@ -235,14 +235,14 @@ export function AddBusDrawer({
                 htmlFor="internalName"
                 className="text-xs font-semibold text-foreground/80"
               >
-                Internal name{" "}
+                {t("addBusDrawer.internalNameLabel")}{" "}
                 <span className="text-muted-foreground font-normal">
-                  (optional)
+                  {t("addBusDrawer.internalNameOptional")}
                 </span>
               </Label>
               <Input
                 id="internalName"
-                placeholder='e.g. "Bus Alpha", "VIP-07"'
+                placeholder={t("addBusDrawer.internalNamePlaceholder")}
                 className="h-9 text-sm bg-card border-border"
                 value={internalName}
                 onChange={(e) => setInternalName(e.target.value)}
@@ -252,7 +252,7 @@ export function AddBusDrawer({
             {/* Manufacture Year */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-foreground/80">
-                Manufacture year
+                {t("addBusDrawer.yearLabel")}
               </Label>
               <Combobox
                 items={yearOptions.map((y) => ({
@@ -265,12 +265,12 @@ export function AddBusDrawer({
                 }}
               >
                 <ComboboxInput
-                  placeholder="Select a year..."
+                  placeholder={t("addBusDrawer.yearPlaceholder")}
                   className="w-full"
                 />
 
                 <ComboboxContent>
-                  <ComboboxEmpty>No year found.</ComboboxEmpty>
+                  <ComboboxEmpty>{t("addBusDrawer.yearEmpty")}</ComboboxEmpty>
 
                   <ComboboxList>
                     {yearOptions.map((y) => (
@@ -286,7 +286,7 @@ export function AddBusDrawer({
             {/* Bus Type */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-foreground/80">
-                Vehicle type *
+                {t("addBusDrawer.busTypeLabel")}
               </Label>
               <Combobox
                 items={busTypes.map((bt) => ({
@@ -300,13 +300,13 @@ export function AddBusDrawer({
                 disabled={isEditing}
               >
                 <ComboboxInput
-                  placeholder="Select vehicle type..."
+                  placeholder={t("addBusDrawer.busTypePlaceholder")}
                   className="w-full"
                   value={busTypes.find((bt) => bt.id === busTypeId)?.name || ""}
                 />
 
                 <ComboboxContent>
-                  <ComboboxEmpty>No vehicle type found.</ComboboxEmpty>
+                  <ComboboxEmpty>{t("addBusDrawer.busTypeEmpty")}</ComboboxEmpty>
 
                   <ComboboxList>
                     {busTypes.map((bt) => (
@@ -331,7 +331,7 @@ export function AddBusDrawer({
               )}
               {isEditing && (
                 <p className="text-[11px] text-muted-foreground">
-                  Vehicle type can't be changed after creation.
+                  {t("addBusDrawer.busTypeLockedHint")}
                 </p>
               )}
             </div>
@@ -340,7 +340,7 @@ export function AddBusDrawer({
             {!isEditing && (
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-foreground/80">
-                  Seat configuration *
+                  {t("addBusDrawer.seatLayoutLabel")}
                 </Label>
                 <div className="grid grid-cols-1 gap-2">
                   {layouts.map((layout) => {
@@ -386,7 +386,7 @@ export function AddBusDrawer({
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {layout.rows} rows × {layout.columns} columns —{" "}
                             <strong className="text-foreground/80 font-medium">
-                              {layout.totalSeats} seats
+                              {layout.totalSeats} {t("busCard.seats")}
                             </strong>
                           </p>
                         </div>
@@ -406,42 +406,32 @@ export function AddBusDrawer({
             {isEditing && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground/80">
-                  Status
+                  {t("addBusDrawer.statusLabel")}
                 </Label>
                 <Combobox
                   items={[
-                    { value: "ACTIVE", label: "Active" },
-                    { value: "MAINTENANCE", label: "Maintenance" },
-                    { value: "INACTIVE", label: "Inactive" },
-                    { value: "RETIRED", label: "Retired" },
+                    { value: "ACTIVE", label: t("status.ACTIVE") },
+                    { value: "MAINTENANCE", label: t("status.MAINTENANCE") },
+                    { value: "INACTIVE", label: t("status.INACTIVE") },
+                    { value: "RETIRED", label: t("status.RETIRED") },
                   ]}
                   value={status}
                   onValueChange={(v) => setStatus((v ?? "ACTIVE") as BusStatus)}
                 >
                   <ComboboxInput
-                    placeholder="Select status..."
+                    placeholder={t("addBusDrawer.statusPlaceholder")}
                     className="w-full"
-                    value={
-                      status === "ACTIVE"
-                        ? "Active"
-                        : status === "MAINTENANCE"
-                          ? "Maintenance"
-                          : status === "INACTIVE"
-                            ? "Inactive"
-                            : status === "RETIRED"
-                              ? "Retired"
-                              : ""
-                    }
+                    value={t(`status.${status}`)}
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No status found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("addBusDrawer.statusEmpty")}</ComboboxEmpty>
                     <ComboboxList>
-                      <ComboboxItem value="ACTIVE">Active</ComboboxItem>
+                      <ComboboxItem value="ACTIVE">{t("status.ACTIVE")}</ComboboxItem>
                       <ComboboxItem value="MAINTENANCE">
-                        Maintenance
+                        {t("status.MAINTENANCE")}
                       </ComboboxItem>
-                      <ComboboxItem value="INACTIVE">Inactive</ComboboxItem>
-                      <ComboboxItem value="RETIRED">Retired</ComboboxItem>
+                      <ComboboxItem value="INACTIVE">{t("status.INACTIVE")}</ComboboxItem>
+                      <ComboboxItem value="RETIRED">{t("status.RETIRED")}</ComboboxItem>
                     </ComboboxList>
                   </ComboboxContent>
                 </Combobox>
@@ -454,14 +444,14 @@ export function AddBusDrawer({
                 htmlFor="notes"
                 className="text-xs font-semibold text-foreground/80"
               >
-                Notes{" "}
+                {t("addBusDrawer.notesLabel")}{" "}
                 <span className="text-muted-foreground font-normal">
-                  (optional)
+                  {t("addBusDrawer.notesOptional")}
                 </span>
               </Label>
               <Textarea
                 id="notes"
-                placeholder="Additional details about this vehicle..."
+                placeholder={t("addBusDrawer.notesPlaceholder")}
                 className="text-sm bg-card border-border resize-none min-h-[72px]"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -478,14 +468,14 @@ export function AddBusDrawer({
             className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm"
           >
             {isPending && <Spinner className="size-4 mr-2" />}
-            {isEditing ? "Save changes" : "Add vehicle"}
+            {isEditing ? t("addBusDrawer.saveBtn") : t("addBusDrawer.addBtn")}
           </Button>
           <DrawerClose asChild>
             <Button
               variant="ghost"
               className="h-9 text-muted-foreground hover:text-foreground"
             >
-              Cancel
+              {t("addBusDrawer.cancelBtn")}
             </Button>
           </DrawerClose>
         </DrawerFooter>

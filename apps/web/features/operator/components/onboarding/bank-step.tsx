@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@moja/ui/components/ui/button";
@@ -26,9 +27,6 @@ import { type BankStepInput } from "@moja/schemas";
 
 interface BankStepProps {
   initialData?: any;
-  // L14: true payout-readiness (verified account + Paystack recipient, set
-  // during admin KYC approval). Used to show an honest sub-step instead of
-  // implying the bank step is fully complete.
   bankVerified?: boolean;
   onSave: (data: BankStepInput) => Promise<boolean>;
   onBack: () => void;
@@ -42,7 +40,8 @@ export function BankStep({
   onBack,
   isSaving,
 }: BankStepProps) {
-  // L14: have bank details been provided yet?
+  const t = useTranslations("onboarding.bank");
+  const tRoot = useTranslations("onboarding");
   const hasBankDetails = Boolean(initialData?.company?.bankAccount);
   const trpc = useTRPC();
   const { data: paystackBanks, isLoading: isLoadingBanks } = useQuery(
@@ -104,23 +103,17 @@ export function BankStep({
             <ShieldCheck className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="font-bold text-sm text-foreground">
-                Secure Payout Setup
+                {t("securityTitle")}
               </h4>
               <p className="text-xs text-muted-foreground mt-0.5">
-                We store and encrypt bank information. It is strictly used to
-                distribute route revenues directly to your account.
+                {t("securityDesc")}
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* L14: honest two-stage verification sub-step.
-          The wizard marks the BANK step complete once details are provided,
-          but payouts only unlock after admin KYC verification. Show both
-          stages so operators aren't misled into thinking onboarding is fully
-          done (the withdrawal gate in operator-withdraw-view already enforces
-          this server-side). */}
+      {/* Two-stage verification sub-step */}
       <Card className="border-amber-200 bg-amber-50/10 rounded-md">
         <CardContent className="pt-4 pb-4">
           <div className="space-y-3">
@@ -131,7 +124,7 @@ export function BankStep({
                 <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               )}
               <span className="text-sm font-medium text-foreground">
-                Bank details added
+                {t("bankDetailsAdded")}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -142,8 +135,8 @@ export function BankStep({
               )}
               <span className="text-sm text-muted-foreground">
                 {bankVerified
-                  ? "Verified — payouts enabled"
-                  : "Pending verification — withdrawals enabled after admin approval"}
+                  ? t("verifiedPayouts")
+                  : t("pendingVerification")}
               </span>
             </div>
           </div>
@@ -158,11 +151,10 @@ export function BankStep({
             </div>
             <div>
               <CardTitle className="text-lg font-bold">
-                Payout Bank Account
+                {t("title")}
               </CardTitle>
               <CardDescription>
-                Provide the bank account details where you will receive ticket
-                sales payouts.
+                {t("description")}
               </CardDescription>
             </div>
           </div>
@@ -174,7 +166,7 @@ export function BankStep({
                 htmlFor="bank-name"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Bank Name *
+                {t("bankName")}
               </Label>
               <Combobox
                 items={(paystackBanks || []).map((b: any) => ({ value: b.code, label: b.name }))}
@@ -187,13 +179,13 @@ export function BankStep({
               >
                 <ComboboxInput
                   id="bank-name"
-                  placeholder={isLoadingBanks ? "Loading banks..." : "Select bank"}
+                  placeholder={isLoadingBanks ? t("loadingBanks") : t("selectBank")}
                   aria-label="Search and select your bank"
                   className="w-full text-sm"
                   value={bankName || ""}
                 />
                 <ComboboxContent>
-                  <ComboboxEmpty>No bank found.</ComboboxEmpty>
+                  <ComboboxEmpty>{t("noBankFound")}</ComboboxEmpty>
                   <ComboboxList>
                     {(paystackBanks || []).map((bank: any) => (
                       <ComboboxItem key={bank.code} value={bank.code}>
@@ -210,13 +202,13 @@ export function BankStep({
                 htmlFor="account-name"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Account Holder Name *
+                {t("accountHolder")}
               </Label>
               <Input
                 id="account-name"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
-                placeholder="Must match company registration name"
+                placeholder={t("accountHolderPlaceholder")}
                 required
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
@@ -229,13 +221,13 @@ export function BankStep({
                 htmlFor="account-number"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Account Number *
+                {t("accountNumber")}
               </Label>
               <Input
                 id="account-number"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder="Enter account number"
+                placeholder={t("accountNumberPlaceholder")}
                 required
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
@@ -246,13 +238,13 @@ export function BankStep({
                 htmlFor="branch"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                Branch Code / Name
+                {t("branch")}
               </Label>
               <Input
                 id="branch"
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
-                placeholder="e.g. Plateau Branch"
+                placeholder={t("branchPlaceholder")}
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
             </div>
@@ -264,13 +256,13 @@ export function BankStep({
                 htmlFor="swift-code"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                SWIFT / BIC Code
+                {t("swift")}
               </Label>
               <Input
                 id="swift-code"
                 value={swiftCode}
                 onChange={(e) => setSwiftCode(e.target.value)}
-                placeholder="e.g. ECOBCICIXXX"
+                placeholder={t("swiftPlaceholder")}
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
             </div>
@@ -280,13 +272,13 @@ export function BankStep({
                 htmlFor="iban"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
-                IBAN
+                {t("iban")}
               </Label>
               <Input
                 id="iban"
                 value={iban}
                 onChange={(e) => setIban(e.target.value)}
-                placeholder="e.g. CI93 0123 4567 8901 2345 67"
+                placeholder={t("ibanPlaceholder")}
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
             </div>
@@ -303,14 +295,14 @@ export function BankStep({
           disabled={isSaving}
           className="border-border hover:bg-slate-100 rounded-md px-6 py-2"
         >
-          Back
+          {tRoot("back")}
         </Button>
         <Button
           type="submit"
           disabled={isSaving || !canContinue}
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-md px-6 py-2"
         >
-          {isSaving ? "Saving..." : "Save & Continue"}
+          {isSaving ? tRoot("saving") : tRoot("saveAndContinue")}
         </Button>
       </div>
     </form>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { type OnboardingStep } from "@moja/schemas";
 import { useTRPC } from "@/trpc/client";
@@ -20,6 +21,7 @@ const STEP_ORDER: OnboardingStep[] = [
 ];
 
 export function useOperatorOnboarding() {
+  const t = useTranslations("onboarding.toast");
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -48,10 +50,10 @@ export function useOperatorOnboarding() {
 
   useEffect(() => {
     if (data?.onboardingStatus === "COMPLETED") {
-      toast.info("Your onboarding is already complete!");
+      toast.info(t("alreadyComplete"));
       router.push("/dashboard/operator");
     }
-  }, [data?.onboardingStatus, router]);
+  }, [data?.onboardingStatus, router, t]);
 
   // Log STEP_ENTERED and reset timer each time currentStep changes
   useEffect(() => {
@@ -89,7 +91,7 @@ export function useOperatorOnboarding() {
         timeSpentSeconds,
       });
 
-      toast.success("Progress saved successfully!");
+      toast.success(t("progressSaved"));
       return true;
     } catch (err: any) {
       logEventMutation.mutate({
@@ -98,7 +100,7 @@ export function useOperatorOnboarding() {
         timeSpentSeconds,
         metadata: { message: String(err?.message ?? "Unknown error") },
       });
-      toast.error(err.message || "Failed to save progress.");
+      toast.error(err.message || t("saveFailed"));
       return false;
     } finally {
       setIsSaving(false);
@@ -119,12 +121,12 @@ export function useOperatorOnboarding() {
         timeSpentSeconds: getTimeSpent(),
       });
 
-      toast.success("Onboarding completed! Welcome to Moja Ride!");
+      toast.success(t("onboardingComplete"));
       router.push("/dashboard/operator/welcome");
       router.refresh();
       return true;
     } catch (err: any) {
-      toast.error(err.message || "Failed to complete onboarding.");
+      toast.error(err.message || t("finalizeFailed"));
       return false;
     } finally {
       setIsSaving(false);
@@ -136,9 +138,7 @@ export function useOperatorOnboarding() {
     const targetIndex = STEP_ORDER.indexOf(step);
 
     if (targetIndex < currentIndex) {
-      const confirmed = window.confirm(
-        "Going back may discard unsaved changes on this step. Continue?",
-      );
+      const confirmed = window.confirm(t("goBackConfirm"));
       if (!confirmed) return;
 
       logEventMutation.mutate({
@@ -154,7 +154,7 @@ export function useOperatorOnboarding() {
     }
 
     if (targetIndex > currentIndex) {
-      toast.warning("Please complete the current step first to continue.");
+      toast.warning(t("completeFirst"));
     }
   };
 

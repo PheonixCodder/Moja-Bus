@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
@@ -24,6 +25,7 @@ import { Badge } from "@moja/ui/components/ui/badge";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 
 export function OperatorWithdrawView() {
+  const t = useTranslations("operatorDashboard.withdraw");
   const trpc = useTRPC();
   const [amountXOF, setAmountXOF] = useState<string>("");
   // Stable per-attempt nonce sent to the server so a duplicate request
@@ -77,7 +79,7 @@ export function OperatorWithdrawView() {
   const withdrawMutation = useMutation(
     trpc.operator.requestWithdrawal.mutationOptions({
       onSuccess: () => {
-        toast.success("Withdrawal initiated successfully");
+        toast.success(t("toast.success"));
         setAmountXOF("");
         // Fresh nonce + clear 2FA state for the next withdrawal attempt.
         setWithdrawNonce(crypto.randomUUID());
@@ -87,7 +89,7 @@ export function OperatorWithdrawView() {
         refetchWithdrawals();
       },
       onError: (err: any) => {
-        toast.error(err.message || "Failed to initiate withdrawal");
+        toast.error(err.message || t("toast.failed"));
         // Allow a genuine retry after a failure with a new nonce.
         setWithdrawNonce(crypto.randomUUID());
       },
@@ -99,10 +101,10 @@ export function OperatorWithdrawView() {
     trpc.operator.requestWithdrawalChallenge.mutationOptions({
       onSuccess: () => {
         setChallengeSent(true);
-        toast.success("A confirmation code has been sent to your email");
+        toast.success(t("toast.codeSent"));
       },
       onError: (err: any) => {
-        toast.error(err.message || "Failed to send confirmation code");
+        toast.error(err.message || t("toast.codeFailed"));
       },
     })
   );
@@ -119,11 +121,11 @@ export function OperatorWithdrawView() {
   const handleWithdraw = () => {
     const parsedAmount = parseInt(amountXOF.replace(/\D/g, ""), 10);
     if (!parsedAmount || parsedAmount <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error(t("toast.invalidAmount"));
       return;
     }
     if (toXOFBigInt(parsedAmount) > availableBalance) {
-      toast.error("Insufficient available balance");
+      toast.error(t("toast.insufficientBalance"));
       return;
     }
     withdrawMutation.mutate({
@@ -137,10 +139,10 @@ export function OperatorWithdrawView() {
     <div className="mx-auto max-w-4xl space-y-8">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
-          Withdraw Funds
+          {t("title")}
         </h1>
         <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-          Transfer your available balance to your connected bank account.
+          {t("description")}
         </p>
       </div>
 
@@ -148,9 +150,9 @@ export function OperatorWithdrawView() {
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
           <div className="flex-1 text-sm text-amber-900">
-            <p className="font-semibold">Bank account not verified</p>
+            <p className="font-semibold">{t("bankNotVerifiedTitle")}</p>
             <p className="text-amber-800 mt-0.5">
-              Update and verify your bank details in settings before withdrawing.
+              {t("bankNotVerifiedDesc")}
             </p>
           </div>
           <Button
@@ -160,7 +162,7 @@ export function OperatorWithdrawView() {
             render={<Link href="/dashboard/operator/settings" />}
             nativeButton={false}
           >
-            Go to settings
+            {t("goToSettings")}
           </Button>
         </div>
       ) : null}
@@ -169,11 +171,9 @@ export function OperatorWithdrawView() {
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
           <div className="flex-1 text-sm text-amber-900">
-            <p className="font-semibold">Balances are reconciling</p>
+            <p className="font-semibold">{t("reconcilingTitle")}</p>
             <p className="text-amber-800 mt-0.5">
-              Your available and in-escrow balances are being updated. The
-              figures shown may be temporarily out of sync. Please check back
-              in a few minutes.
+              {t("reconcilingDesc")}
             </p>
           </div>
         </div>
@@ -184,7 +184,7 @@ export function OperatorWithdrawView() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-emerald-800 flex items-center gap-2">
               <Wallet className="h-4 w-4" />
-              Available Balance
+              {t("availableBalance")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -195,7 +195,7 @@ export function OperatorWithdrawView() {
                 maximumFractionDigits: 0,
               }).format(availableBalance)}
             </div>
-            <p className="text-xs text-emerald-600/80 mt-1">Ready for withdrawal</p>
+            <p className="text-xs text-emerald-600/80 mt-1">{t("readyForWithdrawal")}</p>
           </CardContent>
         </Card>
 
@@ -203,7 +203,7 @@ export function OperatorWithdrawView() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
               <Info className="h-4 w-4" />
-              In Escrow (Pending)
+              {t("inEscrow")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -214,21 +214,21 @@ export function OperatorWithdrawView() {
                 maximumFractionDigits: 0,
               }).format(escrowBalance)}
             </div>
-            <p className="text-xs text-slate-500 mt-1">Clears 24 hours after trip completion</p>
+            <p className="text-xs text-slate-500 mt-1">{t("escrowDescription")}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Request Payout</CardTitle>
+          <CardTitle>{t("requestPayout")}</CardTitle>
           <CardDescription>
-            Funds will be transferred to your verified default bank account via Paystack.
+            {t("requestPayoutDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 max-w-md">
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (XOF)</Label>
+            <Label htmlFor="amount">{t("amount")}</Label>
             <div className="relative">
               <Input
                 id="amount"
@@ -244,25 +244,26 @@ export function OperatorWithdrawView() {
             </div>
             {availableBalance > 0 && (
               <p className="text-xs text-muted-foreground">
-                Max available:{" "}
-                {new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "XOF",
-                  maximumFractionDigits: 0,
-                }).format(availableBalance)}
+                {t("maxAvailable", {
+                  amount: new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "XOF",
+                    maximumFractionDigits: 0,
+                  }).format(availableBalance)
+                })}
               </p>
             )}
           </div>
           {require2FA ? (
             <div className="space-y-2">
-              <Label htmlFor="twoFactorCode">Confirmation code</Label>
+              <Label htmlFor="twoFactorCode">{t("confirmationCode")}</Label>
               <div className="flex gap-2">
                 <Input
                   id="twoFactorCode"
                   type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
-                  placeholder="6-digit code"
+                  placeholder={t("codePlaceholder")}
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value)}
                   disabled={withdrawMutation.isPending}
@@ -275,15 +276,14 @@ export function OperatorWithdrawView() {
                   disabled={challengeMutation.isPending || withdrawMutation.isPending}
                 >
                   {challengeMutation.isPending
-                    ? "Sending..."
+                    ? t("sending")
                     : challengeSent
-                      ? "Resend code"
-                      : "Send code"}
+                      ? t("resendCode")
+                      : t("sendCode")}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                For your security, a confirmation code sent to your email is
-                required for every withdrawal.
+                {t("codeDescription")}
               </p>
             </div>
           ) : null}
@@ -302,10 +302,10 @@ export function OperatorWithdrawView() {
             {withdrawMutation.isPending ? (
               <>
                 <Spinner className="mr-2 size-3.5 text-white" />
-                Processing...
+                {t("processing")}
               </>
             ) : (
-              "Withdraw Funds"
+              t("request")
             )}
           </Button>
 
@@ -313,21 +313,19 @@ export function OperatorWithdrawView() {
             <div className="flex gap-3">
               <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
               <div className="space-y-1 text-sm text-amber-800">
-                <p className="font-medium">Withdrawal Rules</p>
+                <p className="font-medium">{t("withdrawRules")}</p>
                 <ul className="list-disc pl-4 space-y-1 text-amber-700/90 text-xs">
-                  <li>Minimum withdrawal amount applies.</li>
+                  <li>{t("minAmountRule")}</li>
                   {frequencyHours > 0 ? (
-                    <li>You may only withdraw once every {frequencyHours} hours.</li>
+                    <li>{t("frequencyRule", { frequencyHours })}</li>
                   ) : null}
                   {require2FA ? (
-                    <li>A confirmation code is required for every withdrawal.</li>
+                    <li>{t("codeRequiredRule")}</li>
                   ) : null}
-                  <li>
-                    Settlement is automatic. Paystack Transfer Fees (e.g. 100 XOF) are deducted automatically by the payment network from your payout.
-                  </li>
-                  <li>May take up to T+2 to reflect in your bank account depending on your bank.</li>
+                  <li>{t("feeRule")}</li>
+                  <li>{t("settlementRule")}</li>
                   <li className="font-semibold text-amber-900 mt-2">
-                    Warning: Withdrawing your entire available balance may prevent processing passenger refunds for pre-departure cancellations.
+                    {t("warningRule")}
                   </li>
                 </ul>
               </div>
@@ -340,9 +338,9 @@ export function OperatorWithdrawView() {
       <Card className="border border-border bg-white rounded-lg shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <CardTitle className="text-base font-bold text-slate-900">Withdrawal History</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-900">{t("history")}</CardTitle>
             <CardDescription className="text-xs text-slate-500">
-              Track your bank settlements and requested payouts.
+              {t("historyDescription")}
             </CardDescription>
           </div>
           <History className="h-5 w-5 text-slate-400" />
@@ -353,7 +351,7 @@ export function OperatorWithdrawView() {
               <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
                 <History className="h-5 w-5" />
               </div>
-              <p>No withdrawals requested yet.</p>
+              <p>{t("noWithdrawals")}</p>
             </div>
           ) : withdrawals ? (
             <div className="space-y-4 p-4">
@@ -361,12 +359,12 @@ export function OperatorWithdrawView() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50 hover:bg-slate-50">
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Date / ID</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Transfer Details</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Status</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">Gross Payout</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">Paystack Fee</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">Net Settled</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("columns.dateId")}</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("columns.transferDetails")}</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("columns.status")}</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("columns.grossPayout")}</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("columns.paystackFee")}</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("columns.netSettled")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -379,19 +377,19 @@ export function OperatorWithdrawView() {
 
                       let statusBadge = (
                         <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                          Pending
+                          {t("statusBadge.pending")}
                         </Badge>
                       );
                       if (tx.status === "SETTLED") {
                         statusBadge = (
                           <Badge className="bg-green-50 text-green-700 border-green-200">
-                            Settled
+                            {t("statusBadge.settled")}
                           </Badge>
                         );
                       } else if (tx.status === "FAILED" || tx.status === "REVERSED") {
                         statusBadge = (
                           <Badge className="bg-red-50 text-red-700 border-red-200">
-                            Failed
+                            {t("statusBadge.failed")}
                           </Badge>
                         );
                       }
@@ -408,18 +406,18 @@ export function OperatorWithdrawView() {
                                 })}
                               </div>
                               <div className="text-[10px] font-mono text-slate-400">
-                                Tx: {tx.id.slice(-8).toUpperCase()}
+                                {t("txLabel", { id: tx.id.slice(-8).toUpperCase() })}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="px-4 py-3">
                             <div className="space-y-0.5">
                               <div className="text-xs text-slate-700 font-medium">
-                                Paystack Code: <span className="font-mono text-slate-900">{tx.externalPaymentId || "N/A"}</span>
+                                {t("paystackCode", { code: tx.externalPaymentId || t("na") })}
                               </div>
                               {metadata.bankAccountId && (
                                 <div className="text-[10px] text-slate-500">
-                                  Settled to connected bank target
+                                  {t("settledToBank")}
                                 </div>
                               )}
                             </div>
@@ -445,7 +443,11 @@ export function OperatorWithdrawView() {
               {withdrawals.total > pageSize && (
                 <div className="flex justify-between items-center text-xs pt-2">
                   <span className="text-slate-500 font-medium">
-                    Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, withdrawals.total)} of {withdrawals.total} entries
+                    {t("pagination", {
+                      start: currentPage * pageSize + 1,
+                      end: Math.min((currentPage + 1) * pageSize, withdrawals.total),
+                      total: withdrawals.total
+                    })}
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -455,7 +457,7 @@ export function OperatorWithdrawView() {
                       onClick={() => setCurrentPageParam((p) => p - 1)}
                       className="h-8 text-xs font-semibold"
                     >
-                      Previous
+                      {t("previous")}
                     </Button>
                     <Button
                       size="sm"
@@ -464,7 +466,7 @@ export function OperatorWithdrawView() {
                       onClick={() => setCurrentPageParam((p) => p + 1)}
                       className="h-8 text-xs font-semibold"
                     >
-                      Next
+                      {t("next")}
                     </Button>
                   </div>
                 </div>

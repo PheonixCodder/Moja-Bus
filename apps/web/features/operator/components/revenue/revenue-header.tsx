@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import { revenueParsers } from "../../lib/revenue-search-params";
 import { format, subDays, startOfMonth, startOfYear } from "date-fns";
@@ -15,6 +16,7 @@ import { CalendarIcon, ChevronDown, Download } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 
 export function RevenueHeader() {
+  const t = useTranslations("operatorDashboard.revenue");
   const [{ from, to }, setParams] = useQueryStates(revenueParsers, {
     shallow: false,
   });
@@ -30,10 +32,10 @@ export function RevenueHeader() {
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
-          Financial Workspace
+          {t("header.title")}
         </h1>
         <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-          Manage your earnings, pending escrow, and transactions.
+          {t("header.subtitle")}
         </p>
       </div>
 
@@ -60,7 +62,7 @@ export function RevenueHeader() {
                 format(from, "dd MMM yyyy")
               )
             ) : (
-              <span>Pick a date range</span>
+              <span>{t("header.pickDateRange")}</span>
             )}
             <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
           </PopoverTrigger>
@@ -72,28 +74,28 @@ export function RevenueHeader() {
                   className="justify-start text-sm font-normal"
                   onClick={() => setPreset(new Date())}
                 >
-                  Today
+                  {t("header.presets.today")}
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start text-sm font-normal"
                   onClick={() => setPreset(subDays(new Date(), 6))}
                 >
-                  Last 7 days
+                  {t("header.presets.last7")}
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start text-sm font-normal"
                   onClick={() => setPreset(startOfMonth(new Date()))}
                 >
-                  This Month
+                  {t("header.presets.thisMonth")}
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start text-sm font-normal"
                   onClick={() => setPreset(startOfYear(new Date()))}
                 >
-                  Year to Date
+                  {t("header.presets.yearToDate")}
                 </Button>
               </div>
               <Calendar
@@ -119,7 +121,7 @@ export function RevenueHeader() {
 
         <Button variant="outline" className="bg-white">
           <Download className="mr-2 h-4 w-4" />
-          Export
+          {t("export")}
         </Button>
       </div>
     </div>

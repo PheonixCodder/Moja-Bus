@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import { Radio, RefreshCw } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
@@ -29,18 +30,8 @@ import { TripCard } from "@/features/operator/components/trips/trip-card";
 import { TripsToolbar } from "@/features/operator/components/trips/trips-toolbar";
 import { ManifestDrawer } from "@/features/operator/components/trips/manifest-drawer";
 
-// M2: status filter chips for the dispatch board. Counts come from the
-// global `trips.statusCounts` query (not the current page).
-const STATUS_CHIPS: { status: TripStatus; label: string; dot: string }[] = [
-  { status: "SCHEDULED", label: "Scheduled", dot: "bg-blue-500" },
-  { status: "BOARDING", label: "Boarding", dot: "bg-green-500" },
-  { status: "DELAYED", label: "Delayed", dot: "bg-amber-500" },
-  { status: "DEPARTED", label: "Departed", dot: "bg-violet-500" },
-  { status: "ARRIVED", label: "Arrived", dot: "bg-teal-500" },
-  { status: "CANCELLED", label: "Cancelled", dot: "bg-red-500" },
-];
-
 export function OperatorTripsView() {
+  const t = useTranslations("operatorDashboard.trips");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { can } = useStaffPermissions();
@@ -48,6 +39,19 @@ export function OperatorTripsView() {
   const canCancel = can("trips:cancel");
   const canCheckIn = can("bookings:update");
   const canReadFleet = can("fleet:read");
+
+  const STATUS_CHIPS: { status: TripStatus; label: string; dot: string }[] =
+    useMemo(
+      () => [
+        { status: "SCHEDULED", label: t("status.SCHEDULED"), dot: "bg-blue-500" },
+        { status: "BOARDING", label: t("status.BOARDING"), dot: "bg-green-500" },
+        { status: "DELAYED", label: t("status.DELAYED"), dot: "bg-amber-500" },
+        { status: "DEPARTED", label: t("status.DEPARTED"), dot: "bg-violet-500" },
+        { status: "ARRIVED", label: t("status.ARRIVED"), dot: "bg-teal-500" },
+        { status: "CANCELLED", label: t("status.CANCELLED"), dot: "bg-red-500" },
+      ],
+      [t],
+    );
 
   const [params, setParams] = useQueryStates(tripListParsers);
   const { q, status, scheduleId, manifest, page, startDate, endDate } = params;
@@ -82,15 +86,15 @@ export function OperatorTripsView() {
   const scheduleLabel = (() => {
     if (!scheduleId) return null;
     const sample = listData.items.find((t) => t.scheduleId === scheduleId);
-    if (!sample?.schedule?.route) return "Filtered schedule";
+    if (!sample?.schedule?.route) return t("filteredSchedule");
     const origin =
       sample.schedule.route.originTerminal?.cityRelation?.name ??
       sample.schedule.route.originTerminal?.city ??
-      "Origin";
+      t("origin");
     const dest =
       sample.schedule.route.destTerminal?.cityRelation?.name ??
       sample.schedule.route.destTerminal?.city ??
-      "Dest";
+      t("dest");
     return `${origin} → ${dest}`;
   })();
 
@@ -127,7 +131,7 @@ export function OperatorTripsView() {
               : "border-border text-muted-foreground hover:bg-slate-100",
           )}
         >
-          All
+          {t("all")}
           <span className="font-mono font-bold">{listData.total}</span>
         </button>
         {STATUS_CHIPS.map((chip) => {
@@ -156,7 +160,7 @@ export function OperatorTripsView() {
         })}
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[11px] text-muted-foreground">
-            {listData.total} total · page {listData.page}/{listData.pageCount}
+            {t("totalInfo", { total: listData.total, page: listData.page, pageCount: listData.pageCount })}
           </span>
           <Button
             variant="ghost"
@@ -168,7 +172,7 @@ export function OperatorTripsView() {
             <RefreshCw
               className={cn("size-3", refreshing && "animate-spin")}
             />
-            Refresh
+            {t("refresh")}
           </Button>
         </div>
       </div>
@@ -204,12 +208,12 @@ export function OperatorTripsView() {
             </EmptyMedia>
             <EmptyHeader>
               <EmptyTitle>
-                {listData.total === 0 ? "No trips yet" : "No trips match"}
+                {listData.total === 0 ? t("noTripsYet") : t("noTripsMatch")}
               </EmptyTitle>
               <EmptyDescription>
                 {listData.total === 0
-                  ? "Create a schedule to auto-generate trips. They will appear here."
-                  : "Try a different status filter or search term."}
+                  ? t("noTripsYetDesc")
+                  : t("noTripsMatchDesc")}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -223,7 +227,7 @@ export function OperatorTripsView() {
                   </h3>
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-[11px] text-muted-foreground">
-                    {dayTrips.length} trip{dayTrips.length !== 1 ? "s" : ""}
+                    {t("tripCount", { count: dayTrips.length })}
                   </span>
                 </div>
                 <div className="space-y-3">
@@ -252,10 +256,10 @@ export function OperatorTripsView() {
               disabled={page <= 1}
               onClick={() => void setParams({ page: Math.max(1, page - 1) })}
             >
-              Previous
+              {t("previous")}
             </Button>
             <span className="text-xs text-muted-foreground">
-              Page {page} of {listData.pageCount}
+              {t("pageOf", { page, pageCount: listData.pageCount })}
             </span>
             <Button
               variant="outline"
@@ -267,7 +271,7 @@ export function OperatorTripsView() {
                 })
               }
             >
-              Next
+              {t("next")}
             </Button>
           </div>
         ) : null}

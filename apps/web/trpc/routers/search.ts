@@ -12,11 +12,12 @@ const searchInputSchema = z.object({
   operators: z.array(z.string()).optional(),
   amenities: z.array(z.string()).optional(),
   departureTime: z
-    .array(z.enum(["MORNING", "AFTERNOON", "EVENING"]))
+    .array(z.enum(["MORNING", "AFTERNOON", "EVENING", "LATE_NIGHT"]))
     .optional(),
   seatClass: z
     .array(z.enum(["ECONOMY", "STANDARD", "VIP"]))
     .optional(),
+  isExpress: z.array(z.enum(["true"])).optional(),
   maxPrice: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().optional()),
   sort: z.string().default("BEST"),
   page: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().min(1).default(1)),
@@ -78,6 +79,7 @@ export const searchRouter = createTRPCRouter({
           amenities: input.amenities as SearchFilters['amenities'],
           departureTime: input.departureTime as SearchFilters['departureTime'],
           seatClass: input.seatClass as SearchFilters['seatClass'],
+          isExpress: input.isExpress?.includes("true") ?? false,
           maxPrice: input.maxPrice as SearchFilters['maxPrice'],
         },
         sort: input.sort,
@@ -168,15 +170,13 @@ export const searchRouter = createTRPCRouter({
             include: {
               fares: {
                 where: { isActive: true },
-                orderBy: { priceXOF: "asc" },
-                take: 1,
               },
             },
           },
         },
       });
 
-      // Build date → cheapest price map
+      // Build date → cheapest price map (match fare by segment)
       const priceByDate = new Map<string, number>();
       for (const trip of trips) {
         const originStop = trip.tripStops.find(
@@ -185,11 +185,21 @@ export const searchRouter = createTRPCRouter({
             s.scheduledDeparture !== null,
         );
         if (!originStop?.scheduledDeparture) continue;
-        const fare = trip.schedule.fares[0];
-        if (!fare) continue;
+        const destStop = trip.tripStops.find(
+          (s) =>
+            s.terminal.cityId === destId,
+        );
+        if (!destStop || originStop.stopOrder >= destStop.stopOrder) continue;
+
+        const matchedFare = trip.schedule.fares.find(
+          (f) =>
+            f.fromStopOrder <= originStop.stopOrder &&
+            f.toStopOrder >= destStop.stopOrder,
+        );
+        if (!matchedFare) continue;
 
         const dateStr = originStop.scheduledDeparture.toISOString().split("T")[0]!;
-        const price = toSafeDisplayNumber(fare.priceXOF);
+        const price = toSafeDisplayNumber(matchedFare.priceXOF);
         const existing = priceByDate.get(dateStr);
         if (existing === undefined || price < existing) {
           priceByDate.set(dateStr, price);

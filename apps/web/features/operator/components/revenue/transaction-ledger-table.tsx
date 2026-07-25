@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import { revenueParsers } from "../../lib/revenue-search-params";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -23,6 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export function TransactionLedgerTable() {
+  const t = useTranslations("operatorDashboard.revenue");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [{ from, to, page, txType }, setParams] = useQueryStates(revenueParsers, {
@@ -43,14 +45,14 @@ export function TransactionLedgerTable() {
     switch (type) {
       case "BOOKING":
       case "WALLET_BOOKING":
-        return "Ticket Sale";
+        return t("ledger.sourceType.ticketSale");
       case "OPERATOR_PAYOUT":
-        return "Withdrawal";
+        return t("ledger.sourceType.withdrawal");
       case "REFUND":
       case "WALLET_REFUND":
-        return "Ticket Refund";
+        return t("ledger.sourceType.ticketRefund");
       case "MANUAL_ADJUSTMENT":
-        return "Adjustment";
+        return t("ledger.sourceType.adjustment");
       default:
         return type;
     }
@@ -59,7 +61,7 @@ export function TransactionLedgerTable() {
   return (
     <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
       <div className="p-4 border-b flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-slate-900">Recent Transactions</h3>
+        <h3 className="text-sm font-semibold text-slate-900">{t("ledger.title")}</h3>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -82,29 +84,29 @@ export function TransactionLedgerTable() {
                 a.download = "ledger-export.csv";
                 a.click();
                 URL.revokeObjectURL(url);
-                toast.success(`Exported ${result.count} ledger rows`);
+                toast.success(t("ledger.exportSuccess", { count: result.count }));
               } catch (err: unknown) {
                 toast.error(
-                  err instanceof Error ? err.message : "Export failed",
+                  err instanceof Error ? err.message : t("ledger.exportError"),
                 );
               }
             }}
           >
             <Download className="size-3.5" />
-            Export CSV
+            {t("export")}
           </Button>
           <Select 
             value={txType} 
             onValueChange={(val) => setParams({ txType: val, page: 1 })}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Transactions" />
+              <SelectValue placeholder={t("ledger.filter.all")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Transactions</SelectItem>
-              <SelectItem value="TICKET_SALE">Ticket Sales</SelectItem>
-              <SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
-              <SelectItem value="REFUND">Refunds</SelectItem>
+              <SelectItem value="ALL">{t("ledger.filter.all")}</SelectItem>
+              <SelectItem value="TICKET_SALE">{t("ledger.filter.ticketSales")}</SelectItem>
+              <SelectItem value="WITHDRAWAL">{t("ledger.filter.withdrawals")}</SelectItem>
+              <SelectItem value="REFUND">{t("ledger.filter.refunds")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -113,18 +115,18 @@ export function TransactionLedgerTable() {
       <Table>
         <TableHeader className="bg-slate-50/50">
           <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
+            <TableHead>{t("ledger.columns.date")}</TableHead>
+            <TableHead>{t("ledger.columns.type")}</TableHead>
+            <TableHead>{t("ledger.columns.description")}</TableHead>
+            <TableHead>{t("ledger.columns.status")}</TableHead>
+            <TableHead className="text-right">{t("ledger.columns.amount")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.entries.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="h-32 text-center text-slate-500">
-                No transactions found for this period.
+                {t("ledger.empty")}
               </TableCell>
             </TableRow>
           ) : (
@@ -167,7 +169,7 @@ export function TransactionLedgerTable() {
       {/* Pagination controls */}
       <div className="p-4 border-t flex items-center justify-between bg-slate-50/50 text-sm">
         <div className="text-slate-500">
-          Showing page {data.meta.page} of {data.meta.totalPages || 1}
+          {t("ledger.pagination", { page: data.meta.page, totalPages: data.meta.totalPages || 1 })}
         </div>
         <div className="flex items-center gap-2">
           <Button

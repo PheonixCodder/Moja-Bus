@@ -9,6 +9,7 @@ import {
   Webhook,
   MapPin,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -23,22 +24,23 @@ interface DashboardPlatformHealthProps {
   activeTripsCount: number;
 }
 
-const quickLinks = [
-  { label: "Ledger", href: "/dashboard/admin/financials/ledger", icon: Scale },
-  { label: "Dispatch", href: "/dashboard/admin/operations/dispatch", icon: Activity },
-  { label: "Travelers", href: "/dashboard/admin/users/travelers", icon: Users },
-  { label: "Webhooks", href: "/dashboard/admin/audit-logs/webhooks", icon: Webhook },
-  { label: "Routes", href: "/dashboard/admin/operations/routes", icon: MapPin },
-];
-
 export function DashboardPlatformHealth({
   pendingOperatorsCount,
   activeTripsCount,
 }: DashboardPlatformHealthProps) {
+  const t = useTranslations("adminDashboard.overview.platformHealth");
+  const quickLinksT = useTranslations("adminDashboard.overview.platformHealth.quickLinks");
+  const quickLinks = [
+    { label: quickLinksT("ledger"), href: "/dashboard/admin/financials/ledger", icon: Scale },
+    { label: quickLinksT("dispatch"), href: "/dashboard/admin/operations/dispatch", icon: Activity },
+    { label: quickLinksT("travelers"), href: "/dashboard/admin/users/travelers", icon: Users },
+    { label: quickLinksT("webhooks"), href: "/dashboard/admin/audit-logs/webhooks", icon: Webhook },
+    { label: quickLinksT("routes"), href: "/dashboard/admin/operations/routes", icon: MapPin },
+  ];
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-semibold">Platform Health</CardTitle>
+        <CardTitle className="text-sm font-semibold">{t("title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Status Items */}
@@ -48,14 +50,16 @@ export function DashboardPlatformHealth({
               <ShieldAlert className="size-4 text-amber-600 shrink-0" />
               <span className="text-sm">
                 <span className="font-semibold">{pendingOperatorsCount}</span>{" "}
-                {pendingOperatorsCount === 1 ? "operator" : "operators"} pending verification
+                {pendingOperatorsCount === 1
+                  ? t("pendingOperators")
+                  : t("pendingOperatorsPlural")}
               </span>
             </div>
             <Button variant="ghost" size="sm" className="h-7 text-xs px-2"
               nativeButton={false}
               render={<Link href="/dashboard/admin/verifications" />}
             >
-              Review
+              {t("review")}
             </Button>
           </div>
 
@@ -64,21 +68,23 @@ export function DashboardPlatformHealth({
               <Activity className="size-4 text-green-600 shrink-0" />
               <span className="text-sm">
                 <span className="font-semibold">{activeTripsCount}</span>{" "}
-                {activeTripsCount === 1 ? "trip" : "trips"} live right now
+                {activeTripsCount === 1
+                  ? t("activeTrips")
+                  : t("activeTripsPlural")}
               </span>
             </div>
             <Button variant="ghost" size="sm" className="h-7 text-xs px-2"
               nativeButton={false}
               render={<Link href="/dashboard/admin/operations/dispatch" />}
             >
-              Monitor
+              {t("monitor")}
             </Button>
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2.5">
-            <span className="text-sm text-muted-foreground">Cron jobs</span>
+            <span className="text-sm text-muted-foreground">{t("cronJobs")}</span>
             <Badge variant="outline" className="border-green-200 bg-green-500/10 text-green-700 text-[10px]">
-              Active
+              {t("cronActive")}
             </Badge>
           </div>
         </div>
@@ -86,7 +92,7 @@ export function DashboardPlatformHealth({
         {/* Quick Links */}
         <div>
           <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-2">
-            Quick Navigation
+            {t("quickNavigation")}
           </p>
           <div className="flex flex-wrap gap-2">
             {quickLinks.map((link) => (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   AlertTriangle,
   ArrowRight,
@@ -65,6 +66,8 @@ export function ManifestDrawer({
   canCancel: boolean;
   canCheckIn: boolean;
 }) {
+  const t = useTranslations("operatorDashboard.trips.manifest");
+  const tRoot = useTranslations("operatorDashboard.trips");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [delayMinutes, setDelayMinutes] = useState("15");
@@ -75,7 +78,6 @@ export function ManifestDrawer({
   const [notesDraft, setNotesDraft] = useState("");
   const [scannerOpen, setScannerOpen] = useState(false);
   const [checkingInId, setCheckingInId] = useState<string | null>(null);
-  // L7: multi-select for bulk cancel.
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkCancelOpen, setBulkCancelOpen] = useState(false);
   const [bulkReason, setBulkReason] = useState("");
@@ -86,20 +88,16 @@ export function ManifestDrawer({
     isFetching,
     isError,
   } = useQuery({
-    // L1: lighter manifest payload (no seat map) so the drawer opens fast.
     ...trpc.trips.getManifest.queryOptions({ id: tripId ?? "" }),
     enabled: !!tripId && open,
   });
 
-  // L1: the seat map is a separate, lighter query loaded only when the Seat
-  // Map tab is opened, so it never bloats the manifest drawer's initial load.
   const [view, setView] = useState<"passengers" | "seatmap">("passengers");
   const { data: seatData, isLoading: isSeatLoading } = useQuery({
     ...trpc.trips.getSeatMap.queryOptions({ id: tripId ?? "" }),
     enabled: !!tripId && open && view === "seatmap",
   });
 
-  // Sync drafts when trip payload arrives so empty save can clear fields
   useEffect(() => {
     if (trip) {
       setGateDraft(trip.gate ?? "");
@@ -122,42 +120,42 @@ export function ManifestDrawer({
     onSuccess: (result) => {
       invalidateTripData();
       if (result.alreadyCheckedIn) {
-        toast.info(`${result.passengerName} was already checked in`);
+        toast.info(t("alreadyCheckedInToast", { name: result.passengerName }));
       } else {
         toast.success(
-          `Checked in ${result.passengerName} (seat ${result.seatLabel})`,
+          t("checkedInToast", { name: result.passengerName, seat: result.seatLabel }),
         );
       }
     },
-    onError: (err) => toast.error(err.message || "Check-in failed"),
+    onError: (err) => toast.error(err.message || t("checkInFailed")),
   });
 
   const assignBusMutation = useMutation({
     ...trpc.trips.assignBus.mutationOptions(),
     onSuccess: () => {
-      toast.success("Bus assigned");
+      toast.success(tRoot("busAssigned"));
       invalidateTripData();
     },
-    onError: (err) => toast.error(err.message || "Failed to assign bus"),
+    onError: (err) => toast.error(err.message || tRoot("failedAssignBus")),
   });
 
   const updateStatusMutation = useMutation({
     ...trpc.trips.updateStatus.mutationOptions(),
     onSuccess: (_data, vars) => {
       invalidateTripData();
-      toast.success(`Status updated to ${vars.status}`);
+      toast.success(t("statusUpdated", { status: vars.status }));
     },
-    onError: (err) => toast.error(err.message || "Failed to update status"),
+    onError: (err) => toast.error(err.message || t("statusUpdateFailed")),
   });
 
   const delayMutation = useMutation({
     ...trpc.trips.delay.mutationOptions(),
     onSuccess: () => {
       invalidateTripData();
-      toast.success("Delay logged");
+      toast.success(t("delayLogged"));
       setShowDelayForm(false);
     },
-    onError: (err) => toast.error(err.message || "Failed to log delay"),
+    onError: (err) => toast.error(err.message || t("delayLogFailed")),
   });
 
   const cancelMutation = useMutation({
@@ -168,17 +166,16 @@ export function ManifestDrawer({
         result.refundResults?.filter((r) => !r.success) ?? [];
       if (failed.length > 0) {
         toast.warning(
-          `Trip cancelled. ${failed.length} refund(s) need attention.`,
+          t("tripCancelledRefunds", { count: failed.length }),
         );
       } else {
-        toast.success("Trip cancelled");
+        toast.success(t("tripCancelled"));
       }
       setShowCancelForm(false);
     },
-    onError: (err) => toast.error(err.message || "Failed to cancel trip"),
+    onError: (err) => toast.error(err.message || t("tripCancelFailed")),
   });
 
-  // L7: bulk check-in / bulk cancel mutations.
   const bulkCheckInMutation = useMutation(
     trpc.operator.bulkCheckInBookings.mutationOptions({
       onSuccess: () => invalidateTripData(),
@@ -193,19 +190,19 @@ export function ManifestDrawer({
   const setGateMutation = useMutation({
     ...trpc.trips.setGate.mutationOptions(),
     onSuccess: () => {
-      toast.success("Gate updated");
+      toast.success(t("gateUpdated"));
       invalidateTripData();
     },
-    onError: (err) => toast.error(err.message || "Failed to set gate"),
+    onError: (err) => toast.error(err.message || t("gateUpdateFailed")),
   });
 
   const updateNotesMutation = useMutation({
     ...trpc.trips.updateNotes.mutationOptions(),
     onSuccess: () => {
-      toast.success("Notes saved");
+      toast.success(t("notesSaved"));
       invalidateTripData();
     },
-    onError: (err) => toast.error(err.message || "Failed to save notes"),
+    onError: (err) => toast.error(err.message || t("notesSaveFailed")),
   });
 
   const actionLoading =
@@ -219,9 +216,6 @@ export function ManifestDrawer({
 
   const confirmedBookings =
     trip?.bookings?.filter((b) => b.status === "CONFIRMED") ?? [];
-  // M23: active holds (PENDING_PAYMENT, not yet expired) are returned by
-  // trips.get alongside confirmed bookings — surface them separately so
-  // operators don't miscount unpaid holds as sold seats.
   const holdBookings =
     trip?.bookings?.filter((b) => b.status === "PENDING_PAYMENT") ?? [];
   const checkedInCount = confirmedBookings.filter((b) => b.checkedInAt).length;
@@ -237,7 +231,6 @@ export function ManifestDrawer({
     }
   }
 
-  // L7: bulk selection + actions.
   const toggleSelect = (id: string) =>
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -253,21 +246,18 @@ export function ManifestDrawer({
     try {
       const res = await bulkCheckInMutation.mutateAsync({ tripId: trip.id });
       toast.success(
-        `Checked in ${res.checkedIn} passenger${res.checkedIn === 1 ? "" : "s"}` +
-          (res.alreadyCheckedIn > 0
-            ? ` (${res.alreadyCheckedIn} already in)`
-            : ""),
+        t("bulkCheckInResult", { count: res.checkedIn, already: res.alreadyCheckedIn }),
       );
       setSelectedIds(new Set());
     } catch (err: any) {
-      toast.error(err?.message || "Bulk check-in failed");
+      toast.error(err?.message || t("bulkCheckInFailed"));
     }
   };
 
   const handleBulkCancel = async () => {
     if (!trip || selectedIds.size === 0) return;
     if (!bulkReason.trim()) {
-      toast.error("Cancellation reason is required");
+      toast.error(t("cancelReasonRequired"));
       return;
     }
     try {
@@ -277,14 +267,13 @@ export function ManifestDrawer({
         reason: bulkReason.trim(),
       });
       toast.success(
-        `Cancelled ${res.cancelled} booking(s)` +
-          (res.failed > 0 ? `; ${res.failed} failed` : ""),
+        t("bulkCancelResult", { count: res.cancelled, failed: res.failed }),
       );
       setSelectedIds(new Set());
       setBulkCancelOpen(false);
       setBulkReason("");
     } catch (err: any) {
-      toast.error(err?.message || "Bulk cancel failed");
+      toast.error(err?.message || t("bulkCancelFailed"));
     }
   };
 
@@ -308,18 +297,18 @@ export function ManifestDrawer({
           <div className="flex items-start justify-between gap-2">
             <div>
               <DrawerTitle className="text-base font-bold">
-                Trip Manifest
+                {t("title")}
               </DrawerTitle>
               <DrawerDescription className="text-xs text-muted-foreground">
                 {trip
-                  ? `${
-                      trip.schedule?.route?.originTerminal?.cityRelation
-                        ?.name ?? "Origin"
-                    } → ${
-                      trip.schedule?.route?.destTerminal?.cityRelation?.name ??
-                      "Dest"
-                    } · ${formatTripDate(trip.departureDate)}`
-                  : "Loading…"}
+                    ? `${
+                        trip.schedule?.route?.originTerminal?.cityRelation
+                          ?.name ?? tRoot("origin")
+                      } \u2192 ${
+                        trip.schedule?.route?.destTerminal?.cityRelation?.name ??
+                        tRoot("dest")
+                      } \u00b7 ${formatTripDate(trip.departureDate)}`
+                  : t("loading")}
               </DrawerDescription>
             </div>
             {isFetching && !isLoading ? (
@@ -334,7 +323,7 @@ export function ManifestDrawer({
           </div>
         ) : isError ? (
           <div className="flex-1 flex items-center justify-center px-5">
-            <p className="text-sm text-destructive">Failed to load trip details</p>
+            <p className="text-sm text-destructive">{t("loadError")}</p>
           </div>
         ) : trip ? (
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
@@ -342,14 +331,14 @@ export function ManifestDrawer({
               <TripStatusBadge status={trip.status} />
               {(trip.delayMinutes ?? 0) > 0 ? (
                 <span className="text-xs font-semibold text-amber-600">
-                  +{trip.delayMinutes}m delay
+                  {t("delayLabel", { n: trip.delayMinutes ?? 0 })}
                 </span>
               ) : null}
             </div>
 
             <div className="space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Trip Summary
+                {t("tripSummary")}
               </h4>
               <div className="border border-border rounded-md p-3 space-y-2 bg-slate-50/50">
                 <div className="flex items-center gap-2">
@@ -371,13 +360,13 @@ export function ManifestDrawer({
                 </div>
                 {trip.cancelReason ? (
                   <p className="text-xs text-destructive">
-                    Cancel reason: {trip.cancelReason}
+                    {t("cancelReasonPrefix", { reason: trip.cancelReason })}
                   </p>
                 ) : null}
               </div>
             </div>
 
-            {/* L1: tab switch — Passengers (manifest) vs Seat Map (lazy seat viz) */}
+            {/* Tab switch */}
             <div className="flex gap-1 border-b border-border -mb-2">
               <button
                 type="button"
@@ -389,7 +378,7 @@ export function ManifestDrawer({
                     : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
-                Passengers
+                {t("tabPassengers")}
               </button>
               <button
                 type="button"
@@ -401,21 +390,21 @@ export function ManifestDrawer({
                     : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
-                Seat Map
+                {t("tabSeatMap")}
               </button>
             </div>
 
             {view === "passengers" && canUpdate && buses.length > 0 ? (
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Bus
+                  {t("busSection")}
                 </h4>
                 <Combobox
                   items={buses
                     .filter((b) => b.status === "ACTIVE")
                     .map((b) => ({
                       value: b.id,
-                      label: `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""}`,
+                      label: `${b.registrationPlate}${b.internalName ? ` \u2014 ${b.internalName}` : ""}`,
                     }))}
                   value={trip.busId ?? ""}
                   onValueChange={(val) => {
@@ -429,29 +418,29 @@ export function ManifestDrawer({
                   disabled={actionLoading}
                 >
                   <ComboboxInput
-                    placeholder="Assign a bus…"
-                    aria-label="Assign a bus to this trip"
+                    placeholder={t("assignBus")}
+                    aria-label={t("assignBus")}
                     className="w-full text-sm"
                     value={
                       trip.busId
                         ? (() => {
                             const b = buses.find((x) => x.id === trip.busId);
                             return b
-                              ? `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""}`
+                              ? `${b.registrationPlate}${b.internalName ? ` \u2014 ${b.internalName}` : ""}`
                               : "";
                           })()
                         : ""
                     }
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No active bus found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("noActiveBus")}</ComboboxEmpty>
                     <ComboboxList>
                       {buses
                         .filter((b) => b.status === "ACTIVE")
                         .map((b) => (
                           <ComboboxItem key={b.id} value={b.id}>
                             {b.registrationPlate}
-                            {b.internalName ? ` — ${b.internalName}` : ""}
+                            {b.internalName ? ` \u2014 ${b.internalName}` : ""}
                           </ComboboxItem>
                         ))}
                     </ComboboxList>
@@ -463,11 +452,11 @@ export function ManifestDrawer({
             {view === "passengers" && canUpdate ? (
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Gate & notes
+                  {t("gateNotes")}
                 </h4>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Gate / bay"
+                    placeholder={t("gatePlaceholder")}
                     value={gateDraft}
                     onChange={(e) => setGateDraft(e.target.value)}
                     className="h-8 text-sm"
@@ -483,12 +472,12 @@ export function ManifestDrawer({
                       })
                     }
                   >
-                    Save gate
+                    {t("saveGate")}
                   </Button>
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Internal notes"
+                    placeholder={t("notesPlaceholder")}
                     value={notesDraft}
                     onChange={(e) => setNotesDraft(e.target.value)}
                     className="h-8 text-sm"
@@ -505,7 +494,7 @@ export function ManifestDrawer({
                       })
                     }
                   >
-                    Save notes
+                    {t("saveNotes")}
                   </Button>
                 </div>
               </div>
@@ -514,7 +503,7 @@ export function ManifestDrawer({
             {view === "seatmap" ? (
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Seat Map
+                  {t("seatMapTitle")}
                 </h4>
                 {isSeatLoading ? (
                   <div className="flex items-center justify-center py-8">
@@ -536,13 +525,12 @@ export function ManifestDrawer({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        Confirmed Passengers ({confirmedBookings.length})
+                        {t("confirmedPassengers", { count: confirmedBookings.length })}
                       </h4>
                       <span className="text-[11px] font-semibold text-muted-foreground">
-                        {checkedInCount} / {confirmedBookings.length} checked in
+                        {t("checkedInProgress", { checkedIn: checkedInCount, confirmed: confirmedBookings.length })}
                       </span>
                     </div>
-                    {/* L7: bulk action toolbar */}
                     <div className="flex items-center gap-2 flex-wrap">
                       {pendingCheckIns.length > 0 ? (
                         <Button
@@ -555,13 +543,13 @@ export function ManifestDrawer({
                           {bulkCheckInMutation.isPending ? (
                             <Spinner className="size-3" />
                           ) : (
-                            `Check In All (${pendingCheckIns.length})`
+                            t("checkInAll", { count: pendingCheckIns.length })
                           )}
                         </Button>
                       ) : null}
                       {selectedIds.size > 0 ? (
                         <span className="text-[11px] font-semibold text-muted-foreground">
-                          {selectedIds.size} selected
+                          {t("selected", { count: selectedIds.size })}
                         </span>
                       ) : null}
                       {selectedIds.size > 0 && !bulkCancelOpen ? (
@@ -571,7 +559,7 @@ export function ManifestDrawer({
                           className="h-7 text-[11px] px-2"
                           onClick={() => setBulkCancelOpen(true)}
                         >
-                          Cancel selected
+                          {t("cancelSelected")}
                         </Button>
                       ) : null}
                       {selectedIds.size > 0 ? (
@@ -581,15 +569,15 @@ export function ManifestDrawer({
                           className="h-7 text-[11px] px-2"
                           onClick={() => setSelectedIds(new Set())}
                         >
-                          Clear
+                          {t("clear")}
                         </Button>
                       ) : null}
                     </div>
                     {bulkCancelOpen ? (
                       <div className="space-y-2 border border-destructive/20 rounded-md p-2">
                         <Input
-                          placeholder="Cancellation reason…"
-                          aria-label="Cancellation reason"
+                          placeholder={t("cancelReasonPlaceholder")}
+                          aria-label={t("cancelReasonPlaceholder")}
                           value={bulkReason}
                           onChange={(e) => setBulkReason(e.target.value)}
                           className="text-sm"
@@ -607,7 +595,7 @@ export function ManifestDrawer({
                             {bulkCancelMutation.isPending ? (
                               <Spinner className="size-3" />
                             ) : (
-                              `Confirm Cancel (${selectedIds.size})`
+                              t("confirmCancelLabel", { count: selectedIds.size })
                             )}
                           </Button>
                           <Button
@@ -618,7 +606,7 @@ export function ManifestDrawer({
                               setBulkReason("");
                             }}
                           >
-                            Back
+                            {t("back")}
                           </Button>
                         </div>
                       </div>
@@ -634,7 +622,7 @@ export function ManifestDrawer({
                             className="size-4 accent-primary"
                             checked={selectedIds.has(b.id)}
                             onChange={() => toggleSelect(b.id)}
-                            aria-label={`Select ${b.passengerName}`}
+                            aria-label={`${t("checkIn")}: ${b.passengerName}`}
                           />
                           <div>
                             <p className="text-xs font-semibold">{b.passengerName}</p>
@@ -645,7 +633,7 @@ export function ManifestDrawer({
                             ) : null}
                           </div>
                           <span className="font-mono text-xs font-bold">
-                            {b.seat?.label ?? "—"}
+                            {b.seat?.label ?? "\u2014"}
                           </span>
                           <span
                             className={cn(
@@ -656,9 +644,9 @@ export function ManifestDrawer({
                             )}
                           >
                             {b.checkedInAt
-                              ? "Checked in"
+                              ? t("statusCheckedIn")
                               : b.status === "CONFIRMED"
-                                ? "Pending"
+                                ? t("statusPending")
                                 : b.status}
                           </span>
                           {canCheckIn &&
@@ -676,12 +664,12 @@ export function ManifestDrawer({
                               {checkingInId === b.id ? (
                                 <Spinner className="size-3" />
                               ) : (
-                                "Check in"
+                                t("checkIn")
                               )}
                             </Button>
                           ) : (
                             <span className="text-xs text-muted-foreground text-right">
-                              —
+                              \u2014
                             </span>
                           )}
                         </div>
@@ -692,7 +680,7 @@ export function ManifestDrawer({
                 {holdBookings.length > 0 ? (
                   <div className="space-y-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Pending Holds ({holdBookings.length})
+                      {t("pendingHolds", { count: holdBookings.length })}
                     </h4>
                     <div className="border border-border rounded-md overflow-hidden">
                       {holdBookings.map((b) => (
@@ -709,13 +697,13 @@ export function ManifestDrawer({
                             ) : null}
                           </div>
                           <span className="font-mono text-xs font-bold">
-                            {b.seat?.label ?? "—"}
+                            {b.seat?.label ?? "\u2014"}
                           </span>
                           <span className="text-[11px] font-bold text-amber-600">
-                            Hold
+                            {t("hold")}
                           </span>
                           <span className="text-xs text-muted-foreground text-right">
-                            —
+                            \u2014
                           </span>
                         </div>
                       ))}
@@ -728,7 +716,7 @@ export function ManifestDrawer({
             {view === "passengers" ? (
             <div className="space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Actions
+                {t("actionsTitle")}
               </h4>
               <div className="flex flex-col gap-2">
                 {canCheckIn && confirmedBookings.length > 0 ? (
@@ -740,7 +728,7 @@ export function ManifestDrawer({
                     className="w-full"
                   >
                     <ScanLine className="size-4 mr-2" />
-                    Scan ticket
+                    {t("scanTicket")}
                   </Button>
                 ) : null}
                 {canUpdate && actions?.canBoard ? (
@@ -756,7 +744,7 @@ export function ManifestDrawer({
                     className="w-full"
                   >
                     <CheckCircle2 className="size-4 mr-2" />
-                    Start Boarding
+                    {t("startBoarding")}
                   </Button>
                 ) : null}
                 {canUpdate && actions?.canDepart ? (
@@ -772,7 +760,7 @@ export function ManifestDrawer({
                     disabled={actionLoading}
                     className="w-full"
                   >
-                    Mark Departed
+                    {t("markDeparted")}
                   </Button>
                 ) : null}
                 {canUpdate && actions?.canArrive ? (
@@ -788,7 +776,7 @@ export function ManifestDrawer({
                     disabled={actionLoading}
                     className="w-full"
                   >
-                    Mark Arrived
+                    {t("markArrived")}
                   </Button>
                 ) : null}
                 {canUpdate && actions?.canDelay ? (
@@ -797,7 +785,7 @@ export function ManifestDrawer({
                       <Input
                         type="number"
                         min={1}
-                        placeholder="Minutes"
+                        placeholder={t("delayMinutesPlaceholder")}
                         value={delayMinutes}
                         onChange={(e) => setDelayMinutes(e.target.value)}
                         className="h-8 text-sm"
@@ -808,7 +796,7 @@ export function ManifestDrawer({
                         onClick={() => {
                           const mins = parseInt(delayMinutes, 10);
                           if (isNaN(mins) || mins <= 0) {
-                            toast.error("Enter a valid delay in minutes");
+                            toast.error(t("invalidDelay"));
                             return;
                           }
                           delayMutation.mutate({
@@ -818,14 +806,14 @@ export function ManifestDrawer({
                         }}
                         disabled={actionLoading}
                       >
-                        Log
+                        {t("log")}
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => setShowDelayForm(false)}
                       >
-                        Cancel
+                        {t("cancelDelay")}
                       </Button>
                     </div>
                   ) : (
@@ -836,7 +824,7 @@ export function ManifestDrawer({
                       className="w-full text-amber-600 border-amber-200"
                     >
                       <AlertTriangle className="size-4 mr-2" />
-                      Log Delay
+                      {t("logDelay")}
                     </Button>
                   )
                 ) : null}
@@ -844,8 +832,8 @@ export function ManifestDrawer({
                   showCancelForm ? (
                     <div className="space-y-2">
                       <Input
-                        placeholder="Cancellation reason…"
-                        aria-label="Cancellation reason"
+                        placeholder={t("cancelReasonPlaceholder")}
+                        aria-label={t("cancelReasonPlaceholder")}
                         value={cancelReason}
                         onChange={(e) => setCancelReason(e.target.value)}
                         className="text-sm"
@@ -856,7 +844,7 @@ export function ManifestDrawer({
                           variant="destructive"
                           onClick={() => {
                             if (!cancelReason.trim()) {
-                              toast.error("Cancellation reason is required");
+                              toast.error(t("cancelReasonRequired"));
                               return;
                             }
                             cancelMutation.mutate({
@@ -867,14 +855,14 @@ export function ManifestDrawer({
                           disabled={actionLoading || !cancelReason.trim()}
                           className="flex-1"
                         >
-                          Confirm Cancel
+                          {t("confirmCancelLabel", { count: 1 })}
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => setShowCancelForm(false)}
                         >
-                          Back
+                          {t("back")}
                         </Button>
                       </div>
                     </div>
@@ -886,7 +874,7 @@ export function ManifestDrawer({
                       className="w-full text-destructive border-destructive/20"
                     >
                       <XCircle className="size-4 mr-2" />
-                      Cancel Trip
+                      {t("cancelTrip")}
                     </Button>
                   )
                 ) : null}
@@ -901,7 +889,7 @@ export function ManifestDrawer({
         onOpenChange={setScannerOpen}
         onScan={handleScanCheckIn}
         disabled={!trip}
-        description="Scan passenger tickets for this departure. Only tickets for this trip will be accepted."
+        description={t("scannerDescription")}
       />
     </Drawer>
   );

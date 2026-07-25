@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import { useCheapestByDate } from "../hooks/use-cheapest-by-date";
 import { formatPriceXOF } from "../lib/format";
@@ -24,7 +26,8 @@ function todayUTCString(): string {
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
 }
 
-export function SearchDateStrip({ from, to, selectedDate, onSelectDate }: SearchDateStripProps) {
+export const SearchDateStrip = memo(function SearchDateStrip({ from, to, selectedDate, onSelectDate }: SearchDateStripProps) {
+  const t = useTranslations("search");
   const effectiveCenter = selectedDate || todayUTCString();
   const hasRoute = !!from && !!to;
 
@@ -83,7 +86,7 @@ export function SearchDateStrip({ from, to, selectedDate, onSelectDate }: Search
               {/* Cheapest badge */}
               {isCheapest && !isSelected && (
                 <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap leading-none">
-                  Best
+                  {t("bestBadge")}
                 </span>
               )}
 
@@ -149,4 +152,4 @@ export function SearchDateStrip({ from, to, selectedDate, onSelectDate }: Search
       </div>
     </div>
   );
-}
+});

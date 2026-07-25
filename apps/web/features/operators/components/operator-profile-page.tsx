@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useTRPC } from "@/trpc/client";
 import {
   Bus,
@@ -39,6 +40,7 @@ function today() {
 }
 
 export function OperatorProfilePage({ slug }: Props) {
+  const t = useTranslations("operatorProfile");
   const trpc = useTRPC();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
@@ -52,7 +54,7 @@ export function OperatorProfilePage({ slug }: Props) {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-[#ee237c] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-500">Loading operator profile...</p>
+          <p className="text-slate-500">{t("loading")}</p>
         </div>
       </div>
     );
@@ -63,15 +65,13 @@ export function OperatorProfilePage({ slug }: Props) {
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="text-center max-w-md">
           <Bus className="h-16 w-16 text-slate-300 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-slate-900 mb-3">Operator not found</h1>
-          <p className="text-slate-500 mb-8">
-            This operator may not be verified yet or doesn&apos;t exist on Moja Ride.
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">{t("notFoundTitle")}</h1>
+          <p className="text-slate-500 mb-8">{t("notFoundDesc")}</p>
           <Link
             href="/operators"
             className="inline-flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all"
           >
-            View all operators <ArrowRight className="h-4 w-4" />
+            {t("viewAllOperators")} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
@@ -86,10 +86,10 @@ export function OperatorProfilePage({ slug }: Props) {
     .toUpperCase();
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
-    { id: "overview", label: "Overview" },
-    { id: "routes", label: "Routes", count: operator.routes.length },
-    { id: "terminals", label: "Terminals", count: operator.locations.length },
-    { id: "reviews", label: "Reviews" },
+    { id: "overview", label: t("tabOverview") },
+    { id: "routes", label: t("tabRoutes"), count: operator.routes.length },
+    { id: "terminals", label: t("tabTerminals"), count: operator.locations.length },
+    { id: "reviews", label: t("tabReviews") },
   ];
 
   return (
@@ -99,9 +99,9 @@ export function OperatorProfilePage({ slug }: Props) {
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-slate-400 text-sm mb-8">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <Link href="/" className="hover:text-white transition-colors">{t("breadcrumbHome")}</Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/operators" className="hover:text-white transition-colors">Operators</Link>
+            <Link href="/operators" className="hover:text-white transition-colors">{t("breadcrumbOperators")}</Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="text-white font-medium">{operator.name}</span>
           </nav>
@@ -143,22 +143,22 @@ export function OperatorProfilePage({ slug }: Props) {
                 <div className="flex items-center gap-2 text-slate-300 text-sm">
                   <Route className="h-4 w-4 text-[#ee237c]" />
                   <span className="font-semibold text-white">{operator._count.routes}</span>
-                  <span>active routes</span>
+                  <span>{t("activeRoutes")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-300 text-sm">
                   <Bus className="h-4 w-4 text-[#ee237c]" />
                   <span className="font-semibold text-white">{operator._count.fleet}</span>
-                  <span>buses in fleet</span>
+                  <span>{t("busesInFleet")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-300 text-sm">
                   <MapPin className="h-4 w-4 text-[#ee237c]" />
                   <span className="font-semibold text-white">{operator.locations.length}</span>
-                  <span>terminals</span>
+                  <span>{t("terminals")}</span>
                 </div>
                 {operator.yearEstablished && (
                   <div className="flex items-center gap-2 text-slate-300 text-sm">
                     <Calendar className="h-4 w-4 text-[#ee237c]" />
-                    <span>Est. {operator.yearEstablished}</span>
+                    <span>{t("est", { year: operator.yearEstablished })}</span>
                   </div>
                 )}
               </div>
@@ -169,7 +169,7 @@ export function OperatorProfilePage({ slug }: Props) {
               href={`/search`}
               className="shrink-0 flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-[#d01867] transition-all shadow-xl shadow-pink-900/30"
             >
-              <span>Book a trip</span>
+              <span>{t("bookTrip")}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -213,7 +213,7 @@ export function OperatorProfilePage({ slug }: Props) {
             <div className="lg:col-span-2 space-y-8">
               {operator.description && (
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-4">About</h2>
+                  <h2 className="text-xl font-bold text-slate-900 mb-4">{t("aboutHeading")}</h2>
                   <p className="text-slate-600 leading-relaxed">{operator.description}</p>
                 </div>
               )}
@@ -227,7 +227,7 @@ export function OperatorProfilePage({ slug }: Props) {
                       onClick={() => setActiveTab("routes")}
                       className="text-sm text-[#ee237c] font-bold flex items-center gap-1 hover:gap-2 transition-all"
                     >
-                      View all <ArrowRight className="h-3.5 w-3.5" />
+                      {t("viewAllRoutes")} <ArrowRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <div className="space-y-3">
@@ -251,8 +251,7 @@ export function OperatorProfilePage({ slug }: Props) {
                           )}
                           {route.schedules[0]?.fares[0] && (
                             <p className="text-xs text-[#ee237c] font-bold">
-                              from {route.schedules[0].fares[0].priceXOF.toLocaleString()}{" "}
-                              FCFA
+                              {t("fromPrice")} {route.schedules[0].fares[0].priceXOF.toLocaleString()} FCFA
                             </p>
                           )}
                         </div>
@@ -266,7 +265,7 @@ export function OperatorProfilePage({ slug }: Props) {
             {/* Right: contact card */}
             <div>
               <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 sticky top-24">
-                <h3 className="font-bold text-slate-900 mb-5">Contact</h3>
+                <h3 className="font-bold text-slate-900 mb-5">{t("contactHeading")}</h3>
                 <div className="space-y-4">
                   {operator.phone && (
                     <a
@@ -304,7 +303,7 @@ export function OperatorProfilePage({ slug }: Props) {
                     href="/search"
                     className="w-full flex items-center justify-center gap-2 bg-[#ee237c] text-white py-4 rounded-2xl font-bold text-sm hover:bg-[#d01867] transition-all"
                   >
-                    Search their trips
+                    {t("searchTrips")}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
@@ -317,12 +316,12 @@ export function OperatorProfilePage({ slug }: Props) {
         {activeTab === "routes" && (
           <div>
             <h2 className="text-xl font-bold text-slate-900 mb-8">
-              {operator.routes.length} Active Routes
+              {t("activeRoutesCount", { count: operator.routes.length })}
             </h2>
             {operator.routes.length === 0 ? (
               <div className="text-center py-16">
                 <Route className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">No active routes published yet.</p>
+                <p className="text-slate-500">{t("noRoutes")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -350,7 +349,7 @@ export function OperatorProfilePage({ slug }: Props) {
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         {route.distanceKm && (
                           <div className="bg-slate-50 rounded-xl p-3">
-                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Distance</p>
+                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t("distance")}</p>
                             <p className="font-semibold text-slate-800 text-sm">
                               {route.distanceKm} km
                             </p>
@@ -358,7 +357,7 @@ export function OperatorProfilePage({ slug }: Props) {
                         )}
                         {route.estimatedMinutes && (
                           <div className="bg-slate-50 rounded-xl p-3">
-                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Duration</p>
+                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t("duration")}</p>
                             <p className="font-semibold text-slate-800 text-sm">
                               {formatMinutes(route.estimatedMinutes)}
                             </p>
@@ -370,7 +369,7 @@ export function OperatorProfilePage({ slug }: Props) {
                       {route.schedules.length > 0 && (
                         <div className="mb-5">
                           <p className="text-xs font-bold text-slate-400 uppercase mb-2">
-                            Departure times
+                            {t("departureTimes")}
                           </p>
                           <div className="flex flex-wrap gap-2">
                             {route.schedules.map((s) => (
@@ -390,7 +389,7 @@ export function OperatorProfilePage({ slug }: Props) {
                       <div className="flex items-center justify-between">
                         {minFare ? (
                           <p className="text-sm text-slate-500">
-                            From{" "}
+                            {t("fromPrice")}{" "}
                             <span className="text-[#ee237c] font-bold text-base">
                               {minFare.priceXOF.toLocaleString()} FCFA
                             </span>
@@ -402,7 +401,7 @@ export function OperatorProfilePage({ slug }: Props) {
                           href={`/search?date=${today()}`}
                           className="flex items-center gap-1.5 text-sm font-bold text-[#ee237c] group-hover:gap-3 transition-all"
                         >
-                          Book <ArrowRight className="h-3.5 w-3.5" />
+                          {t("book")} <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
                       </div>
                     </div>
@@ -417,12 +416,12 @@ export function OperatorProfilePage({ slug }: Props) {
         {activeTab === "terminals" && (
           <div>
             <h2 className="text-xl font-bold text-slate-900 mb-8">
-              {operator.locations.length} Terminal{operator.locations.length !== 1 ? "s" : ""}
+              {t("terminalCount", { count: operator.locations.length })}
             </h2>
             {operator.locations.length === 0 ? (
               <div className="text-center py-16">
                 <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">No terminals listed yet.</p>
+                <p className="text-slate-500">{t("noTerminals")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -456,7 +455,7 @@ export function OperatorProfilePage({ slug }: Props) {
                         )}
                         {loc.managerName && (
                           <p className="text-xs text-slate-400 mt-1">
-                            Manager: {loc.managerName}
+                            {t("manager", { name: loc.managerName })}
                           </p>
                         )}
                       </div>
@@ -472,16 +471,13 @@ export function OperatorProfilePage({ slug }: Props) {
         {activeTab === "reviews" && (
           <div className="text-center py-24">
             <Star className="h-16 w-16 text-slate-200 mx-auto mb-6" />
-            <h3 className="text-xl font-bold text-slate-700 mb-3">Reviews coming soon</h3>
-            <p className="text-slate-400 max-w-sm mx-auto">
-              Passenger reviews will be available once the review system launches. Be the first
-              to travel and share your experience!
-            </p>
+            <h3 className="text-xl font-bold text-slate-700 mb-3">{t("reviewsSoon")}</h3>
+            <p className="text-slate-400 max-w-sm mx-auto">{t("reviewsSoonDesc")}</p>
             <Link
               href="/search"
               className="inline-flex items-center gap-2 mt-8 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all text-sm"
             >
-              Book a trip now <ArrowRight className="h-4 w-4" />
+              {t("bookTripNow")} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         )}

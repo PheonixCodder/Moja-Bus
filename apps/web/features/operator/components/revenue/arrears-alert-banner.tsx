@@ -1,10 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { AlertTriangle } from "lucide-react";
 import { formatXOF } from "../../lib/currency";
 import { toSafeDisplayNumber } from "@/lib/money";
 
 export function ArrearsAlertBanner({ availableBalance }: { availableBalance: string | number }) {
+  const t = useTranslations("operatorDashboard.revenue.arrears");
   const balance = toSafeDisplayNumber(availableBalance);
   
   if (balance >= 0) return null;
@@ -16,10 +18,10 @@ export function ArrearsAlertBanner({ availableBalance }: { availableBalance: str
       </div>
       <div className="flex-1">
         <h3 className="text-sm font-semibold text-red-800">
-          Your account is currently in arrears ({formatXOF(balance)})
+          {t("title", { balance: formatXOF(balance) })}
         </h3>
         <p className="text-sm text-red-700 mt-1">
-          This negative balance is due to recent ticket refunds. Future earnings from ticket sales will automatically be applied to this balance until it is cleared.
+          {t("description")}
         </p>
       </div>
     </div>

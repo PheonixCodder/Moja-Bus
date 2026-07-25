@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryStates } from "nuqs";
+import { useTranslations } from "next-intl";
 import { revenueParsers } from "../lib/revenue-search-params";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui
 
 export function OperatorRevenueView() {
   const trpc = useTRPC();
+  const t = useTranslations("operatorDashboard.revenue");
   const [{ from, to, tab }, setParams] = useQueryStates(revenueParsers, {
     shallow: false,
   });
@@ -66,13 +68,13 @@ export function OperatorRevenueView() {
               value="overview" 
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-2"
             >
-              Route Performance
+              {t("tabs.overview")}
             </TabsTrigger>
             <TabsTrigger 
               value="ledger" 
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-2"
             >
-              Transaction Ledger
+              {t("tabs.ledger")}
             </TabsTrigger>
           </TabsList>
         </div>

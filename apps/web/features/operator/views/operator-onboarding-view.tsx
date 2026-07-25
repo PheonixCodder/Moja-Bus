@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useOperatorOnboarding } from "../hooks/useOperatorOnboarding";
 import { CompanyStep } from "../components/onboarding/company-step";
 import { DocumentsStep } from "../components/onboarding/documents-step";
@@ -18,15 +19,16 @@ import {
 import { cn } from "@moja/ui/lib/utils";
 import { type OnboardingStep } from "@moja/schemas";
 
-const steps = [
-  { id: "COMPANY",   name: "Company",      icon: Building2   },
-  { id: "DOCUMENTS", name: "Documents",    icon: FileText    },
-  { id: "BANK",      name: "Bank Account", icon: Banknote    },
-  { id: "PROFILE",   name: "Your Profile", icon: User        },
-  { id: "TERMS",     name: "Terms",        icon: ShieldCheck },
-] as const;
-
 export function OperatorOnboardingView() {
+  const t = useTranslations("onboarding");
+  const steps = [
+    { id: "COMPANY",   name: t("steps.COMPANY"),      icon: Building2   },
+    { id: "DOCUMENTS", name: t("steps.DOCUMENTS"),    icon: FileText    },
+    { id: "BANK",      name: t("steps.BANK"), icon: Banknote    },
+    { id: "PROFILE",   name: t("steps.PROFILE"), icon: User        },
+    { id: "TERMS",     name: t("steps.TERMS"),        icon: ShieldCheck },
+  ] as const;
+
   const {
     isSaving,
     currentStep,
@@ -47,15 +49,14 @@ export function OperatorOnboardingView() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-foreground">
-              Complete Your Operator Profile
+              {t("completeProfileTitle")}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Complete these steps to list your buses and start accepting ticket
-              bookings.
+              {t("completeProfileDesc")}
             </p>
           </div>
           <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded">
-            Business Setup: {percentage}% Complete
+            {t("businessSetup", { percentage: String(percentage) })}
           </span>
         </div>
 
@@ -78,7 +79,7 @@ export function OperatorOnboardingView() {
                   disabled={isUpcoming}
                   title={
                     isUpcoming
-                      ? "Please complete the current step first"
+                      ? t("pleaseCompleteFirst")
                       : undefined
                   }
                   className="flex flex-col items-center gap-2 focus:outline-none disabled:cursor-not-allowed group"

@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+import { useTranslations } from "next-intl";
 import { Bus } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 
@@ -20,7 +22,8 @@ interface SearchEmptyStateProps {
   onQuickSearch: (criteria: { from: string; to: string; date: string }) => void;
 }
 
-export function SearchEmptyState({ onQuickSearch }: SearchEmptyStateProps) {
+export const SearchEmptyState = memo(function SearchEmptyState({ onQuickSearch }: SearchEmptyStateProps) {
+  const t = useTranslations("search");
   const today = new Date();
   const todayStr = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, "0")}-${String(today.getUTCDate()).padStart(2, "0")}`;
 
@@ -30,16 +33,15 @@ export function SearchEmptyState({ onQuickSearch }: SearchEmptyStateProps) {
         <Bus className="h-10 w-10 animate-pulse" />
       </div>
       <h3 className="text-xl font-bold font-montserrat mb-2 text-slate-800">
-        Ready to Explore?
+        {t("emptyTitle")}
       </h3>
       <p className="text-slate-500 text-sm max-w-sm mx-auto mb-8">
-        Enter your departure city, destination, and date above to find intercity bus departures
-        across Côte d&apos;Ivoire.
+        {t("emptySubtitle")}
       </p>
 
       <div>
         <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-          Popular Routes
+          {t("popularRoutes")}
         </p>
         <div className="flex flex-wrap gap-2 justify-center">
           {POPULAR_ROUTES.map((route) => (
@@ -63,4 +65,4 @@ export function SearchEmptyState({ onQuickSearch }: SearchEmptyStateProps) {
       </div>
     </div>
   );
-}
+});

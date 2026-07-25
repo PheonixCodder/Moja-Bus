@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, CalendarClock, Clock, Pencil, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
@@ -24,6 +25,7 @@ interface RouteCardProps {
 }
 
 export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
+  const t = useTranslations("operatorDashboard.routes");
   const stopCount = route._count?.waypoints ?? 0;
   const scheduleCount = route._count?.schedules ?? 0;
 
@@ -38,22 +40,22 @@ export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
               </p>
               {route.status === "DRAFT" && (
                 <Badge variant="secondary" className="text-[10px] uppercase font-bold py-0 h-4">
-                  Draft
+                  {t("status.DRAFT")}
                 </Badge>
               )}
               {route.status === "ACTIVE" && (
                 <Badge variant="default" className="text-[10px] uppercase font-bold py-0 h-4 bg-emerald-500 hover:bg-emerald-600 text-white">
-                  Active
+                  {t("status.ACTIVE")}
                 </Badge>
               )}
               {route.status === "SUSPENDED" && (
                 <Badge variant="outline" className="text-[10px] uppercase font-bold py-0 h-4 text-amber-600 border-amber-600/30 bg-amber-50">
-                  Suspended
+                  {t("status.SUSPENDED")}
                 </Badge>
               )}
               {route.status === "ARCHIVED" && (
                 <Badge variant="outline" className="text-[10px] uppercase font-bold py-0 h-4 text-muted-foreground border-border bg-muted">
-                  Archived
+                  {t("status.ARCHIVED")}
                 </Badge>
               )}
             </div>

@@ -159,7 +159,6 @@ export type ExceptionInput = z.infer<typeof exceptionSchema>;
 
 export const fareSchema = z.object({
   type: fareTypeEnum.default("FIXED"),
-  seatClass: seatClassEnum,
   fromStopOrder: z.coerce.number().int().min(0).default(0),
   toStopOrder: z.coerce.number().int().min(1),
   priceXOF: z.coerce.number().int().min(1, "Price must be at least 1 XOF"),
@@ -188,7 +187,7 @@ export const createScheduleSchema = z
     fares: z.array(fareSchema).min(1, "At least one fare is required"),
     /** Last stop order on the route (destination). Used to require full-route fare. */
     routeLastStopOrder: z.coerce.number().int().min(1).optional(),
-  })
+})
   .superRefine((data, ctx) => {
     const busId = data.preferredBusId || data.defaultBusId;
     if (!busId) {
@@ -200,10 +199,10 @@ export const createScheduleSchema = z
     }
     const last = data.routeLastStopOrder;
     if (last !== undefined) {
-      const fullRouteFares = data.fares.filter(
+      const hasFullRouteFare = data.fares.some(
         (f) => f.fromStopOrder === 0 && f.toStopOrder === last && f.priceXOF > 0,
       );
-      if (fullRouteFares.length === 0) {
+      if (!hasFullRouteFare) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
@@ -211,20 +210,20 @@ export const createScheduleSchema = z
           path: ["fares"],
         });
       } else {
-        // Guard: Sub-segment fares should not cost more than the full route fare of the same class & type
+        // Guard: Sub-segment fares should not cost more than the full route fare
         for (let i = 0; i < data.fares.length; i++) {
           const fare = data.fares[i]!;
           const isFullRoute =
             fare.fromStopOrder === 0 && fare.toStopOrder === last;
           if (!isFullRoute) {
-            const matchingFullFare = fullRouteFares.find(
-              (ff) => ff.seatClass === fare.seatClass && ff.type === fare.type,
+            const fullRouteFare = data.fares.find(
+              (f) => f.fromStopOrder === 0 && f.toStopOrder === last,
             );
-            if (matchingFullFare && fare.priceXOF > matchingFullFare.priceXOF) {
+            if (fullRouteFare && fare.priceXOF > fullRouteFare.priceXOF) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message:
-                  `Sub-segment fare (${fare.priceXOF} XOF) cannot exceed full route fare (${matchingFullFare.priceXOF} XOF) for ${fare.seatClass} ${fare.type}`,
+                  `Sub-segment fare (${fare.priceXOF} XOF) cannot exceed full route fare (${fullRouteFare.priceXOF} XOF)`,
                 path: ["fares", i, "priceXOF"],
               });
             }
@@ -318,7 +317,6 @@ export const updateFareSchema = z.object({
     .min(1, "Price must be at least 1 XOF")
     .optional(),
   type: fareTypeEnum.optional(),
-  seatClass: seatClassEnum.optional(),
   isActive: z.boolean().optional(),
 });
 export type UpdateFareInput = z.infer<typeof updateFareSchema>;

@@ -1,15 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 
 export function TravelBenefits() {
+  const t = useTranslations("passengerDashboard.wallet");
   return (
     <Card className="border-border bg-bg-surface overflow-hidden shadow-sm">
       <CardHeader className="pb-3">
         <CardTitle className="text-xs font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
           <TrendingUp className="size-4 text-primary" />
-          Travel Benefits
+          {t("benefitsTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-xs">
@@ -19,9 +21,9 @@ export function TravelBenefits() {
               1
             </div>
             <div>
-              <span className="font-semibold text-text-primary block">Instant Booking</span>
+              <span className="font-semibold text-text-primary block">{t("instantBooking")}</span>
               <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
-                Book tickets instantly during rush hour. Skip card checks and Mobile Money wait times.
+                {t("instantBookingDesc")}
               </p>
             </div>
           </div>
@@ -31,9 +33,9 @@ export function TravelBenefits() {
               2
             </div>
             <div>
-              <span className="font-semibold text-text-primary block">1-Click Refunds</span>
+              <span className="font-semibold text-text-primary block">{t("oneClickRefunds")}</span>
               <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
-                Cancellations are directly returned to your wallet balance for immediate re-booking.
+                {t("oneClickRefundsDesc")}
               </p>
             </div>
           </div>

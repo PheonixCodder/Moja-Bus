@@ -912,6 +912,7 @@ model Seat {
   bookings  Booking[]
 
   @@index([busId])
+  @@index([busId, deck, row, col])
   @@map("seat")
 }
 
@@ -1052,7 +1053,6 @@ model Fare {
   schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
   type      FareType  @default(FIXED)
-  seatClass SeatClass
 
   // Which segment this price covers (by waypoint stopOrder indices)
   // 0 → N = full route. 2 → N = board at intermediate stop 2.
@@ -1065,7 +1065,7 @@ model Fare {
   isActive   Boolean   @default(true)
 
   @@index([scheduleId])
-  @@index([scheduleId, fromStopOrder, toStopOrder, seatClass])
+  @@index([scheduleId, fromStopOrder, toStopOrder])
   @@index([type])
   @@map("fare")
 }
@@ -1145,6 +1145,8 @@ model TripStop {
   @@unique([tripId, stopOrder])
   @@index([tripId])
   @@index([terminalId])
+  @@index([tripId, isPickup, scheduledDeparture])
+  @@index([tripId, isDropoff])
   @@map("trip_stop")
 }
 
@@ -1567,6 +1569,7 @@ model Booking {
   @@index([companyId])
   @@index([tripId, seatId, status])
   @@index([tripId, status])
+  @@index([tripId, status, holdExpiresAt])
   @@index([tripId, seatId, originTripStopId, destinationTripStopId])
   @@index([userId])
   @@index([holdGroupId])

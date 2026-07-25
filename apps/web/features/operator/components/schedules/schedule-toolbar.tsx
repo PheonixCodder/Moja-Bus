@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 
@@ -27,6 +28,7 @@ export function ScheduleToolbar({
   routeId?: string;
   onRouteChange?: (routeId: string) => void;
 }) {
+  const t = useTranslations("operatorDashboard.schedules");
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-border shrink-0">
       <div className="flex items-center gap-3 flex-1 min-w-0 flex-wrap">
@@ -38,9 +40,9 @@ export function ScheduleToolbar({
           <Input
             value={q}
             onChange={(e) => onQChange(e.target.value)}
-            placeholder="Search schedules…"
+            placeholder={t("searchPlaceholder")}
             className="h-8 pl-8 text-xs"
-            aria-label="Search schedules"
+            aria-label={t("searchPlaceholder")}
           />
         </div>
         <select
@@ -74,7 +76,7 @@ export function ScheduleToolbar({
       {canCreate && (
         <Button size="sm" className="h-8 text-xs shrink-0" onClick={onNew}>
           <Plus className="size-3.5 mr-1.5" />
-          New Schedule
+          {t("createSchedule")}
         </Button>
       )}
     </div>

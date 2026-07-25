@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock8 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
 import { TimePicker } from "@moja/ui/components/ui/time-picker";
@@ -39,6 +40,9 @@ export function CalendarStep({
   buses: BusListItem[];
   onChange: (c: CalendarConfig) => void;
 }) {
+  const t = useTranslations("operatorDashboard.schedules");
+  const tc = useTranslations("common");
+
   function toggleDay(key: DayKey) {
     onChange({ ...config, days: { ...config.days, [key]: !config.days[key] } });
   }
@@ -57,16 +61,15 @@ export function CalendarStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-sm font-bold text-foreground">Calendar & timing</h3>
+        <h3 className="text-sm font-bold text-foreground">{t("wizard.calendarTitle")}</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Set the days, departure time, and the preferred bus for generated
-          trips.
+          {t("wizard.calendarDesc")}
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-semibold">Runs on</Label>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Operating days">
+        <Label className="text-xs font-semibold">{t("wizard.runsOn")}</Label>
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t("wizard.runsOn")}>
           {DAYS.map((d) => {
             const active = config.days[d.key];
             return (
@@ -89,16 +92,16 @@ export function CalendarStep({
         </div>
         <p className="text-[11px] text-muted-foreground">
           {activeDays === 0
-            ? "No days selected"
+            ? t("wizard.noDays")
             : activeDays === 7
-              ? "Runs every day"
-              : `Runs ${activeDays} day${activeDays > 1 ? "s" : ""} per week`}
+              ? t("wizard.everyDay")
+              : t("wizard.daysPerWeek", { count: activeDays })}
         </p>
       </div>
 
       <div className="flex w-full max-w-xs flex-col gap-2">
         <Label htmlFor="time-picker" className="text-xs font-semibold">
-          Departure time *
+          {t("wizard.departureTime")}
         </Label>
         <TimePicker
           value={config.departureTime}
@@ -111,7 +114,7 @@ export function CalendarStep({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-xs font-semibold">Valid from *</Label>
+          <Label className="text-xs font-semibold">{t("wizard.validFrom")}</Label>
           <Popover>
             <PopoverTrigger
               render={
@@ -127,7 +130,7 @@ export function CalendarStep({
               {config.validFrom ? (
                 format(parseLocalDate(config.validFrom)!, "PPP")
               ) : (
-                <span>Pick a date</span>
+                <span>{t("wizard.pickDate")}</span>
               )}
               <CalendarIcon className="ml-auto h-4 w-4 opacity-50 text-muted-foreground" />
             </PopoverTrigger>
@@ -153,13 +156,13 @@ export function CalendarStep({
           </Popover>
           {isValidFromStale && (
             <p className="text-xs text-destructive mt-1">
-              This date is in the past. Please select today or a future date.
+              {t("wizard.dateInPast")}
             </p>
           )}
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-semibold text-muted-foreground">
-            Valid until (optional)
+            {t("wizard.validUntil")}
           </Label>
           <Popover>
             <PopoverTrigger
@@ -176,7 +179,7 @@ export function CalendarStep({
               {config.validUntil ? (
                 format(parseLocalDate(config.validUntil)!, "PPP")
               ) : (
-                <span>Pick a date</span>
+                <span>{t("wizard.pickDate")}</span>
               )}
               <CalendarIcon className="ml-auto h-4 w-4 opacity-50 text-muted-foreground" />
             </PopoverTrigger>
@@ -206,11 +209,11 @@ export function CalendarStep({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs font-semibold">Preferred bus *</Label>
+        <Label className="text-xs font-semibold">{t("wizard.preferredBus")}</Label>
         <Combobox
           items={activeBuses.map((b) => ({
             value: b.id,
-            label: `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""} (${b.layoutTemplate?.totalSeats ?? "?"} seats)`,
+            label: `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""} (${b.layoutTemplate?.totalSeats ?? "?"} ${t("wizard.seats")})`,
           }))}
           value={config.preferredBusId}
           onValueChange={(val) => {
@@ -218,35 +221,34 @@ export function CalendarStep({
           }}
         >
           <ComboboxInput
-            placeholder="Select a bus…"
+            placeholder={t("wizard.selectBus")}
             className="w-full text-sm"
             value={
               config.preferredBusId
                 ? (() => {
                     const b = buses.find((x) => x.id === config.preferredBusId);
                     return b
-                      ? `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""} (${b.layoutTemplate?.totalSeats ?? "?"} seats)`
+                      ? `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""} (${b.layoutTemplate?.totalSeats ?? "?"} ${t("wizard.seats")})`
                       : "";
                   })()
                 : ""
             }
           />
           <ComboboxContent>
-            <ComboboxEmpty>No active bus found.</ComboboxEmpty>
+            <ComboboxEmpty>{t("wizard.noActiveBus")}</ComboboxEmpty>
             <ComboboxList>
               {activeBuses.map((b) => (
                 <ComboboxItem key={b.id} value={b.id}>
                   {b.registrationPlate}
                   {b.internalName ? ` — ${b.internalName}` : ""} (
-                  {b.layoutTemplate?.totalSeats ?? "?"} seats)
+                  {b.layoutTemplate?.totalSeats ?? "?"} {t("wizard.seats")})
                 </ComboboxItem>
               ))}
             </ComboboxList>
           </ComboboxContent>
         </Combobox>
         <p className="text-[11px] text-muted-foreground">
-          Used as the default bus when generating trips. Individual trips can
-          still be reassigned later.
+          {t("wizard.busDesc")}
         </p>
       </div>
     </div>

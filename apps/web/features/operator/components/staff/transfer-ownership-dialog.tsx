@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
@@ -36,6 +37,8 @@ export function TransferOwnershipDialog({
   onRequestOtp,
   otpPending,
 }: TransferOwnershipDialogProps) {
+  const t = useTranslations("operatorDashboard.staff.transferDialog");
+  const tp = useTranslations("operatorDashboard.staff");
   const [otp, setOtp] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -64,9 +67,9 @@ export function TransferOwnershipDialog({
     try {
       await onRequestOtp();
       startCooldown();
-      toast.success("Verification code sent to your email!");
+      toast.success(t("codeSent"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to send verification code");
+      toast.error(t("codeFailed"));
     }
   }
 
@@ -97,20 +100,12 @@ export function TransferOwnershipDialog({
           <div className="flex items-center gap-2 mb-1">
             <AlertTriangle className="h-5 w-5 text-amber-500" />
             <AlertDialogTitle className="text-base font-semibold">
-              Transfer Ownership
+              {t("title")}
             </AlertDialogTitle>
           </div>
           <AlertDialogDescription className="text-[13px] text-muted-foreground space-y-2">
-            <p>
-              You are about to transfer ownership of the company to{" "}
-              <strong className="text-foreground">
-                {member?.user.fullName}
-              </strong>
-              .
-            </p>
-            <p className="text-amber-600 font-medium">
-              You will lose owner access. This cannot be undone.
-            </p>
+            <p>{t("description", { name: member?.user.fullName ?? "" })}</p>
+            <p className="text-amber-600 font-medium">{t("warning")}</p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-3 px-0 pb-2">
@@ -120,12 +115,12 @@ export function TransferOwnershipDialog({
                 htmlFor="transfer-otp"
                 className="text-[12px] font-medium text-muted-foreground"
               >
-                Verification Code
+                {t("verificationCode")}
               </Label>
               <Input
                 id="transfer-otp"
                 type="text"
-                placeholder="000000"
+                placeholder={t("codePlaceholder")}
                 maxLength={6}
                 className="h-9 text-[13px] border-border tracking-wider font-mono"
                 value={otp}
@@ -140,7 +135,7 @@ export function TransferOwnershipDialog({
               onClick={handleSendOtp}
               disabled={otpPending || cooldown > 0}
             >
-              {cooldown > 0 ? `Resend in ${cooldown}s` : "Send Code"}
+              {cooldown > 0 ? t("resendIn", { cooldown }) : t("sendCode")}
             </Button>
           </div>
         </div>
@@ -149,7 +144,7 @@ export function TransferOwnershipDialog({
             className="h-9 text-[13px]"
             onClick={() => setOtp("")}
           >
-            Cancel
+            {tp("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             className="h-9 text-[13px] bg-red-600 hover:bg-red-700 text-white border-0"
@@ -159,7 +154,7 @@ export function TransferOwnershipDialog({
             {confirming ? (
               <Spinner className="h-3.5 w-3.5" />
             ) : (
-              "Transfer Ownership"
+              t("confirm")
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

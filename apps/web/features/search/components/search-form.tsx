@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ArrowUpDown, Calendar, Search, Users } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -33,13 +34,14 @@ function parseLocalDate(dateStr: string) {
   return new Date(Number(y), Number(m) - 1, Number(d));
 }
 
-export function SearchForm({
+export const SearchForm = memo(function SearchForm({
   initialFromId,
   initialToId,
   initialDate,
   initialPassengers,
   onSearch,
 }: SearchFormProps) {
+  const t = useTranslations("search");
   const [origin, setOrigin] = useState<CityValue>({ id: initialFromId, text: "" });
   const [destination, setDestination] = useState<CityValue>({ id: initialToId, text: "" });
   const [date, setDate] = useState(initialDate || todayISO());
@@ -70,15 +72,15 @@ export function SearchForm({
     const destVal = destination.id || destination.text.trim();
 
     if (!originVal) {
-      toast.error("Please select a valid origin city");
+      toast.error(t("originRequired"));
       return;
     }
     if (!destVal) {
-      toast.error("Please select a valid destination city");
+      toast.error(t("destinationRequired"));
       return;
     }
     if (originVal === destVal) {
-      toast.error("Origin and destination cities cannot be the same");
+      toast.error(t("sameCity"));
       return;
     }
     onSearch({ from: originVal, to: destVal, date, passengers });
@@ -91,8 +93,8 @@ export function SearchForm({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
             <div className="lg:col-span-3">
               <CityAutocompleteField
-                label="Leaving From"
-                placeholder="Search departure city..."
+                label={t("leavingFrom")}
+                placeholder={t("fromPlaceholder")}
                 value={origin}
                 onChange={setOrigin}
               />
@@ -104,7 +106,7 @@ export function SearchForm({
                 variant="outline"
                 onClick={handleSwap}
                 className="h-10 w-10 p-0 rounded-full border-slate-200 hover:bg-slate-50 text-[#ee237c] active:scale-95 transition-all shadow-sm"
-                title="Swap route direction"
+                title={t("swapTitle")}
               >
                 <ArrowUpDown className="h-5 w-5 lg:rotate-90" />
               </Button>
@@ -112,8 +114,8 @@ export function SearchForm({
 
             <div className="lg:col-span-3">
               <CityAutocompleteField
-                label="Going To"
-                placeholder="Search destination city..."
+                label={t("goingTo")}
+                placeholder={t("toPlaceholder")}
                 value={destination}
                 onChange={setDestination}
               />
@@ -121,7 +123,7 @@ export function SearchForm({
 
             <div className="lg:col-span-2">
               <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
-                Departure
+                {t("departureLabel")}
               </label>
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger
@@ -133,7 +135,7 @@ export function SearchForm({
                   }
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-                  {date ? format(parseLocalDate(date)!, "PPP") : "Pick a date"}
+                  {date ? format(parseLocalDate(date)!, "PPP") : t("pickDate")}
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <CalendarComponent
@@ -153,7 +155,7 @@ export function SearchForm({
 
             <div className="lg:col-span-1 relative">
               <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
-                Travelers
+                {t("travelersLabel")}
               </label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5 pointer-events-none" />
@@ -173,7 +175,7 @@ export function SearchForm({
                 type="submit"
                 className="w-full h-12 rounded-xl bg-[#ee237c] hover:bg-[#d01867] text-white font-semibold transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-pink-500/20 flex items-center justify-center gap-2"
               >
-                <Search className="h-5 w-5" /> Find Bus
+                <Search className="h-5 w-5" /> {t("findBus")}
               </Button>
             </div>
           </div>
@@ -181,4 +183,4 @@ export function SearchForm({
       </CardContent>
     </Card>
   );
-}
+});

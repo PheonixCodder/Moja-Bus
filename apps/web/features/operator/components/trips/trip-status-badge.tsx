@@ -1,10 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import type { TripStatus } from "@moja/schemas";
 import { TRIP_STATUS_CONFIG } from "@/features/operator/lib/trips/status-config";
 
 export function TripStatusBadge({ status }: { status: TripStatus }) {
+  const t = useTranslations("operatorDashboard.trips");
   const cfg = TRIP_STATUS_CONFIG[status];
   const Icon = cfg.icon;
   return (
@@ -15,7 +17,7 @@ export function TripStatusBadge({ status }: { status: TripStatus }) {
       )}
     >
       <Icon className="size-3" />
-      {cfg.label}
+      {t("status." + status)}
     </span>
   );
 }

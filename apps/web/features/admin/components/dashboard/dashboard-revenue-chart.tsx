@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
+import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { DashboardDatePicker } from "./dashboard-date-picker";
 
@@ -21,7 +22,7 @@ interface DashboardRevenueChartProps {
   bookingsCurrent: number;
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, t, currency }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-md text-sm">
@@ -31,7 +32,7 @@ function CustomTooltip({ active, payload, label }: any) {
       <p className="text-muted-foreground">
         GMV:{" "}
         <span className="font-semibold text-foreground tabular-nums">
-          {Number(payload[0]?.value ?? 0).toLocaleString()} XOF
+          {Number(payload[0]?.value ?? 0).toLocaleString()} {currency}
         </span>
       </p>
     </div>
@@ -43,10 +44,12 @@ export function DashboardRevenueChart({
   totalGmv,
   bookingsCurrent,
 }: DashboardRevenueChartProps) {
+  const t = useTranslations("adminDashboard.overview.revenueChart");
+  const currency = useTranslations("adminDashboard.overview.kpiCards")("currency");
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
-        <CardTitle>Revenue Trend</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <DashboardDatePicker />
       </CardHeader>
       <CardContent>
@@ -71,7 +74,7 @@ export function DashboardRevenueChart({
                   }
                   interval={revenueTrend.length > 30 ? 6 : revenueTrend.length > 14 ? 2 : 0}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--muted)", radius: 4 }} />
+                <Tooltip content={<CustomTooltip t={t} currency={currency} />} cursor={{ fill: "var(--muted)", radius: 4 }} />
                 <Bar
                   dataKey="gmv"
                   fill="var(--primary)"
@@ -87,20 +90,20 @@ export function DashboardRevenueChart({
             <div className="flex flex-col gap-1">
               <div className="font-semibold text-4xl tabular-nums leading-none">
                 {totalGmv.toLocaleString()}{" "}
-                <span className="font-normal text-lg text-muted-foreground">XOF</span>
+                <span className="font-normal text-lg text-muted-foreground">{currency}</span>
               </div>
-              <p className="text-muted-foreground text-sm">Total revenue in selected window</p>
+              <p className="text-muted-foreground text-sm">{t("totalRevenue")}</p>
             </div>
 
             <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background p-3">
               <div className="text-[11px] text-muted-foreground uppercase tracking-widest">
-                Confirmed Bookings
+                {t("confirmedBookings")}
               </div>
               <div className="font-semibold text-2xl tabular-nums leading-none">
                 {bookingsCurrent.toLocaleString()}{" "}
-                <span className="font-normal text-muted-foreground text-sm">tickets</span>
+                <span className="font-normal text-muted-foreground text-sm">{t("tickets")}</span>
               </div>
-              <p className="text-muted-foreground text-sm">In this date window</p>
+              <p className="text-muted-foreground text-sm">{t("inWindow")}</p>
             </div>
           </div>
         </div>

@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@moja/ui/components/ui/select";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useTranslations } from "next-intl";
 import { ROLE_LABELS, type StaffRole } from "@/features/operator/lib/staff";
 
 interface StaffFiltersToolbarProps {
@@ -31,6 +32,7 @@ export function StaffFiltersToolbar({
   onRoleChange,
   onStatusChange,
 }: StaffFiltersToolbarProps) {
+  const t = useTranslations("operatorDashboard.staff");
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border bg-card px-6 py-3.5 gap-3.5 shrink-0">
       <div className="relative max-w-sm flex-1">
@@ -39,7 +41,7 @@ export function StaffFiltersToolbar({
           <Spinner className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         ) : null}
         <Input
-          placeholder="Search name, email, phone, title…"
+          placeholder={t("searchPlaceholder")}
           className="pl-9 pr-9 h-9 shadow-none text-xs bg-bg-base border-border"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -49,7 +51,7 @@ export function StaffFiltersToolbar({
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground font-semibold">
-            Role:
+            {t("roleLabel")}
           </span>
           <Select
             value={role}
@@ -58,11 +60,11 @@ export function StaffFiltersToolbar({
             }}
           >
             <SelectTrigger className="h-8.5 w-[130px] border-border bg-bg-base text-xs">
-              <SelectValue placeholder="All Roles" />
+              <SelectValue placeholder={t("allRoles")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL" className="text-xs">
-                All Roles
+                {t("allRoles")}
               </SelectItem>
               {(Object.keys(ROLE_LABELS) as StaffRole[]).map((r) => (
                 <SelectItem key={r} value={r} className="text-xs">
@@ -75,7 +77,7 @@ export function StaffFiltersToolbar({
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground font-semibold">
-            Status:
+            {t("statusLabel")}
           </span>
           <Select
             value={status}
@@ -84,20 +86,20 @@ export function StaffFiltersToolbar({
             }}
           >
             <SelectTrigger className="h-8.5 w-[130px] border-border bg-bg-base text-xs">
-              <SelectValue placeholder="All Statuses" />
+              <SelectValue placeholder={t("allStatuses")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL" className="text-xs">
-                All Statuses
+                {t("allStatuses")}
               </SelectItem>
               <SelectItem value="ACTIVE" className="text-xs">
-                Active
+                {t("status.ACTIVE")}
               </SelectItem>
               <SelectItem value="INACTIVE" className="text-xs">
-                Inactive
+                {t("status.INACTIVE")}
               </SelectItem>
               <SelectItem value="SUSPENDED" className="text-xs">
-                Suspended
+                {t("status.SUSPENDED")}
               </SelectItem>
             </SelectContent>
           </Select>

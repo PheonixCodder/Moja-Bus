@@ -35,12 +35,6 @@ export const operatorWithdrawalSettledWorkflow = workflow(
       redirect: { url: "/dashboard/operator/revenue", target: "_self" },
     }));
 
-    // 3. SMS Channel
-    await step.sms("send-sms", async () => ({
-      body: `Moja Ride Payout: Payout of ${escapeHtml(payload.amountXOF)} XOF to your verified bank account has settled successfully.`,
-    }), {
-      skip: () => !payload.phone,
-    });
   },
   {
     name: "Operator Withdrawal Settled",

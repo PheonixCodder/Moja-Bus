@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { formatXOF } from "../../lib/currency";
 import {
   Table,
@@ -12,10 +13,11 @@ import {
 import { Badge } from "@moja/ui/components/ui/badge";
 
 export function RoutePerformanceTable({ topRoutes }: { topRoutes: any[] }) {
+  const t = useTranslations("operatorDashboard.revenue.routeTable");
   if (!topRoutes || topRoutes.length === 0) {
     return (
       <div className="bg-white border rounded-xl p-8 text-center text-slate-500">
-        No route performance data available for this period.
+        {t("empty")}
       </div>
     );
   }
@@ -25,11 +27,11 @@ export function RoutePerformanceTable({ topRoutes }: { topRoutes: any[] }) {
       <Table>
         <TableHeader className="bg-slate-50/50">
           <TableRow>
-            <TableHead className="w-[300px]">Route</TableHead>
-            <TableHead className="text-right">Trips</TableHead>
-            <TableHead className="text-right">Seats Sold</TableHead>
-            <TableHead className="text-right">Avg Fare</TableHead>
-            <TableHead className="text-right">Net Revenue</TableHead>
+            <TableHead className="w-[300px]">{t("columns.route")}</TableHead>
+            <TableHead className="text-right">{t("columns.trips")}</TableHead>
+            <TableHead className="text-right">{t("columns.seatsSold")}</TableHead>
+            <TableHead className="text-right">{t("columns.avgFare")}</TableHead>
+            <TableHead className="text-right">{t("columns.netRevenue")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

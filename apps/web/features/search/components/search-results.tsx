@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+import { useTranslations } from "next-intl";
 import { MapPinOff, ChevronDown } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
@@ -19,7 +21,7 @@ interface SearchResultsProps {
   onLoadMore: () => void;
 }
 
-export function SearchResults({
+export const SearchResults = memo(function SearchResults({
   offers,
   isLoading,
   isLoadingMore,
@@ -29,7 +31,8 @@ export function SearchResults({
   onClearFilters,
   onLoadMore,
 }: SearchResultsProps) {
-  // Loading skeleton — shown only on initial search (page 1)
+  const t = useTranslations("search");
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -73,7 +76,6 @@ export function SearchResults({
     );
   }
 
-  // No results
   if (offers.length === 0) {
     return (
       <div className="text-center py-20 bg-white border border-slate-100 rounded-2xl shadow-sm px-6">
@@ -81,31 +83,28 @@ export function SearchResults({
           <MapPinOff className="h-10 w-10" />
         </div>
         <h3 className="text-lg font-bold font-montserrat mb-1 text-slate-800">
-          No Departures Found
+          {t("noResultsTitle")}
         </h3>
         <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">
-          We couldn&apos;t find any trips matching your selection on {date}. Try choosing another
-          travel date or adjusting your filters.
+          {t("noResultsDesc", { date })}
         </p>
         <Button
           variant="outline"
           onClick={onClearFilters}
           className="border-slate-200 rounded-xl font-bold text-slate-600 hover:border-[#ee237c] hover:text-[#ee237c] transition-colors"
         >
-          Reset Filters
+          {t("resetFilters")}
         </Button>
       </div>
     );
   }
 
-  // Offer list + Load More
   return (
     <div className="space-y-4">
       {offers.map((offer) => (
         <OfferCard key={offer.offerId} offer={offer} passengers={passengers} />
       ))}
 
-      {/* Load More */}
       {hasNextPage && (
         <div className="pt-2 flex justify-center">
           <Button
@@ -117,12 +116,12 @@ export function SearchResults({
             {isLoadingMore ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 border-2 border-slate-300 border-t-[#ee237c] rounded-full animate-spin" />
-                Loading...
+                {t("loadingLabel")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <ChevronDown className="h-4 w-4" />
-                Load more departures
+                {t("loadMore")}
               </span>
             )}
           </Button>
@@ -130,4 +129,4 @@ export function SearchResults({
       )}
     </div>
   );
-}
+});

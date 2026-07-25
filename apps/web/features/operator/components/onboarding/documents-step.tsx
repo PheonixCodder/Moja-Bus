@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@moja/ui/components/ui/button";
 import {
@@ -43,6 +44,8 @@ export function DocumentsStep({
   onBack,
   isSaving,
 }: DocumentsStepProps) {
+  const t = useTranslations("onboarding.documents");
+  const tRoot = useTranslations("onboarding");
   const { upload: uploadDocument } = useStorageUpload("operator-document");
 
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
@@ -51,43 +54,43 @@ export function DocumentsStep({
     {
       id: "business_registration",
       value: "BUSINESS_REGISTRATION_CERTIFICATE",
-      label: "Business Registration Certificate",
-      description: "Official certificate of business registration",
+      label: t("businessRegistration"),
+      description: t("businessRegistrationDesc"),
       required: true,
     },
     {
       id: "tax_clearance",
       value: "TAX_CLEARANCE_CERTIFICATE",
-      label: "Tax Clearance Certificate",
-      description: "Proof of tax compliance from revenue authority",
+      label: t("taxClearance"),
+      description: t("taxClearanceDesc"),
       required: true,
     },
     {
       id: "transport_permit",
       value: "TRANSPORT_OPERATING_PERMIT",
-      label: "Transport Operating Permit",
-      description: "Government permit to operate transport services",
+      label: t("transportPermit"),
+      description: t("transportPermitDesc"),
       required: true,
     },
     {
       id: "insurance",
       value: "INSURANCE_CERTIFICATE",
-      label: "Insurance Certificate",
-      description: "Valid insurance coverage for vehicles and passengers",
+      label: t("insurance"),
+      description: t("insuranceDesc"),
       required: true,
     },
     {
       id: "bank_statement",
       value: "BANK_STATEMENT",
-      label: "Bank Statement",
-      description: "Recent bank statement (last 3 months)",
+      label: t("bankStatement"),
+      description: t("bankStatementDesc"),
       required: false,
     },
     {
       id: "other",
       value: "OTHER",
-      label: "Other Documents",
-      description: "Any additional supporting documents",
+      label: t("otherDocuments"),
+      description: t("otherDocumentsDesc"),
       required: false,
     },
   ];
@@ -202,11 +205,10 @@ export function DocumentsStep({
             </div>
             <div>
               <CardTitle className="text-lg font-bold">
-                Document Verification
+                {t("title")}
               </CardTitle>
               <CardDescription>
-                Upload business licenses and permits. PDF, JPEG, or PNG format.
-                Max 5MB per file.
+                {t("description")}
               </CardDescription>
             </div>
           </div>
@@ -235,7 +237,7 @@ export function DocumentsStep({
                         {docType.label}
                         {docType.required && (
                           <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
-                            Required
+                            {t("required")}
                           </span>
                         )}
                       </h4>
@@ -277,7 +279,7 @@ export function DocumentsStep({
                           <div className="flex items-center gap-2">
                             {file.status === "uploading" ? (
                               <span className="text-[10px] text-primary animate-pulse font-semibold">
-                                Uploading...
+                                {t("uploading")}
                               </span>
                             ) : (
                               <Button
@@ -285,7 +287,7 @@ export function DocumentsStep({
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => removeFile(file.id)}
-                                aria-label="Remove file"
+                                aria-label={t("removeFile")}
                                 className="text-muted-foreground hover:text-destructive w-6 h-6 rounded-full"
                               >
                                 <X className="w-3.5 h-3.5" />
@@ -312,14 +314,14 @@ export function DocumentsStep({
           disabled={isSaving}
           className="border-border hover:bg-slate-100 rounded-md px-6 py-2"
         >
-          Back
+          {tRoot("back")}
         </Button>
         <Button
           type="submit"
           disabled={isSaving || !requiredDocumentsComplete}
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-md px-6 py-2"
         >
-          {isSaving ? "Saving..." : "Save & Continue"}
+          {isSaving ? tRoot("saving") : tRoot("saveAndContinue")}
         </Button>
       </div>
     </form>
@@ -328,6 +330,7 @@ export function DocumentsStep({
 
 // Inner helper Dropzone component
 function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
+  const t = useTranslations("onboarding.documents");
   const onDropCallback = useCallback(
     (acceptedFiles: File[]) => {
       onDrop(acceptedFiles);
@@ -355,11 +358,11 @@ function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
       <input {...getInputProps()} />
       <UploadCloud className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
       <p className="text-xs font-semibold text-foreground">
-        Drag & drop file or{" "}
-        <span className="text-primary hover:underline">browse</span>
+        {t("dragAndDrop")}{" "}
+        <span className="text-primary hover:underline">{t("browse")}</span>
       </p>
       <p className="text-[10px] text-muted-foreground mt-1">
-        PDF, PNG, JPG up to 5MB
+        {t("formatHint")}
       </p>
     </div>
   );

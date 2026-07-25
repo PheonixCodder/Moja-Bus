@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslations } from "next-intl";
 import { Html5Qrcode } from "html5-qrcode";
 import { ScanLine, Search } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
@@ -45,10 +46,17 @@ export function TicketScanner({
   open,
   onOpenChange,
   onScan,
-  title = "Scan ticket",
-  description = "Point the camera at the passenger QR code on their ticket or enter details manually.",
+  title: titleProp,
+  description: descriptionProp,
   disabled = false,
 }: TicketScannerProps) {
+  const t = useTranslations("operatorDashboard.overview");
+
+  const defaultTitle = t("scannerTitle");
+  const defaultDesc = t("scannerDesc");
+  const title = titleProp ?? defaultTitle;
+  const description = descriptionProp ?? defaultDesc;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const onScanRef = useRef(onScan);
@@ -117,7 +125,7 @@ export function TicketScanner({
     try {
       const result = await onScanRef.current(manualInput.trim());
       setLastResult(result);
-      setManualInput(""); // Clear manual input on success
+      setManualInput("");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Check-in failed.";
       setError(message);
@@ -223,7 +231,7 @@ export function TicketScanner({
                 : "text-slate-600 hover:text-slate-900"
             )}
           >
-            Camera Scan
+            {t("cameraScan")}
           </button>
           <button
             type="button"
@@ -235,7 +243,7 @@ export function TicketScanner({
                 : "text-slate-600 hover:text-slate-900"
             )}
           >
-            Enter Manually
+            {t("enterManually")}
           </button>
         </div>
 
@@ -244,12 +252,12 @@ export function TicketScanner({
             <form onSubmit={handleManualSubmit} className="space-y-4 pt-1">
               <div className="space-y-1.5">
                 <Label htmlFor="manual-token" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  Ticket Token or Reference Number
+                  {t("ticketTokenLabel")}
                 </Label>
                 <div className="relative">
                   <Input
                     id="manual-token"
-                    placeholder="Enter code (e.g. MOB-ABCD1)"
+                    placeholder={t("ticketTokenPlaceholder")}
                     value={manualInput}
                     onChange={(e) => setManualInput(e.target.value)}
                     disabled={processing}
@@ -266,7 +274,7 @@ export function TicketScanner({
                 disabled={processing || !manualInput.trim()}
                 className="w-full bg-primary hover:bg-primary/95 text-white h-10 text-xs font-bold rounded-lg shadow-xs"
               >
-                {processing ? "Checking in..." : "Confirm Boarding"}
+                {processing ? t("checkingIn") : t("confirmBoarding")}
               </Button>
             </form>
           ) : (
@@ -291,7 +299,7 @@ export function TicketScanner({
 
           {disabled ? (
             <p className="text-xs text-muted-foreground">
-              Loading trip details…
+              {t("loadingTripDetails")}
             </p>
           ) : null}
 
@@ -310,14 +318,14 @@ export function TicketScanner({
             >
               <p className="font-bold text-xs">
                 {lastResult.alreadyCheckedIn
-                  ? "Already checked in"
-                  : "Checked in successfully"}
+                  ? t("alreadyCheckedIn")
+                  : t("checkedInSuccess")}
               </p>
               <p className="mt-1 text-xs">
-                {lastResult.passengerName} · Seat {lastResult.seatLabel}
+                {t("passengerSeat", { passengerName: lastResult.passengerName, seatLabel: lastResult.seatLabel })}
               </p>
               <p className="text-[10px] opacity-80 mt-0.5">
-                Ref {lastResult.bookingReference}
+                {t("refLabel", { bookingReference: lastResult.bookingReference })}
               </p>
             </div>
           ) : null}
@@ -328,7 +336,7 @@ export function TicketScanner({
             className="w-full h-10 text-xs border-slate-200"
             onClick={() => onOpenChange(false)}
           >
-            Close
+            {t("close")}
           </Button>
         </div>
       </DialogContent>

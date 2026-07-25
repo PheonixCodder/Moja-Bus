@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { getCandidateDepartureDates } from "@/lib/schedule-trip-window";
 import {
   formatTime,
@@ -24,6 +25,7 @@ export function PreviewStep({
   routeName: string;
   fares: FareDraft[];
 }) {
+  const t = useTranslations("operatorDashboard.schedules");
   const validFromDate = parseLocalDate(validFrom) ?? new Date();
   const candidates = getCandidateDepartureDates({
     departureTime: departureTime || "08:00",
@@ -65,10 +67,9 @@ export function PreviewStep({
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-sm font-bold text-foreground">Review & preview</h3>
+        <h3 className="text-sm font-bold text-foreground">{t("wizard.reviewTitle")}</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Confirm everything looks right before publishing. Preview matches the
-          next 14 calendar days from today.
+          {t("wizard.reviewDesc")}
         </p>
       </div>
 
@@ -76,19 +77,19 @@ export function PreviewStep({
         <div className="rounded-md border border-border bg-slate-50/50 p-3 text-center">
           <p className="text-2xl font-bold text-primary">{candidates.length}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            trips in next 14 days
+            {t("wizard.tripsNext14")}
           </p>
         </div>
         <div className="rounded-md border border-border bg-slate-50/50 p-3 text-center">
           <p className="text-sm font-bold text-foreground truncate">
             {routeName || "—"}
           </p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">route</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{t("wizard.route")}</p>
         </div>
         <div className="rounded-md border border-border bg-slate-50/50 p-3 text-center">
           <p className="text-2xl font-bold text-foreground">{totalFares}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            fare segments
+            {t("wizard.fareSegments")}
           </p>
         </div>
       </div>
@@ -96,7 +97,7 @@ export function PreviewStep({
       <div
         className="border border-border rounded-md overflow-hidden"
         role="grid"
-        aria-label="Schedule preview calendar"
+        aria-label={t("wizard.reviewTitle")}
         aria-readonly="true"
       >
         <div
@@ -133,7 +134,7 @@ export function PreviewStep({
                   role="gridcell"
                   aria-label={
                     isTrip
-                      ? `${dateLabel}: trip at ${formatTime(departureTime)}`
+                      ? `${dateLabel}: ${t("wizard.tripsNext14").toLowerCase()} ${formatTime(departureTime)}`
                       : dateLabel
                   }
                   className={cn(
@@ -158,12 +159,7 @@ export function PreviewStep({
       </div>
 
       <p className="text-[11px] text-muted-foreground">
-        Each marker represents one auto-generated trip departing at{" "}
-        <span className="font-semibold text-foreground">
-          {formatTime(departureTime)}
-        </span>
-        . Trips are generated on publish and extended daily by the rolling
-        generate-trips job while the schedule is active.
+        {t("wizard.markerDesc", { time: formatTime(departureTime) })}
       </p>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Star, MessageCircle, MessageSquare } from "lucide-react";
@@ -36,6 +37,7 @@ function StarRating({
 }
 
 export function OperatorReviewsView() {
+  const t = useTranslations("operatorDashboard.reviews");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { can } = useStaffPermissions();
@@ -46,12 +48,12 @@ export function OperatorReviewsView() {
   const respondMutation = useMutation(
     trpc.operator.respondToReview.mutationOptions({
       onSuccess: () => {
-        toast.success("Response published");
+        toast.success(t("responsePublished"));
         void queryClient.invalidateQueries(
           trpc.operator.listReviews.queryFilter(),
         );
       },
-      onError: (err) => toast.error(err.message || "Failed to publish response"),
+      onError: (err) => toast.error(err.message || t("responseFailed")),
     }),
   );
 
@@ -70,7 +72,7 @@ export function OperatorReviewsView() {
 
   const handleRespond = async (reviewId: string) => {
     if (!draft.trim()) {
-      toast.error("Response cannot be empty");
+      toast.error(t("responseEmpty"));
       return;
     }
     try {
@@ -87,11 +89,10 @@ export function OperatorReviewsView() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
         <h1 className="text-xl font-bold tracking-tight text-foreground">
-          Reviews
+          {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Passenger feedback for your trips. Respond to let travellers know
-          you&apos;re listening.
+          {t("description")}
         </p>
       </div>
 
@@ -103,7 +104,7 @@ export function OperatorReviewsView() {
           </p>
           <StarRating rating={Math.round(averageRating)} />
           <p className="text-xs text-muted-foreground mt-1">
-            {total} review{total !== 1 ? "s" : ""}
+            {t("totalReviews", { total })}
           </p>
         </div>
         <div className="h-12 w-px bg-border" />
@@ -132,11 +133,10 @@ export function OperatorReviewsView() {
         <div className="rounded-lg border border-border bg-card p-16 text-center shadow-sm">
           <MessageCircle className="size-10 text-muted-foreground/30 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-foreground">
-            No reviews yet
+            {t("noReviews")}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Reviews appear here once passengers submit feedback after completing
-            their trip.
+            {t("emptyDescription")}
           </p>
         </div>
       ) : (
@@ -145,9 +145,9 @@ export function OperatorReviewsView() {
             const route =
               review.booking?.trip?.schedule?.route;
             const origin =
-              route?.originTerminal?.cityRelation?.name ?? "Origin";
+              route?.originTerminal?.cityRelation?.name ?? t("origin");
             const dest =
-              route?.destTerminal?.cityRelation?.name ?? "Destination";
+              route?.destTerminal?.cityRelation?.name ?? t("destination");
             const departure = review.booking?.trip?.departureDate
               ? format(new Date(review.booking.trip.departureDate), "MMM d, yyyy")
               : null;
@@ -167,7 +167,7 @@ export function OperatorReviewsView() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground">
-                        {review.author?.fullName ?? review.author?.email ?? "Passenger"}
+                        {review.author?.fullName ?? review.author?.email ?? t("passenger")}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {origin} → {dest}
@@ -193,7 +193,7 @@ export function OperatorReviewsView() {
                 {review.response && !isEditing ? (
                   <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-1">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-primary/80">
-                      Your response
+                      {t("response")}
                       {review.respondedAt
                         ? ` · ${format(new Date(review.respondedAt), "MMM d, yyyy")}`
                         : ""}
@@ -208,7 +208,7 @@ export function OperatorReviewsView() {
                         className="h-7 text-[11px] px-2 mt-1"
                         onClick={() => startEdit(review)}
                       >
-                        Edit response
+                        {t("editResponse")}
                       </Button>
                     ) : null}
                   </div>
@@ -221,9 +221,9 @@ export function OperatorReviewsView() {
                       <Textarea
                         value={draft}
                         onChange={(e) => setDraft(e.target.value)}
-                        placeholder="Write a public response…"
+                        placeholder={t("responsePlaceholder")}
                         className="text-sm min-h-20"
-                        aria-label="Operator response"
+                        aria-label={t("responseLabel")}
                       />
                       <div className="flex gap-2">
                         <Button
@@ -234,11 +234,11 @@ export function OperatorReviewsView() {
                           className="flex-1"
                         >
                           {respondMutation.isPending ? (
-                            "Publishing…"
+                            t("publishing")
                           ) : review.response ? (
-                            "Update response"
+                            t("updateResponse")
                           ) : (
-                            "Publish response"
+                            t("submitResponse")
                           )}
                         </Button>
                         <Button
@@ -247,7 +247,7 @@ export function OperatorReviewsView() {
                           onClick={cancelEdit}
                           disabled={respondMutation.isPending}
                         >
-                          Cancel
+                          {t("cancel")}
                         </Button>
                       </div>
                     </div>
@@ -259,7 +259,7 @@ export function OperatorReviewsView() {
                       onClick={() => startEdit(review)}
                     >
                       <MessageSquare className="size-3.5 mr-1.5" />
-                      Respond
+                      {t("respond")}
                     </Button>
                   )
                 ) : null}

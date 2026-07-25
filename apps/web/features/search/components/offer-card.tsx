@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { memo } from "react";
+import { useTranslations } from "next-intl";
 import { useQueryState } from "nuqs";
 import { Bus } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
@@ -11,56 +12,33 @@ import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "../lib/
 import { AmenityChips } from "@/features/booking/lib/amenities";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
-import { authClient } from "@/lib/auth-client";
-import { buildLoginUrl } from "@/features/auth/lib/safe-callback-url";
 import type { RouterOutputs } from "@/trpc/client";
 
 type SearchOffer = RouterOutputs["search"]["search"]["offers"][number];
 
-export function OfferCard({
+export const OfferCard = memo(function OfferCard({
   offer,
   passengers = 1,
 }: {
   offer: SearchOffer;
   passengers?: number;
 }) {
+  const t = useTranslations("search");
   const isSoldOut = offer.availability.status === "SOLD_OUT";
   const [, setBookingOfferId] = useQueryState("bookingOfferId", { history: "push" });
-  const [, setExpectedPrice] = useQueryState("expectedPrice", { history: "push" });
   const queryClient = useQueryClient();
   const trpc = useTRPC();
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
 
   const handlePrefetch = () => {
     if (isSoldOut) return;
     void queryClient.prefetchQuery(trpc.booking.getTripDetails.queryOptions({ offerId: offer.offerId }));
     void queryClient.prefetchQuery(trpc.booking.getSeatAvailability.queryOptions({ offerId: offer.offerId }));
-    if (session?.user) {
-      void queryClient.prefetchQuery(trpc.passenger.listSaved.queryOptions());
-    }
   };
 
   async function handleSelectSeats() {
     if (isSoldOut) return;
 
-    const params = new URLSearchParams(
-      typeof window !== "undefined" ? window.location.search : "",
-    );
-    params.set("bookingOfferId", offer.offerId);
-    // M28: carry the price the passenger saw at search time so the booking
-    // flow can warn them if the live fare changed while they were away
-    // (e.g. during the login redirect).
-    params.set("expectedPrice", String(offer.priceXOF));
-    const returnPath = `/search?${params.toString()}`;
-
-    if (!session?.user) {
-      router.push(buildLoginUrl(returnPath));
-      return;
-    }
-
     await setBookingOfferId(offer.offerId);
-    await setExpectedPrice(String(offer.priceXOF));
   }
 
   return (
@@ -81,7 +59,7 @@ export function OfferCard({
                   {offer.companyName}
                   {offer.isExpress && (
                     <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 text-[10px] font-semibold py-0">
-                      Express
+                      {t("express")}
                     </Badge>
                   )}
                 </h4>
@@ -125,8 +103,10 @@ export function OfferCard({
                 </div>
                 <span className="text-[10px] font-semibold text-slate-400 mt-1">
                   {offer.stopCount === 0
-                    ? "Direct Route"
-                    : `${offer.stopCount} intermediate stop${offer.stopCount > 1 ? "s" : ""}`}
+                    ? t("directRoute")
+                    : offer.stopCount > 1
+                      ? t("stopsPlural", { count: offer.stopCount })
+                      : t("stops", { count: offer.stopCount })}
                 </span>
               </div>
 
@@ -147,7 +127,7 @@ export function OfferCard({
           <div className="flex flex-row md:flex-col justify-between md:justify-center items-center md:items-end gap-4 min-w-[160px]">
             <div className="text-left md:text-right">
               <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">
-                Total for {passengers} {passengers === 1 ? "passenger" : "passengers"}
+                {t("totalFor", { count: passengers })}
               </span>
               <span className="text-2xl font-black font-montserrat text-[#ee237c] tracking-tight">
                 {formatPriceXOF(offer.priceXOF)}
@@ -166,21 +146,21 @@ export function OfferCard({
                     : "bg-[#ee237c] hover:bg-[#d01867] text-white shadow-md shadow-pink-500/10 active:scale-[0.98]",
                 )}
               >
-                {isSoldOut ? "Sold Out" : "Select Seats"}
+                {isSoldOut ? t("soldOut") : t("selectSeats")}
               </button>
 
               <div className="text-center md:text-right">
                 {isSoldOut ? (
                   <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 text-[10px] font-semibold py-0.5">
-                    Fully Booked
+                    {t("fullyBooked")}
                   </Badge>
                 ) : offer.availability.status === "FEW_LEFT" ? (
                   <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 border border-amber-200 text-[10px] font-semibold py-0.5 animate-pulse">
-                    Only {offer.availability.remaining} seats left!
+                    {t("onlyLeft", { count: offer.availability.remaining })}
                   </Badge>
                 ) : (
                   <span className="text-[10px] font-semibold text-emerald-600 block">
-                    {offer.availability.remaining} seats available
+                    {t("seatsAvailable", { count: offer.availability.remaining })}
                   </span>
                 )}
               </div>
@@ -196,4 +176,4 @@ export function OfferCard({
       </CardContent>
     </Card>
   );
-}
+});

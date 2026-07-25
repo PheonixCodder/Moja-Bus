@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import {
   useMutation,
@@ -23,15 +24,16 @@ import { useDebounce } from "@/features/operator/hooks/useDebounce";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import type { OperatorBookingFilter } from "@moja/types";
 
-const FILTERS: { id: OperatorBookingFilter; label: string }[] = [
-  { id: "today", label: "Today" },
-  { id: "upcoming", label: "Upcoming" },
-  { id: "past", label: "Past" },
-];
-
 const PAGE_SIZE = 50;
 
+const FILTERS: { id: OperatorBookingFilter; labelKey: string }[] = [
+  { id: "today", labelKey: "filters.today" },
+  { id: "upcoming", labelKey: "filters.upcoming" },
+  { id: "past", labelKey: "filters.past" },
+];
+
 export function OperatorBookingsView() {
+  const t = useTranslations("operatorDashboard.bookings");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { can } = useStaffPermissions();
@@ -47,13 +49,13 @@ export function OperatorBookingsView() {
           trpc.operator.listBookings.pathFilter(),
         );
         if (result.alreadyCheckedIn) {
-          toast.info(`${result.passengerName} was already checked in`);
+          toast.info(t("toast.alreadyCheckedIn", { name: result.passengerName }));
         } else {
-          toast.success(`Checked in ${result.passengerName}`);
+          toast.success(t("toast.checkedIn", { name: result.passengerName }));
         }
       },
       onError: (err) => {
-        toast.error(err.message || "Check-in failed");
+        toast.error(err.message || t("toast.checkInFailed"));
       },
     }),
   );
@@ -81,9 +83,9 @@ export function OperatorBookingsView() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Bookings</h1>
+          <h1 className="text-2xl font-bold text-text-primary">{t("title")}</h1>
           <p className="text-sm text-text-secondary mt-1">
-            View passenger reservations and check in tickets before departure.
+            {t("description")}
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -108,16 +110,16 @@ export function OperatorBookingsView() {
                 a.download = `bookings-${filter}.csv`;
                 a.click();
                 URL.revokeObjectURL(url);
-                toast.success(`Exported ${result.count} bookings`);
+                toast.success(t("toast.exported", { count: result.count }));
               } catch (err: unknown) {
                 const message =
-                  err instanceof Error ? err.message : "Export failed";
+                  err instanceof Error ? err.message : t("toast.exportFailed");
                 toast.error(message);
               }
             }}
           >
             <Download className="size-4" />
-            Export CSV
+            {t("exportCsv")}
           </Button>
           {canCheckIn ? (
             <Button
@@ -126,7 +128,7 @@ export function OperatorBookingsView() {
               onClick={() => void setParams({ detail: "scan" })}
             >
               <ScanLine className="size-4" />
-              Scan ticket
+              {t("scanTicket")}
             </Button>
           ) : null}
         </div>
@@ -140,7 +142,7 @@ export function OperatorBookingsView() {
             variant={filter === item.id ? "default" : "outline"}
             onClick={() => void setParams({ filter: item.id, page: 1 })}
           >
-            {item.label}
+            {t(item.labelKey)}
           </Button>
         ))}
       </div>
@@ -148,12 +150,12 @@ export function OperatorBookingsView() {
       <div className="flex flex-wrap items-center gap-2">
         {(
           [
-            { id: "ALL", label: "All statuses" },
-            { id: "CONFIRMED", label: "Confirmed" },
-            { id: "PENDING_PAYMENT", label: "Pending" },
-            { id: "CANCELLED", label: "Cancelled" },
-            { id: "EXPIRED", label: "Expired" },
-            { id: "COMPLETED", label: "Completed" },
+            { id: "ALL", labelKey: "allStatuses" },
+            { id: "CONFIRMED", labelKey: "status.CONFIRMED" },
+            { id: "PENDING_PAYMENT", labelKey: "status.PENDING_PAYMENT" },
+            { id: "CANCELLED", labelKey: "status.CANCELLED" },
+            { id: "EXPIRED", labelKey: "status.EXPIRED" },
+            { id: "COMPLETED", labelKey: "status.COMPLETED" },
           ] as const
         ).map((item) => (
           <Button
@@ -163,18 +165,18 @@ export function OperatorBookingsView() {
             className="h-7 text-xs"
             onClick={() => void setParams({ status: item.id, page: 1 })}
           >
-            {item.label}
+            {t(item.labelKey)}
           </Button>
         ))}
         {tripId ? (
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-slate-50 px-2.5 py-1 text-xs">
-            <span className="text-muted-foreground">Trip:</span>
+            <span className="text-muted-foreground">{t("trip")}</span>
             <span className="font-mono font-semibold">{tripId}</span>
             <button
               type="button"
               onClick={() => void setParams({ tripId: "", page: 1 })}
               className="ml-0.5 text-muted-foreground hover:text-foreground"
-              aria-label="Clear trip filter"
+              aria-label={t("clearTripFilter")}
             >
               ×
             </button>
@@ -187,7 +189,7 @@ export function OperatorBookingsView() {
             className="h-7 text-xs text-muted-foreground"
             onClick={() => void setParams({ status: "ALL", tripId: "", page: 1 })}
           >
-            Clear filters
+            {t("clearFilters")}
           </Button>
         ) : null}
       </div>
@@ -198,7 +200,7 @@ export function OperatorBookingsView() {
           <Input
             value={q}
             onChange={(e) => void setParams({ q: e.target.value, page: 1 })}
-            placeholder="Search by reference, name, or phone…"
+            placeholder={t("searchPlaceholder")}
             className="pl-9"
           />
         </div>

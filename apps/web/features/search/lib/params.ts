@@ -24,12 +24,14 @@ export const searchParamsSchema = {
   date: parseAsString.withDefault(""),
   passengers: parseAsInteger.withDefault(1),
 
-  // 2. Filters (Optional reducers)
-  operators: parseAsArrayOf(parseAsString).withDefault([]),
-  amenities: parseAsArrayOf(parseAsString).withDefault([]),
+  // 2. Filters (stored in sessionStorage, not URL — kept in schema for server-side type safety)
+  operators: parseAsArrayOf(parseAsString),
+  amenities: parseAsArrayOf(parseAsString),
   departureTime: parseAsArrayOf(
-    parseAsStringLiteral(["MORNING", "AFTERNOON", "EVENING"]),
-  ).withDefault([]),
+    parseAsStringLiteral(["MORNING", "AFTERNOON", "EVENING", "LATE_NIGHT"] as const),
+  ),
+  seatClass: parseAsArrayOf(parseAsStringLiteral(["ECONOMY", "STANDARD", "VIP"] as const)),
+  isExpress: parseAsArrayOf(parseAsStringLiteral(["true"] as const)),
   maxPrice: parseAsInteger,
 
   // 3. Sorting

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import { DatePicker } from "@moja/ui/components/ui/date-picker";
@@ -12,16 +13,6 @@ import {
   SelectValue,
 } from "@moja/ui/components/ui/select";
 import type { TripStatus } from "@moja/schemas";
-
-const STATUS_OPTIONS: { value: TripStatus | "ALL"; label: string }[] = [
-  { value: "ALL", label: "All statuses" },
-  { value: "SCHEDULED", label: "Scheduled" },
-  { value: "BOARDING", label: "Boarding" },
-  { value: "DEPARTED", label: "Departed" },
-  { value: "ARRIVED", label: "Arrived" },
-  { value: "DELAYED", label: "Delayed" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
 
 export function TripsToolbar({
   status,
@@ -46,6 +37,18 @@ export function TripsToolbar({
   onStartDateChange?: (value: string) => void;
   onEndDateChange?: (value: string) => void;
 }) {
+  const t = useTranslations("operatorDashboard.trips");
+
+  const STATUS_OPTIONS: { value: TripStatus | "ALL"; label: string }[] = [
+    { value: "ALL", label: t("allStatuses") },
+    { value: "SCHEDULED", label: t("status.SCHEDULED") },
+    { value: "BOARDING", label: t("status.BOARDING") },
+    { value: "DEPARTED", label: t("status.DEPARTED") },
+    { value: "ARRIVED", label: t("status.ARRIVED") },
+    { value: "DELAYED", label: t("status.DELAYED") },
+    { value: "CANCELLED", label: t("status.CANCELLED") },
+  ];
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
@@ -54,7 +57,7 @@ export function TripsToolbar({
           <Input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Search route, plate, gate…"
+            placeholder={t("searchPlaceholder")}
             className="h-9 pl-8 text-sm"
           />
         </div>
@@ -63,7 +66,7 @@ export function TripsToolbar({
           onValueChange={(v) => onStatusChange(v as TripStatus | "ALL")}
         >
           <SelectTrigger className="h-9 w-full sm:w-[180px] text-sm">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("statusPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             {STATUS_OPTIONS.map((opt) => (
@@ -86,7 +89,7 @@ export function TripsToolbar({
                 onStartDateChange("");
               }
             }}
-            placeholder="From date"
+            placeholder={t("fromDate")}
             className="h-9 w-full sm:w-[150px] text-sm"
           />
         ) : null}
@@ -103,14 +106,14 @@ export function TripsToolbar({
                 onEndDateChange("");
               }
             }}
-            placeholder="To date"
+            placeholder={t("toDate")}
             className="h-9 w-full sm:w-[150px] text-sm"
           />
         ) : null}
       </div>
       {scheduleLabel ? (
         <div className="flex items-center gap-2 rounded-md border border-border bg-slate-50 px-3 py-1.5 text-xs">
-          <span className="text-muted-foreground">Schedule:</span>
+          <span className="text-muted-foreground">{t("scheduleLabel")}</span>
           <span className="font-semibold truncate max-w-[200px]">
             {scheduleLabel}
           </span>
@@ -121,7 +124,7 @@ export function TripsToolbar({
               size="icon"
               className="size-6 shrink-0"
               onClick={onClearSchedule}
-              aria-label="Clear schedule filter"
+              aria-label={t("clearScheduleFilter")}
             >
               <X className="size-3.5" />
             </Button>

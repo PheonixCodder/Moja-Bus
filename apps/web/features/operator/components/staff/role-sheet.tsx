@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Button } from "@moja/ui/components/ui/button";
 import { Label } from "@moja/ui/components/ui/label";
@@ -66,6 +67,7 @@ export function RoleSheet({
     [assignableRoles],
   );
 
+  const t = useTranslations("operatorDashboard.staff");
   const [role, setRole] = useState<StaffRole>("SUPPORT");
   const [resetPermissions, setResetPermissions] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -100,10 +102,9 @@ export function RoleSheet({
         className="flex w-full flex-col max-w-md border-l border-border bg-card p-6 overflow-y-auto"
       >
         <SheetHeader className="mb-6">
-          <SheetTitle>Edit role</SheetTitle>
+          <SheetTitle>{t("roleSheet.title")}</SheetTitle>
           <SheetDescription>
-            Role is a template label. Use Edit Permissions to fine-tune actions.
-            Optionally reset permissions to the role template.
+            {t("roleSheet.description")}
           </SheetDescription>
         </SheetHeader>
 
@@ -125,7 +126,7 @@ export function RoleSheet({
             </div>
 
             <div className="space-y-2 mb-4">
-              <Label>New role</Label>
+              <Label>{t("roleSheet.newRoleLabel")}</Label>
               <Select
                 value={role}
                 onValueChange={(v) => setRole(v as StaffRole)}
@@ -150,15 +151,13 @@ export function RoleSheet({
                 className="mt-0.5"
               />
               <span className="text-[13px] text-foreground">
-                Reset permissions to the{" "}
-                <span className="font-medium">{ROLE_LABELS[role]}</span>{" "}
-                template
+                {t("roleSheet.resetPermissions", { role: ROLE_LABELS[role] })}
               </span>
             </label>
 
             <div className="mb-6 rounded-lg border border-border bg-muted/30 p-3">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Template includes
+                {t("roleSheet.templateIncludes")}
               </p>
               <ul className="space-y-1">
                 {previewKeys.map((key) => (
@@ -168,7 +167,7 @@ export function RoleSheet({
                 ))}
                 {role === "OWNER" ? (
                   <li className="text-[12px] text-muted-foreground">
-                    …and all other catalog actions
+                    {t("roleSheet.allOtherActions")}
                   </li>
                 ) : null}
               </ul>
@@ -181,14 +180,14 @@ export function RoleSheet({
                 onClick={onClose}
                 disabled={saving}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 className="flex-1 bg-[#ee237c] hover:bg-[#d11f6e] text-white"
                 onClick={handleSave}
                 disabled={saving}
               >
-                {saving ? <Spinner className="size-4" /> : "Save role"}
+                {saving ? <Spinner className="size-4" /> : t("roleSheet.save")}
               </Button>
             </div>
           </>

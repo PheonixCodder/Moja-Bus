@@ -1,7 +1,7 @@
 "use client";
 
-import { History, ArrowRight, ShieldCheck, X } from "lucide-react";
-import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { ShieldCheck } from "lucide-react";
 
 const PAYMENT_METHODS = [
     {
@@ -52,6 +52,7 @@ const PAYMENT_METHODS = [
 ];
 
 export function TrustBar() {
+    const t = useTranslations("trustbar");
     return (
         <div className="w-full max-w-7xl mx-auto">
             <div className="relative rounded-2xl px-5 py-4 md:px-8 md:py-5">
@@ -60,7 +61,7 @@ export function TrustBar() {
                     <div className="flex items-center gap-4 md:gap-5 shrink-0 md:justify-end pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 shrink-0">
               <ShieldCheck className="w-3.5 h-3.5 text-slate-300" />
-              Secure pay
+              {t("securePay")}
             </span>
                         <div className="flex items-center gap-3.5">
                             {PAYMENT_METHODS.map((m) => (

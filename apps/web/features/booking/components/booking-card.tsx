@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { BusFront } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import type { PassengerBookingSummary, PassengerBookingStatus } from "@moja/types";
 import { formatDepartureTime } from "@/features/search/lib/format";
@@ -23,12 +24,12 @@ const STATUS_RING_CLASS: Record<PassengerBookingStatus, string> = {
   EXPIRED: "text-muted-foreground",
 };
 
-const STATUS_LABEL: Record<PassengerBookingStatus, string> = {
-  CONFIRMED: "Confirmed",
-  PENDING_PAYMENT: "Pending",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-  EXPIRED: "Expired",
+const STATUS_LABEL_KEY: Record<PassengerBookingStatus, string> = {
+  CONFIRMED: "cardConfirmed",
+  PENDING_PAYMENT: "cardPending",
+  COMPLETED: "cardCompleted",
+  CANCELLED: "cardCancelled",
+  EXPIRED: "cardExpired",
 };
 
 function ProgressRing({
@@ -58,13 +59,14 @@ function ProgressRing({
 }
 
 function HoldLabel({ booking }: { booking: PassengerBookingSummary }) {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   const countdown = useHoldCountdown(
     booking.status === "PENDING_PAYMENT" ? booking.holdExpiresAt : null,
   );
   if (booking.status !== "PENDING_PAYMENT") return null;
   return (
     <span className="text-amber-600 text-[10px]">
-      {countdown?.label ?? "Awaiting payment"}
+      {countdown?.label ?? t("awaitingPayment")}
     </span>
   );
 }
@@ -76,6 +78,7 @@ type BookingCardProps = {
 };
 
 export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
+  const t = useTranslations("passengerDashboard.bookingDetails");
   const progress = STATUS_PROGRESS[booking.status];
   const ref = booking.seats[0]?.bookingReference ?? booking.groupId;
   const shortRef = ref.length > 10 ? ref.slice(0, 10) : ref;
@@ -94,7 +97,6 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
         active && "border-primary bg-muted/50",
       )}
     >
-      {/* Row 1 — ref + status */}
       <div className="flex items-center justify-between">
         <div className="font-medium text-xs tabular-nums tracking-tight">
           #{shortRef}
@@ -102,12 +104,11 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
         <div className="flex items-center gap-1.5">
           <ProgressRing status={booking.status} progress={progress} />
           <div className="text-muted-foreground text-xs">
-            {STATUS_LABEL[booking.status]}
+            {t(STATUS_LABEL_KEY[booking.status])}
           </div>
         </div>
       </div>
 
-      {/* Row 2 — origin ↔ destination */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
           <div className="font-medium text-xs leading-none">
@@ -127,7 +128,6 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
         </div>
       </div>
 
-      {/* Row 3 — dashed progress line with bus icon */}
       <div className="flex items-center gap-0.5">
         <span
           className="h-px min-w-0 border-foreground border-t border-dashed"
@@ -140,11 +140,10 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
         />
       </div>
 
-      {/* Row 4 — times + hold info */}
       <div className="flex items-center justify-between">
         <div>
           <div className="text-muted-foreground text-[10px] leading-none">
-            Departs
+            {t("departs")}
           </div>
           <div className="text-sm tabular-nums tracking-tight">
             {formatDepartureTime(booking.departureTime)}
@@ -152,7 +151,7 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
         </div>
         <div className="text-right">
           <div className="text-muted-foreground text-[10px] leading-none">
-            Arrives
+            {t("arrives")}
           </div>
           <div className="text-sm tabular-nums tracking-tight">
             {formatDepartureTime(booking.arrivalTime)}
@@ -160,7 +159,6 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
         </div>
       </div>
 
-      {/* Hold countdown (pending only) */}
       {booking.status === "PENDING_PAYMENT" && (
         <HoldLabel booking={booking} />
       )}

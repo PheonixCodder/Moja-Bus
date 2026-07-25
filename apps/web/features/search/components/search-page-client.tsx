@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useQueryStates } from "nuqs";
-import type { User } from "better-auth";
 import { useTRPC } from "@/trpc/client";
 import { searchParamsSchema, type SearchSortOption } from "../lib/params";
+import type { TimeFilterId, SeatClassFilter } from "./search-filters-sidebar";
 import { SearchForm } from "./search-form";
 import { SearchEmptyState } from "./search-empty-state";
 import { SearchFiltersSidebar } from "./search-filters-sidebar";
@@ -19,6 +20,30 @@ import { BookingDialog } from "@/features/booking/components/booking-dialog";
 import { toast } from "sonner";
 import type { RouterOutputs } from "@/trpc/client";
 
+const FILTER_STORAGE_KEY = "search_filters";
+
+interface StoredFilters {
+  operators: string[];
+  amenities: string[];
+  departureTime: TimeFilterId[];
+  seatClass: SeatClassFilter[];
+  isExpress: boolean;
+  maxPrice?: number;
+}
+
+function persistFilters(filters: StoredFilters) {
+  if (typeof window === "undefined") return;
+  try { sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters)); } catch {}
+}
+
+function restoreFilters(): StoredFilters | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(FILTER_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 type SearchOffer = RouterOutputs["search"]["search"]["offers"][number];
 
 const RESUME_TOAST_KEY = "moja:search-resume-toast";
@@ -28,11 +53,22 @@ interface SearchPageClientProps {
 }
 
 export function SearchPageClient({ user }: SearchPageClientProps) {
+  const t = useTranslations("search");
   const trpc = useTRPC();
 
   const [params, setParams] = useQueryStates(searchParamsSchema, {
     shallow: true,
-    history: "replace",
+    history: "push",
+  });
+
+  const [localFilters, setLocalFilters] = useState<StoredFilters>(() => {
+    return restoreFilters() ?? {
+      operators: [],
+      amenities: [],
+      departureTime: [],
+      seatClass: [],
+      isExpress: false,
+    };
   });
 
   const searchEnabled = !!params.from && !!params.to && !!params.date;
@@ -48,8 +84,16 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
     } catch {
       // ignore storage failures
     }
-    toast.success("Welcome back — continue your booking.");
+    toast.success(t("resumeToast"));
   }, [user?.id, params.bookingOfferId]);
+
+  // Prefetch passenger data when user is known (speeds up checkout form)
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!user?.id) return;
+    queryClient.prefetchQuery(trpc.passenger.listSaved.queryOptions());
+    queryClient.prefetchQuery(trpc.passenger.getWalletBalance.queryOptions());
+  }, [user?.id]);
 
   // Mobile filters drawer state
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -61,14 +105,16 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
       destinationCityId: params.to,
       date: params.date,
       passengers: params.passengers,
-      operators: params.operators.length > 0 ? params.operators : undefined,
-      amenities: params.amenities.length > 0 ? params.amenities : undefined,
-      departureTime: params.departureTime.length > 0 ? params.departureTime : undefined,
-      maxPrice: params.maxPrice ?? undefined,
+      operators: localFilters.operators.length > 0 ? localFilters.operators : undefined,
+      amenities: localFilters.amenities.length > 0 ? localFilters.amenities : undefined,
+      departureTime: localFilters.departureTime.length > 0 ? localFilters.departureTime : undefined,
+      seatClass: localFilters.seatClass.length > 0 ? localFilters.seatClass as ("ECONOMY" | "STANDARD" | "VIP")[] : undefined,
+      maxPrice: localFilters.maxPrice ?? undefined,
       sort: params.sort,
       page: params.page,
     }),
     enabled: searchEnabled,
+    staleTime: 10 * 1000,
   });
 
   // ─── Accumulated offers (for Load More) ──────────────────────────────────
@@ -82,9 +128,11 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
     params.to,
     params.date,
     params.passengers,
-    params.operators.join(","),
-    params.amenities.join(","),
-    params.departureTime.join(","),
+    localFilters.operators.join(","),
+    localFilters.amenities.join(","),
+    localFilters.departureTime.join(","),
+    localFilters.seatClass.join(","),
+    localFilters.isExpress ? "express" : "",
     params.sort,
   ].join("|");
 
@@ -116,73 +164,136 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
 
   // ─── Active filter count (for mobile badge) ───────────────────────────────
   const activeFilterCount =
-    params.operators.length +
-    params.amenities.length +
-    params.departureTime.length;
+    localFilters.operators.length +
+    localFilters.amenities.length +
+    localFilters.departureTime.length +
+    localFilters.seatClass.length +
+    (localFilters.isExpress ? 1 : 0);
 
-  // ─── Handlers ────────────────────────────────────────────────────────────
-  function handleSearch(criteria: {
+  // ─── Handlers (memoized) ────────────────────────────────────────────────
+  const handleSearch = useCallback((criteria: {
     from: string;
     to: string;
     date: string;
     passengers: number;
-  }) {
-    void setParams({ ...criteria, page: 1 });
-  }
+  }) => {
+    const cleared = { operators: [], amenities: [], departureTime: [], seatClass: [], isExpress: false };
+    setLocalFilters(cleared);
+    persistFilters(cleared);
 
-  function handleDateSelect(date: string) {
-    void setParams({ date, page: 1 });
-  }
-
-  function handleToggleOperator(id: string) {
-    const updated = params.operators.includes(id)
-      ? params.operators.filter((o) => o !== id)
-      : [...params.operators, id];
-    void setParams({ operators: updated, page: 1 });
-  }
-
-  function handleToggleAmenity(id: string) {
-    const updated = params.amenities.includes(id)
-      ? params.amenities.filter((a) => a !== id)
-      : [...params.amenities, id];
-    void setParams({ amenities: updated, page: 1 });
-  }
-
-  function handleToggleTime(id: "MORNING" | "AFTERNOON" | "EVENING") {
-    const updated = params.departureTime.includes(id)
-      ? params.departureTime.filter((t) => t !== id)
-      : [...params.departureTime, id];
-    void setParams({ departureTime: updated, page: 1 });
-  }
-
-  function handleClearFilters() {
     void setParams({
-      operators: [],
-      amenities: [],
-      departureTime: [],
-      sort: "BEST",
+      from: criteria.from,
+      to: criteria.to,
+      date: criteria.date,
+      passengers: criteria.passengers,
       page: 1,
+      bookingOfferId: null,
     });
-  }
+  }, [setParams]);
 
-  function handleSortChange(sort: string) {
+  const handleDateSelect = useCallback((date: string) => {
+    void setParams({ date, page: 1 });
+  }, [setParams]);
+
+  const handleToggleOperator = useCallback((id: string) => {
+    setLocalFilters((prev) => {
+      const operators = prev.operators.includes(id)
+        ? prev.operators.filter((o) => o !== id)
+        : [...prev.operators, id];
+      const next = { ...prev, operators };
+      persistFilters(next);
+      return next;
+    });
+    setParams((prev) => ({ ...prev, page: 1 }));
+  }, [setParams]);
+
+  const handleToggleAmenity = useCallback((id: string) => {
+    setLocalFilters((prev) => {
+      const amenities = prev.amenities.includes(id)
+        ? prev.amenities.filter((a) => a !== id)
+        : [...prev.amenities, id];
+      const next = { ...prev, amenities };
+      persistFilters(next);
+      return next;
+    });
+    setParams((prev) => ({ ...prev, page: 1 }));
+  }, [setParams]);
+
+  const handleToggleTime = useCallback((id: TimeFilterId) => {
+    setLocalFilters((prev) => {
+      const departureTime = prev.departureTime.includes(id)
+        ? prev.departureTime.filter((t) => t !== id)
+        : [...prev.departureTime, id];
+      const next = { ...prev, departureTime };
+      persistFilters(next);
+      return next;
+    });
+    setParams((prev) => ({ ...prev, page: 1 }));
+  }, [setParams]);
+
+  const handleToggleSeatClass = useCallback((id: SeatClassFilter) => {
+    setLocalFilters((prev) => {
+      const seatClass = prev.seatClass.includes(id)
+        ? prev.seatClass.filter((s) => s !== id)
+        : [...prev.seatClass, id];
+      const next = { ...prev, seatClass };
+      persistFilters(next);
+      return next;
+    });
+    setParams((prev) => ({ ...prev, page: 1 }));
+  }, [setParams]);
+
+  const handleToggleExpress = useCallback(() => {
+    setLocalFilters((prev) => {
+      const next = { ...prev, isExpress: !prev.isExpress };
+      persistFilters(next);
+      return next;
+    });
+    setParams((prev) => ({ ...prev, page: 1 }));
+  }, [setParams]);
+
+  const handleClearFilters = useCallback(() => {
+    const cleared: StoredFilters = { operators: [], amenities: [], departureTime: [], seatClass: [], isExpress: false };
+    setLocalFilters(cleared);
+    persistFilters(cleared);
+    setParams((prev) => ({ ...prev, sort: "BEST", page: 1 }));
+  }, [setParams]);
+
+  const handleSortChange = useCallback((sort: string) => {
     void setParams({ sort: sort as SearchSortOption, page: 1 });
-  }
+  }, [setParams]);
 
-  function handleLoadMore() {
-    void setParams({ page: params.page + 1 });
-  }
+  const handleLoadMore = useCallback(() => {
+    setParams((prev) => ({ ...prev, page: prev.page + 1 }));
+  }, [setParams]);
 
-  const filterProps = {
-    operators: params.operators,
-    amenities: params.amenities,
-    departureTime: params.departureTime,
+  const filterProps = useMemo(() => ({
+    operators: localFilters.operators,
+    amenities: localFilters.amenities,
+    departureTime: localFilters.departureTime,
+    seatClass: localFilters.seatClass,
+    isExpress: localFilters.isExpress,
     activeOperators,
     onToggleOperator: handleToggleOperator,
     onToggleAmenity: handleToggleAmenity,
     onToggleTime: handleToggleTime,
+    onToggleSeatClass: handleToggleSeatClass,
+    onToggleExpress: handleToggleExpress,
     onClear: handleClearFilters,
-  };
+  }), [
+    localFilters.operators,
+    localFilters.amenities,
+    localFilters.departureTime,
+    localFilters.seatClass,
+    localFilters.isExpress,
+    activeOperators,
+    handleToggleOperator,
+    handleToggleAmenity,
+    handleToggleTime,
+    handleToggleSeatClass,
+    handleToggleExpress,
+    handleClearFilters,
+  ]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
