@@ -122,8 +122,6 @@ export const routesRouter = createTRPCRouter({
             create: data.waypoints.map((wp, idx) => ({
               terminalId: wp.terminalId,
               stopOrder: idx + 1,
-              arrivalOffsetMinutes: wp.offsetMinutes,
-              departureOffsetMinutes: wp.offsetMinutes + (wp.dwellMinutes ?? 15),
               isPickup: wp.allowPickup,
               isDropoff: wp.allowDropoff,
               distanceFromOriginKm: wp.distanceFromOriginKm ?? null,
@@ -254,8 +252,6 @@ export const routesRouter = createTRPCRouter({
                 create: data.waypoints!.map((wp, idx) => ({
                   terminalId: wp.terminalId,
                   stopOrder: idx + 1,
-                  arrivalOffsetMinutes: wp.offsetMinutes,
-                  departureOffsetMinutes: wp.offsetMinutes + (wp.dwellMinutes ?? 15),
                   isPickup: wp.allowPickup,
                   isDropoff: wp.allowDropoff,
                   distanceFromOriginKm: wp.distanceFromOriginKm ?? null,

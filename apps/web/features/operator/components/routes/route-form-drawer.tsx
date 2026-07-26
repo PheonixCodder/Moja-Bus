@@ -57,15 +57,6 @@ const RouteMapPreview = dynamic(
   { ssr: false, loading: () => <MapSkeleton /> },
 );
 
-function formatOffset(minutes: number): string {
-  if (minutes === 0) return "Origin";
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `+${m}m`;
-  if (m === 0) return `+${h}h`;
-  return `+${h}h ${m}m`;
-}
-
 function MapSkeleton() {
   return (
     <div className="h-full w-full bg-slate-100 animate-pulse rounded-r-lg flex items-center justify-center">
@@ -121,8 +112,6 @@ export function RouteFormDrawer({
             id: "__origin__",
             terminalId: originId,
             terminal: originTerminal,
-            offsetMinutes: 0,
-            dwellMinutes: 0,
             distanceFromOriginKm: 0,
             allowPickup: true,
             allowDropoff: false,
@@ -136,13 +125,6 @@ export function RouteFormDrawer({
             id: "__dest__",
             terminalId: destId,
             terminal: destTerminal,
-            offsetMinutes:
-              waypoints.length > 0
-                ? waypoints[waypoints.length - 1]!.offsetMinutes +
-                  (waypoints[waypoints.length - 1]!.dwellMinutes ?? 15) +
-                  45
-                : 60,
-            dwellMinutes: 0,
             distanceFromOriginKm: distanceKm ? parseFloat(distanceKm) : null,
             allowPickup: false,
             allowDropoff: true,
@@ -174,17 +156,12 @@ export function RouteFormDrawer({
     const terminal = terminals.find((t) => t.id === newStopId);
     if (!terminal) return;
 
-    const lastWp = waypoints.length > 0 ? waypoints[waypoints.length - 1] : null;
-    const lastOffset = lastWp ? lastWp.offsetMinutes + (lastWp.dwellMinutes ?? 15) : 30;
-
     setWaypoints((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
         terminalId: newStopId,
         terminal,
-        offsetMinutes: lastOffset + 30,
-        dwellMinutes: 15,
         distanceFromOriginKm: null,
         allowPickup: true,
         allowDropoff: true,
@@ -230,10 +207,6 @@ export function RouteFormDrawer({
         id: wp.id,
         terminalId: wp.terminalId,
         terminal: wp.terminal as Terminal,
-        offsetMinutes: wp.arrivalOffsetMinutes,
-        dwellMinutes: wp.departureOffsetMinutes
-          ? Math.max(1, wp.departureOffsetMinutes - wp.arrivalOffsetMinutes)
-          : 15,
         distanceFromOriginKm: wp.distanceFromOriginKm ?? null,
         allowPickup: wp.isPickup,
         allowDropoff: wp.isDropoff,
@@ -266,8 +239,6 @@ export function RouteFormDrawer({
       waypoints: waypoints.map((w, i) => ({
         terminalId: w.terminalId,
         stopOrder: i + 1,
-        offsetMinutes: w.offsetMinutes,
-        dwellMinutes: w.dwellMinutes ?? 15,
         distanceFromOriginKm: w.distanceFromOriginKm ?? null,
         allowPickup: w.allowPickup,
         allowDropoff: w.allowDropoff,
@@ -328,13 +299,6 @@ export function RouteFormDrawer({
     .map((s) => s.terminal)
     .filter((t) => t && t.latitude != null && t.longitude != null);
 
-  const displayDuration =
-    waypoints.length > 0
-      ? waypoints[waypoints.length - 1]!.offsetMinutes +
-        (waypoints[waypoints.length - 1]!.dwellMinutes ?? 15) +
-        45
-      : undefined;
-
   return (
     <Drawer
       open={open}
@@ -348,8 +312,8 @@ export function RouteFormDrawer({
           </DrawerTitle>
           <DrawerDescription className="text-xs text-muted-foreground">
             {isEditing
-              ? "Update the origin, destination, intermediate stops, and timings."
-              : "Define the origin, destination, intermediate stops, and timings."}
+              ? "Update the origin, destination, and intermediate stops."
+              : "Define the origin, destination, and intermediate stops."}
           </DrawerDescription>
         </DrawerHeader>
 
@@ -480,12 +444,7 @@ export function RouteFormDrawer({
             {(originId || destId) && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold">Stop sequence &amp; timings</Label>
-                  {displayDuration && (
-                    <span className="text-[11px] font-medium text-primary">
-                      ~{formatOffset(displayDuration)} total duration
-                    </span>
-                  )}
+                  <Label className="text-xs font-semibold">Stop sequence</Label>
                 </div>
 
                 <div className="border border-border rounded-lg p-3.5 bg-slate-50/50 space-y-2">

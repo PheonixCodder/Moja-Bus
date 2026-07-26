@@ -24,6 +24,12 @@ export class TripDetailsService {
             layoutTemplate: true,
           },
         },
+        seats: {
+          where: { isActive: true },
+          include: {
+            seat: { select: { isBookable: true, seatType: true } },
+          },
+        },
         tripStops: {
           include: {
             terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
@@ -103,7 +109,9 @@ export class TripDetailsService {
       },
     ]);
     const occupiedSeats = occupancy.get(trip.id) ?? 0;
-    const totalSeats = trip.totalSeats;
+    const totalSeats = trip.seats.filter(
+      (s) => s.seat.isBookable && s.seat.seatType !== "DRIVER_AREA" && s.seat.seatType !== "EMPTY_SPACE",
+    ).length;
     const remainingSeats = Math.max(0, totalSeats - occupiedSeats);
 
     let availabilityStatus: "AVAILABLE" | "FEW_LEFT" | "SOLD_OUT" = "AVAILABLE";

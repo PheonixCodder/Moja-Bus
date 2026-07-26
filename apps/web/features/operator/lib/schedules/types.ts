@@ -23,7 +23,7 @@ export type FareDraft = {
 };
 
 export type TimingDraft = {
-  routeWaypointId: string;
+  stopOrder: number;
   dwellMinutes: number;
 };
 

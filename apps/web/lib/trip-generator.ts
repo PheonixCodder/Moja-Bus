@@ -56,9 +56,7 @@ export async function generateTripsForSchedule(
       status: "ACTIVE",
     },
     include: {
-      seats: {
-        where: { isActive: true },
-      },
+      seats: true,
     },
   });
 
@@ -136,7 +134,7 @@ export async function generateTripsForSchedule(
     try {
       const lastWp = route.waypoints[route.waypoints.length - 1];
       const lastTiming = lastWp ? timingMap.get(lastWp.id) : undefined;
-      const destDepartureOffset = lastTiming?.departureOffsetMinutes ?? lastWp?.departureOffsetMinutes ?? 0;
+      const destDepartureOffset = lastTiming?.departureOffsetMinutes ?? 0;
 
       const trip = await prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({
@@ -152,9 +150,10 @@ export async function generateTripsForSchedule(
               bus.seats.filter(
                 (s) =>
                   s.isActive &&
+                  s.isBookable &&
                   s.seatType !== "DRIVER_AREA" &&
                   s.seatType !== "EMPTY_SPACE",
-              ).length || bus.seats.length,
+              ).length,
             status: "SCHEDULED",
             routeSnapshotJson: {
               ...route,
@@ -182,8 +181,8 @@ const lastWaypointOrder =
 
         const waypointStops = route.waypoints.map((w) => {
           const sw = timingMap.get(w.id);
-          const arrivalOffset = sw?.arrivalOffsetMinutes ?? w.arrivalOffsetMinutes;
-          const departureOffset = sw?.departureOffsetMinutes ?? w.departureOffsetMinutes;
+          const arrivalOffset = sw?.arrivalOffsetMinutes ?? 0;
+          const departureOffset = sw?.departureOffsetMinutes ?? 0;
           return {
             tripId: createdTrip.id,
             terminalId: w.terminalId,
@@ -221,7 +220,7 @@ const lastWaypointOrder =
           data: bus.seats.map((seat) => ({
             tripId: createdTrip.id,
             seatId: seat.id,
-            isActive: true,
+            isActive: seat.isActive,
           })),
         });
 

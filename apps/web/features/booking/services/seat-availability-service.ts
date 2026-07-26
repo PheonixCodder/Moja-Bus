@@ -58,7 +58,7 @@ export class SeatAvailabilityService {
         seat.seatType === "EMPTY_SPACE"
       ) {
         status = seat.seatType === "DRIVER_AREA" ? "DRIVER" : "EMPTY";
-      } else if (!tripSeat.isActive || !seat.isActive) {
+      } else if (!tripSeat.isActive || !seat.isActive || !seat.isBookable) {
         status = "BLOCKED";
       } else {
         const conflicting = trip.bookings.find(

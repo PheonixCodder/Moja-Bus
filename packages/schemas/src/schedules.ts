@@ -186,6 +186,15 @@ export const createScheduleSchema = z
     departureTime: hhMm,
     calendar: serviceCalendarSchema,
     fares: z.array(fareSchema).min(1, "At least one fare is required"),
+    dwells: z
+      .array(
+        z.object({
+          stopOrder: z.coerce.number().int().min(1),
+          dwellMinutes: z.coerce.number().int().min(0).default(0),
+        }),
+      )
+      .optional()
+      .default([]),
     /** Last stop order on the route (destination). Used to require full-route fare. */
     routeLastStopOrder: z.coerce.number().int().min(1).optional(),
   })

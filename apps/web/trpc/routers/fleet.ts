@@ -114,6 +114,18 @@ export const fleetRouter = createTRPCRouter({
     .input(createBusSchema)
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "fleet:create");
+
+      // Validate busType exists and is active
+      const busType = await ctx.prisma.busType.findUnique({
+        where: { id: input.busTypeId, isActive: true },
+      });
+      if (!busType) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bus type not found or inactive.",
+        });
+      }
+
       // Check if registration plate exists
       const existing = await ctx.prisma.bus.findFirst({
         where: {
@@ -171,7 +183,9 @@ export const fleetRouter = createTRPCRouter({
           },
         });
 
-        // Generate Seat rows from the template's SeatTemplate relation
+        // Generate Seat rows from the template's SeatTemplate relation.
+        // isBookable is copied as an immutable flag — it never changes after creation.
+        // isActive starts true for bookable positions, false for non-bookable ones.
         if (template.seatTemplates.length > 0) {
           const seatsData = template.seatTemplates.map((t) => ({
             busId: bus.id,
@@ -180,7 +194,8 @@ export const fleetRouter = createTRPCRouter({
             deck: t.deck,
             label: t.label,
             seatType: t.seatType,
-            isActive: t.isBookable ?? true,
+            isBookable: t.isBookable,
+            isActive: t.isBookable,
           }));
 
           await tx.seat.createMany({
@@ -396,6 +411,21 @@ export const fleetRouter = createTRPCRouter({
             },
             data: { isActive: input.isActive },
           });
+
+          // Sync Trip.totalSeats for all future trips
+          for (const tripId of futureTripIds) {
+            const count = await tx.tripSeat.count({
+              where: {
+                tripId,
+                isActive: true,
+                seat: { isBookable: true },
+              },
+            });
+            await tx.trip.update({
+              where: { id: tripId },
+              data: { totalSeats: count },
+            });
+          }
         }
 
         return updatedSeat;

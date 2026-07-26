@@ -12,31 +12,16 @@ export const waypointSchema = z
   .object({
     terminalId: z.string().min(1, "Terminal is required"),
     stopOrder: z.coerce.number().int().min(0),
-    offsetMinutes: z.coerce
-      .number()
-      .int()
-      .min(1, "Stop must be at least 1 minute from origin"),
-    dwellMinutes: z.coerce.number().int().min(0).default(15),
     distanceFromOriginKm: z.coerce.number().min(0).optional().nullable(),
     allowPickup: z.boolean().default(true),
     allowDropoff: z.boolean().default(true),
   })
   .superRefine((wp, ctx) => {
-    // A stop must serve at least one purpose
     if (!wp.allowPickup && !wp.allowDropoff) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "A stop must allow pickup, dropoff, or both",
         path: ["allowPickup"],
-      });
-    }
-    // A serving stop needs at least 1 minute dwell so passengers can board/alight
-    if ((wp.allowPickup || wp.allowDropoff) && wp.dwellMinutes < 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "A stop that serves passengers must have a dwell time of at least 1 minute",
-        path: ["dwellMinutes"],
       });
     }
   });
@@ -85,32 +70,8 @@ function validateWaypointSequence(
     }
   }
 
-  // Option A: enforce monotonically increasing offsets.
-  // The arrival time at each stop must be strictly after the departure of the previous stop.
-  // departure of stop N = offsetMinutes[N] + dwellMinutes[N]
-  // arrival of stop N+1 = offsetMinutes[N+1]  →  must be > departure[N]
-  const sorted = [...waypoints].sort((a, b) => a.stopOrder - b.stopOrder);
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = sorted[i - 1]!;
-    const curr = sorted[i]!;
-    const prevDeparture = prev.offsetMinutes + prev.dwellMinutes;
-    if (curr.offsetMinutes <= prevDeparture) {
-      // Map back to original array index so the error points to the right row
-      const origIdx = waypoints.findIndex(
-        (w) => w.terminalId === curr.terminalId && w.stopOrder === curr.stopOrder,
-      );
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          `Stop arrival (${curr.offsetMinutes} min from origin) must be after ` +
-          `the previous stop's departure (${prevDeparture} min from origin). ` +
-          `Increase this offset or reduce the previous stop's dwell time.`,
-        path: ["waypoints", origIdx >= 0 ? origIdx : i, "offsetMinutes"],
-      });
-    }
-  }
-
   // Waypoint distance validation: distanceFromOriginKm must be strictly increasing across stops
+  const sorted = [...waypoints].sort((a, b) => a.stopOrder - b.stopOrder);
   for (let i = 1; i < sorted.length; i++) {
     const prev = sorted[i - 1]!;
     const curr = sorted[i]!;

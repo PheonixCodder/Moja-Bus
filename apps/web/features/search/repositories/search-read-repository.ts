@@ -47,10 +47,16 @@ export class TripSearchReadRepository {
           include: {
             busType: true,
             layoutTemplate: true,
-            seats: {
+          },
+        },
+        seats: {
+          where: { isActive: true },
+          include: {
+            seat: {
               select: {
                 id: true,
                 seatType: true,
+                isBookable: true,
                 isActive: true,
               },
             },

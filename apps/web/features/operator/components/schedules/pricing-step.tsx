@@ -45,7 +45,7 @@ export function PricingStep({
     const next: FareDraft = {
       fromStopOrder: from,
       toStopOrder: to,
-      durationMinutes: patch.durationMinutes ?? prev?.durationMinutes ?? 0,
+      durationMinutes: patch.durationMinutes ?? prev?.durationMinutes ?? 1,
       priceXOF: patch.priceXOF ?? prev?.priceXOF ?? 0,
       type: patch.type ?? prev?.type ?? "FIXED",
     };
@@ -176,9 +176,7 @@ export function PricingStep({
                       onChange={(e) => {
                         const parsed = parseInt(e.target.value.replace(/\D/g, ""), 10);
                         upsertFare(from.order, to.order, {
-                          durationMinutes: Number.isNaN(parsed) ? 0 : parsed,
-                          priceXOF: fare?.priceXOF ?? 0,
-                          type: fare?.type ?? "FIXED",
+                          durationMinutes: Number.isNaN(parsed) ? 1 : parsed,
                         });
                       }}
                       className="h-8 text-sm text-right font-mono"
@@ -189,28 +187,6 @@ export function PricingStep({
                     </span>
                   )}
                   <Clock className="size-3 text-muted-foreground/30 shrink-0" />
-                </div>
-                <div className="w-24">
-                  <label className="sr-only" htmlFor={`type-${from.order}-${to.order}`}>
-                    {t("wizard.fareType")}
-                  </label>
-                  <select
-                    id={`type-${from.order}-${to.order}`}
-                    value={fare?.type ?? "FIXED"}
-                    onChange={(e) =>
-                      upsertFare(from.order, to.order, {
-                        type: e.target.value as FareDraft["type"],
-                        durationMinutes: fare?.durationMinutes ?? 0,
-                        priceXOF: fare?.priceXOF ?? 0,
-                      })
-                    }
-                    className="w-full h-8 text-xs border border-input rounded-md bg-background px-1"
-                  >
-                    <option value="FIXED">{t("wizard.fareFixed")}</option>
-                    <option value="PROMO">{t("wizard.farePromo")}</option>
-                    <option value="HOLIDAY_SURGE">{t("wizard.fareHolidaySurge")}</option>
-                    <option value="EARLY_BIRD">{t("wizard.fareEarlyBird")}</option>
-                  </select>
                 </div>
                 <div className="w-28">
                   <Input
@@ -224,7 +200,7 @@ export function PricingStep({
                         10,
                       );
                       upsertFare(from.order, to.order, {
-                        durationMinutes: fare?.durationMinutes ?? (adj ? 0 : computedDur),
+                        durationMinutes: fare?.durationMinutes ?? (adj ? 1 : computedDur),
                         type: fare?.type ?? "FIXED",
                         priceXOF: Number.isNaN(parsed) ? 0 : parsed,
                       });

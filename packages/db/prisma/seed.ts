@@ -558,37 +558,41 @@ async function main() {
   const sprinter = await prisma.busType.findUniqueOrThrow({
     where: { name: "Mercedes Sprinter" },
   });
+  const higer = await prisma.busType.findUniqueOrThrow({
+    where: { name: "Higer KLQ6119" },
+  });
+  const kingLong = await prisma.busType.findUniqueOrThrow({
+    where: { name: "King Long XMQ6127" },
+  });
+  const hiace = await prisma.busType.findUniqueOrThrow({
+    where: { name: "Toyota HiAce" },
+  });
 
   function generateSeats(rows: number, cols: number, deck = 1) {
     const colLabels = ["A", "B", "C", "D", "E", "F"];
     const templates = [];
-    let seatCounter = 1;
 
     for (let r = 1; r <= rows; r++) {
       for (let c = 1; c <= cols; c++) {
         let seatType = "PASSENGER_MIDDLE";
         let isBookable = true;
-        let label = `${seatCounter}`;
+        let label = "";
 
-        // Create driver area at front left
         if (r === 1 && c === 1) {
           seatType = "DRIVER_AREA";
           isBookable = false;
           label = "DRV";
-        } 
-        // Create an aisle if we have 4 or 5 columns
-        else if ((cols === 4 && c === 3) || (cols === 5 && c === 3)) {
+        } else if ((cols === 4 && c === 3) || (cols === 5 && c === 3)) {
           seatType = "EMPTY_SPACE";
           isBookable = false;
           label = "";
-        }
-        else {
+        } else {
           if (c === 1 || c === cols) {
             seatType = "PASSENGER_WINDOW";
           } else {
             seatType = "PASSENGER_AISLE";
           }
-          seatCounter++;
+          label = `${r}${colLabels[c - 1]}`;
         }
 
         templates.push({
@@ -655,6 +659,38 @@ async function main() {
       hasAC: true,
       hasLuggage: true,
     },
+    {
+      busTypeId: higer.id,
+      name: "Higer Standard 49",
+      seatClass: "STANDARD" as const,
+      totalSeats: 49,
+      rows: 13,
+      columns: 4,
+      hasAC: true,
+      hasLuggage: true,
+    },
+    {
+      busTypeId: kingLong.id,
+      name: "King Long VIP 55",
+      seatClass: "VIP" as const,
+      totalSeats: 55,
+      rows: 14,
+      columns: 4,
+      hasAC: true,
+      hasWifi: true,
+      hasToilet: true,
+      hasLuggage: true,
+    },
+    {
+      busTypeId: hiace.id,
+      name: "HiAce Standard 13",
+      seatClass: "STANDARD" as const,
+      totalSeats: 13,
+      rows: 4,
+      columns: 4,
+      hasAC: true,
+      hasLuggage: true,
+    },
   ];
 
   for (const layout of layouts) {
@@ -667,8 +703,6 @@ async function main() {
         data: {
           ...layout,
           companyId: null,
-          hasWifi: false,
-          hasToilet: false,
           seatTemplates: {
             create: generateSeats(layout.rows, layout.columns),
           },

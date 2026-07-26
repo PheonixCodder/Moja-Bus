@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Plus, Map as MapIcon, ArrowRight, GripVertical, X, Clock } from "lucide-react";
+import { Plus, Map as MapIcon, ArrowRight, GripVertical, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
@@ -50,8 +50,6 @@ interface WaypointDraft {
   id: string;
   terminalId: string;
   terminal: any;
-  offsetMinutes: number;
-  dwellMinutes: number;
   allowPickup: boolean;
   allowDropoff: boolean;
   distanceFromOriginKm?: number | undefined;
@@ -113,8 +111,6 @@ export function RouteEditorSheet({
             id: w.id || crypto.randomUUID(),
             terminalId: w.terminalId,
             terminal: w.terminal,
-            offsetMinutes: w.arrivalOffsetMinutes ?? 0,
-            dwellMinutes: Math.max(0, (w.departureOffsetMinutes ?? 0) - (w.arrivalOffsetMinutes ?? 0)),
             allowPickup: w.isPickup ?? true,
             allowDropoff: w.isDropoff ?? true,
             distanceFromOriginKm: w.distanceFromOriginKm ?? undefined,
@@ -163,8 +159,6 @@ export function RouteEditorSheet({
         status,
         waypoints: waypoints.map((w, idx) => ({
           terminalId: w.terminalId,
-          offsetMinutes: w.offsetMinutes,
-          dwellMinutes: w.dwellMinutes,
           allowPickup: w.allowPickup,
           allowDropoff: w.allowDropoff,
           distanceFromOriginKm: w.distanceFromOriginKm,

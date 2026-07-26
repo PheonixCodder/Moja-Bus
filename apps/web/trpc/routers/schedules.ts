@@ -28,6 +28,7 @@ import type { PrismaClient } from "@moja/db";
 function computeScheduleWaypoints(
   routeWaypoints: { id: string; stopOrder: number; distanceFromOriginKm: number | null }[],
   fares: { fromStopOrder: number; toStopOrder: number; durationMinutes: number }[],
+  dwells: ReadonlyMap<number, number> = new Map(),
 ): { routeWaypointId: string; arrivalOffsetMinutes: number; departureOffsetMinutes: number; dwellMinutes: number }[] {
   if (routeWaypoints.length === 0) return [];
 
@@ -69,18 +70,18 @@ function computeScheduleWaypoints(
     }
 
     const travel = segDuration ?? 30;
+    const dwellMinutes = dwells.get(wp.stopOrder) ?? 0;
 
-    // arrivalOffset = cumulative (sum of previous segment durations)
-    // departureOffset = arrivalOffset (no dwell by default — dwell is optional)
-    const arrivalOffset = cumulative;
     cumulative += travel;
+    const arrivalOffset = cumulative;
+    cumulative += dwellMinutes;
     const departureOffset = cumulative;
 
     result.push({
       routeWaypointId: wp.id,
       arrivalOffsetMinutes: arrivalOffset,
       departureOffsetMinutes: departureOffset,
-      dwellMinutes: 0,
+      dwellMinutes,
     });
 
     prevOrder = curOrder;
@@ -467,7 +468,7 @@ fares: {
     .input(createScheduleSchema)
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "schedules:create");
-      const { name, routeId, preferredBusId, departureTime, calendar, fares } =
+      const { name, routeId, preferredBusId, departureTime, calendar, fares, dwells } =
         input;
 
       const route = await ctx.prisma.route.findFirst({
@@ -577,7 +578,7 @@ fares: {
         });
 
         // Compute schedule-specific waypoint timings from adjacent fare durations + dwell
-        const swData = computeScheduleWaypoints(route.waypoints, fares);
+        const swData = computeScheduleWaypoints(route.waypoints, fares, new Map((dwells ?? []).map((d) => [d.stopOrder, d.dwellMinutes])));
         if (swData.length > 0) {
           await tx.scheduleWaypoint.createMany({ data: swData.map((sw) => ({ ...sw, scheduleId: schedule.id })) });
         }

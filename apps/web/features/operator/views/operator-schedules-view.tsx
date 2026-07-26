@@ -188,8 +188,7 @@ export function OperatorSchedulesView() {
   function canProceed() {
     if (step === "Route") return !!routePick;
     if (step === "Stops") {
-      if (!selectedRoute?.waypoints?.length) return true;
-      return timings.length >= selectedRoute.waypoints.length;
+      return true;
     }
     if (step === "Calendar") {
       const hasDays = Object.values(calConfig.days).some(Boolean);
@@ -234,6 +233,12 @@ export function OperatorSchedulesView() {
           validFrom: calConfig.validFrom,
           ...(calConfig.validUntil ? { validUntil: calConfig.validUntil } : {}),
 },
+        dwells: timings
+          .filter((d) => d.stopOrder > 0)
+          .map((d) => ({
+            stopOrder: d.stopOrder,
+            dwellMinutes: d.dwellMinutes,
+          })),
         fares: fares
           .filter((f) => f.priceXOF > 0)
           .map((f) => ({
@@ -348,7 +353,7 @@ export function OperatorSchedulesView() {
           )}
           {step === "Stops" && selectedRoute && (
             <TimingStep
-              waypoints={selectedRoute.waypoints ?? []}
+              stops={stops}
               timings={timings}
               onChange={setTimings}
             />
@@ -373,10 +378,9 @@ export function OperatorSchedulesView() {
                 stops={stops}
                 fares={fares}
                 dwells={new Map(
-                  timings.map((d) => {
-                    const wp = selectedRoute?.waypoints?.find((w) => w.id === d.routeWaypointId);
-                    return [wp?.stopOrder ?? -1, d.dwellMinutes] as const;
-                  }).filter(([k]) => k > 0),
+                  timings
+                    .filter((d) => d.stopOrder > 0)
+                    .map((d) => [d.stopOrder, d.dwellMinutes] as const),
                 )}
                 onChange={setFares}
               />

@@ -707,21 +707,8 @@ enum TripStatus {
   DELAYED
 }
 
-// DEPRECATED — do not rely on SeatStatus for availability logic.
-// The authoritative seat-availability model is derived at query time, not
-// stored here: a seat is AVAILABLE if a TripSeat exists for the trip AND no
-// CONFIRMED or PENDING_PAYMENT booking claims that seatId for the trip.
-// Booking overlap — not this enum — is the source of truth, so reading
-// SeatStatus will cause double-booking or ghost availability.
-// TripSeat.isActive (below) is the only related field still in use: it marks
-// whether the physical seat is usable (e.g. broken seat blocked by operator),
-// NOT whether it is booked.
-enum SeatStatus {
-  AVAILABLE
-  HELD
-  BOOKED
-  BLOCKED
-}
+// NOTE: Seat availability is derived at query time from booking overlap,
+// not stored. TripSeat.isActive marks physical usability only.
 
 // ============================================
 // CITIES (Platform-seeded — Côte d'Ivoire only)
@@ -953,8 +940,9 @@ model Seat {
   col      Int
   deck     Int      @default(1)
   label    String // "1A", "2B" — copied from SeatTemplate, operator can rename
-  seatType SeatType
-  isActive Boolean  @default(true) // false = blocked/damaged
+  seatType   SeatType
+  isBookable Boolean  @default(true) // immutable: copied from SeatTemplate.isBookable
+  isActive   Boolean  @default(true) // false = operator disabled (broken/damaged)
 
   tripSeats TripSeat[]
   bookings  Booking[]
@@ -1006,14 +994,11 @@ model RouteWaypoint {
   terminalId String
   terminal   CompanyLocation @relation(fields: [terminalId], references: [id])
 
-  stopOrder              Int // 0 = origin, 1..N-1 = intermediate, N = destination
-  arrivalOffsetMinutes   Int // DEFAULT timing - can be overridden by ScheduleWaypoint
-  departureOffsetMinutes Int // DEFAULT timing - can be overridden by ScheduleWaypoint
-  distanceFromOriginKm   Float?
-  isPickup               Boolean @default(true) // passengers can board here
-  isDropoff              Boolean @default(true) // passengers can alight here
+  stopOrder            Int // 0 = origin, 1..N-1 = intermediate, N = destination
+  distanceFromOriginKm Float?
+  isPickup             Boolean @default(true) // passengers can board here
+  isDropoff            Boolean @default(true) // passengers can alight here
 
-  // Schedule-specific timing overrides
   scheduleWaypoints ScheduleWaypoint[] @relation("WaypointScheduleTiming")
 
   @@unique([routeId, stopOrder])
@@ -1239,12 +1224,10 @@ model TripSeat {
   seatId String
   seat   Seat   @relation(fields: [seatId], references: [id])
 
-  // Marks whether the PHYSICAL seat is usable (false = blocked/damaged by the
-  // operator). This is independent of booking state. Seat AVAILABILITY for a
-  // trip is NOT stored here — it is derived from booking overlap (see the
-  // SeatStatus enum note). A seat with isActive=false should be excluded from
-  // the selectable seat map entirely.
-  isActive      Boolean @default(true) // false = blocked/damaged
+  // Marks whether the seat is usable for THIS trip (false = operator blocked this
+  // seat per-trip, or inherited from Seat.isActive at trip creation).
+  // Availability for booking is derived from booking overlap at query time.
+  isActive      Boolean @default(true)
   blockedReason String?
 
   createdAt DateTime @default(now())
@@ -1253,6 +1236,7 @@ model TripSeat {
   @@unique([tripId, seatId])
   @@index([tripId])
   @@index([tripId, isActive])
+  @@index([tripId, isActive, seatId])
   @@map("trip_seat")
 }
 

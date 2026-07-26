@@ -20,3 +20,5 @@ Do not cache authenticated, cart, checkout, preview, or per-user routes. Do not 
 
 ## Verification
 Name the observed route signal, current routeRule or missing rule, chosen cache mode, and exact config line.
+
+

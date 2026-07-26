@@ -34,7 +34,7 @@ export const tripsRouter = createTRPCRouter({
 
       const bus = await ctx.prisma.bus.findFirst({
         where: { id: input.busId, companyId: ctx.companyId, status: "ACTIVE", deletedAt: null },
-        include: { seats: { where: { isActive: true } } },
+        include: { seats: true },
       });
       if (!bus) throw new TRPCError({ code: "BAD_REQUEST", message: "Bus invalid or not active" });
 
@@ -52,7 +52,7 @@ export const tripsRouter = createTRPCRouter({
 
       const lastRw = schedule.route.waypoints[schedule.route.waypoints.length - 1];
       const lastSw = lastRw ? timingMap.get(lastRw.id) : undefined;
-      const destDepartureOffset = lastSw?.departureOffsetMinutes ?? lastRw?.departureOffsetMinutes ?? 0;
+      const destDepartureOffset = lastSw?.departureOffsetMinutes ?? 0;
 
       return ctx.prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({
@@ -68,9 +68,10 @@ export const tripsRouter = createTRPCRouter({
               bus.seats.filter(
                 (s) =>
                   s.isActive &&
+                  s.isBookable &&
                   s.seatType !== "DRIVER_AREA" &&
                   s.seatType !== "EMPTY_SPACE",
-              ).length || bus.seats.length,
+              ).length,
             status: "SCHEDULED",
             routeSnapshotJson: {
               ...schedule.route,
@@ -99,10 +100,8 @@ export const tripsRouter = createTRPCRouter({
             },
             ...schedule.route.waypoints.map((w) => {
               const sw = timingMap.get(w.id);
-              const arrivalOffset =
-                sw?.arrivalOffsetMinutes ?? w.arrivalOffsetMinutes;
-              const departureOffset =
-                sw?.departureOffsetMinutes ?? w.departureOffsetMinutes;
+              const arrivalOffset = sw?.arrivalOffsetMinutes ?? 0;
+              const departureOffset = sw?.departureOffsetMinutes ?? 0;
               return {
                 tripId: createdTrip.id,
                 terminalId: w.terminalId,
@@ -137,7 +136,7 @@ export const tripsRouter = createTRPCRouter({
           data: bus.seats.map((seat) => ({
             tripId: createdTrip.id,
             seatId: seat.id,
-            isActive: true,
+            isActive: seat.isActive,
           })),
         });
 
@@ -542,7 +541,7 @@ export const tripsRouter = createTRPCRouter({
             status: "ACTIVE",
             deletedAt: null,
           },
-          include: { seats: { where: { isActive: true } } },
+          include: { seats: true },
         });
 
         if (!newBus) {
@@ -586,9 +585,10 @@ export const tripsRouter = createTRPCRouter({
               newBus.seats.filter(
                 (s) =>
                   s.isActive &&
+                  s.isBookable &&
                   s.seatType !== "DRIVER_AREA" &&
                   s.seatType !== "EMPTY_SPACE",
-              ).length || newBus.seats.length,
+              ).length,
           },
         });
 
@@ -623,7 +623,7 @@ export const tripsRouter = createTRPCRouter({
             data: newBus.seats.map((seat) => ({
               tripId: trip.id,
               seatId: seat.id,
-              isActive: true,
+              isActive: seat.isActive,
             })),
           });
         }
@@ -1227,6 +1227,19 @@ export const tripsRouter = createTRPCRouter({
         update: {
           isActive: input.isActive,
         },
+      });
+
+      // Sync Trip.totalSeats
+      const count = await ctx.prisma.tripSeat.count({
+        where: {
+          tripId: input.tripId,
+          isActive: true,
+          seat: { isBookable: true },
+        },
+      });
+      await ctx.prisma.trip.update({
+        where: { id: input.tripId },
+        data: { totalSeats: count },
       });
 
       return tripSeat;

@@ -101,17 +101,10 @@ export class SearchService {
       if (layout.hasToilet) amenitiesList.push("TOILET");
       if (layout.hasLuggage) amenitiesList.push("LUGGAGE");
 
-      // Compute availability metrics — prioritize template's configured bookable seat count
-      const activeSeatsCount = trip.bus.seats.filter(
-        (s) =>
-          s.isActive &&
-          s.seatType !== "DRIVER_AREA" &&
-          s.seatType !== "EMPTY_SPACE",
+      // Compute from TripSeat records — only active, bookable, non-structural seats count
+      const totalSeats = trip.seats.filter(
+        (s) => s.seat.isBookable && s.seat.seatType !== "DRIVER_AREA" && s.seat.seatType !== "EMPTY_SPACE"
       ).length;
-      const totalSeats =
-        layout?.totalSeats && layout.totalSeats > 0 && layout.totalSeats < activeSeatsCount
-          ? layout.totalSeats
-          : activeSeatsCount || layout?.totalSeats || trip.totalSeats;
       const occupiedSeats = occupancyData.get(trip.id) ?? 0;
       const remainingSeats = Math.max(0, totalSeats - occupiedSeats);
 

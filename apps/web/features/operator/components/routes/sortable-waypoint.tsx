@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CheckCircle2, Clock, GripVertical, Pencil, X, MapPin, ArrowUpRight, ArrowDownRight, Hourglass } from "lucide-react";
+import { CheckCircle2, GripVertical, X, MapPin, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { Input } from "@moja/ui/components/ui/input";
 import { Badge } from "@moja/ui/components/ui/badge";
@@ -16,20 +16,9 @@ export interface WaypointDraft {
   id: string;
   terminalId: string;
   terminal: Terminal;
-  offsetMinutes: number;
-  dwellMinutes: number;
   distanceFromOriginKm?: number | null;
   allowPickup: boolean;
   allowDropoff: boolean;
-}
-
-function formatOffset(minutes: number): string {
-  if (minutes === 0) return "Origin";
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `+${m}m`;
-  if (m === 0) return `+${h}h`;
-  return `+${h}h ${m}m`;
 }
 
 interface SortableWaypointProps {
@@ -63,36 +52,10 @@ export function SortableWaypoint({
     transition,
   };
 
-  const [editingOffset, setEditingOffset] = useState(false);
-  const [offsetInput, setOffsetInput] = useState(waypoint.offsetMinutes.toString());
-
-  const [editingDwell, setEditingDwell] = useState(false);
-  const [dwellInput, setDwellInput] = useState((waypoint.dwellMinutes ?? 15).toString());
-
   const [editingDistance, setEditingDistance] = useState(false);
   const [distanceInput, setDistanceInput] = useState(
     waypoint.distanceFromOriginKm?.toString() ?? "",
   );
-
-  function commitOffset() {
-    const parsed = parseInt(offsetInput, 10);
-    if (!isNaN(parsed) && parsed >= 0) {
-      onUpdate(waypoint.id, { offsetMinutes: parsed });
-    } else {
-      setOffsetInput(waypoint.offsetMinutes.toString());
-    }
-    setEditingOffset(false);
-  }
-
-  function commitDwell() {
-    const parsed = parseInt(dwellInput, 10);
-    if (!isNaN(parsed) && parsed >= 1) {
-      onUpdate(waypoint.id, { dwellMinutes: parsed });
-    } else {
-      setDwellInput((waypoint.dwellMinutes ?? 15).toString());
-    }
-    setEditingDwell(false);
-  }
 
   function commitDistance() {
     if (!distanceInput.trim()) {
@@ -110,14 +73,12 @@ export function SortableWaypoint({
 
   function togglePickup() {
     if (isOrigin || isDest) return;
-    // Don't allow unchecking both pickup and dropoff
     if (waypoint.allowPickup && !waypoint.allowDropoff) return;
     onUpdate(waypoint.id, { allowPickup: !waypoint.allowPickup });
   }
 
   function toggleDropoff() {
     if (isOrigin || isDest) return;
-    // Don't allow unchecking both pickup and dropoff
     if (waypoint.allowDropoff && !waypoint.allowPickup) return;
     onUpdate(waypoint.id, { allowDropoff: !waypoint.allowDropoff });
   }
@@ -206,99 +167,8 @@ export function SortableWaypoint({
               )}
             </div>
 
-            {/* Metrics row: Offset, Dwell, Distance */}
+            {/* Metrics row: Distance */}
             <div className="flex items-center gap-3 flex-wrap pt-1 border-t border-border/50 text-[11px]">
-              {/* Offset badge / editor */}
-              {!isOrigin ? (
-                editingOffset ? (
-                  <div className="flex items-center gap-1">
-                    <Clock className="size-3 text-primary" />
-                    <Input
-                      type="number"
-                      min={0}
-                      className="h-6 w-16 text-xs px-1"
-                      value={offsetInput}
-                      onChange={(e) => setOffsetInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") commitOffset();
-                        if (e.key === "Escape") setEditingOffset(false);
-                      }}
-                      autoFocus
-                    />
-                    <span className="text-[10px] text-muted-foreground">min</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-5 text-primary"
-                      onClick={commitOffset}
-                    >
-                      <CheckCircle2 className="size-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOffsetInput(waypoint.offsetMinutes.toString());
-                      setEditingOffset(true);
-                    }}
-                    className="inline-flex items-center gap-1 font-medium text-primary/80 hover:text-primary transition-colors group/offset"
-                  >
-                    <Clock className="size-3" />
-                    <span>Arrival {formatOffset(waypoint.offsetMinutes)}</span>
-                    <Pencil className="size-2.5 opacity-0 group-hover/offset:opacity-100 transition-opacity" />
-                  </button>
-                )
-              ) : (
-                <span className="inline-flex items-center gap-1 text-muted-foreground font-medium">
-                  <Clock className="size-3" /> Origin Departure (0m)
-                </span>
-              )}
-
-              {/* Dwell time badge / editor for intermediate stops */}
-              {!isOrigin && !isDest && (
-                editingDwell ? (
-                  <div className="flex items-center gap-1">
-                    <Hourglass className="size-3 text-amber-600" />
-                    <Input
-                      type="number"
-                      min={1}
-                      className="h-6 w-16 text-xs px-1"
-                      value={dwellInput}
-                      onChange={(e) => setDwellInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") commitDwell();
-                        if (e.key === "Escape") setEditingDwell(false);
-                      }}
-                      autoFocus
-                    />
-                    <span className="text-[10px] text-muted-foreground">min dwell</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-5 text-primary"
-                      onClick={commitDwell}
-                    >
-                      <CheckCircle2 className="size-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDwellInput((waypoint.dwellMinutes ?? 15).toString());
-                      setEditingDwell(true);
-                    }}
-                    className="inline-flex items-center gap-1 font-medium text-amber-700/80 hover:text-amber-800 transition-colors group/dwell"
-                  >
-                    <Hourglass className="size-3" />
-                    <span>Dwell {waypoint.dwellMinutes ?? 15}m</span>
-                    <Pencil className="size-2.5 opacity-0 group-hover/dwell:opacity-100 transition-opacity" />
-                  </button>
-                )
-              )}
-
-              {/* Distance from origin badge / editor */}
               {!isOrigin && (
                 editingDistance ? (
                   <div className="flex items-center gap-1">
@@ -342,7 +212,6 @@ export function SortableWaypoint({
                         ? `${waypoint.distanceFromOriginKm} km`
                         : "+ Distance"}
                     </span>
-                    <Pencil className="size-2.5 opacity-0 group-hover/dist:opacity-100 transition-opacity" />
                   </button>
                 )
               )}

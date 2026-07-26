@@ -11,7 +11,7 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@moja/ui/components/ui/drawer";
-import { Map, Clock, ArrowRight } from "lucide-react";
+import { Map, ArrowRight } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 
 const RouteMapPreview = dynamic(
@@ -28,15 +28,6 @@ function MapSkeleton() {
       </div>
     </div>
   );
-}
-
-function formatOffset(minutes: number): string {
-  if (minutes === 0) return "Origin";
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `+${m}m`;
-  if (m === 0) return `+${h}h`;
-  return `+${h}h ${m}m`;
 }
 
 interface AdminRouteDrawerProps {
@@ -59,22 +50,15 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
     {
       id: "origin",
       terminal: route.originTerminal,
-      offsetMinutes: 0,
     },
     ...route.waypoints.map(wp => ({
       id: wp.id,
       terminal: wp.terminal,
-      offsetMinutes: wp.arrivalOffsetMinutes,
     })),
     {
       id: "dest",
       terminal: route.destTerminal,
-      offsetMinutes: route.waypoints.length > 0
-        ? route.waypoints[route.waypoints.length - 1]!.arrivalOffsetMinutes +
-          Math.max(0, route.waypoints[route.waypoints.length - 1]!.departureOffsetMinutes - route.waypoints[route.waypoints.length - 1]!.arrivalOffsetMinutes) +
-          45
-        : 60,
-    }
+    },
   ] : [];
 
   const mapTerminals = allStops
@@ -141,13 +125,6 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         {stop.terminal.cityRelation?.name ?? stop.terminal.city}
                       </p>
-                      
-                      {!isOrigin && (
-                        <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-primary">
-                          <Clock className="size-3.5" />
-                          {formatOffset(stop.offsetMinutes)}
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
