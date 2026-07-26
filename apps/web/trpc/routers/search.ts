@@ -212,6 +212,7 @@ export const searchRouter = createTRPCRouter({
         const originStop = trip.tripStops.find(
           (s: any) =>
             s.terminal.cityId === originId &&
+            s.isPickup &&
             s.scheduledDeparture !== null &&
             (!isUrban || s.terminal.municipalityId === urbanOriginMuni),
         );
@@ -219,6 +220,7 @@ export const searchRouter = createTRPCRouter({
         const destStop = trip.tripStops.find(
           (s: any) =>
             s.terminal.cityId === destId &&
+            s.isDropoff &&
             (!isUrban || s.terminal.municipalityId === urbanDestMuni),
         );
         if (!destStop || originStop.stopOrder >= destStop.stopOrder) continue;

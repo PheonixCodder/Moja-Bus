@@ -330,7 +330,9 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
           <SearchDateStrip
             from={params.from}
             to={params.to}
-            {...(params.fromMuni ? { fromMuni: params.fromMuni, toMuni: params.toMuni } : {})}
+            {...(params.fromMuni || params.toMuni
+              ? { fromMuni: params.fromMuni, toMuni: params.toMuni }
+              : {})}
             selectedDate={params.date}
             onSelectDate={handleDateSelect}
           />

@@ -71,7 +71,7 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
       (origin.level === "municipality" && destination.level === "city")
     );
 
-    if (originVal === destVal || (sameCity && (bothCityLevel || sameMunicipality))) {
+    if ((!sameCity && originVal === destVal) || (sameCity && (bothCityLevel || sameMunicipality))) {
       toast.error(t("validation.sameCity"));
       return;
     }

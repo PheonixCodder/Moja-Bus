@@ -48,8 +48,16 @@ export const SearchForm = memo(function SearchForm({
   onSearch,
 }: SearchFormProps) {
   const t = useTranslations("search");
-  const [origin, setOrigin] = useState<CityValue>({ id: initialFromId, text: "" });
-  const [destination, setDestination] = useState<CityValue>({ id: initialToId, text: "" });
+  const [origin, setOrigin] = useState<CityValue>({
+    id: initialFromId,
+    text: "",
+    ...(initialFromMuni ? { municipalityId: initialFromMuni, level: "municipality" } : {}),
+  });
+  const [destination, setDestination] = useState<CityValue>({
+    id: initialToId,
+    text: "",
+    ...(initialToMuni ? { municipalityId: initialToMuni, level: "municipality" } : {}),
+  });
   const [date, setDate] = useState(initialDate || todayISO());
   const [passengers, setPassengers] = useState(initialPassengers);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -60,11 +68,11 @@ export const SearchForm = memo(function SearchForm({
   const { data: destCity } = useCityDetails(initialToId);
 
   useEffect(() => {
-    if (originCity) setOrigin({ id: originCity.id, text: originCity.name });
+    if (originCity) setOrigin((prev) => ({ ...prev, id: originCity.id, text: originCity.name }));
   }, [originCity]);
 
   useEffect(() => {
-    if (destCity) setDestination({ id: destCity.id, text: destCity.name });
+    if (destCity) setDestination((prev) => ({ ...prev, id: destCity.id, text: destCity.name }));
   }, [destCity]);
 
   function handleSwap() {
@@ -98,7 +106,7 @@ export const SearchForm = memo(function SearchForm({
       (origin.level === "municipality" && destination.level === "city")
     );
 
-    if (originVal === destVal || (sameCity && (bothCityLevel || sameMunicipality))) {
+    if ((!sameCity && originVal === destVal) || (sameCity && (bothCityLevel || sameMunicipality))) {
       toast.error(t("sameCity"));
       return;
     }
