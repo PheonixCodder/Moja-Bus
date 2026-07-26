@@ -287,8 +287,8 @@ export function BookingCheckoutForm({
       <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
         <h3 className="text-sm font-bold text-slate-800">Booking summary</h3>
         <p className="text-xs text-slate-600">
-          {tripDetails.companyName} · {tripDetails.originCityName} →{" "}
-          {tripDetails.destinationCityName}
+          {tripDetails.companyName} · {tripDetails.originCityName}{tripDetails.originMunicipalityName ? ` (${tripDetails.originMunicipalityName})` : ""} →{" "}
+          {tripDetails.destinationCityName}{tripDetails.destinationMunicipalityName ? ` (${tripDetails.destinationMunicipalityName})` : ""}
         </p>
         <p className="text-xs text-slate-600">
           Seats: {selectedLabels.join(", ")} ({selectedSeatIds.length})

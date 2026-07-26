@@ -112,18 +112,18 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
           <div className="font-medium text-xs leading-none">
-            {booking.originCityName}
+            {booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}
           </div>
           <div className="text-muted-foreground text-[10px]">
-            {booking.originTerminalName}
+            {booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}
           </div>
         </div>
         <div className="flex flex-col gap-0.5 text-right">
           <div className="font-medium text-xs leading-none">
-            {booking.destinationCityName}
+            {booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}
           </div>
           <div className="text-muted-foreground text-[10px]">
-            {booking.destinationTerminalName}
+            {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
           </div>
         </div>
       </div>

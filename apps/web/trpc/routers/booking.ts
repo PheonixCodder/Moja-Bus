@@ -62,8 +62,8 @@ export const bookingRouter = createTRPCRouter({
                   include: {
                     route: {
                       include: {
-                        originTerminal: { include: { cityRelation: true } },
-                        destTerminal: { include: { cityRelation: true } },
+                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                       },
                     },
                   },
@@ -74,6 +74,8 @@ export const bookingRouter = createTRPCRouter({
             if (details) {
               const originCity = details.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
               const destCity = details.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+              const originMunicipality = details.schedule.route.originTerminal.municipality?.name ?? null;
+              const destMunicipality = details.schedule.route.destTerminal.municipality?.name ?? null;
               await novu.trigger({
                 workflowId: "passenger-hold-created",
                 to: {
@@ -85,6 +87,8 @@ export const bookingRouter = createTRPCRouter({
                   passengerName,
                   originCity,
                   destinationCity: destCity,
+                  originMunicipality,
+                  destinationMunicipality: destMunicipality,
                   departureTime: details.departureDate.toLocaleString("en-US", { timeZone: "Africa/Abidjan" }),
                   holdId: result.holdId,
                   expiresAt: result.holdExpiresAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "Africa/Abidjan" }),
@@ -248,8 +252,8 @@ export const bookingRouter = createTRPCRouter({
                 include: {
                   route: {
                     include: {
-                      originTerminal: { include: { cityRelation: true } },
-                      destTerminal: { include: { cityRelation: true } },
+                      originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                      destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                     },
                   },
                 },
@@ -268,6 +272,8 @@ export const bookingRouter = createTRPCRouter({
 
       const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
       const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+      const originMunicipality = booking.trip.schedule.route.originTerminal.municipality?.name ?? null;
+      const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
 
       const novu = getNovuClient();
       if (novu) {
@@ -284,6 +290,8 @@ export const bookingRouter = createTRPCRouter({
               senderName: ctx.user.name ?? "A friend",
               originCity,
               destinationCity: destCity,
+              originMunicipality,
+              destinationMunicipality: destMunicipality,
               departureTime: booking.trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
               ticketToken: booking.ticketToken,
               phone: input.recipientPhone || undefined,

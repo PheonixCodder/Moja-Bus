@@ -15,10 +15,10 @@ const bookingInclude = {
   seat: true,
   company: true,
   originTripStop: {
-    include: { terminal: { include: { cityRelation: true } } },
+    include: { terminal: { include: { cityRelation: true, municipality: true, quarter: true } } },
   },
   destinationTripStop: {
-    include: { terminal: { include: { cityRelation: true } } },
+    include: { terminal: { include: { cityRelation: true, municipality: true, quarter: true } } },
   },
 } as const;
 
@@ -297,11 +297,11 @@ export class BookingReadService {
       company: { name: string };
       originTripStop: {
         scheduledDeparture: Date | null;
-        terminal: { name: string; cityRelation: { name: string } | null; latitude: number | null; longitude: number | null };
+        terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null; latitude: number | null; longitude: number | null };
       };
       destinationTripStop: {
         scheduledArrival: Date | null;
-        terminal: { name: string; cityRelation: { name: string } | null; latitude: number | null; longitude: number | null };
+        terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null; latitude: number | null; longitude: number | null };
       };
     }>,
   ): PassengerBookingSummary {
@@ -325,10 +325,18 @@ export class BookingReadService {
       originTerminalName: first.originTripStop.terminal.name,
       originCityName:
         first.originTripStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+      originMunicipalityName:
+        first.originTripStop.terminal.municipality?.name ?? null,
+      originQuarterName:
+        first.originTripStop.terminal.quarter?.name ?? null,
       destinationTerminalName: first.destinationTripStop.terminal.name,
       destinationCityName:
         first.destinationTripStop.terminal.cityRelation?.name ??
         "Côte d'Ivoire",
+      destinationMunicipalityName:
+        first.destinationTripStop.terminal.municipality?.name ?? null,
+      destinationQuarterName:
+        first.destinationTripStop.terminal.quarter?.name ?? null,
       departureTime,
       arrivalTime,
       passengerName: displayName,
@@ -374,11 +382,11 @@ export class BookingReadService {
     seat: { label: string };
     originTripStop: {
       scheduledDeparture: Date | null;
-      terminal: { name: string; cityRelation: { name: string } | null };
+      terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null };
     };
     destinationTripStop: {
       scheduledArrival: Date | null;
-      terminal: { name: string; cityRelation: { name: string } | null };
+      terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null };
     };
   }): DigitalTicketDTO {
     const baseUrl =
@@ -395,10 +403,18 @@ export class BookingReadService {
       originTerminalName: booking.originTripStop.terminal.name,
       originCityName:
         booking.originTripStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+      originMunicipalityName:
+        booking.originTripStop.terminal.municipality?.name ?? null,
+      originQuarterName:
+        booking.originTripStop.terminal.quarter?.name ?? null,
       destinationTerminalName: booking.destinationTripStop.terminal.name,
       destinationCityName:
         booking.destinationTripStop.terminal.cityRelation?.name ??
         "Côte d'Ivoire",
+      destinationMunicipalityName:
+        booking.destinationTripStop.terminal.municipality?.name ?? null,
+      destinationQuarterName:
+        booking.destinationTripStop.terminal.quarter?.name ?? null,
       departureTime:
         booking.originTripStop.scheduledDeparture ?? new Date(),
       arrivalTime:

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Input } from "@moja/ui/components/ui/input";
 import type {
@@ -11,10 +11,12 @@ import type {
 export function PricingStep({
   stops,
   fares,
+  dwells,
   onChange,
 }: {
   stops: StopLabel[];
   fares: FareDraft[];
+  dwells: Map<number, number>; // stopOrder → dwellMinutes for intermediate stops
   onChange: (fares: FareDraft[]) => void;
 }) {
   const t = useTranslations("operatorDashboard.schedules");
@@ -43,6 +45,7 @@ export function PricingStep({
     const next: FareDraft = {
       fromStopOrder: from,
       toStopOrder: to,
+      durationMinutes: patch.durationMinutes ?? prev?.durationMinutes ?? 0,
       priceXOF: patch.priceXOF ?? prev?.priceXOF ?? 0,
       type: patch.type ?? prev?.type ?? "FIXED",
     };
@@ -51,6 +54,31 @@ export function PricingStep({
       return;
     }
     onChange([...existing, next]);
+  }
+
+  function isAdjacent(from: number, to: number): boolean {
+    return to === from + 1;
+  }
+
+  function computeDuration(from: number, to: number): number {
+    // For adjacent segments, get the stored duration or default
+    if (isAdjacent(from, to)) {
+      const fare = getFare(from, to);
+      return fare?.durationMinutes ?? 0;
+    }
+    // For non-adjacent segments, sum adjacent durations + intermediate dwells
+    let total = 0;
+    for (let i = from; i < to; i++) {
+      const adj = getFare(i, i + 1);
+      if (adj?.durationMinutes && adj.durationMinutes > 0) {
+        total += adj.durationMinutes;
+      }
+      // Add dwell at the intermediate stop (but not the origin or dest)
+      if (i > from && dwells.has(i)) {
+        total += dwells.get(i)!;
+      }
+    }
+    return total;
   }
 
   if (stops.length < 2) {
@@ -91,13 +119,16 @@ export function PricingStep({
         <div className="grid bg-slate-50 border-b border-border px-4 py-2.5">
           <div
             className="grid gap-2"
-            style={{ gridTemplateColumns: "1fr 1fr auto auto" }}
+            style={{ gridTemplateColumns: "1fr 1fr auto auto auto" }}
           >
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {t("wizard.from")}
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {t("wizard.to")}
+            </span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              {t("wizard.duration")}
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {t("wizard.type")}
@@ -111,12 +142,14 @@ export function PricingStep({
         <div className="divide-y divide-border">
           {segmentPairs.map(([from, to]) => {
             const fare = getFare(from.order, to.order);
+            const adj = isAdjacent(from.order, to.order);
+            const computedDur = computeDuration(from.order, to.order);
 
             return (
               <div
                 key={`${from.order}-${to.order}`}
                 className="grid gap-2 px-4 py-3 items-center hover:bg-slate-50/50 transition-colors"
-                style={{ gridTemplateColumns: "1fr 1fr auto auto" }}
+                style={{ gridTemplateColumns: "1fr 1fr auto auto auto" }}
               >
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-foreground truncate">
@@ -133,6 +166,30 @@ export function PricingStep({
                     <p className="text-[11px] text-muted-foreground">{to.city}</p>
                   </div>
                 </div>
+                <div className="w-20 flex items-center gap-1">
+                  {adj ? (
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="30"
+                      value={fare?.durationMinutes || ""}
+                      onChange={(e) => {
+                        const parsed = parseInt(e.target.value.replace(/\D/g, ""), 10);
+                        upsertFare(from.order, to.order, {
+                          durationMinutes: Number.isNaN(parsed) ? 0 : parsed,
+                          priceXOF: fare?.priceXOF ?? 0,
+                          type: fare?.type ?? "FIXED",
+                        });
+                      }}
+                      className="h-8 text-sm text-right font-mono"
+                    />
+                  ) : (
+                    <span className="text-xs font-mono text-muted-foreground w-full text-right px-2">
+                      {computedDur > 0 ? `${computedDur}` : "—"}
+                    </span>
+                  )}
+                  <Clock className="size-3 text-muted-foreground/30 shrink-0" />
+                </div>
                 <div className="w-24">
                   <label className="sr-only" htmlFor={`type-${from.order}-${to.order}`}>
                     {t("wizard.fareType")}
@@ -143,6 +200,7 @@ export function PricingStep({
                     onChange={(e) =>
                       upsertFare(from.order, to.order, {
                         type: e.target.value as FareDraft["type"],
+                        durationMinutes: fare?.durationMinutes ?? 0,
                         priceXOF: fare?.priceXOF ?? 0,
                       })
                     }
@@ -166,6 +224,7 @@ export function PricingStep({
                         10,
                       );
                       upsertFare(from.order, to.order, {
+                        durationMinutes: fare?.durationMinutes ?? (adj ? 0 : computedDur),
                         type: fare?.type ?? "FIXED",
                         priceXOF: Number.isNaN(parsed) ? 0 : parsed,
                       });

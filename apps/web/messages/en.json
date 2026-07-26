@@ -227,12 +227,19 @@
     "filters": {
       "title": "Filters",
       "operator": "Operator",
-      "seatClass": "Seat Class",
+      "busClass": "Bus Class",
       "departure": "Departure Time",
       "maxPrice": "Max Price (XOF)",
       "amenities": "Amenities",
+      "tripType": "Trip Type",
+      "express": "Express Service",
       "clear": "Clear Filters",
       "apply": "Apply"
+    },
+    "seatClass": {
+      "ECONOMY": "Economy",
+      "STANDARD": "Standard",
+      "VIP": "VIP"
     },
     "sort": {
       "label": "Sort by",
@@ -1276,12 +1283,6 @@
       "previous": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {pageCount}",
-      "wizard": {
-        "route": "Route",
-        "calendar": "Calendar",
-        "pricing": "Pricing",
-        "preview": "Preview"
-      },
       "successBanner": {
         "schedulePublished": "Schedule published",
         "tripsGenerated": "{count} trip generated for the next 14 calendar days from today.",
@@ -1290,13 +1291,26 @@
         "dismiss": "Dismiss"
       },
       "wizard": {
+        "route": "route",
+        "timing": "Timing",
+        "calendar": "Calendar",
+        "pricing": "Pricing",
+        "preview": "Preview",
         "scheduleName": "Schedule Name (optional)",
         "scheduleNamePlaceholder": "e.g. Morning Express",
         "selectRoute": "Select a route",
         "onlyActiveRoutes": "Only active routes can be scheduled.",
         "noActiveRoutes": "No active routes available",
         "noActiveRoutesDesc": "Activate a route first before scheduling it.",
+        "noTimingNeeded": "No intermediate stops — timing will use route defaults.",
         "goToRoutes": "Go to Routes →",
+        "timingTitle": "Set segment timing",
+        "timingDesc": "Override arrival/departure offsets for each intermediate stop. Times are minutes from origin departure.",
+        "arrivalOffset": "Arrival offset",
+        "departureOffset": "Departure offset",
+        "arrivalOffsetPlaceholder": "e.g. 60",
+        "departureOffsetPlaceholder": "e.g. 75",
+        "timingFooter": "Timing values use route defaults if left unchanged. Values are in minutes from origin.",
         "calendarTitle": "Calendar & timing",
         "calendarDesc": "Set the days, departure time, and the preferred bus for generated trips.",
         "runsOn": "Runs on",

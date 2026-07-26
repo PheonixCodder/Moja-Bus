@@ -16,8 +16,12 @@ export interface TripSummaryData {
   busTypeName: string;
   originTerminalName: string;
   originCityName: string;
+  originMunicipalityName?: string | null;
+  originQuarterName?: string | null;
   destinationTerminalName: string;
   destinationCityName: string;
+  destinationMunicipalityName?: string | null;
+  destinationQuarterName?: string | null;
   departureTime: Date;
   arrivalTime: Date;
   durationMinutes: number;
@@ -33,6 +37,7 @@ export interface TripSummaryData {
     id: string;
     terminalName: string;
     cityName: string;
+    municipalityName?: string | null;
     scheduledDeparture: Date | null;
   }>;
 }
@@ -110,7 +115,7 @@ export function TripSummaryCard({
                 {trip.busTypeName}
               </p>
               <p className="text-xs text-slate-500 mt-0.5">
-                {trip.originCityName} → {trip.destinationCityName}
+                {trip.originCityName}{trip.originMunicipalityName ? ` (${trip.originMunicipalityName})` : ""} → {trip.destinationCityName}{trip.destinationMunicipalityName ? ` (${trip.destinationMunicipalityName})` : ""}
               </p>
             </div>
           </div>
@@ -124,7 +129,7 @@ export function TripSummaryCard({
                 {trip.originTerminalName}
               </p>
               <span className="text-[10px] font-semibold text-slate-400">
-                {trip.originCityName}
+                {trip.originCityName}{trip.originMunicipalityName ? ` (${trip.originMunicipalityName})` : ""}
               </span>
             </div>
 
@@ -152,7 +157,7 @@ export function TripSummaryCard({
                 {trip.destinationTerminalName}
               </p>
               <span className="text-[10px] font-semibold text-slate-400">
-                {trip.destinationCityName}
+                {trip.destinationCityName}{trip.destinationMunicipalityName ? ` (${trip.destinationMunicipalityName})` : ""}
               </span>
             </div>
           </div>
@@ -192,7 +197,7 @@ export function TripSummaryCard({
           <ol className="text-xs text-slate-600 space-y-1">
             {trip.stops.map((stop) => (
               <li key={stop.id}>
-                {stop.terminalName} ({stop.cityName})
+                {stop.terminalName} ({stop.cityName}{stop.municipalityName ? ` · ${stop.municipalityName}` : ""})
                 {stop.scheduledDeparture
                   ? ` — ${t("departing", { time: formatDepartureTime(stop.scheduledDeparture) })}`
                   : ""}

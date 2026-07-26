@@ -15,8 +15,8 @@ export const routesRouter = createTRPCRouter({
           ...(input?.showArchived ? {} : { status: { not: "ARCHIVED" } }),
         },
         include: {
-          originTerminal: { include: { cityRelation: true } },
-          destTerminal: { include: { cityRelation: true } },
+          originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+          destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
           _count: {
             select: { waypoints: true, schedules: true },
           },
@@ -40,11 +40,11 @@ export const routesRouter = createTRPCRouter({
       const route = await ctx.prisma.route.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
         include: {
-          originTerminal: { include: { cityRelation: true } },
-          destTerminal: { include: { cityRelation: true } },
+          originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+          destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
           waypoints: {
             include: {
-              terminal: { include: { cityRelation: true } },
+              terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
             },
             orderBy: { stopOrder: "asc" },
           },
@@ -114,7 +114,6 @@ export const routesRouter = createTRPCRouter({
           originTerminalId: data.originTerminalId,
           destTerminalId: data.destTerminalId,
           distanceKm: data.distanceKm ?? null,
-          estimatedMinutes: data.estimatedDurationMin ?? null,
           status: data.status,
           waypoints: {
             // M13: normalize stopOrder to 1..N (sequential, no gaps). The
@@ -240,8 +239,6 @@ export const routesRouter = createTRPCRouter({
       if (data.destTerminalId !== undefined)
         updateData["destTerminalId"] = data.destTerminalId;
       if (data.distanceKm !== undefined) updateData["distanceKm"] = data.distanceKm;
-      if (data.estimatedDurationMin !== undefined)
-        updateData["estimatedMinutes"] = data.estimatedDurationMin;
       if (data.status !== undefined) updateData["status"] = data.status;
 
       let updatedRoute;

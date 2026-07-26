@@ -21,6 +21,74 @@ import { cancelTripWithRefunds } from "@/lib/cancel-trip-with-refunds";
 import { getCandidateDepartureDates } from "@/lib/schedule-trip-window";
 import type { PrismaClient } from "@moja/db";
 
+/**
+ * Compute ScheduleWaypoint records from adjacent fare durations + route waypoints.
+ * For missing adjacent segments, proportionally allocate from the full-route fare.
+ */
+function computeScheduleWaypoints(
+  routeWaypoints: { id: string; stopOrder: number; distanceFromOriginKm: number | null }[],
+  fares: { fromStopOrder: number; toStopOrder: number; durationMinutes: number }[],
+): { routeWaypointId: string; arrivalOffsetMinutes: number; departureOffsetMinutes: number; dwellMinutes: number }[] {
+  if (routeWaypoints.length === 0) return [];
+
+  const sorted = [...routeWaypoints].sort((a, b) => a.stopOrder - b.stopOrder);
+
+  // Build adjacent fare map: "fromStopOrder" → durationMinutes
+  const adjFareMap = new Map<number, number>();
+  for (const f of fares) {
+    if (f.toStopOrder === f.fromStopOrder + 1) {
+      adjFareMap.set(f.fromStopOrder, f.durationMinutes);
+    }
+  }
+
+  // Full-route fare for fallback
+  const lastWp = sorted[sorted.length - 1]!;
+  const destOrder = lastWp.stopOrder + 1;
+  const fullRouteFare = fares.find((f) => f.fromStopOrder === 0 && f.toStopOrder === destOrder);
+  const totalDuration = fullRouteFare?.durationMinutes ?? 0;
+  const totalDist = sorted.reduce((s, w) => s + (w.distanceFromOriginKm ?? 0), 0);
+
+  let cumulative = 0;
+  let prevOrder = 0;
+  const result: { routeWaypointId: string; arrivalOffsetMinutes: number; departureOffsetMinutes: number; dwellMinutes: number }[] = [];
+
+  for (let i = 0; i < sorted.length; i++) {
+    const wp = sorted[i]!;
+    const curOrder = wp.stopOrder;
+
+    let segDuration = adjFareMap.get(prevOrder);
+
+    // Fallback: proportionally allocate from full-route fare
+    if (segDuration === undefined && totalDuration > 0) {
+      const segDist = i === 0
+        ? (wp.distanceFromOriginKm ?? 0)
+        : ((wp.distanceFromOriginKm ?? 0) - (sorted[i - 1]?.distanceFromOriginKm ?? 0));
+      const distTotal = totalDist > 0 ? totalDist : sorted.length;
+      const proportion = totalDist > 0 ? Math.max(0, segDist) / distTotal : 1 / (sorted.length + 1);
+      segDuration = Math.max(1, Math.round(totalDuration * proportion));
+    }
+
+    const travel = segDuration ?? 30;
+
+    // arrivalOffset = cumulative (sum of previous segment durations)
+    // departureOffset = arrivalOffset (no dwell by default — dwell is optional)
+    const arrivalOffset = cumulative;
+    cumulative += travel;
+    const departureOffset = cumulative;
+
+    result.push({
+      routeWaypointId: wp.id,
+      arrivalOffsetMinutes: arrivalOffset,
+      departureOffsetMinutes: departureOffset,
+      dwellMinutes: 0,
+    });
+
+    prevOrder = curOrder;
+  }
+
+  return result;
+}
+
 async function pruneUnbookedFutureTrips(
   prisma: PrismaClient,
   scheduleId: string,
@@ -290,8 +358,8 @@ export const schedulesRouter = createTRPCRouter({
           include: {
             route: {
               include: {
-                originTerminal: { include: { cityRelation: true } },
-                destTerminal: { include: { cityRelation: true } },
+                originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
               },
             },
             calendar: true,
@@ -357,12 +425,12 @@ export const schedulesRouter = createTRPCRouter({
         include: {
           route: {
             include: {
-              originTerminal: { include: { cityRelation: true } },
-              destTerminal: { include: { cityRelation: true } },
+              originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+              destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
               waypoints: {
                 orderBy: { stopOrder: "asc" },
                 include: {
-                  terminal: { include: { cityRelation: true } },
+                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                 },
               },
             },
@@ -508,6 +576,12 @@ fares: {
           },
         });
 
+        // Compute schedule-specific waypoint timings from adjacent fare durations + dwell
+        const swData = computeScheduleWaypoints(route.waypoints, fares);
+        if (swData.length > 0) {
+          await tx.scheduleWaypoint.createMany({ data: swData.map((sw) => ({ ...sw, scheduleId: schedule.id })) });
+        }
+
         for (const f of fares) {
           if (f.fromStopOrder >= f.toStopOrder) {
             throw new TRPCError({
@@ -521,6 +595,7 @@ fares: {
               type: f.type,
               fromStopOrder: f.fromStopOrder,
               toStopOrder: f.toStopOrder,
+              durationMinutes: f.durationMinutes,
               priceXOF: f.priceXOF,
               validFrom: f.validFrom ? new Date(f.validFrom) : null,
               validUntil: f.validUntil ? new Date(f.validUntil) : null,
@@ -1030,6 +1105,7 @@ fares: {
           type: f.type,
           fromStopOrder: f.fromStopOrder,
           toStopOrder: f.toStopOrder,
+          durationMinutes: f.durationMinutes,
           priceXOF: f.priceXOF,
           validFrom: newValidFrom,
           validUntil: newValidUntil,

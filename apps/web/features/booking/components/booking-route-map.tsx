@@ -89,11 +89,11 @@ function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Origin</span>
-            <span className="font-semibold">{booking.originCityName}</span>
+            <span className="font-semibold">{booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}</span>
           </div>
           <div className="flex flex-col items-end gap-1 text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Destination</span>
-            <span className="font-semibold">{booking.destinationCityName}</span>
+            <span className="font-semibold">{booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}</span>
           </div>
         </div>
         
@@ -110,8 +110,8 @@ function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }
         </div>
 
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{booking.originTerminalName}</span>
-          <span>{booking.destinationTerminalName}</span>
+          <span>{booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}</span>
+          <span>{booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}</span>
         </div>
       </div>
       
@@ -185,11 +185,11 @@ export default function BookingRouteMap({ booking }: BookingRouteMapProps) {
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 rounded-lg border bg-background/90 p-2 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-2 text-xs">
           <div className="size-2 rounded-full bg-[#9333ea]" />
-          <span className="font-medium">{booking.originCityName}</span>
+          <span className="font-medium">{booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}</span>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <div className="size-2 rounded-full border-2 border-[#ee237c]" />
-          <span className="font-medium">{booking.destinationCityName}</span>
+          <span className="font-medium">{booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}</span>
         </div>
       </div>
     </div>

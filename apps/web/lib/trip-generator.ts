@@ -21,6 +21,11 @@ export async function generateTripsForSchedule(
       },
       calendar: true,
       exceptions: true,
+      scheduleWaypoints: {
+        include: {
+          routeWaypoint: true,
+        },
+      },
     },
   });
 
@@ -70,7 +75,12 @@ export async function generateTripsForSchedule(
     );
   }
 
-  const { calendar, exceptions, route } = schedule;
+  const { calendar, exceptions, route, scheduleWaypoints } = schedule;
+
+  // Build map for schedule-specific waypoint timing
+  const timingMap = new Map(
+    scheduleWaypoints?.map((sw) => [sw.routeWaypointId, sw])
+  );
 
   const candidates = getCandidateDepartureDates({
     departureTime: schedule.departureTime,
@@ -124,6 +134,10 @@ export async function generateTripsForSchedule(
     const departureTimestamp = candidate.departureTimestamp;
 
     try {
+      const lastWp = route.waypoints[route.waypoints.length - 1];
+      const lastTiming = lastWp ? timingMap.get(lastWp.id) : undefined;
+      const destDepartureOffset = lastTiming?.departureOffsetMinutes ?? lastWp?.departureOffsetMinutes ?? 0;
+
       const trip = await prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({
           data: {
@@ -132,8 +146,7 @@ export async function generateTripsForSchedule(
             busId,
             departureDate: departureTimestamp,
             estimatedArrival: new Date(
-              departureTimestamp.getTime() +
-                (route.estimatedMinutes ?? 0) * 60000,
+              departureTimestamp.getTime() + destDepartureOffset * 60000,
             ),
             totalSeats:
               bus.seats.filter(
@@ -143,11 +156,15 @@ export async function generateTripsForSchedule(
                   s.seatType !== "EMPTY_SPACE",
               ).length || bus.seats.length,
             status: "SCHEDULED",
-            routeSnapshotJson: { ...route, version: 1 },
+            routeSnapshotJson: {
+              ...route,
+              scheduleWaypoints: scheduleWaypoints ?? [],
+              version: 1,
+            },
           },
         });
 
-        const lastWaypointOrder =
+const lastWaypointOrder =
           route.waypoints.length > 0
             ? route.waypoints[route.waypoints.length - 1]!.stopOrder
             : 0;
@@ -163,31 +180,34 @@ export async function generateTripsForSchedule(
           isDropoff: false,
         };
 
-        const waypointStops = route.waypoints.map((w) => ({
-          tripId: createdTrip.id,
-          terminalId: w.terminalId,
-          stopOrder: w.stopOrder,
-          scheduledArrival: new Date(
-            departureTimestamp.getTime() + w.arrivalOffsetMinutes * 60000,
-          ),
-          scheduledDeparture: new Date(
-            departureTimestamp.getTime() + w.departureOffsetMinutes * 60000,
-          ),
-          isPickup: w.isPickup,
-          isDropoff: w.isDropoff,
-        }));
+        const waypointStops = route.waypoints.map((w) => {
+          const sw = timingMap.get(w.id);
+          const arrivalOffset = sw?.arrivalOffsetMinutes ?? w.arrivalOffsetMinutes;
+          const departureOffset = sw?.departureOffsetMinutes ?? w.departureOffsetMinutes;
+          return {
+            tripId: createdTrip.id,
+            terminalId: w.terminalId,
+            stopOrder: w.stopOrder,
+            scheduledArrival: new Date(
+              departureTimestamp.getTime() + arrivalOffset * 60000,
+            ),
+            scheduledDeparture: new Date(
+              departureTimestamp.getTime() + departureOffset * 60000,
+            ),
+            isPickup: w.isPickup,
+            isDropoff: w.isDropoff,
+          };
+        });
 
         const destStop = {
           tripId: createdTrip.id,
           terminalId: route.destTerminalId,
           stopOrder: destStopOrder,
           scheduledArrival: new Date(
-            departureTimestamp.getTime() +
-              (route.estimatedMinutes ?? 0) * 60000,
+            departureTimestamp.getTime() + destDepartureOffset * 60000,
           ),
           scheduledDeparture: new Date(
-            departureTimestamp.getTime() +
-              (route.estimatedMinutes ?? 0) * 60000,
+            departureTimestamp.getTime() + destDepartureOffset * 60000,
           ),
           isPickup: false,
           isDropoff: true,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MapPin, Building, Shield, User, Phone, CheckCircle, Navigation } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -88,6 +88,8 @@ export function TerminalEditorSheet({
   const [postalCode, setPostalCode] = useState("");
   const [phone, setPhone] = useState("");
   const [cityId, setCityId] = useState("");
+  const [municipalityId, setMunicipalityId] = useState("");
+  const [quarterId, setQuarterId] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [isTerminal, setIsTerminal] = useState(false);
@@ -98,6 +100,34 @@ export function TerminalEditorSheet({
   const [managerEmail, setManagerEmail] = useState("");
   const [operatingHours, setOperatingHours] = useState(DEFAULT_OPERATING_HOURS);
 
+  const municipalitiesQuery = useQuery(
+    trpc.locations.searchMunicipalities.queryOptions(
+      { cityId: cityId || undefined },
+      { enabled: !!cityId },
+    ),
+  );
+  const municipalities = municipalitiesQuery.data ?? [];
+
+  const quartersQuery = useQuery(
+    trpc.locations.searchQuarters.queryOptions(
+      { municipalityId: municipalityId || undefined },
+      { enabled: !!municipalityId },
+    ),
+  );
+  const quarters = quartersQuery.data ?? [];
+
+  useEffect(() => {
+    if (
+      cityId &&
+      municipalities.length === 1 &&
+      municipalities[0].isPassThrough
+    ) {
+      setMunicipalityId(municipalities[0].id);
+    } else if (!editingLocation) {
+      setMunicipalityId("");
+    }
+  }, [cityId, municipalities, editingLocation]);
+
   useEffect(() => {
     if (editingLocation) {
       setName(editingLocation.name ?? "");
@@ -107,6 +137,8 @@ export function TerminalEditorSheet({
       setPostalCode(editingLocation.postalCode ?? "");
       setPhone(editingLocation.phone ?? "");
       setCityId(editingLocation.cityId ?? "");
+      setMunicipalityId(editingLocation.municipalityId ?? "");
+      setQuarterId(editingLocation.quarterId ?? "");
       setLatitude(editingLocation.latitude ? String(editingLocation.latitude) : "");
       setLongitude(editingLocation.longitude ? String(editingLocation.longitude) : "");
       setIsTerminal(editingLocation.isTerminal ?? false);
@@ -132,6 +164,8 @@ export function TerminalEditorSheet({
       setPostalCode("");
       setPhone("");
       setCityId("");
+      setMunicipalityId("");
+      setQuarterId("");
       setLatitude("");
       setLongitude("");
       setIsTerminal(false);
@@ -171,6 +205,8 @@ export function TerminalEditorSheet({
         postalCode: postalCode.trim() || undefined,
         phone: phone.trim(),
         cityId: cityId || undefined,
+        municipalityId: municipalityId || undefined,
+        quarterId: quarterId || undefined,
         latitude: latitude ? parseFloat(latitude) : undefined,
         longitude: longitude ? parseFloat(longitude) : undefined,
         isTerminal,
@@ -291,6 +327,8 @@ export function TerminalEditorSheet({
                   value={cityId}
                   onChange={(e) => {
                     setCityId(e.target.value);
+                    setMunicipalityId("");
+                    setQuarterId("");
                     setIsDirty(true);
                   }}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -303,9 +341,75 @@ export function TerminalEditorSheet({
                   ))}
                 </select>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="municipalityId" className="text-xs font-semibold uppercase tracking-wider">
+                  Municipality
+                </Label>
+                {cityId && municipalities.length > 0 ? (
+                  <>
+                    {municipalities.length === 1 && municipalities[0].isPassThrough ? (
+                      <Input
+                        id="municipalityId"
+                        value={municipalities[0].name}
+                        readOnly
+                        className="bg-muted"
+                      />
+                    ) : (
+                      <select
+                        id="municipalityId"
+                        value={municipalityId}
+                        onChange={(e) => {
+                          setMunicipalityId(e.target.value);
+                          setQuarterId("");
+                          setIsDirty(true);
+                        }}
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      >
+                        <option value="">Select municipality...</option>
+                        {municipalities.map((m: any) => (
+                          <option key={m.id} value={m.id}>
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </>
+                ) : (
+                  <Input
+                    id="municipalityId"
+                    value=""
+                    readOnly
+                    placeholder={cityId ? "No municipalities found" : "Select a city first"}
+                    className="bg-muted"
+                  />
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="quarterId" className="text-xs font-semibold uppercase tracking-wider">
+                  Quarter / Neighbourhood
+                </Label>
+                <select
+                  id="quarterId"
+                  value={quarterId}
+                  onChange={(e) => {
+                    setQuarterId(e.target.value);
+                    setIsDirty(true);
+                  }}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">{municipalityId ? "Select quarter..." : "Select a municipality first..."}</option>
+                  {quarters.map((q: any) => (
+                    <option key={q.id} value={q.id}>
+                      {q.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="latitude" className="text-xs font-semibold uppercase tracking-wider">
                   Latitude
@@ -322,7 +426,9 @@ export function TerminalEditorSheet({
                   }}
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="longitude" className="text-xs font-semibold uppercase tracking-wider">
                   Longitude
@@ -335,6 +441,21 @@ export function TerminalEditorSheet({
                   value={longitude}
                   onChange={(e) => {
                     setLongitude(e.target.value);
+                    setIsDirty(true);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="state" className="text-xs font-semibold uppercase tracking-wider">
+                  State / Region
+                </Label>
+                <Input
+                  id="state"
+                  placeholder="e.g. Lagunes"
+                  value={stateValue}
+                  onChange={(e) => {
+                    setStateValue(e.target.value);
                     setIsDirty(true);
                   }}
                 />

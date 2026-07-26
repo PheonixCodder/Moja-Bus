@@ -25,7 +25,10 @@ export const tripsRouter = createTRPCRouter({
       requirePermission(ctx, "trips:create");
       const schedule = await ctx.prisma.schedule.findUnique({
         where: { id: input.scheduleId, companyId: ctx.companyId },
-        include: { route: { include: { waypoints: { orderBy: { stopOrder: "asc" } } } } },
+        include: {
+          route: { include: { waypoints: { orderBy: { stopOrder: "asc" } } } },
+          scheduleWaypoints: true,
+        },
       });
       if (!schedule) throw new TRPCError({ code: "NOT_FOUND", message: "Schedule not found" });
 
@@ -42,6 +45,15 @@ export const tripsRouter = createTRPCRouter({
       });
       if (existingTrip) throw new TRPCError({ code: "CONFLICT", message: "Trip already exists for this time" });
 
+      // Build timing map with schedule waypoint overrides
+      const timingMap = new Map(
+        schedule.scheduleWaypoints?.map((sw) => [sw.routeWaypointId, sw]) ?? [],
+      );
+
+      const lastRw = schedule.route.waypoints[schedule.route.waypoints.length - 1];
+      const lastSw = lastRw ? timingMap.get(lastRw.id) : undefined;
+      const destDepartureOffset = lastSw?.departureOffsetMinutes ?? lastRw?.departureOffsetMinutes ?? 0;
+
       return ctx.prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({
           data: {
@@ -49,7 +61,9 @@ export const tripsRouter = createTRPCRouter({
             companyId: ctx.companyId,
             busId: input.busId,
             departureDate: departureTimestamp,
-            estimatedArrival: new Date(departureTimestamp.getTime() + (schedule.route.estimatedMinutes ?? 0) * 60000),
+            estimatedArrival: new Date(
+              departureTimestamp.getTime() + destDepartureOffset * 60000,
+            ),
             totalSeats:
               bus.seats.filter(
                 (s) =>
@@ -60,26 +74,71 @@ export const tripsRouter = createTRPCRouter({
             status: "SCHEDULED",
             routeSnapshotJson: {
               ...schedule.route,
+              scheduleWaypoints: schedule.scheduleWaypoints ?? [],
               version: 1,
             },
           },
         });
 
-        const lastWaypointOrder = schedule.route.waypoints.length > 0 ? schedule.route.waypoints[schedule.route.waypoints.length - 1]!.stopOrder : 0;
+        const lastWaypointOrder =
+          schedule.route.waypoints.length > 0
+            ? schedule.route.waypoints[schedule.route.waypoints.length - 1]!.stopOrder
+            : 0;
         const destStopOrder = lastWaypointOrder + 1;
 
         await tx.tripStop.createMany({
           data: [
-            { tripId: createdTrip.id, terminalId: schedule.route.originTerminalId, stopOrder: 0, scheduledArrival: departureTimestamp, scheduledDeparture: departureTimestamp, isPickup: true, isDropoff: false },
-            ...schedule.route.waypoints.map(w => ({
-              tripId: createdTrip.id, terminalId: w.terminalId, stopOrder: w.stopOrder, scheduledArrival: new Date(departureTimestamp.getTime() + w.arrivalOffsetMinutes * 60000), scheduledDeparture: new Date(departureTimestamp.getTime() + w.departureOffsetMinutes * 60000), isPickup: w.isPickup, isDropoff: w.isDropoff
-            })),
-            { tripId: createdTrip.id, terminalId: schedule.route.destTerminalId, stopOrder: destStopOrder, scheduledArrival: new Date(departureTimestamp.getTime() + (schedule.route.estimatedMinutes ?? 0) * 60000), scheduledDeparture: new Date(departureTimestamp.getTime() + (schedule.route.estimatedMinutes ?? 0) * 60000), isPickup: false, isDropoff: true }
-          ]
+            {
+              tripId: createdTrip.id,
+              terminalId: schedule.route.originTerminalId,
+              stopOrder: 0,
+              scheduledArrival: departureTimestamp,
+              scheduledDeparture: departureTimestamp,
+              isPickup: true,
+              isDropoff: false,
+            },
+            ...schedule.route.waypoints.map((w) => {
+              const sw = timingMap.get(w.id);
+              const arrivalOffset =
+                sw?.arrivalOffsetMinutes ?? w.arrivalOffsetMinutes;
+              const departureOffset =
+                sw?.departureOffsetMinutes ?? w.departureOffsetMinutes;
+              return {
+                tripId: createdTrip.id,
+                terminalId: w.terminalId,
+                stopOrder: w.stopOrder,
+                scheduledArrival: new Date(
+                  departureTimestamp.getTime() + arrivalOffset * 60000,
+                ),
+                scheduledDeparture: new Date(
+                  departureTimestamp.getTime() + departureOffset * 60000,
+                ),
+                isPickup: w.isPickup,
+                isDropoff: w.isDropoff,
+              };
+            }),
+            {
+              tripId: createdTrip.id,
+              terminalId: schedule.route.destTerminalId,
+              stopOrder: destStopOrder,
+              scheduledArrival: new Date(
+                departureTimestamp.getTime() + destDepartureOffset * 60000,
+              ),
+              scheduledDeparture: new Date(
+                departureTimestamp.getTime() + destDepartureOffset * 60000,
+              ),
+              isPickup: false,
+              isDropoff: true,
+            },
+          ],
         });
 
         await tx.tripSeat.createMany({
-          data: bus.seats.map(seat => ({ tripId: createdTrip.id, seatId: seat.id, isActive: true }))
+          data: bus.seats.map((seat) => ({
+            tripId: createdTrip.id,
+            seatId: seat.id,
+            isActive: true,
+          })),
         });
 
         return createdTrip;
@@ -192,8 +251,8 @@ export const tripsRouter = createTRPCRouter({
               include: {
                 route: {
                   include: {
-                    originTerminal: { include: { cityRelation: true } },
-                    destTerminal: { include: { cityRelation: true } },
+                    originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                    destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                   },
                 },
               },
@@ -280,8 +339,8 @@ export const tripsRouter = createTRPCRouter({
             include: {
               route: {
                 include: {
-                  originTerminal: { include: { cityRelation: true } },
-                  destTerminal: { include: { cityRelation: true } },
+                  originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                   waypoints: { orderBy: { stopOrder: "asc" } },
                 },
               },
@@ -290,7 +349,7 @@ export const tripsRouter = createTRPCRouter({
           tripStops: {
             orderBy: { stopOrder: "asc" },
             include: {
-              terminal: { include: { cityRelation: true } },
+              terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
             },
           },
           seats: {
@@ -308,12 +367,12 @@ export const tripsRouter = createTRPCRouter({
               seat: true,
               originTripStop: {
                 include: {
-                  terminal: { include: { cityRelation: true } },
+                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                 },
               },
               destinationTripStop: {
                 include: {
-                  terminal: { include: { cityRelation: true } },
+                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                 },
               },
             },
@@ -358,8 +417,8 @@ export const tripsRouter = createTRPCRouter({
             include: {
               route: {
                 include: {
-                  originTerminal: { include: { cityRelation: true } },
-                  destTerminal: { include: { cityRelation: true } },
+                  originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                   waypoints: { orderBy: { stopOrder: "asc" } },
                 },
               },
@@ -368,7 +427,7 @@ export const tripsRouter = createTRPCRouter({
           tripStops: {
             orderBy: { stopOrder: "asc" },
             include: {
-              terminal: { include: { cityRelation: true } },
+              terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
             },
           },
           bookings: {
@@ -376,12 +435,12 @@ export const tripsRouter = createTRPCRouter({
               seat: true,
               originTripStop: {
                 include: {
-                  terminal: { include: { cityRelation: true } },
+                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                 },
               },
               destinationTripStop: {
                 include: {
-                  terminal: { include: { cityRelation: true } },
+                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                 },
               },
             },
@@ -592,8 +651,8 @@ export const tripsRouter = createTRPCRouter({
             include: {
               route: {
                 include: {
-                  originTerminal: { include: { cityRelation: true } },
-                  destTerminal: { include: { cityRelation: true } },
+                  originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                 },
               },
             },
@@ -604,6 +663,8 @@ export const tripsRouter = createTRPCRouter({
       const routeName = assignedTrip?.schedule
         ? `${assignedTrip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown"} to ${assignedTrip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown"}`
         : "Unknown Route";
+      const originMunicipality = assignedTrip?.schedule?.route?.originTerminal?.municipality?.name ?? null;
+      const destMunicipality = assignedTrip?.schedule?.route?.destTerminal?.municipality?.name ?? null;
 
       const novu = getNovuClient();
       if (novu && managers.length > 0 && assignedTrip?.bus) {
@@ -622,6 +683,8 @@ export const tripsRouter = createTRPCRouter({
                     staffName: manager.user.fullName ?? "Manager",
                     busPlate: assignedTrip.bus.registrationPlate,
                     routeName,
+                    originMunicipality,
+                    destMunicipality,
                     departureTime: assignedTrip.departureDate.toLocaleString(
                       "en-US",
                       { timeZone: "Africa/Abidjan" },
@@ -726,8 +789,8 @@ export const tripsRouter = createTRPCRouter({
                 include: {
                   route: {
                     include: {
-                      originTerminal: { include: { cityRelation: true } },
-                      destTerminal: { include: { cityRelation: true } },
+                      originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                      destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                     },
                   },
                 },
@@ -755,6 +818,8 @@ export const tripsRouter = createTRPCRouter({
                 const destCity =
                   booking.trip.schedule.route.destTerminal.cityRelation?.name ??
                   "Unknown";
+                const originMunicipality = booking.trip.schedule.route.originTerminal.municipality?.name ?? null;
+                const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
 
                 await novu
                   .trigger({
@@ -769,6 +834,8 @@ export const tripsRouter = createTRPCRouter({
                         booking.user?.fullName ?? booking.passengerName,
                       originCity,
                       destinationCity: destCity,
+                      originMunicipality,
+                      destinationMunicipality: destMunicipality,
                       originalTime: trip.departureDate.toLocaleString("en-US", {
                         timeZone: "Africa/Abidjan",
                       }),
@@ -927,8 +994,8 @@ export const tripsRouter = createTRPCRouter({
                   include: {
                     route: {
                       include: {
-                        originTerminal: { include: { cityRelation: true } },
-                        destTerminal: { include: { cityRelation: true } },
+                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                       },
                     },
                   },
@@ -947,6 +1014,8 @@ export const tripsRouter = createTRPCRouter({
                 if (email) {
                   const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
                   const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+                  const originMunicipality = booking.trip.schedule.route.originTerminal.municipality?.name ?? null;
+                  const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
 
                   if (status === "BOARDING") {
                     await novu.trigger({
@@ -959,6 +1028,7 @@ export const tripsRouter = createTRPCRouter({
                         email,
                         passengerName: booking.user?.fullName ?? booking.passengerName,
                         destinationCity: destCity,
+                        destinationMunicipality: destMunicipality,
                         gate: trip.gate ?? undefined,
                         busPlate: booking.trip.bus?.registrationPlate ?? undefined,
                         phone: booking.user?.phoneNumber ?? booking.passengerPhone ?? undefined,
@@ -978,6 +1048,8 @@ export const tripsRouter = createTRPCRouter({
                         companyName: booking.company.name,
                         originCity,
                         destinationCity: destCity,
+                        originMunicipality,
+                        destinationMunicipality: destMunicipality,
                         tripId: trip.id,
                         bookingReference: booking.bookingReference,
                       },
@@ -1042,7 +1114,7 @@ export const tripsRouter = createTRPCRouter({
                   include: {
                     route: {
                       include: {
-                        destTerminal: { include: { cityRelation: true } },
+                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                       },
                     },
                   },
@@ -1060,6 +1132,7 @@ export const tripsRouter = createTRPCRouter({
                 const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
                 if (email) {
                   const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
+                  const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
                   await novu.trigger({
                     workflowId: "passenger-trip-gate-updated",
                     to: {
@@ -1070,6 +1143,7 @@ export const tripsRouter = createTRPCRouter({
                       email,
                       passengerName: booking.user?.fullName ?? booking.passengerName,
                       destinationCity: destCity,
+                      destinationMunicipality: destMunicipality,
                       departureTime: trip.departureDate.toLocaleString("en-US", {
                         timeZone: "Africa/Abidjan",
                       }),

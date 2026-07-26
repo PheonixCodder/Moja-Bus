@@ -22,6 +22,8 @@ export const terminalsRouter = createTRPCRouter({
         },
         include: {
           cityRelation: true,
+          municipality: true,
+          quarter: true,
         },
         orderBy: { name: "asc" },
       });
@@ -52,6 +54,8 @@ export const terminalsRouter = createTRPCRouter({
             postalCode: data.postalCode ?? null,
             country: data.country,
             cityId: data.cityId ?? null,
+            municipalityId: data.municipalityId ?? null,
+            quarterId: data.quarterId ?? null,
             latitude: data.latitude ?? null,
             longitude: data.longitude ?? null,
             phone: data.phone,
@@ -65,6 +69,8 @@ export const terminalsRouter = createTRPCRouter({
           },
           include: {
             cityRelation: true,
+            municipality: true,
+            quarter: true,
           },
         });
       });
@@ -140,7 +146,7 @@ export const terminalsRouter = createTRPCRouter({
         return tx.companyLocation.update({
           where: { id: input.id },
           data: updatePayload,
-          include: { cityRelation: true },
+          include: { cityRelation: true, municipality: true, quarter: true },
         });
       });
     }),

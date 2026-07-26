@@ -380,7 +380,7 @@ export function AddBusDrawer({
                               {layout.name}
                             </p>
                             <Badge variant="outline" className="text-[9px] uppercase px-1.5 py-0 h-3.5 shrink-0">
-                              {layout.seatClass ?? "STANDARD"}
+                              {t(`seatClass.${layout.seatClass ?? "STANDARD"}`)}
                             </Badge>
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">

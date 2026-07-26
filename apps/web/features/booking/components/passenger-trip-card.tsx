@@ -108,7 +108,7 @@ export function PassengerTripCard({
             <p className="text-xs font-semibold text-slate-600 mt-0.5 truncate">
               {booking.originTerminalName}
             </p>
-            <p className="text-[10px] text-slate-400">{booking.originCityName}</p>
+            <p className="text-[10px] text-slate-400">{booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}</p>
           </div>
 
           <div className="sm:col-span-3 flex flex-col items-center px-2">
@@ -135,7 +135,7 @@ export function PassengerTripCard({
               {booking.destinationTerminalName}
             </p>
             <p className="text-[10px] text-slate-400">
-              {booking.destinationCityName}
+              {booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}
             </p>
           </div>
         </div>

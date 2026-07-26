@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { BusFront, Layers, Plus, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -69,6 +70,7 @@ export function AddBusModal({
   editingBus,
   onSuccess,
 }: AddBusModalProps) {
+  const t = useTranslations("operator.addBusModal");
   const isEditing = !!editingBus;
 
   const queryClient = useQueryClient();
@@ -312,11 +314,11 @@ export function AddBusModal({
                   Seat class *
                 </Label>
                 <Combobox
-                  items={[
-                    { value: "STANDARD", label: "Standard" },
-                    { value: "VIP", label: "VIP" },
-                    { value: "ECONOMY", label: "Economy" },
-                  ]}
+items={[
+                     { value: "STANDARD", label: t("seatClass.STANDARD") },
+                     { value: "VIP", label: t("seatClass.VIP") },
+                     { value: "ECONOMY", label: t("seatClass.ECONOMY") },
+                   ]}
                   value={seatClass}
                   onValueChange={(v) => { if (v !== null) setSeatClass(v as SeatClass); }}
                 >
@@ -324,9 +326,9 @@ export function AddBusModal({
                   <ComboboxContent>
                     <ComboboxEmpty>No seat class found.</ComboboxEmpty>
                     <ComboboxList>
-                      <ComboboxItem value="STANDARD">Standard</ComboboxItem>
-                      <ComboboxItem value="VIP">VIP</ComboboxItem>
-                      <ComboboxItem value="ECONOMY">Economy</ComboboxItem>
+                      <ComboboxItem value="STANDARD">{t("seatClass.STANDARD")}</ComboboxItem>
+                      <ComboboxItem value="VIP">{t("seatClass.VIP")}</ComboboxItem>
+                      <ComboboxItem value="ECONOMY">{t("seatClass.ECONOMY")}</ComboboxItem>
                     </ComboboxList>
                   </ComboboxContent>
                 </Combobox>

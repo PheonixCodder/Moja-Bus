@@ -17,8 +17,14 @@ export type StopLabel = {
 export type FareDraft = {
   fromStopOrder: number;
   toStopOrder: number;
+  durationMinutes: number;
   priceXOF: number;
   type: "FIXED" | "PROMO" | "HOLIDAY_SURGE" | "EARLY_BIRD";
+};
+
+export type TimingDraft = {
+  routeWaypointId: string;
+  dwellMinutes: number;
 };
 
 export type CalendarConfig = {
@@ -37,7 +43,7 @@ export type CalendarConfig = {
   preferredBusId: string;
 };
 
-export const WIZARD_STEPS = ["Route", "Calendar", "Pricing", "Preview"] as const;
+export const WIZARD_STEPS = ["Route", "Stops", "Calendar", "Pricing", "Preview"] as const;
 export type WizardStep = (typeof WIZARD_STEPS)[number];
 
 export function buildStopsFromRoute(route: RouteDetail): StopLabel[] {

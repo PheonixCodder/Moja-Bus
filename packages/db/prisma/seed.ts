@@ -268,6 +268,235 @@ async function main() {
   console.log(`   ✅ ${cities.length} cities seeded\n`);
 
   // ============================================================
+  // MUNICIPALITIES & QUARTERS — Côte d'Ivoire
+  // ============================================================
+  console.log("🏘️ Seeding municipalities and quarters...");
+
+  type QuarterSeed = { name: string };
+  type MunicipalitySeed = { name: string; isPassThrough?: boolean; quarters?: QuarterSeed[] };
+
+  type CityMunicipalities = {
+    cityName: string;
+    municipalities: MunicipalitySeed[];
+  };
+
+  const cityMunicipalitiesMap: CityMunicipalities[] = [
+    {
+      cityName: "Abidjan",
+      municipalities: [
+        {
+          name: "Abobo",
+          quarters: [
+            { name: "Abobo Baoule" },
+            { name: "Abobo Sagbe" },
+            { name: "Abobo Te" },
+            { name: "Agbekoi" },
+            { name: "Anonkoi 2" },
+            { name: "Gare Abobo" },
+          ],
+        },
+        {
+          name: "Adjamé",
+          quarters: [
+            { name: "Adjamé Liberté" },
+            { name: "Adjamé village" },
+            { name: "Anador" },
+            { name: "Attié" },
+            { name: "Djinou" },
+            { name: "Monsieur" },
+          ],
+        },
+        {
+          name: "Attécoubé",
+          quarters: [
+            { name: "Abia" },
+            { name: "Agbo" },
+            { name: "Ahongbon" },
+            { name: "Attecoube Centre" },
+            { name: "Baco" },
+            { name: "Camp Militaire" },
+            { name: "Dogosso" },
+            { name: "Gare Attecoube" },
+          ],
+        },
+        {
+          name: "Cocody",
+          quarters: [
+            { name: "Angré" },
+            { name: "Blokosso" },
+            { name: "Bonie" },
+            { name: "Cocody Centre" },
+            { name: "Danga" },
+            { name: "Deux-Plateaux" },
+            { name: "M'Badon" },
+            { name: "Palmeraie" },
+            { name: "Riviera 2" },
+            { name: "Riviera 3" },
+            { name: "Riviera 4" },
+            { name: "Saint-Jean" },
+          ],
+        },
+        {
+          name: "Koumassi",
+          quarters: [
+            { name: "Koumassi Campement" },
+            { name: "Koumassi Gare" },
+            { name: "Koumassi Marché" },
+            { name: "Koumassi Nord" },
+            { name: "Koumassi Remblais" },
+            { name: "Koumassi Sud" },
+            { name: "Petite Koumassi" },
+          ],
+        },
+        {
+          name: "Marcory",
+          quarters: [
+            { name: "Anoumabo" },
+            { name: "Marcory Avenue 3" },
+            { name: "Marcory Gare" },
+            { name: "Marcory Nord" },
+            { name: "Marcory Sud" },
+            { name: "Marcory Zone 4" },
+          ],
+        },
+        {
+          name: "Plateau",
+          quarters: [
+            { name: "Le Plateau" },
+            { name: "Plateau Centre" },
+            { name: "Plateau Gare" },
+            { name: "Plateau Nord" },
+          ],
+        },
+        {
+          name: "Port-Bouët",
+          quarters: [
+            { name: "Abidjan Port" },
+            { name: "Gare Port-Bouet" },
+            { name: "Koumassi Port" },
+            { name: "Port Bouet Centre" },
+            { name: "Vridi" },
+            { name: "Vridi Gare" },
+          ],
+        },
+        {
+          name: "Treichville",
+          quarters: [
+            { name: "Belleville" },
+            { name: "Djelan" },
+            { name: "Ficgayo" },
+            { name: "Gare Treichville" },
+            { name: "Mobidoum" },
+            { name: "Treichville Centre" },
+          ],
+        },
+        {
+          name: "Yopougon",
+          quarters: [
+            { name: "Andokoi" },
+            { name: "Ayé" },
+            { name: "Bel Air" },
+            { name: "Camp Militaire" },
+            { name: "Gare Yopougon" },
+            { name: "Koute" },
+            { name: "Nianguan" },
+            { name: "Niangon" },
+            { name: "Niangon Adiaho" },
+            { name: "Selmer" },
+            { name: "Sicogi" },
+            { name: "Sodeci" },
+            { name: "Toit Rouge" },
+            { name: "Yopougon Centre" },
+          ],
+        },
+        {
+          name: "Anyama",
+          quarters: [
+            { name: "Anyama Centre" },
+            { name: "Anyama Gare" },
+            { name: "Anyama Nord" },
+          ],
+        },
+        {
+          name: "Bingerville",
+          quarters: [
+            { name: "Bingerville Centre" },
+            { name: "Bingerville Gare" },
+          ],
+        },
+        {
+          name: "Brodoukou",
+          quarters: [
+            { name: "Brodoukou Centre" },
+          ],
+        },
+      ],
+    },
+  ];
+
+  let municipalityCount = 0;
+  let quarterCount = 0;
+
+  for (const entry of cityMunicipalitiesMap) {
+    const city = await prisma.city.findUnique({ where: { name: entry.cityName } });
+    if (!city) {
+      console.warn(`   ⚠️ City "${entry.cityName}" not found, skipping...`);
+      continue;
+    }
+
+    for (const mData of entry.municipalities) {
+      const municipality = await prisma.municipality.upsert({
+        where: { cityId_name: { cityId: city.id, name: mData.name } },
+        update: { isActive: true },
+        create: {
+          cityId: city.id,
+          name: mData.name,
+          isPassThrough: mData.isPassThrough ?? false,
+          isActive: true,
+        },
+      });
+      municipalityCount++;
+
+      for (const qData of mData.quarters ?? []) {
+        await prisma.quarter.upsert({
+          where: { municipalityId_name: { municipalityId: municipality.id, name: qData.name } },
+          update: { isActive: true },
+          create: {
+            municipalityId: municipality.id,
+            name: qData.name,
+            isActive: true,
+          },
+        });
+        quarterCount++;
+      }
+    }
+  }
+
+  // For all remaining cities (non-Abidjan), create a single pass-through municipality
+  const seededCityNames = cityMunicipalitiesMap.map((e) => e.cityName);
+  const passThroughCities = cities.filter((c) => !seededCityNames.includes(c.name));
+
+  for (const cityData of passThroughCities) {
+    const city = await prisma.city.findUnique({ where: { name: cityData.name } });
+    if (!city) continue;
+
+    const municipalityName = cityData.name === "Yamoussoukro" ? "Yamoussoukro" : cityData.name;
+    await prisma.municipality.upsert({
+      where: { cityId_name: { cityId: city.id, name: municipalityName } },
+      update: { isActive: true, isPassThrough: true },
+      create: {
+        cityId: city.id,
+        name: municipalityName,
+        isPassThrough: true,
+        isActive: true,
+      },
+    });
+    municipalityCount++;
+  }
+
+  console.log(`   ✅ ${municipalityCount} municipalities and ${quarterCount} quarters seeded\n`);
+
+  // ============================================================
   // BUS TYPES — Platform-managed vehicle models
   // ============================================================
   console.log("🚌 Seeding bus types...");

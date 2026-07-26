@@ -134,11 +134,11 @@ export function BookingDetailDrawer({
                     {t("detail.route")}
                   </p>
                   <p className="font-semibold mt-1">
-                    {booking.originTerminalName} →{" "}
-                    {booking.destinationTerminalName}
+                    {booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""} →{" "}
+                    {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
                   </p>
                   <p className="text-muted-foreground text-xs">
-                    {booking.originCityName} → {booking.destinationCityName}
+                    {booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""} → {booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">

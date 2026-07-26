@@ -45,10 +45,10 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
               </span>
             </div>
             <h3 className="text-xl font-extrabold text-slate-900 tracking-tight font-display">
-              {ticket.originCityName} <span className="text-slate-300 mx-1">→</span> {ticket.destinationCityName}
+              {ticket.originCityName}{ticket.originMunicipalityName ? ` (${ticket.originMunicipalityName})` : ""} <span className="text-slate-300 mx-1">→</span> {ticket.destinationCityName}{ticket.destinationMunicipalityName ? ` (${ticket.destinationMunicipalityName})` : ""}
             </h3>
             <p className="text-sm text-slate-500 mt-1 font-medium">
-              {ticket.originTerminalName} <span className="mx-1 opacity-50">→</span> {ticket.destinationTerminalName}
+              {ticket.originTerminalName}{ticket.originQuarterName ? ` · ${ticket.originQuarterName}` : ""} <span className="mx-1 opacity-50">→</span> {ticket.destinationTerminalName}{ticket.destinationQuarterName ? ` · ${ticket.destinationQuarterName}` : ""}
             </p>
           </div>
 

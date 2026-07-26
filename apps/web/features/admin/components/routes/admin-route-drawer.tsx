@@ -69,7 +69,11 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
     {
       id: "dest",
       terminal: route.destTerminal,
-      offsetMinutes: route.estimatedMinutes ?? 0,
+      offsetMinutes: route.waypoints.length > 0
+        ? route.waypoints[route.waypoints.length - 1]!.arrivalOffsetMinutes +
+          Math.max(0, route.waypoints[route.waypoints.length - 1]!.departureOffsetMinutes - route.waypoints[route.waypoints.length - 1]!.arrivalOffsetMinutes) +
+          45
+        : 60,
     }
   ] : [];
 

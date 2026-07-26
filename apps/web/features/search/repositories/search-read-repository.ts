@@ -59,7 +59,7 @@ export class TripSearchReadRepository {
         tripStops: {
           include: {
             terminal: {
-              include: { cityRelation: true },
+              include: { cityRelation: true, municipality: true, quarter: true },
             },
           },
           orderBy: { stopOrder: "asc" },

@@ -18,7 +18,7 @@ export const scheduleListParsers = {
     "updated_desc",
   ]).withDefault("departureTime_asc"),
   new: parseAsBoolean.withDefault(false),
-  step: parseAsStringEnum(["Route", "Calendar", "Pricing", "Preview"]).withDefault(
+  step: parseAsStringEnum(["Route", "Stops", "Calendar", "Pricing", "Preview"]).withDefault(
     "Route",
   ),
   routePick: parseAsString.withDefault(""),

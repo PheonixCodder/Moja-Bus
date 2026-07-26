@@ -53,6 +53,8 @@ export const publicRouter = createTRPCRouter({
           where: { isTerminal: true, isActive: true },
           select: {
             cityRelation: { select: { name: true } },
+              municipality: { select: { name: true } },
+              quarter: { select: { name: true } },
           },
         },
       },
@@ -105,12 +107,13 @@ export const publicRouter = createTRPCRouter({
               id: true,
               name: true,
               distanceKm: true,
-              estimatedMinutes: true,
               originTerminal: {
                 select: {
                   name: true,
                   city: true,
                   cityRelation: { select: { id: true, name: true } },
+              municipality: { select: { name: true } },
+              quarter: { select: { name: true } },
                 },
               },
               destTerminal: {
@@ -118,6 +121,8 @@ export const publicRouter = createTRPCRouter({
                   name: true,
                   city: true,
                   cityRelation: { select: { id: true, name: true } },
+              municipality: { select: { name: true } },
+              quarter: { select: { name: true } },
                 },
               },
               schedules: {
@@ -148,6 +153,8 @@ export const publicRouter = createTRPCRouter({
               managerName: true,
               operatingHours: true,
               cityRelation: { select: { name: true } },
+              municipality: { select: { name: true } },
+              quarter: { select: { name: true } },
               latitude: true,
               longitude: true,
             },

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
@@ -107,13 +107,11 @@ export function RoutePickerStep({
                     {r.destTerminal?.cityRelation?.name ?? r.destTerminal?.city}
                   </span>
                 </div>
-                {r.estimatedMinutes ? (
-                  <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
-                    <Clock className="size-3" />~
-                    {Math.floor(r.estimatedMinutes / 60)}h{" "}
-                    {r.estimatedMinutes % 60}m
-                  </p>
-                ) : null}
+{r.distanceKm ? (
+                   <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                     {r.distanceKm} km
+                   </p>
+                 ) : null}
               </button>
             );
           })}

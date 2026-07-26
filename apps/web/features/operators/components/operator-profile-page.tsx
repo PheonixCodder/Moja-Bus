@@ -244,11 +244,6 @@ export function OperatorProfilePage({ slug }: Props) {
                           <p className="text-slate-400 text-xs mt-0.5">{route.name}</p>
                         </div>
                         <div className="text-right">
-                          {route.estimatedMinutes && (
-                            <p className="text-sm font-medium text-slate-600">
-                              {formatMinutes(route.estimatedMinutes)}
-                            </p>
-                          )}
                           {route.schedules[0]?.fares[0] && (
                             <p className="text-xs text-[#ee237c] font-bold">
                               {t("fromPrice")} {route.schedules[0].fares[0].priceXOF.toLocaleString()} FCFA
@@ -352,14 +347,6 @@ export function OperatorProfilePage({ slug }: Props) {
                             <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t("distance")}</p>
                             <p className="font-semibold text-slate-800 text-sm">
                               {route.distanceKm} km
-                            </p>
-                          </div>
-                        )}
-                        {route.estimatedMinutes && (
-                          <div className="bg-slate-50 rounded-xl p-3">
-                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t("duration")}</p>
-                            <p className="font-semibold text-slate-800 text-sm">
-                              {formatMinutes(route.estimatedMinutes)}
                             </p>
                           </div>
                         )}

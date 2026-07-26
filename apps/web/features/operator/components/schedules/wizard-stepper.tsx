@@ -20,6 +20,7 @@ export function WizardStepper({
   const t = useTranslations("operatorDashboard.schedules");
   const stepLabels: Record<string, string> = {
     Route: t("wizard.route"),
+    Timing: t("wizard.timing"),
     Calendar: t("wizard.calendar"),
     Pricing: t("wizard.pricing"),
     Preview: t("wizard.preview"),

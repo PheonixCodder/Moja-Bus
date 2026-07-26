@@ -35,6 +35,7 @@ import {
   type RouteDetail,
   type FareDraft,
   type CalendarConfig,
+  type TimingDraft,
   defaultCalendarConfig,
   buildStopsFromRoute,
   hasRequiredFullRouteFare,
@@ -42,6 +43,7 @@ import {
 import { WizardStepper } from "@/features/operator/components/schedules/wizard-stepper";
 import { RoutePickerStep } from "@/features/operator/components/schedules/route-picker-step";
 import { CalendarStep } from "@/features/operator/components/schedules/calendar-step";
+import { TimingStep } from "@/features/operator/components/schedules/timing-step";
 import { PricingStep } from "@/features/operator/components/schedules/pricing-step";
 import { PreviewStep } from "@/features/operator/components/schedules/preview-step";
 import { ScheduleToolbar } from "@/features/operator/components/schedules/schedule-toolbar";
@@ -108,6 +110,7 @@ export function OperatorSchedulesView() {
   const [calConfig, setCalConfig] = useState<CalendarConfig>(
     defaultCalendarConfig,
   );
+  const [timings, setTimings] = useState<TimingDraft[]>([]);
   const [fares, setFares] = useState<FareDraft[]>([]);
   const [saving, setSaving] = useState(false);
   const [successCount, setSuccessCount] = useState<number | null>(null);
@@ -184,6 +187,10 @@ export function OperatorSchedulesView() {
 
   function canProceed() {
     if (step === "Route") return !!routePick;
+    if (step === "Stops") {
+      if (!selectedRoute?.waypoints?.length) return true;
+      return timings.length >= selectedRoute.waypoints.length;
+    }
     if (step === "Calendar") {
       const hasDays = Object.values(calConfig.days).some(Boolean);
       // Re-validate validFrom on every check so an overnight-open wizard is caught
@@ -226,15 +233,16 @@ export function OperatorSchedulesView() {
           sunday: calConfig.days.sunday,
           validFrom: calConfig.validFrom,
           ...(calConfig.validUntil ? { validUntil: calConfig.validUntil } : {}),
-        },
-fares: fares
-           .filter((f) => f.priceXOF > 0)
-           .map((f) => ({
-             type: f.type,
-             fromStopOrder: f.fromStopOrder,
-             toStopOrder: f.toStopOrder,
-             priceXOF: f.priceXOF,
-           })),
+},
+        fares: fares
+          .filter((f) => f.priceXOF > 0)
+          .map((f) => ({
+            type: f.type,
+            fromStopOrder: f.fromStopOrder,
+            toStopOrder: f.toStopOrder,
+            durationMinutes: f.durationMinutes,
+            priceXOF: f.priceXOF,
+          })),
       });
       setSuccessCount(result.tripsCreated ?? result._count?.trips ?? 0);
       if (result.warning) {
@@ -253,6 +261,7 @@ fares: fares
   function resetWizard() {
     setMaxStep(0);
     setSelectedRoute(null);
+    setTimings([]);
     setFares([]);
     setCalConfig(defaultCalendarConfig());
     setWizardScheduleName("");
@@ -332,8 +341,16 @@ fares: fares
               onNameChange={setWizardScheduleName}
               onSelect={(id) => {
                 setParams({ routePick: id });
+                setTimings([]);
                 setFares([]);
               }}
+            />
+          )}
+          {step === "Stops" && selectedRoute && (
+            <TimingStep
+              waypoints={selectedRoute.waypoints ?? []}
+              timings={timings}
+              onChange={setTimings}
             />
           )}
           {step === "Calendar" && (
@@ -352,7 +369,17 @@ fares: fares
                 </span>
               </div>
             ) : (
-              <PricingStep stops={stops} fares={fares} onChange={setFares} />
+              <PricingStep
+                stops={stops}
+                fares={fares}
+                dwells={new Map(
+                  timings.map((d) => {
+                    const wp = selectedRoute?.waypoints?.find((w) => w.id === d.routeWaypointId);
+                    return [wp?.stopOrder ?? -1, d.dwellMinutes] as const;
+                  }).filter(([k]) => k > 0),
+                )}
+                onChange={setFares}
+              />
             ))}
           {step === "Preview" && (
             <PreviewStep

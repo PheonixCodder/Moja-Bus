@@ -294,19 +294,19 @@ export function PassengerTicketsView() {
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col flex-1 truncate">
                       <span className="text-xl font-extrabold text-text-primary tracking-tight truncate">
-                        {booking.originCityName}
+                        {booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}
                       </span>
                       <span className="text-xs text-text-secondary truncate mt-0.5">
-                        {booking.originTerminalName}
+                        {booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}
                       </span>
                     </div>
                     <ArrowRight className="size-4 text-primary shrink-0 opacity-50" />
                     <div className="flex flex-col flex-1 truncate text-right">
                       <span className="text-xl font-extrabold text-text-primary tracking-tight truncate">
-                        {booking.destinationCityName}
+                        {booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}
                       </span>
                       <span className="text-xs text-text-secondary truncate mt-0.5">
-                        {booking.destinationTerminalName}
+                        {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
                       </span>
                     </div>
                   </div>

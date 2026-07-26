@@ -48,7 +48,6 @@ function validateWaypointSequence(
   waypoints: WaypointInput[],
   originTerminalId: string | undefined,
   destTerminalId: string | undefined,
-  estimatedDurationMin: number | null | undefined,
   ctx: z.RefinementCtx,
 ) {
   if (waypoints.length === 0) return;
@@ -111,23 +110,6 @@ function validateWaypointSequence(
     }
   }
 
-  // Option A: the route's estimatedDurationMin must accommodate the full stop sequence.
-  // Minimum trip duration = last stop's departure offset (arrivalOffset + dwellMinutes).
-  if (estimatedDurationMin != null && estimatedDurationMin > 0) {
-    const last = sorted[sorted.length - 1]!;
-    const minRequired = last.offsetMinutes + last.dwellMinutes;
-    if (estimatedDurationMin < minRequired) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          `Estimated duration (${estimatedDurationMin} min) is shorter than the ` +
-          `minimum required by the stop sequence (${minRequired} min). ` +
-          `Increase the estimated duration or reduce dwell times.`,
-        path: ["estimatedDurationMin"],
-      });
-    }
-  }
-
   // Waypoint distance validation: distanceFromOriginKm must be strictly increasing across stops
   for (let i = 1; i < sorted.length; i++) {
     const prev = sorted[i - 1]!;
@@ -161,7 +143,6 @@ export const createRouteSchema = z
     originTerminalId: z.string().min(1, "Origin terminal is required"),
     destTerminalId: z.string().min(1, "Destination terminal is required"),
     distanceKm: z.coerce.number().min(0).optional().nullable(),
-    estimatedDurationMin: z.coerce.number().int().min(1).optional().nullable(),
     status: routeStatusEnum.default("ACTIVE"),
     waypoints: z.array(waypointSchema).max(50, "Maximum of 50 stops allowed").default([]),
   })
@@ -179,7 +160,6 @@ export const createRouteSchema = z
       data.waypoints,
       data.originTerminalId,
       data.destTerminalId,
-      data.estimatedDurationMin,
       ctx,
     );
 
@@ -209,7 +189,6 @@ export const updateRouteSchema = z
     originTerminalId: z.string().min(1).optional(),
     destTerminalId: z.string().min(1).optional(),
     distanceKm: z.coerce.number().min(0).optional().nullable(),
-    estimatedDurationMin: z.coerce.number().int().min(1).optional().nullable(),
     status: routeStatusEnum.optional(),
     waypoints: z.array(waypointSchema).max(50).optional(),
   })
@@ -233,7 +212,6 @@ export const updateRouteSchema = z
         data.waypoints,
         data.originTerminalId,
         data.destTerminalId,
-        data.estimatedDurationMin,
         ctx,
       );
     }
@@ -249,6 +227,8 @@ const baseTerminalSchema = z.object({
   postalCode: z.string().optional().nullable(),
   country: z.string().default("Cote d'Ivoire"),
   cityId: z.string().optional().nullable(),
+  municipalityId: z.string().optional().nullable(),
+  quarterId: z.string().optional().nullable(),
   latitude: z.coerce
     .number()
     .min(-90, "Latitude must be between -90 and 90")

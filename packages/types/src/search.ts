@@ -14,9 +14,13 @@ export interface SearchOffer {
   originTerminalId: string;
   originTerminalName: string;
   originCityName: string;
+  originMunicipalityName: string | null;
+  originQuarterName: string | null;
   destinationTerminalId: string;
   destinationTerminalName: string;
   destinationCityName: string;
+  destinationMunicipalityName: string | null;
+  destinationQuarterName: string | null;
 
   // Timeline (raw Date objects, formatting done by client)
   departureTime: Date;

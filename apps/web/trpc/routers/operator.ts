@@ -944,8 +944,8 @@ export const operatorRouter = createTRPCRouter({
                       include: {
                         route: {
                           include: {
-                            originTerminal: { include: { cityRelation: true } },
-                            destTerminal: { include: { cityRelation: true } },
+                            originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                            destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                           },
                         },
                       },
@@ -976,8 +976,8 @@ export const operatorRouter = createTRPCRouter({
                   include: {
                     route: {
                       include: {
-                        originTerminal: { include: { cityRelation: true } },
-                        destTerminal: { include: { cityRelation: true } },
+                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                       },
                     },
                   },
@@ -1164,8 +1164,8 @@ export const operatorRouter = createTRPCRouter({
                   select: {
                     route: {
                       select: {
-                        originTerminal: { include: { cityRelation: true } },
-                        destTerminal: { include: { cityRelation: true } },
+                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                       },
                     },
                   },
@@ -1494,8 +1494,8 @@ export const operatorRouter = createTRPCRouter({
               include: {
                 route: {
                   include: {
-                    originTerminal: { include: { cityRelation: true } },
-                    destTerminal: { include: { cityRelation: true } },
+                    originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                    destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                   },
                 },
               },
@@ -1553,8 +1553,8 @@ export const operatorRouter = createTRPCRouter({
                   include: {
                     route: {
                       include: {
-                        originTerminal: { include: { cityRelation: true } },
-                        destTerminal: { include: { cityRelation: true } },
+                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
                       },
                     },
                   },

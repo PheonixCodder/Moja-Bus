@@ -5,29 +5,31 @@ import { ShieldCheck } from "lucide-react";
 
 const PAYMENT_METHODS = [
     {
-        id: "mpesa",
-        label: "M-PESA",
+        id: "wave",
+        label: "Wave",
         render: (
-            <span className="flex items-center gap-1">
-        <span className="w-2 h-2 rounded-full bg-[#4CAF50]" />
-        <span className="font-extrabold tracking-tight text-[13px] text-[#1a7a37]">
-          M-PESA
-        </span>
-      </span>
+            <img src="/home/wave.png" alt="Wave" className="h-5 w-auto" />
         ),
     },
     {
-        id: "airtel",
-        label: "Airtel Money",
+        id: "mtn",
+        label: "MTN",
         render: (
-            <span className="flex items-center gap-1.5">
-        <span className="w-4 h-4 rounded-full bg-[#ED1C24] flex items-center justify-center">
-          <span className="w-1.5 h-1.5 rounded-full bg-white" />
-        </span>
-        <span className="font-bold text-[13px] text-[#ED1C24] tracking-tight">
-          airtel <span className="font-medium text-[10px] text-slate-400 align-super">money</span>
-        </span>
-      </span>
+            <img src="/home/mtn.png" alt="MTN" className="h-5 w-auto" />
+        ),
+    },
+    {
+        id: "orange",
+        label: "Orange Money",
+        render: (
+            <img src="/home/orange.png" alt="Orange Money" className="h-5 w-auto" />
+        ),
+    },
+    {
+        id: "moov",
+        label: "Moov",
+        render: (
+            <img src="/home/moov.png" alt="Moov" className="h-5 w-auto" />
         ),
     },
     {

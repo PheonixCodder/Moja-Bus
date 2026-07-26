@@ -13,6 +13,8 @@ export interface TripDetailsStop {
   stopOrder: number;
   terminalName: string;
   cityName: string;
+  municipalityName: string | null;
+  quarterName: string | null;
   scheduledDeparture: Date | null;
   scheduledArrival: Date | null;
   isPickup: boolean;
@@ -28,9 +30,13 @@ export interface TripDetails {
   originTerminalId: string;
   originTerminalName: string;
   originCityName: string;
+  originMunicipalityName: string | null;
+  originQuarterName: string | null;
   destinationTerminalId: string;
   destinationTerminalName: string;
   destinationCityName: string;
+  destinationMunicipalityName: string | null;
+  destinationQuarterName: string | null;
   originTripStopId: string;
   destinationTripStopId: string;
   boardingStopOrder: number;
@@ -116,8 +122,12 @@ export interface PassengerBookingSummary {
   companyName: string;
   originTerminalName: string;
   originCityName: string;
+  originMunicipalityName: string | null;
+  originQuarterName: string | null;
   destinationTerminalName: string;
   destinationCityName: string;
+  destinationMunicipalityName: string | null;
+  destinationQuarterName: string | null;
   departureTime: Date;
   arrivalTime: Date;
   passengerName: string;
@@ -190,8 +200,12 @@ export interface DigitalTicketDTO {
   companyName: string;
   originTerminalName: string;
   originCityName: string;
+  originMunicipalityName: string | null;
+  originQuarterName: string | null;
   destinationTerminalName: string;
   destinationCityName: string;
+  destinationMunicipalityName: string | null;
+  destinationQuarterName: string | null;
   departureTime: Date;
   arrivalTime: Date;
   farePaidXOF: number;

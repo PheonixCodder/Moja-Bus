@@ -227,12 +227,19 @@
     "filters": {
       "title": "Filtres",
       "operator": "Opérateur",
-      "seatClass": "Classe de siège",
+      "busClass": "Classe de bus",
       "departure": "Heure de départ",
       "maxPrice": "Prix maximum (XOF)",
       "amenities": "Équipements",
+      "tripType": "Type de trajet",
+      "express": "Service express",
       "clear": "Effacer les filtres",
       "apply": "Appliquer"
+    },
+    "seatClass": {
+      "ECONOMY": "Économique",
+      "STANDARD": "Standard",
+      "VIP": "VIP"
     },
     "sort": {
       "label": "Trier par",
@@ -1285,6 +1292,7 @@
       },
       "wizard": {
         "route": "Ligne",
+        "timing": "Horaires",
         "calendar": "Calendrier",
         "pricing": "Tarification",
         "preview": "Aperçu",
@@ -1294,7 +1302,15 @@
         "onlyActiveRoutes": "Seules les lignes actives peuvent être planifiées.",
         "noActiveRoutes": "Aucune ligne active disponible",
         "noActiveRoutesDesc": "Activez d'abord une ligne avant de la planifier.",
+        "noTimingNeeded": "Aucun arrêt intermédiaire — les horaires utiliseront les valeurs par défaut de la ligne.",
         "goToRoutes": "Aller aux lignes →",
+        "timingTitle": "Définir les horaires par segment",
+        "timingDesc": "Remplacez les décalages d'arrivée/départ pour chaque arrêt intermédiaire. Les temps sont en minutes depuis le départ à l'origine.",
+        "arrivalOffset": "Décalage d'arrivée",
+        "departureOffset": "Décalage de départ",
+        "arrivalOffsetPlaceholder": "p. ex. 60",
+        "departureOffsetPlaceholder": "p. ex. 75",
+        "timingFooter": "Les valeurs d'horaires utilisent les défauts de la ligne si inchangées. Les valeurs sont en minutes depuis l'origine.",
         "calendarTitle": "Calendrier et horaire",
         "calendarDesc": "Définissez les jours, l'heure de départ et le bus préféré pour les trajets générés.",
         "runsOn": "Jours d'opération",

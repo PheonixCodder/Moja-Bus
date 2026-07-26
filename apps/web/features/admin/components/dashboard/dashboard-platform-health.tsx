@@ -51,8 +51,8 @@ export function DashboardPlatformHealth({
               <span className="text-sm">
                 <span className="font-semibold">{pendingOperatorsCount}</span>{" "}
                 {pendingOperatorsCount === 1
-                  ? t("pendingOperators")
-                  : t("pendingOperatorsPlural")}
+                  ? t("pendingOperators", { count: pendingOperatorsCount })
+                  : t("pendingOperatorsPlural", { count: pendingOperatorsCount })}
               </span>
             </div>
             <Button variant="ghost" size="sm" className="h-7 text-xs px-2"
@@ -69,8 +69,8 @@ export function DashboardPlatformHealth({
               <span className="text-sm">
                 <span className="font-semibold">{activeTripsCount}</span>{" "}
                 {activeTripsCount === 1
-                  ? t("activeTrips")
-                  : t("activeTripsPlural")}
+                  ? t("activeTrips", { count: activeTripsCount })
+                  : t("activeTripsPlural", { count: activeTripsCount })}
               </span>
             </div>
             <Button variant="ghost" size="sm" className="h-7 text-xs px-2"

@@ -161,6 +161,7 @@ export const fareSchema = z.object({
   type: fareTypeEnum.default("FIXED"),
   fromStopOrder: z.coerce.number().int().min(0).default(0),
   toStopOrder: z.coerce.number().int().min(1),
+  durationMinutes: z.coerce.number().int().min(1, "Duration must be at least 1 minute"),
   priceXOF: z.coerce.number().int().min(1, "Price must be at least 1 XOF"),
   validFrom: z
     .string()
@@ -187,7 +188,7 @@ export const createScheduleSchema = z
     fares: z.array(fareSchema).min(1, "At least one fare is required"),
     /** Last stop order on the route (destination). Used to require full-route fare. */
     routeLastStopOrder: z.coerce.number().int().min(1).optional(),
-})
+  })
   .superRefine((data, ctx) => {
     const busId = data.preferredBusId || data.defaultBusId;
     if (!busId) {

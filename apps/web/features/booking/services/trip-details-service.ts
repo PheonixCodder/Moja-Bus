@@ -26,7 +26,7 @@ export class TripDetailsService {
         },
         tripStops: {
           include: {
-            terminal: { include: { cityRelation: true } },
+            terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
           },
           orderBy: { stopOrder: "asc" },
         },
@@ -139,10 +139,18 @@ export class TripDetailsService {
       originTerminalName: originStop.terminal.name,
       originCityName:
         originStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+      originMunicipalityName:
+        originStop.terminal.municipality?.name ?? null,
+      originQuarterName:
+        originStop.terminal.quarter?.name ?? null,
       destinationTerminalId: destStop.terminal.id,
       destinationTerminalName: destStop.terminal.name,
       destinationCityName:
         destStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+      destinationMunicipalityName:
+        destStop.terminal.municipality?.name ?? null,
+      destinationQuarterName:
+        destStop.terminal.quarter?.name ?? null,
       originTripStopId: originStop.id,
       destinationTripStopId: destStop.id,
       boardingStopOrder,
@@ -168,6 +176,8 @@ export class TripDetailsService {
         stopOrder: s.stopOrder,
         terminalName: s.terminal.name,
         cityName: s.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+        municipalityName: s.terminal.municipality?.name ?? null,
+        quarterName: s.terminal.quarter?.name ?? null,
         scheduledDeparture: s.scheduledDeparture,
         scheduledArrival: s.scheduledArrival,
         isPickup: s.isPickup,

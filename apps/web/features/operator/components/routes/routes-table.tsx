@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CalendarClock, Clock, MapIcon, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, CalendarClock, MapIcon, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
@@ -110,14 +110,6 @@ export function RoutesTable({ routes, onEdit, onDelete }: RoutesTableProps) {
                     <CalendarClock className="size-3 text-primary/60" />
                     <span className="text-[11px] font-semibold text-primary/80">
                       {scheduleCount} schedule{scheduleCount !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                )}
-                {route.estimatedMinutes && (
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="size-3 text-muted-foreground/60" />
-                    <span className="text-[11px] text-muted-foreground">
-                      {formatDuration(route.estimatedMinutes)}
                     </span>
                   </div>
                 )}

@@ -145,10 +145,18 @@ export class SearchService {
           originTerminalName: originStop.terminal.name,
           originCityName:
             originStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+          originMunicipalityName:
+            originStop.terminal.municipality?.name ?? null,
+          originQuarterName:
+            originStop.terminal.quarter?.name ?? null,
           destinationTerminalId: destStop.terminal.id,
           destinationTerminalName: destStop.terminal.name,
           destinationCityName:
             destStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+          destinationMunicipalityName:
+            destStop.terminal.municipality?.name ?? null,
+          destinationQuarterName:
+            destStop.terminal.quarter?.name ?? null,
           departureTime: originStop.scheduledDeparture!,
           arrivalTime: destStop.scheduledArrival!,
           durationMinutes,

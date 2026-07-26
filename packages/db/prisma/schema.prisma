@@ -738,11 +738,53 @@ model City {
   isActive   Boolean @default(true)
   isMajorHub Boolean @default(false) // Abidjan, Bouaké, Yamoussoukro, etc.
 
-  locations CompanyLocation[]
+  locations     CompanyLocation[]
+  municipalities Municipality[]
 
   @@unique([name])
   @@index([isActive])
   @@map("city")
+}
+
+// ============================================
+// MUNICIPALITIES & QUARTERS (Côte d'Ivoire)
+// ============================================
+// Every City has at least one Municipality. For large cities (Abidjan) there
+// are multiple (e.g. Cocody, Yopougon). For single-commune cities a single
+// pass-through record with isPassThrough=true is seeded so queries are
+// uniform and the frontend can skip the municipality dropdown.
+
+model Municipality {
+  id       String    @id @default(cuid())
+  cityId   String
+  city     City      @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  name     String    // e.g. "Cocody", "Yopougon", "Toumodi"
+  nameEn   String?
+  isActive Boolean   @default(true)
+  /// True when this is the only municipality for its city; frontend skips the dropdown
+  isPassThrough Boolean @default(false)
+
+  quarters  Quarter[]
+  locations CompanyLocation[]
+
+  @@unique([cityId, name])
+  @@index([cityId])
+  @@map("municipality")
+}
+
+model Quarter {
+  id             String       @id @default(cuid())
+  municipalityId String
+  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  name           String       // e.g. "Riviera 3", "Zone 4", "Gare UTB"
+  nameEn         String?
+  isActive       Boolean      @default(true)
+
+  locations CompanyLocation[]
+
+  @@unique([municipalityId, name])
+  @@index([municipalityId])
+  @@map("quarter")
 }
 
 // ============================================
@@ -760,6 +802,12 @@ model CompanyLocation {
   // Link to canonical CI city
   cityId       String?
   cityRelation City?   @relation(fields: [cityId], references: [id])
+
+  // Municipality & Quarter (Côte d'Ivoire hierarchy)
+  municipalityId String?
+  municipality   Municipality? @relation(fields: [municipalityId], references: [id])
+  quarterId      String?
+  quarter        Quarter?     @relation(fields: [quarterId], references: [id])
 
   // Terminal promotion — operator checks this in the dashboard
   isTerminal Boolean @default(false)
@@ -933,8 +981,7 @@ model Route {
   destTerminalId String
   destTerminal   CompanyLocation @relation("RouteDestTerminal", fields: [destTerminalId], references: [id])
 
-  distanceKm       Float?
-  estimatedMinutes Int?
+  distanceKm Float?
 
   status RouteStatus @default(DRAFT)
 
@@ -960,11 +1007,14 @@ model RouteWaypoint {
   terminal   CompanyLocation @relation(fields: [terminalId], references: [id])
 
   stopOrder              Int // 0 = origin, 1..N-1 = intermediate, N = destination
-  arrivalOffsetMinutes   Int // minutes after origin departure: arrive at this stop
-  departureOffsetMinutes Int // minutes after origin departure: leave this stop
+  arrivalOffsetMinutes   Int // DEFAULT timing - can be overridden by ScheduleWaypoint
+  departureOffsetMinutes Int // DEFAULT timing - can be overridden by ScheduleWaypoint
   distanceFromOriginKm   Float?
   isPickup               Boolean @default(true) // passengers can board here
   isDropoff              Boolean @default(true) // passengers can alight here
+
+  // Schedule-specific timing overrides
+  scheduleWaypoints ScheduleWaypoint[] @relation("WaypointScheduleTiming")
 
   @@unique([routeId, stopOrder])
   @@index([routeId])
@@ -987,6 +1037,9 @@ model Schedule {
   departureTime String  @db.VarChar(5) // "06:00" — HH:mm, CI timezone is UTC+0 (no DST)
   isActive      Boolean @default(true)
 
+  // Total estimated duration - can differ per schedule based on traffic/time
+  estimatedMinutes Int?
+
   // Preferred bus for trip generation only — trips remain per-trip assignable
   preferredBusId String?
   preferredBus   Bus?    @relation("SchedulePreferredBus", fields: [preferredBusId], references: [id], onDelete: SetNull)
@@ -995,6 +1048,9 @@ model Schedule {
   exceptions ServiceException[]
   fares      Fare[]
   trips      Trip[]
+
+  // Schedule-specific timing - decouples from route level
+  scheduleWaypoints ScheduleWaypoint[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1044,6 +1100,31 @@ model ServiceException {
 }
 
 // ============================================
+// SCHEDULE TIMING (per-schedule duration)
+// ============================================
+
+model ScheduleWaypoint {
+  id         String @id @default(cuid())
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  // Reference to route waypoint for terminal/segment data
+  routeWaypointId String
+  routeWaypoint   RouteWaypoint @relation("WaypointScheduleTiming", fields: [routeWaypointId], references: [id])
+
+  // Timing offsets from origin departure (minutes)
+  arrivalOffsetMinutes   Int
+  departureOffsetMinutes Int
+
+  // Optional dwell time override
+  dwellMinutes Int?
+
+  @@unique([scheduleId, routeWaypointId])
+  @@index([scheduleId])
+  @@map("schedule_waypoint")
+}
+
+// ============================================
 // FARES (extensible from v1)
 // ============================================
 
@@ -1059,6 +1140,7 @@ model Fare {
   fromStopOrder Int @default(0)
   toStopOrder   Int
 
+  durationMinutes Int // travel time from departure at fromStop to arrival at toStop
   priceXOF   Int // price in CFA Francs — always XOF for CI
   validFrom  DateTime?
   validUntil DateTime?

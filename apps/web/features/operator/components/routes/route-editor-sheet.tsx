@@ -93,7 +93,7 @@ export function RouteEditorSheet({
   const [originTerminalId, setOriginTerminalId] = useState("");
   const [destTerminalId, setDestTerminalId] = useState("");
   const [distanceKm, setDistanceKm] = useState("");
-  const [estimatedDurationMin, setEstimatedDurationMin] = useState("");
+
   const [status, setStatus] = useState<"ACTIVE" | "DRAFT" | "SUSPENDED">("ACTIVE");
   const [waypoints, setWaypoints] = useState<WaypointDraft[]>([]);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -106,9 +106,6 @@ export function RouteEditorSheet({
       setOriginTerminalId(editingRoute.originTerminalId ?? "");
       setDestTerminalId(editingRoute.destTerminalId ?? "");
       setDistanceKm(editingRoute.distanceKm ? String(editingRoute.distanceKm) : "");
-      setEstimatedDurationMin(
-        editingRoute.estimatedMinutes ? String(editingRoute.estimatedMinutes) : "",
-      );
       setStatus(editingRoute.status ?? "ACTIVE");
       if (editingRoute.waypoints) {
         setWaypoints(
@@ -132,7 +129,6 @@ export function RouteEditorSheet({
       setOriginTerminalId("");
       setDestTerminalId("");
       setDistanceKm("");
-      setEstimatedDurationMin("");
       setStatus("ACTIVE");
       setWaypoints([]);
       setIsDirty(false);
@@ -164,7 +160,6 @@ export function RouteEditorSheet({
         originTerminalId,
         destTerminalId,
         distanceKm: distanceKm ? parseFloat(distanceKm) : undefined,
-        estimatedDurationMin: estimatedDurationMin ? parseInt(estimatedDurationMin, 10) : undefined,
         status,
         waypoints: waypoints.map((w, idx) => ({
           terminalId: w.terminalId,
@@ -306,21 +301,6 @@ export function RouteEditorSheet({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="estimatedDurationMin" className="text-xs font-semibold uppercase tracking-wider">
-                  Estimated Duration (minutes)
-                </Label>
-                <Input
-                  id="estimatedDurationMin"
-                  type="number"
-                  placeholder="e.g. 180"
-                  value={estimatedDurationMin}
-                  onChange={(e) => {
-                    setEstimatedDurationMin(e.target.value);
-                    setIsDirty(true);
-                  }}
-                />
-              </div>
             </div>
 
             <div className="space-y-2">

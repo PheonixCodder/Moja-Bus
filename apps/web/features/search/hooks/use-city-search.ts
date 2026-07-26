@@ -4,6 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { useDebounce } from "./use-debounce";
 
+export type CitySearchResult = {
+  id: string;
+  name: string;
+  hierarchyLabel: string;
+  isMajorHub: boolean;
+};
+
 export function useCitySearch(query: string, delayMs = 250) {
   const trpc = useTRPC();
   const debouncedQuery = useDebounce(query, delayMs);
@@ -13,5 +20,5 @@ export function useCitySearch(query: string, delayMs = 250) {
     enabled: debouncedQuery.length >= 2,
   });
 
-  return { cities: data ?? [], isSearchable: debouncedQuery.length >= 2 };
+  return { cities: (data ?? []) as CitySearchResult[], isSearchable: debouncedQuery.length >= 2 };
 }

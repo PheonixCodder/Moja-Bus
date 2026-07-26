@@ -78,14 +78,14 @@ export function CityAutocompleteField({
                 key={city.id}
                 type="button"
                 onClick={() => {
-                  onChange({ id: city.id, text: city.name });
+                  onChange({ id: city.id, text: city.hierarchyLabel ?? city.name });
                   setIsOpen(false);
                 }}
                 className="w-full text-left px-4 py-3 hover:bg-pink-50 transition-colors flex items-center gap-2 font-medium"
               >
                 <MapPin className="h-4 w-4 text-[#ee237c]" />
                 <div>
-                  <span>{city.name}</span>
+                  <span>{city.hierarchyLabel ?? city.name}</span>
                   {city.isMajorHub && (
                     <Badge className="ml-2 bg-pink-100 text-pink-700 hover:bg-pink-100 text-[10px]">
                       {t("majorHub")}

@@ -174,13 +174,13 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl border bg-muted/30 p-3 text-sm">
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("from")}</span>
-              <span className="font-semibold">{booking.originCityName}</span>
-              <span className="text-xs text-muted-foreground">{booking.originTerminalName}</span>
+              <span className="font-semibold">{booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}</span>
+              <span className="text-xs text-muted-foreground">{booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("to")}</span>
-              <span className="font-semibold">{booking.destinationCityName}</span>
-              <span className="text-xs text-muted-foreground">{booking.destinationTerminalName}</span>
+              <span className="font-semibold">{booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}</span>
+              <span className="text-xs text-muted-foreground">{booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("departs")}</span>

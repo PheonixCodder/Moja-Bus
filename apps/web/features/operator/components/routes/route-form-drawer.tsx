@@ -100,7 +100,6 @@ export function RouteFormDrawer({
   const [originId, setOriginId] = useState("");
   const [destId, setDestId] = useState("");
   const [distanceKm, setDistanceKm] = useState("");
-  const [estimatedDurationInput, setEstimatedDurationInput] = useState("");
   const [waypoints, setWaypoints] = useState<WaypointDraft[]>([]);
   const [addingStop, setAddingStop] = useState(false);
   const [newStopId, setNewStopId] = useState("");
@@ -142,7 +141,7 @@ export function RouteFormDrawer({
                 ? waypoints[waypoints.length - 1]!.offsetMinutes +
                   (waypoints[waypoints.length - 1]!.dwellMinutes ?? 15) +
                   45
-                : parseInt(estimatedDurationInput, 10) || 60,
+                : 60,
             dwellMinutes: 0,
             distanceFromOriginKm: distanceKm ? parseFloat(distanceKm) : null,
             allowPickup: false,
@@ -205,13 +204,6 @@ export function RouteFormDrawer({
     );
   }
 
-  const computedDuration =
-    waypoints.length > 0
-      ? waypoints[waypoints.length - 1]!.offsetMinutes +
-        (waypoints[waypoints.length - 1]!.dwellMinutes ?? 15) +
-        45
-      : undefined;
-
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const createMutation = useMutation(trpc.routes.create.mutationOptions());
@@ -233,7 +225,6 @@ export function RouteFormDrawer({
     setOriginId(editingRoute.originTerminalId);
     setDestId(editingRoute.destTerminalId);
     setDistanceKm(editingRoute.distanceKm?.toString() ?? "");
-    setEstimatedDurationInput(editingRoute.estimatedMinutes?.toString() ?? "");
     setWaypoints(
       (editingRoute.waypoints ?? []).map((wp) => ({
         id: wp.id,
@@ -268,9 +259,6 @@ export function RouteFormDrawer({
       return;
     }
 
-    const finalDuration =
-      parseInt(estimatedDurationInput, 10) || computedDuration || null;
-
     const payload: any = {
       name: name.trim(),
       originTerminalId: originId,
@@ -286,7 +274,6 @@ export function RouteFormDrawer({
       })),
     };
     if (distanceKm) payload.distanceKm = parseFloat(distanceKm);
-    if (finalDuration) payload.estimatedDurationMin = finalDuration;
 
     if (isEditing && editingRouteId) {
       updateMutation.mutate(
@@ -327,7 +314,6 @@ export function RouteFormDrawer({
     setOriginId("");
     setDestId("");
     setDistanceKm("");
-    setEstimatedDurationInput("");
     setWaypoints([]);
     setAddingStop(false);
     setNewStopId("");
@@ -343,7 +329,11 @@ export function RouteFormDrawer({
     .filter((t) => t && t.latitude != null && t.longitude != null);
 
   const displayDuration =
-    parseInt(estimatedDurationInput, 10) || computedDuration;
+    waypoints.length > 0
+      ? waypoints[waypoints.length - 1]!.offsetMinutes +
+        (waypoints[waypoints.length - 1]!.dwellMinutes ?? 15) +
+        45
+      : undefined;
 
   return (
     <Drawer
@@ -484,19 +474,6 @@ export function RouteFormDrawer({
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-muted-foreground">
-                  Est. duration (minutes)
-                </Label>
-                <Input
-                  type="number"
-                  min={1}
-                  placeholder={computedDuration ? `Auto (~${computedDuration}m)` : "e.g. 240"}
-                  value={estimatedDurationInput}
-                  onChange={(e) => setEstimatedDurationInput(e.target.value)}
-                  className="text-sm"
-                />
-              </div>
             </div>
 
             {/* Stop Sequence */}
