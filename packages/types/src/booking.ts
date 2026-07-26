@@ -165,6 +165,10 @@ export interface OperatorBookingListItem {
   destinationCityName: string;
   originTerminalName: string;
   destinationTerminalName: string;
+  originMunicipalityName: string | null;
+  destinationMunicipalityName: string | null;
+  originQuarterName: string | null;
+  destinationQuarterName: string | null;
 }
 
 export interface OperatorBookingDetail extends OperatorBookingListItem {

@@ -41,12 +41,24 @@ const bookingInclude = {
   },
   originTripStop: {
     include: {
-      terminal: { include: { cityRelation: true } },
+      terminal: {
+        include: {
+          cityRelation: true,
+          municipality: { select: { name: true } },
+          quarter: { select: { name: true } },
+        },
+      },
     },
   },
   destinationTripStop: {
     include: {
-      terminal: { include: { cityRelation: true } },
+      terminal: {
+        include: {
+          cityRelation: true,
+          municipality: { select: { name: true } },
+          quarter: { select: { name: true } },
+        },
+      },
     },
   },
 } as const;
@@ -304,12 +316,16 @@ export class OperatorBookingService {
         terminal: {
           name: string;
           cityRelation: { name: string } | null;
+          municipality: { name: string } | null;
+          quarter: { name: string } | null;
         };
       };
       destinationTripStop: {
         terminal: {
           name: string;
           cityRelation: { name: string } | null;
+          municipality: { name: string } | null;
+          quarter: { name: string } | null;
         };
       };
     },
@@ -333,6 +349,14 @@ export class OperatorBookingService {
         "Côte d'Ivoire",
       originTerminalName: booking.originTripStop.terminal.name,
       destinationTerminalName: booking.destinationTripStop.terminal.name,
+      originMunicipalityName:
+        booking.originTripStop.terminal.municipality?.name ?? null,
+      destinationMunicipalityName:
+        booking.destinationTripStop.terminal.municipality?.name ?? null,
+      originQuarterName:
+        booking.originTripStop.terminal.quarter?.name ?? null,
+      destinationQuarterName:
+        booking.destinationTripStop.terminal.quarter?.name ?? null,
     };
   }
 
@@ -358,12 +382,16 @@ export class OperatorBookingService {
         terminal: {
           name: string;
           cityRelation: { name: string } | null;
+          municipality: { name: string } | null;
+          quarter: { name: string } | null;
         };
       };
       destinationTripStop: {
         terminal: {
           name: string;
           cityRelation: { name: string } | null;
+          municipality: { name: string } | null;
+          quarter: { name: string } | null;
         };
       };
     },

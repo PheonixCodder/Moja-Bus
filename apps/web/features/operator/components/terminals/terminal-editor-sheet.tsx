@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MapPin, Building, Shield, User, Phone, CheckCircle, Navigation } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -102,27 +102,26 @@ export function TerminalEditorSheet({
 
   const municipalitiesQuery = useQuery(
     trpc.locations.searchMunicipalities.queryOptions(
-      { cityId: cityId || undefined },
-      { enabled: !!cityId },
+      cityId ? { cityId } : skipToken,
     ),
   );
   const municipalities = municipalitiesQuery.data ?? [];
 
   const quartersQuery = useQuery(
     trpc.locations.searchQuarters.queryOptions(
-      { municipalityId: municipalityId || undefined },
-      { enabled: !!municipalityId },
+      municipalityId ? { municipalityId } : skipToken,
     ),
   );
   const quarters = quartersQuery.data ?? [];
 
   useEffect(() => {
+    const firstMunicipality = municipalities[0];
     if (
       cityId &&
       municipalities.length === 1 &&
-      municipalities[0].isPassThrough
+      firstMunicipality?.isPassThrough
     ) {
-      setMunicipalityId(municipalities[0].id);
+      setMunicipalityId(firstMunicipality.id);
     } else if (!editingLocation) {
       setMunicipalityId("");
     }
@@ -348,10 +347,10 @@ export function TerminalEditorSheet({
                 </Label>
                 {cityId && municipalities.length > 0 ? (
                   <>
-                    {municipalities.length === 1 && municipalities[0].isPassThrough ? (
+                    {municipalities.length === 1 && municipalities[0]?.isPassThrough ? (
                       <Input
                         id="municipalityId"
-                        value={municipalities[0].name}
+                        value={municipalities[0]?.name ?? ""}
                         readOnly
                         className="bg-muted"
                       />
