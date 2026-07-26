@@ -379,6 +379,7 @@ model Company {
 
   // Fleet & Operations
   fleet           Bus[]
+  busTypes        BusType[] @relation("CompanyBusTypes")
   layoutTemplates SeatLayoutTemplate[] @relation("CompanyLayoutTemplates")
   routes          Route[]
   schedules       Schedule[]
@@ -848,10 +849,15 @@ model BusType {
   description String?
   isActive    Boolean @default(true)
 
+  // null = platform default; set = operator custom type
+  companyId String?
+  company   Company? @relation("CompanyBusTypes", fields: [companyId], references: [id])
+
   layoutTemplates SeatLayoutTemplate[]
   buses           Bus[]
 
-  @@unique([name])
+  @@unique([companyId, name])
+  @@index([companyId])
   @@map("bus_type")
 }
 

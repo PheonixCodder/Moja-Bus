@@ -1038,6 +1038,23 @@
       "noStatusFound": "No status found.",
       "searchPlaceholder": "Search by plate, name, model...",
       "addVehicle": "Add vehicle",
+      "addBusType": "Add Bus Type",
+      "addBusTypeDialog": {
+        "title": "Add Bus Type",
+        "description": "Create a custom vehicle type for your fleet",
+        "nameLabel": "Name *",
+        "namePlaceholder": "e.g. Iveco Daily",
+        "descLabel": "Description",
+        "descPlaceholder": "e.g. 15-seat minibus (optional)",
+        "submitBtn": "Add Bus Type",
+        "cancelBtn": "Cancel",
+        "created": "Bus type created",
+        "error": "Failed to create bus type",
+        "errors": {
+          "required": "Name is required",
+          "tooShort": "Name must be at least 2 characters"
+        }
+      },
       "results": "{count} result",
       "results_plural": "{count} results",
       "status": {

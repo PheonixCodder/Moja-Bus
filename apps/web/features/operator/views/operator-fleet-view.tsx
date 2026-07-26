@@ -72,6 +72,7 @@ import {
 import { AddBusModal } from "@/features/operator/components/add-bus-modal";
 import { SeatMapPreview } from "@/features/operator/components/seat-map-preview";
 import { LayoutBuilderSheet } from "@/features/operator/components/layout-builder-sheet";
+import { AddBusTypeDialog } from "@/features/operator/components/fleet/add-bus-type-dialog";
 
 type Bus = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 type FleetStats = RouterOutputs["fleet"]["getBuses"]["stats"];
@@ -773,6 +774,7 @@ export function OperatorFleetView() {
 
   // Modals
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [busTypeDialogOpen, setBusTypeDialogOpen] = useState(false);
 
   useEffect(() => {
     if (searchParams && searchParams.get("action") === "new") {
@@ -847,17 +849,28 @@ export function OperatorFleetView() {
           </div>
           <div className="flex items-center gap-2">
             {activeTab === "buses" ? (
-              <Button
-                size="sm"
-                className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
-                onClick={() => {
-                  setEditingBus(null);
-                  setAddModalOpen(true);
-                }}
-              >
-                <Plus className="size-4" />
-                {t("addVehicle")}
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 border-dashed border-border text-xs gap-1.5"
+                  onClick={() => setBusTypeDialogOpen(true)}
+                >
+                  <Plus className="size-3.5" />
+                  {t("addBusType")}
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
+                  onClick={() => {
+                    setEditingBus(null);
+                    setAddModalOpen(true);
+                  }}
+                >
+                  <Plus className="size-4" />
+                  {t("addVehicle")}
+                </Button>
+              </>
             ) : null}
           </div>
         </div>
@@ -1168,6 +1181,16 @@ export function OperatorFleetView() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* ── Add Bus Type Dialog ── */}
+      <AddBusTypeDialog
+        open={busTypeDialogOpen}
+        onOpenChange={setBusTypeDialogOpen}
+        onSuccess={() => {
+          queryClient.invalidateQueries(trpc.fleet.getBusTypes.pathFilter());
+          queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
+        }}
+      />
     </div>
   );
 }

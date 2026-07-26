@@ -11,7 +11,13 @@ export const fleetRouter = createTRPCRouter({
   getBusTypes: operatorCompanyProcedure.query(async ({ ctx }) => {
     requirePermission(ctx, "fleet:read");
     return ctx.prisma.busType.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        OR: [
+          { companyId: null },
+          { companyId: ctx.companyId },
+        ],
+      },
     });
   }),
 
@@ -490,6 +496,24 @@ export const fleetRouter = createTRPCRouter({
         });
       }
 
+      // Validate bus type is accessible
+      const busType = await ctx.prisma.busType.findFirst({
+        where: {
+          id: input.busTypeId,
+          isActive: true,
+          OR: [
+            { companyId: null },
+            { companyId: ctx.companyId },
+          ],
+        },
+      });
+      if (!busType) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Selected bus type is not found or inactive.",
+        });
+      }
+
       return ctx.prisma.seatLayoutTemplate.create({
         data: {
           companyId: ctx.companyId,
@@ -537,6 +561,89 @@ export const fleetRouter = createTRPCRouter({
         }
 
         await tx.seatLayoutTemplate.delete({ where: { id: input.id } });
+        return { success: true };
+      });
+    }),
+
+  // ── Custom Bus Type Mutations ──────────────────────────────────────────
+
+  createBusType: operatorCompanyProcedure
+    .input(
+      z.object({
+        name: z.string().min(2, "Name must be at least 2 characters").max(60),
+        description: z.string().max(100).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:create");
+
+      // Guard: no duplicate name across platform or own types
+      const existing = await ctx.prisma.busType.findFirst({
+        where: {
+          name: input.name,
+          OR: [
+            { companyId: null },
+            { companyId: ctx.companyId },
+          ],
+        },
+      });
+      if (existing) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message:
+            existing.companyId === null
+              ? `"${input.name}" is a platform bus type and cannot be recreated.`
+              : `A custom bus type named "${input.name}" already exists.`,
+        });
+      }
+
+      return ctx.prisma.busType.create({
+        data: {
+          name: input.name,
+          description: input.description ?? null,
+          companyId: ctx.companyId,
+          isActive: true,
+        },
+      });
+    }),
+
+  deleteBusType: operatorCompanyProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:delete");
+
+      return ctx.prisma.$transaction(async (tx) => {
+        const busType = await tx.busType.findFirst({
+          where: { id: input.id, companyId: ctx.companyId },
+        });
+        if (!busType) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Bus type not found or not owned by your company.",
+          });
+        }
+
+        const busCount = await tx.bus.count({
+          where: { busTypeId: input.id, companyId: ctx.companyId, deletedAt: null },
+        });
+        if (busCount > 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `Cannot delete — ${busCount} bus${busCount > 1 ? "es" : ""} use "${busType.name}". Reassign or retire those vehicles first.`,
+          });
+        }
+
+        const layoutCount = await tx.seatLayoutTemplate.count({
+          where: { busTypeId: input.id, companyId: ctx.companyId },
+        });
+        if (layoutCount > 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `Cannot delete — ${layoutCount} layout${layoutCount > 1 ? "s" : ""} reference "${busType.name}". Delete those layouts first.`,
+          });
+        }
+
+        await tx.busType.delete({ where: { id: input.id } });
         return { success: true };
       });
     }),
