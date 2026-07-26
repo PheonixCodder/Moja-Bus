@@ -7,6 +7,8 @@ import { toSafeDisplayNumber } from "@/lib/money";
 const searchInputSchema = z.object({
   originCityId: z.string(),
   destinationCityId: z.string(),
+  originMunicipalityId: z.string().optional(),
+  destinationMunicipalityId: z.string().optional(),
   date: z.string(),
   passengers: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().min(1).default(1)),
   operators: z.array(z.string()).optional(),
@@ -72,6 +74,8 @@ export const searchRouter = createTRPCRouter({
       return searchService.execute({
         originCityId: resolvedOriginId,
         destinationCityId: resolvedDestId,
+        originMunicipalityId: input.originMunicipalityId ?? null,
+        destinationMunicipalityId: input.destinationMunicipalityId ?? null,
         travelDate: new Date(input.date),
         passengerCount: input.passengers,
         filters: {
@@ -92,6 +96,8 @@ export const searchRouter = createTRPCRouter({
       z.object({
         originCityId: z.string(),
         destinationCityId: z.string(),
+        originMunicipalityId: z.string().optional(),
+        destinationMunicipalityId: z.string().optional(),
         centerDate: z.string(), // "YYYY-MM-DD"
       }),
     )
@@ -127,6 +133,10 @@ export const searchRouter = createTRPCRouter({
         }
       }
 
+      const isUrban = originId === destId && input.originMunicipalityId && input.destinationMunicipalityId;
+      const urbanOriginMuni = isUrban ? input.originMunicipalityId : undefined;
+      const urbanDestMuni = isUrban ? input.destinationMunicipalityId : undefined;
+
       // Generate 7 UTC dates centered on centerDate (day -3 to day +3)
       const parts = input.centerDate.split("-").map(Number) as [number, number, number];
       const center = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
@@ -142,28 +152,48 @@ export const searchRouter = createTRPCRouter({
       windowEnd.setUTCHours(23, 59, 59, 999);
 
       // Single batch query: all trips on this route in the 7-day window
-      const trips = await ctx.prisma.trip.findMany({
-        where: {
-          status: { in: ["SCHEDULED", "DELAYED"] },
+      const tripWhere: any = {
+        status: { in: ["SCHEDULED", "DELAYED"] },
+      };
+      if (isUrban) {
+        tripWhere.tripStops = {
+          some: {
+            terminal: { cityId: originId, municipalityId: urbanOriginMuni },
+            isPickup: true,
+            scheduledDeparture: { gte: windowStart, lte: windowEnd },
+          },
+        };
+        tripWhere.AND = {
           tripStops: {
             some: {
-              terminal: { cityId: originId },
-              isPickup: true,
-              scheduledDeparture: { gte: windowStart, lte: windowEnd },
+              terminal: { cityId: destId, municipalityId: urbanDestMuni },
+              isDropoff: true,
             },
           },
-          AND: {
-            tripStops: {
-              some: {
-                terminal: { cityId: destId },
-                isDropoff: true,
-              },
+        };
+      } else {
+        tripWhere.tripStops = {
+          some: {
+            terminal: { cityId: originId },
+            isPickup: true,
+            scheduledDeparture: { gte: windowStart, lte: windowEnd },
+          },
+        };
+        tripWhere.AND = {
+          tripStops: {
+            some: {
+              terminal: { cityId: destId },
+              isDropoff: true,
             },
           },
-        },
+        };
+      }
+
+      const trips = await ctx.prisma.trip.findMany({
+        where: tripWhere,
         include: {
           tripStops: {
-            include: { terminal: { select: { cityId: true } } },
+            include: { terminal: { select: { cityId: true, municipalityId: true } } },
             orderBy: { stopOrder: "asc" },
           },
           schedule: {
@@ -180,14 +210,16 @@ export const searchRouter = createTRPCRouter({
       const priceByDate = new Map<string, number>();
       for (const trip of trips) {
         const originStop = trip.tripStops.find(
-          (s) =>
+          (s: any) =>
             s.terminal.cityId === originId &&
-            s.scheduledDeparture !== null,
+            s.scheduledDeparture !== null &&
+            (!isUrban || s.terminal.municipalityId === urbanOriginMuni),
         );
         if (!originStop?.scheduledDeparture) continue;
         const destStop = trip.tripStops.find(
-          (s) =>
-            s.terminal.cityId === destId,
+          (s: any) =>
+            s.terminal.cityId === destId &&
+            (!isUrban || s.terminal.municipalityId === urbanDestMuni),
         );
         if (!destStop || originStop.stopOrder >= destStop.stopOrder) continue;
 

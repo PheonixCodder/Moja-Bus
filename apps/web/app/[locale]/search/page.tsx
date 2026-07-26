@@ -31,6 +31,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             trpc.search.search.queryOptions({
                 originCityId: params.from,
                 destinationCityId: params.to,
+                originMunicipalityId: params.fromMuni || undefined,
+                destinationMunicipalityId: params.toMuni || undefined,
                 date: params.date,
                 passengers: params.passengers,
                 operators: params.operators?.length ? params.operators : undefined,
@@ -46,6 +48,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             trpc.search.cheapestByDate.queryOptions({
                 originCityId: params.from,
                 destinationCityId: params.to,
+                originMunicipalityId: params.fromMuni || undefined,
+                destinationMunicipalityId: params.toMuni || undefined,
                 centerDate: params.date,
             }),
         );

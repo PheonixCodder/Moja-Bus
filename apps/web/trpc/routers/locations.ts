@@ -7,6 +7,9 @@ const citySearchResultSchema = z.object({
   name: z.string(),
   hierarchyLabel: z.string(),
   isMajorHub: z.boolean(),
+  municipalityId: z.string().nullable().optional(),
+  quarterId: z.string().nullable().optional(),
+  level: z.enum(["city", "municipality", "quarter"]),
 });
 
 export const locationsRouter = createTRPCRouter({
@@ -17,7 +20,7 @@ export const locationsRouter = createTRPCRouter({
       const q = input.query;
       if (!q || q.length < 2) return [];
 
-      const results = new Map<string, { id: string; name: string; hierarchyLabel: string; isMajorHub: boolean }>();
+      const results = new Map<string, { id: string; name: string; hierarchyLabel: string; isMajorHub: boolean; municipalityId: string | null; quarterId: string | null; level: "city" | "municipality" | "quarter" }>();
 
       // 1. Direct city matches
       const cities = await ctx.prisma.city.findMany({
@@ -33,7 +36,7 @@ export const locationsRouter = createTRPCRouter({
       });
       for (const c of cities) {
         if (!results.has(c.id)) {
-          results.set(c.id, { id: c.id, name: c.name, hierarchyLabel: c.name, isMajorHub: c.isMajorHub });
+          results.set(c.id, { id: c.id, name: c.name, hierarchyLabel: c.name, isMajorHub: c.isMajorHub, municipalityId: null, quarterId: null, level: "city" });
         }
       }
 
@@ -54,6 +57,9 @@ export const locationsRouter = createTRPCRouter({
             name: m.city.name,
             hierarchyLabel: `${m.city.name} (${m.name})`,
             isMajorHub: m.city.isMajorHub,
+            municipalityId: m.id,
+            quarterId: null,
+            level: "municipality",
           });
         }
       }
@@ -76,6 +82,9 @@ export const locationsRouter = createTRPCRouter({
             name: qr.municipality.city.name,
             hierarchyLabel: `${qr.municipality.city.name} (${qr.municipality.name} - ${qr.name})`,
             isMajorHub: qr.municipality.city.isMajorHub,
+            municipalityId: qr.municipality.id,
+            quarterId: qr.id,
+            level: "quarter",
           });
         }
       }

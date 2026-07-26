@@ -13,6 +13,8 @@ export interface SearchFilters {
 export interface SearchContext {
   originCityId: string;
   destinationCityId: string;
+  originMunicipalityId: string | null;
+  destinationMunicipalityId: string | null;
   travelDate: Date;
   passengerCount: number;
   filters: SearchFilters;
@@ -24,29 +26,42 @@ export class SearchService {
   constructor(private searchRepo: TripSearchReadRepository) {}
 
   async execute(ctx: SearchContext): Promise<SearchResponse> {
+    const isUrban =
+      ctx.originCityId === ctx.destinationCityId &&
+      !!ctx.originMunicipalityId &&
+      !!ctx.destinationMunicipalityId;
+
     // 1. Resolve candidate trips based on geographic route + date
-    const rawTrips = await this.searchRepo.findCandidateTrips(
-      ctx.originCityId,
-      ctx.destinationCityId,
-      ctx.travelDate,
-    );
+    const rawTrips = isUrban
+      ? await this.searchRepo.findUrbanTrips(
+          ctx.originMunicipalityId!,
+          ctx.destinationMunicipalityId!,
+          ctx.originCityId,
+          ctx.travelDate,
+        )
+      : await this.searchRepo.findCandidateTrips(
+          ctx.originCityId,
+          ctx.destinationCityId,
+          ctx.travelDate,
+        );
 
     // 2. Stop resolution & Chronological validation (Origin stop comes before Destination stop)
     const candidates = [];
 
     for (const trip of rawTrips) {
-      // Find pickup stop in origin city on target date
       const originStop = trip.tripStops.find(
         (stop) =>
           stop.terminal.cityId === ctx.originCityId &&
           stop.isPickup &&
-          stop.scheduledDeparture,
+          stop.scheduledDeparture &&
+          (!isUrban || stop.terminal.municipalityId === ctx.originMunicipalityId),
       );
 
-      // Find dropoff stop in destination city
       const destStop = trip.tripStops.find(
         (stop) =>
-          stop.terminal.cityId === ctx.destinationCityId && stop.isDropoff,
+          stop.terminal.cityId === ctx.destinationCityId &&
+          stop.isDropoff &&
+          (!isUrban || stop.terminal.municipalityId === ctx.destinationMunicipalityId),
       );
 
       if (
@@ -232,15 +247,19 @@ export class SearchService {
     } else {
       // DEFAULT / BEST sorting logic
       // Weighted score combining: price (40%), duration (40%), seat availability (20%)
+      // Urban trips use tighter normalization (shorter distances, cheaper fares)
       offers.sort((a, b) => {
+        const priceNorm = isUrban ? 1000 : 5000;
+        const durationNorm = isUrban ? 60 : 180;
+        const seatsNorm = isUrban ? 30 : 50;
         const scoreA =
-          (a.priceXOF / 5000) * 0.4 +
-          (a.durationMinutes / 180) * 0.4 -
-          (a.availability.remaining / 50) * 0.2;
+          (a.priceXOF / priceNorm) * 0.4 +
+          (a.durationMinutes / durationNorm) * 0.4 -
+          (a.availability.remaining / seatsNorm) * 0.2;
         const scoreB =
-          (b.priceXOF / 5000) * 0.4 +
-          (b.durationMinutes / 180) * 0.4 -
-          (b.availability.remaining / 50) * 0.2;
+          (b.priceXOF / priceNorm) * 0.4 +
+          (b.durationMinutes / durationNorm) * 0.4 -
+          (b.availability.remaining / seatsNorm) * 0.2;
         return scoreA - scoreB;
       });
     }

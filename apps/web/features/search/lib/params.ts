@@ -21,6 +21,8 @@ export const searchParamsSchema = {
   // 1. Criteria (Mandatory for triggering search)
   from: parseAsString.withDefault(""),
   to: parseAsString.withDefault(""),
+  fromMuni: parseAsString.withDefault(""),
+  toMuni: parseAsString.withDefault(""),
   date: parseAsString.withDefault(""),
   passengers: parseAsInteger.withDefault(1),
 

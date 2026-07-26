@@ -29,6 +29,8 @@ export const OfferCard = memo(function OfferCard({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
+  const isUrban = offer.originCityName === offer.destinationCityName;
+
   const handlePrefetch = () => {
     if (isSoldOut) return;
     void queryClient.prefetchQuery(trpc.booking.getTripDetails.queryOptions({ offerId: offer.offerId }));
@@ -89,7 +91,7 @@ export const OfferCard = memo(function OfferCard({
                 <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                   {offer.originTerminalName}
                 </p>
-                <span className="text-[10px] font-semibold text-slate-400">{offer.originCityName}{offer.originMunicipalityName ? ` (${offer.originMunicipalityName})` : ""}</span>
+                <span className="text-[10px] font-semibold text-slate-400">{isUrban ? (offer.originMunicipalityName ?? offer.originCityName) : `${offer.originCityName}${offer.originMunicipalityName ? ` (${offer.originMunicipalityName})` : ""}`}</span>
               </div>
 
               <div className="md:col-span-3 flex flex-col items-center justify-center px-4 my-2 md:my-0">
@@ -117,7 +119,7 @@ export const OfferCard = memo(function OfferCard({
                 <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                   {offer.destinationTerminalName}
                 </p>
-                <span className="text-[10px] font-semibold text-slate-400">{offer.destinationCityName}{offer.destinationMunicipalityName ? ` (${offer.destinationMunicipalityName})` : ""}</span>
+                <span className="text-[10px] font-semibold text-slate-400">{isUrban ? (offer.destinationMunicipalityName ?? offer.destinationCityName) : `${offer.destinationCityName}${offer.destinationMunicipalityName ? ` (${offer.destinationMunicipalityName})` : ""}`}</span>
               </div>
             </div>
           </div>

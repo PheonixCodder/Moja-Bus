@@ -60,17 +60,34 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
       toast.error(t("validation.noDestination"));
       return;
     }
-    if (originVal === destVal) {
+
+    const sameCity = origin.id && destination.id && origin.id === destination.id;
+    const bothCityLevel = origin.level !== "municipality" && origin.level !== "quarter"
+      && destination.level !== "municipality" && destination.level !== "quarter";
+    const sameMunicipality = origin.municipalityId && destination.municipalityId
+      && origin.municipalityId === destination.municipalityId;
+    const mixedGranularity = origin.id === destination.id && (
+      (origin.level === "city" && destination.level === "municipality") ||
+      (origin.level === "municipality" && destination.level === "city")
+    );
+
+    if (originVal === destVal || (sameCity && (bothCityLevel || sameMunicipality))) {
       toast.error(t("validation.sameCity"));
       return;
     }
-    const params = new URLSearchParams({
+    if (sameCity && mixedGranularity) {
+      toast.error(t("validation.refineUrban"));
+      return;
+    }
+    const sp = new URLSearchParams({
       from: originVal,
       to: destVal,
       date,
       passengers: String(travelers),
     });
-    router.push(`/search?${params.toString()}`);
+    if (sameCity && origin.municipalityId) sp.set("fromMuni", origin.municipalityId);
+    if (sameCity && destination.municipalityId) sp.set("toMuni", destination.municipalityId);
+    router.push(`/search?${sp.toString()}`);
   }
 
   return (

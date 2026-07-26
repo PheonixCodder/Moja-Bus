@@ -48,7 +48,8 @@
       "validation": {
         "noOrigin": "Please select a departure city",
         "noDestination": "Please select a destination city",
-        "sameCity": "Origin and destination cannot be the same"
+        "sameCity": "Origin and destination cannot be the same",
+        "refineUrban": "Please select a specific neighborhood for both departure and destination"
       }
     },
     "howItWorks": {
@@ -277,6 +278,7 @@
     "originRequired": "Please select a valid origin city",
     "destinationRequired": "Please select a valid destination city",
     "sameCity": "Origin and destination cities cannot be the same",
+    "refineUrban": "Please select a specific neighborhood for both departure and destination",
     "emptyTitle": "Ready to Explore?",
     "emptySubtitle": "Enter your departure city, destination, and date above to find intercity bus departures across Côte d’Ivoire.",
     "popularRoutes": "Popular Routes",

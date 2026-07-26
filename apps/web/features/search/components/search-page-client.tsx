@@ -103,6 +103,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
     ...trpc.search.search.queryOptions({
       originCityId: params.from,
       destinationCityId: params.to,
+      originMunicipalityId: params.fromMuni || undefined,
+      destinationMunicipalityId: params.toMuni || undefined,
       date: params.date,
       passengers: params.passengers,
       operators: localFilters.operators.length > 0 ? localFilters.operators : undefined,
@@ -126,6 +128,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
   const criteriaKey = [
     params.from,
     params.to,
+    params.fromMuni,
+    params.toMuni,
     params.date,
     params.passengers,
     localFilters.operators.join(","),
@@ -174,6 +178,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
   const handleSearch = useCallback((criteria: {
     from: string;
     to: string;
+    fromMuni: string;
+    toMuni: string;
     date: string;
     passengers: number;
   }) => {
@@ -184,6 +190,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
     void setParams({
       from: criteria.from,
       to: criteria.to,
+      fromMuni: criteria.fromMuni,
+      toMuni: criteria.toMuni,
       date: criteria.date,
       passengers: criteria.passengers,
       page: 1,
@@ -309,6 +317,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
           <SearchForm
             initialFromId={params.from}
             initialToId={params.to}
+            initialFromMuni={params.fromMuni}
+            initialToMuni={params.toMuni}
             initialDate={params.date}
             initialPassengers={params.passengers}
             onSearch={handleSearch}
@@ -320,6 +330,7 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
           <SearchDateStrip
             from={params.from}
             to={params.to}
+            {...(params.fromMuni ? { fromMuni: params.fromMuni, toMuni: params.toMuni } : {})}
             selectedDate={params.date}
             onSelectDate={handleDateSelect}
           />
@@ -332,7 +343,7 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
         {!searchEnabled ? (
           /* Pre-search empty state */
           <SearchEmptyState
-            onQuickSearch={(c) => handleSearch({ ...c, passengers: params.passengers })}
+            onQuickSearch={(c) => handleSearch({ ...c, fromMuni: "", toMuni: "", passengers: params.passengers })}
           />
         ) : (
           <>

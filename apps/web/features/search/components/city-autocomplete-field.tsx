@@ -10,6 +10,9 @@ import { useCitySearch } from "../hooks/use-city-search";
 export interface CityValue {
   id: string;
   text: string;
+  municipalityId?: string;
+  quarterId?: string;
+  level?: "city" | "municipality" | "quarter";
 }
 
 interface CityAutocompleteFieldProps {
@@ -78,7 +81,13 @@ export function CityAutocompleteField({
                 key={city.id}
                 type="button"
                 onClick={() => {
-                  onChange({ id: city.id, text: city.hierarchyLabel ?? city.name });
+                  onChange({
+                    id: city.id,
+                    text: city.hierarchyLabel ?? city.name,
+                    ...(city.municipalityId ? { municipalityId: city.municipalityId } : {}),
+                    ...(city.quarterId ? { quarterId: city.quarterId } : {}),
+                    ...(city.level ? { level: city.level } : {}),
+                  });
                   setIsOpen(false);
                 }}
                 className="w-full text-left px-4 py-3 hover:bg-pink-50 transition-colors flex items-center gap-2 font-medium"

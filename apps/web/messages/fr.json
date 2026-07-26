@@ -48,7 +48,8 @@
       "validation": {
         "noOrigin": "Veuillez sélectionner une ville de départ",
         "noDestination": "Veuillez sélectionner une ville d'arrivée",
-        "sameCity": "L'origine et la destination ne peuvent pas être identiques"
+        "sameCity": "L'origine et la destination ne peuvent pas être identiques",
+        "refineUrban": "Veuillez sélectionner un quartier spécifique pour le départ et la destination"
       }
     },
     "howItWorks": {
@@ -277,6 +278,7 @@
     "originRequired": "Veuillez sélectionner une ville de départ valide",
     "destinationRequired": "Veuillez sélectionner une ville de destination valide",
     "sameCity": "Les villes de départ et de destination ne peuvent pas être identiques",
+    "refineUrban": "Veuillez sélectionner un quartier spécifique pour le départ et la destination",
     "emptyTitle": "Prêt à explorer ?",
     "emptySubtitle": "Entrez votre ville de départ, votre destination et votre date ci-dessus pour trouver des départs de bus interurbains en Côte d’Ivoire.",
     "popularRoutes": "Itinéraires populaires",
