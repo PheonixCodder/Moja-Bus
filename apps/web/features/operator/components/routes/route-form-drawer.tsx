@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Plus, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
@@ -104,6 +105,7 @@ export function RouteFormDrawer({
 
   const originTerminal = terminals.find((t) => t.id === originId);
   const destTerminal = terminals.find((t) => t.id === destId);
+  const isUrbanRoute = originTerminal && destTerminal && (originTerminal.cityRelation?.name ?? originTerminal.city) === (destTerminal.cityRelation?.name ?? destTerminal.city);
 
   const allStops: WaypointDraft[] = [
     ...(originTerminal
@@ -310,10 +312,15 @@ export function RouteFormDrawer({
           <DrawerTitle className="text-base font-bold">
             {isEditing ? `${tc("edit")} Route` : t("createRoute")}
           </DrawerTitle>
-          <DrawerDescription className="text-xs text-muted-foreground">
+          <DrawerDescription className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
             {isEditing
               ? "Update the origin, destination, and intermediate stops."
               : "Define the origin, destination, and intermediate stops."}
+            {isUrbanRoute && (
+              <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 text-[10px] font-semibold py-0">
+                Urban Route
+              </Badge>
+            )}
           </DrawerDescription>
         </DrawerHeader>
 
@@ -340,7 +347,7 @@ export function RouteFormDrawer({
                     .filter((t) => t.id !== destId)
                     .map((t) => ({
                       value: t.id,
-                      label: `${t.name} — ${t.cityRelation?.name ?? t.city}`,
+                      label: `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`,
                     }))}
                   value={originId}
                   onValueChange={(val) => setOriginId(val || "")}
@@ -353,7 +360,7 @@ export function RouteFormDrawer({
                         ? (() => {
                             const t = terminals.find((x) => x.id === originId);
                             return t
-                              ? `${t.name} — ${t.cityRelation?.name ?? t.city}`
+                              ? `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`
                               : "";
                           })()
                         : ""
@@ -366,7 +373,7 @@ export function RouteFormDrawer({
                         .filter((t) => t.id !== destId)
                         .map((t) => (
                           <ComboboxItem key={t.id} value={t.id}>
-                            {t.name} — {t.cityRelation?.name ?? t.city}
+                            {t.name} — {t.cityRelation?.name ?? t.city}{t.municipality?.name ? ` (${t.municipality.name})` : ""}
                           </ComboboxItem>
                         ))}
                     </ComboboxList>
@@ -386,7 +393,7 @@ export function RouteFormDrawer({
                     .filter((t) => t.id !== originId)
                     .map((t) => ({
                       value: t.id,
-                      label: `${t.name} — ${t.cityRelation?.name ?? t.city}`,
+                      label: `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`,
                     }))}
                   value={destId}
                   onValueChange={(val) => setDestId(val || "")}
@@ -399,7 +406,7 @@ export function RouteFormDrawer({
                         ? (() => {
                             const t = terminals.find((x) => x.id === destId);
                             return t
-                              ? `${t.name} — ${t.cityRelation?.name ?? t.city}`
+                              ? `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`
                               : "";
                           })()
                         : ""
@@ -412,7 +419,7 @@ export function RouteFormDrawer({
                         .filter((t) => t.id !== originId)
                         .map((t) => (
                           <ComboboxItem key={t.id} value={t.id}>
-                            {t.name} — {t.cityRelation?.name ?? t.city}
+                            {t.name} — {t.cityRelation?.name ?? t.city}{t.municipality?.name ? ` (${t.municipality.name})` : ""}
                           </ComboboxItem>
                         ))}
                     </ComboboxList>
@@ -477,48 +484,48 @@ export function RouteFormDrawer({
                       {addingStop ? (
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
-                            <Combobox
-                              items={intermediateOptions.map((t) => ({
-                                value: t.id,
-                                label: `${t.name} — ${t.cityRelation?.name ?? t.city}`,
-                              }))}
-                              value={newStopId}
-                              onValueChange={(val) => setNewStopId(val || "")}
-                            >
-                              <ComboboxInput
-                                placeholder="Select a terminal…"
-                                className="h-8 text-xs w-full"
-                                value={
-                                  newStopId
-                                    ? (() => {
-                                        const t = intermediateOptions.find(
-                                          (x) => x.id === newStopId,
-                                        );
-                                        return t
-                                          ? `${t.name} — ${t.cityRelation?.name ?? t.city}`
-                                          : "";
-                                      })()
-                                    : ""
-                                }
-                              />
-                              <ComboboxContent>
-                                <ComboboxEmpty>
-                                  No terminal found.
-                                </ComboboxEmpty>
-                                <ComboboxList>
-                                  {intermediateOptions.map((t) => (
-                                    <ComboboxItem
-                                      key={t.id}
-                                      value={t.id}
-                                      className="text-xs"
-                                    >
-                                      {t.name} —{" "}
-                                      {t.cityRelation?.name ?? t.city}
-                                    </ComboboxItem>
-                                  ))}
-                                </ComboboxList>
-                              </ComboboxContent>
-                            </Combobox>
+                              <Combobox
+                                items={intermediateOptions.map((t) => ({
+                                  value: t.id,
+                                  label: `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`,
+                                }))}
+                                value={newStopId}
+                                onValueChange={(val) => setNewStopId(val || "")}
+                              >
+                                <ComboboxInput
+                                  placeholder="Select a terminal…"
+                                  className="h-8 text-xs w-full"
+                                  value={
+                                    newStopId
+                                      ? (() => {
+                                          const t = intermediateOptions.find(
+                                            (x) => x.id === newStopId,
+                                          );
+                                          return t
+                                            ? `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`
+                                            : "";
+                                        })()
+                                      : ""
+                                  }
+                                />
+                                <ComboboxContent>
+                                  <ComboboxEmpty>
+                                    No terminal found.
+                                  </ComboboxEmpty>
+                                  <ComboboxList>
+                                    {intermediateOptions.map((t) => (
+                                      <ComboboxItem
+                                        key={t.id}
+                                        value={t.id}
+                                        className="text-xs"
+                                      >
+                                        {t.name} —{" "}
+                                        {t.cityRelation?.name ?? t.city}{t.municipality?.name ? ` (${t.municipality.name})` : ""}
+                                      </ComboboxItem>
+                                    ))}
+                                  </ComboboxList>
+                                </ComboboxContent>
+                              </Combobox>
                           </div>
                           <Button
                             size="sm"

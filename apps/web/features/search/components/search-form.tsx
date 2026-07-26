@@ -16,11 +16,15 @@ import { useCityDetails } from "../hooks/use-city-details";
 interface SearchFormProps {
   initialFromId: string;
   initialToId: string;
+  initialFromMuni: string;
+  initialToMuni: string;
   initialDate: string;
   initialPassengers: number;
   onSearch: (criteria: {
     from: string;
     to: string;
+    fromMuni: string;
+    toMuni: string;
     date: string;
     passengers: number;
   }) => void;
@@ -37,13 +41,23 @@ function parseLocalDate(dateStr: string) {
 export const SearchForm = memo(function SearchForm({
   initialFromId,
   initialToId,
+  initialFromMuni,
+  initialToMuni,
   initialDate,
   initialPassengers,
   onSearch,
 }: SearchFormProps) {
   const t = useTranslations("search");
-  const [origin, setOrigin] = useState<CityValue>({ id: initialFromId, text: "" });
-  const [destination, setDestination] = useState<CityValue>({ id: initialToId, text: "" });
+  const [origin, setOrigin] = useState<CityValue>({
+    id: initialFromId,
+    text: "",
+    ...(initialFromMuni ? { municipalityId: initialFromMuni, level: "municipality" } : {}),
+  });
+  const [destination, setDestination] = useState<CityValue>({
+    id: initialToId,
+    text: "",
+    ...(initialToMuni ? { municipalityId: initialToMuni, level: "municipality" } : {}),
+  });
   const [date, setDate] = useState(initialDate || todayISO());
   const [passengers, setPassengers] = useState(initialPassengers);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -54,16 +68,18 @@ export const SearchForm = memo(function SearchForm({
   const { data: destCity } = useCityDetails(initialToId);
 
   useEffect(() => {
-    if (originCity) setOrigin({ id: originCity.id, text: originCity.name });
+    if (originCity) setOrigin((prev) => ({ ...prev, id: originCity.id, text: originCity.name }));
   }, [originCity]);
 
   useEffect(() => {
-    if (destCity) setDestination({ id: destCity.id, text: destCity.name });
+    if (destCity) setDestination((prev) => ({ ...prev, id: destCity.id, text: destCity.name }));
   }, [destCity]);
 
   function handleSwap() {
-    setOrigin(destination);
-    setDestination(origin);
+    const swappedOrigin: CityValue = { ...destination };
+    const swappedDest: CityValue = { ...origin };
+    setOrigin(swappedOrigin);
+    setDestination(swappedDest);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -79,11 +95,33 @@ export const SearchForm = memo(function SearchForm({
       toast.error(t("destinationRequired"));
       return;
     }
-    if (originVal === destVal) {
+
+    const sameCity = origin.id && destination.id && origin.id === destination.id;
+    const bothCityLevel = origin.level !== "municipality" && origin.level !== "quarter"
+      && destination.level !== "municipality" && destination.level !== "quarter";
+    const sameMunicipality = origin.municipalityId && destination.municipalityId
+      && origin.municipalityId === destination.municipalityId;
+    const mixedGranularity = origin.id === destination.id && (
+      (origin.level === "city" && destination.level === "municipality") ||
+      (origin.level === "municipality" && destination.level === "city")
+    );
+
+    if ((!sameCity && originVal === destVal) || (sameCity && (bothCityLevel || sameMunicipality))) {
       toast.error(t("sameCity"));
       return;
     }
-    onSearch({ from: originVal, to: destVal, date, passengers });
+    if (sameCity && mixedGranularity) {
+      toast.error(t("refineUrban"));
+      return;
+    }
+    onSearch({
+      from: originVal,
+      to: destVal,
+      fromMuni: (sameCity ? origin.municipalityId : "") ?? "",
+      toMuni: (sameCity ? destination.municipalityId : "") ?? "",
+      date,
+      passengers,
+    });
   }
 
   return (

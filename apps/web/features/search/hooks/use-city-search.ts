@@ -9,6 +9,9 @@ export type CitySearchResult = {
   name: string;
   hierarchyLabel: string;
   isMajorHub: boolean;
+  municipalityId?: string;
+  quarterId?: string;
+  level?: "city" | "municipality" | "quarter";
 };
 
 export function useCitySearch(query: string, delayMs = 250) {

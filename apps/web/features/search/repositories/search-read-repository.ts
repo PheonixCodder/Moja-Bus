@@ -3,6 +3,52 @@ import type { PrismaClient } from "@moja/db";
 export class TripSearchReadRepository {
   constructor(private prisma: PrismaClient) {}
 
+  private readonly tripInclude = {
+    company: true,
+    bus: {
+      include: {
+        busType: true,
+        layoutTemplate: true,
+      },
+    },
+    seats: {
+      where: { isActive: true },
+      include: {
+        seat: {
+          select: {
+            id: true,
+            seatType: true,
+            isBookable: true,
+            isActive: true,
+          },
+        },
+      },
+    },
+    tripStops: {
+      include: {
+        terminal: {
+          include: { cityRelation: true, municipality: true, quarter: true },
+        },
+      },
+      orderBy: { stopOrder: "asc" },
+    },
+    schedule: {
+      include: {
+        fares: {
+          where: { isActive: true },
+        },
+      },
+    },
+  } as const;
+
+  private dayBounds(date: Date) {
+    const startOfDay = new Date(date);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setUTCHours(23, 59, 59, 999);
+    return { startOfDay, endOfDay };
+  }
+
   /**
    * Finds candidate trips that run on a given day and stop in both cities.
    * Note: Enforcing the stop order index (origin < destination) is handled
@@ -13,10 +59,7 @@ export class TripSearchReadRepository {
     destinationCityId: string,
     date: Date,
   ) {
-    const startOfDay = new Date(date);
-    startOfDay.setUTCHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setUTCHours(23, 59, 59, 999);
+    const { startOfDay, endOfDay } = this.dayBounds(date);
 
     return this.prisma.trip.findMany({
       where: {
@@ -41,43 +84,45 @@ export class TripSearchReadRepository {
           },
         },
       },
-      include: {
-        company: true,
-        bus: {
-          include: {
-            busType: true,
-            layoutTemplate: true,
-          },
-        },
-        seats: {
-          where: { isActive: true },
-          include: {
-            seat: {
-              select: {
-                id: true,
-                seatType: true,
-                isBookable: true,
-                isActive: true,
-              },
-            },
-          },
-        },
+      include: this.tripInclude,
+    });
+  }
+
+  /**
+   * Finds intra-city trips matching specific origin and destination municipalities.
+   */
+  async findUrbanTrips(
+    originMunicipalityId: string,
+    destinationMunicipalityId: string,
+    cityId: string,
+    date: Date,
+  ) {
+    const { startOfDay, endOfDay } = this.dayBounds(date);
+
+    return this.prisma.trip.findMany({
+      where: {
+        status: { in: ["SCHEDULED", "DELAYED"] },
+        schedule: { isActive: true },
         tripStops: {
-          include: {
-            terminal: {
-              include: { cityRelation: true, municipality: true, quarter: true },
+          some: {
+            terminal: { cityId, municipalityId: originMunicipalityId },
+            isPickup: true,
+            scheduledDeparture: {
+              gte: startOfDay,
+              lte: endOfDay,
             },
           },
-          orderBy: { stopOrder: "asc" },
         },
-        schedule: {
-          include: {
-            fares: {
-              where: { isActive: true },
+        AND: {
+          tripStops: {
+            some: {
+              terminal: { cityId, municipalityId: destinationMunicipalityId },
+              isDropoff: true,
             },
           },
         },
       },
+      include: this.tripInclude,
     });
   }
 
