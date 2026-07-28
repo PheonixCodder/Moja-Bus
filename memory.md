@@ -1,43 +1,53 @@
-# Memory — Search & Booking State Overhaul
+# Memory — Passenger Mobile App Build
 
-Last updated: 2026-07-25
+Last updated: 2026-07-27
 
 ## What was built
 
-**URL state cleanup for shareable search links:**
+**Onboarding flow + font loading + tRPC + Settings page + Tab bar:**
 
-- **Removed price-change banner** from `booking-dialog-flow.tsx` — deleted `expectedPricePerSeat`/`expectedPrice`/`priceChanged`/`priceAccepted` state, banner JSX, and all related code across `offer-card.tsx`, `booking-dialog.tsx`, `search-page-client.tsx`, and `params.ts`.
-
-- **Created `BookingContext`** (`booking-context.tsx`) — React context holding `step`, `selectedSeatIds`, `toggleSeat`, `clearSeats`, `passengerCount`, `priceAccepted`. Replaces URL-based transient booking state.
-
-- **Moved `bookingStep` and `selectedSeats` out of URL** — only `bookingOfferId` remains in URL for dialog recovery. Guest redirect no longer persists step/seat IDs to URL. `BookingDialog` wraps flow in `BookingProvider`. `BookingDialogFlow` reads all transient state from context.
-
-- **Moved fringe filters to sessionStorage** — `operators`, `amenities`, `departureTime`, `maxPrice` removed from URL schema. Stored via `persistFilters`/`restoreFilters` helpers in `search-page-client.tsx`. Core search params (`from`, `to`, `date`, `passengers`, `sort`, `page`, `bookingOfferId`) remain in URL for sharing.
+- **Fonts**: Loaded Montserrat (Regular, Medium, SemiBold, Bold) via `@expo-google-fonts/montserrat` in root layout
+- **AsyncStorage**: Added dependency + `onboarding-storage.ts` with `hasSeenOnboarding()` and `markOnboardingSeen()`
+- **Tab Bar**: Replaced custom implementation with `react-native-motion-tabs` library MotionTabBar
+- **tRPC**: Established client with `httpBatchLink` + `superjson`, forwards Better Auth session via `authClient.getCookie()`
+- **Settings page**: Rebuilt with finance-app-inspired design — ProfileHeader, WalletCard, TopUpButton, QuickActions, MenuSection
+- **Onboarding**: Created 5 animated scenes (Splash → Ride Moja → Track Trip → Pay Securely → Welcome) adapted from onboarding-example template with Montserrat fonts and Feather icons
+- **Shared UI**: Animated NextButton (arrow → "Get Started"), TopBar (back + skip), page indicator dots
+- **Routing**: New `(onboarding)` route group, root index.tsx gates onboarding before auth on first launch
 
 ## Decisions made
 
-- URL holds only what's shareable: origin, destination, date, passengers, sort, page, bookingOfferId. Everything else is transient.
-- Transient booking state (selected seats, step, price acceptance) lives in React context scoped to the dialog.
-- Fringe search filters live in sessionStorage (tab-scoped, survives back/forward navigation).
-- Filter entries kept in `searchParamsSchema` (without defaults) for server-side type safety — they parse from URL if present (deep links) but don't appear in normal URLs.
+- `@expo-google-fonts/montserrat` for font loading (cleaner than manual TTF)
+- `@/assets/*` alias for image imports
+- Feather icons from `@expo/vector-icons` (not `react-native-vector-icons/MaterialIcons`)
+- Brand pink `#ee237c` primary color throughout
+- `react-native-safe-area-context` used for safe area insets in onboarding
+- Onboarding shown only before auth, first launch only (AsyncStorage flag)
+- Final "Get Started" navigates to login screen
+- Light mode only throughout app
 
 ## Problems solved
 
-- **Login redirect crash**: After removing filters from URL schema, server-side `search/page.tsx` crashed on `params.operators.length` because `operators` was `undefined`. Fixed by: keeping filter entries in schema (no defaults) so types resolve, and using `?.` null-safe access.
-- **Type mismatch**: `StoredFilters.departureTime` was `string[]` but tRPC expected `TimeFilterId[]`. Fixed by typing it as `TimeFilterId[]`.
-- **Unused import**: `type { User } from "better-auth"` was dead code in `search-page-client.tsx` — removed.
+- Image path resolution: Changed from relative `../../assets/images/` to alias `@/assets/images/`
+- Font loading: Returns `null` while loading (could add splash screen in future)
+- Onboarding scene arrangement: 5-page animation matching template's 0→0.2→0.4→0.6→0.8 value progression
 
 ## Current state
 
-All 5 tasks of the Search & Booking State Overhaul plan are complete:
-- `web` typecheck passes (only pre-existing `PAGE_SIZE` and `search-sort-bar.tsx` errors remain)
-- Lint shows only pre-existing formatting issues in `app/[locale]/` files
-- Search params in URL: `from`, `to`, `date`, `passengers`, `sort`, `page`, `bookingOfferId`
+- Montserrat fonts loaded at app startup
+- 5 onboarding scenes with smooth Animated transitions
+- AsyncStorage flag gates onboarding (first launch only)
+- Tab bar, tRPC, and settings page all wired
+- `turbo test` passes (all tests)
+- TypeScript compiles clean
 
 ## Next session starts with
 
-Test the guest → login → booking flow end-to-end to confirm no regressions. If working, the search-URL sharing feature is ready.
+- Test the onboarding flow end-to-end: launch app → see onboarding → tap through → land on login
+- Build out Home/search page
+- Build out Bookings page
+- Build out Tickets page
 
 ## Open questions
 
-None.
+- Need final Moja Ride branded illustrations (currently using placeholder images from the template)

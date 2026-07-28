@@ -31,7 +31,7 @@ function collectTrustedOrigins(baseUrl: string): string[] {
     if (expoOrigin) {
       origins.add(expoOrigin);
     } else {
-      origins.add("http://192.168.100.3:8081");
+      origins.add("http://192.168.100.47:8081");
     }
     origins.add("http://localhost:8081");
     origins.add("http://127.0.0.1:8081");

@@ -104,7 +104,6 @@ const InputComponent = React.forwardRef<
   React.ComponentProps<"input">
 >(({ className, ...props }, ref) => (
   <Input
-    maxLength={10}
     className={cn("rounded-e-lg rounded-s-none", className)}
     {...props}
     ref={ref}

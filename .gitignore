@@ -28,6 +28,7 @@ legacy-apps-setup
 best-example
 graphify-out
 best-dashboard-setup
+app-2
 
 # Migration artifacts
 packages/db/migrate-out.txt

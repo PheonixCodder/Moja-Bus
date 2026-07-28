@@ -8,7 +8,10 @@
     "./global.css": "./global.css",
     "./tokens": "./tokens.ts"
   },
-  "dependencies": {
+  "peerDependencies": {
+    "react-native": "0.85.3"
+  },
+  "devDependencies": {
     "react-native": "0.85.3"
   },
   "files": [
