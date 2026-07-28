@@ -51,3 +51,10 @@ Last updated: 2026-07-27
 ## Open questions
 
 - Need final Moja Ride branded illustrations (currently using placeholder images from the template)
+
+## Web deployment fix (2026-07-28)
+
+- Root cause of Vercel build failure: `node-linker=hoisted` in `.npmrc` creates broken NTFS junctions (or symlinks on Linux) in workspace `node_modules` directories pointing to non-existent `.pnpm/store` paths. Binaries like `prisma`, `next`, `tsx` resolve through these broken junctions and fail with `MODULE_NOT_FOUND`.
+- Fix: Changed scripts in `packages/db/package.json` and `apps/web/package.json` to use direct paths (`node ../../node_modules/<pkg>/dist/bin/<cmd>`) bypassing broken junctions.
+- Files changed: `packages/db/package.json` (postinstall + all prisma/tsx scripts), `apps/web/package.json` (build script)
+- `.npmrc` was NOT modified — kept as `node-linker=hoisted`
