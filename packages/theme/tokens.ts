@@ -6,6 +6,7 @@ export const Colors = {
     background: "#ffffff",
     backgroundElement: "#f5f5f5",
     backgroundSelected: "#e5e5e5",
+    surface: "#0f1b2d",
     textSecondary: "#737373",
     primary: "#ee237c",
     primaryForeground: "#ffffff",
@@ -15,12 +16,14 @@ export const Colors = {
     background: "#171717",
     backgroundElement: "#262626",
     backgroundSelected: "#404040",
+    surface: "#0f1b2d",
     textSecondary: "#a3a3a3",
     primary: "#ee237c",
     primaryForeground: "#ffffff",
   },
 } as const;
 
+export const primaryRGB = "238, 35, 124";
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({

@@ -23,18 +23,16 @@ function collectTrustedOrigins(baseUrl: string): string[] {
       "http://127.0.0.1:19006",
     ]),
     "travelerapp://",
+    // Mobile / Expo origins — always trusted regardless of NODE_ENV
+    // so the traveler-app works against production deployments
+    "exp://",
+    "http://localhost:8081",
+    "http://127.0.0.1:8081",
   ]);
 
-  if (process.env["NODE_ENV"] === "development") {
-    origins.add("exp://");
-    const expoOrigin = process.env["EXPO_DEV_ORIGIN"];
-    if (expoOrigin) {
-      origins.add(expoOrigin);
-    } else {
-      origins.add("http://192.168.100.47:8081");
-    }
-    origins.add("http://localhost:8081");
-    origins.add("http://127.0.0.1:8081");
+  const expoOrigin = process.env["EXPO_DEV_ORIGIN"];
+  if (expoOrigin) {
+    origins.add(expoOrigin);
   }
 
   return [...origins];

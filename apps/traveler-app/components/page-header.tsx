@@ -14,7 +14,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
   return (
     <View
       style={{
-        paddingTop: insets.top + 12,
+        paddingTop: insets.top + 30,
         paddingBottom: 16,
         paddingHorizontal: 20,
         flexDirection: "row",
