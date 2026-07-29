@@ -325,6 +325,7 @@ export const passengerRouter = createTRPCRouter({
     .input(
       z.object({
         amountXOF: z.number().int().positive().min(100),
+        callbackUrl: z.string().url().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -348,17 +349,24 @@ export const passengerRouter = createTRPCRouter({
         },
       });
 
+      const paystackMetadata: Record<string, unknown> = {
+        isTopUp: true,
+        accountId: wallet.id,
+        cancel_action: `${process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000"}/api/payments/mobile-callback?cancel=1`,
+      };
+
+      const callbackUrl = input.callbackUrl
+        ? `${input.callbackUrl}?reference=${reference}`
+        : `${process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000"}/dashboard/wallet?topup=pending&ref=${reference}`;
+
       let initialized;
       try {
         initialized = await paystackInitialize({
           email,
           amountXOF: input.amountXOF,
           reference,
-          metadata: {
-            isTopUp: true,
-            accountId: wallet.id,
-          },
-          callbackUrl: `${process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000"}/dashboard/wallet?topup=pending&ref=${reference}`,
+          metadata: paystackMetadata,
+          callbackUrl,
         });
       } catch (error) {
         await ctx.prisma.externalPayment.update({
@@ -392,7 +400,7 @@ export const passengerRouter = createTRPCRouter({
         });
       });
 
-      return { authorizationUrl: initialized.authorizationUrl };
+      return { authorizationUrl: initialized.authorizationUrl, reference };
     }),
 
   verifyWalletTopUp: protectedProcedure

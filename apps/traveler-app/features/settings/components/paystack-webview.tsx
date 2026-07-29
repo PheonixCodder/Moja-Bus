@@ -9,12 +9,16 @@ import { Colors, Spacing } from "@moja/theme/tokens";
 type PaystackWebViewProps = {
   authorizationUrl: string;
   visible: boolean;
-  onSuccess: () => void;
+  /** Payment reference from server — passed back on success even if URL lacks it */
+  reference?: string;
+  onSuccess: (reference?: string) => void;
   onCancel: () => void;
 };
 
+const MOBILE_CALLBACK_PATH = "/api/payments/mobile-callback";
 const SUCCESS_HOSTS = ["localhost", "192.168", "mojaride.ci", "moja-buss"];
-const SUCCESS_PATHS = ["/dashboard/wallet", "/dashboard/passenger/wallet"];
+const SUCCESS_PATHS = [MOBILE_CALLBACK_PATH, "/dashboard/wallet", "/dashboard/passenger/wallet"];
+const CANCEL_PATHS = [`${MOBILE_CALLBACK_PATH}?cancel=1`];
 
 const INJECTED_JS = `
   (function() {
@@ -26,9 +30,19 @@ const INJECTED_JS = `
   })();
 `;
 
+function extractReferenceFromUrl(url: string): string | undefined {
+  try {
+    const parsed = new URL(url);
+    return parsed.searchParams.get("reference") ?? parsed.searchParams.get("trxref") ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function PaystackWebView({
   authorizationUrl,
   visible,
+  reference: storedReference,
   onSuccess,
   onCancel,
 }: PaystackWebViewProps) {
@@ -42,23 +56,36 @@ export function PaystackWebView({
     if (handledRef.current) return true;
     const lower = url.toLowerCase();
 
-    const isSuccess = SUCCESS_HOSTS.some((host) => lower.includes(host)) &&
-      SUCCESS_PATHS.some((path) => lower.includes(path));
-
-    if (isSuccess) {
+    // Mobile callback URL (clean minimal page, no web dashboard loading)
+    if (lower.includes(MOBILE_CALLBACK_PATH)) {
+      if (lower.includes("cancel=1")) {
+        handledRef.current = true;
+        onCancel();
+        return true;
+      }
       handledRef.current = true;
-      onSuccess();
+      onSuccess(extractReferenceFromUrl(url) || storedReference);
       return true;
     }
 
-    if (lower.includes("cancelled") || lower.includes("cancel")) {
+    // Web dashboard fallback (existing detection for backward compat)
+    const isWebDashboardSuccess = SUCCESS_HOSTS.some((host) => lower.includes(host)) &&
+      SUCCESS_PATHS.some((path) => lower.includes(path));
+
+    if (isWebDashboardSuccess) {
+      handledRef.current = true;
+      onSuccess(extractReferenceFromUrl(url) || storedReference);
+      return true;
+    }
+
+    if (lower.includes("cancelled") || CANCEL_PATHS.some((p) => lower.includes(p))) {
       handledRef.current = true;
       onCancel();
       return true;
     }
 
     return false;
-  }, [onSuccess, onCancel]);
+  }, [onSuccess, onCancel, storedReference]);
 
   if (!visible) return null;
 

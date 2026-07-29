@@ -25,7 +25,7 @@ export interface WalletLedgerData {
 
 export interface TopUpResult {
   authorizationUrl: string;
-  paystackReference?: string
+  reference?: string;
 }
 
 export function useWalletBalance(enabled?: boolean) {
@@ -47,4 +47,9 @@ export function useWalletLedger(page: number, enabled?: boolean) {
 export function useTopUpWallet() {
   const trpc = useTRPC();
   return useMutation((trpc as any).passenger.initiateWalletTopUp.mutationOptions());
+}
+
+export function useVerifyTopUp() {
+  const trpc = useTRPC();
+  return useMutation((trpc as any).passenger.verifyWalletTopUp.mutationOptions());
 }
