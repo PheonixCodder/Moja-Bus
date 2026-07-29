@@ -29,6 +29,7 @@ best-example
 graphify-out
 best-dashboard-setup
 app-2
+old
 
 # Migration artifacts
 packages/db/migrate-out.txt
