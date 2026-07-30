@@ -1,5 +1,6 @@
 import { useTRPC } from "@/lib/trpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import type { UseQueryOptions, UseMutationOptions } from "@tanstack/react-query";
 
 const PAGE_SIZE = 10;
 
@@ -28,28 +29,53 @@ export interface TopUpResult {
   reference?: string;
 }
 
+interface TrpcQuery<TInput, TOutput> {
+  queryOptions: (input: TInput) => {
+    queryKey: unknown[];
+    queryFn: () => Promise<TOutput>;
+    meta?: Record<string, unknown>;
+  };
+}
+
+interface TrpcMutation<TInput, TOutput> {
+  mutationOptions: () => {
+    mutationFn: (input: TInput) => Promise<TOutput>;
+  };
+}
+
+type PassengerRouter = {
+  getWalletBalance: TrpcQuery<void, WalletBalance>;
+  getWalletLedger: TrpcQuery<{ limit: number; offset: number }, WalletLedgerData>;
+  initiateWalletTopUp: TrpcMutation<{ amountXOF: number; callbackUrl?: string }, TopUpResult>;
+  verifyWalletTopUp: TrpcMutation<{ reference: string }, { success: boolean }>;
+};
+
+type TypedTRPC = {
+  passenger: PassengerRouter;
+};
+
 export function useWalletBalance(enabled?: boolean) {
-  const trpc = useTRPC();
+  const trpc = useTRPC() as unknown as TypedTRPC;
   return useQuery({
-    ...(trpc as any).passenger.getWalletBalance.queryOptions(),
+    ...trpc.passenger.getWalletBalance.queryOptions(),
     enabled,
   });
 }
 
 export function useWalletLedger(page: number, enabled?: boolean) {
-  const trpc = useTRPC();
+  const trpc = useTRPC() as unknown as TypedTRPC;
   return useQuery({
-    ...(trpc as any).passenger.getWalletLedger.queryOptions({ limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
+    ...trpc.passenger.getWalletLedger.queryOptions({ limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
     enabled,
   });
 }
 
 export function useTopUpWallet() {
-  const trpc = useTRPC();
-  return useMutation((trpc as any).passenger.initiateWalletTopUp.mutationOptions());
+  const trpc = useTRPC() as unknown as TypedTRPC;
+  return useMutation(trpc.passenger.initiateWalletTopUp.mutationOptions());
 }
 
 export function useVerifyTopUp() {
-  const trpc = useTRPC();
-  return useMutation((trpc as any).passenger.verifyWalletTopUp.mutationOptions());
+  const trpc = useTRPC() as unknown as TypedTRPC;
+  return useMutation(trpc.passenger.verifyWalletTopUp.mutationOptions());
 }

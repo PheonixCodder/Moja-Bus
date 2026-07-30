@@ -101,7 +101,7 @@ export const passengerRouter = createTRPCRouter({
   getPreferences: protectedProcedure.query(async ({ ctx }) => {
     const profile = await ctx.prisma.passengerProfile.findUnique({
       where: { userId: ctx.user.id },
-      include: { user: { select: { fullName: true, email: true, phoneNumber: true } } },
+      include: { user: { select: { fullName: true, email: true, phoneNumber: true, image: true } } },
     });
 
     if (!profile) {
@@ -109,7 +109,7 @@ export const passengerRouter = createTRPCRouter({
       await service.ensureProfile(ctx.user.id);
       return ctx.prisma.passengerProfile.findUnique({
         where: { userId: ctx.user.id },
-        include: { user: { select: { fullName: true, email: true, phoneNumber: true } } },
+      include: { user: { select: { fullName: true, email: true, phoneNumber: true, image: true } } },
       });
     }
 
@@ -153,6 +153,7 @@ export const passengerRouter = createTRPCRouter({
       if (input.phone) changedFields.push("Phone Number");
       if (input.preferredSeat) changedFields.push("Preferred Seat");
       if (input.preferredClass) changedFields.push("Preferred Seat Class");
+      if (input.dateOfBirth) changedFields.push("Date of Birth");
       if (input.marketingOptIn !== undefined) changedFields.push("Marketing Preferences");
 
       const existingPrefs = (profile.preferencesJson as any) || {};
@@ -160,6 +161,7 @@ export const passengerRouter = createTRPCRouter({
         ...existingPrefs,
         ...(input.preferredSeat !== undefined ? { preferredSeat: input.preferredSeat } : {}),
         ...(input.preferredClass !== undefined ? { preferredClass: input.preferredClass } : {}),
+        ...(input.dateOfBirth !== undefined ? { dateOfBirth: input.dateOfBirth } : {}),
       };
 
       const updatedProfile = await ctx.prisma.passengerProfile.update({

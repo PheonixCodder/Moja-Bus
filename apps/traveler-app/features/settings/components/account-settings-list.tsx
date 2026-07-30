@@ -19,7 +19,6 @@ const items: { icon: typeof UserCircleIcon; label: string; route: string; value?
   { icon: GlobeIcon, label: "Language", value: "English", route: "/language" },
   { icon: Notification03Icon, label: "Notifications", route: "/notifications" },
   { icon: Shield01Icon, label: "Privacy & Security", route: "/privacy-security" },
-  { icon: SlidersHorizontalIcon, label: "Travel Preferences", route: "/travel-preferences" },
 ];
 
 

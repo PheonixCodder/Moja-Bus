@@ -44,6 +44,7 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
         backgroundColor: "rgba(0,0,0,0.06)",
       }} />
 
+      <View style={{ zIndex: 1 }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.two }}>
           <View style={{
@@ -127,6 +128,7 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
             Top Up
           </Text>
         </Pressable>
+        </View>
       </View>
     </View>
   );

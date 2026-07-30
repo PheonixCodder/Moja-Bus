@@ -26,7 +26,7 @@ const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 24;
 
 const MOBILE_CALLBACK_BASE =
-  `${process.env.EXPO_PUBLIC_API_URL ?? "http://192.168.100.3:3000"}/api/payments/mobile-callback`;
+  `${process.env["EXPO_PUBLIC_API_URL"] ?? "http://192.168.100.3:3000"}/api/payments/mobile-callback`;
 
 export function WalletView() {
   const insets = useSafeAreaInsets();
@@ -51,13 +51,12 @@ export function WalletView() {
     ledgerQuery.refetch();
   }, []);
 
-  // Polling loop: verifies the top-up and checks balance increase.
-  // First poll establishes the baseline balance; subsequent polls compare against it.
+  // Polling loop: calls verifyWalletTopUp until it confirms success,
+  // then refreshes balance & ledger and clears the verifying banner.
   useEffect(() => {
     if (!pendingReference) return;
 
     pollCountRef.current = 0;
-    let baseline: number | undefined;
 
     pollTimerRef.current = setInterval(async () => {
       pollCountRef.current += 1;
@@ -69,20 +68,14 @@ export function WalletView() {
       }
 
       try {
-        await verifyTopUpMutation.mutateAsync({ reference: pendingReference });
+        const result = await verifyTopUpMutation.mutateAsync({ reference: pendingReference });
+        if (result.success) {
+          if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+          setPendingReference(null);
+          refreshAll();
+        }
       } catch {
         // verify may fail until webhook arrives — keep polling
-      }
-
-      const { data: newBalance } = await balanceQuery.refetch();
-      if (baseline === undefined) {
-        baseline = newBalance?.availableBalance;
-        return;
-      }
-      if (newBalance && newBalance.availableBalance > baseline) {
-        if (pollTimerRef.current) clearInterval(pollTimerRef.current);
-        setPendingReference(null);
-        ledgerQuery.refetch();
       }
     }, POLL_INTERVAL_MS);
 
@@ -99,7 +92,7 @@ export function WalletView() {
           const data = result as TopUpResult;
           setIsTopupOpen(false);
           setAuthorizationUrl(data.authorizationUrl);
-          setTopUpReference(data.reference);
+          setTopUpReference(data.reference ?? null);
         },
         onError: (error: any) => {
           Alert.alert("Top-up failed", error?.message ?? "Could not initiate top-up. Please try again.");

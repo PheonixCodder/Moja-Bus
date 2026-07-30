@@ -38,7 +38,7 @@ export function SettingsView() {
       }}
       contentContainerStyle={{ paddingBottom: BottomTabInset }}
     >
-      <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 20, paddingBottom: 40 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 35, paddingBottom: 40 }}>
         {user ? (
           <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
             <ProfileHero

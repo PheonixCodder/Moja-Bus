@@ -51,5 +51,6 @@ export const updatePreferencesSchema = z.object({
   preferredSeat: z.enum(["WINDOW", "AISLE", "NONE"]).optional(),
   preferredClass: z.enum(["ECONOMY", "STANDARD", "VIP"]).optional(),
   marketingOptIn: z.boolean().optional(),
+  dateOfBirth: z.string().optional(),
 });
 export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>;
