@@ -34,6 +34,16 @@ export const passengerReviewRequestWorkflow = workflow(
       avatar: "https://avatar.vercel.sh/review",
       redirect: { url: "/dashboard/tickets", target: "_self" },
     }));
+
+    // 3. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Leave a Review",
+      body: `Rate your ${escapeHtml(payload.companyName)} trip from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)}.`,
+      data: {
+        type: "review-request",
+        bookingReference: payload.bookingReference,
+      },
+    }));
   },
   {
     name: "Passenger Review Request",

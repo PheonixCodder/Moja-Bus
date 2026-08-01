@@ -26,12 +26,15 @@ export const passengerProfileUpdatedWorkflow = workflow(
       };
     });
 
-    // 2. SMS Notification
-    await step.sms("send-sms", async () => ({
-      body: `Moja Ride Alert: Profile updates (${payload.changedFields.join(", ")}) were applied to your account. If this wasn't you, contact support.`,
-    }), {
-      skip: () => !payload.phone,
-    });
+    // 2. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Profile Updated",
+      body: `Profile changes applied: ${payload.changedFields.join(", ")}. If this wasn't you, contact support immediately.`,
+      data: {
+        type: "profile-updated",
+        changedFields: payload.changedFields,
+      },
+    }));
   },
   {
     name: "Passenger Profile Updated",

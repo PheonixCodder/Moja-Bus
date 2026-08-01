@@ -36,6 +36,16 @@ export const passengerHoldCreatedWorkflow = workflow(
         body: html,
       };
     });
+
+    // 3. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Seats Held",
+      body: `Seats held for ${escapeHtml(payload.destinationCity)} departing ${escapeHtml(payload.departureTime)}. Pay by ${escapeHtml(payload.expiresAt)}.`,
+      data: {
+        type: "hold-created",
+        holdId: payload.holdId,
+      },
+    }));
   },
   {
     name: "Passenger Hold Created",

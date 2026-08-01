@@ -37,12 +37,15 @@ export const passengerTripDelayedWorkflow = workflow(
       redirect: { url: "/dashboard/tickets", target: "_self" },
     }));
 
-    // 3. SMS Notification
-    await step.sms("send-sms", async () => ({
-      body: `Moja Ride Alert: Your trip from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)} (scheduled for ${escapeHtml(payload.originalTime)}) is delayed by ${escapeHtml(payload.delayMinutes)} mins. New departure time: ${escapeHtml(payload.newTime)}.${payload.gate ? ` Please board at Gate ${escapeHtml(payload.gate)}.` : ""}`,
-    }), {
-      skip: () => !payload.phone,
-    });
+    // 3. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Trip Delayed",
+      body: `${escapeHtml(payload.originCity)} → ${escapeHtml(payload.destinationCity)} delayed by ${escapeHtml(payload.delayMinutes)}m. New departure: ${escapeHtml(payload.newTime)}`,
+      data: {
+        type: "trip-delayed",
+        bookingReference: payload.bookingReference,
+      },
+    }));
   },
   {
     name: "Passenger Trip Delayed",

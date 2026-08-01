@@ -35,6 +35,16 @@ export const passengerBookingRefundedWorkflow = workflow(
       avatar: "https://avatar.vercel.sh/refund",
       redirect: { url: "/dashboard/wallet", target: "_self" },
     }));
+
+    // 3. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Ticket Refunded",
+      body: `Booking ${escapeHtml(payload.bookingReference)} cancelled. ${escapeHtml(payload.refundAmountXOF)} XOF refunded via ${escapeHtml(payload.channel)}.`,
+      data: {
+        type: "booking-refunded",
+        bookingReference: payload.bookingReference,
+      },
+    }));
   },
   {
     name: "Passenger Booking Refunded",

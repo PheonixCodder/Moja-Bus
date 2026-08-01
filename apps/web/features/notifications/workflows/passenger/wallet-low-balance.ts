@@ -13,6 +13,16 @@ export const passengerWalletLowBalanceWorkflow = workflow(
       avatar: "https://avatar.vercel.sh/low-balance",
       redirect: { url: "/dashboard/wallet", target: "_self" },
     }));
+
+    // 2. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Low Wallet Balance",
+      body: `Insufficient balance! Booking requires ${escapeHtml(payload.requiredAmountXOF)} XOF. You have ${escapeHtml(payload.availableBalanceXOF)} XOF.`,
+      data: {
+        type: "wallet-low-balance",
+        requiredAmountXOF: payload.requiredAmountXOF,
+      },
+    }));
   },
   {
     name: "Passenger Wallet Low Balance",

@@ -33,6 +33,16 @@ export const passengerWalletTopupWorkflow = workflow(
       avatar: "https://avatar.vercel.sh/wallet",
       redirect: { url: "/dashboard/wallet", target: "_self" },
     }));
+
+    // 3. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Wallet Top-Up Successful",
+      body: `Deposit of ${escapeHtml(payload.amountXOF)} XOF confirmed. Funds available now.`,
+      data: {
+        type: "wallet-topup",
+        transactionId: payload.transactionId,
+      },
+    }));
   },
   {
     name: "Passenger Wallet Top-Up Successful",

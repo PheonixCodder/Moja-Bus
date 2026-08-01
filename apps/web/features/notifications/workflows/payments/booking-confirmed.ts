@@ -41,12 +41,15 @@ export const passengerBookingConfirmedWorkflow = workflow(
       redirect: { url: "/dashboard/tickets", target: "_self" },
     }));
 
-    // 3. Conditional SMS Channel (Twilio) if phone exists
-    await step.sms("send-sms", async () => ({
-      body: `Moja Ride: Booking confirmed! Route: ${escapeHtml(payload.originCityName)} -> ${escapeHtml(payload.destinationCityName)} at ${escapeHtml(payload.departureTime)}. Refs: ${payload.bookingReferences.join(", ")}. Total paid: ${escapeHtml(payload.totalAmountXOF)} XOF.`,
-    }), {
-      skip: () => !payload.phone,
-    });
+    // 3. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Booking Confirmed",
+      body: `Route: ${escapeHtml(payload.originCityName)} → ${escapeHtml(payload.destinationCityName)} at ${escapeHtml(payload.departureTime)}. Total: ${escapeHtml(payload.totalAmountXOF)} XOF`,
+      data: {
+        type: "booking-confirmed",
+        bookingReference: payload.bookingReferences[0],
+      },
+    }));
   },
   {
     name: "Passenger Booking Confirmed",

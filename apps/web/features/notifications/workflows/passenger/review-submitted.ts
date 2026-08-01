@@ -13,6 +13,16 @@ export const passengerReviewSubmittedWorkflow = workflow(
       avatar: "https://avatar.vercel.sh/review-success",
       redirect: { url: "/dashboard/bookings", target: "_self" },
     }));
+
+    // 2. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Review Submitted",
+      body: `Thank you for your ${escapeHtml(payload.rating)}-star review of ${escapeHtml(payload.companyName)}!`,
+      data: {
+        type: "review-submitted",
+        companyName: payload.companyName,
+      },
+    }));
   },
   {
     name: "Passenger Review Submitted",

@@ -1,6 +1,8 @@
+import { ChatOrPushProviderEnum } from "@novu/api/models/components";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 import { TRPCError } from "@trpc/server";
+import { getNovuClient } from "@/lib/novu";
 
 export const publicRouter = createTRPCRouter({
   getNotificationToken: protectedProcedure.query(async ({ ctx }) => {
@@ -25,6 +27,66 @@ export const publicRouter = createTRPCRouter({
       appId: process.env['NEXT_PUBLIC_NOVU_APP_ID'] || "",
     };
   }),
+
+  registerPushToken: protectedProcedure
+    .input(z.object({ token: z.string(), platform: z.enum(["android", "ios"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const novu = getNovuClient();
+      if (!novu) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Notification service is not configured",
+        });
+      }
+
+      const subscriberId = ctx.user.email;
+      const providerId =
+        input.platform === "android"
+          ? ChatOrPushProviderEnum.Fcm
+          : ChatOrPushProviderEnum.Apns;
+
+      try {
+        await novu.subscribers.credentials.update(
+          {
+            providerId,
+            credentials: { deviceTokens: [input.token] },
+          },
+          subscriberId,
+        );
+      } catch (err) {
+        console.error("[NOVU] Failed to register push token:", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to register push token",
+        });
+      }
+    }),
+
+  markNotificationAsRead: protectedProcedure
+    .input(z.object({ notificationId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const novu = getNovuClient();
+      if (!novu) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Notification service is not configured",
+        });
+      }
+
+      const subscriberId = ctx.user.email;
+      try {
+        await novu.subscribers.notifications.markAsRead({
+          notificationId: input.notificationId,
+          subscriberId,
+        });
+      } catch (err) {
+        console.error("[NOVU] Failed to mark notification as read:", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to mark notification as read",
+        });
+      }
+    }),
 
   /**
    * List all verified + active operators safe for public display.

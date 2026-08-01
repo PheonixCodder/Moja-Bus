@@ -14,12 +14,16 @@ export const passengerTripGateUpdatedWorkflow = workflow(
       redirect: { url: "/dashboard/tickets", target: "_self" },
     }));
 
-    // 2. SMS Notification
-    await step.sms("send-sms", async () => ({
-      body: `Moja Ride Update: The gate for your trip to ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) is set to Gate ${escapeHtml(payload.gate)}.`,
-    }), {
-      skip: () => !payload.phone,
-    });
+    // 2. Push Notification
+    await step.push("send-push", async () => ({
+      title: "Gate Updated",
+      body: `Gate for ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) is now Gate ${escapeHtml(payload.gate)}.`,
+      data: {
+        type: "trip-gate-updated",
+        destinationCity: payload.destinationCity,
+        gate: payload.gate,
+      },
+    }));
   },
   {
     name: "Passenger Trip Gate Updated",
