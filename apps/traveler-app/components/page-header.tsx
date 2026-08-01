@@ -1,7 +1,6 @@
-import { Notification03Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { NotificationBell } from "./notification-bell";
 import { Text } from "./ui/text";
 
 type PageHeaderProps = {
@@ -28,15 +27,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
           <Text className="text-muted-foreground text-sm">{description}</Text>
         )}
       </View>
-      <Pressable
-        onPress={() => {}}
-        style={({ pressed }) => ({
-          opacity: pressed ? 0.7 : 1,
-          marginTop: 4,
-        })}
-      >
-        <HugeiconsIcon icon={Notification03Icon} size={24} color="#a3a3a3" />
-      </Pressable>
+      <NotificationBell />
     </View>
   );
 }

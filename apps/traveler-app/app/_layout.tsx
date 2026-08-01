@@ -1,10 +1,20 @@
 import "@/global.css";
+import "@/lib/i18n";
 
+import { NovuProvider } from "@novu/react-native";
 import { PortalHost } from "@rn-primitives/portal";
-import { DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { DefaultTheme, Stack, ThemeProvider, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect, useRef } from "react";
+import * as Notifications from "expo-notifications";
 import { useLoadFonts } from "@/hooks/use-load-fonts";
-import { TRPCReactProvider } from "@/lib/trpc";
+import { usePushToken } from "@/hooks/use-push-token";
+import { authClient } from "@/lib/auth-client";
+import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
+import Constants from "expo-constants";
+
+const isExpoGo = Constants.appOwnership === "expo";
 
 const LightTheme = {
 	...DefaultTheme,
@@ -13,6 +23,124 @@ const LightTheme = {
 		background: "#ffffff",
 	},
 };
+
+interface TrpcQuery<TInput, TOutput> {
+	queryOptions: (
+		input: TInput,
+		opts?: { staleTime?: number },
+	) => {
+		queryKey: unknown[];
+		queryFn: () => Promise<TOutput>;
+	};
+}
+
+interface NotificationTokenResponse {
+	subscriberId: string;
+	subscriberHash: string;
+	appId: string;
+}
+
+interface PublicRouter {
+	getNotificationToken: TrpcQuery<undefined, NotificationTokenResponse>;
+}
+
+interface TypedTRPC {
+	public: PublicRouter;
+}
+
+function AuthenticatedNovuProvider({ children }: { children: React.ReactNode }) {
+	const { data: session, isPending } = authClient.useSession();
+	const trpc = useTRPC() as unknown as TypedTRPC;
+	const { data: token } = useQuery({
+		...trpc.public.getNotificationToken.queryOptions(undefined, {
+			staleTime: Infinity,
+		}),
+		enabled: !!session?.user,
+	});
+
+	if (isPending) return null;
+
+	const isAuthed = !!session?.user && !!token?.subscriberId && !!token?.appId;
+
+	if (!isAuthed) {
+		return <>{children}</>;
+	}
+
+	return (
+		<NovuProvider
+			subscriberId={token.subscriberId}
+			subscriberHash={token.subscriberHash}
+			applicationIdentifier={token.appId}
+		>
+			<PushTokenRegistrar />
+			<NotificationHandler />
+			{children}
+		</NovuProvider>
+	);
+}
+
+function PushTokenRegistrar() {
+	usePushToken();
+	return null;
+}
+
+function NotificationHandler() {
+	const notificationListener = useRef<{ remove: () => void } | null>(null);
+	const responseListener = useRef<{ remove: () => void } | null>(null);
+
+	useEffect(() => {
+		if (isExpoGo) return;
+
+		Notifications.setNotificationHandler({
+			handleNotification: async () => ({
+				shouldShowAlert: true,
+				shouldPlaySound: true,
+				shouldSetBadge: true,
+				shouldShowBanner: true,
+				shouldShowList: true,
+			}),
+		});
+
+		notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
+			// Update the Novu notification cache so in-app indicators stay in sync
+		});
+
+		responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+			const notification = response.notification;
+			const data = notification.request.content.data as Record<string, unknown> | undefined;
+			if (data && typeof data === "object") {
+				const type = (data as Record<string, unknown>)["type"] as string | undefined;
+				const ref = (data as Record<string, unknown>)["bookingReference"] as string | undefined;
+				if (type === "booking-confirmed" || type === "booking-refunded" || type === "hold-created" || type === "review-request" || type === "review-submitted" || type === "trip-boarding") {
+					if (ref) {
+						router.push(`/bookings/${ref}` as any);
+					} else {
+						router.push("/bookings");
+					}
+				} else if (type === "trip-cancelled") {
+					router.push("/bookings");
+				} else if (type === "trip-delayed") {
+					router.push("/tickets");
+				} else if (type === "trip-gate-updated") {
+					router.push("/tickets");
+				} else if (type === "wallet-low-balance" || type === "wallet-topup") {
+					router.push("/wallet");
+				}
+			}
+		});
+
+		return () => {
+			if (notificationListener.current) {
+				notificationListener.current.remove();
+			}
+			if (responseListener.current) {
+				responseListener.current.remove();
+			}
+		};
+	}, []);
+
+	return null;
+}
 
 export default function RootLayout() {
 	const { fontsLoaded, fontsError } = useLoadFonts();
@@ -23,11 +151,13 @@ export default function RootLayout() {
 
 	return (
 		<TRPCReactProvider>
-			<ThemeProvider value={LightTheme}>
-				<StatusBar style="dark" />
-				<Stack screenOptions={{ headerShown: false }} />
-				<PortalHost />
-			</ThemeProvider>
+			<AuthenticatedNovuProvider>
+				<ThemeProvider value={LightTheme}>
+					<StatusBar style="dark" />
+					<Stack screenOptions={{ headerShown: false }} />
+					<PortalHost />
+				</ThemeProvider>
+			</AuthenticatedNovuProvider>
 		</TRPCReactProvider>
 	);
 }

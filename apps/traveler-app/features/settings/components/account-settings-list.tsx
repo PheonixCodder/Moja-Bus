@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight02Icon,
   GlobeIcon,
@@ -13,21 +16,28 @@ import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { Colors, Spacing } from "@moja/theme/tokens";
+import i18n from "@/lib/i18n";
 
-const items: { icon: typeof UserCircleIcon; label: string; route: string; value?: string; badge?: string }[] = [
-  { icon: UserCircleIcon, label: "Personal Information", route: "/personal-info" },
-  { icon: GlobeIcon, label: "Language", value: "English", route: "/language" },
-  { icon: Notification03Icon, label: "Notifications", route: "/notifications" },
-  { icon: Shield01Icon, label: "Privacy & Security", route: "/privacy-security" },
+const items: { icon: typeof UserCircleIcon; labelKey: string; route: string; valueKey?: string; badge?: string }[] = [
+  { icon: UserCircleIcon, labelKey: "settings:personalInformation", route: "/personal-info" },
+  { icon: GlobeIcon, labelKey: "settings:language", route: "/language", valueKey: "settings:currentLanguage" },
+  { icon: Notification03Icon, labelKey: "settings:notifications", route: "/notifications" },
+  { icon: Shield01Icon, labelKey: "settings:privacySecurity", route: "/privacy-security" },
 ];
 
-
-const moreItems: { icon: any; label: string; route: string; badge?: string }[] = [
-  { icon: HelpCircleIcon, label: "Help & Support", route: "/help-support" },
-  { icon: LegalDocument01Icon, label: "Terms & Privacy", route: "/terms-privacy" },
+const moreItems: { icon: any; labelKey: string; route: string; badge?: string }[] = [
+  { icon: HelpCircleIcon, labelKey: "settings:helpSupport", route: "/help-support" },
+  { icon: LegalDocument01Icon, labelKey: "settings:termsPrivacy", route: "/terms-privacy" },
 ];
+
+function getLocaleLabel(locale: string) {
+  return locale === "fr" ? i18n.t("settings:french") : i18n.t("settings:english");
+}
 
 export function AccountSettingsList() {
+  const { t } = useTranslation("settings");
+  const locale = i18n.language;
+
   return (
     <View>
       <Text
@@ -42,13 +52,13 @@ export function AccountSettingsList() {
           paddingHorizontal: 20,
         }}
       >
-        Account
+        {t("account")}
       </Text>
 
       {items.map((item, index) => (
         <>
           <Pressable
-            key={item.label}
+            key={item.labelKey}
             onPress={() => router.push(item.route as any)}
             style={({ pressed }) => ({
               flexDirection: "row",
@@ -63,13 +73,13 @@ export function AccountSettingsList() {
             </View>
 
             <Text style={{ fontSize: 15, fontWeight: "500", color: Colors.light.text, flex: 1 }}>
-              {item.label}
+              {t(item.labelKey as any)}
             </Text>
 
-            {item.value ? (
+            {item.valueKey ? (
               <View style={{ marginRight: Spacing.two }}>
                 <Text style={{ fontSize: 13, fontWeight: "500", color: Colors.light.textSecondary }}>
-                  {item.value}
+                  {item.valueKey === "settings:currentLanguage" ? getLocaleLabel(locale) : t(item.valueKey as any)}
                 </Text>
               </View>
             ) : null}
@@ -93,7 +103,7 @@ export function AccountSettingsList() {
       {moreItems.map((item, index) => (
         <>
           <Pressable
-            key={item.label}
+            key={item.labelKey}
             onPress={() => router.push(item.route as any)}
             style={({ pressed }) => ({
               flexDirection: "row",
@@ -108,7 +118,7 @@ export function AccountSettingsList() {
             </View>
 
             <Text style={{ fontSize: 15, fontWeight: "500", color: Colors.light.text, flex: 1 }}>
-              {item.label}
+              {t(item.labelKey as any)}
             </Text>
 
             {item.badge ? (

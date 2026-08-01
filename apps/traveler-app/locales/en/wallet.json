@@ -1,0 +1,13 @@
+{
+  "wallet": "Wallet",
+  "balance": "Balance",
+  "topUp": "Top-up",
+  "verifyingTopUp": "Verifying your top-up...",
+  "topUpFailed": "Top-up failed",
+  "couldNotInitiateTopUp": "Could not initiate top-up. Please try again.",
+  "signInToViewWallet": "Sign in to view your wallet",
+  "transactionHistory": "Transaction History",
+  "noTransactions": "No transactions yet",
+  "availableBalance": "Available",
+  "reservedBalance": "Reserved"
+}

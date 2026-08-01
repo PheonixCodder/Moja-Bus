@@ -6,6 +6,7 @@ import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { SubpageHeader } from "@/components/subpage-header";
 import { CustomAlert } from "@/components/custom-alert";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
 import { Colors, Spacing } from "@moja/theme/tokens";
@@ -22,6 +23,7 @@ import type { PersonalInfoFormData } from "../components/personal-info-form";
 export function PersonalInfoView() {
 	const insets = useSafeAreaInsets();
 	const queryClient = useQueryClient();
+	const { t } = useTranslation("settings");
 
 	const { data: session, isPending: sessionPending } = authClient.useSession();
 	const isAuth = !!session?.user;
@@ -62,10 +64,10 @@ export function PersonalInfoView() {
 		if (!form.fullName.trim()) {
 			setAlertState({
 				visible: true,
-				title: "Validation Error",
-				description: "Full name is required.",
+				title: t("validationError"),
+				description: t("fullNameRequired"),
 				variant: "destructive",
-				confirmLabel: "OK",
+					confirmLabel: t("ok"),
 				onConfirm: () => setAlertState((s) => ({ ...s, visible: false })),
 			});
 			return;
@@ -81,9 +83,9 @@ export function PersonalInfoView() {
 				onSuccess: () => {
 					setAlertState({
 						visible: true,
-						title: "Changes Saved",
-						description: "Your personal information has been updated successfully.",
-						confirmLabel: "Great",
+						title: t("changesSaved"),
+						description: t("changesSuccess"),
+						confirmLabel: t("done"),
 						onConfirm: () => {
 							setAlertState((s) => ({ ...s, visible: false }));
 							queryClient.invalidateQueries();
@@ -93,10 +95,10 @@ export function PersonalInfoView() {
 				onError: (err: any) => {
 					setAlertState({
 						visible: true,
-						title: "Save Failed",
-						description: err?.message ?? "Could not save changes. Please try again.",
+						title: t("saveFailed"),
+						description: err?.message ?? t("couldNotSave"),
 						variant: "destructive",
-						confirmLabel: "OK",
+				confirmLabel: t("ok"),
 						onConfirm: () => setAlertState((s) => ({ ...s, visible: false })),
 					});
 				},
@@ -115,9 +117,9 @@ export function PersonalInfoView() {
 	if (!isAuth) {
 		return (
 			<View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.light.background }}>
-				<Text style={{ color: Colors.light.textSecondary, fontSize: 15 }}>
-					Sign in to manage your profile
-				</Text>
+					<Text style={{ color: Colors.light.textSecondary, fontSize: 15 }}>
+						{t("signInToManage")}
+					</Text>
 			</View>
 		);
 	}
@@ -129,7 +131,7 @@ export function PersonalInfoView() {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-			<SubpageHeader title="Personal Information" />
+			<SubpageHeader title={t("personalInformation")} />
 
 			<ScrollView
 				style={{ flex: 1 }}

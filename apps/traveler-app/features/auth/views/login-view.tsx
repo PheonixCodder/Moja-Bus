@@ -8,6 +8,7 @@ import {
 	View,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
+import { useTranslation } from "react-i18next";
 
 import { AuthButton } from "@/features/auth/components/auth-button";
 import { AuthField } from "@/features/auth/components/auth-field";
@@ -49,6 +50,7 @@ function detectMethod(input: string): "phone" | "email" {
 
 export default function LoginView() {
 	const router = useRouter();
+	const { t } = useTranslation("auth");
 	const [step, setStep] = useState<AuthStep>("input");
 	const [identifier, setIdentifier] = useState("");
 	const [method, setMethod] = useState<"phone" | "email">("email");
@@ -107,7 +109,7 @@ export default function LoginView() {
 			animateForward();
 		} catch (err) {
 			setMessage(
-				getAuthError(err).message || "Failed to send code. Please try again.",
+				getAuthError(err).message || t("failedToSend"),
 			);
 		} finally {
 			setIsPending(false);
@@ -160,13 +162,13 @@ export default function LoginView() {
 			}
 		} catch (err) {
 			const { message, code } = getAuthError(err);
-			let msg = "Invalid verification code.";
+			let msg = t("invalidCode");
 			if (code === "INVALID_OTP") {
-				msg = "Invalid code. Please check and try again.";
+				msg = t("invalidCode");
 			} else if (code === "OTP_EXPIRED") {
-				msg = "Code has expired. Please request a new one.";
+				msg = t("codeExpired");
 			} else if (code === "TOO_MANY_ATTEMPTS") {
-				msg = "Too many attempts. Please request a new code.";
+				msg = t("tooManyAttempts");
 			} else if (message) {
 				msg = message;
 			}
@@ -192,7 +194,7 @@ export default function LoginView() {
 
 			router.replace("/(tabs)");
 		} catch (err) {
-			setMessage(getAuthError(err).message || "Failed to update profile.");
+			setMessage(getAuthError(err).message || t("failedToUpdate"));
 		} finally {
 			setIsPending(false);
 		}
@@ -200,20 +202,19 @@ export default function LoginView() {
 
 	const stepConfig = {
 		input: {
-			badge: "Sign in",
-			title: "Welcome to Moja Ride",
-			description:
-				"Enter your email or phone number to receive a verification code.",
+			badge: t("sendCode"),
+			title: t("welcomeToMoja"),
+			description: t("signInDescription"),
 		},
 		otp: {
-			badge: "Verify",
-			title: "Check your inbox",
-			description: `Enter the 6-digit code sent to ${identifier}.`,
+			badge: t("verify"),
+			title: t("checkYourInbox"),
+			description: t("enter6DigitCode", { identifier }),
 		},
 		profile: {
-			badge: "Almost done",
-			title: "What's your name?",
-			description: "This will be displayed on your tickets and profile.",
+			badge: t("complete"),
+			title: t("whatsYourName"),
+			description: t("nameDisplayed"),
 		},
 	} as const;
 
@@ -232,8 +233,8 @@ export default function LoginView() {
 					{step === "input" ? (
 						<View className="gap-5">
 							<AuthField
-								label="Email or phone number"
-								placeholder="you@example.com or +225 07 XX XX XX"
+								label={t("emailOrPhone")}
+								placeholder={t("emailPlaceholder")}
 								autoCapitalize="none"
 								keyboardType="email-address"
 								value={identifier}
@@ -247,8 +248,8 @@ export default function LoginView() {
 							) : null}
 
 							<AuthButton
-								label="Send code"
-								pendingLabel="Sending code..."
+								label={t("sendCode")}
+								pendingLabel={t("sendingCode")}
 								isPending={isPending}
 								onPress={handleSendCode}
 							/>
@@ -257,10 +258,10 @@ export default function LoginView() {
 
 					{step === "otp" ? (
 						<View className="gap-4">
-							<View className="gap-2">
-								<Text className="text-[14px] font-semibold text-foreground">
-									Verification code
-								</Text>
+						<View className="gap-2">
+						<Text className="text-[14px] font-semibold text-foreground">
+							{t("verifying")}
+						</Text>
 								<OtpInput
 									numberOfDigits={6}
 									type="numeric"
@@ -296,37 +297,37 @@ export default function LoginView() {
 								/>
 							</View>
 
-							{message ? (
-								<Text className="text-[13px] leading-[18px] text-primary">
-									{message}
-								</Text>
-							) : null}
+						{message ? (
+							<Text className="text-[13px] leading-[18px] text-primary">
+								{message}
+							</Text>
+						) : null}
 
-							<AuthButton
-								label="Verify"
-								pendingLabel="Verifying..."
-								isPending={isPending}
-								onPress={handleVerifyCode}
-							/>
+						<AuthButton
+							label={t("verify")}
+							pendingLabel={t("verifying")}
+							isPending={isPending}
+							onPress={handleVerifyCode}
+						/>
 
-							<AuthButton
-								label="Use a different email or phone"
-								variant="secondary"
-								onPress={() => {
-									setStep("input");
-									setOtp("");
-									setMessage(null);
-									animateBack();
-								}}
-							/>
+						<AuthButton
+							label={t("useDifferentMethod")}
+							variant="secondary"
+							onPress={() => {
+								setStep("input");
+								setOtp("");
+								setMessage(null);
+								animateBack();
+							}}
+						/>
 						</View>
 					) : null}
 
 					{step === "profile" ? (
 						<View className="gap-4">
 							<AuthField
-								label="Full name"
-								placeholder="Awa Kone"
+								label={t("fullName")}
+								placeholder={t("namePlaceholder")}
 								autoCapitalize="words"
 								value={fullName}
 								onChangeText={setFullName}
@@ -338,12 +339,12 @@ export default function LoginView() {
 								</Text>
 							) : null}
 
-							<AuthButton
-								label="Complete"
-								pendingLabel="Saving..."
-								isPending={isPending}
-								onPress={handleCompleteProfile}
-							/>
+						<AuthButton
+							label={t("complete")}
+							pendingLabel={t("saving")}
+							isPending={isPending}
+							onPress={handleCompleteProfile}
+						/>
 						</View>
 					) : null}
 				</Animated.View>

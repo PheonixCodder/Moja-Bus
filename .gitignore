@@ -30,6 +30,9 @@ graphify-out
 best-dashboard-setup
 app-2
 old
+app-example
+duolingo-clone
+traveler-app-2
 
 # Migration artifacts
 packages/db/migrate-out.txt

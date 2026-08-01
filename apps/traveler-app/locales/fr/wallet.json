@@ -1,0 +1,13 @@
+{
+  "wallet": "Portefeuille",
+  "balance": "Solde",
+  "topUp": "Recharger",
+  "verifyingTopUp": "Vérification de votre recharge...",
+  "topUpFailed": "Échec du rechargement",
+  "couldNotInitiateTopUp": "Impossible de lancer le rechargement. Veuillez réessayer.",
+  "signInToViewWallet": "Connectez-vous pour consulter votre portefeuille",
+  "transactionHistory": "Historique des transactions",
+  "noTransactions": "Aucune transaction pour le moment",
+  "availableBalance": "Disponible",
+  "reservedBalance": "Réservé"
+}

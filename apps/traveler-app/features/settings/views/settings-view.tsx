@@ -1,9 +1,12 @@
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
+import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { authClient } from "@/lib/auth-client";
 import { BottomTabInset } from "@/constants/theme";
 import { Colors, Spacing } from "@moja/theme/tokens";
+import { authClient } from "@/lib/auth-client";
 import { ProfileHero } from "../components/profile-hero";
 import { SettingsDetails } from "../components/settings-details";
 import { AccountSettingsList } from "../components/account-settings-list";
@@ -11,6 +14,7 @@ import { DangerZoneRow } from "../components/danger-zone-row";
 
 export function SettingsView() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation("settings");
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
@@ -49,7 +53,7 @@ export function SettingsView() {
         ) : (
           <View style={{ alignItems: "center", paddingVertical: 40 }}>
             <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 15 }}>
-              Sign in to manage your settings
+              {t("signInToManage")}
             </Text>
           </View>
         )}
@@ -65,7 +69,7 @@ export function SettingsView() {
           marginHorizontal: 12,
           paddingHorizontal: 20,
           paddingTop: 24,
-          paddingBottom: BottomTabInset ,
+          paddingBottom: BottomTabInset,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.08,

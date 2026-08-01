@@ -1,5 +1,6 @@
 import { PlusSignIcon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { useTranslation } from "react-i18next";
 import { Colors, Spacing } from "@moja/theme/tokens";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
@@ -28,6 +29,7 @@ import { PassengerFormSheet } from "../components/passenger-form-sheet";
 
 export function PassengersView() {
 	const insets = useSafeAreaInsets();
+	const { t } = useTranslation("settings");
 	const queryClient = useQueryClient();
 
 	const { data: session, isPending: sessionPending } = authClient.useSession();
@@ -147,7 +149,7 @@ export function PassengersView() {
 				}}
 			>
 				<Text style={{ color: Colors.light.textSecondary, fontSize: 15 }}>
-					Sign in to view your passengers
+					{t("signInToView")}
 				</Text>
 			</View>
 		);
@@ -159,7 +161,7 @@ export function PassengersView() {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-			<SubpageHeader title="Passengers" />
+			<SubpageHeader title={t("passengersLabel")} />
 
 			<ScrollView
 				style={{ flex: 1 }}
@@ -208,14 +210,14 @@ export function PassengersView() {
 							</View>
 						</View>
 						<View style={{ alignItems: "center", gap: Spacing.one }}>
-							<Text
+			<Text
 								style={{
-									fontSize: 17,
-									fontWeight: "800",
-									color: Colors.light.text,
+									fontSize: 15,
+									fontWeight: "500",
+									color: Colors.light.textSecondary,
 								}}
 							>
-								No saved passengers
+								{t("signInToView")}
 							</Text>
 							<Text
 								style={{
@@ -227,8 +229,7 @@ export function PassengersView() {
 									lineHeight: 18,
 								}}
 							>
-								Add your frequent travel companions so you can book seats for
-								them in a tap
+								{t("travelCompanionDescription")}
 							</Text>
 						</View>
 						<Pressable
@@ -258,7 +259,7 @@ export function PassengersView() {
 									color: "#fff",
 								}}
 							>
-								Add First Traveler
+								{t("addFirstTraveler")}
 							</Text>
 						</Pressable>
 					</View>
@@ -288,18 +289,18 @@ export function PassengersView() {
 
 						{selfPassenger ? (
 							<>
-								<Text
-									style={{
-										fontSize: 11,
-										fontWeight: "700",
-										color: Colors.light.textSecondary,
-										letterSpacing: 0.5,
-										textTransform: "uppercase",
-										marginBottom: -Spacing.one,
-									}}
-								>
-									My Profile
-								</Text>
+						<Text
+								style={{
+									fontSize: 11,
+									fontWeight: "700",
+									color: Colors.light.textSecondary,
+									letterSpacing: 0.5,
+									textTransform: "uppercase",
+									marginBottom: -Spacing.one,
+								}}
+							>
+								{t("myProfileLabel")}
+							</Text>
 								<PassengerCard
 									key={selfPassenger.id}
 									passenger={selfPassenger}
@@ -323,7 +324,7 @@ export function PassengersView() {
 										marginBottom: -Spacing.one,
 									}}
 								>
-									Travel Companions
+									{t("travelCompanions")}
 								</Text>
 								{others.map((passenger) => (
 									<PassengerCard

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { View, ActivityIndicator, ScrollView, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
@@ -30,6 +31,7 @@ const MOBILE_CALLBACK_BASE =
 
 export function WalletView() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation("wallet");
   const [currentPage, setCurrentPage] = useState(0);
   const [isTopupOpen, setIsTopupOpen] = useState(false);
   const [authorizationUrl, setAuthorizationUrl] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export function WalletView() {
           setTopUpReference(data.reference ?? null);
         },
         onError: (error: any) => {
-          Alert.alert("Top-up failed", error?.message ?? "Could not initiate top-up. Please try again.");
+			Alert.alert(t("topUpFailed"), t("couldNotInitiateTopUp"));
         },
       },
     );
@@ -139,7 +141,9 @@ export function WalletView() {
   if (!isAuth) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.light.background }}>
-        <Text style={{ color: Colors.light.textSecondary, fontSize: 15 }}>Sign in to view your wallet</Text>
+		<Text style={{ color: Colors.light.textSecondary, fontSize: 15 }}>
+		  {t("signInToViewWallet")}
+		</Text>
       </View>
     );
   }
@@ -150,7 +154,7 @@ export function WalletView() {
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-      <SubpageHeader title="Wallet" />
+		<SubpageHeader title={t("wallet")} />
 
       {isVerifying ? (
         <View style={{
@@ -160,9 +164,9 @@ export function WalletView() {
           borderRadius: 12,
         }}>
           <ActivityIndicator size="small" color={Colors.light.primary} />
-          <Text style={{ fontSize: 13, color: "#856404" }}>
-            Verifying your top-up...
-          </Text>
+		 <Text style={{ fontSize: 13, color: "#856404" }}>
+		   {t("verifyingTopUp")}
+		 </Text>
         </View>
       ) : null}
 

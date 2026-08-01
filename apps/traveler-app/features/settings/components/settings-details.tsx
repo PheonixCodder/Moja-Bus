@@ -1,6 +1,7 @@
 import { Wallet01Icon, UserGroupIcon, ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Pressable, View, ActivityIndicator } from "react-native";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { primaryRGB } from "@/constants/theme";
@@ -8,6 +9,7 @@ import { Colors, Spacing } from "@moja/theme/tokens";
 import { useWalletBalance } from "@/hooks/use-wallet";
 
 export function SettingsDetails() {
+  const { t } = useTranslation("settings");
   const { data: balance, isLoading } = useWalletBalance() as unknown as { data: { availableBalance: number } | undefined; isLoading: boolean };
 
   return (
@@ -41,12 +43,12 @@ export function SettingsDetails() {
         </View>
 
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: "600", color: Colors.light.text }}>
-            Wallet
-          </Text>
-          <Text style={{ fontSize: 12, fontWeight: "400", color: Colors.light.textSecondary, marginTop: 2 }}>
-            Balance
-          </Text>
+		  <Text style={{ fontSize: 14, fontWeight: "600", color: Colors.light.text }}>
+		    {t("wallet")}
+		  </Text>
+		  <Text style={{ fontSize: 12, fontWeight: "400", color: Colors.light.textSecondary, marginTop: 2 }}>
+		    {t("balanceLabel")}
+		  </Text>
         </View>
 
         {isLoading ? (
@@ -89,12 +91,12 @@ export function SettingsDetails() {
         </View>
 
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: "600", color: Colors.light.text }}>
-            Passengers
-          </Text>
-          <Text style={{ fontSize: 12, fontWeight: "400", color: Colors.light.textSecondary, marginTop: 2 }}>
-            Passengers
-          </Text>
+		 <Text style={{ fontSize: 14, fontWeight: "600", color: Colors.light.text }}>
+		   {t("passengersLabel")}
+		 </Text>
+		 <Text style={{ fontSize: 12, fontWeight: "400", color: Colors.light.textSecondary, marginTop: 2 }}>
+		   {t("passengers")}
+		 </Text>
         </View>
 
         <HugeiconsIcon icon={ArrowRight02Icon} size={16} color={Colors.light.textSecondary} />
