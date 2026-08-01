@@ -40,10 +40,7 @@ export const publicRouter = createTRPCRouter({
       }
 
       const subscriberId = ctx.user.email;
-      const providerId =
-        input.platform === "android"
-          ? ChatOrPushProviderEnum.Fcm
-          : ChatOrPushProviderEnum.Apns;
+      const providerId = ChatOrPushProviderEnum.Expo;
 
       try {
         await novu.subscribers.credentials.update(

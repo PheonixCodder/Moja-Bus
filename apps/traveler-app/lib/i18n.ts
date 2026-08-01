@@ -35,6 +35,7 @@ i18n.use(initReactI18next).init({
   },
   lng: deviceLanguage,
   fallbackLng: 'en',
+  initImmediate: false,
   ns: ['common', 'settings', 'auth', 'wallet', 'notifications'],
   defaultNS: 'common',
   interpolation: {

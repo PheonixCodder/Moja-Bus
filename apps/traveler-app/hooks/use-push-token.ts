@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { useTRPC } from "@/lib/trpc";
+
+const isExpoGo = Constants.appOwnership === "expo";
 
 interface TrpcMutation<TInput, TOutput> {
 	mutationOptions: () => {
@@ -20,33 +22,38 @@ interface TypedTRPC {
 }
 
 async function getPushToken(): Promise<string | null> {
-	if (!Device.isDevice) {
+	if (isExpoGo || !Device.isDevice) {
 		return null;
 	}
 
-	const { status: existingStatus } = await Notifications.getPermissionsAsync();
-	let finalStatus = existingStatus;
+	try {
+		const Notifications = await import("expo-notifications");
+		const { status: existingStatus } = await Notifications.getPermissionsAsync();
+		let finalStatus = existingStatus;
 
-	if (existingStatus !== "granted") {
-		const { status } = await Notifications.requestPermissionsAsync();
-		finalStatus = status;
-	}
+		if (existingStatus !== "granted") {
+			const { status } = await Notifications.requestPermissionsAsync();
+			finalStatus = status;
+		}
 
-	if (finalStatus !== "granted") {
+		if (finalStatus !== "granted") {
+			return null;
+		}
+
+		const tokenData = await Notifications.getExpoPushTokenAsync();
+		const token = tokenData.data;
+
+		if (Platform.OS === "android") {
+			await Notifications.setNotificationChannelAsync("default", {
+				name: "default",
+				importance: Notifications.AndroidImportance.MAX,
+			});
+		}
+
+		return token;
+	} catch (error) {
 		return null;
 	}
-
-	const tokenData = await Notifications.getExpoPushTokenAsync();
-	const token = tokenData.data;
-
-	if (Platform.OS === "android") {
-		await Notifications.setNotificationChannelAsync("default", {
-			name: "default",
-			importance: Notifications.AndroidImportance.MAX,
-		});
-	}
-
-	return token;
 }
 
 export function usePushToken() {

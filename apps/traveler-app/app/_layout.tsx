@@ -1,13 +1,12 @@
 import "@/global.css";
-import "@/lib/i18n";
+// import "@/lib/i18n";
 
 import { NovuProvider } from "@novu/react-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { useQuery } from "@tanstack/react-query";
 import { DefaultTheme, Stack, ThemeProvider, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef } from "react";
-import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
 import { useLoadFonts } from "@/hooks/use-load-fonts";
 import { usePushToken } from "@/hooks/use-push-token";
 import { authClient } from "@/lib/auth-client";
@@ -85,57 +84,65 @@ function PushTokenRegistrar() {
 }
 
 function NotificationHandler() {
-	const notificationListener = useRef<{ remove: () => void } | null>(null);
-	const responseListener = useRef<{ remove: () => void } | null>(null);
-
 	useEffect(() => {
 		if (isExpoGo) return;
 
-		Notifications.setNotificationHandler({
-			handleNotification: async () => ({
-				shouldShowAlert: true,
-				shouldPlaySound: true,
-				shouldSetBadge: true,
-				shouldShowBanner: true,
-				shouldShowList: true,
-			}),
-		});
+		let cancelled = false;
+		let cleanup: (() => void) | undefined;
 
-		notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
-			// Update the Novu notification cache so in-app indicators stay in sync
-		});
+		async function setup() {
+			const Notifications = await import("expo-notifications");
+			if (cancelled) return;
 
-		responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-			const notification = response.notification;
-			const data = notification.request.content.data as Record<string, unknown> | undefined;
-			if (data && typeof data === "object") {
-				const type = (data as Record<string, unknown>)["type"] as string | undefined;
-				const ref = (data as Record<string, unknown>)["bookingReference"] as string | undefined;
-				if (type === "booking-confirmed" || type === "booking-refunded" || type === "hold-created" || type === "review-request" || type === "review-submitted" || type === "trip-boarding") {
-					if (ref) {
-						router.push(`/bookings/${ref}` as any);
-					} else {
+			Notifications.setNotificationHandler({
+				handleNotification: async () => ({
+					shouldShowAlert: true,
+					shouldPlaySound: true,
+					shouldSetBadge: true,
+					shouldShowBanner: true,
+					shouldShowList: true,
+				}),
+			});
+
+			const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
+				// Update the Novu notification cache so in-app indicators stay in sync
+			});
+
+			const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+				const notification = response.notification;
+				const data = notification.request.content.data as Record<string, unknown> | undefined;
+				if (data && typeof data === "object") {
+					const type = (data as Record<string, unknown>)["type"] as string | undefined;
+					const ref = (data as Record<string, unknown>)["bookingReference"] as string | undefined;
+					if (type === "booking-confirmed" || type === "booking-refunded" || type === "hold-created" || type === "review-request" || type === "review-submitted" || type === "trip-boarding") {
+						if (ref) {
+							router.push(`/bookings/${ref}` as any);
+						} else {
+							router.push("/bookings");
+						}
+					} else if (type === "trip-cancelled") {
 						router.push("/bookings");
+					} else if (type === "trip-delayed") {
+						router.push("/tickets");
+					} else if (type === "trip-gate-updated") {
+						router.push("/tickets");
+					} else if (type === "wallet-low-balance" || type === "wallet-topup") {
+						router.push("/wallet");
 					}
-				} else if (type === "trip-cancelled") {
-					router.push("/bookings");
-				} else if (type === "trip-delayed") {
-					router.push("/tickets");
-				} else if (type === "trip-gate-updated") {
-					router.push("/tickets");
-				} else if (type === "wallet-low-balance" || type === "wallet-topup") {
-					router.push("/wallet");
 				}
-			}
-		});
+			});
+
+			cleanup = () => {
+				notificationListener.remove();
+				responseListener.remove();
+			};
+		}
+
+		setup();
 
 		return () => {
-			if (notificationListener.current) {
-				notificationListener.current.remove();
-			}
-			if (responseListener.current) {
-				responseListener.current.remove();
-			}
+			cancelled = true;
+			cleanup?.();
 		};
 	}, []);
 

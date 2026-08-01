@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="4f1351ad-4d4d-4706-9835-a4271b138320" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/chat-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/delay-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/digest-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/email-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/http-request-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/in-app-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/push-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/sms-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/step-conditions.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/throttle-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/channel-selection.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/digest-defaults.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/severity-and-critical.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/step-conditions.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/workflow-templates.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/bridge-endpoint.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/deployment.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/email-templates.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/schema-validation.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/security.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/studio-and-cli.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/translations.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/workflow-and-steps.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/branding-and-styling.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/headless-inbox-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/multi-tenancy.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/nextjs-inbox-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/personalization.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/react-inbox-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/security.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-preferences/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-preferences/references/preferences-ui-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-preferences/references/subscriber-preferences-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-preferences/references/workflow-preferences-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-subscribers/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-subscribers/references/credentials-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-subscribers/references/subscriber-crud-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-subscribers/references/topics-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/best-practices.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/bulk-trigger-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/installation.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/single-trigger-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/topic-trigger-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/frontend-design/LICENSE.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/frontend-design/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/chat-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/delay-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/digest-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/email-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/http-request-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/in-app-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/push-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/sms-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/step-conditions.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/throttle-step.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/channel-selection.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/digest-defaults.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/severity-and-critical.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/step-conditions.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/workflow-templates.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/bridge-endpoint.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/deployment.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/email-templates.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/schema-validation.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/security.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/studio-and-cli.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/translations.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/workflow-and-steps.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/branding-and-styling.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/headless-inbox-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/multi-tenancy.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/nextjs-inbox-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/personalization.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/react-inbox-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/security.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-preferences/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-preferences/references/preferences-ui-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-preferences/references/subscriber-preferences-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-preferences/references/workflow-preferences-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-subscribers/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-subscribers/references/credentials-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-subscribers/references/subscriber-crud-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-subscribers/references/topics-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/SKILL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/best-practices.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/bulk-trigger-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/installation.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/single-trigger-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/topic-trigger-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.npmrc" beforeDir="false" afterPath="$PROJECT_DIR$/.npmrc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/scripts/reset-project.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/app/_layout.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/app/explore.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/app/index.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/animated-icon.module.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/animated-icon.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/animated-icon.web.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/app-tabs.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/app-tabs.web.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/external-link.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/hint-row.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/themed-text.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/themed-view.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/ui/collapsible.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/web-badge.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/constants/theme.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/global.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-color-scheme.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-color-scheme.web.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-theme.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/bookings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/bookings.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/search.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/search.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/tickets.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/tickets.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/+not-found.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/+not-found.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/components/page-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/components/page-header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/auth/views/login-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/auth/views/login-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/account-settings-list.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/account-settings-list.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/settings-details.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/settings-details.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/passengers-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/passengers-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/personal-info-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/personal-info-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/settings-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/settings-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/wallet-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/wallet-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/review-request.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/review-request.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-boarding.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-boarding.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-cancelled.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-cancelled.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-delayed.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-delayed.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-gate-updated.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-gate-updated.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/hold-created.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/hold-created.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/profile-updated.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/profile-updated.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/review-submitted.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/review-submitted.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/wallet-low-balance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/wallet-low-balance.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/booking-confirmed.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/booking-confirmed.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/booking-refunded.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/booking-refunded.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/wallet-topup.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/wallet-topup.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/public.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/public.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/memory.md" beforeDir="false" afterPath="$PROJECT_DIR$/memory.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="3137" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.6997138012090205" />
+      <entry key="MS500" value="4.815089946203408" />
+      <entry key="S2" value="10.161025743913074" />
+      <entry key="S5" value="13.422488345732058" />
+      <entry key="S10" value="15.01689996671002" />
+      <entry key="S30" value="16.38507403575194" />
+      <entry key="S60" value="17.413546959031997" />
+      <entry key="M2" value="19.44999270795287" />
+      <entry key="M5" value="23.199812203352923" />
+      <entry key="M10" value="25.828649806143755" />
+      <entry key="M15" value="27.530587089339654" />
+      <entry key="M30" value="31.452731374482422" />
+      <entry key="H1" value="36.65767913665108" />
+      <entry key="H2" value="42.98796312229897" />
+      <entry key="H4" value="52.4382488164631" />
+      <entry key="D1" value="154.15899363134315" />
+      <entry key="W1" value="2061.217640663993" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="0.0" />
+      <entry key="S60" value="0.0" />
+      <entry key="M2" value="0.0" />
+      <entry key="M5" value="2.051096238532697E-136" />
+      <entry key="M10" value="1.4346297967629256E-68" />
+      <entry key="M15" value="5.982233159936592E-46" />
+      <entry key="M30" value="2.7282497044844143E-23" />
+      <entry key="H1" value="6.9287824961220534E-12" />
+      <entry key="H2" value="4.069046639194021E-6" />
+      <entry key="H4" value="0.003386828810788944" />
+      <entry key="D1" value="2.4704598627596885" />
+      <entry key="W1" value="39.26241801870024" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="1.531145737647971" />
+      <entry key="MS500" value="4.707069990092089" />
+      <entry key="S2" value="10.091741628816822" />
+      <entry key="S5" value="13.385728056587931" />
+      <entry key="S10" value="14.996424613984018" />
+      <entry key="S30" value="16.377686693618337" />
+      <entry key="S60" value="17.409684545816056" />
+      <entry key="M2" value="19.44781427416802" />
+      <entry key="M5" value="23.198690272162036" />
+      <entry key="M10" value="25.82799261296684" />
+      <entry key="M15" value="27.530111131122993" />
+      <entry key="M30" value="31.452455097004687" />
+      <entry key="H1" value="36.657516509868316" />
+      <entry key="H2" value="42.98787010762907" />
+      <entry key="H4" value="52.44156701366649" />
+      <entry key="D1" value="156.62904572009367" />
+      <entry key="W1" value="2100.479541331553" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="3FlRnFTtRu162r1yhMrH3oxEYH9" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;javascript.preferred.runtime.type.id&quot;: &quot;node&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/dev/moja-buss/apps/traveler-app-2/app&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;AndroidSdkUpdater&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\ubaid\\OneDrive\\Desktop\\moja-buss\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\dev\moja-buss\apps\traveler-app-2\app" />
+      <recent name="C:\Users\ubaid\OneDrive\Desktop\moja-buss\artifacts" />
+      <recent name="C:\Users\ubaid\OneDrive\Desktop\moja-buss\best-example" />
+      <recent name="C:\Users\ubaid\OneDrive\Desktop\moja-buss\apps\web\public\images" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ubaid\OneDrive\Desktop\moja-buss\docs" />
+      <recent name="C:\Users\ubaid\OneDrive\Desktop\moja-buss\context\paystack\guides" />
+      <recent name="C:\Users\ubaid\OneDrive\Desktop\moja-buss\context\paystack" />
+      <recent name="C:\Users\ubaid\OneDrive\Desktop\moja-buss\context\paystack\apis" />
+      <recent name="C:\Users\ubaid\OneDrive\Desktop\moja-buss\apps\web\app\dashboard\operator\(dashboard)" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-WS-261.26222.58" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4f1351ad-4d4d-4706-9835-a4271b138320" name="Changes" comment="" />
+      <created>1782647834833</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1782647834833</updated>
+      <workItem from="1782647835965" duration="1021000" />
+      <workItem from="1782649635180" duration="3696000" />
+      <workItem from="1782658611697" duration="979000" />
+      <workItem from="1782659687613" duration="11297000" />
+      <workItem from="1782707106797" duration="8810000" />
+      <workItem from="1782716193189" duration="1429000" />
+      <workItem from="1782717713419" duration="12135000" />
+      <workItem from="1782731224931" duration="2854000" />
+      <workItem from="1782734510404" duration="324000" />
+      <workItem from="1782735024736" duration="2856000" />
+      <workItem from="1782741521949" duration="11925000" />
+      <workItem from="1782808876563" duration="31624000" />
+      <workItem from="1782879673167" duration="33677000" />
+      <workItem from="1782967698549" duration="31672000" />
+      <workItem from="1783054233323" duration="38151000" />
+      <workItem from="1783142467294" duration="34441000" />
+      <workItem from="1783223528832" duration="18604000" />
+      <workItem from="1783313156310" duration="33377000" />
+      <workItem from="1783447985770" duration="1264000" />
+      <workItem from="1783484367722" duration="2441000" />
+      <workItem from="1783500629687" duration="10435000" />
+      <workItem from="1783514940266" duration="18211000" />
+      <workItem from="1783570496500" duration="46993000" />
+      <workItem from="1783658072157" duration="38424000" />
+      <workItem from="1783742349768" duration="46694000" />
+      <workItem from="1783829649171" duration="42750000" />
+      <workItem from="1783912530546" duration="49710000" />
+      <workItem from="1784019052993" duration="21572000" />
+      <workItem from="1784043698056" duration="10931000" />
+      <workItem from="1784105283062" duration="27871000" />
+      <workItem from="1784178472224" duration="37073000" />
+      <workItem from="1784265670064" duration="39839000" />
+      <workItem from="1784348616282" duration="47820000" />
+      <workItem from="1784438077429" duration="510000" />
+      <workItem from="1784439267174" duration="669000" />
+      <workItem from="1784544396885" duration="18000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
