@@ -73,28 +73,39 @@ export function CompanyStep({
     { value: "OTHER", label: t("other") },
   ];
 
-  // Pre-fill form if initialData exists
-  useEffect(() => {
-    if (initialData?.company) {
-      const company = initialData.company;
-      setName(company.name || "");
-      setSlug(company.slug || "");
-      setEmail(company.email || "");
-      setPhone(company.phone || "");
-      setWebsite(company.website || "");
-      setDescription(company.description || "");
-      setBusinessType(company.businessType || "");
-      setRegistrationNumber(company.registrationNumber || "");
-      setTaxId(company.taxId || "");
-      setYearEstablished(
-        company.yearEstablished ? String(company.yearEstablished) : "",
-      );
-      setEstimatedStaffSize(
-        company.estimatedStaffSize ? String(company.estimatedStaffSize) : "",
-      );
-      setLogoUrl(company.logoUrl || "");
-    }
-  }, [initialData]);
+   // Pre-fill form if initialData exists
+   useEffect(() => {
+     if (initialData?.company) {
+       const company = initialData.company;
+        setName(company.name || "");
+        setSlug(
+          company.slug && !company.slug.startsWith("draft-")
+            ? company.slug
+            : generateSlug(company.name || ""),
+        );
+        setEmail(company.email || "");
+        setWebsite(company.website || "");
+       setDescription(company.description || "");
+       setBusinessType(company.businessType || "");
+       setRegistrationNumber(
+         company.registrationNumber?.startsWith("DRAFT-")
+           ? ""
+           : company.registrationNumber || "",
+       );
+       setTaxId(
+         company.taxId?.startsWith("DRAFT-")
+           ? ""
+           : company.taxId || "",
+       );
+       setYearEstablished(
+         company.yearEstablished ? String(company.yearEstablished) : "",
+       );
+       setEstimatedStaffSize(
+         company.estimatedStaffSize ? String(company.estimatedStaffSize) : "",
+       );
+       setLogoUrl(company.logoUrl || "");
+     }
+   }, [initialData]);
 
   // Debounce slug for validation
   useEffect(() => {

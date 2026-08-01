@@ -36,12 +36,8 @@ export const passengerWalletTopupWorkflow = workflow(
 
     // 3. Push Notification
     await step.push("send-push", async () => ({
-      title: "Wallet Top-Up Successful",
+      subject: "Wallet Top-Up Successful",
       body: `Deposit of ${escapeHtml(payload.amountXOF)} XOF confirmed. Funds available now.`,
-      data: {
-        type: "wallet-topup",
-        transactionId: payload.transactionId,
-      },
     }));
   },
   {

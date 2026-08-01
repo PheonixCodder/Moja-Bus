@@ -27,10 +27,10 @@ export const adminOperatorSignupPendingWorkflow = workflow(
             <p style="margin: 0 0 8px 0;">Phone: <strong>${escapeHtml(payload.ownerPhone)}</strong></p>
             <p style="margin: 0;">Submitted: <strong>${escapeHtml(payload.submittedAt)}</strong></p>
           </div>
-          <a href="https://mojaride.com/dashboard/admin/verification" 
-             style="display: inline-block; background: #ee237c; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin-top: 10px;">
-             Review Verification
-          </a>
+           <a href="${escapeHtml(payload.dashboardUrl)}/dashboard/admin/verification" 
+              style="display: inline-block; background: #ee237c; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin-top: 10px;">
+              Review Verification
+           </a>
         </div>
       `;
 
@@ -53,6 +53,7 @@ export const adminOperatorSignupPendingWorkflow = workflow(
       ownerName: z.string(),
       ownerPhone: z.string(),
       submittedAt: z.string(),
+      dashboardUrl: z.string().url(),
     }),
   }
 );

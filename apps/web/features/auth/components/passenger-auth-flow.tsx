@@ -6,12 +6,13 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
+import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Field, FieldContent, FieldGroup, FieldLabel } from "@moja/ui/components/ui/field";
 import { Switch } from "@moja/ui/components/ui/switch";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
@@ -55,6 +56,7 @@ export function PassengerAuthFlow({
   const t = useTranslations("auth");
   const { isPending: authPending, sendPassengerOtp, verifyPassengerOtp } = useAuth();
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const router = useRouter();
 
   function resolvePostAuthPath(fallback = "/dashboard") {
@@ -91,6 +93,7 @@ export function PassengerAuthFlow({
   const [operatorCollectedEmail, setOperatorCollectedEmail] = useState("");
   const [operatorCollectedPhone, setOperatorCollectedPhone] = useState("");
   const [localPending, setLocalPending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
 
   // TRPC Mutations
   const updatePreferencesMutation = useMutation(
@@ -247,6 +250,7 @@ export function PassengerAuthFlow({
     }
 
     if (userType === "operator") {
+      setOtpVerifying(true);
       try {
         let res: any;
         if (method === "phone") {
@@ -264,11 +268,19 @@ export function PassengerAuthFlow({
 
         toast.success(t("operator.toastWelcome", { appName: process.env["NEXT_PUBLIC_APP_NAME"] || "Moja Ride" }));
 
-        const isNewUser = new Date(res.data.user.createdAt).getTime() > Date.now() - 10000;
-        if (isNewUser) {
+        // Route by onboarding status, not by account age — a COMPLETED operator
+        // goes to the dashboard, everyone else continues onboarding.
+        try {
+          const statusData = await queryClient.fetchQuery(
+            trpc.operator.getOnboardingStatus.queryOptions(),
+          );
+          router.push(
+            statusData?.onboardingStatus === "COMPLETED"
+              ? "/dashboard/operator"
+              : "/dashboard/operator/onboarding",
+          );
+        } catch {
           router.push("/dashboard/operator/onboarding");
-        } else {
-          router.push("/dashboard/operator");
         }
         router.refresh();
       } catch (err: any) {
@@ -286,6 +298,8 @@ export function PassengerAuthFlow({
           }
         }
         toast.error(msg);
+      } finally {
+        setOtpVerifying(false);
       }
     } else {
       // Passenger verify
@@ -331,9 +345,23 @@ export function PassengerAuthFlow({
   const isPending =
       authPending ||
       localPending ||
+      otpVerifying ||
       updatePreferencesMutation.isPending ||
       checkAccountStatusMutation.isPending ||
       initSignupMutation.isPending;
+
+  // Operator details step: the Continue button stays disabled until Company
+  // Name, Full Name, and the collected Phone/Email (field depends on the
+  // identifier method from step 1) are all provided, plus terms accepted.
+  // This guarantees initSignup always receives a real email + phone, so no
+  // placeholder/guest email can ever be derived from a phone-only entry.
+  const detailsValid =
+      Boolean(companyName.trim()) &&
+      Boolean(ownerName.trim()) &&
+      (method === "email"
+          ? Boolean(operatorCollectedPhone.trim())
+          : Boolean(operatorCollectedEmail.trim())) &&
+      acceptTerms;
 
   return (
       <div className="w-full overflow-hidden max-w-[500px] mx-auto px-4 sm:px-6">
@@ -487,7 +515,7 @@ export function PassengerAuthFlow({
                       </Field>
                     </FieldGroup>
 
-                    <Button type="submit" className="w-full" disabled={isPending}>
+                    <Button type="submit" className="w-full" disabled={isPending || !detailsValid}>
                       {isPending ? t("operator.detailsSubmitting") : t("operator.detailsContinue")}
                     </Button>
 
@@ -530,7 +558,14 @@ export function PassengerAuthFlow({
                       </Field>
                     </FieldGroup>
                     <Button type="submit" className="w-full" disabled={isPending || otp.length < 6}>
-                      {isPending ? t(`${userType}.otpVerifying`) : t(`${userType}.otpVerify`)}
+                      {isPending ? (
+                          <>
+                            <Spinner className="size-4" />
+                            {t(`${userType}.otpVerifying`)}
+                          </>
+                      ) : (
+                          t(`${userType}.otpVerify`)
+                      )}
                     </Button>
                     <Button
                         type="button"

@@ -171,7 +171,11 @@ export const auth = betterAuth({
                 ...user,
                 role: "OPERATOR",
                 workEmail: pending.email,
-                email: user.email || pending.email,
+                // Use the email collected on the login details step unconditionally.
+                // For phone-first signups `user.email` is the phone plugin's temp
+                // guest address (e.g. +225xxxx@guest.mojaride.ci) which would
+                // otherwise stay the user's primary email.
+                email: pending.email,
                 fullName: pending.ownerName,
                 name: pending.ownerName,
                 phoneNumber: pending.phone,
@@ -238,7 +242,7 @@ export const auth = betterAuth({
                   workflowId: "operator-welcome",
                   to: {
                     subscriberId: user.id,
-                    email: user.email,
+                    email: pending.email,
                     firstName: pending.ownerName.split(" ")[0],
                   },
                   payload: {

@@ -41,19 +41,15 @@ export function useOperatorOnboarding() {
   const completeMutation = useMutation(
     trpc.operator.completeOnboarding.mutationOptions(),
   );
+  const reopenMutation = useMutation(
+    trpc.operator.reopenOnboardingStep.mutationOptions(),
+  );
   const logEventMutation = useMutation(
     trpc.operator.logOnboardingEvent.mutationOptions(),
   );
 
   // Server is the source of truth for the current step
   const currentStep = (data?.progress?.currentStep ?? "COMPANY") as OnboardingStep;
-
-  useEffect(() => {
-    if (data?.onboardingStatus === "COMPLETED") {
-      toast.info(t("alreadyComplete"));
-      router.push("/dashboard/operator");
-    }
-  }, [data?.onboardingStatus, router, t]);
 
   // Log STEP_ENTERED and reset timer each time currentStep changes
   useEffect(() => {
@@ -133,7 +129,7 @@ export function useOperatorOnboarding() {
     }
   };
 
-  const goToStep = (step: OnboardingStep) => {
+  const goToStep = async (step: OnboardingStep) => {
     const currentIndex = STEP_ORDER.indexOf(currentStep);
     const targetIndex = STEP_ORDER.indexOf(step);
 
@@ -146,10 +142,15 @@ export function useOperatorOnboarding() {
         eventType: "STEP_SKIPPED",
         timeSpentSeconds: getTimeSpent(),
       });
-      // Invalidate so the server recalculates the current step
-      queryClient.invalidateQueries(
-        trpc.operator.getOnboardingStatus.queryFilter(),
-      );
+      // Re-open the step server-side so the roadmap actually moves back
+      try {
+        await reopenMutation.mutateAsync({ step });
+        await queryClient.invalidateQueries(
+          trpc.operator.getOnboardingStatus.queryFilter(),
+        );
+      } catch (err: any) {
+        toast.error(err.message || t("saveFailed"));
+      }
       return;
     }
 
@@ -164,9 +165,6 @@ export function useOperatorOnboarding() {
     currentStep,
     progress: data?.progress,
     operatorData: data?.operator,
-    // L14: surfaced so BankStep can show an honest verification sub-state
-    // (added vs pending admin verification) instead of implying full completion.
-    bankVerified: data?.bankVerified,
     saveStep,
     finalizeOnboarding,
     goToStep,

@@ -22,12 +22,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
-import { Banknote, ShieldCheck, CheckCircle2, Clock } from "lucide-react";
+import { Banknote, ShieldCheck } from "lucide-react";
 import { type BankStepInput } from "@moja/schemas";
 
 interface BankStepProps {
   initialData?: any;
-  bankVerified?: boolean;
   onSave: (data: BankStepInput) => Promise<boolean>;
   onBack: () => void;
   isSaving: boolean;
@@ -35,14 +34,12 @@ interface BankStepProps {
 
 export function BankStep({
   initialData,
-  bankVerified,
   onSave,
   onBack,
   isSaving,
 }: BankStepProps) {
   const t = useTranslations("onboarding.bank");
   const tRoot = useTranslations("onboarding");
-  const hasBankDetails = Boolean(initialData?.company?.bankAccount);
   const trpc = useTRPC();
   const { data: paystackBanks, isLoading: isLoadingBanks } = useQuery(
     trpc.payments.listBanks.queryOptions({})
@@ -58,8 +55,9 @@ export function BankStep({
 
   // Pre-fill form if initialData exists
   useEffect(() => {
-    if (initialData?.company?.bankAccount) {
-      const bank = initialData.company.bankAccount;
+    const bankAccount = initialData?.company?.bankAccounts?.[0];
+    if (bankAccount) {
+      const bank = bankAccount;
       setBankName(bank.bankName || "");
       setBankCode(bank.bankCode || "");
       const masked =
@@ -108,36 +106,6 @@ export function BankStep({
               <p className="text-xs text-muted-foreground mt-0.5">
                 {t("securityDesc")}
               </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Two-stage verification sub-step */}
-      <Card className="border-amber-200 bg-amber-50/10 rounded-md">
-        <CardContent className="pt-4 pb-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              {hasBankDetails ? (
-                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
-              ) : (
-                <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              )}
-              <span className="text-sm font-medium text-foreground">
-                {t("bankDetailsAdded")}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {bankVerified ? (
-                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
-              ) : (
-                <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              )}
-              <span className="text-sm text-muted-foreground">
-                {bankVerified
-                  ? t("verifiedPayouts")
-                  : t("pendingVerification")}
-              </span>
             </div>
           </div>
         </CardContent>

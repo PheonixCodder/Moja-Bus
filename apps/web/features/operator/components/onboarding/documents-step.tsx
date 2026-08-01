@@ -73,20 +73,6 @@ export function DocumentsStep({
       required: true,
     },
     {
-      id: "insurance",
-      value: "INSURANCE_CERTIFICATE",
-      label: t("insurance"),
-      description: t("insuranceDesc"),
-      required: true,
-    },
-    {
-      id: "bank_statement",
-      value: "BANK_STATEMENT",
-      label: t("bankStatement"),
-      description: t("bankStatementDesc"),
-      required: false,
-    },
-    {
       id: "other",
       value: "OTHER",
       label: t("otherDocuments"),

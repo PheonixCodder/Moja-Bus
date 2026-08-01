@@ -28,12 +28,8 @@ export const passengerProfileUpdatedWorkflow = workflow(
 
     // 2. Push Notification
     await step.push("send-push", async () => ({
-      title: "Profile Updated",
+      subject: "Profile Updated",
       body: `Profile changes applied: ${payload.changedFields.join(", ")}. If this wasn't you, contact support immediately.`,
-      data: {
-        type: "profile-updated",
-        changedFields: payload.changedFields,
-      },
     }));
   },
   {

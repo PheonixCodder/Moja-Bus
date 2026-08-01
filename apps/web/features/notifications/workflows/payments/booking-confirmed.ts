@@ -43,12 +43,8 @@ export const passengerBookingConfirmedWorkflow = workflow(
 
     // 3. Push Notification
     await step.push("send-push", async () => ({
-      title: "Booking Confirmed",
+      subject: "Booking Confirmed",
       body: `Route: ${escapeHtml(payload.originCityName)} → ${escapeHtml(payload.destinationCityName)} at ${escapeHtml(payload.departureTime)}. Total: ${escapeHtml(payload.totalAmountXOF)} XOF`,
-      data: {
-        type: "booking-confirmed",
-        bookingReference: payload.bookingReferences[0],
-      },
     }));
   },
   {

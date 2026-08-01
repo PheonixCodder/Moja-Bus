@@ -39,12 +39,8 @@ export const passengerTripDelayedWorkflow = workflow(
 
     // 3. Push Notification
     await step.push("send-push", async () => ({
-      title: "Trip Delayed",
+      subject: "Trip Delayed",
       body: `${escapeHtml(payload.originCity)} → ${escapeHtml(payload.destinationCity)} delayed by ${escapeHtml(payload.delayMinutes)}m. New departure: ${escapeHtml(payload.newTime)}`,
-      data: {
-        type: "trip-delayed",
-        bookingReference: payload.bookingReference,
-      },
     }));
   },
   {
@@ -63,6 +59,7 @@ export const passengerTripDelayedWorkflow = workflow(
       delayMinutes: z.number(),
       gate: z.string().nullable().optional(),
       phone: z.string().optional(),
+      bookingReference: z.string(),
     }),
   }
 );

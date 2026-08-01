@@ -34,7 +34,6 @@ export function OperatorOnboardingView() {
     currentStep,
     progress,
     operatorData,
-    bankVerified,
     saveStep,
     finalizeOnboarding,
     goToStep,
@@ -155,7 +154,6 @@ export function OperatorOnboardingView() {
         {currentStep === "BANK" && (
           <BankStep
             initialData={operatorData}
-            bankVerified={bankVerified}
             onSave={(data) => saveStep("BANK", { bankData: data })}
             onBack={() => goToStep("DOCUMENTS")}
             isSaving={isSaving}

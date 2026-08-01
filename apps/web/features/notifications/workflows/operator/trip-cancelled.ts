@@ -38,12 +38,8 @@ export const passengerTripCancelledWorkflow = workflow(
 
     // 3. Push Notification
     await step.push("send-push", async () => ({
-      title: "Trip Cancelled",
+      subject: "Trip Cancelled",
       body: `${escapeHtml(payload.originCity)} → ${escapeHtml(payload.destinationCity)} cancelled. ${escapeHtml(payload.cancelReason)}. ${escapeHtml(payload.refundAmountXOF)} XOF refunded to wallet.`,
-      data: {
-        type: "trip-cancelled",
-        bookingReference: payload.bookingReference,
-      },
     }));
   },
   {
@@ -61,6 +57,7 @@ export const passengerTripCancelledWorkflow = workflow(
       cancelReason: z.string(),
       refundAmountXOF: z.number(),
       phone: z.string().optional(),
+      bookingReference: z.string(),
     }),
   }
 );

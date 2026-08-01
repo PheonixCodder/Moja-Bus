@@ -16,13 +16,8 @@ export const passengerTripGateUpdatedWorkflow = workflow(
 
     // 2. Push Notification
     await step.push("send-push", async () => ({
-      title: "Gate Updated",
+      subject: "Gate Updated",
       body: `Gate for ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) is now Gate ${escapeHtml(payload.gate)}.`,
-      data: {
-        type: "trip-gate-updated",
-        destinationCity: payload.destinationCity,
-        gate: payload.gate,
-      },
     }));
   },
   {

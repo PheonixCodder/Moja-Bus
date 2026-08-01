@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
-import { DatePicker } from "@moja/ui/components/ui/date-picker";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
@@ -22,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
-import { User, IdCard, Calendar, Contact } from "lucide-react";
+import { User, IdCard, Calendar } from "lucide-react";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { type ProfileStepInput, type StaffRole } from "@moja/schemas";
 
@@ -45,12 +44,11 @@ export function ProfileStep({
   const [personalPhone, setPersonalPhone] = useState("");
   const [role, setRole] = useState<StaffRole>("OWNER");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [dobError, setDobError] = useState("");
   const [nationalIdNumber, setNationalIdNumber] = useState("");
   const [nationalIdType, setNationalIdType] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
-  const [emergencyContactName, setEmergencyContactName] = useState("");
-  const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
 
   const staffRoles: { value: StaffRole; label: string }[] = [
     { value: "OWNER", label: t("owner") },
@@ -79,17 +77,45 @@ export function ProfileStep({
       setNationalIdType(op.nationalIdType || "");
       setJobTitle(op.jobTitle || "");
       setProfilePhotoUrl(op.profilePhotoUrl || "");
-      setEmergencyContactName(op.emergencyContactName || "");
-      setEmergencyContactPhone(op.emergencyContactPhone || "");
     } else if (initialData?.user) {
       // Fallback to logged-in user profile full name
       setFullName(initialData.user.fullName || "");
     }
   }, [initialData]);
 
+  // Format ISO date (YYYY-MM-DD) to MM/DD/YYYY for display
+  const formatDisplayDob = (iso: string) => {
+    if (!iso) return "";
+    const parts = iso.split("-");
+    if (parts.length !== 3) return iso;
+    return `${parts[1]}/${parts[2]}/${parts[0]}`;
+  };
+
+  // Parse MM/DD/YYYY input to ISO YYYY-MM-DD with validation
+  const parseDobInput = (value: string): string => {
+    const cleaned = value.replace(/[^\d/]/g, "");
+    const parts = cleaned.split("/");
+    if (parts.length !== 3) return "";
+
+    const month = parseInt(parts[0] ?? "", 10);
+    const day = parseInt(parts[1] ?? "", 10);
+    const year = parseInt(parts[2] ?? "", 10);
+
+    if (isNaN(month) || isNaN(day) || isNaN(year)) return "";
+    if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900 || year > 2100) {
+      return "";
+    }
+
+    // Basic day-of-month validation
+    const daysInMonth = [31, (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    if (day > (daysInMonth[month - 1] ?? 31)) return "";
+
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !role) {
+    if (!fullName || !role || !dateOfBirth) {
       return;
     }
 
@@ -97,19 +123,17 @@ export function ProfileStep({
       fullName,
       personalPhone: personalPhone || undefined,
       role,
-      dateOfBirth: dateOfBirth || undefined,
+      dateOfBirth,
       nationalIdNumber: nationalIdNumber || undefined,
       nationalIdType: nationalIdType || undefined,
       jobTitle: jobTitle || undefined,
       profilePhotoUrl: profilePhotoUrl || undefined,
-      emergencyContactName: emergencyContactName || undefined,
-      emergencyContactPhone: emergencyContactPhone || undefined,
     };
 
     await onSave(payload);
   };
 
-  const canContinue = fullName && role;
+  const canContinue = fullName && role && dateOfBirth;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -232,29 +256,37 @@ export function ProfileStep({
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label
-                htmlFor="dob"
-                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                {t("dateOfBirth")}
-              </Label>
-              <DatePicker
-                value={dateOfBirth}
-                onChange={(date) => {
-                  if (date) {
-                    const yyyy = date.getFullYear();
-                    const mm = String(date.getMonth() + 1).padStart(2, "0");
-                    const dd = String(date.getDate()).padStart(2, "0");
-                    setDateOfBirth(`${yyyy}-${mm}-${dd}`);
-                  } else {
-                    setDateOfBirth("");
-                  }
-                }}
-                placeholder={t("dateOfBirthPlaceholder")}
-                className="w-full"
-              />
-            </div>
+             <div className="flex flex-col gap-2">
+               <Label
+                 htmlFor="dob"
+                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+               >
+                 {t("dateOfBirth")}
+               </Label>
+               <Input
+                 id="dob"
+                 value={formatDisplayDob(dateOfBirth)}
+                 onChange={(e) => {
+                   const raw = e.target.value;
+                   const iso = parseDobInput(raw);
+                   setDateOfBirth(iso);
+                   setDobError("");
+                 }}
+                 onBlur={() => {
+                   if (dateOfBirth && !formatDisplayDob(dateOfBirth).includes("/")) {
+                     // ISO format already stored, no error
+                   } else if (dateOfBirth) {
+                     setDobError(t("dateOfBirthInvalid"));
+                   }
+                 }}
+                 placeholder={t("dateOfBirthPlaceholder")}
+                 required
+                 className={`rounded-md border-border focus-visible:ring-primary focus-visible:border-primary ${dobError ? "border-red-500" : ""}`}
+               />
+               {dobError && (
+                 <p className="text-xs text-red-500">{dobError}</p>
+               )}
+             </div>
           </div>
 
           {/* Identification Details */}
@@ -313,53 +345,13 @@ export function ProfileStep({
                   placeholder={t("idNumberPlaceholder")}
                   className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
-              </div>
-            </div>
-          </div>
+               </div>
+             </div>
+           </div>
+         </CardContent>
+       </Card>
 
-          {/* Emergency Contacts */}
-          <div className="pt-2 border-t border-border mt-4">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <Contact className="w-4 h-4" /> {t("emergencyContact")}
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor="emergency-name"
-                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                >
-                  {t("contactName")}
-                </Label>
-                <Input
-                  id="emergency-name"
-                  value={emergencyContactName}
-                  onChange={(e) => setEmergencyContactName(e.target.value)}
-                  placeholder={t("contactNamePlaceholder")}
-                  className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor="emergency-phone"
-                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                >
-                  {t("contactPhone")}
-                </Label>
-                <PhoneInput
-                  id="emergency-phone"
-                  value={emergencyContactPhone}
-                  onChange={(val: string | undefined) =>
-                    setEmergencyContactPhone(val || "")
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sticky Bottom Action Bar container placeholder */}
+       {/* Sticky Bottom Action Bar container placeholder */}
       <div className="flex justify-between pt-4">
         <Button
           type="button"

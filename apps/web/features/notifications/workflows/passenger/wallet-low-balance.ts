@@ -16,12 +16,8 @@ export const passengerWalletLowBalanceWorkflow = workflow(
 
     // 2. Push Notification
     await step.push("send-push", async () => ({
-      title: "Low Wallet Balance",
+      subject: "Low Wallet Balance",
       body: `Insufficient balance! Booking requires ${escapeHtml(payload.requiredAmountXOF)} XOF. You have ${escapeHtml(payload.availableBalanceXOF)} XOF.`,
-      data: {
-        type: "wallet-low-balance",
-        requiredAmountXOF: payload.requiredAmountXOF,
-      },
     }));
   },
   {

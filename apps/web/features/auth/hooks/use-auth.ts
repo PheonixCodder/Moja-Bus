@@ -2,13 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 import { authClient } from "@/lib/auth-client";
 
 type UserRole = "TRAVELER" | "OPERATOR" | "ADMIN";
 
 export function useAuth() {
   const router = useRouter();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [isPending, setIsPending] = useState(false);
 
   // ─── Sign Out ────────────────────────────────────────────────────────────────
@@ -16,6 +20,9 @@ export function useAuth() {
     setIsPending(true);
     try {
       await authClient.signOut();
+      // Clear all cached queries so no stale/cross-user data (e.g. onboarding
+      // status) survives the session switch.
+      queryClient.clear();
       router.push("/login");
       router.refresh();
     } catch (err) {
@@ -66,10 +73,25 @@ export function useAuth() {
       // Read the live session to get the actual role — don't guess from the URL.
       const { data: sessionData } = await authClient.getSession();
       const role = (sessionData?.user as any)?.role as UserRole | undefined;
-      const redirectPath =
-        role === "OPERATOR" || role === "ADMIN"
-          ? "/dashboard/operator/onboarding"
-          : "/dashboard";
+
+      // Route by real role, and for operators by onboarding status — a COMPLETED
+      // operator must never be dropped on the onboarding page.
+      let redirectPath = "/dashboard";
+      if (role === "ADMIN") {
+        redirectPath = "/dashboard/admin";
+      } else if (role === "OPERATOR") {
+        try {
+          const statusData = await queryClient.fetchQuery(
+            trpc.operator.getOnboardingStatus.queryOptions(),
+          );
+          redirectPath =
+            statusData?.onboardingStatus === "COMPLETED"
+              ? "/dashboard/operator"
+              : "/dashboard/operator/onboarding";
+        } catch {
+          redirectPath = "/dashboard/operator/onboarding";
+        }
+      }
 
       toast.success(
         `Email verified. Welcome to ${process.env["NEXT_PUBLIC_APP_NAME"] || "Moja Ride"}!`,

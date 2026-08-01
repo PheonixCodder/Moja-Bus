@@ -16,13 +16,8 @@ export const passengerTripBoardingWorkflow = workflow(
 
     // 2. Push Notification
     await step.push("send-push", async () => ({
-      title: "Boarding Started",
+      subject: "Boarding Started",
       body: `Boarding started for ${escapeHtml(payload.destinationCity)}. ${payload.gate ? `Gate ${escapeHtml(payload.gate)}` : "Proceed to boarding terminal"}. Bus: ${payload.busPlate ?? "Assigned"}`,
-      data: {
-        type: "trip-boarding",
-        destinationCity: payload.destinationCity,
-        gate: payload.gate ?? "",
-      },
     }));
   },
   {

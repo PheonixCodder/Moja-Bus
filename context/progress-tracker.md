@@ -41,6 +41,12 @@
 
 ## Milestone Log (newest first)
 
+### Notification Workflow Type Error Fixes (2026-08-01)
+
+- [x] Fixed 14 TypeScript errors in `apps/web/features/notifications/workflows/` — 12 TS2322 (`step.push()` return `{ title, body, data }` → `{ subject, body }`) + 2 TS2339 (`bookingReference` missing from payloadSchema in `trip-cancelled.ts` and `trip-delayed.ts`)
+- [x] All 12 operator/passenger/payments workflow files updated
+- [x] `pnpm --filter web typecheck` passes with 0 errors
+
 ### i18n Phase 1 — Public Pages (2026-07-24)
 
 - [x] Installed `next-intl` with i18n routing, middleware, type declarations, message files (EN + FR).

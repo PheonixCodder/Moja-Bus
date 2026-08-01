@@ -38,12 +38,8 @@ export const passengerBookingRefundedWorkflow = workflow(
 
     // 3. Push Notification
     await step.push("send-push", async () => ({
-      title: "Ticket Refunded",
+      subject: "Ticket Refunded",
       body: `Booking ${escapeHtml(payload.bookingReference)} cancelled. ${escapeHtml(payload.refundAmountXOF)} XOF refunded via ${escapeHtml(payload.channel)}.`,
-      data: {
-        type: "booking-refunded",
-        bookingReference: payload.bookingReference,
-      },
     }));
   },
   {

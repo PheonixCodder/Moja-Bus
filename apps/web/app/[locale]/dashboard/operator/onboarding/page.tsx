@@ -13,7 +13,6 @@ export default async function OperatorOnboardingPage({ params }: Props) {
   const queryClient = getQueryClient();
   const [data] = await Promise.all([
     queryClient.fetchQuery(trpc.operator.getOnboardingStatus.queryOptions()),
-    queryClient.prefetchQuery(trpc.routes.getCities.queryOptions()),
   ]);
 
   if (data && data.onboardingStatus === "COMPLETED") {

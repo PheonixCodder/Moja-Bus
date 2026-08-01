@@ -48,34 +48,6 @@ export const companyStepSchema = z.object({
 });
 export type CompanyStepInput = z.infer<typeof companyStepSchema>;
 
-export const locationSchema = z.object({
-  name: z.string().min(1, "Location name is required"),
-  addressLine1: z.string().min(1, "Address is required"),
-  addressLine2: z.string().optional().nullable(),
-  city: z.string().min(1, "City is required"),
-  cityId: z.string().optional().nullable(),
-  state: z.string().optional().nullable(),
-  postalCode: z.string().optional().nullable(),
-  country: z.string().default("Cote d'Ivoire"),
-  latitude: z.coerce.number().optional().nullable(),
-  longitude: z.coerce.number().optional().nullable(),
-  phone: z.string().min(1, "Phone number is required"),
-  managerName: z.string().optional().nullable(),
-  managerPhone: z.string().optional().nullable(),
-  managerEmail: z.string().optional().nullable(),
-  isPrimary: z.boolean().default(false),
-  operatingHours: z.any().optional().nullable(),
-  isActive: z.boolean().default(true),
-});
-export type LocationInput = z.infer<typeof locationSchema>;
-
-export const locationsStepSchema = z.object({
-  locations: z
-    .array(locationSchema)
-    .min(1, "At least one location is required"),
-});
-export type LocationsStepInput = z.infer<typeof locationsStepSchema>;
-
 export const documentSchema = z.object({
   type: documentTypeEnum,
   fileName: z.string().min(1),
@@ -110,7 +82,7 @@ export const profileStepSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
   personalPhone: z.string().optional().nullable(),
   role: staffRoleEnum.default("OWNER"),
-  dateOfBirth: z.string().optional().nullable(),
+   dateOfBirth: z.string().min(1, "Date of birth is required"),
   nationalIdNumber: z.string().optional().nullable(),
   nationalIdType: z.string().optional().nullable(),
   jobTitle: z.string().optional().nullable(),
@@ -178,17 +150,6 @@ export const logOnboardingEventSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),
 });
 export type LogOnboardingEventInput = z.infer<typeof logOnboardingEventSchema>;
-
-export const verifySignupOtpSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  otp: z.string().length(6, "OTP must be 6 digits"),
-});
-export type VerifySignupOtpInput = z.infer<typeof verifySignupOtpSchema>;
-
-export const completeSignupSchema = z.object({
-  email: z.string().email("Invalid email address"),
-});
-export type CompleteSignupInput = z.infer<typeof completeSignupSchema>;
 
 export const operatorRevenueAnalyticsSchema = z.object({
   from: z.string().datetime(),

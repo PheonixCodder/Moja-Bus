@@ -16,12 +16,8 @@ export const passengerReviewSubmittedWorkflow = workflow(
 
     // 2. Push Notification
     await step.push("send-push", async () => ({
-      title: "Review Submitted",
+      subject: "Review Submitted",
       body: `Thank you for your ${escapeHtml(payload.rating)}-star review of ${escapeHtml(payload.companyName)}!`,
-      data: {
-        type: "review-submitted",
-        companyName: payload.companyName,
-      },
     }));
   },
   {
