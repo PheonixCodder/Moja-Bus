@@ -163,7 +163,6 @@ export async function paystackCreateTransferRecipient(input: {
       name: input.businessName,
       account_number: input.accountNumber,
       bank_code: input.bankCode,
-      currency: "XOF",
     }),
     signal: AbortSignal.timeout(30_000),
   });
