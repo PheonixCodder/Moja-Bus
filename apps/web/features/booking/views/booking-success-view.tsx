@@ -1,15 +1,15 @@
 "use client";
 
+import { buttonVariants } from "@moja/ui/components/ui/button";
+import { cn } from "@moja/ui/lib/utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { CheckCircle2, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
-import { cn } from "@moja/ui/lib/utils";
-import { buttonVariants } from "@moja/ui/components/ui/button";
-import { formatPriceXOF } from "@/features/search/lib/format";
-import { useTRPC } from "@/trpc/client";
 import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-card";
 import { TripSummaryCard } from "@/features/booking/components/trip-summary-card";
+import { formatPriceXOF } from "@/features/search/lib/format";
+import { useTRPC } from "@/trpc/client";
 
 interface BookingSuccessViewProps {
   offerId: string;
@@ -44,9 +44,7 @@ export function BookingSuccessView({
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm text-center space-y-3">
           <CheckCircle2 className="size-12 text-emerald-500 mx-auto" />
           <h1 className="text-2xl font-bold text-slate-900">{t("title")}</h1>
-          <p className="text-sm text-slate-600">
-            {t("subtitle")}
-          </p>
+          <p className="text-sm text-slate-600">{t("subtitle")}</p>
           {total > 0 && (
             <p className="text-sm font-bold text-[#ee237c]">
               {t("totalPaid", { amount: formatPriceXOF(total) })}
@@ -91,11 +89,32 @@ export function BookingSuccessView({
           </Link>
           <Link
             href="/dashboard/bookings"
-            className={cn(buttonVariants({ variant: "outline" }), "justify-center")}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "justify-center",
+            )}
           >
             {t("viewBookings")}
           </Link>
         </div>
+
+        <Link
+          href="/contact"
+          className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:bg-slate-50"
+        >
+          <div className="w-10 h-10 bg-[#ee237c]/10 text-[#ee237c] rounded-xl flex items-center justify-center shrink-0">
+            <HelpCircle className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-800">
+              {t("helpTitle")}
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">{t("helpBody")}</p>
+            <p className="text-xs font-bold text-[#ee237c] mt-1.5">
+              {t("helpContact")} →
+            </p>
+          </div>
+        </Link>
       </div>
     </div>
   );

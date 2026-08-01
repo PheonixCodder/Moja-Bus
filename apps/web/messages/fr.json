@@ -11,6 +11,7 @@
     "blog": "Blog",
     "about": "À propos",
     "contact": "Contact",
+    "joinAsOperator": "Join as Operator",
     "help": "Aide",
     "operators": "Pour les opérateurs",
     "login": "Connexion",
@@ -403,7 +404,10 @@
       "totalPaid": "Total payé : {amount}",
       "bookingReferences": "Références de réservation",
       "searchTrips": "Rechercher d'autres trajets",
-      "viewBookings": "Voir mes réservations"
+      "viewBookings": "Voir mes réservations",
+      "helpTitle": "Need help with your booking?",
+      "helpBody": "Our team is available 24/7 for any questions, information, or inquiries.",
+      "helpContact": "Contact Moja Ride"
     }
   },
   "ticket": {

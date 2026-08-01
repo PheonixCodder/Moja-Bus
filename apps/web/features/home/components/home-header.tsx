@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, ChevronDown, LogOut,
-  LayoutDashboard, Settings, MapPin, Ticket, Users, HelpCircle
+  LayoutDashboard, Settings, MapPin, Ticket, Users, HelpCircle, Bus
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { signOut } from "@/lib/auth-client";
@@ -185,6 +185,13 @@ export function HomeHeader({ user }: HomeHeaderProps) {
               >
                 <HelpCircle className="w-4 h-4" />
                 {t("contact")}
+              </Link>
+              <Link
+                href="/operator/login"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+              >
+                <Bus className="w-4 h-4" />
+                {t("joinAsOperator")}
               </Link>
             </div>
           </div>
