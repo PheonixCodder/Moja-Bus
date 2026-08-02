@@ -9,9 +9,16 @@ import {
   Popup,
 } from "react-leaflet";
 import L from "leaflet";
-import type { RouterOutputs } from "@/trpc/client";
 
-type Terminal = RouterOutputs["terminals"]["list"][number];
+// Minimal shape accepted by the shared route map. Both the operator route
+// editors and the passenger booking surfaces map their own data into this.
+export interface RouteMapPoint {
+  id: string;
+  name: string;
+  cityName: string;
+  latitude: number;
+  longitude: number;
+}
 
 // Fix Leaflet default icon paths broken by webpack/turbopack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -40,37 +47,36 @@ function createBrandedIcon(isEndpoint: boolean) {
 }
 
 interface RouteMapPreviewProps {
-  terminals: Terminal[];
+  points: RouteMapPoint[];
 }
 
-export default function RouteMapPreview({ terminals }: RouteMapPreviewProps) {
-  const validTerminals = terminals.filter(
-    (t) => t.latitude != null && t.longitude != null,
+export default function RouteMapPreview({ points }: RouteMapPreviewProps) {
+  const validPoints = points.filter(
+    (p) => p.latitude != null && p.longitude != null,
   );
 
-  if (validTerminals.length === 0) {
+  if (validPoints.length === 0) {
     return (
       <div className="h-full w-full bg-slate-100 flex flex-col items-center justify-center gap-2 p-4">
         <p className="text-xs text-center text-slate-400 leading-relaxed">
-          Terminal coordinates will appear here once origin and destination are
-          selected.
+          Map unavailable — no coordinates for the stops on this route.
         </p>
       </div>
     );
   }
 
-  // Center map on midpoint of all terminals
-  const lats = validTerminals.map((t) => t.latitude!);
-  const lngs = validTerminals.map((t) => t.longitude!);
+  // Center map on midpoint of all points
+  const lats = validPoints.map((p) => p.latitude);
+  const lngs = validPoints.map((p) => p.longitude);
   const center: [number, number] = [
     (Math.min(...lats) + Math.max(...lats)) / 2,
     (Math.min(...lngs) + Math.max(...lngs)) / 2,
   ];
 
   // Polyline positions — straight line between all stops in order
-  const polyline: [number, number][] = validTerminals.map((t) => [
-    t.latitude!,
-    t.longitude!,
+  const polyline: [number, number][] = validPoints.map((p) => [
+    p.latitude,
+    p.longitude,
   ]);
 
   return (
@@ -105,19 +111,19 @@ export default function RouteMapPreview({ terminals }: RouteMapPreviewProps) {
         />
       )}
 
-      {/* Terminal markers */}
-      {validTerminals.map((t, i) => {
-        const isEndpoint = i === 0 || i === validTerminals.length - 1;
+      {/* Stop markers */}
+      {validPoints.map((p, i) => {
+        const isEndpoint = i === 0 || i === validPoints.length - 1;
         return (
           <Marker
-            key={t.id}
-            position={[t.latitude!, t.longitude!]}
+            key={p.id}
+            position={[p.latitude, p.longitude]}
             icon={createBrandedIcon(isEndpoint)}
           >
             <Popup className="text-xs">
-              <strong>{t.name}</strong>
+              <strong>{p.name}</strong>
               <br />
-              {t.cityRelation?.name ?? t.city}
+              {p.cityName}
             </Popup>
           </Marker>
         );

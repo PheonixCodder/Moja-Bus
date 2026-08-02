@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 type UserRole = "TRAVELER" | "OPERATOR" | "ADMIN";
 
@@ -56,6 +57,7 @@ export function UserProfileHeader({
   backLabel,
   actions,
 }: UserProfileHeaderProps) {
+  const t = useTranslations("adminDashboard.userProfileHeader");
   const initials = getInitials(fullName);
   const toneClass = getAvatarTone(fullName);
   const roleBadge = roleMeta[role];
@@ -87,16 +89,16 @@ export function UserProfileHeader({
                 {emailVerified ? (
                   <Badge variant="outline" className="border-0 text-xs bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Verified
+                    {t("verified")}
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="border-0 text-xs bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                     <XCircle className="h-3 w-3 mr-1" />
-                    Unverified
+                    {t("unverified")}
                   </Badge>
                 )}
                 <span className="text-xs text-muted-foreground">
-                  Member since {format(createdAt, "MMMM yyyy")}
+                  {t("memberSince", { date: format(createdAt, "MMMM yyyy") })}
                 </span>
               </div>
             </div>

@@ -12,6 +12,7 @@ import {
 } from "@/features/search/lib/format";
 import type { PassengerBookingSummary } from "@moja/types";
 import { useHoldCountdown } from "@/features/booking/lib/hold-countdown";
+import { formatLocationLabel } from "@/lib/format-location-label";
 
 function StatusBadge({ booking }: { booking: PassengerBookingSummary }) {
   const countdown = useHoldCountdown(
@@ -108,7 +109,7 @@ export function PassengerTripCard({
             <p className="text-xs font-semibold text-slate-600 mt-0.5 truncate">
               {booking.originTerminalName}
             </p>
-            <p className="text-[10px] text-slate-400">{booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}</p>
+            <p className="text-[10px] text-slate-400">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</p>
           </div>
 
           <div className="sm:col-span-3 flex flex-col items-center px-2">
@@ -135,7 +136,7 @@ export function PassengerTripCard({
               {booking.destinationTerminalName}
             </p>
             <p className="text-[10px] text-slate-400">
-              {booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}
+              {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
             </p>
           </div>
         </div>

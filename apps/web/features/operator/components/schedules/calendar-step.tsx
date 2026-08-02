@@ -1,11 +1,10 @@
 "use client";
 
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock8 } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
-import { TimePicker } from "@moja/ui/components/ui/time-picker";
 import { Label } from "@moja/ui/components/ui/label";
 import { Calendar } from "@moja/ui/components/ui/calendar";
 import {
@@ -26,6 +25,7 @@ import {
   type DayKey,
   parseLocalDate,
 } from "@/features/operator/lib/schedules/schedule-search-params";
+import { DepartureTimesEditor } from "./departure-times-editor";
 import type {
   BusListItem,
   CalendarConfig,
@@ -99,16 +99,12 @@ export function CalendarStep({
         </p>
       </div>
 
-      <div className="flex w-full max-w-xs flex-col gap-2">
-        <Label htmlFor="time-picker" className="text-xs font-semibold">
-          {t("wizard.departureTime")}
-        </Label>
-        <TimePicker
-          value={config.departureTime}
-          onChange={(newTime) =>
-            onChange({ ...config, departureTime: newTime })
+      <div className="flex w-full max-w-sm flex-col gap-2">
+        <DepartureTimesEditor
+          times={config.departureTimes}
+          onChange={(departureTimes) =>
+            onChange({ ...config, departureTimes })
           }
-          className="w-full"
         />
       </div>
 

@@ -199,7 +199,7 @@ export function OperatorSchedulesView() {
       const validFromOk = validFromDate !== null && validFromDate >= todayMidnight;
       return (
         hasDays &&
-        !!calConfig.departureTime &&
+        calConfig.departureTimes.length > 0 &&
         validFromOk &&
         !!calConfig.preferredBusId
       );
@@ -220,7 +220,7 @@ export function OperatorSchedulesView() {
         routeId: routePick,
         preferredBusId: calConfig.preferredBusId,
         defaultBusId: calConfig.preferredBusId,
-        departureTime: calConfig.departureTime,
+        departureTimes: calConfig.departureTimes,
         routeLastStopOrder: lastStop,
         calendar: {
           monday: calConfig.days.monday,
@@ -390,7 +390,7 @@ export function OperatorSchedulesView() {
               days={calConfig.days}
               validFrom={calConfig.validFrom}
               validUntil={calConfig.validUntil}
-              departureTime={calConfig.departureTime}
+              departureTimes={calConfig.departureTimes}
               routeName={(selectedRoute as { name?: string } | null)?.name ?? ""}
               fares={fares}
             />

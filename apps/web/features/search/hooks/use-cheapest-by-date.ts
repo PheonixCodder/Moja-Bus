@@ -9,6 +9,8 @@ export function useCheapestByDate(
   centerDate: string,
   originMunicipalityId?: string,
   destinationMunicipalityId?: string,
+  originQuarterId?: string,
+  destinationQuarterId?: string,
 ) {
   const trpc = useTRPC();
   return useQuery({
@@ -17,6 +19,8 @@ export function useCheapestByDate(
       destinationCityId,
       originMunicipalityId,
       destinationMunicipalityId,
+      originQuarterId,
+      destinationQuarterId,
       centerDate,
     }),
     enabled: !!originCityId && !!destinationCityId && !!centerDate,

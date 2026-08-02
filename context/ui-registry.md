@@ -42,6 +42,11 @@ After building any component, update this file with the component name, file pat
 - `apps/web/features/operator/views/operator-withdraw-view.tsx`: Self-serve operator payout withdrawal portal displaying Available vs Escrow (`liveReservedBalance`); bank-not-verified banner gates withdraw.
 - `apps/web/features/operator/components/revenue/transaction-ledger-table.tsx`: Ledger table with CSV export via `operator.exportLedgerCsv`.
 - `apps/web/app/dashboard/operator/(dashboard)/withdraw/page.tsx`: Page wrapper for `OperatorWithdrawView`.
+- `apps/web/features/booking/components/booking-dialog-flow.tsx`: 2-step (seats → checkout) booking dialog with sticky header; trip summary card, centered `PassengerSeatMap` grid, centered Continue CTA.
+- `apps/web/features/booking/components/passenger-seat-map.tsx`: interactive seat grid centered in the dialog (`w-max mx-auto` wrapper + `justify-center` legend), fixed seat geometry, status legend (Available/Selected/Sold/Held/Blocked).
+- `apps/web/features/booking/components/trip-summary-card.tsx`: trip summary header (logo, company, urban/express badges, origin→dest label), departure/arrival grid with bus timeline, price rail + availability badge, amenity chips, a vertical `StopsTimeline` (arr/dep times per stop, colored node rail, leg durations, Boarding/Alight/Pickup/Dropoff tags), and a "Show route on map" toggle (`StopsMap`) rendering the segment stops via `RouteMapPreview`.
+- `apps/web/features/booking/components/booking-route-map.tsx`: passenger booking-details map — renders ALL segment stops (markers + polyline + popups) via shared `RouteMapPreview`; falls back to a pure-CSS route diagram banner when coordinates are missing; floating origin/destination overlay badge.
+- `apps/web/features/operator/components/route-map-preview.tsx`: shared Leaflet map (markers + polyline + popups) over a minimal `RouteMapPoint[]` shape (`{id, name, cityName, latitude, longitude}`); used by route-form-drawer, admin-route-drawer, trip-summary-card stops map, and booking-route-map.
 - `apps/web/features/operator/components/operator-quick-actions.tsx`: Header-level dashboard quick actions supporting query-parameter-driven form automation.
 
 ## Platform Data (Seeded via `packages/db/prisma/seed.ts`)

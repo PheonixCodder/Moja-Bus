@@ -394,8 +394,16 @@
       "total": "Total",
       "perSeat": "Par siège",
       "seatsMultiplier": "{price} × {count} sièges",
-      "stopsOnSegment": "Arrêts sur votre segment",
-      "departing": "dép {time}",
+      "stopsOnSegment": "Stops on your segment",
+      "arrLabel": "Arr",
+      "depLabel": "Dep",
+      "boarding": "Boarding",
+      "alight": "Alight",
+      "pickup": "Pickup",
+      "dropoff": "Dropoff",
+      "legDuration": "≈ {time}",
+      "showRouteMap": "Show route on map",
+      "hideRouteMap": "Hide route map",
       "originDest": "{origin} → {destination}"
     },
     "success": {
@@ -1169,6 +1177,8 @@
             "windowSeatDesc": "Siège passager côté fenêtre",
             "aisleSeat": "Couloir",
             "aisleSeatDesc": "Siège passager côté couloir",
+            "middleSeat": "Milieu",
+            "middleSeatDesc": "Siège passager entre fenêtre et couloir",
             "driverArea": "Conducteur",
             "driverAreaDesc": "Espace conducteur / cabine non réservable",
             "emptySpace": "Vide",
@@ -1249,7 +1259,7 @@
       "createRoute": "Créer une ligne",
       "allRoutes": "Toutes les lignes",
       "noRoutesTitle": "Aucune ligne pour l'instant",
-      "noRoutesDesc": "Créez votre première ligne interurbaine pour commencer à élaborer des horaires.",
+      "noRoutesDesc": "Create your first route to start building schedules.",
       "noMatchTitle": "Aucune ligne correspondante",
       "noMatchDesc": "Essayez un autre nom de ligne, origine, destination ou filtre de statut.",
       "successPanel": {
@@ -1297,7 +1307,7 @@
         "dismiss": "Ignorer"
       },
       "wizard": {
-        "route": "Ligne",
+        "route": "ligne",
         "timing": "Horaires",
         "stops": "Arrêts",
         "calendar": "Calendrier",
@@ -1331,6 +1341,19 @@
         "daysPerWeek": "{count} jour par semaine",
         "daysPerWeek_plural": "{count} jours par semaine",
         "departureTime": "Heure de départ *",
+        "departureTimes": "Departure times *",
+        "noDepartureTimes": "Add at least one departure time.",
+        "addTime": "Add time",
+        "add": "Add",
+        "removeTime": "Remove {time}",
+        "cadencePreset": "Cadence preset",
+        "cadenceStart": "From",
+        "cadenceEvery": "Every",
+        "cadenceMinutes": "{count} min",
+        "cadenceMinutes_plural": "{count} min",
+        "cadenceEnd": "To",
+        "applyCadence": "Apply",
+        "cadenceDesc": "Generates every departure time between the start and end at the chosen frequency, merged with any times you added manually.",
         "validFrom": "Valide à partir du *",
         "pickDate": "Choisir une date",
         "validUntil": "Valable jusqu'au (facultatif)",
@@ -1343,9 +1366,8 @@
         "reviewTitle": "Révision et aperçu",
         "reviewDesc": "Confirmez que tout est correct avant de publier. L'aperçu correspond aux 14 prochains jours calendaires.",
         "tripsNext14": "trajets dans les 14 prochains jours",
-        "route": "ligne",
         "fareSegments": "segments tarifaires",
-        "markerDesc": "Chaque marqueur représente un trajet auto-généré partant à {time}. Les trajets sont générés à la publication et étendus quotidiennement par le job de génération continue pendant que l'horaire est actif.",
+        "markerDesc": "Each marker represents one auto-generated trip. Departures run at {times}. Trips are generated on publish and extended daily by the rolling generate-trips job while the schedule is active.",
         "segmentPricingTitle": "Tarification par segment",
         "segmentPricingDesc": "Définissez les tarifs des billets (en FCFA). Au moins un tarif origine→destination est requis.",
         "segmentPricingFullRoute": "Ajoutez un tarif complet (premier arrêt → dernier arrêt) avant de publier.",
@@ -1647,7 +1669,7 @@
     },
     "terminals": {
       "metaTitle": "Gestion des terminaux — Opérateur Moja Ride",
-      "metaDescription": "Gérez les dépôts et les terminaux passagers réservables pour les lignes interurbaines.",
+      "metaDescription": "Manage depots and bookable passenger terminals for your routes.",
       "pageTitle": "Terminaux et emplacements",
       "pageDescription": "Gérez les terminaux passagers, les dépôts régionaux, les horaires d'ouverture et les hubs.",
       "searchPlaceholder": "Rechercher un nom ou une adresse...",
@@ -1682,7 +1704,7 @@
       "jobTitle": "Titre du poste",
       "message": "Message de bienvenue",
       "permissions": "Autorisations",
-      "searchPlaceholder": "Rechercher nom, e-mail, téléphone, titre\u2026",
+      "searchPlaceholder": "Rechercher nom, e-mail, téléphone, titre…",
       "roleLabel": "Rôle :",
       "allRoles": "Tous les rôles",
       "statusLabel": "Statut :",
@@ -1707,15 +1729,15 @@
         "CANCELLED": "Annulée"
       },
       "membersSection": {
-        "title": "Membres de l'équipe \u00b7 {total}",
-        "loading": "(chargement\u2026)",
+        "title": "Membres de l'équipe · {total}",
+        "loading": "(chargement…)",
         "loadError": "Échec du chargement du personnel",
         "retry": "Réessayer",
         "noResults": "Aucun résultat trouvé",
         "adjustFilters": "Essayez d'ajuster votre recherche ou vos filtres.",
         "empty": "Aucun membre d'équipe pour l'instant",
         "emptyDescription": "Invitez votre premier employé pour commencer.",
-        "showing": "Affichage de {start}\u2013{end} sur {total} membres",
+        "showing": "Affichage de {start}–{end} sur {total} membres",
         "previous": "Précédent",
         "pageInfo": "Page {page} sur {totalPages}",
         "next": "Suivant"
@@ -1729,11 +1751,11 @@
       "transferOwnership": "Transférer la propriété",
       "removeFromCompany": "Retirer de l'entreprise",
       "invitationsSection": {
-        "title": "Invitations en attente \u00b7 {count}",
+        "title": "Invitations en attente · {count}",
         "empty": "Aucune invitation en attente"
       },
       "invitationCard": {
-        "sentBy": "Envoyé par {name} \u00b7 {date}",
+        "sentBy": "Envoyé par {name} · {date}",
         "resend": "Renvoyer",
         "cancel": "Annuler"
       },
@@ -1762,7 +1784,7 @@
         "newRoleLabel": "Nouveau rôle",
         "resetPermissions": "Réinitialiser les autorisations au modèle {role}",
         "templateIncludes": "Le modèle inclut",
-        "allOtherActions": "\u2026et toutes les autres actions du catalogue",
+        "allOtherActions": "…et toutes les autres actions du catalogue",
         "save": "Enregistrer le rôle"
       },
       "editPermissionsSheet": {
@@ -1788,7 +1810,7 @@
         "confirm": "Retirer"
       },
       "permissionMatrix": {
-        "filterPlaceholder": "Filtrer les autorisations\u2026"
+        "filterPlaceholder": "Filtrer les autorisations…"
       },
       "cancel": "Annuler",
       "toast": {
@@ -1819,7 +1841,32 @@
       "avgOccupancy": "Occupation moy.",
       "dailyRevenue": "Revenu quotidien",
       "topRoutes": "Meilleures lignes",
-      "ledger": "Grand livre",
+      "ledger": {
+        "title": "Transactions récentes",
+        "columns": {
+          "date": "Date",
+          "type": "Type",
+          "description": "Description",
+          "status": "Statut",
+          "amount": "Montant"
+        },
+        "filter": {
+          "all": "Toutes les transactions",
+          "ticketSales": "Ventes de billets",
+          "withdrawals": "Retraits",
+          "refunds": "Remboursements"
+        },
+        "sourceType": {
+          "ticketSale": "Vente de billet",
+          "withdrawal": "Retrait",
+          "ticketRefund": "Remboursement de billet",
+          "adjustment": "Ajustement"
+        },
+        "empty": "Aucune transaction trouvée pour cette période.",
+        "pagination": "Affichage de la page {page} sur {totalPages}",
+        "exportSuccess": "{count} lignes du grand livre exportées",
+        "exportError": "Échec de l'exportation"
+      },
       "export": "Exporter CSV",
       "period": {
         "7d": "7 derniers jours",
@@ -1878,32 +1925,6 @@
           "avgFare": "Tarif moy.",
           "netRevenue": "Revenu net"
         }
-      },
-      "ledger": {
-        "title": "Transactions récentes",
-        "columns": {
-          "date": "Date",
-          "type": "Type",
-          "description": "Description",
-          "status": "Statut",
-          "amount": "Montant"
-        },
-        "filter": {
-          "all": "Toutes les transactions",
-          "ticketSales": "Ventes de billets",
-          "withdrawals": "Retraits",
-          "refunds": "Remboursements"
-        },
-        "sourceType": {
-          "ticketSale": "Vente de billet",
-          "withdrawal": "Retrait",
-          "ticketRefund": "Remboursement de billet",
-          "adjustment": "Ajustement"
-        },
-        "empty": "Aucune transaction trouvée pour cette période.",
-        "pagination": "Affichage de la page {page} sur {totalPages}",
-        "exportSuccess": "{count} lignes du grand livre exportées",
-        "exportError": "Échec de l'exportation"
       }
     },
     "reviews": {
@@ -1917,9 +1938,9 @@
       "respond": "Répondre",
       "response": "Votre réponse",
       "editResponse": "Modifier la réponse",
-      "responsePlaceholder": "Écrire une réponse publique\u2026",
+      "responsePlaceholder": "Écrire une réponse publique…",
       "responseLabel": "Réponse de l'opérateur",
-      "publishing": "Publication\u2026",
+      "publishing": "Publication…",
       "updateResponse": "Mettre à jour la réponse",
       "submitResponse": "Publier la réponse",
       "cancel": "Annuler",
@@ -1943,11 +1964,11 @@
       "maxAvailable": "Maximum disponible : {amount}",
       "confirmationCode": "Code de confirmation",
       "codePlaceholder": "Code à 6 chiffres",
-      "sending": "Envoi\u2026",
+      "sending": "Envoi…",
       "resendCode": "Renvoyer le code",
       "sendCode": "Envoyer le code",
       "codeDescription": "Pour votre sécurité, un code de confirmation envoyé à votre email est requis pour chaque retrait.",
-      "processing": "Traitement\u2026",
+      "processing": "Traitement…",
       "request": "Demander un retrait",
       "bankNotVerifiedTitle": "Compte bancaire non vérifié",
       "bankNotVerifiedDesc": "Mettez à jour et vérifiez vos coordonnées bancaires dans les paramètres avant de retirer.",
@@ -1983,7 +2004,7 @@
       "paystackCode": "Code Paystack : {code}",
       "na": "N/D",
       "settledToBank": "Réglé sur le compte bancaire connecté",
-      "pagination": "Affichage de {start} \u2013 {end} sur {total} entrées",
+      "pagination": "Affichage de {start} – {end} sur {total} entrées",
       "previous": "Précédent",
       "next": "Suivant",
       "toast": {
@@ -2177,9 +2198,9 @@
       "noRoleFound": "Aucun rôle trouvé.",
       "jobTitle": "Titre du Poste",
       "jobTitlePlaceholder": "ex. Directeur des Opérations",
-       "dateOfBirth": "Date de Naissance",
-       "dateOfBirthPlaceholder": "Sélectionnez la date de naissance",
-       "dateOfBirthInvalid": "Veuillez entrer une date valide (JJ/MM/AAAA)",
+      "dateOfBirth": "Date de Naissance",
+      "dateOfBirthPlaceholder": "Sélectionnez la date de naissance",
+      "dateOfBirthInvalid": "Veuillez entrer une date valide (JJ/MM/AAAA)",
       "identityVerification": "Vérification d'Identité (Optionnelle)",
       "idDocumentType": "Type de Pièce d'Identité",
       "idDocumentPlaceholder": "Sélectionnez le type de document",
@@ -2225,7 +2246,7 @@
   "adminDashboard": {
     "nav": {
       "overview": "Aperçu",
-      "verifications": "Vérifications",
+      "verifications": "File de vérification",
       "users": "Utilisateurs",
       "travelers": "Voyageurs",
       "operators": "Opérateurs",
@@ -2238,14 +2259,553 @@
       "settlements": "Règlements",
       "withdrawals": "Retraits",
       "content": "Contenu",
-      "posts": "Articles de blog",
+      "posts": "Articles",
       "analytics": "Analytique",
       "redirects": "Redirections",
       "auditLogs": "Journaux d'audit",
       "activity": "Journaux d'activité",
-      "bankAccess": "Accès bancaire",
+      "bankAccess": "Journaux d'accès bancaire",
       "webhooks": "Webhooks",
-      "settings": "Paramètres de la plateforme"
+      "settings": "Paramètres",
+      "inquiries": "Inquiries"
+    },
+    "sections": {
+      "financials": "Finances",
+      "operations": "Opérations",
+      "directory": "Annuaire",
+      "content": "Contenu",
+      "auditSecurity": "Audit et sécurité",
+      "platform": "Plateforme",
+      "support": "Support"
+    },
+    "inquiries": {
+      "searchPlaceholder": "Search by name, email, or subject...",
+      "statusLabel": "Status",
+      "rowsPerPage": "Rows per page",
+      "pageInfo": "Page {current} of {count}",
+      "previous": "Previous",
+      "next": "Next",
+      "status": {
+        "all": "All Statuses",
+        "new": "New",
+        "inProgress": "In Progress",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "table": {
+        "subject": "Subject",
+        "from": "From",
+        "contact": "Contact",
+        "received": "Received",
+        "status": "Status"
+      },
+      "badge": {
+        "loggedIn": "Logged in",
+        "guest": "Guest"
+      },
+      "empty": {
+        "title": "No inquiries found",
+        "description": "When visitors submit the contact form, their inquiries will appear here."
+      },
+      "detail": {
+        "message": "Message",
+        "adminNote": "Admin note",
+        "notePlaceholder": "Add a note for your team...",
+        "saveNote": "Save note",
+        "noteSaved": "Note saved",
+        "statusUpdated": "Status updated",
+        "updateFailed": "Failed to update inquiry",
+        "markInProgress": "Mark in progress",
+        "markResolved": "Mark resolved",
+        "markClosed": "Close",
+        "reopen": "Reopen",
+        "status": {
+          "new": "New",
+          "inProgress": "In Progress",
+          "resolved": "Resolved",
+          "closed": "Closed"
+        },
+        "badge": {
+          "loggedIn": "Logged in",
+          "guest": "Guest"
+        }
+      }
+    },
+    "brand": "MojaRide",
+    "account": "Compte",
+    "signOut": "Déconnexion",
+    "dispatchFilter": {
+      "allOperators": "Tous les opérateurs",
+      "filterByOperator": "Filtrer par opérateur...",
+      "noOperatorFound": "Aucun opérateur trouvé.",
+      "status": "Statut",
+      "activeDefault": "Actif (Par défaut)",
+      "allStatuses": "Tous les statuts",
+      "scheduledOnly": "Uniquement planifiés",
+      "boardingOnly": "Uniquement en embarquement",
+      "departedOnly": "Uniquement partis",
+      "delayedOnly": "Uniquement en retard",
+      "arrivedOnly": "Uniquement arrivés",
+      "cancelledOnly": "Uniquement annulés",
+      "dateRangePlaceholder": "Toute la période",
+      "filtered": "Filtré",
+      "today": "Aujourd'hui",
+      "yesterday": "Hier",
+      "last7Days": "7 derniers jours",
+      "allTime": "Toute la période",
+      "applyRange": "Appliquer la plage",
+      "clear": "Effacer"
+    },
+    "dispatchTripDrawer": {
+      "noSeatMap": "Aucune carte de sièges disponible pour ce trajet.",
+      "booked": "Réservé",
+      "held": "Réservé",
+      "available": "Disponible",
+      "blocked": "Bloqué",
+      "noRouteSegments": "Aucun segment de route disponible pour ce trajet.",
+      "noConfirmedPassengers": "Aucun passager confirmé",
+      "noPassengersYet": "Personne n'a encore réservé ce trajet.",
+      "checkedIn": "Embarqué",
+      "pending": "En attente",
+      "loadingTripDetails": "Chargement des détails du trajet...",
+      "status": "Statut",
+      "busDetails": "Détails du bus",
+      "unassigned": "Non attribué",
+      "seatsTotal": "{count} sièges au total",
+      "tripCancelled": "Trajet annulé",
+      "routeOccupancyMap": "Carte d'occupation de la route",
+      "confirmedPassengers": "Passagers confirmés",
+      "minDelay": "{minutes} min de retard"
+    },
+    "dispatchTripList": {
+      "statuses": {
+        "SCHEDULED": "Planifié",
+        "BOARDING": "Embarquement",
+        "DEPARTED": "Parti",
+        "DELAYED": "En retard",
+        "ARRIVED": "Arrivé",
+        "CANCELLED": "Annulé"
+      },
+      "seats": "sièges",
+      "busAssignment": "Attribution du bus",
+      "unassigned": "Non attribué",
+      "gateBay": "Porte / Baie",
+      "delayMinutes": "+{minutes}m de retard",
+      "fullAudit": "Audit complet",
+      "noActiveTrips": "Aucun trajet actif trouvé",
+      "noTripsDescription": "Essayez d'ajuster vos filtres ou votre plage de dates pour voir les opérations.",
+      "trip": "{count} trajet",
+      "trip_plural": "{count} trajets"
+    },
+    "ledgerColumns": {
+      "dateTime": "Date et heure",
+      "transaction": "Transaction",
+      "accountOwner": "Propriétaire du compte",
+      "accountCategory": "Catégorie de compte",
+      "entrySide": "Sens de l'écriture",
+      "amount": "Montant",
+      "descriptionReference": "Description et référence",
+      "credit": "CRÉDIT",
+      "debit": "DÉBIT",
+      "na": "N/A",
+      "idPrefix": "ID :",
+      "refPrefix": "Réf :",
+      "classLabel": "Classe : {cls}",
+      "xof": "XOF"
+    },
+    "ledgerFilters": {
+      "searchPlaceholder": "Rechercher par description, référence...",
+      "allSides": "Tous les côtés",
+      "debitEntries": "Écritures débit",
+      "creditEntries": "Écritures crédit",
+      "allTypes": "Tous les types",
+      "booking": "Réservation",
+      "walletTopUp": "Recharge portefeuille",
+      "refund": "Remboursement",
+      "operatorPayout": "Paiement opérateur",
+      "payoutReversal": "Annulation de paiement",
+      "settlement": "Règlement",
+      "clearFilters": "Effacer les filtres"
+    },
+    "ledgerKpiCards": {
+      "xof": "XOF",
+      "totalDebitVolume": "Volume total débit",
+      "debitDesc": "Somme des transactions débit actives",
+      "totalCreditVolume": "Volume total crédit",
+      "creditDesc": "Somme des transactions crédit actives",
+      "totalLedgerRecords": "Total des écritures",
+      "ledgerDesc": "Nombre de lignes en partie double",
+      "ledgerIntegrity": "Intégrité du grand livre",
+      "systemBalanced": "Système équilibré",
+      "balanceMismatch": "Déséquilibre",
+      "balancedDesc": "Σ Débit soldes Σ Crédit",
+      "mismatchDesc": "Attention : Écart détecté",
+      "healthy": "Sain",
+      "critical": "Critique"
+    },
+    "ledgerPagination": {
+      "showing": "Affichage de",
+      "to": "à",
+      "of": "sur",
+      "entries": "entrées",
+      "rowsPerPage": "Lignes par page :",
+      "page": "Page {page} / {totalPages}"
+    },
+    "ledgerTable": {
+      "noEntries": "Aucune écriture de grand livre trouvée correspondant aux filtres actifs."
+    },
+    "onboardingFunnel": {
+      "title": "Funnel d'onboarding",
+      "description": "Nombre d'opérateurs actuellement bloqués à chaque étape",
+      "steps": {
+        "COMPANY": "Entreprise",
+        "DOCUMENTS": "Documents",
+        "BANK": "Banque",
+        "PROFILE": "Profil",
+        "TERMS": "Conditions"
+      },
+      "totalStarted": "Total démarré :",
+      "fullyCompleted": "Totalement terminé :"
+    },
+    "operatorsActionCell": {
+      "openMenu": "Ouvrir le menu",
+      "actions": "Actions",
+      "viewProfile": "Voir le profil",
+      "manageCompany": "Gérer l'entreprise",
+      "demotedToTraveler": "Opérateur rétrogradé en voyageur.",
+      "failedToUpdateRole": "Échec de la mise à jour du rôle",
+      "demoteToTraveler": "Rétrograder en voyageur"
+    },
+    "operators": {
+      "selectAllOperators": "Sélectionner tous les opérateurs",
+      "selectRow": "Sélectionner la ligne",
+      "operator": "Opérateur",
+      "company": "Entreprise",
+      "unassigned": "Non attribué",
+      "more": "de plus",
+      "phoneNumber": "Numéro de téléphone",
+      "status": "Statut",
+      "joined": "Inscrit",
+      "allOperators": "Tous les opérateurs",
+      "list": "Liste",
+      "grid": "Grille",
+      "export": "Exporter",
+      "all": "Tous",
+      "active": "Actif",
+      "pending": "En attente",
+      "searchOperators": "Rechercher des opérateurs..."
+    },
+    "operatorsGrid": {
+      "demotedToTraveler": "Opérateur rétrogradé en voyageur.",
+      "failedToUpdateRole": "Échec de la mise à jour du rôle",
+      "actions": "Actions",
+      "viewProfile": "Voir le profil",
+      "manageCompany": "Gérer l'entreprise",
+      "demoteToTraveler": "Rétrograder en voyageur",
+      "unassigned": "Non attribué",
+      "noOperatorsFound": "Aucun opérateur trouvé",
+      "noOperatorsDescription": "Ajustez votre recherche ou vos filtres pour voir plus de résultats.",
+      "showing": "Affichage de",
+      "of": "sur",
+      "operators": "opérateurs",
+      "firstPage": "Première page",
+      "lastPage": "Dernière page",
+      "phone": "Téléphone",
+      "joined": "Inscrit"
+    },
+    "operatorsTable": {
+      "noOperatorsFound": "Aucun opérateur trouvé.",
+      "adjustFilters": "Ajustez votre recherche ou vos filtres pour voir plus de résultats.",
+      "showing": "Affichage de",
+      "to": "à",
+      "of": "sur",
+      "operators": "opérateurs",
+      "firstPage": "Première page",
+      "lastPage": "Dernière page"
+    },
+    "settlementsClearingCard": {
+      "paystackClearingAccount": "Compte de compensation Paystack",
+      "clearingDescription": "Représente tous les fonds collectés par Paystack pour le compte de Moja et non encore distribués aux opérateurs.",
+      "ledgerHealthy": "Grand livre sain",
+      "reviewRequired": "Révision requise",
+      "postedBalance": "Solde posted",
+      "platformRevenue": "Revenus de la plateforme",
+      "operatorPayables": "Dettes envers les opérateurs"
+    },
+    "settlementsHistoryTable": {
+      "settlementHistory": "Historique des règlements",
+      "totalSettlements": "{count} règlements au total",
+      "noSettlementsYet": "Aucun règlement pour le moment",
+      "noSettlementsDescription": "Les enregistrements de règlement apparaîtront ici une fois qu'un opérateur est payé via Paystack.",
+      "date": "Date",
+      "operator": "Opérateur",
+      "amount": "Montant",
+      "referenceNote": "Référence",
+      "triggeredBy": "Déclenché par",
+      "status": "Statut",
+      "settled": "Réglé",
+      "failed": "Échoué",
+      "reversed": "Annulé",
+      "pending": "En attente",
+      "noNote": "Aucune note",
+      "none": "Aucun",
+      "showing": "Affichage {from}–{to} sur {total}"
+    },
+    "settlementsPayoutPanel": {
+      "recordManualOfflineSettlement": "Enregistrer un règlement hors ligne",
+      "settlementDescription": "Utilisez cette option lorsqu'un opérateur a été payé hors ligne (espèces ou virement bancaire) et que le grand livre doit être mis à jour pour refléter le décaissement.",
+      "operator": "Opérateur",
+      "selectOperatorPlaceholder": "Sélectionnez une entreprise de transport…",
+      "selectOperatorToPreview": "Sélectionnez un opérateur ci-dessus pour prévisualiser son solde posted.",
+      "loadingBalance": "Chargement du solde…",
+      "postedBalance": "Solde posted",
+      "amountXOF": "Montant (XOF)",
+      "amountPlaceholder": "ex. 500000",
+      "referenceNote": "Référence",
+      "notePlaceholder": "ex. Espèces remises au bureau d'Abidjan – 14 juil.",
+      "noteDescription": "Cette note est enregistrée de manière permanente dans le grand livre.",
+      "recordManualSettlement": "Enregistrer le règlement",
+      "recording": "Enregistrement…",
+      "settlementRecorded": "Règlement enregistré avec succès",
+      "failedToRecordSettlement": "Échec de l'enregistrement du règlement",
+      "pleaseSelectOperator": "Veuillez sélectionner un opérateur",
+      "pleaseEnterValidAmount": "Veuillez saisir un montant valide",
+      "pleaseEnterReferenceNote": "Veuillez saisir une référence",
+      "exceedsBalance": "Le montant dépasse le solde posted de l'opérateur",
+      "exceedsBalanceMessage": "Dépasse le solde posted de l'opérateur de {balance}",
+      "irreversibleWarning": "Cette action est <strong>irréversible</strong>. Elle débite le grand livre des créances de l'opérateur et crédite le compte de compensation Paystack. Ne l'enregistrez que si vous avez physiquement transféré les fonds en dehors du système de paiement Paystack."
+    },
+    "travelersActionCell": {
+      "viewProfile": "Voir le profil",
+      "editUser": "Modifier l'utilisateur",
+      "editUserComingSoon": "Modification de l'utilisateur bientôt disponible !",
+      "promoteToOperator": "Promouvoir en opérateur",
+      "deactivateUser": "Désactiver l'utilisateur",
+      "deactivateUserComingSoon": "Désactivation de l'utilisateur bientôt disponible !",
+      "promotedToOperator": "Utilisateur promu en opérateur avec succès.",
+      "failedToUpdateRole": "Échec de la mise à jour du rôle"
+    },
+    "travelersColumns": {
+      "selectAllTravelers": "Sélectionner tous les voyageurs",
+      "selectTraveler": "Sélectionner {name}",
+      "traveler": "Voyageur",
+      "phone": "Téléphone",
+      "status": "Statut",
+      "joinedDate": "Date d'inscription",
+      "actions": "Actions"
+    },
+    "travelersGrid": {
+      "promotedToOperator": "Utilisateur promu en opérateur avec succès.",
+      "failedToUpdateRole": "Échec de la mise à jour du rôle",
+      "viewProfile": "Voir le profil",
+      "viewProfileComingSoon": "Vue du profil bientôt disponible !",
+      "editUser": "Modifier l'utilisateur",
+      "editUserComingSoon": "Modification de l'utilisateur bientôt disponible !",
+      "promoteToOperator": "Promouvoir en opérateur",
+      "deactivationComingSoon": "Point de terminaison de désactivation bientôt disponible !",
+      "deactivateUser": "Désactiver l'utilisateur",
+      "noTravelersFound": "Aucun voyageur trouvé.",
+      "itemsPerPage": "Éléments par page",
+      "pageInfo": "Page {current} sur {total}",
+      "joinedOn": "Inscription le {date}"
+    },
+    "travelersStatusBadge": {
+      "verified": "Vérifié",
+      "unverified": "Non vérifié"
+    },
+    "travelersTable": {
+      "noTravelersFound": "Aucun voyageur trouvé.",
+      "rowsPerPage": "Lignes par page",
+      "pageInfo": "Page {current} sur {total}"
+    },
+    "travelers": {
+      "travelersDirectory": "Répertoire des voyageurs",
+      "travelersDirectoryDescription": "Gérez tous les comptes de passagers sur la plateforme.",
+      "searchTravelersPlaceholder": "Rechercher des voyageurs...",
+      "export": "Exporter",
+      "statusLabel": "Statut :",
+      "statusAll": "Tous",
+      "statusVerified": "Vérifié",
+      "statusUnverified": "Non vérifié",
+      "selectedCount": "{count} sélectionné(s)",
+      "totalTravelers": "{count} voyageur(s) au total"
+    },
+    "tripAuditHeader": {
+      "busAssigned": "Bus attribué",
+      "originGate": "Porte d'origine",
+      "unassigned": "Non attribué",
+      "delayMinutes": "{minutes} min de retard",
+      "status": {
+        "ARRIVED": "Arrivé",
+        "SCHEDULED": "Programmé",
+        "BOARDING": "Embarquement",
+        "CANCELLED": "Annulé",
+        "DEPARTED": "Départ"
+      }
+    },
+    "tripAuditKpiCards": {
+      "occupancy": "Taux de remplissage",
+      "occupancySub": "{booked} / {total} sièges",
+      "grossFares": "Tarifs bruts",
+      "confirmedTickets": "{count} billets confirmés",
+      "boardingRate": "Taux d'embarquement",
+      "boardedSub": "{count} embarqués",
+      "delay": "Retard",
+      "delayValue": "{minutes} min",
+      "onTime": "À l'heure",
+      "behindSchedule": "En retard",
+      "noDelays": "Aucun retard signalé"
+    },
+    "tripAuditManifest": {
+      "searchPlaceholder": "Rechercher nom, référence ou téléphone...",
+      "allStatuses": "Tous les statuts",
+      "statusBoarded": "Embarqué",
+      "statusCheckedIn": "Enregistré",
+      "statusNotBoarded": "Non embarqué",
+      "statusCancelled": "Annulé",
+      "seat": "Siège",
+      "passenger": "Passager",
+      "segment": "Segment",
+      "reference": "Référence",
+      "fare": "Tarif",
+      "status": "Statut",
+      "bookedAt": "Réservé le",
+      "noPassengersMatch": "Aucun passager ne correspond à vos filtres.",
+      "boarded": "Embarqué",
+      "checkedIn": "Enregistré",
+      "notBoarded": "Non embarqué",
+      "cancelled": "Annulé",
+      "showingPassengers": "Affichage {shown} sur {total} passagers",
+      "totalFare": "Tarif total : {fare} XOF"
+    },
+    "tripAuditOccupancy": {
+      "seatsBooked": "{booked} / {total} sièges",
+      "noSegmentsAvailable": "Aucun segment de route disponible pour ce trajet.",
+      "confirmedHeld": "{confirmed} confirmés · {held} en attente",
+      "statusBooked": "Réservé",
+      "statusHeld": "En attente",
+      "statusBlocked": "Bloqué",
+      "statusAvailable": "Disponible",
+      "legendBooked": "Réservé",
+      "legendHeld": "En attente",
+      "legendAvailable": "Disponible",
+      "legendBlocked": "Bloqué"
+    },
+    "tripAuditReviews": {
+      "noReviewsYet": "Aucun avis pour le moment",
+      "noReviewsDescription": "Les avis apparaîtront ici une fois que les passagers soumettront leurs commentaires après leur trajet.",
+      "reviewCount": "{count} avis",
+      "seatLabel": "Siège"
+    },
+    "tripAuditTimeline": {
+      "tripTimeline": "Chronologie du trajet",
+      "stopSequence": "Séquence des arrêts",
+      "stepScheduled": "Programmé",
+      "plannedDeparture": "Départ prévu",
+      "stepBoarding": "Embarquement",
+      "passengersEmbarking": "Passagers en cours d'embarquement",
+      "stepDeparted": "Départ",
+      "actualDeparture": "Départ effectif",
+      "notYetDeparted": "Pas encore parti",
+      "stepArrived": "Arrivé",
+      "actualArrival": "Arrivée effective",
+      "estimatedArrival": "Arrivée estimée",
+      "arrLabel": "Arr",
+      "depLabel": "Départ",
+      "actualArrLabel": "Arr effectif"
+    },
+    "userProfileHeader": {
+      "verified": "Vérifié",
+      "unverified": "Non vérifié",
+      "memberSince": "Membre depuis le {date}"
+    },
+    "verificationDetailsBanks": {
+      "targetSettlementAccounts": "Comptes de règlement cibles",
+      "settlementAccountsDescription": "Destinations de paiement des opérateurs enregistrés. Le compte par défaut est mappé aux codes destinataires.",
+      "default": "Par défaut",
+      "verified": "Vérifié",
+      "pendingApproval": "En attente d'approbation",
+      "accountHolder": "Titulaire du compte",
+      "accountNumber": "Numéro de compte",
+      "na": "N/A",
+      "payoutAccountMissing": "Compte de paiement manquant",
+      "payoutAccountMissingDescription": "L'opérateur n'a pas encore soumis ses coordonnées bancaires. La vérification d'inscription est bloquée."
+    },
+    "verificationDetailsChecklist": {
+      "kycVerificationChecklist": "Liste de vérification KYC",
+      "checklistDescription": "Cochez les éléments individuellement au fur et à mesure de votre revue des documents. Les modifications sont enregistrées instantanément.",
+      "checklistUpdated": "Liste de vérification mise à jour avec succès.",
+      "failedToUpdateChecklist": "Échec de la mise à jour de la liste.",
+      "ownerIdentity": "Identité du représentant légal",
+      "ownerIdentityDescription": "Vérifiez que le passeport gouvernemental ou la carte d'identité nationale correspond aux noms du propriétaire.",
+      "payoutBankVerification": "Vérification bancaire de paiement",
+      "payoutBankVerificationDescription": "Vérifiez que les détails du document bancaire correspondent aux noms des banques de règlement.",
+      "legalRegistriesTaxClearances": "Registres légaux et attestations fiscales",
+      "legalRegistriesTaxClearancesDescription": "Vérifiez que l'identifiant fiscal de l'entreprise et les documents de création sont valides.",
+      "publicTransportLicensesPermits": "Licences et permis de transport public",
+      "publicTransportLicensesPermitsDescription": "Vérifiez que les permis d'enregistrement de l'entreprise ont les autorisations de route correctes."
+    },
+    "verificationDetailsDecision": {
+      "platformDecisionBoard": "Tableau de bord des décisions",
+      "decisionBoardDescription": "Vérifiez l'opérateur pour activer le grand livre interne et le destinataire de transfert.",
+      "approveChecklistNote": "Vérifiez que tous les éléments de la liste de vérification KYC sont vérifiés avant d'approuver. Les approbations nécessitent un compte bancaire par défaut pour enregistrer un destinataire de transfert Paystack.",
+      "rejectVerification": "Rejeter la vérification",
+      "approveRegisterBank": "Approuver et enregistrer la banque",
+      "operatorVerified": "Opérateur vérifié avec succès",
+      "operatorApproved": "Cet opérateur de bus a été approuvé. Mappé au code destinataire:",
+      "na": "N/A",
+      "verifiedOn": "Vérifié le",
+      "idLabel": "ID",
+      "registrationRejected": "Demande d'inscription rejetée",
+      "reasonLabel": "Motif",
+      "noReasonSpecified": "Aucun motif spécifié.",
+      "rejectedOn": "Rejeté le",
+      "draftMode": "En mode brouillon",
+      "draftDescription": "L'opérateur est encore en train de remplir les détails de l'entreprise et n'a pas encore soumis les documents d'enregistrement pour examen."
+    },
+    "verificationDetailsDocuments": {
+      "uploadedLegalRegistryFiles": "Fichiers de registre légal téléchargés",
+      "documentsDescription": "L'opérateur a téléchargé des documents incluant les approbations de permis et les attestations fiscales.",
+      "noDocumentsUploaded": "Aucun document de registre téléchargé par cette entreprise.",
+      "uploadedOn": "Téléchargé le {date}",
+      "viewFile": "Voir le fichier"
+    },
+    "verificationDetailsHeader": {
+      "visitWebsite": "Visiter le site",
+      "aboutTheCompany": "À propos de l'entreprise",
+      "businessType": "Type d'entreprise",
+      "regNumber": "Numéro d'enregistrement",
+      "taxId": "Identifiant fiscal",
+      "established": "Créé en",
+      "ownerRepresentativeDetails": "Coordonnées du représentant légal",
+      "fullName": "Nom complet",
+      "emailAddress": "Adresse e-mail",
+      "phoneContact": "Contact téléphonique",
+      "na": "N/A",
+      "noRepresentativeDetails": "Aucune coordonnée de représentant enregistrée."
+    },
+    "verificationDetailsTimeline": {
+      "verificationActivityHistory": "Historique des activités de vérification",
+      "auditTrailsDescription": "Pistes d'audit et modifications enregistrées pendant le cycle de vie de vérification de l'opérateur.",
+      "noActivityLogs": "Aucun journal d'activité enregistré pour cette entreprise.",
+      "triggeredBy": "Déclenché par:"
+    },
+    "verificationsApproveDialog": {
+      "verifyRegisterTransferRecipient": "Vérifier et enregistrer le destinataire de transfert",
+      "dialogDescription": "Pour activer les retraits, mappez les détails bancaires ci-dessous au code bancaire ivoirien correct pour créer le destinataire de transfert Paystack.",
+      "bankNameLabel": "Nom de la banque (saisie de l'opérateur):",
+      "accountNumberLabel": "Numéro de compte:",
+      "na": "N/A",
+      "settlementBankCodeLabel": "Code bancaire de règlement (liste Paystack)",
+      "selectBankCodePlaceholder": "-- Sélectionner le code bancaire --",
+      "searchBankPlaceholder": "Rechercher une banque...",
+      "noBankFound": "Aucune banque trouvée.",
+      "cancel": "Annuler",
+      "registering": "Enregistrement...",
+      "confirmVerification": "Confirmer la vérification",
+      "companyApproved": "Entreprise approuvée ! Destinataire Paystack {recipientCode} créé.",
+      "failedToVerifyCompany": "Échec de la vérification de l'entreprise",
+      "invalidBankCode": "Code bancaire invalide"
     },
     "verifications": {
       "title": "Vérifications d'entreprises",
@@ -2272,7 +2832,9 @@
       "subtitle": "Aperçu",
       "breadcrumb": {
         "admin": "Admin",
-        "overview": "Aperçu"
+        "overview": "Aperçu",
+        "operatorDetails": "Détails de l'opérateur",
+        "profile": "Profil"
       },
       "systemOverview": "Aperçu du système",
       "monitorText": "Surveillez les opérateurs, voyageurs, finances et opérations en temps réel sur Moja Ride.",
@@ -2328,9 +2890,9 @@
         "quickNavigation": "Navigation rapide",
         "quickLinks": {
           "ledger": "Grand livre",
-          "dispatch": "Dispatch",
+          "dispatch": "Dispatch en direct",
           "travelers": "Voyageurs",
-          "webhooks": "Webhooks",
+          "webhooks": "Événements webhook",
           "routes": "Lignes"
         }
       },
@@ -2343,6 +2905,9 @@
         "passengerWalletsDesc": "Fonds totaux dans les recharges des passagers",
         "currency": "XOF"
       }
+    },
+    "verificationsTable": {
+      "empty": "Aucun opérateur en attente de vérification."
     }
   },
   "invite": {
@@ -2609,14 +3174,18 @@
     "subjectOther": "Autre",
     "labelName": "Nom complet",
     "labelEmail": "Adresse e-mail",
+    "labelPhone": "Phone (optional)",
     "labelSubject": "Sujet",
     "labelMessage": "Message",
     "placeholderName": "Votre nom",
     "placeholderEmail": "vous@exemple.com",
+    "placeholderPhone": "+225 00 00 00 00 00",
     "placeholderMessage": "Décrivez votre question ou votre problème en détail...",
     "submitButton": "Envoyer le message",
+    "submitting": "Sending...",
+    "submitError": "Something went wrong. Please try again later.",
     "successTitle": "Message envoyé !",
-    "successBody": "Votre client de messagerie a dû s'ouvrir. Nous vous répondrons à <b>{email}</b> sous 4 heures.",
+    "successBody": "Thank you <b>{name}</b>! We've received your inquiry and will respond to you at {email} within 4 hours.",
     "successNewMessage": "Envoyer un autre message"
   },
   "trustbar": {

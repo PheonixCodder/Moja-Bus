@@ -42,8 +42,8 @@ export default async function VerificationsQueuePage({
     <HydrateClient>
       <DashboardHeader
         breadcrumbs={[
-          { label: "Admin" },
-          { label: "Verification Queue" },
+          { label: "Admin", tKey: "overview.breadcrumb.admin" },
+          { label: "Verification Queue", tKey: "nav.verifications" },
         ]}
       />
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

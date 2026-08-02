@@ -148,7 +148,10 @@ async function reconcileScheduleTrips(
 
   const pruned = await pruneUnbookedFutureTrips(prisma, scheduleId, companyId);
   const candidates = getCandidateDepartureDates({
-    departureTime: schedule.departureTime,
+    departureTimes:
+      schedule.departureTimes.length > 0
+        ? schedule.departureTimes
+        : [schedule.departureTime],
     calendar: {
       monday: schedule.calendar.monday,
       tuesday: schedule.calendar.tuesday,
@@ -242,13 +245,15 @@ async function reconcileScheduleTrips(
 }
 
 /**
- * Guard against overlapping active schedules for the exact same route & departure time.
+ * Guard against overlapping active schedules for the exact same route.
+ * Conflict occurs when any shared departure time runs on the same weekday
+ * within overlapping date windows (cadence-aware).
  */
 async function checkScheduleOverlap(
   prisma: any,
   companyId: string,
   routeId: string,
-  departureTime: string,
+  departureTimes: string[],
   calendar: {
     monday?: boolean | undefined;
     tuesday?: boolean | undefined;
@@ -266,7 +271,6 @@ async function checkScheduleOverlap(
     where: {
       companyId,
       routeId,
-      departureTime,
       isActive: true,
       ...(excludeScheduleId ? { id: { not: excludeScheduleId } } : {}),
     },
@@ -277,6 +281,7 @@ async function checkScheduleOverlap(
 
   if (existingSchedules.length === 0) return;
 
+  const newTimes = new Set(departureTimes);
   const newFrom = new Date(calendar.validFrom).getTime();
   const newUntil = calendar.validUntil ? new Date(calendar.validUntil).getTime() : Infinity;
 
@@ -299,15 +304,23 @@ async function checkScheduleOverlap(
       : Infinity;
 
     const datesOverlap = newFrom <= existingUntil && newUntil >= existingFrom;
+    if (!datesOverlap) continue;
 
-    if (datesOverlap) {
-      for (const day of days) {
-        if (Boolean(calendar[day]) && Boolean(existing.calendar[day])) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: `An active schedule ("${existing.name || existing.id}") already operates on ${day.toUpperCase()}s at ${departureTime} during this date window.`,
-          });
-        }
+    const existingTimes = new Set(
+      existing.departureTimes.length > 0
+        ? existing.departureTimes
+        : [existing.departureTime],
+    );
+    const sharedTimes = [...newTimes].filter((t) => existingTimes.has(t));
+
+    if (sharedTimes.length === 0) continue;
+
+    for (const day of days) {
+      if (Boolean(calendar[day]) && Boolean(existing.calendar[day])) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `An active schedule ("${existing.name || existing.id}") already operates on ${day.toUpperCase()}s at ${sharedTimes.join(", ")} during this date window.`,
+        });
       }
     }
   }
@@ -468,8 +481,9 @@ fares: {
     .input(createScheduleSchema)
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "schedules:create");
-      const { name, routeId, preferredBusId, departureTime, calendar, fares, dwells } =
+      const { name, routeId, preferredBusId, departureTimes, calendar, fares, dwells } =
         input;
+      const departureTime = departureTimes[0]!;
 
       const route = await ctx.prisma.route.findFirst({
         where: { id: routeId, companyId: ctx.companyId, status: "ACTIVE" },
@@ -529,7 +543,7 @@ fares: {
         ctx.prisma,
         ctx.companyId,
         routeId,
-        departureTime,
+        departureTimes,
         calendar,
       );
 
@@ -555,6 +569,7 @@ fares: {
             routeId,
             name: name ? name.trim() : null,
             departureTime,
+            departureTimes,
             isActive: true,
             preferredBusId,
           },
@@ -800,10 +815,26 @@ fares: {
       if (input.data.name !== undefined) {
         updateData["name"] = input.data.name ? input.data.name.trim() : null;
       }
+      // Cadence patch: full list replaces the list, primary time syncs to the first.
+      if (input.data.departureTimes !== undefined) {
+        updateData["departureTimes"] = input.data.departureTimes;
+        updateData["departureTime"] = input.data.departureTimes[0]!;
+      } else if (input.data.departureTime !== undefined) {
+        updateData["departureTime"] = input.data.departureTime;
+      }
 
       const willBeActive = input.data.isActive ?? schedule.isActive;
-      const newDepartureTime = input.data.departureTime ?? schedule.departureTime;
-      if (willBeActive && (input.data.departureTime !== undefined || input.data.isActive === true)) {
+      const newDepartureTimes =
+        input.data.departureTimes ??
+        (input.data.departureTime !== undefined
+          ? [input.data.departureTime]
+          : schedule.departureTimes.length > 0
+            ? schedule.departureTimes
+            : [schedule.departureTime]);
+      const timesChanged =
+        input.data.departureTimes !== undefined ||
+        input.data.departureTime !== undefined;
+      if (willBeActive && (timesChanged || input.data.isActive === true)) {
         const calendar = await ctx.prisma.serviceCalendar.findUnique({
           where: { scheduleId: schedule.id },
         });
@@ -812,7 +843,7 @@ fares: {
             ctx.prisma,
             ctx.companyId,
             schedule.routeId,
-            newDepartureTime,
+            newDepartureTimes,
             calendar,
             schedule.id,
           );
@@ -831,7 +862,7 @@ fares: {
           ctx.companyId,
         );
       } else if (
-        (input.data.departureTime !== undefined ||
+        (timesChanged ||
           input.data.preferredBusId !== undefined) &&
         updated.isActive &&
         (updated.preferredBusId || input.data.preferredBusId)
@@ -924,7 +955,9 @@ fares: {
           ctx.prisma,
           ctx.companyId,
           schedule.routeId,
-          schedule.departureTime,
+          schedule.departureTimes.length > 0
+            ? schedule.departureTimes
+            : [schedule.departureTime],
           mergedCalendar,
           schedule.id,
         );

@@ -27,13 +27,15 @@ import { Tabs, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { columns, type OperatorRow } from "./operators-columns";
+import { useTranslations } from "next-intl";
+import { getOperatorColumns, type OperatorRow } from "./operators-columns";
 import { OperatorsTable } from "./operators-table";
 import { OperatorsGrid } from "./operators-grid";
 import { useQueryStates } from "nuqs";
 import { operatorSearchParams } from "../lib/search-params";
 
 export function Operators() {
+  const t = useTranslations("adminDashboard.operators");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [rowSelection, setRowSelection] = React.useState({});
   const [params, setParams] = useQueryStates(operatorSearchParams);
@@ -72,7 +74,7 @@ export function Operators() {
 
   const table = useReactTable({
     data: tableData,
-    columns,
+    columns: getOperatorColumns(t),
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -91,29 +93,29 @@ export function Operators() {
       <CardHeader className="p-0 pb-4 border-b">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 pt-4">
           <div className="flex items-center gap-4">
-            <h3 className="font-medium text-lg">All Operators</h3>
-            <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-xs font-medium">
-              {tableData.length}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Tabs value={viewMode} onValueChange={(v) => setParams({ view: v as "list" | "grid" })} className="h-9">
-              <TabsList className="h-9 p-1">
-                <TabsTrigger value="list" className="h-7 px-3 flex gap-2">
-                  <List className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only text-xs">List</span>
-                </TabsTrigger>
-                <TabsTrigger value="grid" className="h-7 px-3 flex gap-2">
-                  <LayoutGrid className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only text-xs">Grid</span>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Button variant="outline" size="sm" className="h-9 hidden sm:flex">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-          </div>
+          <h3 className="font-medium text-lg">{t("allOperators")}</h3>
+          <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-xs font-medium">
+            {tableData.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Tabs value={viewMode} onValueChange={(v) => setParams({ view: v as "list" | "grid" })} className="h-9">
+            <TabsList className="h-9 p-1">
+              <TabsTrigger value="list" className="h-7 px-3 flex gap-2">
+                <List className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only text-xs">{t("list")}</span>
+              </TabsTrigger>
+              <TabsTrigger value="grid" className="h-7 px-3 flex gap-2">
+                <LayoutGrid className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only text-xs">{t("grid")}</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button variant="outline" size="sm" className="h-9 hidden sm:flex">
+            <Download className="mr-2 h-4 w-4" />
+            {t("export")}
+          </Button>
+        </div>
         </div>
       </CardHeader>
       
@@ -125,14 +127,14 @@ export function Operators() {
               table.setPageIndex(0);
             }}>
               <SelectTrigger size="sm" className="h-8 w-[140px]">
-                <span className="text-muted-foreground">Status:</span>
+                <span className="text-muted-foreground">{t("status")}:</span>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent align="start">
                 <SelectGroup>
-                  <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="All">{t("all")}</SelectItem>
+                  <SelectItem value="Active">{t("active")}</SelectItem>
+                  <SelectItem value="Pending">{t("pending")}</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -140,7 +142,7 @@ export function Operators() {
           <div className="relative w-full sm:w-[300px]">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search operators..."
+              placeholder={t("searchOperators")}
               className="pl-8 h-9"
               value={params.search}
               onChange={(event) => {

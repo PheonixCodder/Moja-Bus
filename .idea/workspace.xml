@@ -5,108 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4f1351ad-4d4d-4706-9835-a4271b138320" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/chat-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/delay-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/digest-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/email-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/http-request-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/in-app-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/push-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/sms-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/step-conditions.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-dashboard-workflows/references/throttle-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/channel-selection.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/digest-defaults.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/severity-and-critical.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/step-conditions.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-design-workflow/references/workflow-templates.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/bridge-endpoint.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/deployment.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/email-templates.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/schema-validation.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/security.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/studio-and-cli.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/translations.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-framework-integration/references/workflow-and-steps.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/branding-and-styling.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/headless-inbox-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/multi-tenancy.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/nextjs-inbox-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/personalization.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/react-inbox-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-inbox-integration/references/security.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-preferences/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-preferences/references/preferences-ui-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-preferences/references/subscriber-preferences-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-preferences/references/workflow-preferences-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-subscribers/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-subscribers/references/credentials-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-subscribers/references/subscriber-crud-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-manage-subscribers/references/topics-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/best-practices.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/bulk-trigger-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/installation.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/single-trigger-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.claude/skills/novu-trigger-notification/references/topic-trigger-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/frontend-design/LICENSE.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/frontend-design/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/chat-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/delay-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/digest-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/email-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/http-request-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/in-app-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/push-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/sms-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/step-conditions.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-dashboard-workflows/references/throttle-step.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/channel-selection.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/digest-defaults.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/severity-and-critical.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/step-conditions.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-design-workflow/references/workflow-templates.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/bridge-endpoint.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/deployment.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/email-templates.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/schema-validation.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/security.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/studio-and-cli.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/translations.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-framework-integration/references/workflow-and-steps.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/branding-and-styling.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/headless-inbox-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/multi-tenancy.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/nextjs-inbox-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/personalization.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/react-inbox-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-inbox-integration/references/security.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-preferences/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-preferences/references/preferences-ui-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-preferences/references/subscriber-preferences-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-preferences/references/workflow-preferences-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-subscribers/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-subscribers/references/credentials-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-subscribers/references/subscriber-crud-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-manage-subscribers/references/topics-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/SKILL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/best-practices.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/bulk-trigger-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/installation.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/single-trigger-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/skills/novu-trigger-notification/references/topic-trigger-examples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.npmrc" beforeDir="false" afterPath="$PROJECT_DIR$/.npmrc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/app.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/scripts/reset-project.js" beforeDir="false" />
@@ -130,37 +30,128 @@
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-color-scheme.web.ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-theme.ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/bookings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/bookings.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/search.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/search.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/tickets.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/tickets.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/+not-found.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/+not-found.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/components/page-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/components/page-header.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/auth/views/login-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/auth/views/login-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/account-settings-list.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/account-settings-list.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/settings-details.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/settings-details.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/passengers-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/passengers-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/personal-info-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/personal-info-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/settings-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/settings-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/wallet-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/views/wallet-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/review-request.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/review-request.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-boarding.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-boarding.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-cancelled.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-cancelled.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-delayed.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-delayed.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-gate-updated.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/operator/trip-gate-updated.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/hold-created.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/hold-created.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/profile-updated.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/profile-updated.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/review-submitted.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/review-submitted.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/wallet-low-balance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/passenger/wallet-low-balance.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/booking-confirmed.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/booking-confirmed.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/booking-refunded.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/booking-refunded.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/wallet-topup.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/payments/wallet-topup.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/public.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/public.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/(public)/help/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/(public)/help/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/financials/ledger/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/financials/ledger/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/operations/routes/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/operations/routes/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/users/operators/[userId]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/users/operators/[userId]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/users/travelers/[userId]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/users/travelers/[userId]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/verifications/[companyId]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/verifications/[companyId]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/verifications/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/admin/verifications/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/search/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/search/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/admin-page-shell.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/admin-page-shell.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/admin-sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/admin-sidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/dashboard-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/dashboard-header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/dispatch-filter-bar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/dispatch-filter-bar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/dispatch-trip-drawer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/dispatch-trip-drawer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/dispatch-trip-list.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/dispatch-trip-list.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-columns.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-columns.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-filters.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-filters.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-kpi-cards.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-kpi-cards.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-pagination.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-pagination.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/ledger-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/operator-onboarding-funnel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/operator-onboarding-funnel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/operators-action-cell.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/operators-action-cell.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/operators-columns.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/operators-columns.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/operators-grid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/operators-grid.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/operators-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/operators-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/operators.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/operators.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/routes/admin-route-drawer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/routes/admin-route-drawer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/routes/admin-routes-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/routes/admin-routes-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/settlements-clearing-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/settlements-clearing-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/settlements-history-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/settlements-history-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/settlements-payout-panel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/settlements-payout-panel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-action-cell.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-action-cell.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-columns.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-columns.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-grid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-grid.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-status-badge.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-status-badge.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/travelers-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/travelers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/travelers.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-kpi-cards.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-kpi-cards.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-manifest.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-manifest.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-occupancy.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-occupancy.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-reviews.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-reviews.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-timeline.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/trip-audit-timeline.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/user-profile-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/user-profile-header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-banks.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-banks.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-checklist.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-checklist.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-decision.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-decision.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-documents.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-documents.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-timeline.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verification-details-timeline.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verifications-approve-dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verifications-approve-dialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verifications-reject-dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verifications-reject-dialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verifications-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verifications-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-columns.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-columns.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-filter-bar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-filter-bar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/lib/search-params.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/lib/search-params.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/booking-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/booking-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/booking-checkout-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/booking-checkout-form.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/booking-details.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/booking-details.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/booking-dialog-flow.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/booking-dialog-flow.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/booking-route-map.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/booking-route-map.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/digital-ticket-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/digital-ticket-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/passenger-seat-map.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/passenger-seat-map.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/passenger-trip-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/passenger-trip-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/components/trip-summary-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/components/trip-summary-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/services/booking-read-service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/services/booking-read-service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/services/trip-details-service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/services/trip-details-service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/booking/views/passenger-tickets-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/booking/views/passenger-tickets-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/contact/components/contact-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/contact/components/contact-form.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/home/components/hero-search-bar-2.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/home/components/hero-search-bar-2.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/home/components/home-footer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/home/components/home-footer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/home/data/faq.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/home/data/faq.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/bookings/booking-detail-drawer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/bookings/booking-detail-drawer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/layout-builder-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/layout-builder-sheet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/route-map-preview.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/route-map-preview.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/routes/route-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/routes/route-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/routes/route-editor-sheet.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/routes/route-form-drawer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/routes/route-form-drawer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/routes/routes-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/routes/routes-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/calendar-step.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/calendar-step.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/preview-step.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/preview-step.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/pricing-step.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/pricing-step.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/schedule-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/schedule-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/schedule-edit-drawer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/schedules/schedule-edit-drawer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/terminals/terminal-editor-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/terminals/terminal-editor-sheet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/terminals/terminals-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/terminals/terminals-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/lib/schedules/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/lib/schedules/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/services/operator-booking-service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/services/operator-booking-service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/views/operator-schedules-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/views/operator-schedules-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/components/offer-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/search/components/offer-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/components/search-date-strip.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/search/components/search-date-strip.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/components/search-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/search/components/search-form.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/components/search-hero.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/components/search-page-client.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/search/components/search-page-client.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/hooks/use-cheapest-by-date.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/search/hooks/use-cheapest-by-date.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/lib/params.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/search/lib/params.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/repositories/search-read-repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/search/repositories/search-read-repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/search/services/search-service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/search/services/search-service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/lib/__tests__/schedule-trip-window.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/lib/__tests__/schedule-trip-window.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/lib/schedule-trip-window.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/lib/schedule-trip-window.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/lib/trip-generator.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/lib/trip-generator.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/messages/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/messages/en.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/messages/fr.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/messages/fr.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/_app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/_app.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/admin.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/admin.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/schedules.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/schedules.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/search.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/search.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/terminals.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/terminals.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/trips.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/trips.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/context/memory.md" beforeDir="false" afterPath="$PROJECT_DIR$/context/memory.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/context/progress-tracker.md" beforeDir="false" afterPath="$PROJECT_DIR$/context/progress-tracker.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/context/trackers/internationalization-components.md" beforeDir="false" afterPath="$PROJECT_DIR$/context/trackers/internationalization-components.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/context/ui-registry.md" beforeDir="false" afterPath="$PROJECT_DIR$/context/ui-registry.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/memory.md" beforeDir="false" afterPath="$PROJECT_DIR$/memory.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/db/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/packages/db/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/schemas/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/schemas/src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/schemas/src/routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/schemas/src/routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/schemas/src/schedules.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/schemas/src/schedules.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/types/src/booking.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/types/src/booking.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/types/src/search.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/types/src/search.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

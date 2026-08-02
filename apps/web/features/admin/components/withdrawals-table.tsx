@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryStates } from "nuqs";
 import { useTRPC } from "@/trpc/client";
@@ -27,6 +28,7 @@ interface WithdrawalsTableProps {
 
 export function WithdrawalsTable({ onResolve, pageSize }: WithdrawalsTableProps) {
   const trpc = useTRPC();
+  const t = useTranslations("adminDashboard.withdrawalsTable");
   const [{ status, from, to, page }] = useQueryStates(
     withdrawalsSearchParams,
     { shallow: false }
@@ -42,7 +44,7 @@ export function WithdrawalsTable({ onResolve, pageSize }: WithdrawalsTableProps)
     })
   );
 
-  const columns = createWithdrawalsColumns(onResolve);
+  const columns = createWithdrawalsColumns(t, onResolve);
 
   const table = useReactTable({
     data: data.items as WithdrawalRow[],
@@ -96,7 +98,7 @@ export function WithdrawalsTable({ onResolve, pageSize }: WithdrawalsTableProps)
                   colSpan={columns.length}
                   className="h-32 text-center text-text-muted"
                 >
-                  No withdrawals found.
+                  {t("empty")}
                 </TableCell>
               </TableRow>
             )}

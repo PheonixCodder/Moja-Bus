@@ -1,8 +1,11 @@
 export type Amenity = "AC" | "WIFI" | "TOILET" | "USB" | "LUGGAGE" | "VIP";
 
+export type SearchServiceType = "INTERCITY" | "URBAN";
+
 export interface SearchOffer {
   offerId: string; // Composite ID: `${tripId}_${originTripStopId}_${destinationTripStopId}`
   tripId: string;
+  serviceType: SearchServiceType;
 
   // Operator Info (Flattened)
   companyId: string;

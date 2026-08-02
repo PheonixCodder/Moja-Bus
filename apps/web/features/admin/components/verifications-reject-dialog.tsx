@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,7 @@ export function VerificationsRejectDialog({
   setRejectionReason,
   onSuccess,
 }: VerificationsRejectDialogProps) {
+  const t = useTranslations("adminDashboard.verificationsRejectDialog");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -40,13 +42,13 @@ export function VerificationsRejectDialog({
   const rejectMutation = useMutation(
     trpc.admin.rejectOperator.mutationOptions({
       onSuccess: () => {
-        toast.success("Verification request rejected");
+        toast.success(t("verificationRejected"));
         onOpenChange(false);
         onSuccess();
         queryClient.invalidateQueries(trpc.admin.listCompaniesForVerification.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to reject company");
+        toast.error(err.message || t("failedToRejectCompany"));
       },
     })
   );
@@ -54,7 +56,7 @@ export function VerificationsRejectDialog({
   const handleConfirm = () => {
     const result = rejectVerificationFormSchema.safeParse({ reason: rejectionReason });
     if (!result.success) {
-      const errorMsg = result.error.issues[0]?.message || "Invalid rejection reason";
+      const errorMsg = result.error.issues[0]?.message || t("invalidRejectionReason");
       setValidationError(errorMsg);
       toast.error(errorMsg);
       return;
@@ -72,17 +74,17 @@ export function VerificationsRejectDialog({
       <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-slate-900">
-            Reject Verification Request
+            {t("rejectVerificationRequest")}
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500">
-            Provide a clear reason for the rejection. This description will be sent back to the operator to correct their details.
+            {t("dialogDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-2">
           <textarea
             className="w-full min-h-[100px] rounded-md border border-border bg-white p-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y"
-            placeholder="e.g. Tax clearance certificate is expired, or bank account name does not match the company registration document."
+            placeholder={t("rejectionReasonPlaceholder")}
             value={rejectionReason}
             onChange={(e) => {
               setRejectionReason(e.target.value);
@@ -96,7 +98,7 @@ export function VerificationsRejectDialog({
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" className="h-9" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             className="bg-red-600 hover:bg-red-700 text-white h-9"
@@ -106,10 +108,10 @@ export function VerificationsRejectDialog({
             {rejectMutation.isPending ? (
               <>
                 <Spinner className="mr-2 size-3.5 text-white" />
-                Submitting...
+                {t("submitting")}
               </>
             ) : (
-              "Submit Rejection"
+              t("submitRejection")
             )}
           </Button>
         </DialogFooter>

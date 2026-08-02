@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import React, { ReactNode } from "react";
 import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import { Separator } from "@moja/ui/components/ui/separator";
@@ -10,13 +11,14 @@ interface AdminPageShellProps {
   breadcrumbs?: { label: string; href?: string }[];
 }
 
-export function AdminPageShell({
+export async function AdminPageShell({
   title,
   description,
   actions,
   children,
   breadcrumbs,
 }: AdminPageShellProps) {
+  const t = await getTranslations("adminDashboard");
   return (
     <div className="flex flex-col min-h-0 flex-1 bg-slate-50/50">
       {/* Header bar */}
@@ -27,7 +29,7 @@ export function AdminPageShell({
           
           {/* Breadcrumbs */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-            <span className="text-slate-400">Admin</span>
+            <span className="text-slate-400">{t("overview.breadcrumb.admin")}</span>
             {breadcrumbs?.map((crumb, idx) => (
               <React.Fragment key={idx}>
                 <span className="text-slate-300">/</span>

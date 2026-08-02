@@ -188,6 +188,8 @@ export function TerminalEditorSheet({
     if (!name.trim()) errors["name"] = "Name is required";
     if (!addressLine1.trim()) errors["addressLine1"] = "Address line 1 is required";
     if (!phone.trim()) errors["phone"] = "Phone number is required";
+    if (isTerminal && !cityId)
+      errors["cityId"] = "City is required for passenger terminals";
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -339,6 +341,9 @@ export function TerminalEditorSheet({
                     </option>
                   ))}
                 </select>
+                {formErrors["cityId"] && (
+                  <p className="text-xs text-destructive">{formErrors["cityId"]}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -480,6 +485,13 @@ export function TerminalEditorSheet({
                   }}
                 />
               </div>
+
+              {isTerminal && !cityId && (
+                <p className="text-xs text-destructive border-t border-border pt-2">
+                  Select a city above before saving — a passenger terminal must
+                  have a city assigned.
+                </p>
+              )}
 
               <div className="flex items-center justify-between border-t border-border pt-3">
                 <div className="space-y-0.5">

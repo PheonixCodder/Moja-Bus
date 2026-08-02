@@ -234,6 +234,13 @@ export const createTerminalSchema = baseTerminalSchema.superRefine((data, ctx) =
         path: ["longitude"],
       });
     }
+    if (!data.cityId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "City is required for passenger terminals",
+        path: ["cityId"],
+      });
+    }
   }
 });
 export type CreateTerminalInput = z.infer<typeof createTerminalSchema>;

@@ -1,22 +1,23 @@
 import { createTRPCRouter } from "../init";
-import { operatorRouter } from "./operator";
-import { terminalsRouter } from "./terminals";
-import { staffRouter } from "./staff";
+import { adminRouter } from "./admin";
+import { blogRouter } from "./blog";
+import { bookingRouter } from "./booking";
+import { contactRouter } from "./contact";
 import { fleetRouter } from "./fleet";
-import { routesRouter } from "./routes";
-import { schedulesRouter } from "./schedules";
-import { tripsRouter } from "./trips";
 import { invitationRouter } from "./invitation";
 import { locationsRouter } from "./locations";
-import { searchRouter } from "./search";
-import { bookingRouter } from "./booking";
+import { operatorRouter } from "./operator";
 import { passengerRouter } from "./passenger";
 import { paymentsRouter } from "./payments";
 import { publicRouter } from "./public";
-import { adminRouter } from "./admin";
+import { routesRouter } from "./routes";
+import { schedulesRouter } from "./schedules";
+import { searchRouter } from "./search";
+import { staffRouter } from "./staff";
 import { storageRouter } from "./storage";
+import { terminalsRouter } from "./terminals";
+import { tripsRouter } from "./trips";
 import { walletRouter } from "./wallet";
-import { blogRouter } from "./blog";
 
 export const appRouter = createTRPCRouter({
   operator: operatorRouter,
@@ -37,6 +38,7 @@ export const appRouter = createTRPCRouter({
   storage: storageRouter,
   wallet: walletRouter,
   blog: blogRouter,
+  contact: contactRouter,
 });
 
 export type AppRouter = typeof appRouter;

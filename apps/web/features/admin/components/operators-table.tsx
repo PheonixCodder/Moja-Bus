@@ -3,6 +3,7 @@
 import * as React from "react";
 import { type Table as ReactTable, flexRender } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   Table,
@@ -37,6 +38,7 @@ interface OperatorsTableProps {
 }
 
 export function OperatorsTable({ table }: OperatorsTableProps) {
+  const t = useTranslations("adminDashboard.operatorsTable");
   const pageIndex = table.getState().pagination.pageIndex;
   const pageCount = Math.max(table.getPageCount(), 1);
   const pageNumbers = getPageNumbers(pageIndex + 1, pageCount);
@@ -89,8 +91,8 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center text-sm">
-                    <p>No operators found.</p>
-                    <p className="text-xs opacity-70">Adjust your search or filters to see more results.</p>
+                    <p>{t("noOperatorsFound")}</p>
+                    <p className="text-xs opacity-70">{t("adjustFilters")}</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -101,7 +103,13 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
 
       <div className="flex items-center justify-between px-4 py-4 mt-auto border-t">
         <div className="text-xs text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}</span> to <span className="font-medium text-foreground">{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}</span> of <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span> operators
+          {t("showing")}{" "}
+          <span className="font-medium text-foreground">{table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}</span>{" "}
+          {t("to")}{" "}
+          <span className="font-medium text-foreground">{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}</span>{" "}
+          {t("of")}{" "}
+          <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span>{" "}
+          {t("operators")}
         </div>
         
         <Pagination className="w-auto mx-0">
@@ -116,7 +124,7 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
                 className={`h-8 w-8 p-0 ${!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : ""}`}
               >
                 <ChevronsLeft className="h-4 w-4" />
-                <span className="sr-only">First page</span>
+                <span className="sr-only">{t("firstPage")}</span>
               </PaginationLink>
             </PaginationItem>
             <PaginationItem>
@@ -177,7 +185,7 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
                 className={`h-8 w-8 p-0 ${!table.getCanNextPage() ? "pointer-events-none opacity-50" : ""}`}
               >
                 <ChevronsRight className="h-4 w-4" />
-                <span className="sr-only">Last page</span>
+                <span className="sr-only">{t("lastPage")}</span>
               </PaginationLink>
             </PaginationItem>
           </PaginationContent>

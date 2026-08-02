@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
 import { useTRPC } from "@/trpc/client";
+import { useTranslations } from "next-intl";
 
 interface VerificationDetailsChecklistProps {
   companyId: string;
@@ -21,6 +22,7 @@ export function VerificationDetailsChecklist({
   companyId,
   verification,
 }: VerificationDetailsChecklistProps) {
+  const t = useTranslations("adminDashboard.verificationDetailsChecklist");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -34,11 +36,11 @@ export function VerificationDetailsChecklist({
   const mutation = useMutation(
     trpc.admin.updateCompanyVerificationChecklist.mutationOptions({
       onSuccess: () => {
-        toast.success("Verification checklist updated successfully.");
+        toast.success(t("checklistUpdated"));
         queryClient.invalidateQueries(trpc.admin.getCompanyForVerification.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to update checklist.");
+        toast.error(err.message || t("failedToUpdateChecklist"));
       },
     })
   );
@@ -55,23 +57,23 @@ export function VerificationDetailsChecklist({
   const checklistItems = [
     {
       key: "ownerIdentityVerified" as const,
-      label: "Owner Representative Identity",
-      description: "Verify government passport or national ID matches owner names.",
+      label: t("ownerIdentity"),
+      description: t("ownerIdentityDescription"),
     },
     {
       key: "bankVerified" as const,
-      label: "Payout Bank Verification",
-      description: "Verify bank document details match settlement bank names.",
+      label: t("payoutBankVerification"),
+      description: t("payoutBankVerificationDescription"),
     },
     {
       key: "documentsVerified" as const,
-      label: "Legal Registries & Tax Clearances",
-      description: "Verify business tax ID and establishment documents are valid.",
+      label: t("legalRegistriesTaxClearances"),
+      description: t("legalRegistriesTaxClearancesDescription"),
     },
     {
       key: "permitVerified" as const,
-      label: "Public Transport Licenses & Permits",
-      description: "Verify company registration permits have correct route permissions.",
+      label: t("publicTransportLicensesPermits"),
+      description: t("publicTransportLicensesPermitsDescription"),
     },
   ];
 
@@ -79,10 +81,10 @@ export function VerificationDetailsChecklist({
     <Card className="bg-white border-border shadow-sm">
       <CardHeader>
         <CardTitle className="text-base font-bold text-slate-900">
-          KYC Verification Checklist
+          {t("kycVerificationChecklist")}
         </CardTitle>
         <CardDescription className="text-xs text-slate-400">
-          Check off items individually as you review documentation. Changes are saved instantly.
+          {t("checklistDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 pt-0 space-y-4">

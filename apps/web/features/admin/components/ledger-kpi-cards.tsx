@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { ShieldCheck, ShieldAlert, Coins, Scale } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toSafeDisplayNumber } from "@/lib/money";
 
 interface LedgerKpiCardsProps {
@@ -18,8 +19,9 @@ export function LedgerKpiCards({
   isBalanced,
   totalEntries,
 }: LedgerKpiCardsProps) {
+  const t = useTranslations("adminDashboard.ledgerKpiCards");
   const formatCurrency = (val: bigint) => {
-    return new Intl.NumberFormat("en-US").format(toSafeDisplayNumber(val)) + " XOF";
+    return new Intl.NumberFormat("en-US").format(toSafeDisplayNumber(val)) + " " + t("xof");
   };
 
   return (
@@ -30,7 +32,7 @@ export function LedgerKpiCards({
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <Coins className="size-3.5 text-rose-500" />
-              Total Debit Volume
+              {t("totalDebitVolume")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -38,7 +40,7 @@ export function LedgerKpiCards({
               {formatCurrency(totalDebitVolume)}
             </div>
             <p className="text-slate-400 text-[10px] font-medium mt-1">
-              Sum of active debit transactions
+              {t("debitDesc")}
             </p>
           </CardContent>
         </Card>
@@ -48,7 +50,7 @@ export function LedgerKpiCards({
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <Coins className="size-3.5 text-emerald-500" />
-              Total Credit Volume
+              {t("totalCreditVolume")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -56,7 +58,7 @@ export function LedgerKpiCards({
               {formatCurrency(totalCreditVolume)}
             </div>
             <p className="text-slate-400 text-[10px] font-medium mt-1">
-              Sum of active credit transactions
+              {t("creditDesc")}
             </p>
           </CardContent>
         </Card>
@@ -66,7 +68,7 @@ export function LedgerKpiCards({
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <Scale className="size-3.5 text-blue-500" />
-              Total Ledger Records
+              {t("totalLedgerRecords")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -74,7 +76,7 @@ export function LedgerKpiCards({
               {totalEntries}
             </div>
             <p className="text-slate-400 text-[10px] font-medium mt-1">
-              Double-entry line item counts
+              {t("ledgerDesc")}
             </p>
           </CardContent>
         </Card>
@@ -88,16 +90,16 @@ export function LedgerKpiCards({
               ) : (
                 <ShieldAlert className="size-3.5 text-rose-500" />
               )}
-              Ledger Integrity
+              {t("ledgerIntegrity")}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-start justify-between">
             <div>
               <div className={`text-sm font-bold ${isBalanced ? "text-emerald-700" : "text-rose-700"}`}>
-                {isBalanced ? "System Balanced" : "Balance Mismatch"}
+                {isBalanced ? t("systemBalanced") : t("balanceMismatch")}
               </div>
               <p className="text-slate-400 text-[10px] font-medium mt-1">
-                {isBalanced ? "Σ Debit balances Σ Credit" : "Warning: Discrepancy detected"}
+                {isBalanced ? t("balancedDesc") : t("mismatchDesc")}
               </p>
             </div>
             <Badge
@@ -107,7 +109,7 @@ export function LedgerKpiCards({
                   : "bg-rose-50 text-rose-700 border border-rose-100 hover:bg-rose-50"
               }`}
             >
-              {isBalanced ? "Healthy" : "Critical"}
+              {isBalanced ? t("healthy") : t("critical")}
             </Badge>
           </CardContent>
         </Card>

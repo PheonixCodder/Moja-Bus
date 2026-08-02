@@ -14,6 +14,8 @@ interface SearchDateStripProps {
   to: string;
   fromMuni?: string;
   toMuni?: string;
+  fromQuarter?: string;
+  toQuarter?: string;
   selectedDate: string; // "YYYY-MM-DD"
   onSelectDate: (date: string) => void;
 }
@@ -28,12 +30,12 @@ function todayUTCString(): string {
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
 }
 
-export const SearchDateStrip = memo(function SearchDateStrip({ from, to, fromMuni, toMuni, selectedDate, onSelectDate }: SearchDateStripProps) {
+export const SearchDateStrip = memo(function SearchDateStrip({ from, to, fromMuni, toMuni, fromQuarter, toQuarter, selectedDate, onSelectDate }: SearchDateStripProps) {
   const t = useTranslations("search");
   const effectiveCenter = selectedDate || todayUTCString();
   const hasRoute = !!from && !!to;
 
-  const { data: cheapestData, isLoading } = useCheapestByDate(from, to, effectiveCenter, fromMuni, toMuni);
+  const { data: cheapestData, isLoading } = useCheapestByDate(from, to, effectiveCenter, fromMuni, toMuni, fromQuarter, toQuarter);
 
   // Generate 7 dates centered on effectiveCenter
   const centerDate = parseUTCDate(effectiveCenter);

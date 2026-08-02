@@ -81,7 +81,10 @@ export async function generateTripsForSchedule(
   );
 
   const candidates = getCandidateDepartureDates({
-    departureTime: schedule.departureTime,
+    departureTimes:
+      schedule.departureTimes.length > 0
+        ? schedule.departureTimes
+        : [schedule.departureTime],
     calendar: {
       monday: calendar.monday,
       tuesday: calendar.tuesday,
@@ -155,6 +158,9 @@ export async function generateTripsForSchedule(
                   s.seatType !== "EMPTY_SPACE",
               ).length,
             status: "SCHEDULED",
+            // Phase 1: snapshot the route's service type so search and
+            // tickets can filter/display it without joining geometry
+            serviceType: route.serviceType,
             routeSnapshotJson: {
               ...route,
               scheduleWaypoints: scheduleWaypoints ?? [],

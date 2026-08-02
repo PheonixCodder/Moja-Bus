@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
+import { useTranslations } from "next-intl";
 import { LedgerEntryRow } from "./ledger-columns";
 
 interface LedgerTableProps {
@@ -16,6 +17,7 @@ interface LedgerTableProps {
 }
 
 export function LedgerTable({ table }: LedgerTableProps) {
+  const t = useTranslations("adminDashboard.ledgerTable");
   return (
     <div className="rounded-md border border-border bg-white overflow-hidden shadow-sm">
       <Table>
@@ -59,7 +61,7 @@ export function LedgerTable({ table }: LedgerTableProps) {
                 colSpan={ledgerColumnsLength(table)}
                 className="h-32 text-center text-xs text-slate-400"
               >
-                No ledger entries found matching active filters.
+                {t("noEntries")}
               </TableCell>
             </TableRow>
           )}

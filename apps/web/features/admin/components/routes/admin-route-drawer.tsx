@@ -61,9 +61,16 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
     },
   ] : [];
 
-  const mapTerminals = allStops
+  const mapPoints = allStops
     .map(s => s.terminal)
-    .filter(t => t.latitude && t.longitude);
+    .filter(t => t.latitude != null && t.longitude != null)
+    .map(t => ({
+      id: t.id,
+      name: t.name,
+      cityName: t.cityRelation?.name ?? t.city ?? "Côte d'Ivoire",
+      latitude: t.latitude!,
+      longitude: t.longitude!,
+    }));
 
   return (
     <Drawer
@@ -134,8 +141,8 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
 
           {/* Right: Map Preview */}
           <div className="flex-1 bg-slate-50 relative">
-            {mapTerminals.length > 0 ? (
-              <RouteMapPreview terminals={mapTerminals as any} />
+            {mapPoints.length > 0 ? (
+              <RouteMapPreview points={mapPoints} />
             ) : (
               <MapSkeleton />
             )}

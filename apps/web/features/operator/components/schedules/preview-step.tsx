@@ -14,21 +14,21 @@ export function PreviewStep({
   days,
   validFrom,
   validUntil,
-  departureTime,
+  departureTimes,
   routeName,
   fares,
 }: {
   days: Record<DayKey, boolean>;
   validFrom: string;
   validUntil: string;
-  departureTime: string;
+  departureTimes: string[];
   routeName: string;
   fares: FareDraft[];
 }) {
   const t = useTranslations("operatorDashboard.schedules");
   const validFromDate = parseLocalDate(validFrom) ?? new Date();
   const candidates = getCandidateDepartureDates({
-    departureTime: departureTime || "08:00",
+    departureTimes: departureTimes.length > 0 ? departureTimes : ["08:00"],
     calendar: {
       monday: days.monday,
       tuesday: days.tuesday,
@@ -134,7 +134,7 @@ export function PreviewStep({
                   role="gridcell"
                   aria-label={
                     isTrip
-                      ? `${dateLabel}: ${t("wizard.tripsNext14").toLowerCase()} ${formatTime(departureTime)}`
+                      ? `${dateLabel}: ${t("wizard.tripsNext14").toLowerCase()}`
                       : dateLabel
                   }
                   className={cn(
@@ -159,7 +159,9 @@ export function PreviewStep({
       </div>
 
       <p className="text-[11px] text-muted-foreground">
-        {t("wizard.markerDesc", { time: formatTime(departureTime) })}
+        {t("wizard.markerDesc", {
+          times: departureTimes.map((x) => formatTime(x)).join(", "),
+        })}
       </p>
     </div>
   );

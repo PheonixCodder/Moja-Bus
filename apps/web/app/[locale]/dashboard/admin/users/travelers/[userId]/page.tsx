@@ -17,9 +17,9 @@ export default async function TravelerProfilePage({
     <HydrateClient>
       <DashboardHeader
         breadcrumbs={[
-          { label: "Admin" },
-          { label: "Travelers", href: "/dashboard/admin/users/travelers" },
-          { label: "Profile" },
+          { label: "Admin", tKey: "overview.breadcrumb.admin" },
+          { label: "Travelers", tKey: "nav.travelers", href: "/dashboard/admin/users/travelers" },
+          { label: "Profile", tKey: "overview.breadcrumb.profile" },
         ]}
       />
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

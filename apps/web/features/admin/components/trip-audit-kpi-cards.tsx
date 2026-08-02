@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { Users, Banknote, Clock, TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 function KpiCard({
   label,
@@ -50,6 +51,7 @@ function KpiCard({
 }
 
 export function TripAuditKpiCards({ tripId }: { tripId: string }) {
+  const t = useTranslations("adminDashboard.tripAuditKpiCards");
   const trpc = useTRPC();
   const { data: trip } = useQuery(
     trpc.admin.getTripAudit.queryOptions({ id: tripId })
@@ -74,9 +76,9 @@ export function TripAuditKpiCards({ tripId }: { tripId: string }) {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <KpiCard
-        label="Occupancy"
+        label={t("occupancy")}
         value={`${occupancyPct}%`}
-        sub={`${confirmedBookings.length} / ${trip.totalSeats} seats`}
+        sub={t("occupancySub", { booked: confirmedBookings.length, total: trip.totalSeats })}
         icon={TrendingUp}
         highlight={
           occupancyPct >= 90
@@ -87,30 +89,30 @@ export function TripAuditKpiCards({ tripId }: { tripId: string }) {
         }
       />
       <KpiCard
-        label="Gross Fares"
+        label={t("grossFares")}
         value={`${(grossFare / 1000).toFixed(1)}K XOF`}
-        sub={`${confirmedBookings.length} confirmed tickets`}
+        sub={t("confirmedTickets", { count: confirmedBookings.length })}
         icon={Banknote}
         highlight="success"
       />
       <KpiCard
-        label="Boarding Rate"
+        label={t("boardingRate")}
         value={`${boardingRate}%`}
-        sub={`${boardedCount} boarded`}
+        sub={t("boardedSub", { count: boardedCount })}
         icon={Users}
         highlight={boardingRate < 50 ? "warning" : "success"}
       />
       <KpiCard
-        label="Delay"
+        label={t("delay")}
         value={
           trip.delayMinutes && trip.delayMinutes > 0
-            ? `${trip.delayMinutes} min`
-            : "On Time"
+            ? t("delayValue", { minutes: trip.delayMinutes })
+            : t("onTime")
         }
         sub={
           trip.delayMinutes && trip.delayMinutes > 0
-            ? "Behind schedule"
-            : "No delays reported"
+            ? t("behindSchedule")
+            : t("noDelays")
         }
         icon={Clock}
         highlight={

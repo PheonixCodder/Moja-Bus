@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { formatXOF } from "@/features/operator/lib/currency";
@@ -14,6 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@moja/ui/components/ui/tooltip";
+import type { useTranslations } from "next-intl";
 
 export interface WithdrawalRow {
   id: string;
@@ -28,12 +29,13 @@ export interface WithdrawalRow {
 }
 
 export function createWithdrawalsColumns(
+  t: ReturnType<typeof useTranslations>,
   onResolve: (row: WithdrawalRow) => void
 ): ColumnDef<WithdrawalRow>[] {
   return [
     {
       accessorKey: "companyName",
-      header: "Operator",
+      header: t("companyName"),
       cell: ({ row }) => {
         const companyName = row.getValue("companyName") as string;
         const initial = companyName ? companyName.charAt(0).toUpperCase() : "?";
@@ -59,7 +61,7 @@ export function createWithdrawalsColumns(
     },
     {
       accessorKey: "id",
-      header: "Reference",
+      header: t("reference"),
       cell: ({ row }) => {
         const extId = row.original.externalPaymentId;
         const internalId = row.original.id;
@@ -72,7 +74,7 @@ export function createWithdrawalsColumns(
               </span>
             ) : (
               <span className="text-xs text-text-muted italic">
-                No external ID
+                {t("noExternalId")}
               </span>
             )}
             <span className="font-mono text-[10px] text-text-muted">
@@ -84,7 +86,7 @@ export function createWithdrawalsColumns(
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: t("status"),
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
 
@@ -93,20 +95,20 @@ export function createWithdrawalsColumns(
           case "POSTED":
             return (
               <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
-                Pending
+                {t("pending")}
               </Badge>
             );
           case "SETTLED":
             return (
               <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
-                Settled
+                {t("settled")}
               </Badge>
             );
           case "FAILED":
           case "REVERSED":
             return (
               <Badge variant="outline" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20">
-                {status === "FAILED" ? "Failed" : "Reversed"}
+                {status === "FAILED" ? t("failed") : t("reversed")}
               </Badge>
             );
           default:
@@ -116,7 +118,7 @@ export function createWithdrawalsColumns(
     },
     {
       accessorKey: "createdAt",
-      header: "Date",
+      header: t("date"),
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as Date;
         return (
@@ -133,7 +135,7 @@ export function createWithdrawalsColumns(
     },
     {
       accessorKey: "amount",
-      header: () => <div className="text-right">Amount</div>,
+      header: () => <div className="text-right">{t("amount")}</div>,
       cell: ({ row }) => {
         const amount = parseFloat(row.getValue("amount"));
         return (
@@ -166,10 +168,10 @@ export function createWithdrawalsColumns(
                   }
                 >
                   <ShieldAlert className="size-4 mr-1.5" />
-                  Resolve
+                  {t("resolve")}
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Manually resolve this stuck withdrawal</p>
+                  <p>{t("resolveTooltip")}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

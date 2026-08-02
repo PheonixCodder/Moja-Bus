@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { Globe, Mail, Camera } from "lucide-react";
 
@@ -6,7 +6,7 @@ const serviceLinks = [
   { key: "bookBus", href: "/search" },
   { key: "vipDestinations", href: "/search" },
   { key: "corporateOffers", href: "/contact" },
-  { key: "becomePartner", href: "/dashboard/operator/onboarding" },
+  { key: "becomePartner", href: "/operator/login" },
 ] as const;
 
 const supportLinks = [
@@ -24,10 +24,10 @@ const companyLinks = [
 ] as const;
 
 const socials = [
-  { icon: Globe, href: "#", label: "Website" },
-  { icon: Mail, href: "#", label: "Email" },
-  { icon: Camera, href: "#", label: "Instagram" },
-];
+  { icon: Globe, href: "https://mojaride.com", label: "Website" },
+  { icon: Mail, href: "mailto:support@mojaride.com", label: "Email" },
+  { icon: Camera, href: "https://www.instagram.com/mojaride", label: "Instagram" },
+] as const;
 
 export async function HomeFooter() {
   const t = await getTranslations("footer");
@@ -50,6 +50,8 @@ export async function HomeFooter() {
                   key={label}
                   href={href}
                   aria-label={label}
+                  target={href.startsWith("http") ? "_blank" : undefined}
+                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
                   className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-[#ee237c] hover:bg-[#ee237c] hover:text-white transition-all"
                 >
                   <Icon className="h-4 w-4" />

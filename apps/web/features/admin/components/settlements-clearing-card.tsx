@@ -2,6 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
+import { useTranslations } from "next-intl";
 import {
   Landmark,
   ShieldCheck,
@@ -23,6 +24,7 @@ function formatXOF(amount: number): string {
 }
 
 export function SettlementsClearingCard() {
+  const t = useTranslations("adminDashboard.settlementsClearingCard");
   const trpc = useTRPC();
 
   const { data: treasury } = useSuspenseQuery(
@@ -49,14 +51,13 @@ export function SettlementsClearingCard() {
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Paystack Clearing Account
+                {t("paystackClearingAccount")}
               </p>
               <h2 className="mt-0.5 text-3xl font-bold tracking-tight text-foreground">
                 {formatXOF(posted)}
               </h2>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-sm">
-                Represents all funds collected by Paystack on Moja&apos;s behalf
-                and not yet disbursed to operators.
+                {t("clearingDescription")}
               </p>
             </div>
           </div>
@@ -66,12 +67,12 @@ export function SettlementsClearingCard() {
             {isHealthy ? (
               <Badge className="gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50">
                 <ShieldCheck className="size-3.5" />
-                Ledger Healthy
+                {t("ledgerHealthy")}
               </Badge>
             ) : (
               <Badge className="gap-1.5 border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50">
                 <AlertTriangle className="size-3.5" />
-                Review Required
+                {t("reviewRequired")}
               </Badge>
             )}
           </div>
@@ -85,7 +86,7 @@ export function SettlementsClearingCard() {
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Posted Balance
+                {t("postedBalance")}
               </p>
               <p className="text-sm font-bold text-foreground">
                 {formatXOF(posted)}
@@ -99,7 +100,7 @@ export function SettlementsClearingCard() {
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Platform Revenue
+                {t("platformRevenue")}
               </p>
               <p className="text-sm font-bold text-foreground">
                 {formatXOF(treasury.revenueBalance ?? 0)}
@@ -113,7 +114,7 @@ export function SettlementsClearingCard() {
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Operator Payables
+                {t("operatorPayables")}
               </p>
               <p className="text-sm font-bold text-foreground">
                 {formatXOF(Math.max(0, posted - (treasury.revenueBalance ?? 0)))}

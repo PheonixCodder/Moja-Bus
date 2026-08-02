@@ -2187,8 +2187,8 @@ export const adminRouter = createTRPCRouter({
         where.OR = [
           { name: { contains: input.search, mode: "insensitive" } },
           { company: { name: { contains: input.search, mode: "insensitive" } } },
-          { originTerminal: { city: { contains: input.search, mode: "insensitive" } } },
-          { destTerminal: { city: { contains: input.search, mode: "insensitive" } } },
+          { originTerminal: { cityRelation: { name: { contains: input.search, mode: "insensitive" } } } },
+          { destTerminal: { cityRelation: { name: { contains: input.search, mode: "insensitive" } } } },
         ];
       }
 

@@ -10,6 +10,7 @@ import { Label } from "@moja/ui/components/ui/label";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { CreditCard, Wallet } from "lucide-react";
 import { formatPriceXOF } from "@/features/search/lib/format";
+import { formatLocationLabel } from "@/lib/format-location-label";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
@@ -287,8 +288,8 @@ export function BookingCheckoutForm({
       <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
         <h3 className="text-sm font-bold text-slate-800">Booking summary</h3>
         <p className="text-xs text-slate-600">
-          {tripDetails.companyName} · {tripDetails.originCityName}{tripDetails.originMunicipalityName ? ` (${tripDetails.originMunicipalityName})` : ""} →{" "}
-          {tripDetails.destinationCityName}{tripDetails.destinationMunicipalityName ? ` (${tripDetails.destinationMunicipalityName})` : ""}
+          {tripDetails.companyName} · {formatLocationLabel({ cityName: tripDetails.originCityName, municipalityName: tripDetails.originMunicipalityName, quarterName: tripDetails.originQuarterName, isUrban: tripDetails.serviceType === "URBAN" })} →{" "}
+          {formatLocationLabel({ cityName: tripDetails.destinationCityName, municipalityName: tripDetails.destinationMunicipalityName, quarterName: tripDetails.destinationQuarterName, isUrban: tripDetails.serviceType === "URBAN" })}
         </p>
         <p className="text-xs text-slate-600">
           Seats: {selectedLabels.join(", ")} ({selectedSeatIds.length})

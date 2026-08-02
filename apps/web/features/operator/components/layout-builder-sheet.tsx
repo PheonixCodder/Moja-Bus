@@ -1,7 +1,32 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { Button } from "@moja/ui/components/ui/button";
+import { Checkbox } from "@moja/ui/components/ui/checkbox";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@moja/ui/components/ui/combobox";
+import { Input } from "@moja/ui/components/ui/input";
+import { Label } from "@moja/ui/components/ui/label";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@moja/ui/components/ui/sheet";
+import { Spinner } from "@moja/ui/components/ui/spinner";
+import { cn } from "@moja/ui/lib/utils";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import {
   Armchair,
   ChevronLeft,
@@ -17,38 +42,20 @@ import {
   Wifi,
   X,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@moja/ui/components/ui/sheet";
-import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
-import { Label } from "@moja/ui/components/ui/label";
-import { Spinner } from "@moja/ui/components/ui/spinner";
-import { Checkbox } from "@moja/ui/components/ui/checkbox";
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-} from "@moja/ui/components/ui/combobox";
-import { cn } from "@moja/ui/lib/utils";
-
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SeatType = "PASSENGER_WINDOW" | "PASSENGER_AISLE" | "DRIVER_AREA" | "EMPTY_SPACE";
+type SeatType =
+  | "PASSENGER_WINDOW"
+  | "PASSENGER_AISLE"
+  | "PASSENGER_MIDDLE"
+  | "DRIVER_AREA"
+  | "EMPTY_SPACE";
 type Tool = SeatType | "ERASE";
 
 interface GridCell {
@@ -92,7 +99,8 @@ function buildDefaultGrid(rows: number, cols: number): GridCell[][] {
         isBookable = false;
         label = "";
       } else {
-        seatType = c === 1 || c === cols ? "PASSENGER_WINDOW" : "PASSENGER_AISLE";
+        seatType =
+          c === 1 || c === cols ? "PASSENGER_WINDOW" : "PASSENGER_AISLE";
         isBookable = true;
         label = `${seatCounter++}`;
       }
@@ -112,7 +120,8 @@ function relabelGrid(grid: GridCell[][]): GridCell[][] {
     row.map((cell) => {
       if (
         cell.seatType === "PASSENGER_WINDOW" ||
-        cell.seatType === "PASSENGER_AISLE"
+        cell.seatType === "PASSENGER_AISLE" ||
+        cell.seatType === "PASSENGER_MIDDLE"
       ) {
         return { ...cell, label: `${counter++}`, isBookable: true };
       }
@@ -129,7 +138,9 @@ function countPassengerSeats(grid: GridCell[][]): number {
     .flat()
     .filter(
       (c) =>
-        c.seatType === "PASSENGER_WINDOW" || c.seatType === "PASSENGER_AISLE",
+        c.seatType === "PASSENGER_WINDOW" ||
+        c.seatType === "PASSENGER_AISLE" ||
+        c.seatType === "PASSENGER_MIDDLE",
     ).length;
 }
 
@@ -150,8 +161,16 @@ const TOOL_STYLES: {
   {
     id: "PASSENGER_AISLE",
     Icon: Armchair,
-    cellClass: "bg-card/60 border-border/60 text-foreground/80 hover:border-primary/40",
+    cellClass:
+      "bg-card/60 border-border/60 text-foreground/80 hover:border-primary/40",
     paletteDot: "bg-card/60 border border-border/60",
+  },
+  {
+    id: "PASSENGER_MIDDLE",
+    Icon: Armchair,
+    cellClass:
+      "bg-card/80 border-border/80 text-foreground/90 hover:border-primary/40",
+    paletteDot: "bg-card/80 border border-border/80",
   },
   {
     id: "DRIVER_AREA",
@@ -181,7 +200,9 @@ function getCellConfig(seatType: SeatType) {
 // ── Step Indicator ────────────────────────────────────────────────────────────
 
 function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
-  const t = useTranslations("operatorDashboard.fleet.layoutBuilder.stepIndicator");
+  const t = useTranslations(
+    "operatorDashboard.fleet.layoutBuilder.stepIndicator",
+  );
   const steps = [
     { n: 1, label: t("configure") },
     { n: 2, label: t("design") },
@@ -199,8 +220,8 @@ function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
                 step === n
                   ? "bg-primary text-primary-foreground scale-110 shadow-md shadow-primary/30"
                   : step > n
-                  ? "bg-primary/20 text-primary"
-                  : "bg-muted text-muted-foreground",
+                    ? "bg-primary/20 text-primary"
+                    : "bg-muted text-muted-foreground",
               )}
             >
               {step > n ? "✓" : n}
@@ -237,7 +258,12 @@ interface GridCanvasProps {
   readOnly?: boolean;
 }
 
-function GridCanvas({ grid, activeTool, onPaint, readOnly = false }: GridCanvasProps) {
+function GridCanvas({
+  grid,
+  activeTool,
+  onPaint,
+  readOnly = false,
+}: GridCanvasProps) {
   const t = useTranslations("operatorDashboard.fleet.layoutBuilder.gridCanvas");
   const isPaintingRef = useRef(false);
   const cols = grid[0]?.length ?? 0;
@@ -260,7 +286,9 @@ function GridCanvas({ grid, activeTool, onPaint, readOnly = false }: GridCanvasP
   );
 
   useEffect(() => {
-    const stop = () => { isPaintingRef.current = false; };
+    const stop = () => {
+      isPaintingRef.current = false;
+    };
     window.addEventListener("mouseup", stop);
     return () => window.removeEventListener("mouseup", stop);
   }, []);
@@ -272,7 +300,9 @@ function GridCanvas({ grid, activeTool, onPaint, readOnly = false }: GridCanvasP
   return (
     <div
       className="inline-block rounded-xl border border-border bg-muted/20 p-4 select-none"
-      onMouseLeave={() => { isPaintingRef.current = false; }}
+      onMouseLeave={() => {
+        isPaintingRef.current = false;
+      }}
     >
       {/* Column headers */}
       <div
@@ -351,7 +381,9 @@ export function LayoutBuilderSheet({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const { data: busTypesFetched } = useSuspenseQuery(trpc.fleet.getBusTypes.queryOptions());
+  const { data: busTypesFetched } = useSuspenseQuery(
+    trpc.fleet.getBusTypes.queryOptions(),
+  );
   const busTypes = busTypesProp ?? busTypesFetched;
 
   const createMutation = useMutation(
@@ -393,7 +425,7 @@ export function LayoutBuilderSheet({
       setConfigErrors({});
       createMutation.reset();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // ── Step 1 → 2 ──
@@ -440,7 +472,9 @@ export function LayoutBuilderSheet({
 
     const totalPassenger = seats.filter(
       (s) =>
-        s.seatType === "PASSENGER_WINDOW" || s.seatType === "PASSENGER_AISLE",
+        s.seatType === "PASSENGER_WINDOW" ||
+        s.seatType === "PASSENGER_AISLE" ||
+        s.seatType === "PASSENGER_MIDDLE",
     ).length;
 
     if (totalPassenger === 0) {
@@ -485,7 +519,11 @@ export function LayoutBuilderSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" showCloseButton={false} className="bg-background border-l border-border w-full max-w-full! flex flex-col p-0 gap-0">
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="bg-background border-l border-border w-full max-w-full! flex flex-col p-0 gap-0"
+      >
         {/* ── Header ── */}
         <SheetHeader className="border-b border-border p-4 shrink-0 text-left">
           <div className="flex items-start justify-between gap-4">
@@ -541,7 +579,9 @@ export function LayoutBuilderSheet({
                   onChange={(e) => setName(e.target.value)}
                 />
                 {configErrors["name"] && (
-                  <p className="text-xs text-destructive">{configErrors["name"]}</p>
+                  <p className="text-xs text-destructive">
+                    {configErrors["name"]}
+                  </p>
                 )}
               </div>
 
@@ -556,12 +596,16 @@ export function LayoutBuilderSheet({
                     label: bt.name,
                   }))}
                   value={busTypeId}
-                  onValueChange={(v) => { if (v !== null) setBusTypeId(v); }}
+                  onValueChange={(v) => {
+                    if (v !== null) setBusTypeId(v);
+                  }}
                 >
                   <ComboboxInput
                     placeholder={t("step1.vehicleTypePlaceholder")}
                     className="w-full"
-                    value={busTypes.find((bt) => bt.id === busTypeId)?.name || ""}
+                    value={
+                      busTypes.find((bt) => bt.id === busTypeId)?.name || ""
+                    }
                   />
                   <ComboboxContent>
                     <ComboboxEmpty>{t("step1.noVehicleType")}</ComboboxEmpty>
@@ -582,7 +626,9 @@ export function LayoutBuilderSheet({
                   </ComboboxContent>
                 </Combobox>
                 {configErrors["busTypeId"] && (
-                  <p className="text-xs text-destructive">{configErrors["busTypeId"]}</p>
+                  <p className="text-xs text-destructive">
+                    {configErrors["busTypeId"]}
+                  </p>
                 )}
               </div>
 
@@ -601,12 +647,17 @@ export function LayoutBuilderSheet({
                     value={rows}
                     onChange={(e) =>
                       setRows(
-                        Math.min(20, Math.max(2, parseInt(e.target.value, 10) || 2)),
+                        Math.min(
+                          20,
+                          Math.max(2, parseInt(e.target.value, 10) || 2),
+                        ),
                       )
                     }
                   />
                   {configErrors["rows"] && (
-                    <p className="text-xs text-destructive">{configErrors["rows"]}</p>
+                    <p className="text-xs text-destructive">
+                      {configErrors["rows"]}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-1.5">
@@ -622,12 +673,17 @@ export function LayoutBuilderSheet({
                     value={cols}
                     onChange={(e) =>
                       setCols(
-                        Math.min(6, Math.max(2, parseInt(e.target.value, 10) || 2)),
+                        Math.min(
+                          6,
+                          Math.max(2, parseInt(e.target.value, 10) || 2),
+                        ),
                       )
                     }
                   />
                   {configErrors["cols"] && (
-                    <p className="text-xs text-destructive">{configErrors["cols"]}</p>
+                    <p className="text-xs text-destructive">
+                      {configErrors["cols"]}
+                    </p>
                   )}
                 </div>
               </div>
@@ -639,10 +695,34 @@ export function LayoutBuilderSheet({
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { key: "hasAC", label: t("step1.ac"), Icon: ThermometerSun, val: hasAC, set: setHasAC },
-                    { key: "hasWifi", label: t("step1.wifi"), Icon: Wifi, val: hasWifi, set: setHasWifi },
-                    { key: "hasToilet", label: t("step1.toilet"), Icon: CircleDot, val: hasToilet, set: setHasToilet },
-                    { key: "hasLuggage", label: t("step1.luggage"), Icon: Luggage, val: hasLuggage, set: setHasLuggage },
+                    {
+                      key: "hasAC",
+                      label: t("step1.ac"),
+                      Icon: ThermometerSun,
+                      val: hasAC,
+                      set: setHasAC,
+                    },
+                    {
+                      key: "hasWifi",
+                      label: t("step1.wifi"),
+                      Icon: Wifi,
+                      val: hasWifi,
+                      set: setHasWifi,
+                    },
+                    {
+                      key: "hasToilet",
+                      label: t("step1.toilet"),
+                      Icon: CircleDot,
+                      val: hasToilet,
+                      set: setHasToilet,
+                    },
+                    {
+                      key: "hasLuggage",
+                      label: t("step1.luggage"),
+                      Icon: Luggage,
+                      val: hasLuggage,
+                      set: setHasLuggage,
+                    },
                   ].map(({ key, label, Icon, val, set }) => (
                     <label
                       key={key}
@@ -658,8 +738,18 @@ export function LayoutBuilderSheet({
                         checked={val}
                         onCheckedChange={(v) => set(Boolean(v))}
                       />
-                      <Icon className={cn("size-3.5", val ? "text-primary" : "text-muted-foreground")} />
-                      <span className={cn("text-xs font-medium", val ? "text-primary" : "text-foreground/80")}>
+                      <Icon
+                        className={cn(
+                          "size-3.5",
+                          val ? "text-primary" : "text-muted-foreground",
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          val ? "text-primary" : "text-foreground/80",
+                        )}
+                      >
                         {label}
                       </span>
                     </label>
@@ -699,7 +789,9 @@ export function LayoutBuilderSheet({
                     {t("step2.statsLabel")}
                   </p>
                   <div className="flex items-end justify-between">
-                    <span className="text-xs text-muted-foreground">{t("step2.passengerSeats")}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("step2.passengerSeats")}
+                    </span>
                     <span className="text-xl font-bold text-foreground tabular-nums">
                       {passengerCount}
                     </span>
@@ -730,6 +822,7 @@ export function LayoutBuilderSheet({
                       const toolKeyMap: Record<string, string> = {
                         PASSENGER_WINDOW: "windowSeat",
                         PASSENGER_AISLE: "aisleSeat",
+                        PASSENGER_MIDDLE: "middleSeat",
                         DRIVER_AREA: "driverArea",
                         EMPTY_SPACE: "emptySpace",
                         ERASE: "erase",
@@ -825,7 +918,9 @@ export function LayoutBuilderSheet({
                     <p className="text-xl font-bold text-primary tabular-nums">
                       {passengerCount}
                     </p>
-                    <p className="text-[10px] text-primary/70 font-medium">{t("step3.seats")}</p>
+                    <p className="text-[10px] text-primary/70 font-medium">
+                      {t("step3.seats")}
+                    </p>
                   </div>
                 </div>
 
@@ -852,7 +947,9 @@ export function LayoutBuilderSheet({
                     </span>
                   )}
                   {!hasAC && !hasWifi && !hasToilet && !hasLuggage && (
-                    <span className="text-xs text-muted-foreground">{t("step3.noAmenities")}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("step3.noAmenities")}
+                    </span>
                   )}
                 </div>
               </div>

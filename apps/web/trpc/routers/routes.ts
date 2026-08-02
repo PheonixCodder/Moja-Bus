@@ -98,13 +98,45 @@ export const routesRouter = createTRPCRouter({
           isTerminal: true,
           isActive: true,
         },
-        select: { id: true },
+        select: { id: true, cityId: true },
       });
       if (owned.length !== new Set(terminalIds).size) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "One or more terminals are invalid, inactive, or do not belong to your company.",
         });
+      }
+
+      // Phase 1: classify the route from terminal cityIds (never names).
+      // Every terminal must be geo-complete so the derivation is reliable.
+      const cityByTerminal = new Map(owned.map((t) => [t.id, t.cityId]));
+      const routeTerminals = [...new Set(terminalIds)];
+      const missingCity = routeTerminals.find((id) => !cityByTerminal.get(id));
+      if (missingCity) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "A terminal on this route has no city assigned. Open each terminal in Terminals and assign a city before creating the route.",
+        });
+      }
+      const originCityId = cityByTerminal.get(data.originTerminalId)!;
+      const destCityId = cityByTerminal.get(data.destTerminalId)!;
+      const serviceType =
+        originCityId === destCityId ? "URBAN" : "INTERCITY";
+
+      // Phase 1: an urban route must stay within one city — no waypoint may
+      // belong to a different city than its endpoints.
+      if (serviceType === "URBAN") {
+        const strayWaypoint = data.waypoints.find(
+          (wp) => cityByTerminal.get(wp.terminalId) !== originCityId,
+        );
+        if (strayWaypoint) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "An urban route must keep all stops within the same city. This waypoint belongs to a different city — remove it or use it on an intercity route.",
+          });
+        }
       }
 
       return ctx.prisma.route.create({
@@ -114,6 +146,7 @@ export const routesRouter = createTRPCRouter({
           originTerminalId: data.originTerminalId,
           destTerminalId: data.destTerminalId,
           distanceKm: data.distanceKm ?? null,
+          serviceType,
           status: data.status,
           waypoints: {
             // M13: normalize stopOrder to 1..N (sequential, no gaps). The
@@ -220,12 +253,54 @@ export const routesRouter = createTRPCRouter({
             isTerminal: true,
             isActive: true,
           },
-          select: { id: true },
+          select: { id: true, cityId: true },
         });
         if (owned.length !== new Set(terminalIds).size) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "One or more terminals are invalid, inactive, or do not belong to your company.",
+          });
+        }
+      }
+
+      // Phase 1: re-derive serviceType whenever terminals change. We need the
+      // city of every terminal that participates (changed or not).
+      const geoTerminalIds = [
+        ...new Set([
+          newOrigin,
+          newDest,
+          ...(data.waypoints?.map((wp) => wp.terminalId) ?? []),
+        ]),
+      ];
+      const geoTerminals = await ctx.prisma.companyLocation.findMany({
+        where: { id: { in: geoTerminalIds }, companyId: ctx.companyId },
+        select: { id: true, cityId: true },
+      });
+      const cityByTerminal = new Map(
+        geoTerminals.map((t) => [t.id, t.cityId]),
+      );
+      const missingCity = geoTerminalIds.find((id) => !cityByTerminal.get(id));
+      if (missingCity) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "A terminal on this route has no city assigned. Open each terminal in Terminals and assign a city before updating the route.",
+        });
+      }
+      const originCityId = cityByTerminal.get(newOrigin)!;
+      const destCityId = cityByTerminal.get(newDest)!;
+      const serviceType =
+        originCityId === destCityId ? "URBAN" : "INTERCITY";
+
+      if (serviceType === "URBAN") {
+        const strayWaypoint = data.waypoints?.find(
+          (wp) => cityByTerminal.get(wp.terminalId) !== originCityId,
+        );
+        if (strayWaypoint) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "An urban route must keep all stops within the same city. This waypoint belongs to a different city — remove it or use it on an intercity route.",
           });
         }
       }
@@ -238,6 +313,15 @@ export const routesRouter = createTRPCRouter({
         updateData["destTerminalId"] = data.destTerminalId;
       if (data.distanceKm !== undefined) updateData["distanceKm"] = data.distanceKm;
       if (data.status !== undefined) updateData["status"] = data.status;
+      // Reclassify whenever the endpoints may have changed — also covers the
+      // case where only waypoints changed but classification could shift.
+      if (
+        data.originTerminalId !== undefined ||
+        data.destTerminalId !== undefined ||
+        data.waypoints !== undefined
+      ) {
+        updateData["serviceType"] = serviceType;
+      }
 
       let updatedRoute;
       if (data.waypoints) {

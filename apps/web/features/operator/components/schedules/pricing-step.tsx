@@ -7,6 +7,7 @@ import type {
   FareDraft,
   StopLabel,
 } from "@/features/operator/lib/schedules/types";
+import { formatCityWithMuni } from "@/lib/format-location-label";
 
 export function PricingStep({
   stops,
@@ -155,7 +156,7 @@ export function PricingStep({
                   <p className="text-xs font-semibold text-foreground truncate">
                     {from.name}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">{from.city}</p>
+                  <p className="text-[11px] text-muted-foreground">{formatCityWithMuni(from.city, from.municipality)}</p>
                 </div>
                 <div className="min-w-0 flex items-center gap-1.5">
                   <ArrowRight className="size-3 text-muted-foreground/40 shrink-0" />
@@ -163,7 +164,7 @@ export function PricingStep({
                     <p className="text-xs font-semibold text-foreground truncate">
                       {to.name}
                     </p>
-                    <p className="text-[11px] text-muted-foreground">{to.city}</p>
+                    <p className="text-[11px] text-muted-foreground">{formatCityWithMuni(to.city, to.municipality)}</p>
                   </div>
                 </div>
                 <div className="w-20 flex items-center gap-1">

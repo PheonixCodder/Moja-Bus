@@ -1,4 +1,4 @@
-import type { Amenity } from "./search";
+import type { Amenity, SearchServiceType } from "./search";
 
 export type PassengerSeatStatus =
   | "AVAILABLE"
@@ -15,6 +15,8 @@ export interface TripDetailsStop {
   cityName: string;
   municipalityName: string | null;
   quarterName: string | null;
+  latitude: number | null;
+  longitude: number | null;
   scheduledDeparture: Date | null;
   scheduledArrival: Date | null;
   isPickup: boolean;
@@ -46,6 +48,7 @@ export interface TripDetails {
   durationMinutes: number;
   stopCount: number;
   isExpress: boolean;
+  serviceType: SearchServiceType;
   priceXOF: number;
   busId: string;
   busTypeName: string;
@@ -114,6 +117,14 @@ export interface PassengerBookingSeat {
   ticketToken: string;
 }
 
+export interface PassengerBookingStop {
+  stopOrder: number;
+  terminalName: string;
+  cityName: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
 export interface PassengerBookingSummary {
   groupId: string;
   holdGroupId: string | null;
@@ -130,6 +141,7 @@ export interface PassengerBookingSummary {
   destinationQuarterName: string | null;
   departureTime: Date;
   arrivalTime: Date;
+  serviceType: SearchServiceType;
   passengerName: string;
   passengerPhone: string;
   status: PassengerBookingStatus;
@@ -141,6 +153,7 @@ export interface PassengerBookingSummary {
   offerId: string;
   originCoordinates: [number, number] | null;       // [longitude, latitude]
   destinationCoordinates: [number, number] | null;  // [longitude, latitude]
+  stops: PassengerBookingStop[];
 }
 
 export interface PassengerBookingsListResult {
@@ -161,6 +174,7 @@ export interface OperatorBookingListItem {
   paymentStatus: string;
   checkedInAt: Date | null;
   departureTime: Date;
+  serviceType: SearchServiceType;
   originCityName: string;
   destinationCityName: string;
   originTerminalName: string;
@@ -212,6 +226,7 @@ export interface DigitalTicketDTO {
   destinationQuarterName: string | null;
   departureTime: Date;
   arrivalTime: Date;
+  serviceType: SearchServiceType;
   farePaidXOF: number;
   qrPayload: string;
   status: "CONFIRMED";

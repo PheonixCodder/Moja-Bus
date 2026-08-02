@@ -5,6 +5,7 @@ import { useTRPC } from "@/trpc/client";
 import { format } from "date-fns";
 import { CheckCircle2, MapPin, Clock } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 const STATUS_ORDER = [
   "SCHEDULED",
@@ -20,6 +21,7 @@ function stepDone(current: string, step: string): boolean {
 }
 
 export function TripAuditTimeline({ tripId }: { tripId: string }) {
+  const t = useTranslations("adminDashboard.tripAuditTimeline");
   const trpc = useTRPC();
   const { data: trip } = useQuery(
     trpc.admin.getTripAudit.queryOptions({ id: tripId })
@@ -29,42 +31,44 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
 
   const steps = [
     {
-      label: "Scheduled",
+      label: t("stepScheduled"),
       status: "SCHEDULED",
       time: trip.departureDate
         ? format(new Date(trip.departureDate), "MMM d, h:mm a")
         : null,
-      note: "Planned departure",
+      note: t("plannedDeparture"),
     },
     {
-      label: "Boarding",
+      label: t("stepBoarding"),
       status: "BOARDING",
       time: null,
-      note: "Passengers embarking",
+      note: t("passengersEmbarking"),
     },
     {
-      label: "Departed",
+      label: t("stepDeparted"),
       status: "DEPARTED",
       time: trip.actualDeparture
         ? format(new Date(trip.actualDeparture), "MMM d, h:mm a")
         : null,
-      note: trip.actualDeparture ? "Actual departure" : "Not yet departed",
+      note: trip.actualDeparture ? t("actualDeparture") : t("notYetDeparted"),
     },
     {
-      label: "Arrived",
+      label: t("stepArrived"),
       status: "ARRIVED",
       time: trip.actualArrival
         ? format(new Date(trip.actualArrival), "MMM d, h:mm a")
         : trip.estimatedArrival
         ? format(new Date(trip.estimatedArrival), "MMM d, h:mm a")
         : null,
-      note: trip.actualArrival ? "Actual arrival" : "Estimated arrival",
+      note: trip.actualArrival ? t("actualArrival") : t("estimatedArrival"),
     },
   ];
 
   return (
     <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-      <h3 className="text-sm font-bold text-foreground mb-6">Trip Timeline</h3>
+      <h3 className="text-sm font-bold text-foreground mb-6">
+        {t("tripTimeline")}
+      </h3>
       <div className="relative">
         {/* Connector line */}
         <div className="absolute left-4 top-5 bottom-5 w-px bg-border" />
@@ -127,7 +131,7 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
       {trip.tripStops.length > 0 && (
         <div className="mt-6 pt-6 border-t border-border">
           <h4 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-4">
-            Stop Sequence
+            {t("stopSequence")}
           </h4>
           <div className="space-y-3">
             {trip.tripStops.map((stop, idx) => (
@@ -142,18 +146,18 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
                   <div className="flex flex-wrap gap-3 mt-0.5">
                     {stop.scheduledArrival && (
                       <span className="text-xs text-muted-foreground">
-                        Arr: {format(new Date(stop.scheduledArrival), "h:mm a")}
+                        {t("arrLabel")}: {format(new Date(stop.scheduledArrival), "h:mm a")}
                       </span>
                     )}
                     {stop.scheduledDeparture && (
                       <span className="text-xs text-muted-foreground">
-                        Dep:{" "}
+                        {t("depLabel")}:{" "}
                         {format(new Date(stop.scheduledDeparture), "h:mm a")}
                       </span>
                     )}
                     {stop.actualArrival && (
                       <span className="text-xs font-medium text-emerald-600">
-                        Actual Arr:{" "}
+                        {t("actualArrLabel")}:{" "}
                         {format(new Date(stop.actualArrival), "h:mm a")}
                       </span>
                     )}

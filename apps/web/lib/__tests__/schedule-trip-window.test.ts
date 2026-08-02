@@ -19,7 +19,7 @@ describe("getCandidateDepartureDates", () => {
     // Wednesday 2026-07-15
     const now = new Date("2026-07-15T10:00:00.000Z");
     const candidates = getCandidateDepartureDates({
-      departureTime: "08:00",
+      departureTimes: ["08:00"],
       calendar: {
         ...baseCalendar,
         // validFrom far in the future — none in next 14 days
@@ -34,7 +34,7 @@ describe("getCandidateDepartureDates", () => {
   it("respects validUntil", () => {
     const now = new Date("2026-07-15T10:00:00.000Z");
     const candidates = getCandidateDepartureDates({
-      departureTime: "08:00",
+      departureTimes: ["08:00"],
       calendar: {
         ...baseCalendar,
         validFrom: new Date("2026-07-01T00:00:00.000Z"),
@@ -50,7 +50,7 @@ describe("getCandidateDepartureDates", () => {
   it("skips CANCELLED exceptions", () => {
     const now = new Date("2026-07-15T10:00:00.000Z");
     const candidates = getCandidateDepartureDates({
-      departureTime: "08:00",
+      departureTimes: ["08:00"],
       calendar: baseCalendar,
       exceptions: [
         {
@@ -67,7 +67,7 @@ describe("getCandidateDepartureDates", () => {
   it("forces EXTRA_SERVICE on a non-operating day", () => {
     const now = new Date("2026-07-18T10:00:00.000Z"); // Saturday
     const candidates = getCandidateDepartureDates({
-      departureTime: "09:30",
+      departureTimes: ["09:30"],
       calendar: baseCalendar,
       exceptions: [
         {
@@ -86,7 +86,7 @@ describe("getCandidateDepartureDates", () => {
   it("applies MODIFIED overrideDepartureTime", () => {
     const now = new Date("2026-07-15T10:00:00.000Z");
     const candidates = getCandidateDepartureDates({
-      departureTime: "08:00",
+      departureTimes: ["08:00"],
       calendar: baseCalendar,
       exceptions: [
         {
@@ -101,5 +101,43 @@ describe("getCandidateDepartureDates", () => {
     assert.equal(candidates.length, 1);
     assert.equal(candidates[0]!.hours, 14);
     assert.equal(candidates[0]!.minutes, 45);
+  });
+
+  it("yields one candidate per departure time per operating day (cadence)", () => {
+    const now = new Date("2026-07-15T10:00:00.000Z"); // Wednesday
+    const candidates = getCandidateDepartureDates({
+      departureTimes: ["06:30", "08:00", "17:45"],
+      calendar: baseCalendar,
+      daysCount: 1,
+      now,
+    });
+    assert.equal(candidates.length, 3);
+    assert.deepEqual(
+      candidates.map(
+        (c) =>
+          `${String(c.hours).padStart(2, "0")}:${String(c.minutes).padStart(2, "0")}`,
+      ),
+      ["06:30", "08:00", "17:45"],
+    );
+  });
+
+  it("MODIFIED override replaces the whole day cadence with a single time", () => {
+    const now = new Date("2026-07-15T10:00:00.000Z"); // Wednesday
+    const candidates = getCandidateDepartureDates({
+      departureTimes: ["06:30", "08:00", "17:45"],
+      calendar: baseCalendar,
+      exceptions: [
+        {
+          date: new Date("2026-07-15T00:00:00.000Z"),
+          type: "MODIFIED",
+          overrideDepartureTime: "14:00",
+        },
+      ],
+      daysCount: 1,
+      now,
+    });
+    assert.equal(candidates.length, 1);
+    assert.equal(candidates[0]!.hours, 14);
+    assert.equal(candidates[0]!.minutes, 0);
   });
 });

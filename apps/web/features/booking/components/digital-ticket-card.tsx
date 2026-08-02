@@ -6,6 +6,8 @@ import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/forma
 import type { DigitalTicketDTO } from "@moja/types";
 import { Calendar, User, Armchair, Ticket } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { UrbanBadge } from "@/components/urban-badge";
+import { formatLocationLabel } from "@/lib/format-location-label";
 
 interface DigitalTicketCardProps {
   ticket: DigitalTicketDTO;
@@ -43,9 +45,10 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
               <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1 rounded-full">
                 {ticket.companyName}
               </span>
+              {ticket.serviceType === "URBAN" && <UrbanBadge />}
             </div>
             <h3 className="text-xl font-extrabold text-slate-900 tracking-tight font-display">
-              {ticket.originCityName}{ticket.originMunicipalityName ? ` (${ticket.originMunicipalityName})` : ""} <span className="text-slate-300 mx-1">→</span> {ticket.destinationCityName}{ticket.destinationMunicipalityName ? ` (${ticket.destinationMunicipalityName})` : ""}
+              {formatLocationLabel({ cityName: ticket.originCityName, municipalityName: ticket.originMunicipalityName, quarterName: ticket.originQuarterName, isUrban: ticket.serviceType === "URBAN" })} <span className="text-slate-300 mx-1">→</span> {formatLocationLabel({ cityName: ticket.destinationCityName, municipalityName: ticket.destinationMunicipalityName, quarterName: ticket.destinationQuarterName, isUrban: ticket.serviceType === "URBAN" })}
             </h3>
             <p className="text-sm text-slate-500 mt-1 font-medium">
               {ticket.originTerminalName}{ticket.originQuarterName ? ` · ${ticket.originQuarterName}` : ""} <span className="mx-1 opacity-50">→</span> {ticket.destinationTerminalName}{ticket.destinationQuarterName ? ` · ${ticket.destinationQuarterName}` : ""}

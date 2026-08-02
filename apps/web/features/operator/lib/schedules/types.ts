@@ -12,6 +12,7 @@ export type StopLabel = {
   order: number;
   name: string;
   city: string;
+  municipality: string;
 };
 
 export type FareDraft = {
@@ -37,7 +38,8 @@ export type CalendarConfig = {
     saturday: boolean;
     sunday: boolean;
   };
-  departureTime: string;
+  /** Full cadence: every departure time (HH:mm) the schedule runs. */
+  departureTimes: string[];
   validFrom: string;
   validUntil: string;
   preferredBusId: string;
@@ -54,6 +56,7 @@ export function buildStopsFromRoute(route: RouteDetail): StopLabel[] {
       route.originTerminal?.cityRelation?.name ??
       route.originTerminal?.city ??
       "",
+    municipality: route.originTerminal?.municipality?.name ?? "",
   };
 
   const intermediate = (route.waypoints ?? [])
@@ -63,6 +66,7 @@ export function buildStopsFromRoute(route: RouteDetail): StopLabel[] {
       order: w.stopOrder,
       name: w.terminal?.name ?? "Stop",
       city: w.terminal?.cityRelation?.name ?? w.terminal?.city ?? "",
+      municipality: w.terminal?.municipality?.name ?? "",
     }));
 
   const lastWp =
@@ -74,6 +78,7 @@ export function buildStopsFromRoute(route: RouteDetail): StopLabel[] {
     name: route.destTerminal?.name ?? "Destination",
     city:
       route.destTerminal?.cityRelation?.name ?? route.destTerminal?.city ?? "",
+    municipality: route.destTerminal?.municipality?.name ?? "",
   };
 
   return [origin, ...intermediate, destination];
@@ -100,7 +105,7 @@ export const defaultCalendarConfig = (): CalendarConfig => ({
     saturday: false,
     sunday: false,
   },
-  departureTime: "08:00",
+  departureTimes: ["08:00"],
   // M26: derive the default from the Abidjan app calendar day, not UTC
   // `toISOString()`, so operators outside West Africa don't get yesterday's
   // date as the schedule's valid-from default.

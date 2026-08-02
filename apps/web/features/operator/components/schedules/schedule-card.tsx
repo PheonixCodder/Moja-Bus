@@ -14,11 +14,24 @@ import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { UrbanBadge } from "@/components/urban-badge";
+import { formatCityWithMuni } from "@/lib/format-location-label";
 import {
   DAYS,
   formatTime,
 } from "@/features/operator/lib/schedules/schedule-search-params";
 import type { ScheduleListItem } from "@/features/operator/lib/schedules/types";
+
+/** "06:00 AM · 07:30 AM · 09:00 AM (+2)" — up to 3 times, then a count. */
+function formatTimes(schedule: ScheduleListItem): string {
+  const times =
+    schedule.departureTimes?.length > 0
+      ? schedule.departureTimes
+      : [schedule.departureTime];
+  const shown = times.slice(0, 3).map(formatTime).join(" · ");
+  const extra = times.length - 3;
+  return extra > 0 ? `${shown} (+${extra})` : shown;
+}
 
 export function ScheduleCard({
   schedule,
@@ -51,18 +64,27 @@ export function ScheduleCard({
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-sm font-bold text-foreground truncate">
-              {schedule.name ?? schedule.route?.name ?? t("unnamed")}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-bold text-foreground truncate">
+                {schedule.name ?? schedule.route?.name ?? t("unnamed")}
+              </p>
+              {schedule.route?.serviceType === "URBAN" && <UrbanBadge />}
+            </div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-xs text-muted-foreground">
-                {schedule.route?.originTerminal?.cityRelation?.name ??
-                  schedule.route?.originTerminal?.city}
+                {formatCityWithMuni(
+                  schedule.route?.originTerminal?.cityRelation?.name ??
+                    schedule.route?.originTerminal?.city,
+                  schedule.route?.originTerminal?.municipality?.name,
+                )}
               </span>
               <ArrowRight className="size-3 text-muted-foreground/40" />
               <span className="text-xs text-muted-foreground">
-                {schedule.route?.destTerminal?.cityRelation?.name ??
-                  schedule.route?.destTerminal?.city}
+                {formatCityWithMuni(
+                  schedule.route?.destTerminal?.cityRelation?.name ??
+                    schedule.route?.destTerminal?.city,
+                  schedule.route?.destTerminal?.municipality?.name,
+                )}
               </span>
             </div>
           </div>
@@ -82,7 +104,7 @@ export function ScheduleCard({
           <div className="flex items-center gap-1.5">
             <Clock className="size-3 text-muted-foreground/60" />
             <span className="text-[11px] font-semibold text-foreground">
-              {formatTime(schedule.departureTime)}
+              {formatTimes(schedule)}
             </span>
           </div>
           {activeDays.length > 0 && (

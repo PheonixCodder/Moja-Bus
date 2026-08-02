@@ -3,6 +3,7 @@
 
 import type { MouseEvent } from "react";
 import { flexRender, type Table as TableType } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 import {
   Pagination,
@@ -33,6 +34,7 @@ function getPageNumbers(currentPage: number, pageCount: number) {
 }
 
 export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
+  const t = useTranslations("adminDashboard.travelersTable");
   const pageCount = Math.max(table.getPageCount(), 1);
   const currentPage = Math.min(table.getState().pagination.pageIndex + 1, pageCount);
   const pageNumbers = getPageNumbers(currentPage, pageCount);
@@ -72,7 +74,7 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
             ) : (
               <TableRow>
                 <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-24 text-center">
-                  No travelers found.
+                  {t("noTravelersFound")}
                 </TableCell>
               </TableRow>
             )}
@@ -85,7 +87,7 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
       <div className="flex items-center justify-between px-4 pb-4">
         <div className="flex items-center gap-4 text-muted-foreground text-sm">
           <div className="flex items-center gap-2">
-            <span>Rows per page</span>
+            <span>{t("rowsPerPage")}</span>
             <Select
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => table.setPageSize(Number(value))}
@@ -105,7 +107,7 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
             </Select>
           </div>
           <span>
-            Page {currentPage} of {pageCount}
+            {t("pageInfo", { current: currentPage, total: pageCount })}
           </span>
         </div>
 

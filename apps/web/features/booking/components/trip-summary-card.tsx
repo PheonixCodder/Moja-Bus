@@ -1,14 +1,35 @@
+"use client";
+
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { Bus } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Bus, Map as MapIcon, MapPinned } from "lucide-react";
 import { Badge } from "@moja/ui/components/ui/badge";
-import type { Amenity } from "@moja/types";
+import { cn } from "@moja/ui/lib/utils";
+import type { Amenity, SearchServiceType } from "@moja/types";
 import {
   formatDepartureTime,
   formatPriceXOF,
   formatTripDuration,
 } from "@/features/search/lib/format";
 import { AmenityChips } from "../lib/amenities";
+import { UrbanBadge } from "@/components/urban-badge";
+import { formatLocationLabel } from "@/lib/format-location-label";
+import type { RouteMapPoint } from "@/features/operator/components/route-map-preview";
+
+const RouteMapPreview = dynamic(
+  () => import("@/features/operator/components/route-map-preview"),
+  { ssr: false, loading: () => <MapLoadingSkeleton /> },
+);
+
+function MapLoadingSkeleton() {
+  return (
+    <div className="flex h-56 w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 animate-pulse">
+      <MapIcon className="size-6 text-slate-300" />
+    </div>
+  );
+}
 
 export interface TripSummaryData {
   companyName: string;
@@ -27,6 +48,7 @@ export interface TripSummaryData {
   durationMinutes: number;
   stopCount: number;
   isExpress: boolean;
+  serviceType: SearchServiceType;
   priceXOF: number;
   amenities: Amenity[];
   availability: {
@@ -38,7 +60,13 @@ export interface TripSummaryData {
     terminalName: string;
     cityName: string;
     municipalityName?: string | null;
+    quarterName?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    scheduledArrival: Date | null;
     scheduledDeparture: Date | null;
+    isPickup: boolean;
+    isDropoff: boolean;
   }>;
 }
 
@@ -76,6 +104,176 @@ function AvailabilityBadge({
   );
 }
 
+function StopTag({
+  tone,
+  children,
+}: {
+  tone: "emerald" | "blue" | "slate";
+  children: ReactNode;
+}) {
+  const styles = {
+    emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    blue: "bg-blue-50 text-blue-700 border-blue-200",
+    slate: "bg-slate-100 text-slate-600 border-slate-200",
+  } as const;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-1.5 py-px text-[9px] font-semibold",
+        styles[tone],
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+function StopsTimeline({
+  stops,
+  serviceType,
+}: {
+  stops: NonNullable<TripSummaryData["stops"]>;
+  serviceType: SearchServiceType;
+}) {
+  const t = useTranslations("booking.tripSummary");
+
+  return (
+    <ol>
+      {stops.map((stop, index) => {
+        const isFirst = index === 0;
+        const isLast = index === stops.length - 1;
+        const hasArrival = !isFirst && stop.scheduledArrival !== null;
+        const hasDeparture = !isLast && stop.scheduledDeparture !== null;
+        const nextStop = stops[index + 1];
+        const legMinutes =
+          !isLast && stop.scheduledDeparture && nextStop?.scheduledArrival
+            ? Math.round(
+                (nextStop.scheduledArrival.getTime() -
+                  stop.scheduledDeparture.getTime()) /
+                  60000,
+              )
+            : null;
+
+        const showTimesPair = hasArrival && hasDeparture;
+        const dotClasses = isFirst
+          ? "bg-[#ee237c] border-[#ee237c]"
+          : isLast
+            ? "bg-slate-700 border-slate-700"
+            : "bg-white border-slate-300";
+
+        return (
+          <li key={stop.id} className="flex gap-3">
+            <div className="flex w-16 shrink-0 flex-col items-end text-right leading-4">
+              {hasArrival && (
+                <span className="text-[10px] text-slate-400">
+                  <span className="font-semibold">{t("arrLabel")}</span>{" "}
+                  {formatDepartureTime(stop.scheduledArrival!)}
+                </span>
+              )}
+              {hasDeparture && (
+                <span className="text-[10px] font-bold text-slate-700">
+                  <span className="font-semibold text-slate-400">{t("depLabel")}</span>{" "}
+                  {formatDepartureTime(stop.scheduledDeparture!)}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col items-center">
+              {showTimesPair && <div className="h-4" />}
+              <div
+                className={cn(
+                  "mt-0.5 h-3 w-3 shrink-0 rounded-full border-2",
+                  dotClasses,
+                )}
+              />
+              {!isLast && (
+                <div className="relative w-px flex-1 bg-slate-200">
+                  {legMinutes !== null && (
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 whitespace-nowrap bg-white px-1 text-[9px] font-semibold text-slate-400">
+                      {t("legDuration", { time: formatTripDuration(legMinutes) })}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1 pb-5">
+              <div className="flex items-center gap-1.5">
+                <p className="truncate text-xs font-bold text-slate-700">
+                  {stop.terminalName}
+                </p>
+                {isFirst && (
+                  <StopTag tone="emerald">{t("boarding")}</StopTag>
+                )}
+                {isLast && <StopTag tone="slate">{t("alight")}</StopTag>}
+                {!isFirst && !isLast && stop.isPickup && (
+                  <StopTag tone="emerald">{t("pickup")}</StopTag>
+                )}
+                {!isFirst && !isLast && stop.isDropoff && (
+                  <StopTag tone="blue">{t("dropoff")}</StopTag>
+                )}
+              </div>
+              <p className="truncate text-[10px] font-semibold text-slate-400">
+                {formatLocationLabel({
+                  cityName: stop.cityName,
+                  municipalityName: stop.municipalityName,
+                  quarterName: stop.quarterName,
+                  isUrban: serviceType === "URBAN",
+                })}
+              </p>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function StopsMap({
+  stops,
+}: {
+  stops: NonNullable<TripSummaryData["stops"]>;
+}) {
+  const t = useTranslations("booking.tripSummary");
+  const [showMap, setShowMap] = useState(false);
+
+  const points: RouteMapPoint[] = stops
+    .filter(
+      (s) =>
+        typeof s.latitude === "number" && typeof s.longitude === "number",
+    )
+    .map((s) => ({
+      id: s.id,
+      name: s.terminalName,
+      cityName: s.cityName,
+      latitude: s.latitude!,
+      longitude: s.longitude!,
+    }));
+
+  if (points.length < 2) return null;
+
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        onClick={() => setShowMap((v) => !v)}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
+      >
+        <MapPinned className="size-3.5 text-[#ee237c]" />
+        {showMap ? t("hideRouteMap") : t("showRouteMap")}
+      </button>
+
+      {showMap && (
+        <div className="mt-2 overflow-hidden rounded-xl border border-slate-200">
+          <div className="h-56">
+            <RouteMapPreview points={points} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TripSummaryCard({
   trip,
   seatCount = 1,
@@ -105,6 +303,7 @@ export function TripSummaryCard({
             <div>
               <h2 className="font-bold text-slate-800 flex items-center gap-2 leading-tight text-lg">
                 {trip.companyName}
+                {trip.serviceType === "URBAN" && <UrbanBadge />}
                 {trip.isExpress && (
                   <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-semibold py-0">
                     {t("express")}
@@ -115,7 +314,7 @@ export function TripSummaryCard({
                 {trip.busTypeName}
               </p>
               <p className="text-xs text-slate-500 mt-0.5">
-                {trip.originCityName}{trip.originMunicipalityName ? ` (${trip.originMunicipalityName})` : ""} → {trip.destinationCityName}{trip.destinationMunicipalityName ? ` (${trip.destinationMunicipalityName})` : ""}
+                {formatLocationLabel({ cityName: trip.originCityName, municipalityName: trip.originMunicipalityName, quarterName: trip.originQuarterName, isUrban: trip.serviceType === "URBAN" })} → {formatLocationLabel({ cityName: trip.destinationCityName, municipalityName: trip.destinationMunicipalityName, quarterName: trip.destinationQuarterName, isUrban: trip.serviceType === "URBAN" })}
               </p>
             </div>
           </div>
@@ -129,7 +328,7 @@ export function TripSummaryCard({
                 {trip.originTerminalName}
               </p>
               <span className="text-[10px] font-semibold text-slate-400">
-                {trip.originCityName}{trip.originMunicipalityName ? ` (${trip.originMunicipalityName})` : ""}
+                {formatLocationLabel({ cityName: trip.originCityName, municipalityName: trip.originMunicipalityName, quarterName: trip.originQuarterName, isUrban: trip.serviceType === "URBAN" })}
               </span>
             </div>
 
@@ -157,7 +356,7 @@ export function TripSummaryCard({
                 {trip.destinationTerminalName}
               </p>
               <span className="text-[10px] font-semibold text-slate-400">
-                {trip.destinationCityName}{trip.destinationMunicipalityName ? ` (${trip.destinationMunicipalityName})` : ""}
+                {formatLocationLabel({ cityName: trip.destinationCityName, municipalityName: trip.destinationMunicipalityName, quarterName: trip.destinationQuarterName, isUrban: trip.serviceType === "URBAN" })}
               </span>
             </div>
           </div>
@@ -191,19 +390,11 @@ export function TripSummaryCard({
 
       {showStops && trip.stops && trip.stops.length > 2 && (
         <div className="pt-4 border-t border-slate-100">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
             {t("stopsOnSegment")}
           </p>
-          <ol className="text-xs text-slate-600 space-y-1">
-            {trip.stops.map((stop) => (
-              <li key={stop.id}>
-                {stop.terminalName} ({stop.cityName}{stop.municipalityName ? ` · ${stop.municipalityName}` : ""})
-                {stop.scheduledDeparture
-                  ? ` — ${t("departing", { time: formatDepartureTime(stop.scheduledDeparture) })}`
-                  : ""}
-              </li>
-            ))}
-          </ol>
+          <StopsTimeline stops={trip.stops} serviceType={trip.serviceType} />
+          <StopsMap stops={trip.stops} />
         </div>
       )}
     </div>

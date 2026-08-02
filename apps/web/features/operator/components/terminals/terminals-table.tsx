@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@moja/ui/components/ui/dialog";
+import { formatCityWithMuni } from "@/lib/format-location-label";
 
 interface TerminalsTableProps {
   locations: any[];
@@ -88,7 +89,7 @@ export function TerminalsTable({
                 </div>
               </td>
               <td className="px-4 py-3.5 text-xs text-muted-foreground">
-                <div>{loc.cityRelation?.name ?? loc.city ?? tc("noData")}</div>
+                <div>{formatCityWithMuni(loc.cityRelation?.name ?? loc.city, loc.municipality?.name) || tc("noData")}</div>
                 <div className="text-[11px] text-muted-foreground/70 truncate max-w-[200px]">
                   {loc.addressLine1}
                 </div>

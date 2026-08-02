@@ -13,6 +13,7 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { useTRPC } from "@/trpc/client";
 import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-card";
+import { formatLocationLabel } from "@/lib/format-location-label";
 import {
   Sheet,
   SheetContent,
@@ -294,7 +295,7 @@ export function PassengerTicketsView() {
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col flex-1 truncate">
                       <span className="text-xl font-extrabold text-text-primary tracking-tight truncate">
-                        {booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}
+                        {formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}
                       </span>
                       <span className="text-xs text-text-secondary truncate mt-0.5">
                         {booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}
@@ -303,7 +304,7 @@ export function PassengerTicketsView() {
                     <ArrowRight className="size-4 text-primary shrink-0 opacity-50" />
                     <div className="flex flex-col flex-1 truncate text-right">
                       <span className="text-xl font-extrabold text-text-primary tracking-tight truncate">
-                        {booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}
+                        {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
                       </span>
                       <span className="text-xs text-text-secondary truncate mt-0.5">
                         {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}

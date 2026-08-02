@@ -33,6 +33,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 destinationCityId: params.to,
                 originMunicipalityId: params.fromMuni || undefined,
                 destinationMunicipalityId: params.toMuni || undefined,
+                originQuarterId: params.fromQuarter || undefined,
+                destinationQuarterId: params.toQuarter || undefined,
                 date: params.date,
                 passengers: params.passengers,
                 operators: params.operators?.length ? params.operators : undefined,
@@ -50,6 +52,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 destinationCityId: params.to,
                 originMunicipalityId: params.fromMuni || undefined,
                 destinationMunicipalityId: params.toMuni || undefined,
+                originQuarterId: params.fromQuarter || undefined,
+                destinationQuarterId: params.toQuarter || undefined,
                 centerDate: params.date,
             }),
         );

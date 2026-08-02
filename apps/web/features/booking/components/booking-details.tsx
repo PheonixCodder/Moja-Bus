@@ -32,6 +32,7 @@ import { Textarea } from "@moja/ui/components/ui/textarea";
 import { useTRPC } from "@/trpc/client";
 import { useHoldCountdown, isHoldActive } from "@/features/booking/lib/hold-countdown";
 import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "@/features/search/lib/format";
+import { formatLocationLabel } from "@/lib/format-location-label";
 import type { PassengerBookingSummary } from "@moja/types";
 import dynamic from "next/dynamic";
 import { Map as MapIcon } from "lucide-react";
@@ -174,12 +175,12 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl border bg-muted/30 p-3 text-sm">
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("from")}</span>
-              <span className="font-semibold">{booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}</span>
+              <span className="font-semibold">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
               <span className="text-xs text-muted-foreground">{booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("to")}</span>
-              <span className="font-semibold">{booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}</span>
+              <span className="font-semibold">{formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
               <span className="text-xs text-muted-foreground">{booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}</span>
             </div>
             <div className="flex flex-col gap-1">

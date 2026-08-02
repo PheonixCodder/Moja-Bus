@@ -48,6 +48,7 @@ import type {
   ScheduleDetail,
 } from "@/features/operator/lib/schedules/types";
 import { buildStopsFromRoute } from "@/features/operator/lib/schedules/types";
+import { DepartureTimesEditor } from "./departure-times-editor";
 
 export function ScheduleEditDrawer({
   open,
@@ -70,7 +71,9 @@ export function ScheduleEditDrawer({
   const tc = useTranslations("common");
 
   const [editName, setEditName] = useState("");
-  const [editDepartureTime, setEditDepartureTime] = useState("");
+  const [editDepartureTimes, setEditDepartureTimes] = useState<string[]>([
+    "08:00",
+  ]);
   const [editIsActive, setEditIsActive] = useState(true);
   const [editPreferredBusId, setEditPreferredBusId] = useState("");
   const [editCalConfig, setEditCalConfig] = useState<CalendarConfig | null>(
@@ -98,7 +101,11 @@ export function ScheduleEditDrawer({
   useEffect(() => {
     if (!schedule || !open) return;
     setEditName(schedule.name ?? "");
-    setEditDepartureTime(schedule.departureTime);
+    setEditDepartureTimes(
+      schedule.departureTimes.length > 0
+        ? schedule.departureTimes
+        : [schedule.departureTime],
+    );
     setEditIsActive(schedule.isActive);
     setEditPreferredBusId(schedule.preferredBusId ?? "");
     const cal = schedule.calendar;
@@ -112,7 +119,10 @@ export function ScheduleEditDrawer({
         saturday: cal?.saturday ?? false,
         sunday: cal?.sunday ?? false,
       },
-      departureTime: schedule.departureTime,
+      departureTimes:
+        schedule.departureTimes.length > 0
+          ? schedule.departureTimes
+          : [schedule.departureTime],
       validFrom: cal?.validFrom
         ? new Date(cal.validFrom).toISOString().slice(0, 10)
         : "",
@@ -127,7 +137,10 @@ export function ScheduleEditDrawer({
     setApplyForward(false);
     baselineRef.current = JSON.stringify({
       name: schedule.name ?? "",
-      departureTime: schedule.departureTime,
+      departureTimes:
+        schedule.departureTimes.length > 0
+          ? schedule.departureTimes
+          : [schedule.departureTime],
       isActive: schedule.isActive,
       preferredBusId: schedule.preferredBusId ?? "",
       days: cfg.days,
@@ -159,7 +172,7 @@ export function ScheduleEditDrawer({
     if (!editCalConfig) return false;
     const current = JSON.stringify({
       name: editName,
-      departureTime: editDepartureTime,
+      departureTimes: editDepartureTimes,
       isActive: editIsActive,
       preferredBusId: editPreferredBusId,
       days: editCalConfig.days,
@@ -230,7 +243,7 @@ export function ScheduleEditDrawer({
         id: schedule.id,
         data: {
           name: editName.trim() || null,
-          departureTime: editDepartureTime,
+          departureTimes: editDepartureTimes,
           isActive: editIsActive,
           preferredBusId: editPreferredBusId || null,
         },
@@ -390,14 +403,10 @@ export function ScheduleEditDrawer({
                   className="h-9 text-xs shadow-none border-border"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-time" className="text-xs font-semibold">
-                  {t("editDrawer.departureTime")} *
-                </Label>
-                <TimePicker
-                  value={editDepartureTime}
-                  onChange={(newTime) => setEditDepartureTime(newTime)}
-                  className="h-9 text-xs"
+              <div className="space-y-1.5 sm:col-span-2">
+                <DepartureTimesEditor
+                  times={editDepartureTimes}
+                  onChange={setEditDepartureTimes}
                 />
               </div>
             </div>

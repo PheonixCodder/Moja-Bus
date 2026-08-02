@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryState, parseAsInteger } from "nuqs";
 import { useTRPC } from "@/trpc/client";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import {
   History,
   CheckCircle2,
@@ -38,12 +39,13 @@ function formatXOF(amount: number): string {
 const PAGE_SIZE = 20;
 
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("adminDashboard.settlementsHistoryTable");
   switch (status) {
     case "SETTLED":
       return (
         <Badge className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
           <CheckCircle2 className="size-3" />
-          Settled
+          {t("settled")}
         </Badge>
       );
     case "FAILED":
@@ -51,20 +53,21 @@ function StatusBadge({ status }: { status: string }) {
       return (
         <Badge className="gap-1 border-red-200 bg-red-50 text-red-700 hover:bg-red-50">
           <XCircle className="size-3" />
-          {status === "REVERSED" ? "Reversed" : "Failed"}
+          {status === "REVERSED" ? t("reversed") : t("failed")}
         </Badge>
       );
     default:
       return (
         <Badge className="gap-1 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50">
           <Clock className="size-3" />
-          Pending
+          {t("pending")}
         </Badge>
       );
   }
 }
 
 export function SettlementsHistoryTable() {
+  const t = useTranslations("adminDashboard.settlementsHistoryTable");
   const trpc = useTRPC();
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const offset = (page - 1) * PAGE_SIZE;
@@ -89,10 +92,10 @@ export function SettlementsHistoryTable() {
             </div>
             <div>
               <CardTitle className="text-base font-semibold text-foreground">
-                Settlement History
+                {t("settlementHistory")}
               </CardTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {total} total manual settlements recorded
+                {t("totalSettlements", { count: total })}
               </p>
             </div>
           </div>
@@ -105,9 +108,9 @@ export function SettlementsHistoryTable() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <FileText className="size-5 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium text-foreground">No settlements recorded yet</p>
+            <p className="text-sm font-medium text-foreground">{t("noSettlementsYet")}</p>
             <p className="max-w-xs text-xs text-muted-foreground">
-              Manual offline settlements will appear here once recorded using the form above.
+              {t("noSettlementsDescription")}
             </p>
           </div>
         ) : (
@@ -116,22 +119,22 @@ export function SettlementsHistoryTable() {
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent">
                   <TableHead className="px-6 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Date
+                    {t("date")}
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Operator
+                    {t("operator")}
                   </TableHead>
                   <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Amount
+                    {t("amount")}
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Reference Note
+                    {t("referenceNote")}
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Triggered By
+                    {t("triggeredBy")}
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Status
+                    {t("status")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -170,7 +173,7 @@ export function SettlementsHistoryTable() {
                     </TableCell>
                     <TableCell className="py-3.5 max-w-[240px]">
                       <p className="truncate text-xs text-muted-foreground" title={item.note ?? ""}>
-                        {item.note || <span className="italic text-muted-foreground/60">No note</span>}
+                        {item.note || <span className="italic text-muted-foreground/60">{t("noNote")}</span>}
                       </p>
                     </TableCell>
                     <TableCell className="py-3.5">
@@ -182,7 +185,7 @@ export function SettlementsHistoryTable() {
                           </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground/50">—</span>
+                        <span className="text-xs text-muted-foreground/50">{t("none")}</span>
                       )}
                     </TableCell>
                     <TableCell className="py-3.5">
@@ -197,7 +200,7 @@ export function SettlementsHistoryTable() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between border-t border-border px-6 py-3">
                 <p className="text-xs text-muted-foreground">
-                  Showing {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of {total}
+                  {t("showing", { from: offset + 1, to: Math.min(offset + PAGE_SIZE, total), total })}
                 </p>
                 <div className="flex items-center gap-1">
                   <Button

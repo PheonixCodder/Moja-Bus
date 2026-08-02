@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import { withdrawalsSearchParams } from "../lib/search-params";
 import { format, subDays } from "date-fns";
@@ -25,6 +26,7 @@ import {
 } from "@moja/ui/components/ui/select";
 
 export function WithdrawalsFilterBar({ total }: { total: number }) {
+  const t = useTranslations("adminDashboard.withdrawalsFilterBar");
   const [{ status, from, to }, setParams] = useQueryStates(
     withdrawalsSearchParams,
     { shallow: false }
@@ -52,21 +54,21 @@ export function WithdrawalsFilterBar({ total }: { total: number }) {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 px-3 py-1.5 border border-border/60 rounded-md bg-bg-muted text-sm font-medium">
           <ListFilter className="size-4 text-text-muted" />
-          <span>Filters</span>
+          <span>{t("filters")}</span>
         </div>
 
         <Select value={status} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-[180px] h-9">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("statusPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              <SelectItem value="POSTED">Pending (Posted)</SelectItem>
-              <SelectItem value="CREATED">Created</SelectItem>
-              <SelectItem value="SETTLED">Settled</SelectItem>
-              <SelectItem value="FAILED">Failed</SelectItem>
-              <SelectItem value="REVERSED">Reversed</SelectItem>
+              <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
+              <SelectItem value="POSTED">{t("pendingPosted")}</SelectItem>
+              <SelectItem value="CREATED">{t("created")}</SelectItem>
+              <SelectItem value="SETTLED">{t("settled")}</SelectItem>
+              <SelectItem value="FAILED">{t("failed")}</SelectItem>
+              <SelectItem value="REVERSED">{t("reversed")}</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -94,7 +96,7 @@ export function WithdrawalsFilterBar({ total }: { total: number }) {
                 format(new Date(from), "dd MMM, y", { locale: fr })
               )
             ) : (
-              <span>Pick a date range</span>
+              <span>{t("pickDateRange")}</span>
             )}
             <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
           </PopoverTrigger>
@@ -106,28 +108,28 @@ export function WithdrawalsFilterBar({ total }: { total: number }) {
                   className="justify-start text-sm"
                   onClick={() => setPreset(6)}
                 >
-                  Last 7 days
+                  {t("last7Days")}
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start text-sm"
                   onClick={() => setPreset(29)}
                 >
-                  Last 30 days
+                  {t("last30Days")}
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start text-sm"
                   onClick={() => setPreset(89)}
                 >
-                  Last 90 days
+                  {t("last90Days")}
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start text-sm"
                   onClick={() => setPreset(null)}
                 >
-                  All time
+                  {t("allTime")}
                 </Button>
               </div>
               <Calendar
@@ -156,7 +158,7 @@ export function WithdrawalsFilterBar({ total }: { total: number }) {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm text-text-muted">Total matching</span>
+        <span className="text-sm text-text-muted">{t("totalMatching")}</span>
         <Badge variant="secondary" className="px-2.5 py-0.5 rounded-full font-semibold">
           {total}
         </Badge>

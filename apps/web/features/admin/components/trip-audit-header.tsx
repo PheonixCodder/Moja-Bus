@@ -6,8 +6,10 @@ import { format } from "date-fns";
 import { ArrowRight, Bus, CalendarDays, MapPin } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { Badge } from "@moja/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 export function TripAuditHeader({ tripId }: { tripId: string }) {
+  const t = useTranslations("adminDashboard.tripAuditHeader");
   const trpc = useTRPC();
   const { data: trip } = useQuery(
     trpc.admin.getTripAudit.queryOptions({ id: tripId })
@@ -34,11 +36,11 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
                   : "outline"
               }
             >
-              {trip.status}
+              {t(`status.${trip.status}` as string)}
             </Badge>
             {trip.delayMinutes ? (
               <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
-                {trip.delayMinutes} min delay
+                {t("delayMinutes", { minutes: trip.delayMinutes })}
               </Badge>
             ) : null}
           </div>
@@ -60,10 +62,10 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase text-muted-foreground">
-                Bus Assigned
+                {t("busAssigned")}
               </p>
               <p className="text-sm font-medium">
-                {trip.bus ? trip.bus.registrationPlate : "Unassigned"}
+                {trip.bus ? trip.bus.registrationPlate : t("unassigned")}
               </p>
             </div>
           </div>
@@ -74,10 +76,10 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase text-muted-foreground">
-                Origin Gate
+                {t("originGate")}
               </p>
               <p className="text-sm font-medium">
-                {trip.gate || "Unassigned"}
+                {trip.gate || t("unassigned")}
               </p>
             </div>
           </div>

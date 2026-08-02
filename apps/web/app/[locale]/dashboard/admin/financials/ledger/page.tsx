@@ -35,9 +35,9 @@ export default async function LedgerPage({ searchParams }: LedgerPageProps) {
     <HydrateClient>
       <DashboardHeader
         breadcrumbs={[
-          { label: "Admin" },
-          { label: "Financials" },
-          { label: "Ledger" },
+          { label: "Admin", tKey: "overview.breadcrumb.admin" },
+          { label: "Financials", tKey: "sections.financials" },
+          { label: "Ledger", tKey: "nav.ledger" },
         ]}
       />
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

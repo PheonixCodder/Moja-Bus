@@ -5,6 +5,7 @@ import { useTRPC } from "@/trpc/client";
 import { Star, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -23,6 +24,7 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export function TripAuditReviews({ tripId }: { tripId: string }) {
+  const t = useTranslations("adminDashboard.tripAuditReviews");
   const trpc = useTRPC();
   const { data: trip } = useSuspenseQuery(
     trpc.admin.getTripAudit.queryOptions({ id: tripId })
@@ -34,10 +36,9 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
     return (
       <div className="rounded-lg border border-border bg-card p-16 text-center shadow-sm">
         <MessageCircle className="size-10 text-muted-foreground/30 mx-auto mb-3" />
-        <h3 className="text-sm font-semibold text-foreground">No reviews yet</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("noReviewsYet")}</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Reviews appear here once passengers submit feedback after completing
-          their trip.
+          {t("noReviewsDescription")}
         </p>
       </div>
     );
@@ -57,7 +58,7 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
           </p>
           <StarRating rating={Math.round(avgRating)} />
           <p className="text-xs text-muted-foreground mt-1">
-            {bookingsWithReviews.length} review
+            {t("reviewCount", { count: bookingsWithReviews.length })}
             {bookingsWithReviews.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -107,7 +108,7 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
                       {booking.passengerName}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Seat {booking.seat?.label}
+                      {t("seatLabel")} {booking.seat?.label}
                     </p>
                   </div>
                 </div>

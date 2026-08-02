@@ -1,6 +1,7 @@
 "use client";
 "use no memo";
 
+import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
@@ -67,80 +68,82 @@ export function getAvatarTone(name: string) {
   return tones[name.length % tones.length];
 }
 
-export const travelersColumns: ColumnDef<TravelerRow>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          aria-label="Select all travelers"
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          aria-label={`Select ${row.original.name}`}
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-        />
-      </div>
-    ),
-    enableHiding: false,
-    enableSorting: false,
-  },
-  {
-    id: "search",
-    accessorFn: (row) => `${row.name} ${row.email} ${row.phone}`,
-    filterFn: "includesString",
-    enableHiding: true,
-  },
-  {
-    accessorKey: "name",
-    header: "Traveler",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <Avatar className="size-10 font-medium">
-          <AvatarImage src={row.original.image ?? undefined} alt={row.original.name} />
-          <AvatarFallback className={cn("text-xs", getAvatarTone(row.original.name))}>
-            {getInitials(row.original.name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0">
-          <div className="truncate font-medium text-foreground text-sm">{row.original.name}</div>
-          <div className="truncate text-muted-foreground text-sm">{row.original.email}</div>
+export function getTravelerColumns(t: ReturnType<typeof useTranslations>): ColumnDef<TravelerRow>[] {
+  return [
+    {
+      id: "select",
+      header: ({ table }: { table: any }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            aria-label={t("selectAllTravelers")}
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          />
         </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "phone",
-    header: "Phone",
-    cell: ({ row }) => <div className="text-sm">{row.original.phone}</div>,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    filterFn: "equalsString",
-    cell: ({ row }) => <TravelerStatusBadge status={row.original.status} />,
-  },
-  {
-    id: "joinedDate",
-    accessorFn: (row) => row.rawDate,
-    header: "Joined date",
-    cell: ({ row }) => <div className="text-foreground text-sm">{row.original.joinedDate}</div>,
-  },
-  {
-    id: "actions",
-    header: () => <div className="text-right">Actions</div>,
-    cell: ({ row }) => (
-      <div className="text-right">
-        <TravelerActionCell row={row.original} />
-      </div>
-    ),
-    enableHiding: false,
-    enableSorting: false,
-  },
-];
+      ),
+      cell: ({ row }: { row: any }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            aria-label={t("selectTraveler", { name: row.original.name })}
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+          />
+        </div>
+      ),
+      enableHiding: false,
+      enableSorting: false,
+    },
+    {
+      id: "search",
+      accessorFn: (row: TravelerRow) => `${row.name} ${row.email} ${row.phone}`,
+      filterFn: "includesString",
+      enableHiding: true,
+    },
+    {
+      accessorKey: "name",
+      header: t("traveler"),
+      cell: ({ row }: { row: any }) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="size-10 font-medium">
+            <AvatarImage src={row.original.image ?? undefined} alt={row.original.name} />
+            <AvatarFallback className={cn("text-xs", getAvatarTone(row.original.name))}>
+              {getInitials(row.original.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <div className="truncate font-medium text-foreground text-sm">{row.original.name}</div>
+            <div className="truncate text-muted-foreground text-sm">{row.original.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "phone",
+      header: t("phone"),
+      cell: ({ row }: { row: any }) => <div className="text-sm">{row.original.phone}</div>,
+    },
+    {
+      accessorKey: "status",
+      header: t("status"),
+      filterFn: "equalsString",
+      cell: ({ row }: { row: any }) => <TravelerStatusBadge status={row.original.status} />,
+    },
+    {
+      id: "joinedDate",
+      accessorFn: (row: TravelerRow) => row.rawDate,
+      header: t("joinedDate"),
+      cell: ({ row }: { row: any }) => <div className="text-foreground text-sm">{row.original.joinedDate}</div>,
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">{t("actions")}</div>,
+      cell: ({ row }: { row: any }) => (
+        <div className="text-right">
+          <TravelerActionCell row={row.original} />
+        </div>
+      ),
+      enableHiding: false,
+      enableSorting: false,
+    },
+  ];
+}

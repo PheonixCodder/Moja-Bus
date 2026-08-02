@@ -1,5 +1,8 @@
+import type { Amenity, SearchOffer, SearchResponse } from "@moja/types";
+import { computeAvailabilityStatus } from "../lib/availability";
+import { type GeoPlace, isUrban, placeMatchesTerminal } from "../lib/places";
+import { matchSegmentFare } from "../lib/segment-fare-match";
 import type { TripSearchReadRepository } from "../repositories/search-read-repository";
-import type { SearchOffer, SearchResponse, Amenity } from "@moja/types";
 
 export interface SearchFilters {
   operators: string[];
@@ -11,10 +14,8 @@ export interface SearchFilters {
 }
 
 export interface SearchContext {
-  originCityId: string;
-  destinationCityId: string;
-  originMunicipalityId: string | null;
-  destinationMunicipalityId: string | null;
+  origin: GeoPlace;
+  destination: GeoPlace;
   travelDate: Date;
   passengerCount: number;
   filters: SearchFilters;
@@ -26,24 +27,15 @@ export class SearchService {
   constructor(private searchRepo: TripSearchReadRepository) {}
 
   async execute(ctx: SearchContext): Promise<SearchResponse> {
-    const isUrban =
-      ctx.originCityId === ctx.destinationCityId &&
-      !!ctx.originMunicipalityId &&
-      !!ctx.destinationMunicipalityId;
+    const urban = isUrban(ctx.origin, ctx.destination);
 
-    // 1. Resolve candidate trips based on geographic route + date
-    const rawTrips = isUrban
-      ? await this.searchRepo.findUrbanTrips(
-          ctx.originMunicipalityId!,
-          ctx.destinationMunicipalityId!,
-          ctx.originCityId,
-          ctx.travelDate,
-        )
-      : await this.searchRepo.findCandidateTrips(
-          ctx.originCityId,
-          ctx.destinationCityId,
-          ctx.travelDate,
-        );
+    // 1. Resolve candidate trips based on geographic route + date + SQL filters
+    const rawTrips = await this.searchRepo.findTrips(
+      ctx.origin,
+      ctx.destination,
+      ctx.travelDate,
+      ctx.filters,
+    );
 
     // 2. Stop resolution & Chronological validation (Origin stop comes before Destination stop)
     const candidates = [];
@@ -51,17 +43,15 @@ export class SearchService {
     for (const trip of rawTrips) {
       const originStop = trip.tripStops.find(
         (stop) =>
-          stop.terminal.cityId === ctx.originCityId &&
+          placeMatchesTerminal(ctx.origin, stop.terminal) &&
           stop.isPickup &&
-          stop.scheduledDeparture &&
-          (!isUrban || stop.terminal.municipalityId === ctx.originMunicipalityId),
+          stop.scheduledDeparture,
       );
 
       const destStop = trip.tripStops.find(
         (stop) =>
-          stop.terminal.cityId === ctx.destinationCityId &&
-          stop.isDropoff &&
-          (!isUrban || stop.terminal.municipalityId === ctx.destinationMunicipalityId),
+          placeMatchesTerminal(ctx.destination, stop.terminal) &&
+          stop.isDropoff,
       );
 
       if (
@@ -94,13 +84,11 @@ export class SearchService {
     let offers: SearchOffer[] = candidates.flatMap((item) => {
       const { trip, originStop, destStop } = item;
 
-      const segmentFare = trip.schedule.fares.find(
-        (f) =>
-          f.fromStopOrder <= item.searchOriginOrder &&
-          f.toStopOrder >= item.searchDestinationOrder &&
-          f.isActive &&
-          (!f.validFrom || trip.departureDate.getTime() >= f.validFrom.getTime()) &&
-          (!f.validUntil || trip.departureDate.getTime() <= f.validUntil.getTime()),
+      const segmentFare = matchSegmentFare(
+        trip.schedule.fares,
+        item.searchOriginOrder,
+        item.searchDestinationOrder,
+        trip.departureDate,
       );
       if (!segmentFare) {
         return [];
@@ -116,19 +104,16 @@ export class SearchService {
       if (layout.hasToilet) amenitiesList.push("TOILET");
       if (layout.hasLuggage) amenitiesList.push("LUGGAGE");
 
-      // Compute from TripSeat records — only active, bookable, non-structural seats count
-      const totalSeats = trip.seats.filter(
-        (s) => s.seat.isBookable && s.seat.seatType !== "DRIVER_AREA" && s.seat.seatType !== "EMPTY_SPACE"
-      ).length;
+      // Trip.totalSeats is kept in sync by toggleSeatStatus — active,
+      // bookable, non-structural seats only (see fleet seat derivation chain).
+      const totalSeats = trip.totalSeats;
       const occupiedSeats = occupancyData.get(trip.id) ?? 0;
       const remainingSeats = Math.max(0, totalSeats - occupiedSeats);
 
-      let status: "AVAILABLE" | "FEW_LEFT" | "SOLD_OUT" = "AVAILABLE";
-      if (remainingSeats === 0) {
-        status = "SOLD_OUT";
-      } else if (remainingSeats <= 5) {
-        status = "FEW_LEFT";
-      }
+      const status = computeAvailabilityStatus(
+        remainingSeats,
+        ctx.passengerCount,
+      );
 
       const durationMinutes = Math.round(
         (destStop.scheduledArrival!.getTime() -
@@ -145,6 +130,7 @@ export class SearchService {
         {
           offerId: `${trip.id}_${originStop.id}_${destStop.id}`,
           tripId: trip.id,
+          serviceType: trip.serviceType,
           companyId: trip.company.id,
           companyName: trip.company.name,
           companyLogoUrl: trip.company.logoUrl,
@@ -155,16 +141,14 @@ export class SearchService {
             originStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
           originMunicipalityName:
             originStop.terminal.municipality?.name ?? null,
-          originQuarterName:
-            originStop.terminal.quarter?.name ?? null,
+          originQuarterName: originStop.terminal.quarter?.name ?? null,
           destinationTerminalId: destStop.terminal.id,
           destinationTerminalName: destStop.terminal.name,
           destinationCityName:
             destStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
           destinationMunicipalityName:
             destStop.terminal.municipality?.name ?? null,
-          destinationQuarterName:
-            destStop.terminal.quarter?.name ?? null,
+          destinationQuarterName: destStop.terminal.quarter?.name ?? null,
           departureTime: originStop.scheduledDeparture!,
           arrivalTime: destStop.scheduledArrival!,
           durationMinutes,
@@ -185,39 +169,8 @@ export class SearchService {
       ];
     });
 
-    // 5. Apply business filters
-    if (ctx.filters.operators && ctx.filters.operators.length > 0) {
-      offers = offers.filter((o) =>
-        ctx.filters.operators?.includes(o.companyId),
-      );
-    }
-
-    if (ctx.filters.amenities && ctx.filters.amenities.length > 0) {
-      offers = offers.filter((o) =>
-        ctx.filters.amenities?.every((a) => o.amenities.includes(a as Amenity)),
-      );
-    }
-
-    if (ctx.filters.seatClass && ctx.filters.seatClass.length > 0) {
-      offers = offers.filter((o) =>
-        ctx.filters.seatClass?.includes(o.seatClass),
-      );
-    }
-
-    if (ctx.filters.departureTime && ctx.filters.departureTime.length > 0) {
-      offers = offers.filter((o) => {
-        const hour = o.departureTime.getUTCHours();
-        if (ctx.filters.departureTime?.includes("MORNING") && hour >= 5 && hour < 12)
-          return true;
-        if (ctx.filters.departureTime?.includes("AFTERNOON") && hour >= 12 && hour < 17)
-          return true;
-        if (ctx.filters.departureTime?.includes("EVENING") && hour >= 17 && hour < 22)
-          return true;
-        if (ctx.filters.departureTime?.includes("LATE_NIGHT") && (hour >= 22 || hour < 5))
-          return true;
-        return false;
-      });
-    }
+    // 5. Apply business filters (operators/amenities/seatClass/departureTime
+    // are pushed into SQL in buildTripWhere; only fare-derived filters remain)
 
     if (ctx.filters.maxPrice !== undefined) {
       offers = offers.filter((o) => o.priceXOF <= ctx.filters.maxPrice!);
@@ -249,9 +202,9 @@ export class SearchService {
       // Weighted score combining: price (40%), duration (40%), seat availability (20%)
       // Urban trips use tighter normalization (shorter distances, cheaper fares)
       offers.sort((a, b) => {
-        const priceNorm = isUrban ? 1000 : 5000;
-        const durationNorm = isUrban ? 60 : 180;
-        const seatsNorm = isUrban ? 30 : 50;
+        const priceNorm = urban ? 1000 : 5000;
+        const durationNorm = urban ? 60 : 180;
+        const seatsNorm = urban ? 30 : 50;
         const scoreA =
           (a.priceXOF / priceNorm) * 0.4 +
           (a.durationMinutes / durationNorm) * 0.4 -

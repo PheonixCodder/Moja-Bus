@@ -6,6 +6,7 @@ import { dispatchSearchParams } from "../lib/search-params";
 import { useQueryStates } from "nuqs";
 import { cn } from "@moja/ui/lib/utils";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 import {
   Empty,
@@ -32,41 +33,36 @@ type Trip = RouterOutputs["admin"]["listDispatchTrips"][number];
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; color: string; icon: React.ElementType }
+  { color: string; icon: React.ElementType }
 > = {
   SCHEDULED: {
-    label: "Scheduled",
     color: "bg-blue-100 text-blue-700 border-blue-200",
     icon: Clock,
   },
   BOARDING: {
-    label: "Boarding",
     color: "bg-green-100 text-green-700 border-green-200",
     icon: Navigation,
   },
   DEPARTED: {
-    label: "Departed",
     color: "bg-purple-100 text-purple-700 border-purple-200",
     icon: BusIcon,
   },
   DELAYED: {
-    label: "Delayed",
     color: "bg-amber-100 text-amber-700 border-amber-200",
     icon: AlertCircle,
   },
   ARRIVED: {
-    label: "Arrived",
     color: "bg-slate-100 text-slate-700 border-slate-200",
     icon: CheckCircle2,
   },
   CANCELLED: {
-    label: "Cancelled",
     color: "bg-red-100 text-red-700 border-red-200",
     icon: XCircle,
   },
 };
 
 function TripStatusBadge({ status }: { status: string }) {
+  const t = useTranslations("adminDashboard.dispatchTripList");
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG["SCHEDULED"];
   const Icon = cfg?.icon ?? Clock;
   return (
@@ -77,12 +73,13 @@ function TripStatusBadge({ status }: { status: string }) {
       )}
     >
       <Icon className="size-3" />
-      {cfg?.label ?? "Unknown"}
+      {t(`statuses.${status}` as any, { default: status })}
     </span>
   );
 }
 
 function SeatFillBar({ booked, total }: { booked: number; total: number }) {
+  const t = useTranslations("adminDashboard.dispatchTripList");
   const pct = total > 0 ? Math.min((booked / total) * 100, 100) : 0;
   const color =
     pct >= 90 ? "bg-red-500" : pct >= 60 ? "bg-amber-500" : "bg-primary";
@@ -90,7 +87,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-muted-foreground">
-          {booked} / {total} seats
+          {booked} / {total} {t("seats")}
         </span>
         <span className="text-[11px] font-semibold text-foreground">
           {Math.round(pct)}%
@@ -116,6 +113,7 @@ function TripCard({
   trip: Trip;
   onClick: (id: string) => void;
 }) {
+  const t = useTranslations("adminDashboard.dispatchTripList");
   const { schedule, bus, _count, departureDate } = trip;
   const origin = schedule.route.originTerminal.cityRelation?.name || schedule.route.originTerminal.name;
   const dest = schedule.route.destTerminal.cityRelation?.name || schedule.route.destTerminal.name;
@@ -136,7 +134,7 @@ function TripCard({
             {format(new Date(departureDate), "MMM d, yyyy • h:mm a")}
             {trip.delayMinutes && trip.delayMinutes > 0 && (
               <span className="ml-2 font-medium text-amber-600">
-                +{trip.delayMinutes}m delay
+                {t("delayMinutes", { minutes: trip.delayMinutes })}
               </span>
             )}
           </p>
@@ -147,16 +145,16 @@ function TripCard({
       <div className="flex items-center justify-between border-t border-border pt-3">
         <div className="flex flex-col">
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-            Bus Assignment
+            {t("busAssignment")}
           </span>
           <span className="text-sm font-medium">
-            {bus ? bus.registrationPlate : "Unassigned"}
+            {bus ? bus.registrationPlate : t("unassigned")}
           </span>
         </div>
         {trip.gate && (
           <div className="flex flex-col text-right">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-              Gate / Bay
+              {t("gateBay")}
             </span>
             <span className="text-sm font-medium">{trip.gate}</span>
           </div>
@@ -178,7 +176,7 @@ function TripCard({
         className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline mt-1"
       >
         <ExternalLink className="size-3" />
-        Full Audit
+        {t("fullAudit")}
       </Link>
     </div>
   );
@@ -201,6 +199,7 @@ function groupTripsByCompany(trips: Trip[]) {
 }
 
 export function DispatchTripList({ onOpenTrip }: { onOpenTrip: (id: string) => void }) {
+  const t = useTranslations("adminDashboard.dispatchTripList");
   const trpc = useTRPC();
   const [{ status, companyId, from, to }] = useQueryStates(
     dispatchSearchParams,
@@ -225,9 +224,9 @@ export function DispatchTripList({ onOpenTrip }: { onOpenTrip: (id: string) => v
           <Radio className="size-10 text-muted-foreground/30" />
         </EmptyMedia>
         <EmptyHeader>
-          <EmptyTitle>No active trips found</EmptyTitle>
+          <EmptyTitle>{t("noActiveTrips")}</EmptyTitle>
           <EmptyDescription>
-            Try adjusting your filters or date range to see operations.
+            {t("noTripsDescription")}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -249,7 +248,7 @@ export function DispatchTripList({ onOpenTrip }: { onOpenTrip: (id: string) => v
               {group.companyName}
             </h3>
             <span className="text-xs text-muted-foreground bg-bg-base px-2 py-0.5 rounded-full border">
-              {group.trips.length} trip{group.trips.length !== 1 && "s"}
+              {group.trips.length} {t("trip", { count: group.trips.length })}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

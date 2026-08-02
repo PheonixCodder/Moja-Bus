@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import type { PassengerBookingSummary, PassengerBookingStatus } from "@moja/types";
 import { formatDepartureTime } from "@/features/search/lib/format";
+import { formatLocationLabel } from "@/lib/format-location-label";
 import { useHoldCountdown } from "@/features/booking/lib/hold-countdown";
 
 const STATUS_PROGRESS: Record<PassengerBookingStatus, number> = {
@@ -112,7 +113,7 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
           <div className="font-medium text-xs leading-none">
-            {booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}
+            {formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}
           </div>
           <div className="text-muted-foreground text-[10px]">
             {booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}
@@ -120,7 +121,7 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
         </div>
         <div className="flex flex-col gap-0.5 text-right">
           <div className="font-medium text-xs leading-none">
-            {booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}
+            {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
           </div>
           <div className="text-muted-foreground text-[10px]">
             {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}

@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { MoreHorizontal, Mail, Phone } from "lucide-react";
 import type { Table as TableType } from "@tanstack/react-table";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 import { Card, CardContent, CardFooter } from "@moja/ui/components/ui/card";
@@ -44,6 +45,7 @@ function getPageNumbers(currentPage: number, pageCount: number) {
 }
 
 export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
+  const t = useTranslations("adminDashboard.travelersGrid");
   const pageCount = Math.max(table.getPageCount(), 1);
   const currentPage = Math.min(table.getState().pagination.pageIndex + 1, pageCount);
   const pageNumbers = getPageNumbers(currentPage, pageCount);
@@ -56,11 +58,11 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
   const updateRoleMutation = useMutation({
     ...trpc.admin.updateUserRole.mutationOptions(),
     onSuccess: () => {
-      toast.success("User promoted to operator successfully.");
+      toast.success(t("promotedToOperator"));
       queryClient.invalidateQueries(trpc.admin.listUsers.pathFilter());
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to update role");
+      toast.error(err.message || t("failedToUpdateRole"));
     },
   });
 
@@ -82,17 +84,17 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => toast.info("View Profile coming soon!")}>View profile</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toast.info("Edit User coming soon!")}>Edit user</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info(t("viewProfileComingSoon"))}>{t("viewProfile")}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info(t("editUserComingSoon"))}>{t("editUser")}</DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => updateRoleMutation.mutate({ userId: traveler.id, role: "OPERATOR" })}
                           disabled={updateRoleMutation.isPending}
                         >
-                          Promote to Operator
+                          {t("promoteToOperator")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive" onClick={() => toast.error("Deactivation endpoint coming soon!")}>
-                          Deactivate user
+                        <DropdownMenuItem variant="destructive" onClick={() => toast.error(t("deactivationComingSoon"))}>
+                          {t("deactivateUser")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -105,7 +107,7 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
                   </Avatar>
                   <div className="space-y-1">
                     <h3 className="font-semibold leading-none tracking-tight">{traveler.name}</h3>
-                    <p className="text-xs text-muted-foreground">Joined {traveler.joinedDate}</p>
+                    <p className="text-xs text-muted-foreground">{t("joinedOn", { date: traveler.joinedDate })}</p>
                   </div>
                   <Badge className={cn("gap-1 border px-2 py-0.5 font-medium mt-1 mx-auto", meta.badgeClass)} variant="outline">
                     <span className={cn("size-1.5 rounded-full", meta.dotClass)} />
@@ -128,14 +130,14 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground bg-slate-50/30 rounded-lg border border-dashed border-border/60">
-          <p>No travelers found.</p>
+          <p>{t("noTravelersFound")}</p>
         </div>
       )}
 
       <div className="flex items-center justify-between pt-4 border-t border-border/60">
         <div className="flex items-center gap-4 text-muted-foreground text-sm">
           <div className="flex items-center gap-2">
-            <span>Items per page</span>
+            <span>{t("itemsPerPage")}</span>
             <Select
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => table.setPageSize(Number(value))}
@@ -155,7 +157,7 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
             </Select>
           </div>
           <span>
-            Page {currentPage} of {pageCount}
+            {t("pageInfo", { current: currentPage, total: pageCount })}
           </span>
         </div>
 

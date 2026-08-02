@@ -4,6 +4,7 @@ interface FAQItem {
 }
 
 interface FAQCategory {
+  id: string;
   category: string;
   color: string;
   items: FAQItem[];
@@ -11,6 +12,7 @@ interface FAQCategory {
 
 const en: FAQCategory[] = [
   {
+    id: "booking",
     category: "Booking",
     color: "bg-blue-50 text-blue-700",
     items: [
@@ -33,6 +35,7 @@ const en: FAQCategory[] = [
     ],
   },
   {
+    id: "payment",
     category: "Payment",
     color: "bg-green-50 text-green-700",
     items: [
@@ -55,6 +58,7 @@ const en: FAQCategory[] = [
     ],
   },
   {
+    id: "tickets-travel",
     category: "Tickets & Travel",
     color: "bg-purple-50 text-purple-700",
     items: [
@@ -73,6 +77,7 @@ const en: FAQCategory[] = [
     ],
   },
   {
+    id: "cancellations",
     category: "Cancellations & Refunds",
     color: "bg-orange-50 text-orange-700",
     items: [
@@ -95,6 +100,7 @@ const en: FAQCategory[] = [
     ],
   },
   {
+    id: "vouchers",
     category: "Vouchers & Promotions",
     color: "bg-pink-50 text-pink-700",
     items: [
@@ -117,6 +123,7 @@ const en: FAQCategory[] = [
     ],
   },
   {
+    id: "operators",
     category: "Operators",
     color: "bg-teal-50 text-teal-700",
     items: [
@@ -138,6 +145,7 @@ const en: FAQCategory[] = [
 
 const fr: FAQCategory[] = [
   {
+    id: "booking",
     category: "Réservation",
     color: "bg-blue-50 text-blue-700",
     items: [
@@ -160,6 +168,7 @@ const fr: FAQCategory[] = [
     ],
   },
   {
+    id: "payment",
     category: "Paiement",
     color: "bg-green-50 text-green-700",
     items: [
@@ -182,6 +191,7 @@ const fr: FAQCategory[] = [
     ],
   },
   {
+    id: "tickets-travel",
     category: "Billets & Voyage",
     color: "bg-purple-50 text-purple-700",
     items: [
@@ -200,6 +210,7 @@ const fr: FAQCategory[] = [
     ],
   },
   {
+    id: "cancellations",
     category: "Annulations & Remboursements",
     color: "bg-orange-50 text-orange-700",
     items: [
@@ -222,6 +233,7 @@ const fr: FAQCategory[] = [
     ],
   },
   {
+    id: "vouchers",
     category: "Avoirs & Promotions",
     color: "bg-pink-50 text-pink-700",
     items: [
@@ -244,6 +256,7 @@ const fr: FAQCategory[] = [
     ],
   },
   {
+    id: "operators",
     category: "Opérateurs",
     color: "bg-teal-50 text-teal-700",
     items: [

@@ -37,6 +37,7 @@ const bookingInclude = {
     select: {
       id: true,
       departureDate: true,
+      serviceType: true,
     },
   },
   originTripStop: {
@@ -311,6 +312,7 @@ export class OperatorBookingService {
       paymentStatus: string;
       checkedInAt: Date | null;
       seat: { label: string };
+      trip: { serviceType: string };
       originTripStop: {
         scheduledDeparture: Date | null;
         terminal: {
@@ -342,6 +344,7 @@ export class OperatorBookingService {
       paymentStatus: booking.paymentStatus,
       checkedInAt: booking.checkedInAt,
       departureTime,
+      serviceType: booking.trip.serviceType as OperatorBookingListItem["serviceType"],
       originCityName:
         booking.originTripStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
       destinationCityName:
@@ -376,7 +379,7 @@ export class OperatorBookingService {
       boardingStopOrder: number;
       dropoffStopOrder: number;
       seat: { label: string };
-      trip: { departureDate: Date };
+      trip: { departureDate: Date; serviceType: string };
       originTripStop: {
         scheduledDeparture: Date | null;
         terminal: {

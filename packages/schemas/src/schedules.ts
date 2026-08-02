@@ -183,7 +183,10 @@ export const createScheduleSchema = z
     /** @deprecated use preferredBusId — kept as alias for callers */
     defaultBusId: z.string().optional(),
     preferredBusId: z.string().optional(),
-    departureTime: hhMm,
+    /** Full cadence: all departure times the schedule runs (HH:mm). */
+    departureTimes: z.array(hhMm).optional(),
+    /** @deprecated single-time alias — use departureTimes */
+    departureTime: hhMm.optional(),
     calendar: serviceCalendarSchema,
     fares: z.array(fareSchema).min(1, "At least one fare is required"),
     dwells: z
@@ -205,6 +208,16 @@ export const createScheduleSchema = z
         code: z.ZodIssueCode.custom,
         message: "Preferred bus is required for trip pre-assignment",
         path: ["preferredBusId"],
+      });
+    }
+    if (
+      (!data.departureTimes || data.departureTimes.length === 0) &&
+      !data.departureTime
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one departure time is required",
+        path: ["departureTimes"],
       });
     }
     const last = data.routeLastStopOrder;
@@ -242,14 +255,35 @@ export const createScheduleSchema = z
       }
     }
   })
-  .transform((data) => ({
-    ...data,
-    preferredBusId: (data.preferredBusId || data.defaultBusId) as string,
-  }));
+  .transform((data) => {
+    const rawTimes =
+      data.departureTimes && data.departureTimes.length > 0
+        ? data.departureTimes
+        : data.departureTime
+          ? [data.departureTime]
+          : [];
+    const seen = new Set<string>();
+    const departureTimes = rawTimes
+      .slice()
+      .sort()
+      .filter((t) => {
+        if (seen.has(t)) return false;
+        seen.add(t);
+        return true;
+      });
+    return {
+      ...data,
+      preferredBusId: (data.preferredBusId || data.defaultBusId) as string,
+      departureTimes,
+    };
+  });
 export type CreateScheduleInput = z.infer<typeof createScheduleSchema>;
 
 export const updateScheduleBasicSchema = z.object({
   name: z.string().optional().nullable(),
+  /** Full cadence: all departure times the schedule runs (HH:mm). */
+  departureTimes: z.array(hhMm).min(1).optional(),
+  /** @deprecated single-time alias — use departureTimes */
   departureTime: hhMm.optional(),
   isActive: z.boolean().optional(),
   preferredBusId: z.string().min(1).optional().nullable(),

@@ -105,7 +105,14 @@ export function RouteFormDrawer({
 
   const originTerminal = terminals.find((t) => t.id === originId);
   const destTerminal = terminals.find((t) => t.id === destId);
-  const isUrbanRoute = originTerminal && destTerminal && (originTerminal.cityRelation?.name ?? originTerminal.city) === (destTerminal.cityRelation?.name ?? destTerminal.city);
+  // ID-based (never name-based): same cityRelation id => urban. Falls back to
+  // the legacy free-text city only when both lack a city relation entirely.
+  const originCityId = originTerminal?.cityRelation?.id ?? originTerminal?.city ?? null;
+  const destCityId = destTerminal?.cityRelation?.id ?? destTerminal?.city ?? null;
+  const isUrbanRoute =
+    Boolean(originCityId) &&
+    Boolean(destCityId) &&
+    originCityId === destCityId;
 
   const allStops: WaypointDraft[] = [
     ...(originTerminal
@@ -297,9 +304,16 @@ export function RouteFormDrawer({
     onClose();
   }
 
-  const mapTerminals = allStops
+  const mapPoints = allStops
     .map((s) => s.terminal)
-    .filter((t) => t && t.latitude != null && t.longitude != null);
+    .filter((t) => t && t.latitude != null && t.longitude != null)
+    .map((t) => ({
+      id: t.id,
+      name: t.name,
+      cityName: t.cityRelation?.name ?? t.city ?? "Côte d'Ivoire",
+      latitude: t.latitude!,
+      longitude: t.longitude!,
+    }));
 
   return (
     <Drawer
@@ -567,7 +581,7 @@ export function RouteFormDrawer({
 
           {/* Right: Map Preview */}
           <div className="hidden lg:flex w-56 shrink-0 border-l border-border overflow-hidden">
-            <RouteMapPreview terminals={mapTerminals} />
+            <RouteMapPreview points={mapPoints} />
           </div>
         </div>
 

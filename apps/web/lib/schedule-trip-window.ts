@@ -41,23 +41,29 @@ function parseHhMm(time: string): { hours: number; minutes: number } {
 /**
  * Shared source of truth for which departures exist in a rolling window.
  * Window = app-timezone today … today+daysCount-1 (inclusive start, daysCount days).
+ *
+ * Every day that operates yields one candidate per departure time (cadence).
+ * A MODIFIED exception replaces that day's entire cadence with its single
+ * override time.
  */
 export function getCandidateDepartureDates(params: {
-  departureTime: string;
+  departureTimes: string[];
   calendar: ServiceCalendarLike;
   exceptions?: ServiceExceptionLike[];
   daysCount?: number;
   now?: Date;
 }): CandidateDeparture[] {
   const {
-    departureTime,
+    departureTimes,
     calendar,
     exceptions = [],
     daysCount = 14,
     now = new Date(),
   } = params;
 
-  const defaultTime = parseHhMm(departureTime);
+  const defaultTimes = departureTimes
+    .map((time) => parseHhMm(time))
+    .sort((a, b) => a.hours * 60 + a.minutes - (b.hours * 60 + b.minutes));
   const today = startOfAppCalendarDay(now);
   const results: CandidateDeparture[] = [];
 
@@ -89,29 +95,29 @@ export function getCandidateDepartureDates(params: {
       continue;
     }
 
-    let hours = defaultTime.hours;
-    let minutes = defaultTime.minutes;
-    if (
+    const overrideValid =
       exception?.type === "MODIFIED" &&
       exception.overrideDepartureTime &&
-      /^([01]\d|2[0-3]):([0-5]\d)$/.test(exception.overrideDepartureTime)
-    ) {
-      const override = parseHhMm(exception.overrideDepartureTime);
-      hours = override.hours;
-      minutes = override.minutes;
-    }
+      /^([01]\d|2[0-3]):([0-5]\d)$/.test(exception.overrideDepartureTime);
+    // MODIFIED replaces the day's cadence with a single departure.
+    const times =
+      overrideValid && exception?.overrideDepartureTime
+        ? [parseHhMm(exception.overrideDepartureTime)]
+        : defaultTimes;
 
-    results.push({
-      calendarDay,
-      departureTimestamp: buildAppDepartureTimestamp(
+    for (const { hours, minutes } of times) {
+      results.push({
         calendarDay,
+        departureTimestamp: buildAppDepartureTimestamp(
+          calendarDay,
+          hours,
+          minutes,
+        ),
         hours,
         minutes,
-      ),
-      hours,
-      minutes,
-      exceptionType: exception?.type ?? null,
-    });
+        exceptionType: exception?.type ?? null,
+      });
+    }
   }
 
   return results;
@@ -119,7 +125,7 @@ export function getCandidateDepartureDates(params: {
 
 /** Preview helper: same window rules as generation (for UI calendars). */
 export function getPreviewDepartureDateStrings(params: {
-  departureTime: string;
+  departureTimes: string[];
   calendar: ServiceCalendarLike;
   exceptions?: ServiceExceptionLike[];
   daysCount?: number;

@@ -4,6 +4,7 @@ import * as React from "react";
 import { type Table as ReactTable } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, ShieldOff, Building2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
@@ -13,7 +14,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
@@ -47,6 +47,7 @@ interface OperatorsGridProps {
 }
 
 export function OperatorsGrid({ table }: OperatorsGridProps) {
+  const t = useTranslations("adminDashboard.operatorsGrid");
   const pageIndex = table.getState().pagination.pageIndex;
   const pageCount = Math.max(table.getPageCount(), 1);
   const pageNumbers = getPageNumbers(pageIndex + 1, pageCount);
@@ -55,15 +56,15 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
   const rows = table.getRowModel().rows;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  
+   
   const demoteMutation = useMutation({
     ...trpc.admin.updateUserRole.mutationOptions(),
     onSuccess: () => {
-      toast.success("Operator demoted to Traveler.");
+      toast.success(t("demotedToTraveler"));
       queryClient.invalidateQueries(trpc.admin.listUsers.pathFilter());
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to update role");
+      toast.error(err.message || t("failedToUpdateRole"));
     },
   });
 
@@ -91,10 +92,10 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                         <MoreHorizontal className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <p className="px-2 py-1 text-xs font-normal text-muted-foreground">Actions</p>
-                        <DropdownMenuItem>View Profile</DropdownMenuItem>
+                        <p className="px-2 py-1 text-xs font-normal text-muted-foreground">{t("actions")}</p>
+                        <DropdownMenuItem>{t("viewProfile")}</DropdownMenuItem>
                         {operator.companies.length > 0 && (
-                          <DropdownMenuItem>Manage Company</DropdownMenuItem>
+                          <DropdownMenuItem>{t("manageCompany")}</DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
@@ -102,7 +103,7 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                           className="text-amber-600 focus:text-amber-600"
                         >
                           <ShieldOff className="mr-2 h-4 w-4" />
-                          Demote to Traveler
+                          {t("demoteToTraveler")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -131,18 +132,18 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                     ) : (
                       <div className="flex items-center gap-1.5 justify-center w-full text-muted-foreground py-1.5">
                         <Building2 className="h-3.5 w-3.5 opacity-50 shrink-0" />
-                        <span className="text-xs italic">Unassigned</span>
+                        <span className="text-xs italic">{t("unassigned")}</span>
                       </div>
                     )}
                   </div>
                   
                   <div className="grid grid-cols-2 divide-x border-t bg-muted/20">
                     <div className="p-3 text-center flex flex-col justify-center">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Phone</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("phone")}</p>
                       <p className="text-xs font-medium truncate">{operator.phone}</p>
                     </div>
                     <div className="p-3 text-center flex flex-col justify-center">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Joined</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("joined")}</p>
                       <p className="text-xs font-medium">{format(operator.joinedAt, "MMM d, yy")}</p>
                     </div>
                   </div>
@@ -152,9 +153,9 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
           })
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center py-12 text-center border rounded-lg border-dashed bg-muted/10">
-            <h3 className="text-lg font-medium">No operators found</h3>
+            <h3 className="text-lg font-medium">{t("noOperatorsFound")}</h3>
             <p className="text-sm text-muted-foreground max-w-sm mt-1">
-              Adjust your search or filters to see more results.
+              {t("noOperatorsDescription")}
             </p>
           </div>
         )}
@@ -163,7 +164,11 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
       {rows.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
           <div className="text-sm text-muted-foreground order-2 sm:order-1">
-            Showing <span className="font-medium text-foreground">{rows.length}</span> of <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span> operators
+            {t("showing")}{" "}
+            <span className="font-medium text-foreground">{rows.length}</span>{" "}
+            {t("of")}{" "}
+            <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span>{" "}
+            {t("operators")}
           </div>
           
           <Pagination className="w-auto mx-0 order-1 sm:order-2">
@@ -178,7 +183,7 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                   className={`h-8 w-8 p-0 ${!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : ""}`}
                 >
                   <ChevronsLeft className="h-4 w-4" />
-                  <span className="sr-only">First page</span>
+                  <span className="sr-only">{t("firstPage")}</span>
                 </PaginationLink>
               </PaginationItem>
               <PaginationItem>
@@ -239,7 +244,7 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                   className={`h-8 w-8 p-0 ${!table.getCanNextPage() ? "pointer-events-none opacity-50" : ""}`}
                 >
                   <ChevronsRight className="h-4 w-4" />
-                  <span className="sr-only">Last page</span>
+                  <span className="sr-only">{t("lastPage")}</span>
                 </PaginationLink>
               </PaginationItem>
             </PaginationContent>

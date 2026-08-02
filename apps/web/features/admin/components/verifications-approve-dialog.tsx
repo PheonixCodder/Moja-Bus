@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ export function VerificationsApproveDialog({
   paystackBanks,
   onSuccess,
 }: VerificationsApproveDialogProps) {
+  const t = useTranslations("adminDashboard.verificationsApproveDialog");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -50,13 +52,13 @@ export function VerificationsApproveDialog({
   const verifyMutation = useMutation(
     trpc.admin.verifyOperator.mutationOptions({
       onSuccess: (res) => {
-        toast.success(`Company approved! Paystack recipient ${res.recipientCode} created.`);
+        toast.success(t("companyApproved", { recipientCode: res.recipientCode }));
         onOpenChange(false);
         onSuccess();
         queryClient.invalidateQueries(trpc.admin.listCompaniesForVerification.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to verify company");
+        toast.error(err.message || t("failedToVerifyCompany"));
       },
     })
   );
@@ -64,7 +66,7 @@ export function VerificationsApproveDialog({
   const handleConfirm = () => {
     const result = approveVerificationFormSchema.safeParse({ bankCode: selectedBankCode });
     if (!result.success) {
-      const errorMsg = result.error.issues[0]?.message || "Invalid bank code selection";
+      const errorMsg = result.error.issues[0]?.message || t("invalidBankCode");
       setValidationError(errorMsg);
       toast.error(errorMsg);
       return;
@@ -86,32 +88,32 @@ export function VerificationsApproveDialog({
       <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-slate-900">
-            Verify & Register Transfer Recipient
+            {t("verifyRegisterTransferRecipient")}
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500">
-            To enable withdrawals, map the bank details below to the correct Ivory Coast bank code to create the Paystack Transfer Recipient.
+            {t("dialogDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
           <div className="rounded border border-slate-100 p-3 bg-slate-50 space-y-1.5 text-xs text-slate-600">
             <div>
-              <span className="font-semibold text-slate-700">Bank Name (Operator Input):</span>{" "}
-              {pendingBank?.bankName || "N/A"}
+              <span className="font-semibold text-slate-700">{t("bankNameLabel")}</span>{" "}
+              {pendingBank?.bankName || t("na")}
             </div>
             <div>
-              <span className="font-semibold text-slate-700">Account Number:</span> ••••••••••••
-              {pendingBank?.accountNumberLast4 || "N/A"}
+              <span className="font-semibold text-slate-700">{t("accountNumberLabel")}</span> ••••••••••••
+              {pendingBank?.accountNumberLast4 || t("na")}
             </div>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Settlement Bank Code (Paystack List)
+              {t("settlementBankCodeLabel")}
             </label>
             <Combobox
               items={[
-                { label: "-- Select Bank Code --", value: "" },
+                { label: t("selectBankCodePlaceholder"), value: "" },
                 ...(paystackBanks?.map((bank: any) => ({
                   label: `${bank.code} - ${bank.name}`,
                   value: bank.code,
@@ -124,11 +126,11 @@ export function VerificationsApproveDialog({
               }}
             >
               <ComboboxInput
-                placeholder="Search bank..."
+                placeholder={t("searchBankPlaceholder")}
                 className="w-full h-10"
               />
               <ComboboxContent>
-                <ComboboxEmpty>No bank found.</ComboboxEmpty>
+                <ComboboxEmpty>{t("noBankFound")}</ComboboxEmpty>
                 <ComboboxList>
                   {paystackBanks?.map((bank: any) => (
                     <ComboboxItem key={bank.code} value={bank.code}>
@@ -146,7 +148,7 @@ export function VerificationsApproveDialog({
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" className="h-9" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             className="bg-primary hover:bg-primary/90 text-white h-9"
@@ -156,10 +158,10 @@ export function VerificationsApproveDialog({
             {verifyMutation.isPending ? (
               <>
                 <Spinner className="mr-2 size-3.5 text-white" />
-                Registering...
+                {t("registering")}
               </>
             ) : (
-              "Confirm Verification"
+              t("confirmVerification")
             )}
           </Button>
         </DialogFooter>

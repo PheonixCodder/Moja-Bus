@@ -3,12 +3,14 @@
 import { Building, User, Mail, Phone, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Separator } from "@moja/ui/components/ui/separator";
+import { useTranslations } from "next-intl";
 
 interface VerificationDetailsHeaderProps {
   company: any;
 }
 
 export function VerificationDetailsHeader({ company }: VerificationDetailsHeaderProps) {
+  const t = useTranslations("adminDashboard.verificationDetailsHeader");
   const rep = company.operators?.[0]?.user;
 
   return (
@@ -35,7 +37,7 @@ export function VerificationDetailsHeader({ company }: VerificationDetailsHeader
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs text-primary font-semibold hover:underline"
             >
-              Visit Website
+              {t("visitWebsite")}
               <ExternalLink className="size-3.5" />
             </a>
           )}
@@ -45,7 +47,7 @@ export function VerificationDetailsHeader({ company }: VerificationDetailsHeader
         {company.description && (
           <div className="space-y-1.5">
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              About the Company
+              {t("aboutTheCompany")}
             </h4>
             <p className="text-sm text-slate-600 leading-relaxed">
               {company.description}
@@ -55,27 +57,27 @@ export function VerificationDetailsHeader({ company }: VerificationDetailsHeader
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Business Type</div>
+            <div className="text-xs text-slate-400 font-medium">{t("businessType")}</div>
             <div className="font-semibold text-slate-800 text-sm mt-0.5">
               {company.businessType.replace(/_/g, " ")}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Reg Number</div>
+            <div className="text-xs text-slate-400 font-medium">{t("regNumber")}</div>
             <div className="font-semibold text-slate-800 text-sm mt-0.5">
               {company.registrationNumber}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Tax ID</div>
+            <div className="text-xs text-slate-400 font-medium">{t("taxId")}</div>
             <div className="font-semibold text-slate-800 text-sm mt-0.5">
               {company.taxId}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Established</div>
+            <div className="text-xs text-slate-400 font-medium">{t("established")}</div>
             <div className="font-semibold text-slate-800 text-sm mt-0.5">
-              {company.yearEstablished || "N/A"}
+              {company.yearEstablished || t("na")}
             </div>
           </div>
         </div>
@@ -85,31 +87,31 @@ export function VerificationDetailsHeader({ company }: VerificationDetailsHeader
         <div className="space-y-3">
           <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
             <User className="size-4 text-slate-400" />
-            Owner Representative Details
+            {t("ownerRepresentativeDetails")}
           </h4>
           {rep ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-600 border border-slate-100 rounded-lg p-4 bg-slate-50/50">
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">Full Name</span>
+                <span className="font-medium text-slate-400">{t("fullName")}</span>
                 <div className="font-semibold text-slate-800 text-sm">{rep.fullName}</div>
               </div>
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">Email Address</span>
+                <span className="font-medium text-slate-400">{t("emailAddress")}</span>
                 <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
                   <Mail className="size-3 text-slate-400 shrink-0" />
                   {rep.email}
                 </div>
               </div>
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">Phone Contact</span>
+                <span className="font-medium text-slate-400">{t("phoneContact")}</span>
                 <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
                   <Phone className="size-3 text-slate-400 shrink-0" />
-                  {rep.phone || "N/A"}
+                  {rep.phone || t("na")}
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-xs text-slate-400 italic">No representative contact details registered.</p>
+            <p className="text-xs text-slate-400 italic">{t("noRepresentativeDetails")}</p>
           )}
         </div>
       </CardContent>

@@ -1,8 +1,20 @@
 # Memory — Passenger Mobile App Build
 
-Last updated: 2026-07-27
+Last updated: 2026-08-02
 
 ## What was built
+
+**Contact/Inquiries feature (2026-08-02):**
+
+- **DB**: New `ContactInquiry` model (`contact_inquiry` table) + `ContactInquiryStatus` enum (NEW/IN_PROGRESS/RESOLVED/CLOSED). Fields: name, email, phone?, subject, message, status, userId? (null = guest), ipAddress?, userAgent?, adminNote?, resolvedById?/resolvedAt?. Synced via `prisma db push` (project uses db push, NOT migrate — no migrations dir exists)
+- **Schemas** (`packages/schemas/src/contact.ts`): submitInquirySchema, adminListInquiriesSchema, adminGetInquirySchema, adminUpdateInquiryStatusSchema
+- **tRPC** (`apps/web/trpc/routers/contact.ts`, registered in `_app.ts` as `contact`): `submitInquiry` (publicProcedure, rate-limited 5/email/hour, captures `ctx.user?.id` server-side + IP/UA), `listInquiries`/`getInquiry`/`updateInquiryStatus` (adminProcedure)
+- **Contact form** (`features/contact/components/contact-form.tsx`): replaced mailto hack with `trpc.contact.submitInquiry`, added optional phone field, error + submitting states
+- **Admin UI**: `/dashboard/admin/contact/inquiries/page.tsx` + `features/admin/views/admin-inquiries-view.tsx` (status filter, search, table w/ Logged in/Guest badge, pagination) + `features/admin/components/inquiries/inquiry-detail-drawer.tsx` (full message, note saving, status actions)
+- **Sidebar**: New "Support" section with "Inquiries" item (LifeBuoy icon)
+- Messages added: `adminDashboard.nav.inquiries`, `adminDashboard.sections.support`, `adminDashboard.inquiries.*`, contact form keys (labelPhone, submitting, submitError, new successBody)
+
+## Decisions made
 
 **Onboarding flow + font loading + tRPC + Settings page + Tab bar:**
 

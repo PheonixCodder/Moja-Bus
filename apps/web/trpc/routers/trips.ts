@@ -73,6 +73,10 @@ export const tripsRouter = createTRPCRouter({
                   s.seatType !== "EMPTY_SPACE",
               ).length,
             status: "SCHEDULED",
+            // Match the bulk generator (lib/trip-generator.ts): snapshot the
+            // route's service type so search and tickets can filter/display it
+            // without joining geometry.
+            serviceType: schedule.route.serviceType,
             routeSnapshotJson: {
               ...schedule.route,
               scheduleWaypoints: schedule.scheduleWaypoints ?? [],

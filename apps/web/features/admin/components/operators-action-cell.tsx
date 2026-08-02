@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ import {
 import type { OperatorRow } from "./operators-columns";
 
 export function OperatorActionCell({ operator }: { operator: OperatorRow }) {
+  const t = useTranslations("adminDashboard.operatorsActionCell");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -22,11 +24,11 @@ export function OperatorActionCell({ operator }: { operator: OperatorRow }) {
   const demoteMutation = useMutation({
     ...trpc.admin.updateUserRole.mutationOptions(),
     onSuccess: () => {
-      toast.success("Operator demoted to Traveler.");
+      toast.success(t("demotedToTraveler"));
       queryClient.invalidateQueries(trpc.admin.listUsers.pathFilter());
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to update role");
+      toast.error(err.message || t("failedToUpdateRole"));
     },
   });
 
@@ -34,16 +36,16 @@ export function OperatorActionCell({ operator }: { operator: OperatorRow }) {
     <div className="flex justify-end">
       <DropdownMenu>
         <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md p-0 text-muted-foreground hover:bg-muted focus:outline-none">
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">{t("openMenu")}</span>
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[180px]">
-          <p className="px-2 py-1 text-xs font-normal text-muted-foreground">Actions</p>
+          <p className="px-2 py-1 text-xs font-normal text-muted-foreground">{t("actions")}</p>
           <DropdownMenuItem onClick={() => router.push(`/dashboard/admin/users/operators/${operator.id}`)}>
-            View Profile
+            {t("viewProfile")}
           </DropdownMenuItem>
           {operator.companies.length > 0 && (
-            <DropdownMenuItem>Manage Company</DropdownMenuItem>
+            <DropdownMenuItem>{t("manageCompany")}</DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -51,7 +53,7 @@ export function OperatorActionCell({ operator }: { operator: OperatorRow }) {
             className="text-amber-600 focus:text-amber-600"
           >
             <ShieldOff className="mr-2 h-4 w-4" />
-            Demote to Traveler
+            {t("demoteToTraveler")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

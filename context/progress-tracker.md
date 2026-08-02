@@ -8,10 +8,10 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | Fare.seatClass Removal + Search Filters |
-| **Last major milestone** | Removed Fare.seatClass from pricing model, added Bus Class & Express filters to search |
-| **Web unit tests** | 73/73 pass |
-| **Next priority** | Test search filters UI, add i18n translations |
+| **Phase** | Post-urban UX polish — stops on map (shared route map) + timeline |
+| **Last major milestone** | Booking surfaces now render segment stops on a Leaflet map via a shared `RouteMapPreview` (operator drawer, admin drawer, booking dialog toggle, booking-details); seat map centering + stops timeline done earlier (107/107 tests) |
+| **Web unit tests** | 107/107 pass |
+| **Next priority** | Booking dialog polish + stops-on-map complete — back to standard roadmap (booking ownership hardening, performance, mobile MVP). Deferred sugar: urban price-range hint in PricingStep |
 
 ### Changes Made:
 - ✅ Removed `seatClass` field from `Fare` model in Prisma schema
@@ -40,6 +40,75 @@
 ---
 
 ## Milestone Log (newest first)
+
+### Stops on Map — Shared RouteMapPreview Across Operator + Passenger (2026-08-02)
+
+- [x] **`RouteMapPreview` generalized** (`apps/web/features/operator/components/route-map-preview.tsx`): now accepts a minimal `RouteMapPoint[]` shape (`{id, name, cityName, latitude, longitude}`) instead of full `Terminal`; markers (pink endpoints / purple intermediates) + polyline + popups, midpoint centering, OSM tiles. Exported `RouteMapPoint` type.
+- [x] Call sites migrated: `route-form-drawer.tsx` + `admin-route-drawer.tsx` map `Terminal[]` → `RouteMapPoint[]` (city fallback `?? "Côte d'Ivoire"` for nullable `city`).
+- [x] **Booking dialog toggle** (`trip-summary-card.tsx`): new `StopsMap` section under the stops timeline — "Show route on map" / "Hide route map" button + lazy-loaded (`ssr:false`) map rendering segment stops; hidden when <2 stops have coordinates. Card is now `"use client"` (both consumers already client). `TripSummaryData.stops[]` gained `latitude`/`longitude`.
+- [x] **Booking-details map upgraded** (`booking-route-map.tsx`): renders ALL segment stops via shared `RouteMapPreview` (was origin→dest straight line only); keeps pure-CSS fallback banner + origin/dest floating overlay; leaflet internals delegated to the shared component.
+- [x] Data plumbing: `TripDetailsStop` + `PassengerBookingSummary.stops[]` (`PassengerBookingStop`) gained `latitude`/`longitude` in `packages/types/src/booking.ts`; mapped in `trip-details-service.ts` (was already included in the Prisma query) and `booking-read-service.ts` (`bookingInclude` now selects `trip.tripStops` with terminals; `toSummary` filters to the booked segment via `originTripStopId`/`destinationTripStopId` stop orders).
+- [x] i18n: `booking.tripSummary.showRouteMap` + `hideRouteMap` added to `en.json` + `fr.json` (English in fr per language rule).
+- [x] Verification: web typecheck clean, `@moja/types` typecheck clean, web tests **107/107** pass, both message JSON parse. No server-logic changes — coordinates already fetched.
+
+### Booking Dialog UX Polish — Centered Seat Map + Stops Timeline (2026-08-02)
+
+- [x] **Seat map centered** (`passenger-seat-map.tsx`): legend + board wrapped in `w-max mx-auto` inside the existing `overflow-x-auto` scroll container (flex `justify-center` must live inside the scroller or the left edge clips on overflow); legend `justify-center`; board `inline-block rounded-xl border`.
+- [x] **Stops timeline redesign** (`trip-summary-card.tsx`): extended `TripSummaryData.stops[]` with `quarterName`, `scheduledArrival`, `isPickup`, `isDropoff`; new local `StopTag` (emerald Boarding / blue Alight / slate Pickup/Dropoff) + `StopsTimeline` (time column / rail + dot / terminal + location label + badges); replaced old plain-text `<ol>` block. Origin = pink filled dot (departure only), destination = dark filled (arrival only), intermediates = hollow slate (arr + dep when non-null, nulls omitted). Leg duration `≈ Xh Ym` from `nextStop.scheduledArrival − stop.scheduledDeparture` beside the rail. Stop labels via shared `formatLocationLabel` (`format-location-label.ts`).
+- [x] **Continue button centered** (`booking-dialog-flow.tsx`): `flex justify-end` → `flex justify-center` on the bottom CTA of the seat-selection step.
+- [x] i18n: `booking.tripSummary` keys added to `en.json` + `fr.json` — `arrLabel`, `depLabel`, `boarding`, `alight`, `pickup`, `dropoff`, `legDuration`; removed now-unused `departing` key (only consumer was the old stops list). English text in fr per language rule (existing project pattern for new keys).
+- [x] No server changes — `TripDetailsStop` already had `scheduledArrival`/`isPickup`/`isDropoff`; the card's local interface was the only gap.
+- [x] Verification: web typecheck clean; web tests **107/107** pass; both message files parse as valid JSON; grep confirms zero remaining `departing` consumers. Timeline renders only in the booking dialog (`showStops` true only there; other `TripSummaryCard` consumers pass `showStops={false}`).
+
+### Urban First-Class — Phase 4: Consistency Layer (2026-08-01)
+
+- [x] **Shared label formatter** `apps/web/lib/format-location-label.ts` (R6): `formatLocationLabel` — urban `"Cocody – Riviera 3"` (quarter when known, city fallback), intercity `"Abidjan (Cocody)"`; `formatCityWithMuni` for operator surfaces. Kills the 4 ad-hoc formats + offer-card-vs-ticket mismatch (B5/B7).
+- [x] Applied to all 10 R6 surfaces: offer-card (urban now shows quarter — R8 "show"), trip-summary-card, booking-checkout-form, digital-ticket-card, passenger-tickets-view, booking-route-map, booking-card, booking-details, passenger-trip-card, operator booking-detail-drawer. `Terminal · Quarter` secondary lines unchanged.
+- [x] Plumbing: `PassengerBookingSummary.serviceType` + `OperatorBookingListItem.serviceType`; mapped in booking-read-service (`toSummary`) + operator-booking-service (`toListItem`/`toDetail`, include selects `trip.serviceType`).
+- [x] **R11:** `StopLabel.municipality` + `buildStopsFromRoute`; pricing-step stops → `Terminal — City (Muni)`; route-card/routes-table/schedule-card → `City (Muni) → City (Muni)`; terminals-table city cell → `City (Muni)`.
+- [x] **R12:** `admin.listRoutes` search on `cityRelation.name` (was free-text `city` — B10); copy de-urbanized (admin routes page, routes/terminals metaDescription, noRoutesDesc) in en.json + fr.json.
+- [x] **R15:** deleted dead `hero-search-bar.tsx` (v1), `search-hero.tsx`, `route-editor-sheet.tsx` (verified zero imports; live code uses `hero-search-bar-2.tsx`).
+- [x] Verification: web typecheck clean (one `exactOptionalPropertyTypes` fix on `LocationLabelParts`); web tests 89/89.
+- [x] Audit tracker: status → all phases implemented 2026-08-01; Phase 4 log appended. Deferred sugar: urban price-range hint in `PricingStep`.
+
+### Urban First-Class — Phase 3: Urban Cadence + Badges Everywhere (2026-08-01)
+
+- [x] **Full cadence support (user decision):** `Schedule.departureTimes String[] @default([])` added; `departureTime` kept as primary/first for back-compat; `db:push` + `generate` pushed to Neon.
+- [x] Idempotent backfill `packages/db/scripts/backfill-schedule-departure-times.ts` seeded all 6/6 schedules (re-queries for its warning count).
+- [x] Schemas: `createScheduleSchema` accepts `departureTimes` or deprecated `departureTime` alias, requires ≥1, transform dedupes+sorts; `updateScheduleBasicSchema.departureTimes` (min 1).
+- [x] `schedule-trip-window.ts` cadence-aware: one candidate per departure time per operating day; MODIFIED replaces the day's whole cadence with its override time; CANCELLED skips; EXTRA_SERVICE forces.
+- [x] Server: `checkScheduleOverlap` time-set aware (no `departureTime` filter; CONFLICT lists shared times); trip-generator, reconcile, `updateCalendar`, `updateBasic` pass full list with `[departureTime]` fallback; `create` stores `departureTime = departureTimes[0]`.
+- [x] Shared `DepartureTimesEditor` (`departure-times-editor.tsx`): time chips, manual add, cadence preset (start / every 15/30/45/60/90 min / end, deduped+merged); used by wizard `calendar-step` + `schedule-edit-drawer`; `CalendarConfig.departureTimes: string[]` (default `["08:00"]`); schedule-card shows up to 3 times then " (+N)".
+- [x] **Badges from single source:** `apps/web/components/urban-badge.tsx`; `TripDetails`/`DigitalTicketDTO` gain `serviceType: SearchServiceType`; `bookingInclude` selects `trip.serviceType`; surfaces: trip-summary-card, digital-ticket-card, operator schedule-card, admin-routes-table; operator route-card/routes-table deduped onto shared badge.
+- [x] i18n: wizard cadence keys + `markerDesc` `{times}` added to `en.json` + `fr.json` (English text in fr per language rule).
+- [x] Verification: web typecheck clean; web tests **89/89** (2 new cadence tests in `schedule-trip-window.test.ts` — existing test file, no package.json script change).
+- [x] Audit tracker updated with Phase 3 implementation log; remaining = Phase 4 only.
+
+### Urban First-Class — Phase 2: Search over Level-Aware Places (2026-08-01)
+
+- [x] `features/search/lib/places.ts`: `GeoPlace`, `isUrban` (= same cityId — refinements optional), `placeMatchesTerminal`.
+- [x] `features/search/lib/validate-search-pair.ts`: shared pair validation (R2) — quarter↔city holes fixed, one-sided refinements now valid urban searches; used by search-form AND hero.
+- [x] `SearchOffer.serviceType` (R1); offer-card `isUrban` reads it — name-equality check deleted.
+- [x] Repository: `findTrips(originPlace, destPlace, date)` + `findTripsInWindow` replace `findCandidateTrips`/`findUrbanTrips`.
+- [x] Search service: place-based `SearchContext`, single query, `serviceType` from trip snapshot.
+- [x] Router: `originQuarterId`/`destinationQuarterId` on search + cheapestByDate; shared `resolveCityId`/`toGeoPlace`; cheapestByDate uses the shared window query (kills `tripWhere: any` branch).
+- [x] `fromQuarter`/`toQuarter` nuqs params (R13) — wired through server prefetch, page client, form, date strip, cheapest-by-date hook.
+- [x] Popular-chip id bug fixed (R3): `id: ""`, name resolves server-side.
+- [x] R4/R14 semantics fixed by design: half-urban can't misroute; single-muni cities searchable; quarters honored end-to-end.
+- [x] 16 new unit tests (`search-pair-validation.test.ts`); web suite 87/87 pass; web typecheck clean.
+
+### Urban First-Class — Phase 0+1: Persisted Service Type (2026-08-01)
+
+- [x] Schema: added `ServiceType` enum (INTERCITY/URBAN), `Route.serviceType` + `Trip.serviceType` with indexes; pushed to Neon via `prisma db push`.
+- [x] Backfill script `packages/db/scripts/backfill-service-type.ts`: resolved legacy free-text `city` → `cityId`, derived route service types (2 URBAN / 4 INTERCITY), snapped serviceType onto all 89 trips.
+- [x] `createTerminalSchema` now requires `cityId` when `isTerminal`; `terminals.ts` auto-assigns pass-through municipality and blocks terminal promotion without a city.
+- [x] `routes.ts` derives `serviceType` server-side from terminal cityIds (never names); rejects geo-incomplete terminals and URBAN routes with out-of-city waypoints; re-derives on update.
+- [x] `trip-generator.ts` snapshots `route.serviceType` onto new trips.
+- [x] Operator UI: route-form-drawer badge is ID-based; route-card/routes-table show persisted "Urban" badge; terminal editor guards terminal-without-city.
+- [x] Typecheck (web + schemas) clean; 87/87 web tests pass (16 new Phase 2 tests).
+- [x] Phase 2: level-aware search places (fromQuarter/toQuarter, unified repo query, `SearchOffer.serviceType`) — DONE
+- [x] Phase 3: urban cadence (departureTimes) + shared badges everywhere — DONE (2026-08-01)
+- [x] Phase 4: shared `formatLocationLabel`, admin `cityRelation` search + copy, dead-code removal (R15) — DONE (2026-08-01)
 
 ### Notification Workflow Type Error Fixes (2026-08-01)
 
@@ -496,5 +565,5 @@ Agent app, driver app, multi-country, cargo, subscriptions, loyalty, public API
 4. **When blocked** — add to Blockers & Risks
 5. **End of session** — run `/remember save` and sync this file
 
-**Last updated:** 2026-07-24  
-**Updated by:** i18n Phase A4-2 — Operator core ERP pages
+**Last updated:** 2026-08-02  
+**Updated by:** Stops on map — shared RouteMapPreview (operator + passenger surfaces)

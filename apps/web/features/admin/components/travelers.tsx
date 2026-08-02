@@ -21,24 +21,28 @@ import { Input } from "@moja/ui/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@moja/ui/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
 
-import { type TravelerRow, statusMeta, getAvatarTone, getInitials, travelersColumns } from "./travelers-columns";
+import { type TravelerRow, statusMeta, getAvatarTone, getInitials, getTravelerColumns } from "./travelers-columns";
 import { TravelersTable } from "./travelers-table";
 import { TravelersGrid } from "./travelers-grid";
 import { useQueryStates } from "nuqs";
 import { travelerSearchParams } from "../lib/search-params";
+import { useTranslations } from "next-intl";
 
 export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
+  const t = useTranslations("adminDashboard.travelers");
   const [rowSelection, setRowSelection] = React.useState({});
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "joinedDate", desc: true }]);
   const [params, setParams] = useQueryStates(travelerSearchParams);
   const viewType = params.view;
 
+  const columns = React.useMemo(() => getTravelerColumns(t), [t]);
+
   const columnFilters = React.useMemo(() => {
     const filters: ColumnFiltersState = [];
     if (params.search) filters.push({ id: "search", value: params.search });
-    if (params.status && params.status !== "All") filters.push({ id: "status", value: params.status });
+    if (params.status && params.status !== t("statusAll")) filters.push({ id: "status", value: params.status });
     return filters;
-  }, [params.search, params.status]);
+  }, [params.search, params.status, t]);
   
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -47,7 +51,7 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
 
   const table = useReactTable({
     data: travelers,
-    columns: travelersColumns,
+    columns,
     state: {
       rowSelection,
       sorting,
@@ -86,17 +90,17 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
           <div className="space-y-1">
             <CardTitle className="text-xl leading-none flex items-center gap-2">
               <Users className="size-5 text-sidebar-primary" />
-              Travelers Directory
+              {t("travelersDirectory")}
             </CardTitle>
             <CardDescription className="max-w-sm leading-snug">
-              Manage all passenger accounts across the platform.
+              {t("travelersDirectoryDescription")}
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-full md:w-64">
               <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
               <Input
-                placeholder="Search travelers..."
+                placeholder={t("searchTravelersPlaceholder")}
                 className="pl-8 h-9"
                 value={params.search}
                 onChange={(event) => {
@@ -106,7 +110,7 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
               />
             </div>
             <Button variant="outline" size="sm" className="h-9">
-              <Download className="mr-2 size-4" /> Export
+              <Download className="mr-2 size-4" /> {t("export")}
             </Button>
           </div>
         </div>
@@ -120,14 +124,14 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
                 table.setPageIndex(0);
               }}>
               <SelectTrigger size="sm" className="h-8 w-[140px]">
-                <span className="text-muted-foreground">Status:</span>
+                <span className="text-muted-foreground">{t("statusLabel")}</span>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent align="start">
                 <SelectGroup>
-                  <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Verified">Verified</SelectItem>
-                  <SelectItem value="Unverified">Unverified</SelectItem>
+                  <SelectItem value="All">{t("statusAll")}</SelectItem>
+                  <SelectItem value="Verified">{t("statusVerified")}</SelectItem>
+                  <SelectItem value="Unverified">{t("statusUnverified")}</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -136,7 +140,7 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
 
         <div className="flex items-center justify-between gap-3 px-4 pb-2">
           <div className="text-muted-foreground text-sm tabular-nums">
-            {selectedCount > 0 ? `${selectedCount} selected` : `${travelers.length} total travelers`}
+            {selectedCount > 0 ? t("selectedCount", { count: selectedCount }) : t("totalTravelers", { count: travelers.length })}
           </div>
 
           <Tabs value={viewType} onValueChange={handleViewChange}>

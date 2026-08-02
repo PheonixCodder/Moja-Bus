@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,17 +16,18 @@ import {
 import type { TravelerRow } from "./travelers-columns";
 
 export function TravelerActionCell({ row }: { row: TravelerRow }) {
+  const t = useTranslations("adminDashboard.travelersActionCell");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const router = useRouter();
   const updateRoleMutation = useMutation({
     ...trpc.admin.updateUserRole.mutationOptions(),
     onSuccess: () => {
-      toast.success("User promoted to operator successfully.");
+      toast.success(t("promotedToOperator"));
       queryClient.invalidateQueries(trpc.admin.listUsers.pathFilter());
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to update role");
+      toast.error(err.message || t("failedToUpdateRole"));
     },
   });
 
@@ -36,23 +38,23 @@ export function TravelerActionCell({ row }: { row: TravelerRow }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => router.push(`/dashboard/admin/users/travelers/${row.id}`)}>
-          View profile
+          {t("viewProfile")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => toast.info("Edit User coming soon!")}>
-          Edit user
+        <DropdownMenuItem onClick={() => toast.info(t("editUserComingSoon"))}>
+          {t("editUser")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => updateRoleMutation.mutate({ userId: row.id, role: "OPERATOR" })}
           disabled={updateRoleMutation.isPending}
         >
-          Promote to Operator
+          {t("promoteToOperator")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-          onClick={() => toast.info("Deactivate User coming soon!")}
+          onClick={() => toast.info(t("deactivateUserComingSoon"))}
         >
-          Deactivate User
+          {t("deactivateUser")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

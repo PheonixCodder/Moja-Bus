@@ -17,6 +17,7 @@ import { Badge } from "@moja/ui/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@moja/ui/components/ui/avatar";
 import { ArrowRight, Map } from "lucide-react";
 import { Empty, EmptyTitle, EmptyDescription } from "@moja/ui/components/ui/empty";
+import { UrbanBadge } from "@/components/urban-badge";
 
 interface AdminRoutesTableProps {
   onViewRoute: (id: string) => void;
@@ -58,7 +59,10 @@ export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
           {data.items.map((route) => (
             <TableRow key={route.id}>
               <TableCell className="font-medium">
-                <div>{route.name}</div>
+                <div className="flex items-center gap-2">
+                  <span>{route.name}</span>
+                  {route.serviceType === "URBAN" && <UrbanBadge />}
+                </div>
                 <div className="text-[11px] text-muted-foreground mt-0.5">
                   {(route._count?.waypoints ?? 0) + 2} stops
                 </div>

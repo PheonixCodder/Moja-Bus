@@ -24,17 +24,19 @@ import { Badge } from "@moja/ui/components/ui/badge";
 import { Search, ArrowRight, CheckCircle2, Clock, User, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import type { RouterOutputs } from "@/trpc/client";
 
 type TripAudit = RouterOutputs["admin"]["getTripAudit"];
 type Booking = TripAudit["bookings"][number];
 
 function BookingStatusBadge({ booking }: { booking: Booking }) {
+  const t = useTranslations("adminDashboard.tripAuditManifest");
   if (booking.boardedAt) {
     return (
       <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
         <CheckCircle2 className="size-3 mr-1" />
-        Boarded
+        {t("boarded")}
       </Badge>
     );
   }
@@ -42,7 +44,7 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
     return (
       <Badge className="bg-sky-100 text-sky-700 border-sky-200 hover:bg-sky-100">
         <Clock className="size-3 mr-1" />
-        Checked In
+        {t("checkedIn")}
       </Badge>
     );
   }
@@ -50,7 +52,7 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
     return (
       <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">
         <User className="size-3 mr-1" />
-        Not Boarded
+        {t("notBoarded")}
       </Badge>
     );
   }
@@ -58,7 +60,7 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
     return (
       <Badge variant="destructive" className="border-red-200">
         <XCircle className="size-3 mr-1" />
-        Cancelled
+        {t("cancelled")}
       </Badge>
     );
   }
@@ -70,6 +72,7 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
 }
 
 export function TripAuditManifest({ tripId }: { tripId: string }) {
+  const t = useTranslations("adminDashboard.tripAuditManifest");
   const trpc = useTRPC();
   const { data: trip } = useSuspenseQuery(
     trpc.admin.getTripAudit.queryOptions({ id: tripId })
@@ -108,7 +111,7 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Search name, reference, or phone..."
+            placeholder={t("searchPlaceholder")}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             className="pl-9"
@@ -116,14 +119,14 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
         </div>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v)}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Statuses" />
+            <SelectValue placeholder={t("allStatuses")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All Statuses</SelectItem>
-            <SelectItem value="BOARDED">Boarded</SelectItem>
-            <SelectItem value="CHECKED_IN">Checked In</SelectItem>
-            <SelectItem value="NOT_BOARDED">Not Boarded</SelectItem>
-            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
+            <SelectItem value="BOARDED">{t("statusBoarded")}</SelectItem>
+            <SelectItem value="CHECKED_IN">{t("statusCheckedIn")}</SelectItem>
+            <SelectItem value="NOT_BOARDED">{t("statusNotBoarded")}</SelectItem>
+            <SelectItem value="CANCELLED">{t("statusCancelled")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -133,20 +136,20 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/70">
-              <TableHead className="font-semibold text-xs">Seat</TableHead>
-              <TableHead className="font-semibold text-xs">Passenger</TableHead>
-              <TableHead className="font-semibold text-xs">Segment</TableHead>
-              <TableHead className="font-semibold text-xs">Reference</TableHead>
-              <TableHead className="font-semibold text-xs">Fare</TableHead>
-              <TableHead className="font-semibold text-xs">Status</TableHead>
-              <TableHead className="font-semibold text-xs">Booked At</TableHead>
+              <TableHead className="font-semibold text-xs">{t("seat")}</TableHead>
+              <TableHead className="font-semibold text-xs">{t("passenger")}</TableHead>
+              <TableHead className="font-semibold text-xs">{t("segment")}</TableHead>
+              <TableHead className="font-semibold text-xs">{t("reference")}</TableHead>
+              <TableHead className="font-semibold text-xs">{t("fare")}</TableHead>
+              <TableHead className="font-semibold text-xs">{t("status")}</TableHead>
+              <TableHead className="font-semibold text-xs">{t("bookedAt")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center text-muted-foreground text-sm">
-                  No passengers match your filters.
+                  {t("noPassengersMatch")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -199,10 +202,10 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
         {filtered.length > 0 && (
           <div className="border-t border-border bg-slate-50/50 px-4 py-2 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              Showing {filtered.length} of {trip.bookings.length} passengers
+              {t("showingPassengers", { shown: filtered.length, total: trip.bookings.length })}
             </span>
             <span className="text-xs font-semibold text-foreground">
-              Total Fare: {filtered.reduce((s, b) => s + b.farePaid, 0).toLocaleString()} XOF
+              {t("totalFare", { fare: filtered.reduce((s, b) => s + b.farePaid, 0).toLocaleString() })}
             </span>
           </div>
         )}

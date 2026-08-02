@@ -11,20 +11,22 @@ import { Button } from "@moja/ui/components/ui/button";
 import { formatAdminDate } from "@/lib/format-date";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 interface VerificationDetailsDocumentsProps {
   documents: any[];
 }
 
 export function VerificationDetailsDocuments({ documents }: VerificationDetailsDocumentsProps) {
+  const t = useTranslations("adminDashboard.verificationDetailsDocuments");
   return (
     <Card className="bg-white border-border shadow-sm">
       <CardHeader>
         <CardTitle className="text-base font-bold text-slate-900">
-          Uploaded Legal Registry Files
+          {t("uploadedLegalRegistryFiles")}
         </CardTitle>
         <CardDescription className="text-xs text-slate-400">
-          Operator uploaded documentation including permit approvals and tax clearances.
+          {t("documentsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 pt-0">
@@ -35,7 +37,7 @@ export function VerificationDetailsDocuments({ documents }: VerificationDetailsD
             ))
           ) : (
             <div className="text-center py-6 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
-              No registry documents uploaded by this company.
+              {t("noDocumentsUploaded")}
             </div>
           )}
         </div>
@@ -45,6 +47,7 @@ export function VerificationDetailsDocuments({ documents }: VerificationDetailsD
 }
 
 function DocumentRow({ doc }: { doc: any }) {
+  const t = useTranslations("adminDashboard.verificationDetailsDocuments");
   const trpc = useTRPC();
   const [opening, setOpening] = useState(false);
   const downloadMutation = useMutation(
@@ -96,7 +99,7 @@ function DocumentRow({ doc }: { doc: any }) {
             {doc.fileName || doc.type.replace(/_/g, " ")}
           </div>
           <div className="text-[10px] text-slate-400 mt-0.5 font-medium">
-            Uploaded on {formatAdminDate(doc.createdAt)}
+            {t("uploadedOn", { date: formatAdminDate(doc.createdAt) })}
           </div>
         </div>
       </div>
@@ -112,7 +115,7 @@ function DocumentRow({ doc }: { doc: any }) {
         ) : (
           <ExternalLink className="size-3" />
         )}
-        View File
+        {t("viewFile")}
       </Button>
     </div>
   );

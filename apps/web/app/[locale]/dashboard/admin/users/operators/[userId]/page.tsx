@@ -17,9 +17,9 @@ export default async function OperatorProfilePage({
     <HydrateClient>
       <DashboardHeader
         breadcrumbs={[
-          { label: "Admin" },
-          { label: "Operators", href: "/dashboard/admin/users/operators" },
-          { label: "Profile" },
+          { label: "Admin", tKey: "overview.breadcrumb.admin" },
+          { label: "Operators", tKey: "nav.operators", href: "/dashboard/admin/users/operators" },
+          { label: "Profile", tKey: "overview.breadcrumb.profile" },
         ]}
       />
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

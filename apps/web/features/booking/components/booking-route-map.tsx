@@ -1,65 +1,12 @@
 "use client";
 
-import * as React from "react";
-import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
-import L from "leaflet";
-// Leaflet CSS is loaded dynamically below in JSX via CDN link tag to prevent webpack resolution errors for relative assets.
-import { Map as MapIcon, Navigation } from "lucide-react";
 import type { PassengerBookingSummary } from "@moja/types";
 import { Badge } from "@moja/ui/components/ui/badge";
-import { Spinner } from "@moja/ui/components/ui/spinner";
-
-// ─────────────────────────────────────────────────────────
-// Map Asset Fixes
-// ─────────────────────────────────────────────────────────
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
-// ─────────────────────────────────────────────────────────
-// Branded Icons
-// ─────────────────────────────────────────────────────────
-function createBrandedIcon(isOrigin: boolean) {
-  return L.divIcon({
-    className: "",
-    html: `<div style="
-      width: ${isOrigin ? "10px" : "14px"};
-      height: ${isOrigin ? "10px" : "14px"};
-      background: ${isOrigin ? "#9333ea" : "#ee237c"};
-      border: 2.5px solid #fff;
-      border-radius: 50%;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-    "></div>`,
-    iconSize: [isOrigin ? 10 : 14, isOrigin ? 10 : 14],
-    iconAnchor: [isOrigin ? 5 : 7, isOrigin ? 5 : 7],
-  });
-}
-
-// ─────────────────────────────────────────────────────────
-// Auto-Fit Bounds Component
-// ─────────────────────────────────────────────────────────
-function FitBounds({
-  origin,
-  destination,
-}: {
-  origin: [number, number];
-  destination: [number, number];
-}) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (origin && destination) {
-      const bounds = L.latLngBounds(origin, destination);
-      map.fitBounds(bounds, { padding: [50, 50], animate: true });
-    }
-  }, [map, origin, destination]);
-
-  return null;
-}
+import { Map as MapIcon, Navigation } from "lucide-react";
+import { formatLocationLabel } from "@/lib/format-location-label";
+import RouteMapPreview, {
+  type RouteMapPoint,
+} from "@/features/operator/components/route-map-preview";
 
 // ─────────────────────────────────────────────────────────
 // Fallback Banner
@@ -89,11 +36,11 @@ function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Origin</span>
-            <span className="font-semibold">{booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}</span>
+            <span className="font-semibold">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
           </div>
           <div className="flex flex-col items-end gap-1 text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Destination</span>
-            <span className="font-semibold">{booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}</span>
+            <span className="font-semibold">{formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
           </div>
         </div>
         
@@ -132,64 +79,35 @@ export type BookingRouteMapProps = {
 export default function BookingRouteMap({ booking }: BookingRouteMapProps) {
   if (!booking) return <EmptyMapBanner booking={null} />;
 
-  // Note: Leaflet expects [latitude, longitude]
-  const origin: [number, number] | null = booking.originCoordinates
-    ? [booking.originCoordinates[1], booking.originCoordinates[0]]
-    : null;
+  const points: RouteMapPoint[] = (booking.stops ?? [])
+    .filter(
+      (s) => s.latitude != null && s.longitude != null,
+    )
+    .map((s) => ({
+      id: `${s.stopOrder}`,
+      name: s.terminalName,
+      cityName: s.cityName,
+      latitude: s.latitude!,
+      longitude: s.longitude!,
+    }));
 
-  const destination: [number, number] | null = booking.destinationCoordinates
-    ? [booking.destinationCoordinates[1], booking.destinationCoordinates[0]]
-    : null;
-
-  // Fallback if either coordinate is missing
-  if (!origin || !destination) {
+  if (points.length < 2) {
     return <EmptyMapBanner booking={booking} />;
   }
 
   return (
     <div className="relative h-full w-full">
-      <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossOrigin=""
-      />
-      <MapContainer
-        center={origin}
-        zoom={6}
-        className="h-full w-full z-0"
-        zoomControl={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        <Polyline
-          positions={[origin, destination]}
-          pathOptions={{
-            color: "#ee237c",
-            weight: 3,
-            dashArray: "10, 10",
-            lineCap: "round",
-          }}
-        />
-
-        <Marker position={origin} icon={createBrandedIcon(true)} />
-        <Marker position={destination} icon={createBrandedIcon(false)} />
-
-        <FitBounds origin={origin} destination={destination} />
-      </MapContainer>
+      <RouteMapPreview points={points} />
 
       {/* Origin/Dest floating overlay badge for extra context */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 rounded-lg border bg-background/90 p-2 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-2 text-xs">
           <div className="size-2 rounded-full bg-[#9333ea]" />
-          <span className="font-medium">{booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""}</span>
+          <span className="font-medium">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <div className="size-2 rounded-full border-2 border-[#ee237c]" />
-          <span className="font-medium">{booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}</span>
+          <span className="font-medium">{formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
         </div>
       </div>
     </div>

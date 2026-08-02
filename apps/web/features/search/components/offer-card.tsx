@@ -9,6 +9,7 @@ import { buttonVariants } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "../lib/format";
+import { formatLocationLabel } from "@/lib/format-location-label";
 import { AmenityChips } from "@/features/booking/lib/amenities";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
@@ -29,7 +30,7 @@ export const OfferCard = memo(function OfferCard({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
-  const isUrban = offer.originCityName === offer.destinationCityName;
+  const isUrban = offer.serviceType === "URBAN";
 
   const handlePrefetch = () => {
     if (isSoldOut) return;
@@ -91,7 +92,7 @@ export const OfferCard = memo(function OfferCard({
                 <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                   {offer.originTerminalName}
                 </p>
-                <span className="text-[10px] font-semibold text-slate-400">{isUrban ? (offer.originMunicipalityName ?? offer.originCityName) : `${offer.originCityName}${offer.originMunicipalityName ? ` (${offer.originMunicipalityName})` : ""}`}</span>
+                <span className="text-[10px] font-semibold text-slate-400">{formatLocationLabel({ cityName: offer.originCityName, municipalityName: offer.originMunicipalityName, quarterName: offer.originQuarterName, isUrban })}</span>
               </div>
 
               <div className="md:col-span-3 flex flex-col items-center justify-center px-4 my-2 md:my-0">
@@ -119,7 +120,7 @@ export const OfferCard = memo(function OfferCard({
                 <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                   {offer.destinationTerminalName}
                 </p>
-                <span className="text-[10px] font-semibold text-slate-400">{isUrban ? (offer.destinationMunicipalityName ?? offer.destinationCityName) : `${offer.destinationCityName}${offer.destinationMunicipalityName ? ` (${offer.destinationMunicipalityName})` : ""}`}</span>
+                <span className="text-[10px] font-semibold text-slate-400">{formatLocationLabel({ cityName: offer.destinationCityName, municipalityName: offer.destinationMunicipalityName, quarterName: offer.destinationQuarterName, isUrban })}</span>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import {
   Drawer,
   DrawerContent,
@@ -23,6 +24,7 @@ import {
 type TripDetail = RouterOutputs["admin"]["getDispatchTrip"];
 
 function SeatFillBar({ booked, total }: { booked: number; total: number }) {
+  const t = useTranslations("adminDashboard.dispatchTripDrawer");
   const pct = total > 0 ? Math.min((booked / total) * 100, 100) : 0;
   const color =
     pct >= 90 ? "bg-red-500" : pct >= 60 ? "bg-amber-500" : "bg-primary";
@@ -56,13 +58,14 @@ function SegmentSeatGrid({
   trip: TripDetail;
   segment: TripSegment;
 }) {
+  const t = useTranslations("adminDashboard.dispatchTripDrawer");
   const seats = trip.seats ?? [];
   const bookings = trip.bookings ?? [];
 
   if (seats.length === 0) {
     return (
       <p className="text-xs text-muted-foreground text-center py-4">
-        No seat map available for this trip.
+        {t("noSeatMap")}
       </p>
     );
   }
@@ -116,12 +119,12 @@ function SegmentSeatGrid({
               );
               const statusLabel =
                 seatStatus === "booked"
-                  ? "Booked"
+                  ? t("booked")
                   : seatStatus === "held"
-                  ? "Held"
+                  ? t("held")
                   : seatStatus === "blocked"
-                  ? "Blocked"
-                  : "Available";
+                  ? t("blocked")
+                  : t("available");
 
               return (
                 <div
@@ -149,19 +152,19 @@ function SegmentSeatGrid({
         <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border">
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-primary border-primary border" />
-            <span className="text-[11px] text-muted-foreground">Booked</span>
+            <span className="text-[11px] text-muted-foreground">{t("booked")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-amber-400 border border-amber-500" />
-            <span className="text-[11px] text-muted-foreground">Held</span>
+            <span className="text-[11px] text-muted-foreground">{t("held")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-background border border-border" />
-            <span className="text-[11px] text-muted-foreground">Available</span>
+            <span className="text-[11px] text-muted-foreground">{t("available")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-slate-200 border border-slate-300" />
-            <span className="text-[11px] text-muted-foreground">Blocked</span>
+            <span className="text-[11px] text-muted-foreground">{t("blocked")}</span>
           </div>
         </div>
       </div>
@@ -170,13 +173,14 @@ function SegmentSeatGrid({
 }
 
 function SegmentOccupancySection({ trip }: { trip: TripDetail }) {
+  const t = useTranslations("adminDashboard.dispatchTripDrawer");
   const segments = buildConsecutiveSegments(trip.tripStops ?? []);
   const bookings = trip.bookings ?? [];
 
   if (segments.length === 0) {
     return (
       <p className="text-xs text-muted-foreground">
-        No route segments available for this trip.
+        {t("noRouteSegments")}
       </p>
     );
   }
@@ -219,6 +223,7 @@ function SegmentOccupancySection({ trip }: { trip: TripDetail }) {
 }
 
 function PassengerManifestList({ trip }: { trip: TripDetail }) {
+  const t = useTranslations("adminDashboard.dispatchTripDrawer");
   const bookings = trip.bookings ?? [];
   const confirmed = bookings.filter((b: any) => b.status === "CONFIRMED");
 
@@ -227,10 +232,10 @@ function PassengerManifestList({ trip }: { trip: TripDetail }) {
       <div className="text-center py-6">
         <User className="size-8 text-muted-foreground/30 mx-auto mb-2" />
         <h4 className="text-sm font-medium text-foreground">
-          No confirmed passengers
+          {t("noConfirmedPassengers")}
         </h4>
         <p className="text-xs text-muted-foreground">
-          No one has fully booked this trip yet.
+          {t("noPassengersYet")}
         </p>
       </div>
     );
@@ -275,12 +280,12 @@ function PassengerManifestList({ trip }: { trip: TripDetail }) {
           {booking.checkedInAt ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">
               <CheckCircle2 className="size-3" />
-              Checked In
+              {t("checkedIn")}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">
               <AlertTriangle className="size-3" />
-              Pending
+              {t("pending")}
             </span>
           )}
         </div>
@@ -298,6 +303,7 @@ export function DispatchTripDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const t = useTranslations("adminDashboard.dispatchTripDrawer");
   const trpc = useTRPC();
   const { data: trip, isLoading } = useQuery({
     ...trpc.admin.getDispatchTrip.queryOptions({ id: tripId ?? "" }),
@@ -317,7 +323,7 @@ export function DispatchTripDrawer({
           <div className="flex h-full flex-col items-center justify-center space-y-4">
             <Spinner className="size-8" />
             <p className="text-sm text-muted-foreground animate-pulse">
-              Loading trip details...
+              {t("loadingTripDetails")}
             </p>
           </div>
         ) : (
@@ -344,25 +350,25 @@ export function DispatchTripDrawer({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-3 bg-bg-base border rounded-md">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
-                      Status
+                      {t("status")}
                     </p>
                     <p className="text-sm font-semibold">{trip.status}</p>
                     {trip.delayMinutes && trip.delayMinutes > 0 && (
                       <p className="text-xs text-amber-600 font-medium mt-1">
-                        {trip.delayMinutes} min delay
+                        {t("minDelay", { minutes: trip.delayMinutes })}
                       </p>
                     )}
                   </div>
                   <div className="p-3 bg-bg-base border rounded-md">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
-                      Bus Details
+                      {t("busDetails")}
                     </p>
                     <p className="text-sm font-semibold">
-                      {trip.bus ? trip.bus.registrationPlate : "Unassigned"}
+                      {trip.bus ? trip.bus.registrationPlate : t("unassigned")}
                     </p>
                     {trip.bus && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {trip.totalSeats} seats total
+                        {t("seatsTotal", { count: trip.totalSeats })}
                       </p>
                     )}
                   </div>
@@ -372,7 +378,7 @@ export function DispatchTripDrawer({
                    <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                     <p className="text-xs font-bold text-red-700 flex items-center gap-1.5 mb-1">
                       <AlertCircle className="size-3.5" />
-                      Trip Cancelled
+                      {t("tripCancelled")}
                     </p>
                     <p className="text-sm text-red-900">{trip.cancelReason}</p>
                    </div>
@@ -381,7 +387,7 @@ export function DispatchTripDrawer({
                 {/* Segments Map */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold border-b pb-1">
-                    Route Occupancy Map
+                    {t("routeOccupancyMap")}
                   </h4>
                   <SegmentOccupancySection trip={trip} />
                 </div>
@@ -389,7 +395,7 @@ export function DispatchTripDrawer({
                 {/* Passengers */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold border-b pb-1">
-                    Confirmed Passengers
+                    {t("confirmedPassengers")}
                   </h4>
                   <PassengerManifestList trip={trip} />
                 </div>

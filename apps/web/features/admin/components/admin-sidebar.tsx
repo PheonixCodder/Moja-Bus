@@ -1,31 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  type LucideIcon,
-  LogOut,
-  Settings,
-  Gauge,
-  ChevronsUpDown,
-  Users,
-  ShieldCheck,
-  Activity,
-  Landmark,
-  Coins,
-  FileText,
-  Scale,
-  Briefcase,
-  Route,
-  BarChart2,
-  Link as LinkIcon,
-  History,
-  Shield,
-  Webhook,
-} from "lucide-react";
-
-import { useAuth } from "@/features/auth/hooks/use-auth";
-import { cn } from "@moja/ui/lib/utils";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
 import {
   DropdownMenu,
@@ -49,6 +23,33 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@moja/ui/components/ui/sidebar";
+import { cn } from "@moja/ui/lib/utils";
+import {
+  Activity,
+  BarChart2,
+  Briefcase,
+  ChevronsUpDown,
+  Coins,
+  FileText,
+  Gauge,
+  History,
+  Landmark,
+  LifeBuoy,
+  Link as LinkIcon,
+  LogOut,
+  type LucideIcon,
+  Route,
+  Scale,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Users,
+  Webhook,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 import type { User as AuthUser } from "@/lib/auth-client";
 
 interface MenuItem {
@@ -121,42 +122,109 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
   const sidebar = useSidebar();
   const { signOut } = useAuth();
+  const t = useTranslations("adminDashboard.nav");
+  const tSection = useTranslations("adminDashboard.sections");
+  const tFooter = useTranslations("adminDashboard");
 
   const overviewItems: MenuItem[] = [
-    { title: "Overview", url: "/dashboard/admin", icon: Gauge },
+    { title: t("overview"), url: "/dashboard/admin", icon: Gauge },
   ];
 
   const financialItems: MenuItem[] = [
-    { title: "Ledger", url: "/dashboard/admin/financials/ledger", icon: Scale },
-    { title: "Settlements", url: "/dashboard/admin/financials/settlements", icon: Landmark },
-    { title: "Withdrawals", url: "/dashboard/admin/financials/withdrawals", icon: Coins },
+    {
+      title: t("ledger"),
+      url: "/dashboard/admin/financials/ledger",
+      icon: Scale,
+    },
+    {
+      title: t("settlements"),
+      url: "/dashboard/admin/financials/settlements",
+      icon: Landmark,
+    },
+    {
+      title: t("withdrawals"),
+      url: "/dashboard/admin/financials/withdrawals",
+      icon: Coins,
+    },
   ];
 
   const operationsItems: MenuItem[] = [
-    { title: "Live Dispatch", url: "/dashboard/admin/operations/dispatch", icon: Activity },
-    { title: "Routes", url: "/dashboard/admin/operations/routes", icon: Route },
+    {
+      title: t("dispatch"),
+      url: "/dashboard/admin/operations/dispatch",
+      icon: Activity,
+    },
+    {
+      title: t("routes"),
+      url: "/dashboard/admin/operations/routes",
+      icon: Route,
+    },
   ];
 
   const contentItems: MenuItem[] = [
-    { title: "Posts", url: "/dashboard/admin/content/posts", icon: FileText },
-    { title: "Analytics", url: "/dashboard/admin/content/analytics", icon: BarChart2 },
-    { title: "Redirects", url: "/dashboard/admin/content/redirects", icon: LinkIcon },
+    {
+      title: t("posts"),
+      url: "/dashboard/admin/content/posts",
+      icon: FileText,
+    },
+    {
+      title: t("analytics"),
+      url: "/dashboard/admin/content/analytics",
+      icon: BarChart2,
+    },
+    {
+      title: t("redirects"),
+      url: "/dashboard/admin/content/redirects",
+      icon: LinkIcon,
+    },
   ];
 
   const auditItems: MenuItem[] = [
-    { title: "Activity Logs", url: "/dashboard/admin/audit-logs/activity", icon: History },
-    { title: "Bank Access Logs", url: "/dashboard/admin/audit-logs/bank-access", icon: Shield },
-    { title: "Webhook Events", url: "/dashboard/admin/audit-logs/webhooks", icon: Webhook },
+    {
+      title: t("activity"),
+      url: "/dashboard/admin/audit-logs/activity",
+      icon: History,
+    },
+    {
+      title: t("bankAccess"),
+      url: "/dashboard/admin/audit-logs/bank-access",
+      icon: Shield,
+    },
+    {
+      title: t("webhooks"),
+      url: "/dashboard/admin/audit-logs/webhooks",
+      icon: Webhook,
+    },
   ];
 
   const platformItems: MenuItem[] = [
-    { title: "Verification Queue", url: "/dashboard/admin/verifications", icon: ShieldCheck },
-    { title: "Settings", url: "/dashboard/admin/settings", icon: Settings },
+    {
+      title: t("verifications"),
+      url: "/dashboard/admin/verifications",
+      icon: ShieldCheck,
+    },
+    { title: t("settings"), url: "/dashboard/admin/settings", icon: Settings },
+  ];
+
+  const supportItems: MenuItem[] = [
+    {
+      title: t("inquiries"),
+      url: "/dashboard/admin/contact/inquiries",
+      icon: LifeBuoy,
+    },
   ];
 
   const directoryItems: MenuItem[] = [
-    { title: "Travelers", url: "/dashboard/admin/users/travelers", icon: Users },
-    { title: "Operators", url: "/dashboard/admin/users/operators", icon: Briefcase },
+    {
+      title: t("travelers"),
+      url: "/dashboard/admin/users/travelers",
+      icon: Users,
+    },
+    {
+      title: t("operators"),
+      url: "/dashboard/admin/users/operators",
+      icon: Briefcase,
+    },
   ];
 
   const userInitials = user?.name
@@ -205,11 +273,11 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
           <div className="group-data-[collapsible=icon]:hidden flex flex-col">
             <span className="font-semibold text-[15px] tracking-tight text-sidebar-foreground">
-              Moja<span className="text-sidebar-primary">Ride</span>
+              {tFooter("brand")}
             </span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[9px] font-bold uppercase tracking-widest text-sidebar-primary/85 px-1 py-0.2 bg-sidebar-primary/10 rounded">
-                Admin
+                {tFooter("badge")}
               </span>
             </div>
           </div>
@@ -221,38 +289,40 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       <div className="mx-3 my-2 border-b border-sidebar-border" />
 
       <SidebarContent className="px-0">
+        <NavSection items={overviewItems} pathname={pathname} />
         <NavSection
-          items={overviewItems}
-          pathname={pathname}
-        />
-        <NavSection
-          label="Financials"
+          label={tSection("financials")}
           items={financialItems}
           pathname={pathname}
         />
         <NavSection
-          label="Operations"
+          label={tSection("operations")}
           items={operationsItems}
           pathname={pathname}
         />
         <NavSection
-          label="Directory"
+          label={tSection("directory")}
           items={directoryItems}
           pathname={pathname}
         />
         <NavSection
-          label="Content"
+          label={tSection("content")}
           items={contentItems}
           pathname={pathname}
         />
         <NavSection
-          label="Audit & Security"
+          label={tSection("auditSecurity")}
           items={auditItems}
           pathname={pathname}
         />
         <NavSection
-          label="Platform"
+          label={tSection("platform")}
           items={platformItems}
+          pathname={pathname}
+        />
+        <NavSection
+          label={tSection("support")}
+          items={supportItems}
           pathname={pathname}
         />
       </SidebarContent>
@@ -270,7 +340,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                   "group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
                 )}
-                title={user?.name ?? "Account"}
+                title={user?.name ?? tFooter("account")}
               >
                 <Avatar className="size-6 shrink-0">
                   <AvatarFallback className="bg-sidebar-primary/15 text-[10px] font-semibold text-sidebar-primary">
@@ -278,7 +348,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   </AvatarFallback>
                 </Avatar>
                 <span className="truncate text-[13px] font-medium text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-                  {user?.name ?? user?.email ?? "Admin"}
+                  {user?.name ?? user?.email ?? tFooter("badge")}
                 </span>
                 <ChevronsUpDown className="ml-auto size-3.5 text-sidebar-foreground/40 group-data-[collapsible=icon]:hidden" />
               </DropdownMenuTrigger>
@@ -302,7 +372,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   render={<Link href="/dashboard/admin/settings" />}
                 >
                   <Settings className="mr-2 size-4 text-muted-foreground" />
-                  Settings
+                  {tFooter("settings")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem
@@ -310,7 +380,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive hover:text-destructive"
                 >
                   <LogOut className="mr-2 size-4" />
-                  Sign out
+                  {tFooter("signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

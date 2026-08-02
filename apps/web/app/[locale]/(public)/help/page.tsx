@@ -45,7 +45,7 @@ export default async function HelpPage({ params }: Props) {
           {faqs.map((cat) => (
             <a
               key={cat.category}
-              href={`#${cat.category.toLowerCase().replace(/\s+/g, "-")}`}
+              href={`#${cat.id}`}
               className={`px-4 py-2 rounded-full text-xs font-extrabold tracking-wider uppercase transition-all hover:scale-105 border border-slate-200/40 shadow-sm ${cat.color}`}
             >
               {cat.category}
@@ -59,7 +59,7 @@ export default async function HelpPage({ params }: Props) {
         {faqs.map((cat) => (
           <section
             key={cat.category}
-            id={cat.category.toLowerCase().replace(/\s+/g, "-")}
+            id={cat.id}
           >
             <div className="flex items-center gap-3 mb-6">
               <span className={`px-3 py-1 rounded-full text-xs font-bold ${cat.color}`}>

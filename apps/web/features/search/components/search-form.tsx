@@ -1,23 +1,34 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { ArrowUpDown, Calendar, Search, Users } from "lucide-react";
-import { format } from "date-fns";
-import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
-import { Card, CardContent } from "@moja/ui/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@moja/ui/components/ui/popover";
 import { Calendar as CalendarComponent } from "@moja/ui/components/ui/calendar";
-import { CityAutocompleteField, type CityValue } from "./city-autocomplete-field";
+import { Card, CardContent } from "@moja/ui/components/ui/card";
+import { Input } from "@moja/ui/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@moja/ui/components/ui/popover";
+import { format } from "date-fns";
+import { ArrowUpDown, Calendar, Search, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { memo, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useCityDetails } from "../hooks/use-city-details";
+import { toLocalISODate } from "../lib/local-date";
+import { validateSearchPair } from "../lib/validate-search-pair";
+import {
+  CityAutocompleteField,
+  type CityValue,
+} from "./city-autocomplete-field";
 
 interface SearchFormProps {
   initialFromId: string;
   initialToId: string;
   initialFromMuni: string;
   initialToMuni: string;
+  initialFromQuarter: string;
+  initialToQuarter: string;
   initialDate: string;
   initialPassengers: number;
   onSearch: (criteria: {
@@ -25,16 +36,18 @@ interface SearchFormProps {
     to: string;
     fromMuni: string;
     toMuni: string;
+    fromQuarter: string;
+    toQuarter: string;
     date: string;
     passengers: number;
   }) => void;
 }
 
-const todayISO = () => new Date().toISOString().split("T")[0]!;
+const todayISO = () => toLocalISODate(new Date());
 
 function parseLocalDate(dateStr: string) {
   if (!dateStr) return undefined;
-  const [y, m, d] = dateStr.split('-');
+  const [y, m, d] = dateStr.split("-");
   return new Date(Number(y), Number(m) - 1, Number(d));
 }
 
@@ -43,6 +56,8 @@ export const SearchForm = memo(function SearchForm({
   initialToId,
   initialFromMuni,
   initialToMuni,
+  initialFromQuarter,
+  initialToQuarter,
   initialDate,
   initialPassengers,
   onSearch,
@@ -51,28 +66,53 @@ export const SearchForm = memo(function SearchForm({
   const [origin, setOrigin] = useState<CityValue>({
     id: initialFromId,
     text: "",
-    ...(initialFromMuni ? { municipalityId: initialFromMuni, level: "municipality" } : {}),
+    ...(initialFromQuarter
+      ? {
+          municipalityId: initialFromMuni,
+          quarterId: initialFromQuarter,
+          level: "quarter",
+        }
+      : initialFromMuni
+        ? { municipalityId: initialFromMuni, level: "municipality" }
+        : {}),
   });
   const [destination, setDestination] = useState<CityValue>({
     id: initialToId,
     text: "",
-    ...(initialToMuni ? { municipalityId: initialToMuni, level: "municipality" } : {}),
+    ...(initialToQuarter
+      ? {
+          municipalityId: initialToMuni,
+          quarterId: initialToQuarter,
+          level: "quarter",
+        }
+      : initialToMuni
+        ? { municipalityId: initialToMuni, level: "municipality" }
+        : {}),
   });
   const [date, setDate] = useState(initialDate || todayISO());
   const [passengers, setPassengers] = useState(initialPassengers);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
 
   // Resolves city names for ids that arrived via the URL (deep link / SSR hydration)
   const { data: originCity } = useCityDetails(initialFromId);
   const { data: destCity } = useCityDetails(initialToId);
 
   useEffect(() => {
-    if (originCity) setOrigin((prev) => ({ ...prev, id: originCity.id, text: originCity.name }));
+    if (originCity)
+      setOrigin((prev) => ({
+        ...prev,
+        id: originCity.id,
+        text: originCity.name,
+      }));
   }, [originCity]);
 
   useEffect(() => {
-    if (destCity) setDestination((prev) => ({ ...prev, id: destCity.id, text: destCity.name }));
+    if (destCity)
+      setDestination((prev) => ({
+        ...prev,
+        id: destCity.id,
+        text: destCity.name,
+      }));
   }, [destCity]);
 
   function handleSwap() {
@@ -96,29 +136,21 @@ export const SearchForm = memo(function SearchForm({
       return;
     }
 
-    const sameCity = origin.id && destination.id && origin.id === destination.id;
-    const bothCityLevel = origin.level !== "municipality" && origin.level !== "quarter"
-      && destination.level !== "municipality" && destination.level !== "quarter";
-    const sameMunicipality = origin.municipalityId && destination.municipalityId
-      && origin.municipalityId === destination.municipalityId;
-    const mixedGranularity = origin.id === destination.id && (
-      (origin.level === "city" && destination.level === "municipality") ||
-      (origin.level === "municipality" && destination.level === "city")
-    );
-
-    if ((!sameCity && originVal === destVal) || (sameCity && (bothCityLevel || sameMunicipality))) {
+    const error = validateSearchPair(origin, destination);
+    if (error === "sameCity") {
       toast.error(t("sameCity"));
       return;
     }
-    if (sameCity && mixedGranularity) {
-      toast.error(t("refineUrban"));
-      return;
-    }
+
+    const sameCity =
+      origin.id && destination.id && origin.id === destination.id;
     onSearch({
       from: originVal,
       to: destVal,
       fromMuni: (sameCity ? origin.municipalityId : "") ?? "",
       toMuni: (sameCity ? destination.municipalityId : "") ?? "",
+      fromQuarter: (sameCity ? origin.quarterId : "") ?? "",
+      toQuarter: (sameCity ? destination.quarterId : "") ?? "",
       date,
       passengers,
     });
@@ -185,7 +217,9 @@ export const SearchForm = memo(function SearchForm({
                         setIsCalendarOpen(false);
                       }
                     }}
-                    disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                    disabled={(d) =>
+                      d < new Date(new Date().setHours(0, 0, 0, 0))
+                    }
                   />
                 </PopoverContent>
               </Popover>

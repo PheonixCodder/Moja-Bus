@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { flexRender, type Table as TableType } from "@tanstack/react-table";
 import {
   Table,
@@ -16,6 +17,7 @@ interface VerificationsTableProps {
 }
 
 export function VerificationsTable({ table }: VerificationsTableProps) {
+  const t = useTranslations("adminDashboard.verificationsTable");
   return (
     <div className="border border-border rounded-md bg-white overflow-hidden shadow-sm">
       <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
@@ -53,7 +55,7 @@ export function VerificationsTable({ table }: VerificationsTableProps) {
                 colSpan={table.getVisibleLeafColumns().length}
                 className="h-24 text-center text-slate-500 text-xs"
               >
-                No operators awaiting verification.
+                {t("empty")}
               </TableCell>
             </TableRow>
           )}

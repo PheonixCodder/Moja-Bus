@@ -7,6 +7,7 @@ import { CalendarIcon, Filter, X } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@moja/ui/components/ui/button";
 import { Calendar } from "@moja/ui/components/ui/calendar";
@@ -35,12 +36,13 @@ import { useState } from "react";
 type DateRange = { from?: Date | undefined; to?: Date | undefined };
 
 export function DispatchFilterBar() {
+  const t = useTranslations("adminDashboard.dispatchFilter");
   const trpc = useTRPC();
   const [{ status, companyId, from, to }, setParams] = useQueryStates(
     dispatchSearchParams,
     { shallow: false }
   );
-  
+   
   const { data: companies } = useSuspenseQuery(
     trpc.public.listOperators.queryOptions()
   );
@@ -86,7 +88,7 @@ export function DispatchFilterBar() {
       <div className="w-full sm:w-64">
         <Combobox
           items={[
-            { label: "All Operators", value: "ALL" },
+            { label: t("allOperators"), value: "ALL" },
             ...companies.map((c) => ({ label: c.name, value: c.id })),
           ]}
           value={companyId || "ALL"}
@@ -95,14 +97,14 @@ export function DispatchFilterBar() {
           }}
         >
           <ComboboxInput
-            placeholder="Filter by operator..."
+            placeholder={t("filterByOperator")}
             className="w-full h-9 bg-bg-base"
-            value={selectedCompany?.name ?? "All Operators"}
+            value={selectedCompany?.name ?? t("allOperators")}
           />
           <ComboboxContent>
-            <ComboboxEmpty>No operator found.</ComboboxEmpty>
+            <ComboboxEmpty>{t("noOperatorFound")}</ComboboxEmpty>
             <ComboboxList>
-              <ComboboxItem value="ALL">All Operators</ComboboxItem>
+              <ComboboxItem value="ALL">{t("allOperators")}</ComboboxItem>
               {companies.map((c) => (
                 <ComboboxItem key={c.id} value={c.id}>
                   {c.name}
@@ -120,17 +122,17 @@ export function DispatchFilterBar() {
         }}
       >
         <SelectTrigger className="w-full sm:w-44 bg-bg-base h-9">
-          <SelectValue placeholder="Status" />
+          <SelectValue placeholder={t("status")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="ACTIVE">Active (Default)</SelectItem>
-          <SelectItem value="ALL">All Statuses</SelectItem>
-          <SelectItem value="SCHEDULED">Scheduled Only</SelectItem>
-          <SelectItem value="BOARDING">Boarding Only</SelectItem>
-          <SelectItem value="DEPARTED">Departed Only</SelectItem>
-          <SelectItem value="DELAYED">Delayed Only</SelectItem>
-          <SelectItem value="ARRIVED">Arrived Only</SelectItem>
-          <SelectItem value="CANCELLED">Cancelled Only</SelectItem>
+          <SelectItem value="ACTIVE">{t("activeDefault")}</SelectItem>
+          <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
+          <SelectItem value="SCHEDULED">{t("scheduledOnly")}</SelectItem>
+          <SelectItem value="BOARDING">{t("boardingOnly")}</SelectItem>
+          <SelectItem value="DEPARTED">{t("departedOnly")}</SelectItem>
+          <SelectItem value="DELAYED">{t("delayedOnly")}</SelectItem>
+          <SelectItem value="ARRIVED">{t("arrivedOnly")}</SelectItem>
+          <SelectItem value="CANCELLED">{t("cancelledOnly")}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -152,14 +154,14 @@ export function DispatchFilterBar() {
                 format(date.from, "LLL dd, y")
               )
             ) : (
-              <span>All time</span>
+              <span>{t("dateRangePlaceholder")}</span>
             )}
             {(from || to) && (
               <Badge
                 variant="secondary"
                 className="ml-auto rounded-sm px-1 font-normal lg:hidden"
               >
-                Filtered
+                {t("filtered")}
               </Badge>
           )}
         </PopoverTrigger>
@@ -170,28 +172,28 @@ export function DispatchFilterBar() {
               size="sm"
               onClick={() => handlePreset("today")}
             >
-              Today
+              {t("today")}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePreset("yesterday")}
             >
-              Yesterday
+              {t("yesterday")}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePreset("last7")}
             >
-              Last 7 Days
+              {t("last7Days")}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePreset("all")}
             >
-              All Time
+              {t("allTime")}
             </Button>
           </div>
           <Calendar
@@ -206,7 +208,7 @@ export function DispatchFilterBar() {
           />
           <div className="flex justify-end p-3 border-t border-border">
             <Button size="sm" onClick={() => handleApplyDate(date)}>
-              Apply Range
+              {t("applyRange")}
             </Button>
           </div>
         </PopoverContent>
@@ -227,7 +229,7 @@ export function DispatchFilterBar() {
           }}
         >
           <X className="h-4 w-4 mr-1" />
-          Clear
+          {t("clear")}
         </Button>
       )}
     </div>

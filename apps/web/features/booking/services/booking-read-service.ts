@@ -14,6 +14,17 @@ type BookingFilter = "upcoming" | "past" | "pending";
 const bookingInclude = {
   seat: true,
   company: true,
+  trip: {
+    select: {
+      serviceType: true,
+      tripStops: {
+        include: {
+          terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+        },
+        orderBy: { stopOrder: "asc" },
+      },
+    },
+  },
   originTripStop: {
     include: { terminal: { include: { cityRelation: true, municipality: true, quarter: true } } },
   },
@@ -295,6 +306,14 @@ export class BookingReadService {
       destinationTripStopId: string;
       seat: { label: string };
       company: { name: string };
+      trip: {
+        serviceType: string;
+        tripStops: Array<{
+          stopOrder: number;
+          id: string;
+          terminal: { name: string; cityRelation: { name: string } | null; latitude: number | null; longitude: number | null };
+        }>;
+      };
       originTripStop: {
         scheduledDeparture: Date | null;
         terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null; latitude: number | null; longitude: number | null };
@@ -315,6 +334,28 @@ export class BookingReadService {
       uniqueNames.length === 1
         ? first.passengerName
         : `${first.passengerName} + ${uniqueNames.length - 1} other${uniqueNames.length > 2 ? "s" : ""}`;
+
+    const originOrder = first.trip.tripStops.find(
+      (s) => s.id === first.originTripStopId,
+    )?.stopOrder;
+    const destOrder = first.trip.tripStops.find(
+      (s) => s.id === first.destinationTripStopId,
+    )?.stopOrder;
+    const stops = first.trip.tripStops
+      .filter(
+        (s) =>
+          originOrder != null &&
+          destOrder != null &&
+          s.stopOrder >= originOrder &&
+          s.stopOrder <= destOrder,
+      )
+      .map((s) => ({
+        stopOrder: s.stopOrder,
+        terminalName: s.terminal.name,
+        cityName: s.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+        latitude: s.terminal.latitude,
+        longitude: s.terminal.longitude,
+      }));
 
     return {
       groupId: bookingSummaryGroupKey(first),
@@ -339,6 +380,7 @@ export class BookingReadService {
         first.destinationTripStop.terminal.quarter?.name ?? null,
       departureTime,
       arrivalTime,
+      serviceType: first.trip.serviceType as PassengerBookingSummary["serviceType"],
       passengerName: displayName,
       passengerPhone: first.passengerPhone,
       status: first.status as PassengerBookingSummary["status"],
@@ -370,6 +412,7 @@ export class BookingReadService {
         first.destinationTripStop.terminal.latitude != null
           ? [first.destinationTripStop.terminal.longitude, first.destinationTripStop.terminal.latitude]
           : null,
+      stops,
     };
   }
 
@@ -380,6 +423,7 @@ export class BookingReadService {
     farePaid: number;
     company: { name: string };
     seat: { label: string };
+    trip: { serviceType: string };
     originTripStop: {
       scheduledDeparture: Date | null;
       terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null };
@@ -419,6 +463,7 @@ export class BookingReadService {
         booking.originTripStop.scheduledDeparture ?? new Date(),
       arrivalTime:
         booking.destinationTripStop.scheduledArrival ?? new Date(),
+      serviceType: booking.trip.serviceType as DigitalTicketDTO["serviceType"],
       farePaidXOF: booking.farePaid,
       qrPayload: `${baseUrl}/tickets/${encodeURIComponent(booking.ticketToken)}`,
       status: "CONFIRMED",

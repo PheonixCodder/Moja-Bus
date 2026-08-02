@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
+import { UrbanBadge } from "@/components/urban-badge";
+import { formatCityWithMuni } from "@/lib/format-location-label";
 import type { RouterOutputs } from "@/trpc/client";
 
 type RouteType = RouterOutputs["routes"]["list"][number];
@@ -58,18 +60,25 @@ export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
                   {t("status.ARCHIVED")}
                 </Badge>
               )}
+              {route.serviceType === "URBAN" && <UrbanBadge />}
             </div>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="text-xs text-muted-foreground truncate">
-                {route.originTerminal?.cityRelation?.name ??
-                  route.originTerminal?.city ??
-                  "—"}
+                {formatCityWithMuni(
+                  route.originTerminal?.cityRelation?.name ??
+                    route.originTerminal?.city ??
+                    "",
+                  route.originTerminal?.municipality?.name,
+                ) || "—"}
               </span>
               <ArrowRight className="size-3 shrink-0 text-muted-foreground/40" />
               <span className="text-xs text-muted-foreground truncate">
-                {route.destTerminal?.cityRelation?.name ??
-                  route.destTerminal?.city ??
-                  "—"}
+                {formatCityWithMuni(
+                  route.destTerminal?.cityRelation?.name ??
+                    route.destTerminal?.city ??
+                    "",
+                  route.destTerminal?.municipality?.name,
+                ) || "—"}
               </span>
             </div>
           </div>

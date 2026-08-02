@@ -24,7 +24,7 @@ export default async function AdminRoutesPage({ searchParams }: PageProps) {
     <HydrateClient>
       <AdminPageShell
         title="Routes & Terminals"
-        description="Monitor and manage all intercity bus routes and terminal configurations across operators on the platform."
+        description="Monitor and manage all bus routes and terminal configurations across operators on the platform."
         breadcrumbs={[
           { label: "Operations", href: "/dashboard/admin/operations/dispatch" },
           { label: "Routes & Terminals" },

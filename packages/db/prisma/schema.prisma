@@ -184,6 +184,13 @@ enum StaffRole {
   SUPPORT
 }
 
+enum ContactInquiryStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
 // ============================================
 // AUTHENTICATION MODELS (Existing)
 // ============================================
@@ -235,6 +242,10 @@ model User {
   authoredBlogs BlogPost[]     @relation("BlogAuthor")
   reviewedBlogs BlogPost[]     @relation("BlogReviewer")
   blogRevisions BlogRevision[] @relation("BlogRevisionAuthor")
+
+  // Contact inquiries submitted while logged in
+  contactInquiries ContactInquiry[] @relation("ContactInquiryAuthor")
+  resolvedInquiries ContactInquiry[] @relation("ContactInquiryResolvedBy")
 
   @@index([role])
   @@map("user")
@@ -668,6 +679,11 @@ enum RouteStatus {
   ARCHIVED
 }
 
+enum ServiceType {
+  INTERCITY
+  URBAN
+}
+
 enum RecurrenceType {
   DAILY
   WEEKDAYS
@@ -977,6 +993,10 @@ model Route {
 
   distanceKm Float?
 
+  /// INTERCITY = terminals in different cities; URBAN = same city.
+  /// Derived server-side from terminal cityIds at create/update.
+  serviceType ServiceType @default(INTERCITY)
+
   status RouteStatus @default(DRAFT)
 
   waypoints RouteWaypoint[]
@@ -987,6 +1007,7 @@ model Route {
 
   @@index([companyId])
   @@index([status])
+  @@index([serviceType])
   @@index([originTerminalId])
   @@index([destTerminalId])
   @@unique([companyId, name])
@@ -1025,7 +1046,12 @@ model Schedule {
   route     Route   @relation(fields: [routeId], references: [id])
 
   name          String? // "Morning Express", "Night Service"
-  departureTime String  @db.VarChar(5) // "06:00" — HH:mm, CI timezone is UTC+0 (no DST)
+  // Primary departure time "06:00" — HH:mm, CI timezone is UTC+0 (no DST).
+  // Kept as the first element of departureTimes for sorting/back-compat.
+  departureTime  String @db.VarChar(5)
+  // Full cadence: every departure time the schedule runs, sorted HH:mm.
+  // Empty for legacy rows until backfilled (then falls back to [departureTime]).
+  departureTimes String[] @default([])
   isActive      Boolean @default(true)
 
   // Total estimated duration - can differ per schedule based on traffic/time
@@ -1161,6 +1187,10 @@ model Trip {
   // Schedule-derived but stored immutably on trip creation
   departureDate DateTime // full timestamp: 2025-08-15T06:00:00Z
 
+  // Snapshot of the route's service type at generation — search filters on
+  // this instead of re-deriving from terminal geometry
+  serviceType ServiceType @default(INTERCITY)
+
   // Operational tracking
   estimatedArrival DateTime?
   actualDeparture  DateTime?
@@ -1189,6 +1219,7 @@ model Trip {
   @@index([scheduleId])
   @@index([busId])
   @@index([status])
+  @@index([serviceType])
   @@index([departureDate])
   @@unique([scheduleId, departureDate])
   @@map("trip")
@@ -1940,4 +1971,43 @@ model BlogEvent {
   @@index([postId, eventType])
   @@index([createdAt])
   @@map("blog_event")
+}
+
+// ============================================
+// CONTACT & SUPPORT INQUIRIES
+// ============================================
+// Captures contact form submissions from the public website. `userId` is
+// set server-side from the session when the submitter is logged in and
+// remains null for guests.
+
+model ContactInquiry {
+  id        String               @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String               @db.Text
+  status    ContactInquiryStatus @default(NEW)
+
+  // Author — set server-side from the session (null = logged-out guest)
+  userId String?
+  user   User? @relation("ContactInquiryAuthor", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Origin & audit
+  ipAddress  String?
+  userAgent  String?
+
+  // Resolution workflow
+  adminNote   String?   @db.Text
+  resolvedById String?
+  resolvedBy   User?     @relation("ContactInquiryResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+  @@index([userId])
+  @@map("contact_inquiry")
 }

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja
 import { Button } from "@moja/ui/components/ui/button";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface VerificationDetailsDecisionProps {
   company: any;
@@ -17,6 +18,7 @@ export function VerificationDetailsDecision({
   onApproveClick,
   onRejectClick,
 }: VerificationDetailsDecisionProps) {
+  const t = useTranslations("adminDashboard.verificationDetailsDecision");
   const status = company.status;
   const hasBank = company.bankAccounts && company.bankAccounts.length > 0;
 
@@ -44,10 +46,10 @@ export function VerificationDetailsDecision({
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <CardTitle className="text-base font-bold text-slate-900">
-              Platform Decision Board
+              {t("platformDecisionBoard")}
             </CardTitle>
             <CardDescription className="text-xs text-slate-400">
-              Verify operator to activate internal ledger and Transfer Recipient.
+              {t("decisionBoardDescription")}
             </CardDescription>
           </div>
           <Badge className={cn("gap-1.5 border px-2 py-1 font-semibold text-xs", badgeClass)} variant="outline">
@@ -60,15 +62,15 @@ export function VerificationDetailsDecision({
         {status === "PENDING_VERIFICATION" && (
           <div className="space-y-3">
             <div className="text-xs text-slate-500 leading-relaxed font-medium">
-              Check that all KYC Checklist items are verified before approving. Approvals require a default bank account mapping to register a Paystack Transfer Recipient.
+              {t("approveChecklistNote")}
             </div>
-            <div className="flex flex-col  gap-3 pt-2">
+            <div className="flex flex-col gap-3 pt-2">
               <Button
                 variant="outline"
                 className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 h-10 font-bold text-xs"
                 onClick={onRejectClick}
               >
-                Reject Verification
+                {t("rejectVerification")}
               </Button>
               <Button
                 className="w-full bg-primary hover:bg-primary/95 text-white h-10 font-bold text-xs"
@@ -76,7 +78,7 @@ export function VerificationDetailsDecision({
                 onClick={onApproveClick}
               >
                 <ShieldCheck className="size-4 mr-1.5 shrink-0" />
-                Approve & Register Bank
+                {t("approveRegisterBank")}
               </Button>
             </div>
           </div>
@@ -87,20 +89,20 @@ export function VerificationDetailsDecision({
             <div className="flex gap-2.5">
               <BadgeCheck className="size-5 text-green-600 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <div className="text-xs font-bold text-green-800">Operator Verified Successfully</div>
+                <div className="text-xs font-bold text-green-800">{t("operatorVerified")}</div>
                 <p className="text-[11px] text-green-700 leading-relaxed font-medium">
-                  This bus operator has been approved. Mapped to recipient code:{" "}
+                  {t("operatorApproved")}{" "}
                   <span className="font-mono font-bold bg-green-100 px-1 py-0.5 rounded text-green-800">
-                    {company.paystackTransferRecipientCode || "N/A"}
+                    {company.paystackTransferRecipientCode || t("na")}
                   </span>
                 </p>
               </div>
             </div>
             {company.verifiedAt && (
               <div className="text-[10px] text-slate-400 font-medium border-t border-green-100/50 pt-2 flex items-center justify-between">
-                <span>Verified: {new Date(company.verifiedAt).toLocaleString()}</span>
+                <span>{t("verifiedOn")}: {new Date(company.verifiedAt).toLocaleString()}</span>
                 {company.verifiedById && (
-                  <span className="font-bold text-slate-500">ID: {company.verifiedById.slice(0, 8)}</span>
+                  <span className="font-bold text-slate-500">{t("idLabel")}: {company.verifiedById.slice(0, 8)}</span>
                 )}
               </div>
             )}
@@ -112,18 +114,18 @@ export function VerificationDetailsDecision({
             <div className="flex gap-2.5">
               <AlertCircle className="size-5 text-red-600 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <div className="text-xs font-bold text-red-800">Registration Request Rejected</div>
+                <div className="text-xs font-bold text-red-800">{t("registrationRejected")}</div>
                 <div className="text-[11px] text-red-700 leading-relaxed font-semibold">
-                  Reason:
+                  {t("reasonLabel")}:
                   <p className="font-normal text-red-600 bg-white rounded border border-red-100/50 p-2.5 mt-1 leading-normal italic shadow-3xs">
-                    {company.rejectionReason || "No reason specified."}
+                    {company.rejectionReason || t("noReasonSpecified")}
                   </p>
                 </div>
               </div>
             </div>
             {company.activityLogs?.[0]?.createdAt && (
               <div className="text-[10px] text-slate-400 font-medium border-t border-red-100/50 pt-2">
-                Rejected on: {new Date(company.activityLogs[0].createdAt).toLocaleString()}
+                {t("rejectedOn")}: {new Date(company.activityLogs[0].createdAt).toLocaleString()}
               </div>
             )}
           </div>
@@ -133,9 +135,9 @@ export function VerificationDetailsDecision({
           <div className="rounded-lg border border-sky-100 bg-sky-50/30 p-4 flex gap-2.5">
             <AlertCircle className="size-5 text-sky-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <div className="text-xs font-bold text-sky-800">In Draft Mode</div>
+              <div className="text-xs font-bold text-sky-800">{t("draftMode")}</div>
               <p className="text-[11px] text-sky-700 leading-relaxed font-medium">
-                The operator is still filling out company details and has not submitted registration documents for review yet.
+                {t("draftDescription")}
               </p>
             </div>
           </div>

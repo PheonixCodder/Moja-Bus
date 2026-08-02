@@ -23,6 +23,8 @@ export const searchParamsSchema = {
   to: parseAsString.withDefault(""),
   fromMuni: parseAsString.withDefault(""),
   toMuni: parseAsString.withDefault(""),
+  fromQuarter: parseAsString.withDefault(""),
+  toQuarter: parseAsString.withDefault(""),
   date: parseAsString.withDefault(""),
   passengers: parseAsInteger.withDefault(1),
 

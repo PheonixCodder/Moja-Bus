@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDownLeft, ArrowUpRight, Coins, Wallet } from "lucide-react";
 import { Badge } from "@moja/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 import { formatAdminDate, formatAdminTime } from "@/lib/format-date";
 import { toSafeDisplayNumber } from "@/lib/money";
 
@@ -33,7 +34,10 @@ export interface LedgerEntryRow {
 export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
   {
     accessorKey: "effectiveAt",
-    header: "Date & Time",
+    header: () => {
+      const t = useTranslations("adminDashboard.ledgerColumns");
+      return t("dateTime");
+    },
     cell: ({ row }) => {
       const date = new Date(row.original.effectiveAt);
       return (
@@ -50,16 +54,20 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
   },
   {
     accessorKey: "transactionId",
-    header: "Transaction",
+    header: () => {
+      const t = useTranslations("adminDashboard.ledgerColumns");
+      return t("transaction");
+    },
     cell: ({ row }) => {
       const entry = row.original;
+      const t = useTranslations("adminDashboard.ledgerColumns");
       return (
         <div className="space-y-0.5 text-xs">
           <div className="font-bold text-slate-900 uppercase font-mono tracking-wider text-[10px]">
             {entry.transaction.type.replace(/_/g, " ")}
           </div>
           <div className="text-[9px] text-slate-400 font-mono truncate max-w-[80px]">
-            ID: {entry.transactionId}
+            {t("idPrefix")} {entry.transactionId}
           </div>
         </div>
       );
@@ -67,7 +75,10 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
   },
   {
     accessorKey: "ownerName",
-    header: "Account Owner",
+    header: () => {
+      const t = useTranslations("adminDashboard.ledgerColumns");
+      return t("accountOwner");
+    },
     cell: ({ row }) => {
       const entry = row.original;
       return (
@@ -84,9 +95,13 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
   },
   {
     accessorKey: "accountCategory",
-    header: "Account Category",
+    header: () => {
+      const t = useTranslations("adminDashboard.ledgerColumns");
+      return t("accountCategory");
+    },
     cell: ({ row }) => {
       const entry = row.original;
+      const t = useTranslations("adminDashboard.ledgerColumns");
       return (
         <div className="space-y-0.5 text-xs">
           <div className="font-semibold text-slate-800 flex items-center gap-1.5">
@@ -94,7 +109,7 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
             {entry.account.accountCategory}
           </div>
           <div className="text-[10px] text-slate-400 font-medium">
-            Class: {entry.account.accountClass}
+            {t("classLabel", { cls: entry.account.accountClass })}
           </div>
         </div>
       );
@@ -102,20 +117,24 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
   },
   {
     accessorKey: "side",
-    header: "Entry Side",
+    header: () => {
+      const t = useTranslations("adminDashboard.ledgerColumns");
+      return t("entrySide");
+    },
     cell: ({ row }) => {
       const side = row.original.side;
+      const t = useTranslations("adminDashboard.ledgerColumns");
       return (
         <div className="flex items-center">
           {side === "CREDIT" ? (
             <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
               <ArrowDownLeft className="size-3.5 shrink-0" />
-              CREDIT
+              {t("credit")}
             </span>
           ) : (
             <span className="flex items-center gap-1 text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
               <ArrowUpRight className="size-3.5 shrink-0" />
-              DEBIT
+              {t("debit")}
             </span>
           )}
         </div>
@@ -124,9 +143,13 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
   },
   {
     accessorKey: "amount",
-    header: "Amount",
+    header: () => {
+      const t = useTranslations("adminDashboard.ledgerColumns");
+      return t("amount");
+    },
     cell: ({ row }) => {
       const entry = row.original;
+      const t = useTranslations("adminDashboard.ledgerColumns");
       const formattedAmount = new Intl.NumberFormat("en-US").format(
         toSafeDisplayNumber(entry.amount)
       );
@@ -138,7 +161,7 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
               entry.side === "CREDIT" ? "text-emerald-600" : "text-rose-600"
             }`}
           >
-            {formattedAmount} XOF
+            {formattedAmount} {t("xof")}
           </span>
         </div>
       );
@@ -146,17 +169,21 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
   },
   {
     accessorKey: "description",
-    header: "Description & Reference",
+    header: () => {
+      const t = useTranslations("adminDashboard.ledgerColumns");
+      return t("descriptionReference");
+    },
     cell: ({ row }) => {
       const entry = row.original;
+      const t = useTranslations("adminDashboard.ledgerColumns");
       return (
         <div className="space-y-0.5 text-xs max-w-[200px] min-w-[120px]">
           <div className="text-slate-700 font-medium truncate" title={entry.description || ""}>
-            {entry.description || "N/A"}
+            {entry.description || t("na")}
           </div>
           {entry.referenceId && (
             <div className="text-[10px] text-slate-400 truncate">
-              Ref: <span className="font-mono">{entry.referenceId}</span> ({entry.referenceType})
+              {t("refPrefix")} <span className="font-mono">{entry.referenceId}</span> ({entry.referenceType})
             </div>
           )}
         </div>

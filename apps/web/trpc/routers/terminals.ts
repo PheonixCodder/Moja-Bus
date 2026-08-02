@@ -3,6 +3,29 @@ import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 import { requirePermission } from "@/lib/permissions/authorize";
 import { createTerminalSchema, updateTerminalSchema } from "@moja/schemas";
+import type { PrismaClient, Prisma } from "@moja/db";
+
+// Phase 0 (first-class urban): terminals must be geo-complete. When a terminal
+// is created/updated without a municipality, auto-assign the city's single
+// pass-through municipality; otherwise a terminal without a city is unusable
+// in search and routes cannot be classified.
+async function ensureTerminalGeography(
+  prisma: Prisma.TransactionClient,
+  cityId: string | null | undefined,
+  municipalityId: string | null | undefined,
+) {
+  if (!cityId) return { municipalityId: undefined };
+  if (municipalityId) return { municipalityId };
+
+  const munis = await prisma.municipality.findMany({
+    where: { cityId, isActive: true },
+    select: { id: true },
+  });
+  if (munis.length === 1) {
+    return { municipalityId: munis[0]!.id };
+  }
+  return { municipalityId: undefined };
+}
 
 export const terminalsRouter = createTRPCRouter({
   list: operatorCompanyProcedure
@@ -43,6 +66,13 @@ export const terminalsRouter = createTRPCRouter({
           });
         }
 
+        // Phase 0: auto-assign the city's single (pass-through) municipality
+        const geo = await ensureTerminalGeography(
+          tx,
+          data.cityId,
+          data.municipalityId,
+        );
+
         return tx.companyLocation.create({
           data: {
             companyId: ctx.companyId,
@@ -54,7 +84,7 @@ export const terminalsRouter = createTRPCRouter({
             postalCode: data.postalCode ?? null,
             country: data.country,
             cityId: data.cityId ?? null,
-            municipalityId: data.municipalityId ?? null,
+            municipalityId: geo.municipalityId ?? data.municipalityId ?? null,
             quarterId: data.quarterId ?? null,
             latitude: data.latitude ?? null,
             longitude: data.longitude ?? null,
@@ -139,9 +169,35 @@ export const terminalsRouter = createTRPCRouter({
           });
         }
 
+        // Phase 0: a passenger terminal must always have a city relation.
+        // Block promotion/edits that would leave the terminal geo-incomplete.
+        const isOrBecomingTerminal =
+          data.isTerminal === true || existingLocation.isTerminal;
+        const effectiveCityId =
+          data.cityId !== undefined ? data.cityId : existingLocation.cityId;
+        if (isOrBecomingTerminal && !effectiveCityId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "A passenger terminal must have a city assigned. Select a city before marking this location as a terminal.",
+          });
+        }
+
+        // Phase 0: auto-assign the city's single (pass-through) municipality
+        const geo = await ensureTerminalGeography(
+          tx,
+          effectiveCityId,
+          data.municipalityId !== undefined
+            ? data.municipalityId
+            : existingLocation.municipalityId,
+        );
+
         const updatePayload = Object.fromEntries(
           Object.entries(data).filter(([, v]) => v !== undefined),
         ) as Parameters<typeof tx.companyLocation.update>[0]["data"];
+        if (geo.municipalityId !== undefined && data.municipalityId === undefined) {
+          updatePayload["municipalityId"] = geo.municipalityId;
+        }
 
         return tx.companyLocation.update({
           where: { id: input.id },

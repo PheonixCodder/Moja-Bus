@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSuspenseQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Building2,
   Coins,
@@ -40,6 +41,7 @@ interface SettlementsPayoutPanelProps {
 }
 
 export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProps) {
+  const t = useTranslations("adminDashboard.settlementsPayoutPanel");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -61,7 +63,7 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
   const { mutate: recordSettlement, isPending } = useMutation(
     trpc.payments.recordSettlement.mutationOptions({
       onSuccess: () => {
-        toast.success("Settlement recorded successfully");
+        toast.success(t("settlementRecorded"));
         setAmountStr("");
         setNote("");
         setSelectedCompanyId("");
@@ -70,7 +72,7 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
         onSuccess?.();
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to record settlement");
+        toast.error(err.message || t("failedToRecordSettlement"));
       },
     })
   );
@@ -79,19 +81,19 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
     e.preventDefault();
     const amount = parseInt(amountStr.replace(/\D/g, ""), 10);
     if (!selectedCompanyId) {
-      toast.error("Please select an operator");
+      toast.error(t("pleaseSelectOperator"));
       return;
     }
     if (!amount || amount <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error(t("pleaseEnterValidAmount"));
       return;
     }
     if (!note.trim()) {
-      toast.error("Please enter a reference note");
+      toast.error(t("pleaseEnterReferenceNote"));
       return;
     }
     if (operatorLedger && amount > operatorLedger.balanceXOF) {
-      toast.error("Amount exceeds operator posted balance");
+      toast.error(t("exceedsBalance"));
       return;
     }
 
@@ -116,11 +118,10 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
           </div>
           <div>
             <CardTitle className="text-base font-semibold text-foreground">
-              Record Manual Offline Settlement
+              {t("recordManualOfflineSettlement")}
             </CardTitle>
             <CardDescription className="mt-0.5 text-xs">
-              Use this when an operator has been paid offline (cash or bank transfer) and the
-              ledger needs to be updated to reflect the disbursement.
+              {t("settlementDescription")}
             </CardDescription>
           </div>
         </div>
@@ -133,7 +134,7 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wide">
-                  Operator
+                  {t("operator")}
                 </Label>
                 <Select
                   value={selectedCompanyId}
@@ -146,7 +147,7 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                     id="settlement-operator"
                     className="h-10 border-border bg-background text-sm"
                   >
-                    <SelectValue placeholder="Select a transport company…" />
+                    <SelectValue placeholder={t("selectOperatorPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent className="border-border bg-popover">
                     {operators.map((op) => (
@@ -170,12 +171,12 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                 {!selectedCompanyId ? (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Building2 className="size-4 text-muted-foreground/50" />
-                    Select an operator above to preview their posted balance.
+                    {t("selectOperatorToPreview")}
                   </div>
                 ) : isLoadingLedger ? (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Spinner className="size-3.5" />
-                    Loading balance…
+                    {t("loadingBalance")}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -186,7 +187,7 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                       {balance !== null ? formatXOF(balance) : "—"}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      Posted balance ({operatorLedger?.entryCount ?? 0} ledger entries)
+                      {t("postedBalance", { count: operatorLedger?.entryCount ?? 0 })}
                     </p>
                   </div>
                 )}
@@ -200,13 +201,13 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                   htmlFor="settlement-amount"
                   className="text-xs font-semibold text-foreground/70 uppercase tracking-wide"
                 >
-                  Amount (XOF)
+                  {t("amountXOF")}
                 </Label>
                 <Input
                   id="settlement-amount"
                   type="text"
                   inputMode="numeric"
-                  placeholder="e.g. 500000"
+                  placeholder={t("amountPlaceholder")}
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value.replace(/\D/g, ""))}
                   className={cn(
@@ -217,7 +218,7 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                 {exceedsBalance && (
                   <p className="flex items-center gap-1 text-[11px] text-destructive">
                     <AlertTriangle className="size-3" />
-                    Exceeds operator&apos;s posted balance of {formatXOF(balance!)}
+                    {t("exceedsBalanceMessage", { balance: formatXOF(balance!) })}
                   </p>
                 )}
                 {amount > 0 && !exceedsBalance && (
@@ -232,18 +233,18 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                   htmlFor="settlement-note"
                   className="text-xs font-semibold text-foreground/70 uppercase tracking-wide"
                 >
-                  Reference Note <span className="text-destructive">*</span>
+                  {t("referenceNote")} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="settlement-note"
                   type="text"
-                  placeholder="e.g. Handed cash at Abidjan office – Jul 14"
+                  placeholder={t("notePlaceholder")}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   className="h-10 border-border bg-background text-sm"
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  This note is permanently recorded in the ledger.
+                  {t("noteDescription")}
                 </p>
               </div>
 
@@ -254,9 +255,9 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                 className="mt-1 w-full h-10 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 font-semibold text-sm"
               >
                 {isPending ? (
-                  <><Spinner className="size-4 mr-2" /> Recording…</>
+                  <><Spinner className="size-4 mr-2" /> {t("recording")}</>
                 ) : (
-                  <><ReceiptText className="size-4 mr-2" /> Record Manual Settlement</>
+                  <><ReceiptText className="size-4 mr-2" /> {t("recordManualSettlement")}</>
                 )}
               </Button>
             </div>
@@ -266,9 +267,7 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
           <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
             <p className="text-[11px] leading-relaxed text-amber-700">
-              This action is <strong>irreversible</strong>. It debits the operator&apos;s receivable
-              ledger and credits the Paystack clearing account. Only record this if you have
-              physically transferred the funds outside of the Paystack payout system.
+              {t("irreversibleWarning")}
             </p>
           </div>
         </form>

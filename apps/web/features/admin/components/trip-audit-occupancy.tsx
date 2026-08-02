@@ -10,11 +10,13 @@ import {
   getSegmentSeatStatus,
   type TripSegment,
 } from "@/features/booking/lib/trip-segments";
+import { useTranslations } from "next-intl";
 import type { RouterOutputs } from "@/trpc/client";
 
 type TripAudit = RouterOutputs["admin"]["getTripAudit"];
 
 function SeatFillBar({ booked, total }: { booked: number; total: number }) {
+  const t = useTranslations("adminDashboard.tripAuditOccupancy");
   const pct = total > 0 ? Math.min((booked / total) * 100, 100) : 0;
   const color =
     pct >= 90 ? "bg-red-500" : pct >= 60 ? "bg-amber-500" : "bg-primary";
@@ -22,7 +24,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-muted-foreground">
-          {booked} / {total} seats
+          {t("seatsBooked", { booked, total })}
         </span>
         <span className="text-[11px] font-semibold text-foreground">
           {Math.round(pct)}%
@@ -45,6 +47,7 @@ function SegmentSeatGrid({
   trip: TripAudit;
   segment: TripSegment;
 }) {
+  const t = useTranslations("adminDashboard.tripAuditOccupancy");
   const seats = trip.seats ?? [];
   const bookings = trip.bookings ?? [];
 
@@ -98,12 +101,12 @@ function SegmentSeatGrid({
               );
               const statusLabel =
                 seatStatus === "booked"
-                  ? "Booked"
+                  ? t("statusBooked")
                   : seatStatus === "held"
-                  ? "Held"
+                  ? t("statusHeld")
                   : seatStatus === "blocked"
-                  ? "Blocked"
-                  : "Available";
+                  ? t("statusBlocked")
+                  : t("statusAvailable");
 
               return (
                 <div
@@ -127,10 +130,10 @@ function SegmentSeatGrid({
 
         <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border">
           {[
-            { color: "bg-primary border-primary", label: "Booked" },
-            { color: "bg-amber-400 border-amber-500", label: "Held" },
-            { color: "bg-background border-border", label: "Available" },
-            { color: "bg-slate-200 border-slate-300", label: "Blocked" },
+            { color: "bg-primary border-primary", label: t("legendBooked") },
+            { color: "bg-amber-400 border-amber-500", label: t("legendHeld") },
+            { color: "bg-background border-border", label: t("legendAvailable") },
+            { color: "bg-slate-200 border-slate-300", label: t("legendBlocked") },
           ].map(({ color, label }) => (
             <div key={label} className="flex items-center gap-1.5">
               <div className={cn("w-4 h-4 rounded border", color)} />
@@ -144,6 +147,7 @@ function SegmentSeatGrid({
 }
 
 export function TripAuditOccupancy({ tripId }: { tripId: string }) {
+  const t = useTranslations("adminDashboard.tripAuditOccupancy");
   const trpc = useTRPC();
   const { data: trip } = useSuspenseQuery(
     trpc.admin.getTripAudit.queryOptions({ id: tripId })
@@ -156,7 +160,7 @@ export function TripAuditOccupancy({ tripId }: { tripId: string }) {
     return (
       <div className="rounded-lg border border-border bg-card p-12 text-center shadow-sm">
         <p className="text-sm text-muted-foreground">
-          No route segments available for this trip.
+          {t("noSegmentsAvailable")}
         </p>
       </div>
     );
@@ -181,7 +185,7 @@ export function TripAuditOccupancy({ tripId }: { tripId: string }) {
               </h4>
               {counts.held > 0 && (
                 <span className="text-[11px] text-muted-foreground">
-                  {counts.confirmed} confirmed · {counts.held} held
+                  {t("confirmedHeld", { confirmed: counts.confirmed, held: counts.held })}
                 </span>
               )}
             </div>

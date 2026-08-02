@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Plane, Calendar, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { CityAutocompleteField, type CityValue } from "@/features/search/components/city-autocomplete-field";
+import { validateSearchPair } from "@/features/search/lib/validate-search-pair";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@moja/ui/components/ui/popover";
@@ -61,24 +62,13 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
       return;
     }
 
-    const sameCity = origin.id && destination.id && origin.id === destination.id;
-    const bothCityLevel = origin.level !== "municipality" && origin.level !== "quarter"
-      && destination.level !== "municipality" && destination.level !== "quarter";
-    const sameMunicipality = origin.municipalityId && destination.municipalityId
-      && origin.municipalityId === destination.municipalityId;
-    const mixedGranularity = origin.id === destination.id && (
-      (origin.level === "city" && destination.level === "municipality") ||
-      (origin.level === "municipality" && destination.level === "city")
-    );
-
-    if ((!sameCity && originVal === destVal) || (sameCity && (bothCityLevel || sameMunicipality))) {
+    const error = validateSearchPair(origin, destination);
+    if (error === "sameCity") {
       toast.error(t("validation.sameCity"));
       return;
     }
-    if (sameCity && mixedGranularity) {
-      toast.error(t("validation.refineUrban"));
-      return;
-    }
+
+    const sameCity = origin.id && destination.id && origin.id === destination.id;
     const sp = new URLSearchParams({
       from: originVal,
       to: destVal,
@@ -87,6 +77,8 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
     });
     if (sameCity && origin.municipalityId) sp.set("fromMuni", origin.municipalityId);
     if (sameCity && destination.municipalityId) sp.set("toMuni", destination.municipalityId);
+    if (sameCity && origin.quarterId) sp.set("fromQuarter", origin.quarterId);
+    if (sameCity && destination.quarterId) sp.set("toQuarter", destination.quarterId);
     router.push(`/search?${sp.toString()}`);
   }
 
@@ -191,7 +183,7 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
             <button
               key={dest}
               type="button"
-              onClick={() => setDestination({ id: dest, text: dest })}
+              onClick={() => setDestination({ id: "", text: dest })}
               className="text-xs font-medium px-3 py-1 rounded-full bg-slate-50 hover:bg-pink-50 text-slate-600 hover:text-[#ee237c] border border-slate-200 hover:border-pink-200 transition-all duration-150"
             >
               {dest}

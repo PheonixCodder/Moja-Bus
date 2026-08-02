@@ -105,6 +105,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
       destinationCityId: params.to,
       originMunicipalityId: params.fromMuni || undefined,
       destinationMunicipalityId: params.toMuni || undefined,
+      originQuarterId: params.fromQuarter || undefined,
+      destinationQuarterId: params.toQuarter || undefined,
       date: params.date,
       passengers: params.passengers,
       operators: localFilters.operators.length > 0 ? localFilters.operators : undefined,
@@ -130,6 +132,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
     params.to,
     params.fromMuni,
     params.toMuni,
+    params.fromQuarter,
+    params.toQuarter,
     params.date,
     params.passengers,
     localFilters.operators.join(","),
@@ -180,6 +184,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
     to: string;
     fromMuni: string;
     toMuni: string;
+    fromQuarter: string;
+    toQuarter: string;
     date: string;
     passengers: number;
   }) => {
@@ -192,6 +198,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
       to: criteria.to,
       fromMuni: criteria.fromMuni,
       toMuni: criteria.toMuni,
+      fromQuarter: criteria.fromQuarter,
+      toQuarter: criteria.toQuarter,
       date: criteria.date,
       passengers: criteria.passengers,
       page: 1,
@@ -319,6 +327,8 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
             initialToId={params.to}
             initialFromMuni={params.fromMuni}
             initialToMuni={params.toMuni}
+            initialFromQuarter={params.fromQuarter}
+            initialToQuarter={params.toQuarter}
             initialDate={params.date}
             initialPassengers={params.passengers}
             onSearch={handleSearch}
@@ -330,8 +340,13 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
           <SearchDateStrip
             from={params.from}
             to={params.to}
-            {...(params.fromMuni || params.toMuni
-              ? { fromMuni: params.fromMuni, toMuni: params.toMuni }
+            {...(params.fromMuni || params.toMuni || params.fromQuarter || params.toQuarter
+              ? {
+                  fromMuni: params.fromMuni,
+                  toMuni: params.toMuni,
+                  fromQuarter: params.fromQuarter,
+                  toQuarter: params.toQuarter,
+                }
               : {})}
             selectedDate={params.date}
             onSelectDate={handleDateSelect}
@@ -345,7 +360,7 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
         {!searchEnabled ? (
           /* Pre-search empty state */
           <SearchEmptyState
-            onQuickSearch={(c) => handleSearch({ ...c, fromMuni: "", toMuni: "", passengers: params.passengers })}
+            onQuickSearch={(c) => handleSearch({ ...c, fromMuni: "", toMuni: "", fromQuarter: "", toQuarter: "", passengers: params.passengers })}
           />
         ) : (
           <>

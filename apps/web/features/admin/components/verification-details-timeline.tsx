@@ -3,20 +3,22 @@
 import { Clock, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
 import { formatAdminDateTime } from "@/lib/format-date";
+import { useTranslations } from "next-intl";
 
 interface VerificationDetailsTimelineProps {
   activityLogs: any[];
 }
 
 export function VerificationDetailsTimeline({ activityLogs }: VerificationDetailsTimelineProps) {
+  const t = useTranslations("adminDashboard.verificationDetailsTimeline");
   return (
     <Card className="bg-white border-border shadow-sm">
       <CardHeader>
         <CardTitle className="text-base font-bold text-slate-900">
-          Verification Activity History
+          {t("verificationActivityHistory")}
         </CardTitle>
         <CardDescription className="text-xs text-slate-400">
-          Audit trails and changes logged during the operator's verification lifecycle.
+          {t("auditTrailsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 pt-0">
@@ -42,7 +44,7 @@ export function VerificationDetailsTimeline({ activityLogs }: VerificationDetail
                   {log.user && (
                     <div className="text-[10px] text-slate-400 font-bold flex items-center gap-1 pt-0.5">
                       <Shield className="size-3" />
-                      <span>Triggered by: {log.user.fullName || log.user.email}</span>
+                      <span>{t("triggeredBy")} {log.user.fullName || log.user.email}</span>
                     </div>
                   )}
                 </div>
@@ -51,7 +53,7 @@ export function VerificationDetailsTimeline({ activityLogs }: VerificationDetail
           </div>
         ) : (
           <div className="text-center py-6 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
-            No activity logs recorded for this company.
+            {t("noActivityLogs")}
           </div>
         )}
       </CardContent>

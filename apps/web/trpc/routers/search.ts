@@ -1,90 +1,129 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../init";
+import {
+  type GeoPlace,
+  placeMatchesTerminal,
+} from "@/features/search/lib/places";
+import { matchSegmentFare } from "@/features/search/lib/segment-fare-match";
 import { TripSearchReadRepository } from "@/features/search/repositories/search-read-repository";
-import { SearchFilters, SearchService } from "@/features/search/services/search-service";
+import {
+  type SearchFilters,
+  SearchService,
+} from "@/features/search/services/search-service";
 import { toSafeDisplayNumber } from "@/lib/money";
+import { createTRPCRouter, publicProcedure } from "../init";
 
 const searchInputSchema = z.object({
   originCityId: z.string(),
   destinationCityId: z.string(),
   originMunicipalityId: z.string().optional(),
   destinationMunicipalityId: z.string().optional(),
+  originQuarterId: z.string().optional(),
+  destinationQuarterId: z.string().optional(),
   date: z.string(),
-  passengers: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().min(1).default(1)),
+  passengers: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().int().min(1).default(1),
+  ),
   operators: z.array(z.string()).optional(),
   amenities: z.array(z.string()).optional(),
   departureTime: z
     .array(z.enum(["MORNING", "AFTERNOON", "EVENING", "LATE_NIGHT"]))
     .optional(),
-  seatClass: z
-    .array(z.enum(["ECONOMY", "STANDARD", "VIP"]))
-    .optional(),
+  seatClass: z.array(z.enum(["ECONOMY", "STANDARD", "VIP"])).optional(),
   isExpress: z.array(z.enum(["true"])).optional(),
-  maxPrice: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().optional()),
+  maxPrice: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().optional(),
+  ),
   sort: z.string().default("BEST"),
-  page: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().min(1).default(1)),
+  page: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().int().min(1).default(1),
+  ),
 });
+
+const normalize = (str: string) =>
+  str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+
+/** Resolves a non-cuid city reference (display name) to a city id via normalized match. */
+function resolveCityId(
+  raw: string,
+  cities: { id: string; name: string; nameEn: string | null }[],
+): string {
+  const isCuid = raw.startsWith("c") && raw.length >= 20;
+  if (isCuid) return raw;
+  const target = normalize(raw);
+  const found = cities.find(
+    (c) =>
+      normalize(c.name) === target ||
+      (c.nameEn && normalize(c.nameEn) === target),
+  );
+  return found ? found.id : raw;
+}
+
+function toGeoPlace(
+  cityId: string,
+  municipalityId: string | undefined,
+  quarterId: string | undefined,
+): GeoPlace {
+  return {
+    cityId,
+    municipalityId: municipalityId ?? null,
+    quarterId: quarterId ?? null,
+    level: quarterId ? "quarter" : municipalityId ? "municipality" : "city",
+  };
+}
 
 export const searchRouter = createTRPCRouter({
   search: publicProcedure
     .input(searchInputSchema)
     .query(async ({ ctx, input }) => {
-      let resolvedOriginId = input.originCityId;
-      let resolvedDestId = input.destinationCityId;
+      const needsResolve =
+        !(
+          input.originCityId.startsWith("c") && input.originCityId.length >= 20
+        ) ||
+        !(
+          input.destinationCityId.startsWith("c") &&
+          input.destinationCityId.length >= 20
+        );
 
-      const normalize = (str: string) =>
-        str
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9]/g, "");
-
-      const needsOriginResolve = !(resolvedOriginId.startsWith("c") && resolvedOriginId.length >= 20);
-      const needsDestResolve = !(resolvedDestId.startsWith("c") && resolvedDestId.length >= 20);
-
-      if (needsOriginResolve || needsDestResolve) {
-        const cities = await ctx.prisma.city.findMany({
+      let cities: { id: string; name: string; nameEn: string | null }[] = [];
+      if (needsResolve) {
+        cities = await ctx.prisma.city.findMany({
           where: { isActive: true },
         });
-
-        if (needsOriginResolve) {
-          const target = normalize(resolvedOriginId);
-          const found = cities.find(
-            (c) =>
-              normalize(c.name) === target ||
-              (c.nameEn && normalize(c.nameEn) === target)
-          );
-          if (found) resolvedOriginId = found.id;
-        }
-
-        if (needsDestResolve) {
-          const target = normalize(resolvedDestId);
-          const found = cities.find(
-            (c) =>
-              normalize(c.name) === target ||
-              (c.nameEn && normalize(c.nameEn) === target)
-          );
-          if (found) resolvedDestId = found.id;
-        }
       }
+
+      const originCityId = resolveCityId(input.originCityId, cities);
+      const destinationCityId = resolveCityId(input.destinationCityId, cities);
 
       const searchRepo = new TripSearchReadRepository(ctx.prisma);
       const searchService = new SearchService(searchRepo);
 
       return searchService.execute({
-        originCityId: resolvedOriginId,
-        destinationCityId: resolvedDestId,
-        originMunicipalityId: input.originMunicipalityId ?? null,
-        destinationMunicipalityId: input.destinationMunicipalityId ?? null,
+        origin: toGeoPlace(
+          originCityId,
+          input.originMunicipalityId,
+          input.originQuarterId,
+        ),
+        destination: toGeoPlace(
+          destinationCityId,
+          input.destinationMunicipalityId,
+          input.destinationQuarterId,
+        ),
         travelDate: new Date(input.date),
         passengerCount: input.passengers,
         filters: {
-          operators: input.operators as SearchFilters['operators'],
-          amenities: input.amenities as SearchFilters['amenities'],
-          departureTime: input.departureTime as SearchFilters['departureTime'],
-          seatClass: input.seatClass as SearchFilters['seatClass'],
+          operators: input.operators as SearchFilters["operators"],
+          amenities: input.amenities as SearchFilters["amenities"],
+          departureTime: input.departureTime as SearchFilters["departureTime"],
+          seatClass: input.seatClass as SearchFilters["seatClass"],
           isExpress: input.isExpress?.includes("true") ?? false,
-          maxPrice: input.maxPrice as SearchFilters['maxPrice'],
+          maxPrice: input.maxPrice as SearchFilters["maxPrice"],
         },
         sort: input.sort,
         page: input.page,
@@ -98,47 +137,46 @@ export const searchRouter = createTRPCRouter({
         destinationCityId: z.string(),
         originMunicipalityId: z.string().optional(),
         destinationMunicipalityId: z.string().optional(),
+        originQuarterId: z.string().optional(),
+        destinationQuarterId: z.string().optional(),
         centerDate: z.string(), // "YYYY-MM-DD"
       }),
     )
     .query(async ({ ctx, input }) => {
-      const normalize = (str: string) =>
-        str
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9]/g, "");
+      const needsResolve =
+        !(
+          input.originCityId.startsWith("c") && input.originCityId.length >= 20
+        ) ||
+        !(
+          input.destinationCityId.startsWith("c") &&
+          input.destinationCityId.length >= 20
+        );
 
-      let originId = input.originCityId;
-      let destId = input.destinationCityId;
-
-      const needsOriginResolve = !(originId.startsWith("c") && originId.length >= 20);
-      const needsDestResolve = !(destId.startsWith("c") && destId.length >= 20);
-
-      if (needsOriginResolve || needsDestResolve) {
-        const cities = await ctx.prisma.city.findMany({ where: { isActive: true } });
-        if (needsOriginResolve) {
-          const t = normalize(originId);
-          const found = cities.find(
-            (c) => normalize(c.name) === t || (c.nameEn && normalize(c.nameEn) === t),
-          );
-          if (found) originId = found.id;
-        }
-        if (needsDestResolve) {
-          const t = normalize(destId);
-          const found = cities.find(
-            (c) => normalize(c.name) === t || (c.nameEn && normalize(c.nameEn) === t),
-          );
-          if (found) destId = found.id;
-        }
+      let cities: { id: string; name: string; nameEn: string | null }[] = [];
+      if (needsResolve) {
+        cities = await ctx.prisma.city.findMany({ where: { isActive: true } });
       }
 
-      const isUrban = originId === destId && input.originMunicipalityId && input.destinationMunicipalityId;
-      const urbanOriginMuni = isUrban ? input.originMunicipalityId : undefined;
-      const urbanDestMuni = isUrban ? input.destinationMunicipalityId : undefined;
+      const originId = resolveCityId(input.originCityId, cities);
+      const destId = resolveCityId(input.destinationCityId, cities);
+
+      const originPlace = toGeoPlace(
+        originId,
+        input.originMunicipalityId,
+        input.originQuarterId,
+      );
+      const destPlace = toGeoPlace(
+        destId,
+        input.destinationMunicipalityId,
+        input.destinationQuarterId,
+      );
 
       // Generate 7 UTC dates centered on centerDate (day -3 to day +3)
-      const parts = input.centerDate.split("-").map(Number) as [number, number, number];
+      const parts = input.centerDate.split("-").map(Number) as [
+        number,
+        number,
+        number,
+      ];
       const center = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
       const dates = Array.from({ length: 7 }, (_, i) => {
         const dt = new Date(center);
@@ -152,87 +190,41 @@ export const searchRouter = createTRPCRouter({
       windowEnd.setUTCHours(23, 59, 59, 999);
 
       // Single batch query: all trips on this route in the 7-day window
-      const tripWhere: any = {
-        status: { in: ["SCHEDULED", "DELAYED"] },
-      };
-      if (isUrban) {
-        tripWhere.tripStops = {
-          some: {
-            terminal: { cityId: originId, municipalityId: urbanOriginMuni },
-            isPickup: true,
-            scheduledDeparture: { gte: windowStart, lte: windowEnd },
-          },
-        };
-        tripWhere.AND = {
-          tripStops: {
-            some: {
-              terminal: { cityId: destId, municipalityId: urbanDestMuni },
-              isDropoff: true,
-            },
-          },
-        };
-      } else {
-        tripWhere.tripStops = {
-          some: {
-            terminal: { cityId: originId },
-            isPickup: true,
-            scheduledDeparture: { gte: windowStart, lte: windowEnd },
-          },
-        };
-        tripWhere.AND = {
-          tripStops: {
-            some: {
-              terminal: { cityId: destId },
-              isDropoff: true,
-            },
-          },
-        };
-      }
-
-      const trips = await ctx.prisma.trip.findMany({
-        where: tripWhere,
-        include: {
-          tripStops: {
-            include: { terminal: { select: { cityId: true, municipalityId: true } } },
-            orderBy: { stopOrder: "asc" },
-          },
-          schedule: {
-            include: {
-              fares: {
-                where: { isActive: true },
-              },
-            },
-          },
-        },
-      });
+      const searchRepo = new TripSearchReadRepository(ctx.prisma);
+      const trips = await searchRepo.findTripsInWindow(
+        originPlace,
+        destPlace,
+        windowStart,
+        windowEnd,
+      );
 
       // Build date → cheapest price map (match fare by segment)
       const priceByDate = new Map<string, number>();
       for (const trip of trips) {
         const originStop = trip.tripStops.find(
           (s: any) =>
-            s.terminal.cityId === originId &&
+            placeMatchesTerminal(originPlace, s.terminal) &&
             s.isPickup &&
-            s.scheduledDeparture !== null &&
-            (!isUrban || s.terminal.municipalityId === urbanOriginMuni),
+            s.scheduledDeparture !== null,
         );
         if (!originStop?.scheduledDeparture) continue;
         const destStop = trip.tripStops.find(
           (s: any) =>
-            s.terminal.cityId === destId &&
-            s.isDropoff &&
-            (!isUrban || s.terminal.municipalityId === urbanDestMuni),
+            placeMatchesTerminal(destPlace, s.terminal) && s.isDropoff,
         );
         if (!destStop || originStop.stopOrder >= destStop.stopOrder) continue;
 
-        const matchedFare = trip.schedule.fares.find(
-          (f) =>
-            f.fromStopOrder <= originStop.stopOrder &&
-            f.toStopOrder >= destStop.stopOrder,
+        const matchedFare = matchSegmentFare(
+          trip.schedule.fares,
+          originStop.stopOrder,
+          destStop.stopOrder,
+          originStop.scheduledDeparture,
         );
         if (!matchedFare) continue;
 
-        const dateStr = originStop.scheduledDeparture.toISOString().split("T")[0]!;
+        const dateStr = originStop.scheduledDeparture
+          .toISOString()
+          .split("T")[0]!;
         const price = toSafeDisplayNumber(matchedFare.priceXOF);
         const existing = priceByDate.get(dateStr);
         if (existing === undefined || price < existing) {

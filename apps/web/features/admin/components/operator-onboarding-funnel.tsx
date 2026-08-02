@@ -4,11 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useTranslations } from "next-intl";
 import { Activity } from "lucide-react";
 
 const STEP_ORDER = ["COMPANY", "DOCUMENTS", "BANK", "PROFILE", "TERMS"];
 
 export function OperatorOnboardingFunnel() {
+  const t = useTranslations("adminDashboard.onboardingFunnel");
   const trpc = useTRPC();
   const { data, isLoading } = useQuery(
     trpc.admin.getOnboardingFunnel.queryOptions()
@@ -44,10 +46,10 @@ export function OperatorOnboardingFunnel() {
           <Activity className="size-5 text-primary" />
           <div>
             <CardTitle className="text-base font-bold text-slate-900">
-              Onboarding Funnel Drop-off
+              {t("title")}
             </CardTitle>
             <CardDescription className="text-xs text-slate-500">
-              Number of operators currently stalled at each step
+              {t("description")}
             </CardDescription>
           </div>
         </div>
@@ -62,18 +64,18 @@ export function OperatorOnboardingFunnel() {
                   <div className="text-xs font-bold text-slate-700">
                     {s.count}
                   </div>
-                  <div 
+                  <div
                     className="w-full bg-primary/20 rounded-t-sm transition-all group-hover:bg-primary/40 relative"
                     style={{ height: `${heightPct}%` }}
                   >
                     {/* Active bar */}
-                    <div 
+                    <div
                       className="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm transition-all"
                       style={{ height: s.count > 0 ? '4px' : '0' }}
                     />
                   </div>
                   <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center">
-                    {s.name}
+                    {t(`steps.${s.name as any}`)}
                   </div>
                 </div>
               );
@@ -82,10 +84,12 @@ export function OperatorOnboardingFunnel() {
           
           <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100">
             <div className="text-xs font-medium text-slate-500">
-              Total Started: <strong className="text-slate-800">{data.totalStarted}</strong>
+              {t("totalStarted")}{" "}
+              <strong className="text-slate-800">{data.totalStarted}</strong>
             </div>
             <div className="text-xs font-medium text-slate-500">
-              Fully Completed: <strong className="text-slate-800">{data.totalCompleted}</strong>
+              {t("fullyCompleted")}{" "}
+              <strong className="text-slate-800">{data.totalCompleted}</strong>
             </div>
           </div>
         </div>

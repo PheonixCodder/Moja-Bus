@@ -27,6 +27,7 @@ import {
 import { Label } from "@moja/ui/components/ui/label";
 import { useTRPC } from "@/trpc/client";
 import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/format";
+import { formatLocationLabel } from "@/lib/format-location-label";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 type RefundChannel = "CASH" | "VOUCHER" | "WALLET";
@@ -138,7 +139,7 @@ export function BookingDetailDrawer({
                     {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
                   </p>
                   <p className="text-muted-foreground text-xs">
-                    {booking.originCityName}{booking.originMunicipalityName ? ` (${booking.originMunicipalityName})` : ""} → {booking.destinationCityName}{booking.destinationMunicipalityName ? ` (${booking.destinationMunicipalityName})` : ""}
+                    {formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })} → {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">

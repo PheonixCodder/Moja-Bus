@@ -104,7 +104,7 @@ export function BookingDialogFlow({ offerId, onClose }: { offerId: string; onClo
               maxSelection={passengerCount}
             />
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-center pt-2">
               <Button
                 onClick={handleContinue}
                 disabled={selectedSeatIds.length !== passengerCount}
