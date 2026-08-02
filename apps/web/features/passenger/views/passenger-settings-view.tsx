@@ -10,6 +10,9 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
+import { getCountries } from "react-phone-number-input";
+import type { CountryCode } from "libphonenumber-js/max";
+import { getPhoneValidationError, getParsedCountry, toE164 } from "@/lib/phone/phone-number";
 import { Switch } from "@moja/ui/components/ui/switch";
 import {
   Select,
@@ -36,7 +39,11 @@ import { Spinner } from "@moja/ui/components/ui/spinner";
 import { useStorageUpload } from "@/lib/storage-client";
 import { ImageUploadField } from "@/components/image-upload-field";
 
-export function PassengerSettingsView() {
+export function PassengerSettingsView({
+                                        detectedCountry,
+                                      }: {
+  detectedCountry?: string | undefined;
+}) {
   const t = useTranslations("passengerDashboard.settings");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -51,9 +58,17 @@ export function PassengerSettingsView() {
   // Form State
   const [fullName, setFullName] = useState(profile?.user?.fullName || "");
   const [phone, setPhone] = useState(profile?.user?.phoneNumber || "");
+  const [phoneError, setPhoneError] = useState("");
   const [preferredSeat, setPreferredSeat] = useState(preferences.preferredSeat || "NONE");
   const [preferredClass, setPreferredClass] = useState(preferences.preferredClass || "ECONOMY");
   const [marketingOptIn, setMarketingOptIn] = useState(profile?.marketingOptIn ?? false);
+
+  // Country-selectable picker: default to the geo-detected country, falling
+  // back to the previously stored phone's country (or CI).
+  const phoneCountry =
+    (detectedCountry ||
+      getParsedCountry(profile?.user?.phoneNumber) ||
+      "CI") as CountryCode;
 
 
 
@@ -76,9 +91,21 @@ export function PassengerSettingsView() {
       toast.error(t("validationName"));
       return;
     }
+
+    let normalizedPhone: string | undefined;
+    if (phone.trim()) {
+      const validationError = getPhoneValidationError(phone, phoneCountry);
+      normalizedPhone = toE164(phone, phoneCountry) ?? undefined;
+      if (validationError || !normalizedPhone) {
+        setPhoneError(t("validationPhone"));
+        return;
+      }
+    }
+
+    setPhoneError("");
     saveSettingsMutation.mutate({
       fullName,
-      phone: phone || undefined,
+      phone: normalizedPhone,
     });
   };
 
@@ -182,9 +209,19 @@ export function PassengerSettingsView() {
                     <PhoneInput
                       id="phone"
                       value={phone}
-                      onChange={(value) => setPhone(value || "")}
+                      countries={getCountries()}
+                      defaultCountry={phoneCountry}
+                      onChange={(value) => {
+                        setPhone(value || "");
+                        if (phoneError) setPhoneError("");
+                      }}
                       className="h-10 rounded-lg border-border"
                     />
+                    {phoneError ? (
+                      <p role="alert" className="text-xs text-destructive">
+                        {phoneError}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 

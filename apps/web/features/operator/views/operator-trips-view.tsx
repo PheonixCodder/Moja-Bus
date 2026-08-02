@@ -54,12 +54,13 @@ export function OperatorTripsView() {
     );
 
   const [params, setParams] = useQueryStates(tripListParsers);
-  const { q, status, scheduleId, manifest, page, startDate, endDate } = params;
+  const { q, status, serviceType, scheduleId, manifest, page, startDate, endDate } = params;
   const debouncedQ = useDebounce(q, 300);
   const [refreshing, setRefreshing] = useState(false);
 
   const listInput = {
     status: status === "ALL" ? undefined : status,
+    serviceType: serviceType === "ALL" ? undefined : serviceType,
     scheduleId: scheduleId || undefined,
     q: debouncedQ || undefined,
     startDate: startDate || undefined,
@@ -196,6 +197,10 @@ export function OperatorTripsView() {
           }
           onEndDateChange={(value) =>
             void setParams({ endDate: value, page: 1 })
+          }
+          serviceType={serviceType}
+          onServiceTypeChange={(value) =>
+            void setParams({ serviceType: value, page: 1 })
           }
         />
       </div>

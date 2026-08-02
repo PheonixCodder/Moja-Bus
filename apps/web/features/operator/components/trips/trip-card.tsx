@@ -26,6 +26,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
 import { TripStatusBadge } from "./trip-status-badge";
 import { TRIP_STATUS_CONFIG } from "@/features/operator/lib/trips/status-config";
+import { UrbanBadge } from "@/components/urban-badge";
 import {
   formatTripDate,
   formatTripTime,
@@ -109,6 +110,13 @@ export function TripCard({
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              {trip.serviceType === "URBAN" ? (
+                <UrbanBadge />
+              ) : (
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0 text-[10px] font-semibold text-slate-500">
+                  Intercity
+                </span>
+              )}
               <TripStatusBadge status={trip.status} />
               {expanded ? (
                 <ChevronUp className="size-3.5 text-muted-foreground" />

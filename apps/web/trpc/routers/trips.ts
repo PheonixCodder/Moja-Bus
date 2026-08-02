@@ -153,6 +153,7 @@ export const tripsRouter = createTRPCRouter({
       z
         .object({
           status: tripStatusEnum.optional(),
+          serviceType: z.enum(["INTERCITY", "URBAN"]).optional(),
           routeId: z.string().optional(),
           scheduleId: z.string().optional(),
           startDate: z.string().optional(),
@@ -181,6 +182,9 @@ export const tripsRouter = createTRPCRouter({
 
       if (input?.status) {
         filters["status"] = input.status;
+      }
+      if (input?.serviceType) {
+        filters["serviceType"] = input.serviceType;
       }
       if (input?.scheduleId) {
         filters["scheduleId"] = input.scheduleId;

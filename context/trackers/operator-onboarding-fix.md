@@ -287,6 +287,7 @@ Findings from a full review of the operator onboarding pipeline: signup → Bett
      - The component must emit ISO `YYYY-MM-DD` — the schema is a string and the server does `new Date(profileData.dateOfBirth)` (`operator.ts:754`); the prefill at `profile-step.tsx:77` also reads `op.dateOfBirth.split("T")[0]`.
      - Import from `@moja/ui/components/ui/input` (not `@/components/ui/input`).
      - Existing translation keys `dateOfBirth` / `dateOfBirthPlaceholder` (`en.json`/`fr.json` profile namespace) can be reused.
+- **Status:** ✅ FIXED (2026-08-01) — masked MM/DD/YYYY text input replaced the `DatePicker`; DOB is required (`canContinue` includes it, submit gates on it). **Follow-up BUG (fixed 2026-08-02):** the initial masked-input implementation was a controlled input whose `value` derived from `dateOfBirth` (valid ISO only); `parseDobInput` returns `""` for any incomplete entry, so every keystroke wiped the field. Added a separate `dobInput` raw-text state — `value` reflects the raw text, `onChange` stores it and syncs the parsed ISO only when valid, `onBlur` errors when text exists without a valid date, and prefill seeds both states.
 
 ---
 

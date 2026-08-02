@@ -44,6 +44,7 @@ export function ProfileStep({
   const [personalPhone, setPersonalPhone] = useState("");
   const [role, setRole] = useState<StaffRole>("OWNER");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [dobInput, setDobInput] = useState("");
   const [dobError, setDobError] = useState("");
   const [nationalIdNumber, setNationalIdNumber] = useState("");
   const [nationalIdType, setNationalIdType] = useState("");
@@ -72,7 +73,9 @@ export function ProfileStep({
       setFullName(initialData.user?.fullName || op.user?.fullName || "");
       setPersonalPhone(op.personalPhone || "");
       setRole(op.role || "OWNER");
-      setDateOfBirth(op.dateOfBirth ? op.dateOfBirth.split("T")[0] : "");
+      const dobIso = op.dateOfBirth ? op.dateOfBirth.split("T")[0] : "";
+      setDateOfBirth(dobIso);
+      setDobInput(dobIso ? formatDisplayDob(dobIso) : "");
       setNationalIdNumber(op.nationalIdNumber || "");
       setNationalIdType(op.nationalIdType || "");
       setJobTitle(op.jobTitle || "");
@@ -265,17 +268,15 @@ export function ProfileStep({
                </Label>
                <Input
                  id="dob"
-                 value={formatDisplayDob(dateOfBirth)}
+                 value={dobInput}
                  onChange={(e) => {
                    const raw = e.target.value;
-                   const iso = parseDobInput(raw);
-                   setDateOfBirth(iso);
+                   setDobInput(raw);
+                   setDateOfBirth(parseDobInput(raw));
                    setDobError("");
                  }}
                  onBlur={() => {
-                   if (dateOfBirth && !formatDisplayDob(dateOfBirth).includes("/")) {
-                     // ISO format already stored, no error
-                   } else if (dateOfBirth) {
+                   if (dobInput && !dateOfBirth) {
                      setDobError(t("dateOfBirthInvalid"));
                    }
                  }}

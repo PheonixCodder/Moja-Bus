@@ -14,6 +14,11 @@ export const tripListParsers = {
     "ALL",
     ...tripStatusValues,
   ] as const).withDefault("ALL"),
+  serviceType: parseAsStringLiteral([
+    "ALL",
+    "INTERCITY",
+    "URBAN",
+  ] as const).withDefault("ALL"),
   scheduleId: parseAsString.withDefault(""),
   manifest: parseAsString.withDefault(""),
   startDate: parseAsString.withDefault(""),

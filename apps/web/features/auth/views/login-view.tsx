@@ -12,6 +12,7 @@ type LoginViewProps = {
   initialStep?: "input" | "otp" | "profile";
   initialUser?: { email?: string; phone?: string } | undefined;
   callbackUrl?: string | undefined;
+  detectedCountry?: string | undefined;
 };
 
 export function LoginView({
@@ -19,6 +20,7 @@ export function LoginView({
   initialStep,
   initialUser,
   callbackUrl,
+  detectedCountry,
 }: LoginViewProps) {
   const t = useTranslations("auth.passenger");
   const ta = useTranslations("auth");
@@ -48,6 +50,7 @@ export function LoginView({
         initialStep={initialStep}
         initialUser={initialUser}
         callbackUrl={callbackUrl}
+        detectedCountry={detectedCountry}
       />
 
       {/* Footer copyright info (Absolute bottom) */}

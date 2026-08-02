@@ -7,6 +7,7 @@ import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
+import { UrbanBadge } from "@/components/urban-badge";
 import {
   Empty,
   EmptyContent,
@@ -93,9 +94,18 @@ export function RoutePickerStep({
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-bold text-foreground">{r.name}</p>
-                  {isSelected && (
-                    <CheckCircle2 className="size-4 text-primary shrink-0" />
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {r.serviceType === "URBAN" ? (
+                      <UrbanBadge />
+                    ) : (
+                      <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0 text-[10px] font-semibold text-slate-500">
+                        Intercity
+                      </span>
+                    )}
+                    {isSelected && (
+                      <CheckCircle2 className="size-4 text-primary shrink-0" />
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <span className="text-xs text-muted-foreground">

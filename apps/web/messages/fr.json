@@ -512,7 +512,9 @@
       "toastProfileFailed": "Échec de la configuration du profil.",
       "toastCodeSent": "Code de vérification envoyé !",
       "toastInvalidName": "Veuillez entrer un nom valide (au moins 2 caractères).",
-      "toastUpdateFailed": "Échec de la mise à jour du nom de profil."
+      "toastUpdateFailed": "Échec de la mise à jour du nom de profil.",
+      "invalidPhone": "Enter a valid phone number. Use your country code, e.g. +1 555 123 4567.",
+      "invalidEmail": "Enter a valid email address."
     },
     "operator": {
       "cover": {
@@ -896,6 +898,7 @@
       "toastUpdated": "Paramètres mis à jour avec succès !",
       "toastFailed": "Échec de l'enregistrement des paramètres",
       "validationName": "Le nom complet est requis",
+      "validationPhone": "Enter a valid phone number. Use your country code, e.g. +1 555 123 4567.",
       "toastPhotoUpdated": "Photo de profil mise à jour",
       "toastPhotoFailed": "Échec de la mise à jour de la photo",
       "uploadPhoto": "Télécharger une photo",
@@ -1491,6 +1494,10 @@
         "CANCELLED": "Annulé",
         "DELAYED": "En retard"
       },
+      "serviceType": {
+        "URBAN": "Urbain",
+        "INTERCITY": "Interurbain"
+      },
       "all": "Tout",
       "totalInfo": "{total} total · page {page}/{pageCount}",
       "refresh": "Actualiser",
@@ -1509,6 +1516,8 @@
       "searchPlaceholder": "Rechercher un itinéraire, une plaque, une porte…",
       "statusPlaceholder": "Statut",
       "allStatuses": "Tous les statuts",
+      "serviceTypePlaceholder": "Type de service",
+      "allServiceTypes": "Tous les types de service",
       "fromDate": "Date de début",
       "toDate": "Date de fin",
       "scheduleLabel": "Horaire :",

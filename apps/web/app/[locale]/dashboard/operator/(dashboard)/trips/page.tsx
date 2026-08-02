@@ -26,6 +26,7 @@ export default async function TripsPage({ params, searchParams: searchParamsProp
   const spParsed = await tripListParamsCache.parse(sp);
   const listInput = {
     status: spParsed.status === "ALL" ? undefined : spParsed.status,
+    serviceType: spParsed.serviceType === "ALL" ? undefined : spParsed.serviceType,
     scheduleId: spParsed.scheduleId || undefined,
     q: spParsed.q || undefined,
     startDate: spParsed.startDate || undefined,

@@ -13,10 +13,11 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
-import { Field, FieldContent, FieldGroup, FieldLabel } from "@moja/ui/components/ui/field";
+import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@moja/ui/components/ui/field";
 import { Switch } from "@moja/ui/components/ui/switch";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
+import { toE164 } from "@/lib/phone/phone-number";
 import {
   Select,
   SelectContent,
@@ -47,11 +48,13 @@ export function PassengerAuthFlow({
                                     initialStep = "input",
                                     initialUser,
                                     callbackUrl,
+                                    detectedCountry,
                                   }: {
   userType?: "passenger" | "operator" | undefined;
   initialStep?: AuthStep | undefined;
   initialUser?: { email?: string; phone?: string } | undefined;
   callbackUrl?: string | undefined;
+  detectedCountry?: string | undefined;
 }) {
   const t = useTranslations("auth");
   const { isPending: authPending, sendPassengerOtp, verifyPassengerOtp } = useAuth();
@@ -79,6 +82,8 @@ export function PassengerAuthFlow({
       initialUser && initialUser.phone ? "phone" : "email"
   );
   const [otp, setOtp] = useState("");
+  const [identifierError, setIdentifierError] = useState("");
+  const [sentIdentifier, setSentIdentifier] = useState("");
 
   // Passenger Profile setup states (for new travelers)
   const [fullName, setFullName] = useState("");
@@ -120,16 +125,13 @@ export function PassengerAuthFlow({
 
   const detectMethod = (input: string): "phone" | "email" => {
     const cleanInput = input.trim();
-    if (
-        cleanInput.startsWith("+225") ||
-        cleanInput.startsWith("07") ||
-        cleanInput.startsWith("05") ||
-        cleanInput.startsWith("01") ||
-        /^[0-9\s+\-()]+$/.test(cleanInput)
-    ) {
-      return "phone";
+    if (cleanInput.includes("@")) {
+      return "email";
     }
-    return "email";
+    // Anything composed of digits/space/+/-/() (national, +225, or fully
+    // international) is treated as a phone; anything else is an email-like
+    // identifier that fails downstream validation.
+    return /^[0-9\s+\-()]+$/.test(cleanInput) ? "phone" : "email";
   };
 
   async function handleSendCode(e: React.FormEvent) {
@@ -137,14 +139,13 @@ export function PassengerAuthFlow({
     const detectedMethod = detectMethod(identifier);
     setMethod(detectedMethod);
 
-    let finalIdentifier = identifier.trim();
-    if (detectedMethod === "phone" && !finalIdentifier.startsWith("+")) {
-      if (finalIdentifier.length === 10) {
-        finalIdentifier = `+225${finalIdentifier}`;
-      }
-    }
-
     if (userType === "operator") {
+      let finalIdentifier = identifier.trim();
+      if (detectedMethod === "phone" && !finalIdentifier.startsWith("+")) {
+        if (finalIdentifier.length === 10) {
+          finalIdentifier = `+225${finalIdentifier}`;
+        }
+      }
       try {
         const res = await checkAccountStatusMutation.mutateAsync({
           identifier: finalIdentifier,
@@ -182,6 +183,28 @@ export function PassengerAuthFlow({
       }
     } else {
       // Passenger flow
+      let finalIdentifier: string;
+      if (detectedMethod === "phone") {
+        // Normalize national/international input to E.164 using the detected
+        // country as the default. Strict validation is enforced by the
+        // libphonenumber rules — invalid numbers are rejected up front.
+        const e164 = toE164(identifier, detectedCountry);
+        if (!e164) {
+          setIdentifierError(t("passenger.invalidPhone"));
+          return;
+        }
+        finalIdentifier = e164;
+      } else {
+        const email = identifier.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          setIdentifierError(t("passenger.invalidEmail"));
+          return;
+        }
+        finalIdentifier = email;
+      }
+
+      setIdentifierError("");
+      setSentIdentifier(finalIdentifier);
       const { success } = await sendPassengerOtp(finalIdentifier, detectedMethod);
       if (success) {
         setDirection(1);
@@ -302,8 +325,13 @@ export function PassengerAuthFlow({
         setOtpVerifying(false);
       }
     } else {
-      // Passenger verify
-      const res = await verifyPassengerOtp(finalIdentifier, otp, method);
+      // Passenger verify — must use the exact identifier (E.164 for phones)
+      // that the OTP was issued to, not the raw text the user typed.
+      const verifyIdentifier =
+        method === "phone" && sentIdentifier
+          ? sentIdentifier
+          : identifier.trim();
+      const res = await verifyPassengerOtp(verifyIdentifier, otp, method);
       if (res.success) {
         if (res.isNewUser) {
           setDirection(1);
@@ -409,7 +437,10 @@ export function PassengerAuthFlow({
                             id="identifier"
                             type="text"
                             value={identifier}
-                            onChange={(e) => setIdentifier(e.target.value)}
+                            onChange={(e) => {
+                              setIdentifier(e.target.value);
+                              if (identifierError) setIdentifierError("");
+                            }}
                             placeholder={userType === "passenger" ? t("passenger.inputPlaceholder") : t("operator.inputPlaceholder")}
                             required
                             disabled={isPending}
@@ -417,6 +448,9 @@ export function PassengerAuthFlow({
                             className="h-11 px-4 w-full box-border"
                             style={{ boxSizing: "border-box" }}
                         />
+                        {identifierError ? (
+                            <FieldError>{identifierError}</FieldError>
+                        ) : null}
                       </Field>
                     </FieldGroup>
                     <Button type="submit" className="w-full" disabled={isPending || !identifier.trim()}>

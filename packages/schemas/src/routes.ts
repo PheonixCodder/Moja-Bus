@@ -8,6 +8,9 @@ export const routeStatusEnum = z.enum([
 ]);
 export type RouteStatus = z.infer<typeof routeStatusEnum>;
 
+export const serviceTypeEnum = z.enum(["INTERCITY", "URBAN"]);
+export type ServiceType = z.infer<typeof serviceTypeEnum>;
+
 export const waypointSchema = z
   .object({
     terminalId: z.string().min(1, "Terminal is required"),
@@ -105,6 +108,7 @@ export const createRouteSchema = z
     destTerminalId: z.string().min(1, "Destination terminal is required"),
     distanceKm: z.coerce.number().min(0).optional().nullable(),
     status: routeStatusEnum.default("ACTIVE"),
+    serviceType: serviceTypeEnum.optional(),
     waypoints: z.array(waypointSchema).max(50, "Maximum of 50 stops allowed").default([]),
   })
   .superRefine((data, ctx) => {
@@ -151,6 +155,7 @@ export const updateRouteSchema = z
     destTerminalId: z.string().min(1).optional(),
     distanceKm: z.coerce.number().min(0).optional().nullable(),
     status: routeStatusEnum.optional(),
+    serviceType: serviceTypeEnum.optional(),
     waypoints: z.array(waypointSchema).max(50).optional(),
   })
   .superRefine((data, ctx) => {

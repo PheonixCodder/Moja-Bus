@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@moja/ui/components/ui/select";
 import type { TripStatus } from "@moja/schemas";
+import type { SearchServiceType } from "@moja/types";
 
 export function TripsToolbar({
   status,
@@ -25,6 +26,8 @@ export function TripsToolbar({
   endDate,
   onStartDateChange,
   onEndDateChange,
+  serviceType,
+  onServiceTypeChange,
 }: {
   status: TripStatus | "ALL";
   onStatusChange: (value: TripStatus | "ALL") => void;
@@ -36,6 +39,8 @@ export function TripsToolbar({
   endDate?: string;
   onStartDateChange?: (value: string) => void;
   onEndDateChange?: (value: string) => void;
+  serviceType?: SearchServiceType | "ALL";
+  onServiceTypeChange?: (value: SearchServiceType | "ALL") => void;
 }) {
   const t = useTranslations("operatorDashboard.trips");
 
@@ -47,6 +52,12 @@ export function TripsToolbar({
     { value: "ARRIVED", label: t("status.ARRIVED") },
     { value: "DELAYED", label: t("status.DELAYED") },
     { value: "CANCELLED", label: t("status.CANCELLED") },
+  ];
+
+  const SERVICE_TYPE_OPTIONS: { value: SearchServiceType | "ALL"; label: string }[] = [
+    { value: "ALL", label: t("allServiceTypes") },
+    { value: "URBAN", label: t("serviceType.URBAN") },
+    { value: "INTERCITY", label: t("serviceType.INTERCITY") },
   ];
 
   return (
@@ -76,6 +87,25 @@ export function TripsToolbar({
             ))}
           </SelectContent>
         </Select>
+        {onServiceTypeChange ? (
+          <Select
+            value={serviceType ?? "ALL"}
+            onValueChange={(v) =>
+              onServiceTypeChange(v as SearchServiceType | "ALL")
+            }
+          >
+            <SelectTrigger className="h-9 w-full sm:w-[150px] text-sm">
+              <SelectValue placeholder={t("serviceTypePlaceholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              {SERVICE_TYPE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
         {onStartDateChange ? (
           <DatePicker
             value={startDate ?? ""}

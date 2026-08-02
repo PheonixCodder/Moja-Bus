@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 import { requirePermission, requireAnyPermission } from "@/lib/permissions/authorize";
 import { createRouteSchema, updateRouteSchema } from "@moja/schemas";
+import { resolveRouteServiceType } from "@/lib/route-service-type";
 
 export const routesRouter = createTRPCRouter({
   list: operatorCompanyProcedure
@@ -98,7 +99,11 @@ export const routesRouter = createTRPCRouter({
           isTerminal: true,
           isActive: true,
         },
-        select: { id: true, cityId: true },
+        select: {
+          id: true,
+          cityId: true,
+          cityRelation: { select: { name: true } },
+        },
       });
       if (owned.length !== new Set(terminalIds).size) {
         throw new TRPCError({
@@ -110,6 +115,9 @@ export const routesRouter = createTRPCRouter({
       // Phase 1: classify the route from terminal cityIds (never names).
       // Every terminal must be geo-complete so the derivation is reliable.
       const cityByTerminal = new Map(owned.map((t) => [t.id, t.cityId]));
+      const cityNameByTerminal = new Map(
+        owned.map((t) => [t.id, t.cityRelation?.name ?? t.cityId]),
+      );
       const routeTerminals = [...new Set(terminalIds)];
       const missingCity = routeTerminals.find((id) => !cityByTerminal.get(id));
       if (missingCity) {
@@ -121,8 +129,24 @@ export const routesRouter = createTRPCRouter({
       }
       const originCityId = cityByTerminal.get(data.originTerminalId)!;
       const destCityId = cityByTerminal.get(data.destTerminalId)!;
-      const serviceType =
-        originCityId === destCityId ? "URBAN" : "INTERCITY";
+
+      // Phase 1: validate the operator's explicit service-type toggle against
+      // the geography-derived type. A toggle that contradicts the cities is
+      // rejected so route.serviceType can never diverge from search isUrban.
+      const serviceTypeResolution = resolveRouteServiceType({
+        originCityId,
+        destCityId,
+        originCityName: cityNameByTerminal.get(data.originTerminalId),
+        destCityName: cityNameByTerminal.get(data.destTerminalId),
+        requestedServiceType: data.serviceType,
+      });
+      if (!serviceTypeResolution.ok) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: serviceTypeResolution.message,
+        });
+      }
+      const serviceType = serviceTypeResolution.serviceType;
 
       // Phase 1: an urban route must stay within one city — no waypoint may
       // belong to a different city than its endpoints.
@@ -274,10 +298,17 @@ export const routesRouter = createTRPCRouter({
       ];
       const geoTerminals = await ctx.prisma.companyLocation.findMany({
         where: { id: { in: geoTerminalIds }, companyId: ctx.companyId },
-        select: { id: true, cityId: true },
+        select: {
+          id: true,
+          cityId: true,
+          cityRelation: { select: { name: true } },
+        },
       });
       const cityByTerminal = new Map(
         geoTerminals.map((t) => [t.id, t.cityId]),
+      );
+      const cityNameByTerminal = new Map(
+        geoTerminals.map((t) => [t.id, t.cityRelation?.name ?? t.cityId]),
       );
       const missingCity = geoTerminalIds.find((id) => !cityByTerminal.get(id));
       if (missingCity) {
@@ -289,8 +320,24 @@ export const routesRouter = createTRPCRouter({
       }
       const originCityId = cityByTerminal.get(newOrigin)!;
       const destCityId = cityByTerminal.get(newDest)!;
-      const serviceType =
-        originCityId === destCityId ? "URBAN" : "INTERCITY";
+
+      // Phase 1: validate the operator's explicit service-type toggle against
+      // the geography-derived type. A toggle that contradicts the effective
+      // endpoints is rejected so route.serviceType never diverges from search.
+      const serviceTypeResolution = resolveRouteServiceType({
+        originCityId,
+        destCityId,
+        originCityName: cityNameByTerminal.get(newOrigin),
+        destCityName: cityNameByTerminal.get(newDest),
+        requestedServiceType: data.serviceType,
+      });
+      if (!serviceTypeResolution.ok) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: serviceTypeResolution.message,
+        });
+      }
+      const serviceType = serviceTypeResolution.serviceType;
 
       if (serviceType === "URBAN") {
         const strayWaypoint = data.waypoints?.find(
@@ -314,11 +361,13 @@ export const routesRouter = createTRPCRouter({
       if (data.distanceKm !== undefined) updateData["distanceKm"] = data.distanceKm;
       if (data.status !== undefined) updateData["status"] = data.status;
       // Reclassify whenever the endpoints may have changed — also covers the
-      // case where only waypoints changed but classification could shift.
+      // case where only waypoints changed but classification could shift. An
+      // explicit serviceType toggle is persisted even without a terminal change.
       if (
         data.originTerminalId !== undefined ||
         data.destTerminalId !== undefined ||
-        data.waypoints !== undefined
+        data.waypoints !== undefined ||
+        data.serviceType !== undefined
       ) {
         updateData["serviceType"] = serviceType;
       }

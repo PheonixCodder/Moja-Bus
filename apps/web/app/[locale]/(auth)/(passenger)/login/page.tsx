@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
 import { LoginView } from "@/features/auth/views/login-view";
 import { redirectIfAuthenticated, getUser } from "@/lib/auth-server";
 import { getSafeCallbackUrl } from "@/features/auth/lib/safe-callback-url";
+import { detectCountryFromHeaders } from "@/lib/phone/detect-country";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -24,6 +26,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const user = await getUser();
   const callbackUrl = getSafeCallbackUrl(params.callbackUrl, "/dashboard");
 
+  const detectedCountry = detectCountryFromHeaders(await headers());
+
   const initialStep =
     user && user.role === "TRAVELER" && !user.name ? "profile" : "input";
 
@@ -37,6 +41,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           : undefined
       }
       callbackUrl={callbackUrl}
+      detectedCountry={detectedCountry}
     />
   );
 }

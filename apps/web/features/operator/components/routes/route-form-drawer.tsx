@@ -95,6 +95,10 @@ export function RouteFormDrawer({
   const [waypoints, setWaypoints] = useState<WaypointDraft[]>([]);
   const [addingStop, setAddingStop] = useState(false);
   const [newStopId, setNewStopId] = useState("");
+  const [serviceType, setServiceType] = useState<"URBAN" | "INTERCITY" | null>(
+    null,
+  );
+  const [serviceTypeUserSet, setServiceTypeUserSet] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -110,6 +114,27 @@ export function RouteFormDrawer({
   const originCityId = originTerminal?.cityRelation?.id ?? originTerminal?.city ?? null;
   const destCityId = destTerminal?.cityRelation?.id ?? destTerminal?.city ?? null;
   const isUrbanRoute =
+    Boolean(originCityId) &&
+    Boolean(destCityId) &&
+    originCityId === destCityId;
+
+  // The toggle default always follows terminal geography. When the operator has
+  // not manually chosen, the effective value re-syncs to the derived one.
+  const derivedServiceType: "URBAN" | "INTERCITY" = isUrbanRoute
+    ? "URBAN"
+    : "INTERCITY";
+  const effectiveServiceType = serviceType ?? derivedServiceType;
+
+  // Live hint: an urban route must keep every stop in the endpoint city.
+  const strayWaypointInUrban = waypoints.some(
+    (w) =>
+      effectiveServiceType === "URBAN" &&
+      originCityId &&
+      (w.terminal.cityRelation?.id ?? w.terminal.city) !== originCityId,
+  );
+  // Live hint: an intercity route needs endpoints in different cities.
+  const intercitySameCity =
+    effectiveServiceType === "INTERCITY" &&
     Boolean(originCityId) &&
     Boolean(destCityId) &&
     originCityId === destCityId;
@@ -221,7 +246,17 @@ export function RouteFormDrawer({
         allowDropoff: wp.isDropoff,
       })),
     );
+    setServiceType(editingRoute.serviceType ?? null);
+    setServiceTypeUserSet(false);
   }, [open, editingRoute]);
+
+  // Re-sync the toggle to the derived value whenever the endpoints change,
+  // unless the operator has explicitly chosen a service type.
+  useEffect(() => {
+    if (serviceTypeUserSet) return;
+    setServiceType(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [originId, destId, open]);
 
   async function handleSave() {
     if (!name.trim()) {
@@ -241,10 +276,26 @@ export function RouteFormDrawer({
       return;
     }
 
+    const originCity = originTerminal?.cityRelation?.id ?? originTerminal?.city;
+    const destCity = destTerminal?.cityRelation?.id ?? destTerminal?.city;
+    if (effectiveServiceType === "URBAN" && originCity && destCity && originCity !== destCity) {
+      toast.error(
+        "An urban route requires all stops in the same city. Choose Intercity or change a terminal.",
+      );
+      return;
+    }
+    if (effectiveServiceType === "INTERCITY" && originCity && destCity && originCity === destCity) {
+      toast.error(
+        "An intercity route must connect terminals in different cities. Choose Urban or change a terminal.",
+      );
+      return;
+    }
+
     const payload: any = {
       name: name.trim(),
       originTerminalId: originId,
       destTerminalId: destId,
+      serviceType: effectiveServiceType,
       waypoints: waypoints.map((w, i) => ({
         terminalId: w.terminalId,
         stopOrder: i + 1,
@@ -297,6 +348,8 @@ export function RouteFormDrawer({
     setWaypoints([]);
     setAddingStop(false);
     setNewStopId("");
+    setServiceType(null);
+    setServiceTypeUserSet(false);
   }
 
   function handleClose() {
@@ -330,9 +383,13 @@ export function RouteFormDrawer({
             {isEditing
               ? "Update the origin, destination, and intermediate stops."
               : "Define the origin, destination, and intermediate stops."}
-            {isUrbanRoute && (
+            {effectiveServiceType === "URBAN" ? (
               <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 text-[10px] font-semibold py-0">
                 Urban Route
+              </Badge>
+            ) : (
+              <Badge className="bg-sky-50 text-sky-700 hover:bg-sky-50 border border-sky-200 text-[10px] font-semibold py-0">
+                Intercity Route
               </Badge>
             )}
           </DrawerDescription>
@@ -350,6 +407,43 @@ export function RouteFormDrawer({
                 onChange={(e) => setName(e.target.value)}
                 className="text-sm"
               />
+            </div>
+
+            {/* Service type */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">
+                Service type *
+              </Label>
+              <div className="flex w-fit rounded-lg border border-border bg-slate-100/80 p-0.5">
+                {(["URBAN", "INTERCITY"] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => {
+                      setServiceType(type);
+                      setServiceTypeUserSet(true);
+                    }}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      effectiveServiceType === type
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    {type === "URBAN" ? "Urban" : "Intercity"}
+                  </button>
+                ))}
+              </div>
+              {strayWaypointInUrban && (
+                <p className="text-[11px] text-amber-700">
+                  All stops on an urban route must be in{" "}
+                  {originTerminal?.cityRelation?.name ?? originTerminal?.city}.
+                </p>
+              )}
+              {intercitySameCity && (
+                <p className="text-[11px] text-amber-700">
+                  Intercity routes need terminals in different cities.
+                </p>
+              )}
             </div>
 
             {/* Origin */}

@@ -512,7 +512,9 @@
       "toastProfileFailed": "Failed to complete profile setup.",
       "toastCodeSent": "Verification code sent!",
       "toastInvalidName": "Please enter a valid name (at least 2 characters).",
-      "toastUpdateFailed": "Failed to update profile name."
+      "toastUpdateFailed": "Failed to update profile name.",
+      "invalidPhone": "Enter a valid phone number. Use your country code, e.g. +1 555 123 4567.",
+      "invalidEmail": "Enter a valid email address."
     },
     "operator": {
       "cover": {
@@ -896,6 +898,7 @@
       "toastUpdated": "Settings updated successfully!",
       "toastFailed": "Failed to save settings",
       "validationName": "Full name is required",
+      "validationPhone": "Enter a valid phone number. Use your country code, e.g. +1 555 123 4567.",
       "toastPhotoUpdated": "Profile photo updated",
       "toastPhotoFailed": "Failed to update photo",
       "uploadPhoto": "Upload photo",
@@ -1513,6 +1516,10 @@
         "CANCELLED": "Cancelled",
         "DELAYED": "Delayed"
       },
+      "serviceType": {
+        "URBAN": "Urban",
+        "INTERCITY": "Intercity"
+      },
       "all": "All",
       "totalInfo": "{total} total · page {page}/{pageCount}",
       "refresh": "Refresh",
@@ -1531,6 +1538,8 @@
       "searchPlaceholder": "Search route, plate, gate…",
       "statusPlaceholder": "Status",
       "allStatuses": "All statuses",
+      "serviceTypePlaceholder": "Service type",
+      "allServiceTypes": "All service types",
       "fromDate": "From date",
       "toDate": "To date",
       "scheduleLabel": "Schedule:",

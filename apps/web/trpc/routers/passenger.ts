@@ -9,10 +9,11 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../init";
 import { SavedPassengerService } from "@/features/passenger/services/saved-passenger-service";
-import { FinancialAccountService } from "@moja/db";
+import { FinancialAccountService, Prisma } from "@moja/db";
 import { paystackInitialize } from "@/features/payments/providers/paystack-client";
 import { toSafeDisplayNumber } from "@/lib/money";
 import { getNovuClient } from "@/lib/novu";
+import { getPhoneValidationError, toE164 } from "@/lib/phone/phone-number";
 
 export const passengerRouter = createTRPCRouter({
   ensureProfile: protectedProcedure.query(async ({ ctx }) => {
@@ -138,14 +139,42 @@ export const passengerRouter = createTRPCRouter({
         });
       }
 
+      let normalizedPhone: string | undefined;
       if (input.fullName || input.phone) {
-        await ctx.prisma.user.update({
-          where: { id: ctx.user.id },
-          data: {
-            ...(input.fullName ? { fullName: input.fullName.trim() } : {}),
-            ...(input.phone ? { phone: input.phone.trim() } : {}),
-          },
-        });
+        if (input.phone) {
+          // The client sends E.164; validate strictly and reject invalid
+          // numbers before touching the database.
+          const validationError = getPhoneValidationError(input.phone);
+          normalizedPhone = toE164(input.phone) ?? undefined;
+          if (validationError || !normalizedPhone) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Please enter a valid international phone number.",
+            });
+          }
+        }
+
+        try {
+          await ctx.prisma.user.update({
+            where: { id: ctx.user.id },
+            data: {
+              ...(input.fullName ? { fullName: input.fullName.trim() } : {}),
+              ...(normalizedPhone ? { phoneNumber: normalizedPhone } : {}),
+            },
+          });
+        } catch (err) {
+          if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            err.code === "P2002"
+          ) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "This phone number is already linked to another account. Please use a different number.",
+            });
+          }
+          throw err;
+        }
       }
 
       const changedFields: string[] = [];
@@ -187,7 +216,7 @@ export const passengerRouter = createTRPCRouter({
                 email: ctx.user.email,
                 passengerName: input.fullName || ctx.user.name || "Passenger",
                 changedFields,
-                phone: input.phone || ctx.user.phoneNumber || undefined,
+                phone: normalizedPhone || ctx.user.phoneNumber || undefined,
               },
               transactionId: `passenger-profile-updated-${ctx.user.id}-${Date.now()}`,
             }).catch(() => {});

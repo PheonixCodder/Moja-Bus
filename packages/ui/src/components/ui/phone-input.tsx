@@ -55,7 +55,7 @@ const PhoneInput = React.forwardRef<
       className,
       onChange,
       value,
-      country = "CI",
+      country,
       defaultCountry = "CI",
       countries = ["CI"],
       placeholder = "+225 07 00 00 00 00",
@@ -63,7 +63,13 @@ const PhoneInput = React.forwardRef<
     },
     ref,
   ) => {
-    const CountrySelectComponent: React.ElementType = country
+    // A caller that sets `country` (or passes a single-country `countries`
+    // list — the historical default) gets a fixed, non-switchable country
+    // select. Passing a full `countries` list (e.g. `getCountries()`) with no
+    // `country` yields a searchable selector defaulting to `defaultCountry`.
+    const lockedCountry =
+      country ?? (countries?.length === 1 ? countries[0] : undefined);
+    const CountrySelectComponent: React.ElementType = lockedCountry
       ? FixedCountrySelect
       : CountrySelect;
 
@@ -75,7 +81,7 @@ const PhoneInput = React.forwardRef<
         countrySelectComponent={CountrySelectComponent}
         inputComponent={InputComponent}
         smartCaret={false}
-        country={country as any}
+        country={lockedCountry as any}
         defaultCountry={defaultCountry as any}
         countries={countries as any}
         placeholder={placeholder}

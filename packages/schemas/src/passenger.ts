@@ -47,7 +47,10 @@ export type SubmitReviewInput = z.infer<typeof submitReviewSchema>;
 
 export const updatePreferencesSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters").optional(),
-  phone: z.string().min(6, "Phone number is too short").optional(),
+  phone: z
+    .string()
+    .regex(/^\+[1-9]\d{7,14}$/, "Enter a valid international phone number")
+    .optional(),
   preferredSeat: z.enum(["WINDOW", "AISLE", "NONE"]).optional(),
   preferredClass: z.enum(["ECONOMY", "STANDARD", "VIP"]).optional(),
   marketingOptIn: z.boolean().optional(),
