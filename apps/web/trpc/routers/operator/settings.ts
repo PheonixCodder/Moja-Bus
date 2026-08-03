@@ -6,7 +6,33 @@ import { requirePermission } from "@/lib/permissions/authorize";
 import { deleteStorageObject } from "@/lib/storage";
 import { maskBankAccountForClient, prepareBankAccountStorage, revealBankAccountNumber } from "@/lib/bank-account";
 import { logBankAccess } from "@/lib/bank-access";
-import { getNovuClient } from "@/lib/novu";
+import { paystackRegisterRecipient } from "@/features/payments/providers/paystack-client";
+
+/** Registers the Paystack recipient for an operator bank account. Throws with a
+ * friendly message if the account number is rejected. */
+async function registerRecipientForBank(input: {
+  accountNumber: string;
+  bankCode: string;
+  bankType?: string | null;
+  accountName: string;
+}) {
+  try {
+    const result = await paystackRegisterRecipient({
+      accountNumber: input.accountNumber,
+      bankCode: input.bankCode,
+      bankType: input.bankType ?? null,
+      accountName: input.accountName,
+    });
+    return result;
+  } catch (err: any) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message:
+        err?.message ??
+        "We could not verify this account with the selected bank. Check the details and try again.",
+    });
+  }
+}
 
 export const operatorSettingsProcedures = {
   getSettings: operatorCompanyProcedure.query(async ({ ctx }) => {
@@ -132,8 +158,24 @@ export const operatorSettingsProcedures = {
     .input(bankStepSchema.extend({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "company:update");
-      
+
       const { id, ...cleanData } = input;
+
+      if (!cleanData.bankCode) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Please select a bank.",
+        });
+      }
+
+      // Bank account numbers changed, so re-register the Paystack recipient to
+      // validate the new number and refresh the payout target immediately.
+      const registered = await registerRecipientForBank({
+        accountNumber: cleanData.accountNumber,
+        bankCode: cleanData.bankCode,
+        bankType: cleanData.bankType ?? null,
+        accountName: cleanData.accountName,
+      });
 
       const encryptedAccount = prepareBankAccountStorage(
         cleanData.accountNumber,
@@ -142,7 +184,18 @@ export const operatorSettingsProcedures = {
         ...cleanData,
         accountNumber: encryptedAccount.accountNumber,
         accountNumberLast4: encryptedAccount.accountNumberLast4,
-        isVerified: false,
+        isVerified: true,
+        verificationProvider: "PAYSTACK" as const,
+        verifiedByProvider: true,
+        verificationPayload: {
+          type: cleanData.bankType ?? "bceao",
+          currency: "XOF",
+          resolvedAccountName: registered.resolvedAccountName,
+          accountNameMatched: registered.accountNameMatched,
+        },
+        lastVerificationAt: new Date(),
+        verifiedAt: new Date(),
+        paystackTransferRecipientCode: registered.recipientCode,
       };
 
       const existingBank = await ctx.prisma.bankAccount.findFirst({
@@ -161,12 +214,26 @@ export const operatorSettingsProcedures = {
           accountNumberLast4: bankPayload.accountNumberLast4,
           accountName: bankPayload.accountName,
           isVerified: bankPayload.isVerified,
+          verificationProvider: bankPayload.verificationProvider,
+          verifiedByProvider: bankPayload.verifiedByProvider,
+          verificationPayload: bankPayload.verificationPayload,
+          lastVerificationAt: bankPayload.lastVerificationAt,
+          verifiedAt: bankPayload.verifiedAt,
+          paystackTransferRecipientCode: bankPayload.paystackTransferRecipientCode,
           ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
           ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
           ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
           ...(bankPayload.iban !== undefined && { iban: bankPayload.iban }),
         },
       });
+
+      // Keep the company-level recipient in sync when this is the default bank.
+      if (updatedBank.isDefault) {
+        await ctx.prisma.company.update({
+          where: { id: ctx.companyId },
+          data: { paystackTransferRecipientCode: registered.recipientCode },
+        });
+      }
 
       return maskBankAccountForClient(updatedBank);
     }),
@@ -184,6 +251,20 @@ export const operatorSettingsProcedures = {
         });
       }
 
+      if (!parsed.data.bankCode) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Please select a bank.",
+        });
+      }
+
+      const registered = await registerRecipientForBank({
+        accountNumber: parsed.data.accountNumber,
+        bankCode: parsed.data.bankCode,
+        bankType: parsed.data.bankType ?? null,
+        accountName: parsed.data.accountName,
+      });
+
       const encryptedAccount = prepareBankAccountStorage(parsed.data.accountNumber);
       const bankPayload = {
         bankName: parsed.data.bankName,
@@ -200,6 +281,13 @@ export const operatorSettingsProcedures = {
         where: { companyId: ctx.companyId },
       });
 
+      const verificationPayload = {
+        type: parsed.data.bankType ?? "bceao",
+        currency: "XOF",
+        resolvedAccountName: registered.resolvedAccountName,
+        accountNameMatched: registered.accountNameMatched,
+      };
+
       let updatedBank;
       if (existingBank) {
         updatedBank = await ctx.prisma.bankAccount.update({
@@ -209,8 +297,13 @@ export const operatorSettingsProcedures = {
             accountNumber: bankPayload.accountNumber,
             accountNumberLast4: bankPayload.accountNumberLast4,
             accountName: bankPayload.accountName,
-            isVerified: false,
-            paystackTransferRecipientCode: null,
+            isVerified: true,
+            verificationProvider: "PAYSTACK",
+            verifiedByProvider: true,
+            verificationPayload,
+            lastVerificationAt: new Date(),
+            verifiedAt: new Date(),
+            paystackTransferRecipientCode: registered.recipientCode,
             ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
             ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
             ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
@@ -227,6 +320,13 @@ export const operatorSettingsProcedures = {
             accountName: bankPayload.accountName,
             isActive: true,
             isDefault: true,
+            isVerified: true,
+            verificationProvider: "PAYSTACK",
+            verifiedByProvider: true,
+            verificationPayload,
+            lastVerificationAt: new Date(),
+            verifiedAt: new Date(),
+            paystackTransferRecipientCode: registered.recipientCode,
             ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
             ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
             ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
@@ -240,6 +340,13 @@ export const operatorSettingsProcedures = {
         userId: ctx.user.id,
         action: existingBank ? "UPDATE" : "CREATE",
       });
+
+      if (updatedBank.isDefault) {
+        await ctx.prisma.company.update({
+          where: { id: ctx.companyId },
+          data: { paystackTransferRecipientCode: registered.recipientCode },
+        });
+      }
 
       return maskBankAccountForClient(updatedBank);
     }),
@@ -292,6 +399,7 @@ export const operatorSettingsProcedures = {
       z.object({
         bankName: z.string().min(1),
         bankCode: z.string().min(1),
+        bankType: z.string().nullable().optional(),
         accountNumber: z.string().min(1),
         accountName: z.string().min(1),
         branch: z.string().nullable().optional(),
@@ -301,12 +409,21 @@ export const operatorSettingsProcedures = {
     )
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "company:update");
-      // Use the operator-provided name. Paystack account validation is performed
-      // by the admin approval flow when it creates the transfer recipient.
+      // Use the operator-provided name. Paystack validates the account number
+      // when the recipient is registered — wrong details fail here immediately.
       const resolvedName = input.accountName || "Operator Account";
 
+      // Register the Paystack transfer recipient right away so payouts can be
+      // processed without an admin round-trip.
+      const registered = await registerRecipientForBank({
+        accountNumber: input.accountNumber,
+        bankCode: input.bankCode,
+        bankType: input.bankType ?? null,
+        accountName: resolvedName,
+      });
+
       const encryptedAccount = prepareBankAccountStorage(input.accountNumber);
-      
+
       const newAccount = await ctx.prisma.bankAccount.create({
         data: {
           companyId: ctx.companyId,
@@ -318,7 +435,18 @@ export const operatorSettingsProcedures = {
           branch: input.branch ?? null,
           swiftCode: input.swiftCode ?? null,
           iban: input.iban ?? null,
-          isVerified: false,
+          isVerified: true,
+          verificationProvider: "PAYSTACK",
+          verifiedByProvider: true,
+          verificationPayload: {
+            type: input.bankType ?? "bceao",
+            currency: "XOF",
+            resolvedAccountName: registered.resolvedAccountName,
+            accountNameMatched: registered.accountNameMatched,
+          },
+          lastVerificationAt: new Date(),
+          verifiedAt: new Date(),
+          paystackTransferRecipientCode: registered.recipientCode,
           isActive: true,
           isDefault: false,
         },
@@ -329,42 +457,6 @@ export const operatorSettingsProcedures = {
         userId: ctx.user.id,
         action: "CREATE",
       });
-
-      // Trigger admin-bank-account-pending to all platform admins
-      const admins = await ctx.prisma.user.findMany({
-        where: { role: "ADMIN" },
-        select: { email: true, id: true },
-      });
-      const company = await ctx.prisma.company.findUnique({
-        where: { id: ctx.companyId },
-        select: { name: true },
-      });
-      const novu = getNovuClient();
-      if (novu && admins.length > 0 && company) {
-        try {
-          const hiddenNum = `******${newAccount.accountNumberLast4}`;
-          for (const admin of admins) {
-            await novu.trigger({
-              workflowId: "admin-bank-account-pending",
-              to: {
-                subscriberId: admin.email,
-                email: admin.email,
-              },
-              payload: {
-                adminEmail: admin.email,
-                companyName: company.name,
-                bankName: newAccount.bankName,
-                accountName: newAccount.accountName,
-                accountNumberHidden: hiddenNum,
-                bankAccountId: newAccount.id,
-              },
-              transactionId: `admin-bank-account-pending-${newAccount.id}-${admin.id}`,
-            }).catch(() => {});
-          }
-        } catch (err) {
-          console.error("Failed to trigger admin-bank-account-pending:", err);
-        }
-      }
 
       return maskBankAccountForClient(newAccount);
     }),

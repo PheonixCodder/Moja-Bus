@@ -148,11 +148,28 @@ export function verifyPaystackSignature(
   return hash === signature;
 }
 
+export const PAYSTACK_RECIPIENT_CURRENCY = "XOF" as const;
+
+function paystackErrorMessage(code?: string | null, message?: string | null): string {
+  switch (code) {
+    case "invalid_account_number":
+      return "This account number was not recognized for the selected bank. Check the number (14-digit RIB for banks, or your phone number for mobile money) and try again.";
+    case "invalid_bank_code":
+      return "The selected bank is not supported for payouts. Please choose another bank.";
+    case "missing_params":
+      return "Payouts to this account are not supported yet. Please contact support.";
+    default:
+      return message ?? "We could not verify this account. Please try again.";
+  }
+}
+
 export async function paystackCreateTransferRecipient(input: {
-  businessName: string;
+  name: string;
   accountNumber: string;
   bankCode: string;
-}): Promise<{ recipientCode: string }> {
+  type: string;
+  currency?: string;
+}): Promise<{ recipientCode: string; accountName: string | null }> {
   const res = await fetch("https://api.paystack.co/transferrecipient", {
     method: "POST",
     headers: {
@@ -160,9 +177,11 @@ export async function paystackCreateTransferRecipient(input: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      name: input.businessName,
+      name: input.name,
       account_number: input.accountNumber,
       bank_code: input.bankCode,
+      type: input.type,
+      currency: input.currency ?? PAYSTACK_RECIPIENT_CURRENCY,
     }),
     signal: AbortSignal.timeout(30_000),
   });
@@ -170,18 +189,65 @@ export async function paystackCreateTransferRecipient(input: {
   const json = (await res.json()) as {
     status?: boolean;
     message?: string;
+    code?: string;
     data?: {
       recipient_code: string;
+      details?: { account_name?: string | null };
     };
   };
 
   if (!res.ok || !json.status || !json.data) {
-    throw new Error(json.message ?? "Failed to create Paystack transfer recipient");
+    throw new Error(
+      paystackErrorMessage(json.code, json.message ?? "Failed to create Paystack transfer recipient"),
+    );
   }
 
   return {
     recipientCode: json.data.recipient_code,
+    accountName: json.data.details?.account_name ?? null,
   };
+}
+
+/**
+ * Registers a Paystack transfer recipient for an operator bank account using
+ * the app's XOF/Côte d'Ivoire market settings, and runs a soft check comparing
+ * the resolved account holder name (when Paystack returns one) with the
+ * operator-entered name. XOF has no `/bank/resolve` support, so the recipient
+ * creation call itself is what validates the account number.
+ */
+export async function paystackRegisterRecipient(input: {
+  accountNumber: string;
+  bankCode: string;
+  bankType?: string | null;
+  accountName: string;
+}): Promise<{
+  recipientCode: string;
+  resolvedAccountName: string | null;
+  accountNameMatched: boolean;
+}> {
+  const type = input.bankType || "bceao";
+  const result = await paystackCreateTransferRecipient({
+    name: input.accountName,
+    accountNumber: input.accountNumber,
+    bankCode: input.bankCode,
+    type,
+    currency: PAYSTACK_RECIPIENT_CURRENCY,
+  });
+
+  const resolvedAccountName = result.accountName;
+  const accountNameMatched =
+    !resolvedAccountName ||
+    normalizeAccountName(resolvedAccountName) === normalizeAccountName(input.accountName);
+
+  return {
+    recipientCode: result.recipientCode,
+    resolvedAccountName,
+    accountNameMatched,
+  };
+}
+
+function normalizeAccountName(name: string): string {
+  return name.trim().toLowerCase().replace(/[\s.,'`-]+/g, "");
 }
 
 export async function paystackInitiateTransfer(input: {
@@ -225,40 +291,6 @@ export async function paystackInitiateTransfer(input: {
     transferCode: json.data.transfer_code,
     status: json.data.status,
     fee: (json.data.fee ?? 0) / 100, // Convert from kobo/cents to main currency
-  };
-}
-
-export async function paystackResolveAccount(input: {
-  accountNumber: string;
-  bankCode: string;
-}): Promise<{ accountNumber: string; accountName: string }> {
-  const res = await fetch(
-    `https://api.paystack.co/bank/resolve?account_number=${input.accountNumber}&bank_code=${input.bankCode}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${paystackSecretKey()}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  const json = (await res.json()) as {
-    status?: boolean;
-    message?: string;
-    data?: {
-      account_number: string;
-      account_name: string;
-    };
-  };
-
-  if (!res.ok || !json.status || !json.data) {
-    throw new Error(json.message ?? "Could not resolve bank account details");
-  }
-
-  return {
-    accountNumber: json.data.account_number,
-    accountName: json.data.account_name,
   };
 }
 

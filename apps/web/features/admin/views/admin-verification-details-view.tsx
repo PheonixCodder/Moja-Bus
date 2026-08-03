@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 import { Building, Clock } from "lucide-react";
 import { useTRPC } from "@/trpc/client";
@@ -31,29 +31,12 @@ export function AdminVerificationDetailsView({ companyId }: AdminVerificationDet
     trpc.admin.getCompanyForVerification.queryOptions({ companyId })
   );
 
-  // Bank code list
-  const { data: paystackBanks } = useQuery(
-    trpc.payments.listBanks.queryOptions({})
-  );
-
   // Decision Modal Dialog States
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-  const [selectedBankCode, setSelectedBankCode] = useState("");
 
   const handleApproveClick = () => {
-    const pendingBank =
-      company.bankAccounts?.find((b: any) => !b.isVerified) ||
-      company.bankAccounts?.[0];
-
-    const matchingBank = paystackBanks?.find(
-      (b: any) =>
-        pendingBank?.bankName
-          ?.toLowerCase()
-          ?.includes(b.name.split(" ")[0].toLowerCase())
-    );
-    setSelectedBankCode(pendingBank?.bankCode || matchingBank?.code || "");
     setIsApproveOpen(true);
   };
 
@@ -125,9 +108,6 @@ export function AdminVerificationDetailsView({ companyId }: AdminVerificationDet
         open={isApproveOpen}
         onOpenChange={setIsApproveOpen}
         selectedCompany={company}
-        selectedBankCode={selectedBankCode}
-        setSelectedBankCode={setSelectedBankCode}
-        paystackBanks={paystackBanks}
         onSuccess={() => {
           setIsApproveOpen(false);
         }}

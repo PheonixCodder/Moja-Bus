@@ -41,6 +41,10 @@ export function resolveCountryCode(
  * (max metadata). Returns `null` when the value is structurally valid.
  * For national-format input the caller should pass `defaultCountry`; numbers
  * typed in international format are validated independently of it.
+ *
+ * When the number itself carries a country (international format) that country
+ * is reported in the error so callers can show a specific message (e.g. "too
+ * long for Tanzania").
  */
 export function getPhoneValidationError(
   phone: string | null | undefined,
@@ -51,31 +55,86 @@ export function getPhoneValidationError(
 
   const country = resolveCountryCode(defaultCountry);
 
+  // Determine the country the number actually belongs to (when typed in
+  // international format) so error messages can name the right country.
+  let parsedCountry: CountryCode | undefined;
+  try {
+    parsedCountry = parsePhoneNumberFromString(value, country)?.country;
+  } catch {
+    parsedCountry = undefined;
+  }
+  const errorCountry = parsedCountry || country;
+
   let lengthError: ReturnType<typeof validatePhoneNumberLength>;
   try {
     lengthError = validatePhoneNumberLength(value, country);
   } catch {
-    return { code: "INVALID" };
+    return errorCountry
+      ? { code: "INVALID", country: errorCountry }
+      : { code: "INVALID" };
   }
 
   if (lengthError) {
     if (lengthError === "INVALID_COUNTRY") {
       return { code: "INVALID_COUNTRY" };
     }
-    return country
-      ? { code: lengthError as PhoneValidationErrorCode, country }
-      : { code: lengthError as PhoneValidationErrorCode };
+    const code = lengthError as PhoneValidationErrorCode;
+    return errorCountry ? { code, country: errorCountry } : { code };
   }
 
   let valid = false;
   try {
     valid = isValidPhoneNumber(value, country);
   } catch {
-    return country ? { code: "INVALID", country } : { code: "INVALID" };
+    return errorCountry
+      ? { code: "INVALID", country: errorCountry }
+      : { code: "INVALID" };
   }
 
   if (valid) return null;
-  return country ? { code: "INVALID", country } : { code: "INVALID" };
+  return errorCountry
+    ? { code: "INVALID", country: errorCountry }
+    : { code: "INVALID" };
+}
+
+export type PhoneSaveResult =
+  | {
+      ok: true;
+      /** Normalized E.164 value, or `undefined` when no phone was provided. */
+      phone: string | undefined;
+    }
+  | {
+      ok: false;
+      error: PhoneValidationError;
+    };
+
+/**
+ * Single source of truth for the "should this phone save?" decision used by
+ * form handlers. An empty value means "leave the phone unchanged" (`ok: true`,
+ * `phone: undefined`); anything non-empty must be a valid, fully-entered number
+ * (normalized to E.164) or the result is `ok: false` with the specific error.
+ */
+export function resolvePhoneForSave(
+  phone: string | null | undefined,
+  defaultCountry?: string | null,
+): PhoneSaveResult {
+  const value = phone?.trim();
+  if (!value) {
+    return { ok: true, phone: undefined };
+  }
+
+  const error = getPhoneValidationError(value, defaultCountry);
+  const e164 = toE164(value, defaultCountry);
+  if (error || !e164) {
+    const country = resolveCountryCode(defaultCountry);
+    return {
+      ok: false,
+      error:
+        error ?? (country ? { code: "INVALID", country } : { code: "INVALID" }),
+    };
+  }
+
+  return { ok: true, phone: e164 };
 }
 
 /**

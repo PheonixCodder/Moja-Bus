@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Menu, X, ChevronDown, LogOut,
-  LayoutDashboard, Settings, MapPin, Ticket, Users, HelpCircle, Bus
+  Menu, X, ChevronDown, LogOut, HelpCircle,
+  LayoutDashboard, Settings, MapPin, Ticket, Users
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { signOut } from "@/lib/auth-client";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import {
   Avatar,
   AvatarFallback,
@@ -183,14 +183,12 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                 href="/contact"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
               >
-                <HelpCircle className="w-4 h-4" />
                 {t("contact")}
               </Link>
               <Link
                 href="/operator/login"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
               >
-                <Bus className="w-4 h-4" />
                 {t("joinAsOperator")}
               </Link>
             </div>
@@ -198,6 +196,9 @@ export function HomeHeader({ user }: HomeHeaderProps) {
 
           {/* Right Section: Auth */}
           <div className="hidden md:flex items-center gap-3">
+            <LocaleSwitcher
+              className={hasLightText ? "text-white hover:bg-white/10" : ""}
+            />
             {user ? (
                 <Popover>
                   <PopoverTrigger className="flex items-center gap-2 outline-none cursor-pointer ml-2">
@@ -362,6 +363,9 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                     {t("logInOrSignUp")}
                   </Link>
                 )}
+
+                <div className="h-px bg-slate-100 my-1" />
+                <LocaleSwitcher className="w-full justify-start [&_span]:inline" />
               </div>
             </motion.div>
           )}

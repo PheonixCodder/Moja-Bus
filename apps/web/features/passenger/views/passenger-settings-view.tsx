@@ -12,7 +12,8 @@ import { Label } from "@moja/ui/components/ui/label";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { getCountries } from "react-phone-number-input";
 import type { CountryCode } from "libphonenumber-js/max";
-import { getPhoneValidationError, getParsedCountry, toE164 } from "@/lib/phone/phone-number";
+import { getParsedCountry, resolvePhoneForSave } from "@/lib/phone/phone-number";
+import { phoneErrorMessage } from "@/lib/phone/phone-error-message";
 import { Switch } from "@moja/ui/components/ui/switch";
 import {
   Select,
@@ -92,20 +93,16 @@ export function PassengerSettingsView({
       return;
     }
 
-    let normalizedPhone: string | undefined;
-    if (phone.trim()) {
-      const validationError = getPhoneValidationError(phone, phoneCountry);
-      normalizedPhone = toE164(phone, phoneCountry) ?? undefined;
-      if (validationError || !normalizedPhone) {
-        setPhoneError(t("validationPhone"));
-        return;
-      }
+    const result = resolvePhoneForSave(phone, phoneCountry);
+    if (!result.ok) {
+      setPhoneError(phoneErrorMessage(t, result.error));
+      return;
     }
 
     setPhoneError("");
     saveSettingsMutation.mutate({
       fullName,
-      phone: normalizedPhone,
+      phone: result.phone,
     });
   };
 

@@ -899,6 +899,12 @@
       "toastFailed": "Échec de l'enregistrement des paramètres",
       "validationName": "Le nom complet est requis",
       "validationPhone": "Enter a valid phone number. Use your country code, e.g. +1 555 123 4567.",
+      "validationPhoneTooShort": "This phone number is incomplete. Enter the full number with your country code.",
+      "validationPhoneTooLong": "This phone number is too long for {country}. Please check it and try again.",
+      "validationPhoneInvalidLength": "This phone number has an invalid length for {country}. Please check it and try again.",
+      "validationPhoneInvalidCountry": "This phone number uses an unknown or unsupported country code.",
+      "validationPhoneNotANumber": "Enter a valid phone number.",
+      "validationPhoneInvalid": "This phone number isn't valid for {country}. Check the number and country.",
       "toastPhotoUpdated": "Photo de profil mise à jour",
       "toastPhotoFailed": "Échec de la mise à jour de la photo",
       "uploadPhoto": "Télécharger une photo",
@@ -2186,6 +2192,9 @@
       "accountHolderPlaceholder": "Doit correspondre au nom de l'entreprise",
       "accountNumber": "Numéro de Compte *",
       "accountNumberPlaceholder": "Entrez le numéro de compte",
+      "accountNumberHint": "14-digit RIB for banks (e.g. 00000000000000)",
+      "mobileMoneyPlaceholder": "Enter mobile money number",
+      "mobileMoneyHint": "Mobile money number (e.g. 07 00 00 00 00)",
       "branch": "Code Agence / Succursale",
       "branchPlaceholder": "ex. Agence Plateau",
       "swift": "Code SWIFT / BIC",
@@ -2800,21 +2809,18 @@
       "triggeredBy": "Déclenché par:"
     },
     "verificationsApproveDialog": {
-      "verifyRegisterTransferRecipient": "Vérifier et enregistrer le destinataire de transfert",
-      "dialogDescription": "Pour activer les retraits, mappez les détails bancaires ci-dessous au code bancaire ivoirien correct pour créer le destinataire de transfert Paystack.",
-      "bankNameLabel": "Nom de la banque (saisie de l'opérateur):",
-      "accountNumberLabel": "Numéro de compte:",
+      "approveCompanyTitle": "Approve Company Verification",
+      "dialogDescription": "The Paystack transfer recipient for the settlement bank below has already been registered automatically when the operator saved their bank details.",
+      "bankNameLabel": "Bank Name (Operator Input):",
+      "accountNumberLabel": "Account Number:",
       "na": "N/A",
-      "settlementBankCodeLabel": "Code bancaire de règlement (liste Paystack)",
-      "selectBankCodePlaceholder": "-- Sélectionner le code bancaire --",
-      "searchBankPlaceholder": "Rechercher une banque...",
-      "noBankFound": "Aucune banque trouvée.",
-      "cancel": "Annuler",
-      "registering": "Enregistrement...",
-      "confirmVerification": "Confirmer la vérification",
-      "companyApproved": "Entreprise approuvée ! Destinataire Paystack {recipientCode} créé.",
-      "failedToVerifyCompany": "Échec de la vérification de l'entreprise",
-      "invalidBankCode": "Code bancaire invalide"
+      "accountNameMismatchLabel": "Account Name Mismatch:",
+      "accountNameMismatchHint": "The name entered by the operator differs from the name Paystack returned for this account. Confirm before approving.",
+      "cancel": "Cancel",
+      "approving": "Approving...",
+      "confirmVerification": "Confirm Verification",
+      "companyApproved": "Company approved! Paystack recipient {recipientCode} active.",
+      "failedToVerifyCompany": "Failed to verify company"
     },
     "verifications": {
       "title": "Vérifications d'entreprises",
@@ -2917,6 +2923,72 @@
     },
     "verificationsTable": {
       "empty": "Aucun opérateur en attente de vérification."
+    },
+    "withdrawalsColumns": {
+      "companyName": "Opérateur",
+      "reference": "Référence",
+      "status": "Statut",
+      "pending": "En attente",
+      "settled": "Réglé",
+      "failed": "Échoué",
+      "reversed": "Annulé",
+      "date": "Date",
+      "amount": "Montant",
+      "noExternalId": "Pas d'ID externe",
+      "resolve": "Résoudre",
+      "resolveTooltip": "Résoudre manuellement ce retrait bloqué"
+    },
+    "withdrawalsTable": {
+      "empty": "Aucun retrait trouvé."
+    },
+    "withdrawalsFilterBar": {
+      "filters": "Filtres",
+      "statusPlaceholder": "Statut",
+      "allStatuses": "Tous les statuts",
+      "pendingPosted": "En attente (Publié)",
+      "created": "Créé",
+      "settled": "Réglé",
+      "failed": "Échoué",
+      "reversed": "Annulé",
+      "pickDateRange": "Choisir une plage de dates",
+      "last7Days": "7 derniers jours",
+      "last30Days": "30 derniers jours",
+      "last90Days": "90 derniers jours",
+      "allTime": "Toute la période",
+      "totalMatching": "Total correspondant"
+    },
+    "withdrawalsKpiCards": {
+      "pendingQueue": "File d'attente en attente",
+      "requests": "demandes",
+      "totalSettled": "Total réglé",
+      "payouts": "paiements",
+      "failedReversed": "Échoué / Annulé",
+      "reversed": "annulé",
+      "showingData": "Affichage des données pour la plage de dates actuelle. Total des transactions :"
+    },
+    "withdrawalsPagination": {
+      "showing": "Affichage de {start} à {end} sur {total} entrées",
+      "previous": "Précédent",
+      "page": "Page {current} sur {total}",
+      "next": "Suivant"
+    },
+    "withdrawalsResolveDialog": {
+      "title": "Résoudre la demande de retrait",
+      "description": "Forcer manuellement la finalisation ou l'échec d'un paiement en attente.",
+      "ref": "Réf",
+      "resolutionAction": "Action de résolution",
+      "forceSettle": "Forcer le règlement (Payé)",
+      "forceFail": "Forcer l'échec (Annuler)",
+      "forceSettleDesc": "Marque le statut comme RÉGLÉ. Utilisez cette option si les fonds ont quitté Paystack avec succès mais que le webhook a été manqué.",
+      "forceFailDesc": "Marque le statut comme ÉCHOUÉ et annule les écritures du grand livre. Utilisez cette option si le transfert a été rejeté.",
+      "resolutionNote": "Note de résolution / ID du ticket",
+      "resolutionNotePlaceholder": "ex. Paiement confirmé via le tableau de bord Paystack (Ticket #1234)",
+      "cancel": "Annuler",
+      "applying": "Application en cours...",
+      "applyResolution": "Appliquer la résolution",
+      "settledSuccess": "Retrait réglé avec succès !",
+      "failedSuccess": "Retrait marqué comme échoué !",
+      "resolveError": "Échec de la résolution du retrait."
     }
   },
   "invite": {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryState, parseAsInteger } from "nuqs";
 import { useRouter } from "next/navigation";
 import {
@@ -67,17 +67,11 @@ export function AdminVerificationsView() {
     })
   );
 
-  // Bank accounts codes query
-  const { data: paystackBanks } = useQuery(
-    trpc.payments.listBanks.queryOptions({})
-  );
-
   // Selected Row / Modal States
   const [selectedCompany, setSelectedCompany] = useState<CompanyRow | null>(null);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-  const [selectedBankCode, setSelectedBankCode] = useState("");
 
   const handleReviewClick = (company: CompanyRow) => {
     router.push(`/dashboard/admin/verifications/${company.id}`);
@@ -85,17 +79,6 @@ export function AdminVerificationsView() {
 
   const handleApproveClick = (company: CompanyRow) => {
     setSelectedCompany(company);
-    const pendingBank =
-      company.bankAccounts?.find((b: any) => !b.isVerified) ||
-      company.bankAccounts?.[0];
-    
-    const matchingBank = paystackBanks?.find(
-      (b: any) =>
-        pendingBank?.bankName
-          ?.toLowerCase()
-          ?.includes(b.name.split(" ")[0].toLowerCase())
-    );
-    setSelectedBankCode(pendingBank?.bankCode || matchingBank?.code || "");
     setIsApproveOpen(true);
   };
 
@@ -191,9 +174,6 @@ export function AdminVerificationsView() {
         open={isApproveOpen}
         onOpenChange={setIsApproveOpen}
         selectedCompany={selectedCompany}
-        selectedBankCode={selectedBankCode}
-        setSelectedBankCode={setSelectedBankCode}
-        paystackBanks={paystackBanks}
         onSuccess={() => setSelectedCompany(null)}
       />
 

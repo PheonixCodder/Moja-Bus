@@ -49,8 +49,7 @@ import { OperatorBookingService } from "@/features/operator/services/operator-bo
 import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
 import {
-  paystackCreateTransferRecipient,
-  paystackResolveAccount,
+  paystackRegisterRecipient,
 } from "@/features/payments/providers/paystack-client";
 import { AccountingEngine } from "@moja/db";
 import { operatorSettingsProcedures } from "./operator/settings";
@@ -665,45 +664,51 @@ export const operatorRouter = createTRPCRouter({
           });
          } else if (step === "BANK") {
            if (!bankData) throw new TRPCError({ code: "BAD_REQUEST" });
-
-           // 1. Validate the account with Paystack immediately — catch
-           //    wrong account numbers before we persist anything.
-           let verifiedByPaystack = false;
-           let recipientCode = "";
-           let paystackError = "";
-
-           try {
-             await paystackResolveAccount({
-               accountNumber: bankData.accountNumber,
-               bankCode: bankData.bankCode ?? "",
+           if (!bankData.bankCode) {
+             throw new TRPCError({
+               code: "BAD_REQUEST",
+               message: "Please select a bank.",
              });
-           } catch (err: any) {
-             paystackError =
-               err.message ??
-               "Could not validate the bank account with Paystack.";
            }
 
-           // 2. Register the Paystack transfer recipient if validation
-           //    passed.
-           if (!paystackError) {
-             try {
-               const result = await paystackCreateTransferRecipient({
-                 businessName: existingOperator.company.name,
-                 accountNumber: bankData.accountNumber,
-                 bankCode: bankData.bankCode ?? "",
-               });
-               recipientCode = result.recipientCode;
-               verifiedByPaystack = true;
-             } catch (err: any) {
-               paystackError =
-                 err.message ??
-                 "Failed to register the bank account with Paystack.";
-             }
+           // Register the Paystack transfer recipient immediately. XOF/CI has no
+           // /bank/resolve support, so Paystack validates the account number when
+           // the recipient is created — wrong details surface here as a clear
+           // error, before anything is persisted, and the operator can correct
+           // them without an admin round-trip.
+           let recipientCode = "";
+           let resolvedAccountName: string | null = null;
+           let accountNameMatched = true;
+           try {
+             const registered = await paystackRegisterRecipient({
+               accountNumber: bankData.accountNumber,
+               bankCode: bankData.bankCode,
+               bankType: bankData.bankType ?? null,
+               accountName: bankData.accountName,
+             });
+             recipientCode = registered.recipientCode;
+             resolvedAccountName = registered.resolvedAccountName;
+             accountNameMatched = registered.accountNameMatched;
+           } catch (err: any) {
+             throw new TRPCError({
+               code: "BAD_REQUEST",
+               message:
+                 err?.message ??
+                 "We could not verify this account with the selected bank. Check the details and try again.",
+             });
            }
 
            const encryptedAccount = prepareBankAccountStorage(
              bankData.accountNumber,
            );
+
+           const bankType = bankData.bankType ?? "bceao";
+           const verificationPayload = {
+             type: bankType,
+             currency: "XOF",
+             resolvedAccountName,
+             accountNameMatched,
+           };
 
            const bankCreate = {
              companyId,
@@ -713,19 +718,18 @@ export const operatorRouter = createTRPCRouter({
              accountNumber: encryptedAccount.accountNumber,
              accountNumberLast4: encryptedAccount.accountNumberLast4,
              accountName: bankData.accountName,
-             verificationProvider: verifiedByPaystack
-               ? ("PAYSTACK" as const)
-               : null,
-             verifiedByProvider: verifiedByPaystack,
-             lastVerificationAt: verifiedByPaystack ? new Date() : null,
+             isVerified: true,
+             verificationProvider: "PAYSTACK" as const,
+             verifiedByProvider: true,
+             verificationPayload,
+             lastVerificationAt: new Date(),
+             verifiedAt: new Date(),
+             paystackTransferRecipientCode: recipientCode,
              ...(bankData.branch != null ? { branch: bankData.branch } : {}),
              ...(bankData.swiftCode != null
                ? { swiftCode: bankData.swiftCode }
                : {}),
              ...(bankData.iban != null ? { iban: bankData.iban } : {}),
-             ...(recipientCode
-               ? { paystackTransferRecipientCode: recipientCode }
-               : {}),
            };
            const bankUpdate = {
              bankName: bankData.bankName,
@@ -733,32 +737,45 @@ export const operatorRouter = createTRPCRouter({
              accountNumber: encryptedAccount.accountNumber,
              accountNumberLast4: encryptedAccount.accountNumberLast4,
              accountName: bankData.accountName,
-             verificationProvider: verifiedByPaystack
-               ? ("PAYSTACK" as const)
-               : null,
-             verifiedByProvider: verifiedByPaystack,
-             lastVerificationAt: verifiedByPaystack ? new Date() : null,
+             isVerified: true,
+             verificationProvider: "PAYSTACK" as const,
+             verifiedByProvider: true,
+             verificationPayload,
+             lastVerificationAt: new Date(),
+             verifiedAt: new Date(),
+             paystackTransferRecipientCode: recipientCode,
              ...(bankData.branch != null ? { branch: bankData.branch } : {}),
              ...(bankData.swiftCode != null
                ? { swiftCode: bankData.swiftCode }
                : {}),
              ...(bankData.iban != null ? { iban: bankData.iban } : {}),
-             ...(recipientCode
-               ? { paystackTransferRecipientCode: recipientCode }
-               : {}),
            };
            const existingBank = await ctx.prisma.bankAccount.findFirst({
              where: { companyId },
            });
-           if (existingBank) {
-             await ctx.prisma.bankAccount.update({
-               where: { id: existingBank.id },
-               data: bankUpdate,
-             });
-           } else {
-             await ctx.prisma.bankAccount.create({
-               data: { ...bankCreate, isDefault: true },
-             });
+           try {
+             if (existingBank) {
+               await ctx.prisma.bankAccount.update({
+                 where: { id: existingBank.id },
+                 data: bankUpdate,
+               });
+             } else {
+               await ctx.prisma.bankAccount.create({
+                 data: { ...bankCreate, isDefault: true },
+               });
+             }
+           } catch (err) {
+             if (
+               err instanceof Prisma.PrismaClientKnownRequestError &&
+               err.code === "P2002"
+             ) {
+               throw new TRPCError({
+                 code: "CONFLICT",
+                 message:
+                   "This bank account is already registered to your company.",
+               });
+             }
+             throw err;
            }
            await logBankAccess(ctx.prisma, {
              companyId,
@@ -766,19 +783,11 @@ export const operatorRouter = createTRPCRouter({
              action: existingBank ? "UPDATE" : "CREATE",
            });
 
-           // If Paystack verification failed, keep the account
-           // unverified but surface a clear error so the operator can
-           // correct the details and retry.
-           if (paystackError) {
-             throw new TRPCError({
-               code: "BAD_REQUEST",
-               message: paystackError,
-             });
-           }
-
-           // Mirror the recipient code onto the company so withdrawal
-           // gating works immediately after onboarding.
-           if (verifiedByPaystack && recipientCode && existingBank?.isDefault) {
+           // Mirror the recipient code onto the company so withdrawal gating
+           // works immediately after onboarding. The first bank is created as
+           // default, and subsequent saves must respect an existing default.
+           const isDefaultBank = existingBank ? existingBank.isDefault : true;
+           if (recipientCode && isDefaultBank) {
              await ctx.prisma.company.update({
                where: { id: companyId },
                data: { paystackTransferRecipientCode: recipientCode },

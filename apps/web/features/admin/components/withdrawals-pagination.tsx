@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import { withdrawalsSearchParams } from "../lib/search-params";
 import { Button } from "@moja/ui/components/ui/button";
@@ -11,6 +12,7 @@ interface WithdrawalsPaginationProps {
 }
 
 export function WithdrawalsPagination({ total, pageSize }: WithdrawalsPaginationProps) {
+  const t = useTranslations("adminDashboard.withdrawalsPagination");
   const [{ page }, setParams] = useQueryStates(withdrawalsSearchParams, {
     shallow: false,
   });
@@ -21,8 +23,11 @@ export function WithdrawalsPagination({ total, pageSize }: WithdrawalsPagination
   return (
     <div className="flex items-center justify-between px-2">
       <span className="text-sm text-text-muted">
-        Showing {Math.min((page - 1) * pageSize + 1, total)} to{" "}
-        {Math.min(page * pageSize, total)} of {total} entries
+        {t("showing", {
+          start: Math.min((page - 1) * pageSize + 1, total),
+          end: Math.min(page * pageSize, total),
+          total,
+        })}
       </span>
       <div className="flex items-center gap-2">
         <Button
@@ -32,10 +37,10 @@ export function WithdrawalsPagination({ total, pageSize }: WithdrawalsPagination
           disabled={page === 1}
         >
           <ChevronLeft className="size-4 mr-1" />
-          Previous
+          {t("previous")}
         </Button>
         <span className="text-sm font-medium mx-2">
-          Page {page} of {totalPages}
+          {t("page", { current: page, total: totalPages })}
         </span>
         <Button
           variant="outline"
@@ -43,7 +48,7 @@ export function WithdrawalsPagination({ total, pageSize }: WithdrawalsPagination
           onClick={() => setParams({ page: Math.min(totalPages, page + 1) })}
           disabled={page === totalPages}
         >
-          Next
+          {t("next")}
           <ChevronRight className="size-4 ml-1" />
         </Button>
       </div>

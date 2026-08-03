@@ -39,13 +39,19 @@ export type WebhookPayload = {
 };
 
 export type CreateTransferRecipientInput = {
-  businessName: string;
+  name: string;
   bankCode: string;
   accountNumber: string;
+  /** Paystack recipient type derived from the bank list, e.g. "bceao" | "mobile_money". */
+  type: string;
+  /** Defaults to "XOF" for the Côte d'Ivoire market. */
+  currency?: string;
 };
 
 export type CreateTransferRecipientResult = {
   recipientCode: string;
+  /** Resolved account holder name returned by Paystack, when available. */
+  accountName?: string | null;
 };
 
 export type InitiateTransferInput = {

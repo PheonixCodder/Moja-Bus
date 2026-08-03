@@ -20,6 +20,7 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Textarea } from "@moja/ui/components/ui/textarea";
 import { Label } from "@moja/ui/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@moja/ui/components/ui/radio-group";
+import { useTranslations } from "next-intl";
 
 interface WithdrawalsResolveDialogProps {
   row: WithdrawalRow | null;
@@ -35,6 +36,7 @@ export function WithdrawalsResolveDialog({
   onSuccess,
 }: WithdrawalsResolveDialogProps) {
   const trpc = useTRPC();
+  const t = useTranslations("adminDashboard.withdrawalsResolveDialog");
   const [action, setAction] = useState<"FORCE_COMPLETE" | "FORCE_FAIL">("FORCE_COMPLETE");
   const [reason, setReason] = useState("");
 
@@ -42,7 +44,9 @@ export function WithdrawalsResolveDialog({
     trpc.admin.resolveWithdrawal.mutationOptions({
       onSuccess: () => {
         toast.success(
-          `Withdrawal successfully ${action === "FORCE_COMPLETE" ? "settled" : "failed"}!`
+          action === "FORCE_COMPLETE"
+            ? t("settledSuccess")
+            : t("failedSuccess")
         );
         setReason("");
         onSuccess();
@@ -51,7 +55,7 @@ export function WithdrawalsResolveDialog({
         toast.error(
           err instanceof TRPCClientError
             ? err.message
-            : "Failed to resolve withdrawal."
+            : t("resolveError")
         );
       },
     })
@@ -63,9 +67,9 @@ export function WithdrawalsResolveDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Resolve Withdrawal Request</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Manually force the completion or failure of a pending payout.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -76,7 +80,7 @@ export function WithdrawalsResolveDialog({
                 {row.companyName}
               </span>
               <span className="text-xs text-text-muted">
-                Ref: {row.id.split("-")[0]}
+                {t("ref")}: {row.id.split("-")[0]}
               </span>
             </div>
             <div className="text-lg font-mono font-bold text-text-primary">
@@ -85,7 +89,7 @@ export function WithdrawalsResolveDialog({
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label>Resolution Action</Label>
+            <Label>{t("resolutionAction")}</Label>
             <RadioGroup
               value={action}
               onValueChange={(val) => setAction(val as "FORCE_COMPLETE" | "FORCE_FAIL")}
@@ -102,7 +106,7 @@ export function WithdrawalsResolveDialog({
                   className="flex flex-col items-center justify-between rounded-md border-2 border-border bg-transparent p-4 hover:bg-bg-muted hover:text-text-primary peer-data-[state=checked]:border-emerald-500 peer-data-[state=checked]:bg-emerald-50 dark:peer-data-[state=checked]:bg-emerald-950/20 [&:has([data-state=checked])]:border-emerald-500 cursor-pointer"
                 >
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                    Force Settle (Paid)
+                    {t("forceSettle")}
                   </span>
                 </Label>
               </div>
@@ -117,25 +121,25 @@ export function WithdrawalsResolveDialog({
                   className="flex flex-col items-center justify-between rounded-md border-2 border-border bg-transparent p-4 hover:bg-bg-muted hover:text-text-primary peer-data-[state=checked]:border-rose-500 peer-data-[state=checked]:bg-rose-50 dark:peer-data-[state=checked]:bg-rose-950/20 [&:has([data-state=checked])]:border-rose-500 cursor-pointer"
                 >
                   <span className="font-semibold text-rose-600 dark:text-rose-400">
-                    Force Fail (Reverse)
+                    {t("forceFail")}
                   </span>
                 </Label>
               </div>
             </RadioGroup>
             <p className="text-xs text-text-muted mt-1">
               {action === "FORCE_COMPLETE"
-                ? "Marks the status as SETTLED. Use this if the funds successfully left Paystack but the webhook was missed."
-                : "Marks the status as FAILED and reverses the ledger entries. Use this if the transfer bounced."}
+                ? t("forceSettleDesc")
+                : t("forceFailDesc")}
             </p>
           </div>
 
           <div className="flex flex-col gap-3">
             <Label htmlFor="reason">
-              Resolution Note / Ticket ID <span className="text-rose-500">*</span>
+              {t("resolutionNote")} <span className="text-rose-500">*</span>
             </Label>
             <Textarea
               id="reason"
-              placeholder="e.g. Confirmed paid via Paystack dashboard (Ticket #1234)"
+              placeholder={t("resolutionNotePlaceholder")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="resize-none"
@@ -145,7 +149,7 @@ export function WithdrawalsResolveDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={() =>
@@ -158,7 +162,7 @@ export function WithdrawalsResolveDialog({
             disabled={!reason.trim() || resolveMutation.isPending}
             className={action === "FORCE_COMPLETE" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-rose-600 hover:bg-rose-700 text-white"}
           >
-            {resolveMutation.isPending ? "Applying..." : "Apply Resolution"}
+            {resolveMutation.isPending ? t("applying") : t("applyResolution")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -70,6 +70,7 @@ export type DocumentsStepInput = z.infer<typeof documentsStepSchema>;
 export const bankStepSchema = z.object({
   bankName: z.string().min(1, "Bank name is required"),
   bankCode: z.string().optional().nullable(),
+  bankType: z.string().optional().nullable(),
   accountNumber: z.string().min(1, "Account number is required"),
   accountName: z.string().min(1, "Account name is required"),
   branch: z.string().optional().nullable(),

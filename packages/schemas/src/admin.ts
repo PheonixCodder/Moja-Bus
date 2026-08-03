@@ -2,7 +2,10 @@ import { z } from "zod";
 
 export const adminVerifyCompanySchema = z.object({
   companyId: z.string().min(1, "Company ID is required"),
-  bankCode: z.string().min(1, "Settlement bank code is required"),
+  // Retained for backward compatibility. Bank accounts are now auto-verified
+  // and their Paystack recipient registered automatically at save time, so the
+  // admin no longer picks a settlement bank code.
+  bankCode: z.string().optional(),
 });
 
 export const adminRejectCompanySchema = z.object({

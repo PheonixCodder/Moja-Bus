@@ -1,7 +1,36 @@
 # Memory
 
-**Session:** International Phone Validation for Passenger Surfaces (Login + Settings)
+**Session:** Language Switcher in Home Header + Locale-Aware Header Navigation
 **Date:** 2026-08-02
+
+## Summary
+Added a language switcher (EN/FR) to the home header by reusing the existing `LocaleSwitcher` component (`apps/web/components/locale-switcher.tsx`), which was previously only used in the auth layouts. Extended it with an optional `className` prop so the header can adapt colors to its transparent-hero state. Also migrated `home-header.tsx` from `next/link` + `next/navigation` to the locale-aware primitives from `@/i18n/navigation` — this fixes two real bugs on French pages: `isHome = pathname === "/"` was false on `/fr` (transparent hero state silently missing on the FR home) and all nav links dropped the `/fr` prefix. Fixed the pre-existing missing `HelpCircle` import (mobile menu would crash when opened).
+
+## Completed Work
+- **`components/locale-switcher.tsx`**: added optional `className` prop merged via `cn` into the trigger Button (default styling unchanged — backward compatible).
+- **`home/components/home-header.tsx`**: `import { Link, usePathname } from "@/i18n/navigation"` replaces the next/* imports; `<LocaleSwitcher />` in the desktop right section (before auth area) with `text-white hover:bg-white/10` when `hasLightText`; bottom row in the mobile menu (`w-full justify-start [&_span]:inline` to force the current-locale label visible on small screens); `HelpCircle` added to lucide imports.
+- **Behavior**: `router.replace(pathname, { locale })` from `@/i18n/navigation` keeps the current route and only toggles the `/fr` prefix (routing is `as-needed`). No new i18n keys — `locale.*` (`current`/`en`/`fr`/`switchTo`) already existed in en.json + fr.json.
+- **Verification**: web typecheck clean (exit 0), 157/157 tests pass. Tracker `context/trackers/internationalization-components.md` home-header row annotated.
+
+## Next Steps
+- Optional polish: preserve search params when switching locale in the shared `LocaleSwitcher` (currently `router.replace(pathname)` drops `?from=...` on e.g. `/search`) — skipped per scope decision; note `handleLogout` still hardcodes `window.location.href = "/"` (lands on EN home for FR users).
+- Back to standard roadmap (progress-tracker "Recommended Next Steps"): booking ownership hardening (silent lazy-claim vs phone+OTP decision), performance (Redis for search), mobile passenger MVP.
+
+## Key Files
+- `apps/web/features/home/components/home-header.tsx` — locale-aware nav + switcher placements.
+- `apps/web/components/locale-switcher.tsx` — shared switcher, now with `className` prop.
+- `apps/web/i18n/{navigation,routing,types}.ts` — `createNavigation(routing)` primitives; `locales: ["en","fr"]`, `as-needed` prefix.
+- `apps/web/messages/{en,fr}.json` — `locale.*` keys (pre-existing).
+
+## Known State
+- Web test script is a hardcoded tsx file list in `apps/web/package.json` — new test FILES must be added there; new tests in existing files run automatically.
+- Biome diagnostics on touched files are pre-existing style noise (CRLF, a11y, import-order); web `lint` script only checks config files.
+- `exactOptionalPropertyTypes: true` is on for web — optional fields must accept `undefined` explicitly in union types.
+- AGENTS.md: modified Next.js — consult `node_modules/next/dist/docs/` before writing code.
+
+---
+
+## Prior Session (2026-08-02) — International Phone Validation for Passenger Surfaces (Login + Settings)
 
 ## Summary
 Upgraded passenger phone handling from CI-only (+225) to strict international validation using `react-phone-number-input` + `libphonenumber-js` (max metadata). Login keeps a single combined email-or-phone field (no visual country picker — decided earlier); phones are validated per-country and normalized to E.164 before OTP send/verify using a geo-detected default country. Settings got a searchable all-countries picker (defaulting to the detected country), inline strict validation, and now writes the correct `user.phoneNumber` column — it was writing a non-existent `user.phone` field (latent Prisma crash on every save).
@@ -17,6 +46,13 @@ Upgraded passenger phone handling from CI-only (+225) to strict international va
 - **Tests** (`apps/web/lib/phone/__tests__/phone-number.test.ts`): 18 cases; registered in the hardcoded test list in `apps/web/package.json`.
 - **i18n**: `auth.passenger.invalidPhone`/`invalidEmail`, `passengerDashboard.settings.validationPhone` in en.json + fr.json (English text in both per language rule).
 - **Verification**: web typecheck clean (only pre-existing `routes.ts` errors from the in-flight search-ERP work remain), 125/125 web tests pass, @moja/ui typecheck clean.
+
+### Follow-up (2026-08-02) — Specific phone error UX + save-decision tests
+User reported settings phone behaving inconsistently: `+255` "submits", `+255 2342342432` errors. Root cause: (a) the report was likely a stale build — with the current code `+255` → `TOO_SHORT` → rejected — but the generic error message gave no explanation, and (b) `+255 2342342432` IS genuinely invalid (TZ national = 9 digits, this has 10) yet the message was confusing. Fixes:
+- `getPhoneValidationError` now derives the number's real country (`parsePhoneNumberFromString(...).country`) so errors name the right country (e.g. `+255 2342342432` → `TOO_LONG` country `TZ`, not the default `CI`).
+- New pure `resolvePhoneForSave(phone, defaultCountry): PhoneSaveResult` — single source of truth for "should this save?" (empty → `ok, phone: undefined`; non-empty must be valid E.164). Settings `handleSaveProfile` uses it.
+- New `apps/web/lib/phone/phone-error-message.ts` maps error codes → specific i18n keys (`validationPhoneTooShort/TooLong/InvalidLength/InvalidCountry/NotANumber/Invalid` + generic fallback) with `{country}` interpolation; en.json + fr.json updated.
+- New test file `apps/web/lib/phone/__tests__/validate-phone-input.test.ts` (25 tests) covering the exact user inputs, save-decision, country context, message mapping; registered in the hardcoded test list. Web typecheck clean, **157/157** tests pass.
 
 ## Next Steps
 - Back to standard roadmap (progress-tracker "Recommended Next Steps"): booking ownership hardening (silent lazy-claim vs phone+OTP decision), performance (Redis for search), mobile passenger MVP.

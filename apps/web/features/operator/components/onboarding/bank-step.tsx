@@ -47,6 +47,7 @@ export function BankStep({
 
   const [bankName, setBankName] = useState("");
   const [bankCode, setBankCode] = useState("");
+  const [bankType, setBankType] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [branch, setBranch] = useState("");
@@ -60,6 +61,7 @@ export function BankStep({
       const bank = bankAccount;
       setBankName(bank.bankName || "");
       setBankCode(bank.bankCode || "");
+      setBankType(bank.verificationPayload?.type || "");
       const masked =
         typeof bank.accountNumber === "string" &&
         bank.accountNumber.includes("•");
@@ -80,6 +82,7 @@ export function BankStep({
     const payload: BankStepInput = {
       bankName,
       bankCode: bankCode || undefined,
+      bankType: bankType || undefined,
       accountNumber,
       accountName,
       branch: branch || undefined,
@@ -91,6 +94,7 @@ export function BankStep({
   };
 
   const canContinue = bankName && accountNumber && accountName;
+  const isMobileMoney = bankType === "mobile_money";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -143,6 +147,7 @@ export function BankStep({
                   setBankCode(val || "");
                   const matched = paystackBanks?.find((b: any) => b.code === val);
                   setBankName(matched ? matched.name : "");
+                  setBankType(matched ? matched.type : "");
                 }}
               >
                 <ComboboxInput
@@ -195,10 +200,15 @@ export function BankStep({
                 id="account-number"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder={t("accountNumberPlaceholder")}
+                placeholder={isMobileMoney ? t("mobileMoneyPlaceholder") : t("accountNumberPlaceholder")}
                 required
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
+              {bankCode && (
+                <p className="text-[11px] text-muted-foreground">
+                  {isMobileMoney ? t("mobileMoneyHint") : t("accountNumberHint")}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">

@@ -372,22 +372,29 @@ export const adminRouter = createTRPCRouter({
         action: "VIEW_FULL",
       });
 
-      // Create Paystack Transfer Recipient
-      const paystack = new PaystackProvider();
-      let recipientCode = "";
-      try {
-        const result = await paystack.createTransferRecipient({
-          businessName: company.name,
-          bankCode: input.bankCode,
-          accountNumber: decryptedAccountNumber,
-        });
-        recipientCode = result.recipientCode;
-      } catch (error: any) {
-        console.error("Paystack Transfer Recipient Registration Error:", error);
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Paystack registration failed: ${error.message || "Unknown error"}`,
-        });
+      // The Paystack transfer recipient is now registered automatically at
+      // bank-account save time (XOF has no /bank/resolve, so the recipient
+      // creation is what validates the account number). Reuse that recipient
+      // code; only fall back to creating one for legacy records.
+      let recipientCode = pendingBank.paystackTransferRecipientCode ?? "";
+      if (!recipientCode && pendingBank.bankCode) {
+        const paystack = new PaystackProvider();
+        try {
+          const result = await paystack.createTransferRecipient({
+            name: pendingBank.accountName || company.name,
+            bankCode: pendingBank.bankCode,
+            accountNumber: decryptedAccountNumber,
+            type: (pendingBank.verificationPayload as any)?.type || "bceao",
+            currency: "XOF",
+          });
+          recipientCode = result.recipientCode;
+        } catch (error: any) {
+          console.error("Paystack Transfer Recipient Registration Error:", error);
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Paystack registration failed: ${error.message || "Unknown error"}`,
+          });
+        }
       }
 
       await ctx.prisma.$transaction(async (tx) => {
@@ -418,7 +425,7 @@ export const adminRouter = createTRPCRouter({
             companyId: input.companyId,
             userId: ctx.user.id,
             action: "VERIFY_COMPANY",
-            description: `Approved company verification. Registered Paystack transfer recipient ${recipientCode}.`,
+            description: `Approved company verification. Paystack transfer recipient ${recipientCode}.`,
           },
         });
 
@@ -860,222 +867,6 @@ export const adminRouter = createTRPCRouter({
       }));
 
       return { items: list, total };
-    }),
-
-  verifyBankAccount: adminProcedure
-    .input(z.object({
-      bankAccountId: z.string(),
-      bankCode: z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const bankAccount = await ctx.prisma.bankAccount.findUnique({
-        where: { id: input.bankAccountId },
-        include: { company: true },
-      });
-
-      if (!bankAccount) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bank account not found",
-        });
-      }
-
-      const bankCode = bankAccount.bankCode || input.bankCode;
-      if (!bankCode) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Bank code is required but missing from record.",
-        });
-      }
-
-      const decryptedAccountNumber = revealBankAccountNumber(bankAccount);
-
-      // Audit-log the full bank-number reveal (operator reveals are logged;
-      // admin reveals must be too — see F-22).
-      await logBankAccess(ctx.prisma, {
-        companyId: bankAccount.companyId,
-        userId: ctx.user.id,
-        action: "VIEW_FULL",
-      });
-
-      // Create Paystack transfer recipient
-      const paystack = new PaystackProvider();
-      let recipientCode = "";
-      try {
-        const result = await paystack.createTransferRecipient({
-          businessName: bankAccount.company.name,
-          bankCode: bankCode,
-          accountNumber: decryptedAccountNumber,
-        });
-        recipientCode = result.recipientCode;
-      } catch (error: any) {
-        console.error("Paystack Transfer Recipient Registration Error:", error);
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Paystack registration failed: ${error.message || "Unknown error"}`,
-        });
-      }
-
-      await ctx.prisma.$transaction(async (tx) => {
-        // F-23: serialize verifications per company so two concurrent
-        // verifications cannot both observe "no default" and both set
-        // isDefault=true. Lock the company row first.
-        await tx.$queryRaw`SELECT id FROM "company" WHERE id = ${bankAccount.companyId} FOR UPDATE`;
-
-        // Check if there is already a default bank account for the company
-        const existingDefault = await tx.bankAccount.findFirst({
-          where: { companyId: bankAccount.companyId, isDefault: true, isVerified: true },
-        });
-
-        const isDefault = !existingDefault;
-
-        await tx.bankAccount.update({
-          where: { id: input.bankAccountId },
-          data: {
-            isVerified: true,
-            isDefault,
-            verifiedAt: new Date(),
-            verifiedById: ctx.user.id,
-            paystackTransferRecipientCode: recipientCode,
-          },
-        });
-
-        if (isDefault) {
-          // Clear any other default for this company so exactly one remains.
-          await tx.bankAccount.updateMany({
-            where: {
-              companyId: bankAccount.companyId,
-              id: { not: input.bankAccountId },
-              isDefault: true,
-            },
-            data: { isDefault: false },
-          });
-
-          await tx.company.update({
-            where: { id: bankAccount.companyId },
-            data: { paystackTransferRecipientCode: recipientCode },
-          });
-        }
-
-        await tx.activityLog.create({
-          data: {
-            companyId: bankAccount.companyId,
-            userId: ctx.user.id,
-            action: "VERIFY_COMPANY",
-            description: `Approved bank account. Registered Paystack transfer recipient ${recipientCode}.`,
-          },
-        });
-      });
-
-      // Trigger operator-bank-verified to Owners
-      const owners = await ctx.prisma.operator.findMany({
-        where: { companyId: bankAccount.companyId, role: "OWNER", deletedAt: null },
-        include: { user: { select: { id: true, email: true, fullName: true } } },
-      });
-      const novu = getNovuClient();
-      if (novu && owners.length > 0) {
-        try {
-          const hiddenNum = `******${bankAccount.accountNumberLast4}`;
-          for (const owner of owners) {
-            if (owner.user.email) {
-              await novu.trigger({
-                workflowId: "operator-bank-verified",
-                to: {
-                  subscriberId: owner.user.email,
-                  email: owner.user.email,
-                },
-                payload: {
-                  email: owner.user.email,
-                  ownerName: owner.user.fullName ?? "Operator Owner",
-                  companyName: bankAccount.company.name,
-                  bankName: bankAccount.bankName,
-                  accountNumberHidden: hiddenNum,
-                },
-                transactionId: `operator-bank-verified-${bankAccount.id}-${owner.user.id}`,
-              }).catch(() => {});
-            }
-          }
-        } catch (err) {
-          console.error("Failed to trigger operator-bank-verified via Novu:", err);
-        }
-      }
-
-      return { success: true, recipientCode };
-    }),
-
-  rejectBankAccount: adminProcedure
-    .input(z.object({
-      bankAccountId: z.string(),
-      reason: z.string(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const bankAccount = await ctx.prisma.bankAccount.findUnique({
-        where: { id: input.bankAccountId },
-      });
-
-      if (!bankAccount) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bank account not found",
-        });
-      }
-
-      await ctx.prisma.bankAccount.update({
-        where: { id: input.bankAccountId },
-        data: {
-          isActive: false,
-          isVerified: false,
-        },
-      });
-
-      await ctx.prisma.activityLog.create({
-        data: {
-          companyId: bankAccount.companyId,
-          userId: ctx.user.id,
-          action: "UPDATE_COMPANY",
-          description: `Rejected bank account: ${input.reason}`,
-        },
-      });
-
-      // Trigger operator-bank-rejected to Owners
-      const owners = await ctx.prisma.operator.findMany({
-        where: { companyId: bankAccount.companyId, role: "OWNER", deletedAt: null },
-        include: { user: { select: { id: true, email: true, fullName: true } } },
-      });
-      const company = await ctx.prisma.company.findUnique({
-        where: { id: bankAccount.companyId },
-        select: { name: true },
-      });
-      const novu = getNovuClient();
-      if (novu && owners.length > 0 && company) {
-        try {
-          const hiddenNum = `******${bankAccount.accountNumberLast4}`;
-          for (const owner of owners) {
-            if (owner.user.email) {
-              await novu.trigger({
-                workflowId: "operator-bank-rejected",
-                to: {
-                  subscriberId: owner.user.email,
-                  email: owner.user.email,
-                },
-                payload: {
-                  email: owner.user.email,
-                  ownerName: owner.user.fullName ?? "Operator Owner",
-                  companyName: company.name,
-                  bankName: bankAccount.bankName,
-                  accountNumberHidden: hiddenNum,
-                  reason: input.reason,
-                },
-                transactionId: `operator-bank-rejected-${bankAccount.id}-${owner.user.id}`,
-              }).catch(() => {});
-            }
-          }
-        } catch (err) {
-          console.error("Failed to trigger operator-bank-rejected via Novu:", err);
-        }
-      }
-
-      return { success: true };
     }),
 
   listAllWithdrawals: adminProcedure

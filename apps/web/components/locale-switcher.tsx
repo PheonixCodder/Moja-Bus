@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Button } from "@moja/ui/components/ui/button";
+import { cn } from "@moja/ui/lib/utils";
 import { Globe } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,7 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
 
-export function LocaleSwitcher() {
+interface LocaleSwitcherProps {
+  className?: string;
+}
+
+export function LocaleSwitcher({ className }: LocaleSwitcherProps) {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -27,7 +32,7 @@ export function LocaleSwitcher() {
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-sm font-medium"
+          className={cn("gap-1.5 text-sm font-medium", className)}
           aria-label="Switch language"
         >
           <Globe className="size-4 shrink-0" />

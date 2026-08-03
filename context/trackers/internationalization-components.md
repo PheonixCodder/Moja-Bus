@@ -200,6 +200,8 @@
 | 151 | home-features | `home/components/home-features.tsx` | ✓ | ✓ |
 | 152 | home-footer | `home/components/home-footer.tsx` | ✗ | ✗ |
 | 153 | home-header | `home/components/home-header.tsx` | ✓ | ✓ |
+
+> **2026-08-02:** home-header now uses locale-aware navigation primitives (`Link`, `usePathname` from `@/i18n/navigation`) — fixes FR-home transparent-hero state (`isHome` was `pathname === "/"` against the raw `/fr` path) and keeps nav links locale-prefixed. Added `LocaleSwitcher` (`components/locale-switcher.tsx`, extended with a `className` prop) to the desktop right section (color-adapted for the light hero state) and as a bottom row in the mobile menu. `locale.*` keys already existed in en/fr messages.
 | 154 | home-hero | `home/components/home-hero.tsx` | ✓ | ✓ |
 | 155 | home-how-it-works | `home/components/home-how-it-works.tsx` | ✗ | ✗ |
 | 156 | home-operators-client | `home/components/home-operators-client.tsx` | ✓ | ✓ |

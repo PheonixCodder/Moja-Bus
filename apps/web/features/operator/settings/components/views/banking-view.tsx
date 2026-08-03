@@ -54,11 +54,11 @@ export function BankingView() {
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
         queryClient.invalidateQueries(trpc.operator.listBankAccounts.queryFilter());
-        toast.success("Settlement account submitted for admin verification.");
+        toast.success("Settlement account added and verified automatically.");
         handleCloseDrawer();
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to submit bank account");
+        toast.error(err.message || "Failed to add bank account");
       }
     })
   );
@@ -82,6 +82,7 @@ export function BankingView() {
     setEditingId(null);
     form.reset({
       bankCode: "",
+      bankType: "",
       accountNumber: "",
       accountName: "",
       branch: "",
@@ -96,6 +97,7 @@ export function BankingView() {
     setIsEditing(true);
     form.reset({
       bankCode: account.bankCode || "",
+      bankType: account.verificationPayload?.type || "",
       accountNumber: account.accountNumber || "",
       accountName: account.accountName || "",
       branch: account.branch || "",
@@ -130,6 +132,7 @@ export function BankingView() {
     const payload = {
       bankName: selectedBank ? selectedBank.name : "Unknown Bank",
       bankCode: data.bankCode ?? "",
+      bankType: selectedBank?.type ?? "bceao",
       accountNumber: data.accountNumber,
       accountName: data.accountName,
       branch: data.branch || null,
@@ -201,6 +204,15 @@ export function BankingView() {
               </div>
             </div>
 
+            {(account as any).verificationPayload?.accountNameMatched === false && (
+              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
+                <AlertTriangle className="size-3.5 shrink-0" />
+                <span>
+                  The name on record for this account differs from the name you entered. Please confirm it is correct before requesting a payout.
+                </span>
+              </div>
+            )}
+
             <div className="absolute -top-3 -right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center gap-1">
               <Button
                 variant="secondary"
@@ -257,7 +269,11 @@ export function BankingView() {
             <Combobox
               value={form.watch("bankCode") || ""}
               onValueChange={(val) => {
-                if (val) form.setValue("bankCode", val);
+                if (val) {
+                  form.setValue("bankCode", val);
+                  const matched = paystackBanks?.find((p: any) => p.code === val);
+                  form.setValue("bankType", matched?.type ?? "bceao");
+                }
               }}
             >
               <ComboboxInput placeholder={isLoadingBanks ? "Loading banks..." : "Search for a bank..."} />
@@ -277,7 +293,7 @@ export function BankingView() {
           <Field>
             <FieldLabel>Account / Wallet Number *</FieldLabel>
             <Input
-              placeholder="RIB number or phone format"
+              placeholder={form.watch("bankType") === "mobile_money" ? "Mobile money number (e.g. 07 00 00 00 00)" : "14-digit RIB (e.g. 00000000000000)"}
               {...form.register("accountNumber")}
             />
             <FieldError errors={[form.formState.errors.accountNumber as any]} />
@@ -348,7 +364,7 @@ export function BankingView() {
             </div>
             <AlertDialogTitle>Edit Verified Account</AlertDialogTitle>
             <AlertDialogDescription>
-              This bank account is currently verified. If you edit these details, payouts to this account will be paused until an admin re-verifies it.
+              This bank account is currently verified. Editing its details will re-validate the account with Paystack. If the new details are invalid, the save will fail and the current details stay unchanged.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
