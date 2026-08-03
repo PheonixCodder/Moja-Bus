@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4f1351ad-4d4d-4706-9835-a4271b138320" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/app.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/package.json" afterDir="false" />
@@ -29,33 +30,16 @@
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-color-scheme.web.ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-theme.ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/components/locale-switcher.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/components/locale-switcher.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/verifications-approve-dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/verifications-approve-dialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-kpi-cards.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-kpi-cards.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-pagination.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-pagination.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-resolve-dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/components/withdrawals-resolve-dialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/lib/schemas.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/lib/schemas.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/views/admin-verification-details-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/views/admin-verification-details-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/views/admin-verification-view.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/admin/views/admin-verifications-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/admin/views/admin-verifications-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/home/components/home-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/home/components/home-header.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/onboarding/bank-step.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/onboarding/bank-step.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/auth/views/login-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/auth/views/login-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/danger-zone-row.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/danger-zone-row.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/lib/auth-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/lib/auth-client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/metro.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/metro.config.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/web/features/operator/settings/components/drawers/bank-drawer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/settings/components/drawers/bank-drawer.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/web/features/operator/settings/components/views/banking-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/settings/components/views/banking-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/passenger/views/passenger-settings-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/passenger/views/passenger-settings-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/payments/providers/paystack-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/payments/providers/paystack-client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/payments/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/payments/types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/lib/phone/phone-number.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/lib/phone/phone-number.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/messages/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/messages/en.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/messages/fr.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/messages/fr.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/admin.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/admin.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/operator.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/operator.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/operator/settings.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/operator/settings.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/context/memory.md" beforeDir="false" afterPath="$PROJECT_DIR$/context/memory.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/context/trackers/internationalization-components.md" beforeDir="false" afterPath="$PROJECT_DIR$/context/trackers/internationalization-components.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/schemas/src/admin.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/schemas/src/admin.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/schemas/src/operator.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/schemas/src/operator.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/next.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

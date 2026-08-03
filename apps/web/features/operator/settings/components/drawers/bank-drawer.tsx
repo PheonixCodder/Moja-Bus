@@ -69,6 +69,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
   const form = useForm<BankFormValues>({
     resolver: zodResolver(bankStepSchema) as any,
     defaultValues: {
+      bankName: "",
       bankCode: "",
       accountNumber: "",
       accountName: "",
@@ -119,6 +120,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
     setIsEditing(true);
     setIsAdding(false);
     form.reset({
+      bankName: account.bankName || "",
       bankCode: account.bankCode || "",
       bankType: account.verificationPayload?.type || "",
       accountNumber: account.accountNumber || "",
@@ -223,6 +225,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
             if (val) {
               form.setValue("bankCode", val);
               const matched = paystackBanks?.find((b) => b.code === val);
+              form.setValue("bankName", matched?.name ?? "");
               form.setValue("bankType", matched?.type ?? "bceao");
             }
           }}

@@ -22,3 +22,11 @@ export type Session = typeof authClient.$Infer.Session;
 export type User = typeof authClient.$Infer.Session.user;
 
 export const { useSession, signUp, signOut } = authClient;
+
+export async function refreshSession() {
+	const sessionAtom = authClient.$store?.atoms?.["session"];
+	const refetch = sessionAtom?.get()?.refetch;
+	if (refetch) {
+		await refetch();
+	}
+}

@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	Animated,
 	KeyboardAvoidingView,
@@ -8,12 +9,11 @@ import {
 	View,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
-import { useTranslation } from "react-i18next";
 
 import { AuthButton } from "@/features/auth/components/auth-button";
 import { AuthField } from "@/features/auth/components/auth-field";
 import { AuthShell } from "@/features/auth/components/auth-shell";
-import { authClient } from "@/lib/auth-client";
+import { authClient, refreshSession } from "@/lib/auth-client";
 
 type AuthError = { message?: string; code?: string };
 
@@ -108,9 +108,7 @@ export default function LoginView() {
 			setStep("otp");
 			animateForward();
 		} catch (err) {
-			setMessage(
-				getAuthError(err).message || t("failedToSend"),
-			);
+			setMessage(getAuthError(err).message || t("failedToSend"));
 		} finally {
 			setIsPending(false);
 		}
@@ -150,6 +148,10 @@ export default function LoginView() {
 			}
 
 			if (result.error) throw result.error;
+
+			try {
+				await refreshSession();
+			} catch {}
 
 			const isNewUser =
 				new Date(result.data.user.createdAt).getTime() > Date.now() - 10000;
@@ -192,6 +194,10 @@ export default function LoginView() {
 			});
 			if (error) throw error;
 
+			try {
+				await refreshSession();
+			} catch {}
+
 			router.replace("/(tabs)");
 		} catch (err) {
 			setMessage(getAuthError(err).message || t("failedToUpdate"));
@@ -218,7 +224,7 @@ export default function LoginView() {
 		},
 	} as const;
 
-	const { badge, title, description } = stepConfig[step];
+	const { title, description } = stepConfig[step];
 
 	return (
 		<AuthShell
@@ -258,10 +264,10 @@ export default function LoginView() {
 
 					{step === "otp" ? (
 						<View className="gap-4">
-						<View className="gap-2">
-						<Text className="text-[14px] font-semibold text-foreground">
-							{t("verifying")}
-						</Text>
+							<View className="gap-2">
+								<Text className="text-[14px] font-semibold text-foreground">
+									{t("verifying")}
+								</Text>
 								<OtpInput
 									numberOfDigits={6}
 									type="numeric"
@@ -297,29 +303,29 @@ export default function LoginView() {
 								/>
 							</View>
 
-						{message ? (
-							<Text className="text-[13px] leading-[18px] text-primary">
-								{message}
-							</Text>
-						) : null}
+							{message ? (
+								<Text className="text-[13px] leading-[18px] text-primary">
+									{message}
+								</Text>
+							) : null}
 
-						<AuthButton
-							label={t("verify")}
-							pendingLabel={t("verifying")}
-							isPending={isPending}
-							onPress={handleVerifyCode}
-						/>
+							<AuthButton
+								label={t("verify")}
+								pendingLabel={t("verifying")}
+								isPending={isPending}
+								onPress={handleVerifyCode}
+							/>
 
-						<AuthButton
-							label={t("useDifferentMethod")}
-							variant="secondary"
-							onPress={() => {
-								setStep("input");
-								setOtp("");
-								setMessage(null);
-								animateBack();
-							}}
-						/>
+							<AuthButton
+								label={t("useDifferentMethod")}
+								variant="secondary"
+								onPress={() => {
+									setStep("input");
+									setOtp("");
+									setMessage(null);
+									animateBack();
+								}}
+							/>
 						</View>
 					) : null}
 
@@ -339,12 +345,12 @@ export default function LoginView() {
 								</Text>
 							) : null}
 
-						<AuthButton
-							label={t("complete")}
-							pendingLabel={t("saving")}
-							isPending={isPending}
-							onPress={handleCompleteProfile}
-						/>
+							<AuthButton
+								label={t("complete")}
+								pendingLabel={t("saving")}
+								isPending={isPending}
+								onPress={handleCompleteProfile}
+							/>
 						</View>
 					) : null}
 				</Animated.View>

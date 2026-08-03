@@ -1,0 +1,68 @@
+# Dependencies / build output
+node_modules
+**/node_modules
+.next
+**/.next
+out
+dist
+**/dist
+.turbo
+**/.turbo
+build
+**/build
+*.tsbuildinfo
+.pnpm-store
+
+# Git / VCS
+.git
+
+# Local env & secrets — NEVER copied into a build context
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs & scratch
+*.log
+*.sql
+*.cjs
+scratch
+legacy-apps-setup
+demo-ui
+best-example
+best-dashboard-setup
+graphify-out
+app-2
+old
+
+# Not workspace members — safe to exclude from the build context
+app-example
+duolingo-clone
+
+# Editor / tooling metadata (not needed to build)
+.idea
+.vscode
+.claude
+.cursor
+.agents
+.junie
+.husky
+mcp.json
+
+# Docs / context — not part of the web build
+context
+docs
+*.md
+
+# Mobile apps — heavy build artifacts only; source stays so `pnpm install
+# --frozen-lockfile` can resolve the workspace importers
+apps/traveler-app/android
+apps/traveler-app/ios
+apps/traveler-app/dist
+apps/traveler-app/.expo
+
+# OS cruft
+.DS_Store
+Thumbs.db

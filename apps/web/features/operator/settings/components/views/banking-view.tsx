@@ -40,6 +40,7 @@ export function BankingView() {
   const form = useForm<BankFormValues>({
     resolver: zodResolver(bankStepSchema),
     defaultValues: {
+      bankName: "",
       bankCode: "",
       accountNumber: "",
       accountName: "",
@@ -81,6 +82,7 @@ export function BankingView() {
     setIsEditing(false);
     setEditingId(null);
     form.reset({
+      bankName: "",
       bankCode: "",
       bankType: "",
       accountNumber: "",
@@ -96,6 +98,7 @@ export function BankingView() {
     setEditingId(account.id);
     setIsEditing(true);
     form.reset({
+      bankName: account.bankName || "",
       bankCode: account.bankCode || "",
       bankType: account.verificationPayload?.type || "",
       accountNumber: account.accountNumber || "",
@@ -272,6 +275,7 @@ export function BankingView() {
                 if (val) {
                   form.setValue("bankCode", val);
                   const matched = paystackBanks?.find((p: any) => p.code === val);
+                  form.setValue("bankName", matched?.name ?? "");
                   form.setValue("bankType", matched?.type ?? "bceao");
                 }
               }}

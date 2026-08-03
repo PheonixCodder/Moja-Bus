@@ -21,6 +21,13 @@ const cssConfig = withNativeWind(config, {
 	inlineRem: 16,
 });
 
+// Sandbox module resolution to this app's own node_modules so Metro can never
+// climb up to the monorepo root pool, which hoists real SDK-54 copies of native
+// modules (async-storage 3.1.1, reanimated 4.1.7, screens 4.16.0, expo 54,
+// babel-preset-expo 54, @react-native/codegen 0.81.5) that break the SDK-57
+// bundle/runtime. The app's own tree resolves every dependency correctly.
+config.resolver.nodeModulesPaths = [path.join(__dirname, "node_modules")];
+
 const cssResolveRequest =
 	cssConfig.resolver?.resolveRequest ?? cssConfig.resolver?.resolveRequest;
 
