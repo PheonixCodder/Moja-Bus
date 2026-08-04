@@ -10,10 +10,10 @@ const globalForPrisma = globalThis as typeof globalThis & {
 function createPrismaClient(): PrismaClient {
   const require = createRequire(import.meta.url);
   const { PrismaPg } = require("@prisma/adapter-pg") as {
-    PrismaPg: new (poolOrConfig: string) => SqlDriverAdapterFactory;
+    PrismaPg: new (config: { connectionString: string }) => SqlDriverAdapterFactory;
   };
 
-  const adapter = new PrismaPg(getRequiredEnv("DATABASE_URL"));
+  const adapter = new PrismaPg({ connectionString: getRequiredEnv("DATABASE_URL") });
 
   return new PrismaClient({ adapter });
 }

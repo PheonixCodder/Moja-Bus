@@ -5,10 +5,26 @@ import { getPrismaClient } from "@moja/db";
 import { auth } from "@/lib/auth-server";
 
 export async function createContextFromHeaders(headers: Headers, resHeaders?: Headers) {
-  const { headers: res, response } = await auth.api.getSession({
-    headers,
-    returnHeaders: true,
-  });
+  let response: any;
+  let res: Headers | undefined;
+
+  try {
+    const result = await auth.api.getSession({
+      headers,
+      returnHeaders: true,
+    });
+    res = result.headers;
+    response = result.response;
+  } catch (err) {
+    console.error("[auth] getSession threw:", err);
+  }
+
+  if (!response?.user) {
+    console.warn("[auth] no session resolved", {
+      hasCookie: headers.has("cookie"),
+      cookieLen: headers.get("cookie")?.length ?? 0,
+    });
+  }
 
   if (res && resHeaders) {
     for (const cookie of res.getSetCookie()) {
