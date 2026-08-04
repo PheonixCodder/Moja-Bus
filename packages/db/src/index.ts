@@ -36,10 +36,7 @@ export function getPrismaClient(): PrismaClient {
   }
 
   const client = createPrismaClient();
-  if (getOptionalEnv("NODE_ENV") !== "production") {
-    globalForPrisma.__mojaPrismaClient = client;
-  }
-
+  globalForPrisma.__mojaPrismaClient = client;
   return client;
 }
 export { Prisma } from "@prisma/client";
