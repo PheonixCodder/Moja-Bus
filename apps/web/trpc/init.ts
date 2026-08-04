@@ -36,6 +36,34 @@ export async function createContextFromHeaders(headers: Headers, resHeaders?: He
       sessionDataCookieValue: sessionDataCookie?.split("=").slice(1).join("=") ?? null,
     });
 
+    // Direct DB check: bypass Better Auth adapter to see if session exists in DB.
+    try {
+      const prisma = getPrismaClient();
+      const rawCookieValue = sessionDataCookie?.split("=").slice(1).join("=");
+      if (rawCookieValue) {
+        const parts = rawCookieValue.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(
+            Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString()
+          );
+          const token = payload?.session?.token;
+          if (token) {
+            const dbSession = await prisma.session.findUnique({
+              where: { token },
+              select: { id: true, token: true, expiresAt: true, userId: true },
+            });
+            console.warn("[auth] direct DB lookup:", {
+              token,
+              foundInDB: !!dbSession,
+              expiresAt: dbSession?.expiresAt?.toISOString() ?? null,
+            });
+          }
+        }
+      }
+    } catch (dbErr) {
+      console.error("[auth] direct DB lookup threw:", dbErr);
+    }
+
     try {
       const fresh = await auth.api.getSession({
         headers,
