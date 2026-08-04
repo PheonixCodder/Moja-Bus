@@ -15,6 +15,7 @@ import { useTranslations } from "next-intl";
 import { memo, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useCityDetails } from "../hooks/use-city-details";
+import { useGeoPlaceLabel } from "../hooks/use-geo-place-label";
 import { toLocalISODate } from "../lib/local-date";
 import { validateSearchPair } from "../lib/validate-search-pair";
 import {
@@ -97,23 +98,54 @@ export const SearchForm = memo(function SearchForm({
   const { data: originCity } = useCityDetails(initialFromId);
   const { data: destCity } = useCityDetails(initialToId);
 
-  useEffect(() => {
-    if (originCity)
-      setOrigin((prev) => ({
-        ...prev,
-        id: originCity.id,
-        text: originCity.name,
-      }));
-  }, [originCity]);
+  // When a deep link targets a municipality or quarter, render the full
+  // hierarchy label (e.g. "Abidjan (Cocody - Riviera 3)") in the box.
+  const { data: originLabel } = useGeoPlaceLabel({
+    cityId: initialFromId,
+    municipalityId: initialFromMuni,
+    quarterId: initialFromQuarter,
+  });
+  const { data: destLabel } = useGeoPlaceLabel({
+    cityId: initialToId,
+    municipalityId: initialToMuni,
+    quarterId: initialToQuarter,
+  });
 
   useEffect(() => {
-    if (destCity)
-      setDestination((prev) => ({
-        ...prev,
-        id: destCity.id,
-        text: destCity.name,
-      }));
-  }, [destCity]);
+    if (!originCity) return;
+    const label =
+      originLabel && (originLabel.municipalityName || originLabel.quarterName)
+        ? [
+            originLabel.cityName,
+            originLabel.quarterName && originLabel.municipalityName
+              ? `(${originLabel.municipalityName} - ${originLabel.quarterName})`
+              : originLabel.municipalityName
+                ? `(${originLabel.municipalityName})`
+                : undefined,
+          ]
+            .filter(Boolean)
+            .join(" ")
+        : originCity.name;
+    setOrigin((prev) => ({ ...prev, id: originCity.id, text: label }));
+  }, [originCity, originLabel]);
+
+  useEffect(() => {
+    if (!destCity) return;
+    const label =
+      destLabel && (destLabel.municipalityName || destLabel.quarterName)
+        ? [
+            destLabel.cityName,
+            destLabel.quarterName && destLabel.municipalityName
+              ? `(${destLabel.municipalityName} - ${destLabel.quarterName})`
+              : destLabel.municipalityName
+                ? `(${destLabel.municipalityName})`
+                : undefined,
+          ]
+            .filter(Boolean)
+            .join(" ")
+        : destCity.name;
+    setDestination((prev) => ({ ...prev, id: destCity.id, text: label }));
+  }, [destCity, destLabel]);
 
   function handleSwap() {
     const swappedOrigin: CityValue = { ...destination };
@@ -142,15 +174,13 @@ export const SearchForm = memo(function SearchForm({
       return;
     }
 
-    const sameCity =
-      origin.id && destination.id && origin.id === destination.id;
     onSearch({
       from: originVal,
       to: destVal,
-      fromMuni: (sameCity ? origin.municipalityId : "") ?? "",
-      toMuni: (sameCity ? destination.municipalityId : "") ?? "",
-      fromQuarter: (sameCity ? origin.quarterId : "") ?? "",
-      toQuarter: (sameCity ? destination.quarterId : "") ?? "",
+      fromMuni: origin.municipalityId ?? "",
+      toMuni: destination.municipalityId ?? "",
+      fromQuarter: origin.quarterId ?? "",
+      toQuarter: destination.quarterId ?? "",
       date,
       passengers,
     });

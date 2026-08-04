@@ -1,5 +1,6 @@
-import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { buildSearchEntries } from "@/features/search/lib/build-search-entries";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 const citySearchResultSchema = z.object({
@@ -20,8 +21,6 @@ export const locationsRouter = createTRPCRouter({
       const q = input.query;
       if (!q || q.length < 2) return [];
 
-      const results = new Map<string, { id: string; name: string; hierarchyLabel: string; isMajorHub: boolean; municipalityId: string | null; quarterId: string | null; level: "city" | "municipality" | "quarter" }>();
-
       // 1. Direct city matches
       const cities = await ctx.prisma.city.findMany({
         where: {
@@ -34,11 +33,6 @@ export const locationsRouter = createTRPCRouter({
         orderBy: { isMajorHub: "desc" },
         take: 10,
       });
-      for (const c of cities) {
-        if (!results.has(c.id)) {
-          results.set(c.id, { id: c.id, name: c.name, hierarchyLabel: c.name, isMajorHub: c.isMajorHub, municipalityId: null, quarterId: null, level: "city" });
-        }
-      }
 
       // 2. Municipality matches (e.g. "Cocody" → "Abidjan (Cocody)")
       const municipalities = await ctx.prisma.municipality.findMany({
@@ -50,19 +44,6 @@ export const locationsRouter = createTRPCRouter({
         include: { city: true },
         take: 10,
       });
-      for (const m of municipalities) {
-        if (!results.has(m.city.id)) {
-          results.set(m.city.id, {
-            id: m.city.id,
-            name: m.city.name,
-            hierarchyLabel: `${m.city.name} (${m.name})`,
-            isMajorHub: m.city.isMajorHub,
-            municipalityId: m.id,
-            quarterId: null,
-            level: "municipality",
-          });
-        }
-      }
 
       // 3. Quarter matches (e.g. "Riviera 3" → "Abidjan (Cocody - Riviera 3)")
       const quarters = await ctx.prisma.quarter.findMany({
@@ -74,22 +55,8 @@ export const locationsRouter = createTRPCRouter({
         include: { municipality: { include: { city: true } } },
         take: 10,
       });
-      for (const qr of quarters) {
-        const cityId = qr.municipality.city.id;
-        if (!results.has(cityId)) {
-          results.set(cityId, {
-            id: cityId,
-            name: qr.municipality.city.name,
-            hierarchyLabel: `${qr.municipality.city.name} (${qr.municipality.name} - ${qr.name})`,
-            isMajorHub: qr.municipality.city.isMajorHub,
-            municipalityId: qr.municipality.id,
-            quarterId: qr.id,
-            level: "quarter",
-          });
-        }
-      }
 
-      return Array.from(results.values()).slice(0, 10);
+      return buildSearchEntries(cities, municipalities, quarters, 10);
     }),
 
   getCityDetails: publicProcedure
@@ -121,6 +88,78 @@ export const locationsRouter = createTRPCRouter({
             (c.nameEn && normalize(c.nameEn) === target)
         ) || null
       );
+    }),
+
+  getGeoPlaceLabel: publicProcedure
+    .input(
+      z.object({
+        cityId: z.string(),
+        municipalityId: z.string().optional(),
+        quarterId: z.string().optional(),
+      }),
+    )
+    .output(
+      z.object({
+        cityName: z.string(),
+        municipalityName: z.string().nullable(),
+        quarterName: z.string().nullable(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const normalize = (str: string) =>
+        str
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]/g, "");
+
+      let city = null;
+      if (input.cityId.startsWith("c") && input.cityId.length >= 20) {
+        city = await ctx.prisma.city.findUnique({
+          where: { id: input.cityId },
+        });
+      }
+      if (!city) {
+        const cities = await ctx.prisma.city.findMany({
+          where: { isActive: true },
+        });
+        const target = normalize(input.cityId);
+        city =
+          cities.find(
+            (c) =>
+              normalize(c.name) === target ||
+              (c.nameEn && normalize(c.nameEn) === target),
+          ) || null;
+      }
+
+      if (!city) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "City not found",
+        });
+      }
+
+      let municipalityName: string | null = null;
+      if (input.municipalityId) {
+        const municipality = await ctx.prisma.municipality.findUnique({
+          where: { id: input.municipalityId },
+        });
+        municipalityName = municipality?.name ?? null;
+      }
+
+      let quarterName: string | null = null;
+      if (input.quarterId) {
+        const quarter = await ctx.prisma.quarter.findUnique({
+          where: { id: input.quarterId },
+        });
+        quarterName = quarter?.name ?? null;
+      }
+
+      return {
+        cityName: city.name,
+        municipalityName,
+        quarterName,
+      };
     }),
 
   searchMunicipalities: publicProcedure

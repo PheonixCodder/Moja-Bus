@@ -78,7 +78,7 @@ export function CityAutocompleteField({
           {cities.length > 0 ? (
             cities.map((city) => (
               <button
-                key={city.id}
+                key={`${city.id}|${city.municipalityId ?? ""}|${city.quarterId ?? ""}|${city.level ?? "city"}`}
                 type="button"
                 onClick={() => {
                   onChange({

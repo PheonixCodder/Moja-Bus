@@ -334,6 +334,25 @@ Cities other than Abidjan have exactly ONE pass-through municipality. In the sea
 
 **Status:** ✅ **Phase 0 + 1 implemented (2026-08-01).** ✅ **Phase 2 implemented (2026-08-01).** ✅ **Phase 3 implemented (2026-08-01).** ✅ **Phase 4 implemented (2026-08-01).**
 
+### Post-Phase 4 follow-up — Intercity municipality/quarter search expansion (2026-08-04)
+
+User asked to expand level-aware search to intercity (quarter→quarter, muni→quarter, etc.) pairs. The search engine already honored every combination server-side; the blockers were (a) the two forms stripping refinements for non-same-city pairs, (b) the intercity label convention hiding quarters, and (c) the autocomplete first-match-per-city de-dupe. Resolution:
+
+- **Form pass-through (both forms):** `search-form.tsx` + `hero-search-bar-2.tsx` dropped the `sameCity &&` guard — `fromMuni/toMuni/fromQuarter/toQuarter` now travel unconditionally for intercity pairs. Engine, params, `cheapestByDate`, date strip, and `validateSearchPair` required no change (they already support every level combo across cities; same-city identical pairs still blocked).
+- **Intercity quarter labels:** `format-location-label.ts` intercity branch now renders `"Abidjan (Cocody - Riviera 3)"` (quarter shown when known) instead of always `"Abidjan (Cocody)"`. Applies everywhere via the shared function (offer-card, trip-summary-card, checkout, tickets, etc.).
+- **Autocomplete de-dupe fix (R9):** `locations.searchCities` now keys results by the full `(city, municipality, quarter, level)` triple with an `add()` helper instead of first-match-per-city; `city-autocomplete-field.tsx` button `key` changed to a unique composite key. Multiple quarters of the same city are now reachable.
+- **Verification:** web `pnpm typecheck` clean; 32 search unit tests pass.
+- **Follow-up fixes (2026-08-04):**
+  - **R9a — pass-through duplicate:** `searchCities` skips pass-through municipalities whose city already matched. Pass-through munis always share their city's name (seed: `isPassThrough: true`, no quarters), so the city row already represents them — typing "Yamoussoukro" no longer returns both `Yamoussoukro` and `Yamoussoukro (Yamoussoukro)`.
+  - **R9b — chip-vs-cuid sameCity hole (B4):** `validate-search-pair.ts` now compares **normalized display text** (lowercase, NFD-strip accents, drop non-alnum — mirroring server `normalize`) when at least one side lacks a resolved id. Popular chips / history hints submit `id:""`, so a dropdown-picked "Abidjan" (cuid) + chip "Abidjan" (`id:""`) previously returned `originVal(cuid) !== destVal("Abidjan")` → passed validation → searched city-wide. Now normalized-equal → blocked. Accent-insensitive ("San-Pédro" dropdown + "San Pedro" chip). All 10 existing `validateSearchPair` tests still pass.
+  - **B3 — deep-link hierarchy label:** new `locations.getGeoPlaceLabel({cityId, municipalityId?, quarterId?})` (reuses `getCityDetails` name→cuid resolution for the city) + `useGeoPlaceLabel` hook; `search-form.tsx` now renders `Abidjan (Cocody - Riviera 3)` in the box for `?fromQuarter=...` deep links instead of plain city name.
+- **Verification (follow-up):** web `pnpm typecheck` clean; 157/157 tests pass.
+- **Tests finalized (2026-08-04):** Extracted the de-dupe + pass-through suppression logic from `searchCities` into a pure `features/search/lib/build-search-entries.ts` (`buildSearchEntries(cities, municipalities, quarters, limit)`); the router delegates to it, so the exact rules are unit-testable. New shared fixtures `features/search/lib/__tests__/geo-fixtures.ts` mirror the seed dataset (30 cities incl. major hubs, Abidjan's 13 municipalities + all quarters, pass-through cities). New test files registered in the hardcoded `apps/web/package.json` test list:
+  - `format-location-label.test.ts` — urban/intercity label conventions across every seeded municipality, every quarter, and every pass-through city (+ empty/partial inputs, `formatCityWithMuni`).
+  - `build-search-entries.test.ts` — pass-through suppression (city wins, no `City (City)`), suppression NOT over-triggered when city missing, real municipality never suppressed, de-dupe by full `(city, muni, quarter, level)` key (identical quarter deduped, sibling quarters kept, quarter never collapses into city), full dataset reachability.
+  - `search-pair-validation.test.ts` gained 6 cases: dropdown cuid vs same-named chip → blocked, accent-insensitive ("San-Pédro"/"San Pedro"), different city/different chip → allowed, refined-quarter chip vs city pick → allowed.
+  - Web typecheck clean, **184/184** tests pass (was 157).
+
 ### Phase 0 + 1 implementation log (2026-08-01)
 
 **Schema (`packages/db/prisma/schema.prisma`):**

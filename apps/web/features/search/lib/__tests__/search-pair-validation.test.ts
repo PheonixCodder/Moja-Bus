@@ -90,6 +90,62 @@ describe("validateSearchPair", () => {
       null,
     );
   });
+
+  it("rejects a dropdown-picked city (cuid) against a same-named chip (no id)", () => {
+    // Popular chips / history hints submit id:"" — a chip "Abidjan" must be
+    // recognized as the same city as a dropdown-picked "Abidjan" (cuid).
+    assert.equal(
+      validateSearchPair(
+        { id: "cmn3f..." + "0".repeat(16), text: "Abidjan" },
+        { id: "", text: "Abidjan" },
+      ),
+      "sameCity",
+    );
+  });
+
+  it("rejects a chip against a dropdown-picked city with accent differences", () => {
+    // Normalized-text comparison must be accent-insensitive: the dropdown
+    // renders "San-Pédro", the chip stores "San Pedro".
+    assert.equal(
+      validateSearchPair(
+        { id: "", text: "San Pedro" },
+        { id: "csp...", text: "San-Pédro" },
+      ),
+      "sameCity",
+    );
+  });
+
+  it("allows a chip when it names a genuinely different city", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Bouaké" },
+        { id: "", text: "Abidjan" },
+      ),
+      null,
+    );
+  });
+
+  it("allows a dropdown-picked city (cuid) against a different-named chip", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Abidjan" },
+        { id: "", text: "Yamoussoukro" },
+      ),
+      null,
+    );
+  });
+
+  it("allows same city when the chip names a refined quarter", () => {
+    // "Abidjan (Cocody - Riviera 3)" chip vs city-level dropdown pick is a
+    // one-sided refinement → valid urban search.
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Abidjan" },
+        { id: "", text: "Abidjan (Cocody - Riviera 3)" },
+      ),
+      null,
+    );
+  });
 });
 
 describe("isUrban", () => {

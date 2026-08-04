@@ -4,7 +4,7 @@
  *
  * Convention (R6):
  * - urban:  "Cocody" or "Cocody – Riviera 3" (quarter shown when known; city fallback)
- * - intercity: "Abidjan (Cocody)" (quarter never shown)
+ * - intercity: "Abidjan (Cocody)" or "Abidjan (Cocody - Riviera 3)" (quarter shown when known)
  */
 export interface LocationLabelParts {
   cityName: string | null | undefined;
@@ -19,12 +19,22 @@ export function formatLocationLabel({
   quarterName,
   isUrban,
 }: LocationLabelParts): string {
+  // Pass-through municipalities always share their city's name (seed:
+  // isPassThrough cities get a single municipality named after the city).
+  // Rendering both would produce a degenerate "Bouaké (Bouaké)" — suppress the
+  // municipality whenever it duplicates the city.
+  const muni =
+    municipalityName && municipalityName !== cityName ? municipalityName : null;
+
   if (isUrban) {
-    const base = municipalityName ?? cityName ?? "";
+    const base = muni ?? cityName ?? "";
     return quarterName ? `${base} – ${quarterName}` : base;
   }
   const city = cityName ?? "";
-  return municipalityName ? `${city} (${municipalityName})` : city;
+  if (!muni) return city;
+  return quarterName
+    ? `${city} (${muni} - ${quarterName})`
+    : `${city} (${muni})`;
 }
 
 /** Operator-surface variant (R11): always "City (Muni)". */

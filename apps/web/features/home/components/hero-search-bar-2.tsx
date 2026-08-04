@@ -68,17 +68,16 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
       return;
     }
 
-    const sameCity = origin.id && destination.id && origin.id === destination.id;
     const sp = new URLSearchParams({
       from: originVal,
       to: destVal,
       date,
       passengers: String(travelers),
     });
-    if (sameCity && origin.municipalityId) sp.set("fromMuni", origin.municipalityId);
-    if (sameCity && destination.municipalityId) sp.set("toMuni", destination.municipalityId);
-    if (sameCity && origin.quarterId) sp.set("fromQuarter", origin.quarterId);
-    if (sameCity && destination.quarterId) sp.set("toQuarter", destination.quarterId);
+    if (origin.municipalityId) sp.set("fromMuni", origin.municipalityId);
+    if (destination.municipalityId) sp.set("toMuni", destination.municipalityId);
+    if (origin.quarterId) sp.set("fromQuarter", origin.quarterId);
+    if (destination.quarterId) sp.set("toQuarter", destination.quarterId);
     router.push(`/search?${sp.toString()}`);
   }
 
