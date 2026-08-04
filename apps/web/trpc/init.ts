@@ -20,10 +20,27 @@ export async function createContextFromHeaders(headers: Headers, resHeaders?: He
   }
 
   if (!response?.user) {
+    const cookieHeader = headers.get("cookie") ?? "";
+    const cookieNames = cookieHeader
+      .split(";")
+      .map((c) => c.trim().split("=")[0]);
+
     console.warn("[auth] no session resolved", {
-      hasCookie: headers.has("cookie"),
-      cookieLen: headers.get("cookie")?.length ?? 0,
+      cookieLen: cookieHeader.length,
+      cookieNames,
     });
+
+    try {
+      const fresh = await auth.api.getSession({
+        headers,
+        query: { disableCookieCache: true },
+      });
+      console.warn("[auth] retry bypassing cache:", {
+        foundSession: !!fresh?.user,
+      });
+    } catch (err2) {
+      console.error("[auth] retry bypassing cache threw:", err2);
+    }
   }
 
   if (res && resHeaders) {
