@@ -19,15 +19,21 @@ export async function createContextFromHeaders(headers: Headers, resHeaders?: He
     console.error("[auth] getSession threw:", err);
   }
 
-  if (!response?.user) {
+	if (!response?.user) {
     const cookieHeader = headers.get("cookie") ?? "";
     const cookieNames = cookieHeader
       .split(";")
       .map((c) => c.trim().split("=")[0]);
 
+    const sessionDataCookie = headers.get("cookie")
+      ?.split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith("__Secure-better-auth.session_data="));
+
     console.warn("[auth] no session resolved", {
       cookieLen: cookieHeader.length,
       cookieNames,
+      sessionDataCookieValue: sessionDataCookie?.split("=").slice(1).join("=") ?? null,
     });
 
     try {
