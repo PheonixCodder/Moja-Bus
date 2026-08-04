@@ -30,9 +30,15 @@ export async function createContextFromHeaders(headers: Headers, resHeaders?: He
       .map((c) => c.trim())
       .find((c) => c.startsWith("__Secure-better-auth.session_data="));
 
+    const sessionTokenCookie = headers.get("cookie")
+      ?.split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith("__Secure-better-auth.session_token="));
+
     console.warn("[auth] no session resolved", {
       cookieLen: cookieHeader.length,
       cookieNames,
+      hasSessionTokenCookie: !!sessionTokenCookie,
       sessionDataCookieValue: sessionDataCookie?.split("=").slice(1).join("=") ?? null,
     });
 
@@ -44,7 +50,7 @@ export async function createContextFromHeaders(headers: Headers, resHeaders?: He
         const parts = rawCookieValue.split(".");
         if (parts.length === 3) {
           const payload = JSON.parse(
-            Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString()
+            Buffer.from(parts[1]!.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString()
           );
           const token = payload?.session?.token;
           if (token) {
