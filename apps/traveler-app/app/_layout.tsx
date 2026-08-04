@@ -4,14 +4,16 @@ import "@/global.css";
 import { NovuProvider } from "@novu/react-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { useQuery } from "@tanstack/react-query";
-import { DefaultTheme, Stack, ThemeProvider, router } from "expo-router";
+import Constants from "expo-constants";
+import { DefaultTheme, router, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { PostHogProvider as PHProvider } from "posthog-react-native";
 import { useEffect } from "react";
 import { useLoadFonts } from "@/hooks/use-load-fonts";
 import { usePushToken } from "@/hooks/use-push-token";
 import { authClient } from "@/lib/auth-client";
+import { posthog } from "@/lib/posthog";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
-import Constants from "expo-constants";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
@@ -47,7 +49,11 @@ interface TypedTRPC {
 	public: PublicRouter;
 }
 
-function AuthenticatedNovuProvider({ children }: { children: React.ReactNode }) {
+function AuthenticatedNovuProvider({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
 	const { data: session, isPending } = authClient.useSession();
 	const trpc = useTRPC() as unknown as TypedTRPC;
 	const { data: token } = useQuery({
@@ -104,33 +110,51 @@ function NotificationHandler() {
 				}),
 			});
 
-			const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-				// Update the Novu notification cache so in-app indicators stay in sync
-			});
+			const notificationListener =
+				Notifications.addNotificationReceivedListener((notification) => {
+					// Update the Novu notification cache so in-app indicators stay in sync
+				});
 
-			const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-				const notification = response.notification;
-				const data = notification.request.content.data as Record<string, unknown> | undefined;
-				if (data && typeof data === "object") {
-					const type = (data as Record<string, unknown>)["type"] as string | undefined;
-					const ref = (data as Record<string, unknown>)["bookingReference"] as string | undefined;
-					if (type === "booking-confirmed" || type === "booking-refunded" || type === "hold-created" || type === "review-request" || type === "review-submitted" || type === "trip-boarding") {
-						if (ref) {
-							router.push(`/bookings/${ref}` as any);
-						} else {
+			const responseListener =
+				Notifications.addNotificationResponseReceivedListener((response) => {
+					const notification = response.notification;
+					const data = notification.request.content.data as
+						| Record<string, unknown>
+						| undefined;
+					if (data && typeof data === "object") {
+						const type = (data as Record<string, unknown>)["type"] as
+							| string
+							| undefined;
+						const ref = (data as Record<string, unknown>)["bookingReference"] as
+							| string
+							| undefined;
+						if (
+							type === "booking-confirmed" ||
+							type === "booking-refunded" ||
+							type === "hold-created" ||
+							type === "review-request" ||
+							type === "review-submitted" ||
+							type === "trip-boarding"
+						) {
+							if (ref) {
+								router.push(`/bookings/${ref}` as any);
+							} else {
+								router.push("/bookings");
+							}
+						} else if (type === "trip-cancelled") {
 							router.push("/bookings");
+						} else if (type === "trip-delayed") {
+							router.push("/tickets");
+						} else if (type === "trip-gate-updated") {
+							router.push("/tickets");
+						} else if (
+							type === "wallet-low-balance" ||
+							type === "wallet-topup"
+						) {
+							router.push("/wallet");
 						}
-					} else if (type === "trip-cancelled") {
-						router.push("/bookings");
-					} else if (type === "trip-delayed") {
-						router.push("/tickets");
-					} else if (type === "trip-gate-updated") {
-						router.push("/tickets");
-					} else if (type === "wallet-low-balance" || type === "wallet-topup") {
-						router.push("/wallet");
 					}
-				}
-			});
+				});
 
 			cleanup = () => {
 				notificationListener.remove();
@@ -157,14 +181,16 @@ export default function RootLayout() {
 	}
 
 	return (
-		<TRPCReactProvider>
-			<AuthenticatedNovuProvider>
-				<ThemeProvider value={LightTheme}>
-					<StatusBar style="dark" />
-					<Stack screenOptions={{ headerShown: false }} />
-					<PortalHost />
-				</ThemeProvider>
-			</AuthenticatedNovuProvider>
-		</TRPCReactProvider>
+		<PHProvider client={posthog ?? undefined}>
+			<TRPCReactProvider>
+				<AuthenticatedNovuProvider>
+					<ThemeProvider value={LightTheme}>
+						<StatusBar style="dark" />
+						<Stack screenOptions={{ headerShown: false }} />
+						<PortalHost />
+					</ThemeProvider>
+				</AuthenticatedNovuProvider>
+			</TRPCReactProvider>
+		</PHProvider>
 	);
 }

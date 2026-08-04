@@ -1,10 +1,49 @@
 # Memory
 
-**Session:** Language Switcher in Home Header + Locale-Aware Header Navigation
-**Date:** 2026-08-02
+**Session:** Production deployment — T6 (self-hosted Postgres + migrations + backups), T9 (Uptime Kuma), T8 (self-hosted PostHog tracking), T7 (self-hosted SigNoz tracing), T10 (R2 storage confirmed)
+**Date:** 2026-08-04
 
 ## Summary
-Added a language switcher (EN/FR) to the home header by reusing the existing `LocaleSwitcher` component (`apps/web/components/locale-switcher.tsx`), which was previously only used in the auth layouts. Extended it with an optional `className` prop so the header can adapt colors to its transparent-hero state. Also migrated `home-header.tsx` from `next/link` + `next/navigation` to the locale-aware primitives from `@/i18n/navigation` — this fixes two real bugs on French pages: `isHome = pathname === "/"` was false on `/fr` (transparent hero state silently missing on the FR home) and all nav links dropped the `/fr` prefix. Fixed the pre-existing missing `HelpCircle` import (mobile menu would crash when opened).
+Production-launch infra for `mojaride.net` (Next.js 16 web + Expo traveler app, self-hosted Linux via Docker Compose + Caddy). **T6 done:** self-hosted Postgres (`db` service, `deploy/db/init/01-extensions.sql`), versioned `prisma migrate` with committed `0_init` baseline run by a one-shot `migrate` service, nightly gzip backups with the `PGPASSWORD` export fix. **T9 done:** Uptime Kuma at `status.mojaride.net`. **T8 done (code):** full official PostHog hobby stack as a SEPARATE compose project (`deploy/posthog/install.sh` + README), fronted by our Caddy at `posthog.mojaride.net` (`host.docker.internal:8000` via `extra_hosts`), web (`posthog-js`) + RN (`posthog-react-native`) SDKs wired and typecheck-clean. **T7 done (code):** SigNoz via Foundry (`deploy/signoz/install.sh` + README), `apps/web/instrumentation.ts` via `@vercel/otel` (no-op when endpoint unset), OTel env vars + `extra_hosts` on `web`, 4th Caddy block `{$SIGNOZ_ADDRESS}` → `host.docker.internal:8080`; locally verified (`/api/health?full=1`/`/api/auth/ok` 200, `https://signoz.localhost/` 502 = expected). Both PostHog and SigNoz run only on the Linux VM (PostHog ~16GB RAM; SigNoz ClickHouse Keeper crashes on Docker Desktop).
+
+## Completed Work
+- **T7 — SigNoz (self-host, OTel tracing):** `@vercel/otel@2.1.3` + `@opentelemetry/api@1.9.1` in `apps/web`; `apps/web/instrumentation.ts` `registerOTel({ serviceName: process.env["OTEL_SERVICE_NAME"] || "moja-buss-web" })` — auto-config reads `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, verified empty endpoint short-circuits export (local tracing off). Compose: OTel env vars + `extra_hosts` on `web`; Caddy 4th block `{$SIGNOZ_ADDRESS}` → `host.docker.internal:8080`. `.env.example` `SIGNOZ_ADDRESS=signoz.mojaride.net` + OTel block; local `.env` `SIGNOZ_ADDRESS=signoz.localhost` + empty OTel. `deploy/signoz/install.sh` (installs `foundryctl` via `https://signoz.io/foundry.sh`, `casting.yaml` on fresh install, `foundryctl forge`, sed-binds 8080/4317/4318 to loopback, `docker compose up -d`) + README. Verified: compose config OK, web image rebuilt + healthy, `/api/health?full=1`/`/api/auth/ok`/`/` 200, `https://signoz.localhost/` 502 expected.
+- **T6 — Postgres + migrations + backups:** `db` (postgres:16-alpine, `db_data`, `pg_isready` healthcheck, `01-extensions.sql` for `uuid-ossp`+`pg_trgm`); one-shot `migrate` service runs `prisma migrate deploy` only (stale `run-migrations.ts` + `001_foundation_constraints.sql` removed from the flow — targets PascalCase tables that no longer exist; kept for history, R10); `web` waits on `migrate: service_completed_successfully`. Verified: 67 snake_case tables from `0_init`, `_prisma_migrations` = 1 row, all services healthy, `/api/health`(+`?full=1`)/`/api/auth/ok` 200 through Caddy vs self-hosted DB. `deploy/backup/dump.sh` now `export PGPASSWORD` (pg_dump ignores `POSTGRES_PASSWORD`); valid gzipped dump verified; 01:30 cron, 14-day retention.
+- **MetadataBase fix:** `apps/web/app/[locale]/layout.tsx` `generateMetadata` uses `metadataBase: new URL(process.env["NEXT_PUBLIC_APP_URL"] ?? "http://localhost:3000")` + `openGraph.siteName`. Index-signature bracket access is REQUIRED for `process.env` everywhere in this repo (`Property 'X' comes from an index signature` fails the Docker type-check otherwise) — same for the Expo app (`process.env["EXPO_PUBLIC_*"]`).
+- **T9 — Uptime Kuma:** `status` service (louislam/uptime-kuma:1, `kuma_data`) + `{$STATUS_ADDRESS}` Caddy block; verified `https://status.localhost` → `/dashboard` 200. Server TODO: DNS `status.mojaride.net`, set admin password, add monitors (`/`, `/api/health`, `/api/health?full=1`, `/api/auth/ok`, mobile API base).
+- **T8 — PostHog (self-host, full official hobby stack):** `deploy/posthog/install.sh` (non-interactive `POSTHOG_APP_TAG`/`DOMAIN`, no sudo, clones posthog repo, writes `.env` only on fresh install, disables PostHog's own `proxy`, publishes `web` loopback-only, `up -d --no-build --pull always`) + README. Caddy third block `{$POSTHOG_ADDRESS}` → `host.docker.internal:8000` (`extra_hosts: host.docker.internal:host-gateway` added to `caddy` service in `compose.yml`). `POSTHOG_ADDRESS=posthog.mojaride.net` in `.env.example`; local `.env` = `posthog.localhost` (empty would be a Caddy parse error). Web: `posthog-js@1.410.6`, `components/posthog-provider.tsx` in `app/[locale]/layout.tsx`. RN: `posthog-react-native@4.61.4`, `apps/traveler-app/lib/posthog.ts` + `<PHProvider client={posthog ?? undefined}>` in `app/_layout.tsx`. Both typechecks clean, biome clean on touched files, `docker compose config` OK. Build verification passed (next build exit 0, posthog-js in client chunk; docker compose build web OK; `/api/health?full=1`/`/api/auth/ok`/`/` 200 through Caddy).
+- **T10 — Storage (confirmed done):** Cloudflare R2 in production, working end-to-end; free quota sufficient → no self-hosted MinIO. `S3_*` envs point at R2 (`apps/web/lib/storage/s3.ts` via `@aws-sdk/client-s3` + presigner; `cdn.mojaride.com` allow-listed in `next.config.ts`). No code changes. Launch TODO: R2 custom-domain/CNAME for `cdn.mojaride.com` + re-verify one upload from staging.
+- **Tracker updated** (`context/trackers/production-deployment-report.md`): T6/T9/T8 notes, T7 done-block + in-progress → DONE (code), T10 → DONE (confirmed), D3 ✅ PostHog, D8 ✅ R2, R8 🕐 Mitigated, R1/R7/R10 statuses already set earlier.
+
+## Next Steps
+- **T8 finish (server-side):** DNS A record `posthog.mojaride.net` → server IP; `cd deploy/posthog && POSTHOG_APP_TAG=latest DOMAIN=posthog.mojaride.net ./install.sh`; set admin password; create project; copy key into root `.env` `NEXT_PUBLIC_POSTHOG_KEY` + `apps/traveler-app/.env.local` `EXPO_PUBLIC_POSTHOG_KEY` (host `https://posthog.mojaride.net`).
+- **T7 finish (server-side):** DNS A record `signoz.mojaride.net` → server IP; `cd deploy/signoz && ./install.sh`; set admin password; set in root `.env`: `SIGNOZ_ADDRESS=signoz.mojaride.net` + `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://host.docker.internal:4318/v1/traces`; then `docker compose up -d web caddy`; verify traces in the SigNoz UI (service `moja-buss-web`).
+- **T10 finish (launch, user):** ensure R2 custom-domain/CNAME for `cdn.mojaride.com` and re-verify one file upload from staging.
+- **User TODO (security):** rotate the Neon password (manual — no neonctl/API key) and update `packages/db/.env` `DATABASE_URL` + root `.env` `DATABASE_URL_BUILD`.
+- **User TODO:** DNS A records `status.mojaride.net` + `posthog.mojaride.net` + `signoz.mojaride.net`; set Kuma admin password + monitors.
+- **Next in T-lists:** all of Phase 3 is now code/decision-complete (T6✅, T7 code-done, T8 code-done, T9✅, T10✅ confirmed) → next is **Phase 4 cutover (T11/T12/T13)**. T9/quick-wins done, T7+T8 code-done (server-side TODO only).
+- Note: `apps/web/lib/auth-client.ts` exists and is UNRELATED to PostHog (was flagged in planning); PostHog web code lives in `components/posthog-provider.tsx`.
+
+## Key Files
+- `deploy/signoz/install.sh` + `deploy/signoz/README.md` — SigNoz Foundry server installer + docs.
+- `apps/web/instrumentation.ts` — `@vercel/otel` `registerOTel`, env-driven, no-op when endpoint unset.
+- `deploy/posthog/install.sh` + `deploy/posthog/README.md` — PostHog server installer + docs.
+- `deploy/caddy/Caddyfile` — 4 site blocks: `{$SITE_ADDRESS}`, `{$STATUS_ADDRESS}`, `{$POSTHOG_ADDRESS}` (→ `host.docker.internal:8000`), `{$SIGNOZ_ADDRESS}` (→ `host.docker.internal:8080`).
+- `compose.yml` — `db`/`migrate`/`web`/`cron`/`backup`/`status`/`caddy` services; `web` has OTel envs + `extra_hosts`; `caddy` has `extra_hosts: host.docker.internal:host-gateway`.
+- `.env` (gitignored) — `STATUS_ADDRESS=status.localhost`, `POSTHOG_ADDRESS=posthog.localhost`, `SIGNOZ_ADDRESS=signoz.localhost`, empty OTel vars; `.env.example` — `STATUS_ADDRESS`/`POSTHOG_ADDRESS`/`SIGNOZ_ADDRESS=*.mojaride.net` + OTel block.
+- `apps/web/components/posthog-provider.tsx` + `apps/web/app/[locale]/layout.tsx` — web PostHog.
+- `apps/traveler-app/lib/posthog.ts` + `apps/traveler-app/app/_layout.tsx` — RN PostHog; `.env.local` has commented `EXPO_PUBLIC_POSTHOG_*` docs.
+- `apps/web/app/[locale]/layout.tsx` — `generateMetadata` metadataBase fix.
+- `deploy/backup/dump.sh` — `export PGPASSWORD` fix.
+- `context/trackers/production-deployment-report.md` — phase/T-list/risk/decision statuses.
+
+## Known State
+- Prisma 7 (`^7.8.0`), `@prisma/adapter-pg`, `prisma.config.ts` in `packages/db`; lockfile `pnpm-lock.yaml`.
+- Web test script is a hardcoded tsx file list in `apps/web/package.json`; new test FILES must be added there.
+- `exactOptionalPropertyTypes: true` on web; `process.env.*` must use bracket access (TS4111).
+- Biome full-app `lint` scripts report many PRE-EXISTING errors (177 web / 115 traveler) — check only touched files with the local `node_modules/.bin/biome.cmd`; traveler-app biome must run from `apps/traveler-app` (nested root config).
+- Web Docker build: `DATABASE_URL` build-arg required (R2); `DATABASE_URL_BUILD` (Neon) feeds build-time only.
+- PostHog stack (~25 services / 16GB RAM) and SigNoz (ClickHouse Keeper) are NOT bootable on this Docker Desktop — deploy to the Linux VM only.
 
 ## Completed Work
 - **`components/locale-switcher.tsx`**: added optional `className` prop merged via `cn` into the trigger Button (default styling unchanged — backward compatible).

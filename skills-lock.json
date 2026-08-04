@@ -5,13 +5,19 @@
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/best-practices/SKILL.md",
-      "computedHash": "9ab075b5061be2a5f299c10505667345cc1ec76e8de4120901cfd586643e776f"
+      "computedHash": "e8b46af23c6b1bc7aefdae3cf816368058c05e46eadb9bdca4f744b17d05a866"
     },
     "better-auth-security-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "security/SKILL.md",
-      "computedHash": "ed38caef4b297cc399d717258d6ea4e6ecb8894c453c83450064c7e7c6e5cc02"
+      "computedHash": "087c1094fa5f1834af4785c058dcc8c9abe4c1321b853883c76ea46c93a21cfe"
+    },
+    "create-auth": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/create-auth/SKILL.md",
+      "computedHash": "cf5d2c852c66269dc350dec0db8cfb07634a2310aee5be1bfd7e643dca72f22e"
     },
     "create-auth-skill": {
       "source": "better-auth/skills",
@@ -84,7 +90,7 @@
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/organization/SKILL.md",
-      "computedHash": "fa7a76e45a1f9632e6d63e92b476cf566e64f6e93a2c8ee00bc77b4a74008fbd"
+      "computedHash": "f8ea75816a22992c1601c21c0ee3ff8209798065072d76aec3e31eea8295af57"
     },
     "prisma-cli": {
       "source": "prisma/skills",
@@ -144,7 +150,7 @@
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/twoFactor/SKILL.md",
-      "computedHash": "c4f3a299c62c1985b774b7c28e53b7e55c565dbf973fd52b08899e4bcfffa3f9"
+      "computedHash": "cfe69aad10d4d7b397fbc101630afd9361b385b5f6f83056f33f36ab3b736fcb"
     }
   }
 }

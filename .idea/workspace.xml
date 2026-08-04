@@ -5,41 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4f1351ad-4d4d-4706-9835-a4271b138320" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.dockerignore" beforeDir="false" afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/scripts/reset-project.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/app/_layout.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/app/explore.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/app/index.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/animated-icon.module.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/animated-icon.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/animated-icon.web.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/app-tabs.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/app-tabs.web.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/external-link.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/hint-row.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/themed-text.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/themed-view.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/ui/collapsible.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/components/web-badge.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/constants/theme.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/global.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-color-scheme.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-color-scheme.web.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/src/hooks/use-theme.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app-2/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app-2/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/auth/views/login-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/auth/views/login-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/danger-zone-row.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/danger-zone-row.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/lib/auth-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/lib/auth-client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/metro.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/metro.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/settings/components/drawers/bank-drawer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/settings/components/drawers/bank-drawer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/settings/components/views/banking-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/settings/components/views/banking-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/next.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/bookings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/bookings.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/tickets.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/tickets.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/lib/i18n.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/lib/i18n.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/lib/trpc.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/lib/trpc.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/types/i18n.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/types/i18n.d.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

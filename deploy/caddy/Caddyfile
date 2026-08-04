@@ -1,0 +1,86 @@
+# Moja Buss — production reverse proxy (Caddy)
+# SITE_ADDRESS / STATUS_ADDRESS are injected from the compose `.env`
+# (e.g. mojaride.net / status.mojaride.net, or localhost for a local smoke
+# test). Caddy auto-provisions Let's Encrypt certificates for public domains
+# and uses its internal CA for `localhost`.
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	reverse_proxy web:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Uptime Kuma status page (public subdomain — password-protected dashboard).
+{$STATUS_ADDRESS} {
+	encode zstd gzip
+
+	reverse_proxy status:3001
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Self-hosted PostHog (separate compose project in deploy/posthog/). Its web
+# app listens on 127.0.0.1:8000 on the host; PostHog's own Caddy is disabled.
+# host.docker.internal is mapped to the host gateway in compose.yml (extra_hosts).
+{$POSTHOG_ADDRESS} {
+	encode zstd gzip
+
+	reverse_proxy host.docker.internal:8000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Self-hosted SigNoz (separate compose project in deploy/signoz/, installed via
+# Foundry). The SigNoz UI/API listens on 127.0.0.1:8080 on the host. OTLP traces
+# go straight from web to the ingester on host.docker.internal:4318 (see
+# OTEL_EXPORTER_OTLP_TRACES_ENDPOINT in the compose .env).
+{$SIGNOZ_ADDRESS} {
+	encode zstd gzip
+
+	reverse_proxy host.docker.internal:8080
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

@@ -73,6 +73,7 @@
 		"i18next": "^25.10.10",
 		"lucide-react-native": "^1.21.0",
 		"nativewind": "preview",
+		"posthog-react-native": "^4.61.4",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
 		"react-i18next": "^16.6.6",

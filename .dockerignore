@@ -56,6 +56,10 @@ context
 docs
 *.md
 
+# Compose + cron/caddy sidecar assets — not needed to build the web image
+deploy
+compose.yml
+
 # Mobile apps — heavy build artifacts only; source stays so `pnpm install
 # --frozen-lockfile` can resolve the workspace importers
 apps/traveler-app/android

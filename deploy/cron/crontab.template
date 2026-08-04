@@ -1,0 +1,10 @@
+# Moja Buss — production cron jobs (self-hosted replacement for Vercel crons).
+# Source schedules: apps/web/vercel.json. Times are staggered to avoid DB
+# contention at 00:00. Each job calls the web service with the cron secret.
+# __CRON_SECRET__ is substituted by entrypoint.sh at container start.
+0 0 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/reconcile-payments
+5 0 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/release-reservations
+10 0 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/snapshot-accounts
+15 0 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/publish-blogs
+0 1 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/release-escrow
+0 2 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/generate-trips

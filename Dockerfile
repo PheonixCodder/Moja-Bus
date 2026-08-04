@@ -79,6 +79,25 @@ RUN cp -r apps/web/public apps/web/.next/standalone/apps/web/public \
  && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
 
 ###############################################################################
+# migrate — one-shot DB migration job (prisma migrate deploy only)
+#
+# The legacy apps/web/migrations/001_foundation_constraints.sql runner is NOT
+# executed here: it targets PascalCase tables ("Company", "Operator", ...) that
+# no longer exist in the schema (the models use @@map to snake_case). None of
+# its objects (AuditLog, version columns, UTC/timezone functions) are
+# referenced by app code, and it was never successfully re-run after the
+# @@map refactor. schema.prisma + the versioned 0_init migration are the
+# source of truth.
+###############################################################################
+FROM builder AS migrate
+RUN apk add --no-cache postgresql-client
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sh", "-c", "\
+  pnpm --dir packages/db exec prisma migrate deploy \
+"]
+
+###############################################################################
 # runner — minimal production image (non-root)
 ###############################################################################
 FROM node:22-alpine AS runner
@@ -100,6 +119,6 @@ USER nextjs
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-    CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
+    CMD wget -qO- http://127.0.0.1:3000/api/health >/dev/null 2>&1 || exit 1
 
 CMD ["node", "apps/web/server.js"]

@@ -8,8 +8,8 @@ const handler = (req: Request) =>
     endpoint: "/api/trpc",
     req,
     router: appRouter,
-    createContext: async () => {
-      return createContextFromHeaders(req.headers);
+    createContext: async (opts) => {
+      return createContextFromHeaders(req.headers, opts.resHeaders);
     },
   });
 

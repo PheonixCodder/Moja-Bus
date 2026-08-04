@@ -4,16 +4,22 @@ import superjson from "superjson";
 import { getPrismaClient } from "@moja/db";
 import { auth } from "@/lib/auth-server";
 
-export async function createContextFromHeaders(headers: Headers) {
-  const session = await auth.api.getSession({
+export async function createContextFromHeaders(headers: Headers, resHeaders?: Headers) {
+  const { headers: res, response } = await auth.api.getSession({
     headers,
+    returnHeaders: true,
   });
+
+  if (res && resHeaders) {
+    for (const cookie of res.getSetCookie()) {
+      resHeaders.append("Set-Cookie", cookie);
+    }
+  }
 
   return {
     prisma: getPrismaClient(),
-    user: session?.user,
+    user: response?.user,
     headers,
-    // Per-request cache — cleared on every new request, never stale across requests
     _cache: new Map<string, unknown>(),
   };
 }
