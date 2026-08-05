@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryStates } from "nuqs";
+import { useTranslations } from "next-intl";
 import { bankAccessLogSearchParams } from "../../../lib/search-params";
 import {
   Select,
@@ -14,6 +15,7 @@ import { X } from "lucide-react";
 import { Input } from "@moja/ui/components/ui/input";
 
 export function BankAccessLogsFilters() {
+  const t = useTranslations("adminDashboard.bankAccessLogsFilters");
   const [{ action, companyId, userId }, setFilters] = useQueryStates(
     bankAccessLogSearchParams
   );
@@ -29,18 +31,18 @@ export function BankAccessLogsFilters() {
         }}
       >
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="All Actions" />
+          <SelectValue placeholder={t("allActions")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__all__">All Actions</SelectItem>
-          <SelectItem value="VIEW_FULL">Decryption (VIEW_FULL)</SelectItem>
-          <SelectItem value="CREATE">Creation (CREATE)</SelectItem>
-          <SelectItem value="UPDATE">Modification (UPDATE)</SelectItem>
+          <SelectItem value="__all__">{t("allActions")}</SelectItem>
+          <SelectItem value="VIEW_FULL">{t("decryptionViewFull")}</SelectItem>
+          <SelectItem value="CREATE">{t("creationCreate")}</SelectItem>
+          <SelectItem value="UPDATE">{t("modificationUpdate")}</SelectItem>
         </SelectContent>
       </Select>
 
       <Input
-        placeholder="Filter by Company ID..."
+        placeholder={t("filterByCompanyId")}
         value={companyId || ""}
         onChange={(e) =>
           setFilters({ companyId: e.target.value || null, page: 0 })
@@ -49,7 +51,7 @@ export function BankAccessLogsFilters() {
       />
       
       <Input
-        placeholder="Filter by User ID..."
+        placeholder={t("filterByUserId")}
         value={userId || ""}
         onChange={(e) =>
           setFilters({ userId: e.target.value || null, page: 0 })
@@ -67,7 +69,7 @@ export function BankAccessLogsFilters() {
           className="h-9 px-2.5 text-muted-foreground"
         >
           <X className="h-4 w-4 mr-1" />
-          Reset
+          {t("reset")}
         </Button>
       )}
     </div>

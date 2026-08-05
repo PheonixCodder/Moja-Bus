@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryState, parseAsInteger } from "nuqs";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Search,
   Building,
@@ -48,6 +49,8 @@ import { OperatorOnboardingFunnel } from "../components/operator-onboarding-funn
 export function AdminVerificationsView() {
   const trpc = useTRPC();
   const router = useRouter();
+  const t = useTranslations("adminDashboard.adminVerificationsView");
+  const columnsT = useTranslations("adminDashboard.verificationsColumns");
 
   // Search parameters managed by nuqs
   const [searchQuery, setSearchQuery] = useQueryState("q", { defaultValue: "" });
@@ -96,6 +99,7 @@ export function AdminVerificationsView() {
       onApprove: handleApproveClick,
       onReject: handleRejectClick,
       isApproving: isApproveOpen,
+      t: columnsT,
     }),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -116,7 +120,7 @@ export function AdminVerificationsView() {
             <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search by name, tax ID, or rep..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value || "");
@@ -128,7 +132,7 @@ export function AdminVerificationsView() {
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Building className="size-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Status:</span>
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{t("status")}</span>
             <Select
               value={statusFilter}
               onValueChange={(value) => {
@@ -137,16 +141,16 @@ export function AdminVerificationsView() {
               }}
             >
               <SelectTrigger size="sm" className="h-9 w-full sm:w-48 bg-white text-slate-800 text-xs" id="status-filter-select">
-                <SelectValue placeholder="Select Status" />
+                <SelectValue placeholder={t("allStatuses")} />
               </SelectTrigger>
               <SelectContent className="bg-white border border-border shadow-md rounded">
                 <SelectGroup>
-                  <SelectItem value="ALL">All Statuses</SelectItem>
-                  <SelectItem value="PENDING_VERIFICATION">Pending Verification</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
-                  <SelectItem value="REJECTED">Rejected</SelectItem>
-                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                  <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
+                  <SelectItem value="PENDING_VERIFICATION">{t("pendingVerification")}</SelectItem>
+                  <SelectItem value="ACTIVE">{t("active")}</SelectItem>
+                  <SelectItem value="DRAFT">{t("draft")}</SelectItem>
+                  <SelectItem value="REJECTED">{t("rejected")}</SelectItem>
+                  <SelectItem value="SUSPENDED">{t("suspended")}</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

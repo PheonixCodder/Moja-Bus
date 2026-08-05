@@ -2,6 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryStates } from "nuqs";
+import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { useTRPC } from "@/trpc/client";
 import { bankAccessLogSearchParams } from "../../../lib/search-params";
@@ -18,6 +19,7 @@ import { BankAccessLogsPagination } from "./bank-access-logs-pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 
 export function BankAccessLogsTable() {
+  const t = useTranslations("adminDashboard.bankAccessLogsTable");
   const [params] = useQueryStates(bankAccessLogSearchParams);
   const trpc = useTRPC();
 
@@ -42,9 +44,9 @@ export function BankAccessLogsTable() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
-        <h3 className="text-sm font-medium">No records found</h3>
+        <h3 className="text-sm font-medium">{t("noRecords")}</h3>
         <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-          No bank access logs match your current filters. Adjust your filters or clear them to see more results.
+          {t("noRecordsDescription")}
         </p>
       </div>
     );
@@ -56,11 +58,11 @@ export function BankAccessLogsTable() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[180px] pl-4">Timestamp</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Target Company</TableHead>
-              <TableHead>User / Actor</TableHead>
-              <TableHead className="pr-4 text-right">IP Address</TableHead>
+              <TableHead className="w-[180px] pl-4">{t("timestamp")}</TableHead>
+              <TableHead>{t("action")}</TableHead>
+              <TableHead>{t("targetCompany")}</TableHead>
+              <TableHead>{t("userActor")}</TableHead>
+              <TableHead className="pr-4 text-right">{t("ipAddress")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

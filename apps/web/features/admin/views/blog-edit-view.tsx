@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Save,
@@ -57,7 +58,7 @@ const MdxEditorWrapper = dynamic(
   }
 );
 
-// ─── Zod schema ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Zod schema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const editPostSchema = z
   .object({
@@ -103,7 +104,7 @@ const editPostSchema = z
 
 type EditPostFormValues = z.infer<typeof editPostSchema>;
 
-// ─── Status config ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Status config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STATUS_CONFIG = {
   PUBLISHED: { icon: Globe, cls: "bg-emerald-50 text-emerald-700 border-emerald-200", label: "Published" },
@@ -113,7 +114,7 @@ const STATUS_CONFIG = {
   ARCHIVED: { icon: Archive, cls: "bg-red-50 text-red-700 border-red-200", label: "Archived" },
 } as const;
 
-// ─── Tab content components ───────────────────────────────────────────────────
+// â”€â”€â”€ Tab content components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">{children}</p>;
@@ -123,12 +124,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="text-[10px] font-extrabold text-slate-800 uppercase tracking-widest mb-2">{children}</p>;
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function BlogEditView({ postId }: { postId: string }) {
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const t = useTranslations("adminDashboard.blogEditView");
 
   const { data: post } = useSuspenseQuery(
     trpc.admin.getBlogPostById.queryOptions({ id: postId })
@@ -248,19 +250,19 @@ export function BlogEditView({ postId }: { postId: string }) {
   const cfg = STATUS_CONFIG[watchedStatus] ?? STATUS_CONFIG.DRAFT;
   const StatusIcon = cfg.icon;
 
-  // ── Sidebar Tab state (manual tabs to avoid layout conflicts) ──
+  // â”€â”€ Sidebar Tab state (manual tabs to avoid layout conflicts) â”€â”€
   const [activeTab, setActiveTab] = useState<"post" | "settings" | "seo">("post");
   const [tagSearch, setTagSearch] = useState("");
 
   const tabs = [
-    { id: "post" as const, label: "Post", icon: BookOpen },
-    { id: "settings" as const, label: "Settings", icon: Settings2 },
-    { id: "seo" as const, label: "SEO", icon: Search },
+    { id: "post" as const, label: t("post"), icon: BookOpen },
+    { id: "settings" as const, label: t("settings"), icon: Settings2 },
+    { id: "seo" as const, label: t("seo"), icon: Search },
   ];
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="h-full flex flex-col overflow-hidden bg-white">
-      {/* ── Top Bar ── */}
+      {/* â”€â”€ Top Bar â”€â”€ */}
       <div className="flex items-center justify-between px-5 py-2.5 border-b border-slate-200 bg-white shrink-0 z-10">
         <div className="flex items-center gap-3 min-w-0">
           <Button
@@ -274,11 +276,11 @@ export function BlogEditView({ postId }: { postId: string }) {
           </Button>
           <div className="min-w-0 flex items-center gap-2">
             <p className="text-sm font-semibold text-slate-900 truncate max-w-xs">
-              {watch("title") || "Untitled Post"}
+              {watch("title") || t("untitledPost")}
             </p>
             {isDirty && (
               <Badge className="bg-amber-50 text-amber-600 border-amber-200 text-[10px] font-bold shrink-0 py-0">
-                Unsaved
+                {t("unsaved")}
               </Badge>
             )}
           </div>
@@ -298,9 +300,9 @@ export function BlogEditView({ postId }: { postId: string }) {
             disabled={updatePost.isPending}
           >
             {updatePost.isPending ? <Spinner className="size-3.5" /> : <Save className="size-3.5" />}
-            Save
+{t("save")}
             <kbd className="hidden sm:inline-flex items-center text-[10px] text-slate-400 font-mono ml-0.5 gap-0.5">
-              ⌘S
+              âŒ˜S
             </kbd>
           </Button>
 
@@ -314,12 +316,12 @@ export function BlogEditView({ postId }: { postId: string }) {
             }}
           >
             <Globe className="size-3.5" />
-            {watchedStatus === "PUBLISHED" ? "Published" : "Publish"}
+            {watchedStatus === "PUBLISHED" ? t("published") : t("publish")}
           </Button>
         </div>
       </div>
 
-      {/* ── Main Area (70% content, 30% settings) ── */}
+      {/* â”€â”€ Main Area (70% content, 30% settings) â”€â”€ */}
       <div className="flex-1 flex overflow-hidden w-full">
         {/* Editor Column (70%) */}
         <div className="w-[70%] min-w-0 h-full overflow-y-auto overflow-x-hidden p-6 space-y-5 flex flex-col">
@@ -327,7 +329,7 @@ export function BlogEditView({ postId }: { postId: string }) {
             <div>
               <input
                 {...register("title")}
-                placeholder="Post title..."
+                placeholder={t("postTitle")}
                 className="w-full text-[28px] font-bold text-slate-900 placeholder-slate-300 bg-transparent border-none outline-none leading-tight"
               />
               {errors.title && (
@@ -341,7 +343,7 @@ export function BlogEditView({ postId }: { postId: string }) {
 
             {/* MDX Content */}
             <div className="space-y-2 min-w-0 w-full">
-              <FieldLabel>Content</FieldLabel>
+              <FieldLabel>{t("content")}</FieldLabel>
               <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white w-full min-w-0">
                 <Controller
                   name="content"
@@ -361,12 +363,12 @@ export function BlogEditView({ postId }: { postId: string }) {
             {/* Excerpt */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <FieldLabel>Excerpt</FieldLabel>
+                <FieldLabel>{t("excerpt")}</FieldLabel>
                 <span className="text-[10px] text-slate-400">{(watchedExcerpt ?? "").length}/500</span>
               </div>
               <Textarea
                 {...register("excerpt")}
-                placeholder="Brief summary for social sharing and blog index..."
+                placeholder={t("briefSummaryForSocialSharing")}
                 className="resize-none text-sm min-h-[80px]"
                 rows={3}
               />
@@ -399,11 +401,11 @@ export function BlogEditView({ postId }: { postId: string }) {
             {/* Tab content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
-              {/* ── POST TAB ── */}
+              {/* â”€â”€ POST TAB â”€â”€ */}
               {activeTab === "post" && (
                 <>
                   <div className="space-y-1.5">
-                    <SectionLabel>Status</SectionLabel>
+                    <SectionLabel>{t("status")}</SectionLabel>
                     <Controller
                       name="status"
                       control={control}
@@ -415,27 +417,27 @@ export function BlogEditView({ postId }: { postId: string }) {
                           <SelectContent>
                             <SelectItem value="DRAFT">
                               <div className="flex items-center gap-2">
-                                <FileText className="size-3.5 text-slate-500" /> Draft
+                                <FileText className="size-3.5 text-slate-500" /> {t("draft")}
                               </div>
                             </SelectItem>
                             <SelectItem value="REVIEW">
                               <div className="flex items-center gap-2">
-                                <Eye className="size-3.5 text-yellow-500" /> In Review
+                                <Eye className="size-3.5 text-yellow-500" /> {t("inReview")}
                               </div>
                             </SelectItem>
                             <SelectItem value="SCHEDULED">
                               <div className="flex items-center gap-2">
-                                <Clock className="size-3.5 text-indigo-500" /> Scheduled
+                                <Clock className="size-3.5 text-indigo-500" /> {t("scheduled")}
                               </div>
                             </SelectItem>
                             <SelectItem value="PUBLISHED">
                               <div className="flex items-center gap-2">
-                                <Globe className="size-3.5 text-emerald-500" /> Published
+                                <Globe className="size-3.5 text-emerald-500" /> {t("published")}
                               </div>
                             </SelectItem>
                             <SelectItem value="ARCHIVED">
                               <div className="flex items-center gap-2">
-                                <Archive className="size-3.5 text-red-500" /> Archived
+                                <Archive className="size-3.5 text-red-500" /> {t("archived")}
                               </div>
                             </SelectItem>
                           </SelectContent>
@@ -446,7 +448,7 @@ export function BlogEditView({ postId }: { postId: string }) {
 
                   {watchedStatus === "SCHEDULED" && (
                     <div className="space-y-1.5">
-                      <SectionLabel>Publish Date & Time</SectionLabel>
+                      <SectionLabel>{t("publishDateAndTime")}</SectionLabel>
                       <Controller
                         name="scheduledFor"
                         control={control}
@@ -454,7 +456,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                           <DateTimePicker
                             value={field.value ? new Date(field.value) : undefined}
                             onChange={(date) => field.onChange(date ? date.toISOString().slice(0, 16) : "")}
-                            placeholder="Select publication time"
+                            placeholder={t("selectPublicationTime")}
                             className="bg-white text-sm"
                           />
                         )}
@@ -465,8 +467,8 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Separator />
 
                   <div className="space-y-1.5">
-                    <SectionLabel>URL Slug</SectionLabel>
-                    <Input {...register("slug")} placeholder="my-post-slug" className="h-9 text-sm font-mono bg-white" />
+                    <SectionLabel>{t("urlSlug")}</SectionLabel>
+                    <Input {...register("slug")} placeholder={t("myPostSlug")} className="h-9 text-sm font-mono bg-white" />
                     {errors.slug && (
                       <p className="flex items-center gap-1 text-[10px] text-red-600">
                         <AlertCircle className="size-3" /> {errors.slug.message}
@@ -477,14 +479,14 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Separator />
 
                   <div className="space-y-3">
-                    <SectionLabel>Author — {post.author?.fullName ?? "Unknown"}</SectionLabel>
+                    <SectionLabel>{t("author")} — {post.author?.fullName ?? "Unknown"}</SectionLabel>
                     <div className="space-y-1.5">
-                      <FieldLabel>Display Name Override</FieldLabel>
-                      <Input {...register("displayAuthorName")} placeholder="Override name..." className="h-8 text-sm bg-white" />
+                      <FieldLabel>{t("displayNameOverride")}</FieldLabel>
+                      <Input {...register("displayAuthorName")} placeholder={t("overrideName")} className="h-8 text-sm bg-white" />
                     </div>
                     <div className="space-y-1.5">
-                      <FieldLabel>Bio Override</FieldLabel>
-                      <Textarea {...register("displayAuthorBio")} placeholder="Override bio..." className="text-sm resize-none min-h-[56px] bg-white" rows={2} />
+                      <FieldLabel>{t("bioOverride")}</FieldLabel>
+                      <Textarea {...register("displayAuthorBio")} placeholder={t("overrideBio")} className="text-sm resize-none min-h-[56px] bg-white" rows={2} />
                     </div>
                   </div>
 
@@ -492,22 +494,22 @@ export function BlogEditView({ postId }: { postId: string }) {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-white rounded-lg border border-slate-200 p-3">
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Views</p>
+                      <FieldLabel>{t("views")}</FieldLabel>
                       <p className="text-xl font-bold text-slate-900 mt-0.5">{post.viewCount.toLocaleString()}</p>
                     </div>
                     <div className="bg-white rounded-lg border border-slate-200 p-3">
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Words</p>
+                      <FieldLabel>{t("words")}</FieldLabel>
                       <p className="text-xl font-bold text-slate-900 mt-0.5">{post.wordCount.toLocaleString()}</p>
                     </div>
                   </div>
                 </>
               )}
 
-              {/* ── SETTINGS TAB ── */}
+              {/* â”€â”€ SETTINGS TAB â”€â”€ */}
               {activeTab === "settings" && (
                 <>
                   <div className="space-y-1.5">
-                    <SectionLabel>Category</SectionLabel>
+                    <SectionLabel>{t("category")}</SectionLabel>
                     <Controller
                       name="categoryId"
                       control={control}
@@ -517,11 +519,11 @@ export function BlogEditView({ postId }: { postId: string }) {
                           onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}
                         >
                           <SelectTrigger className="w-full h-9 text-sm bg-white">
-                            <SelectValue placeholder="No category" />
+                            <SelectValue placeholder={t("noCategory")} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__none__">
-                              <span className="text-slate-400">No category</span>
+                              <span className="text-slate-400">{t("noCategory")}</span>
                             </SelectItem>
                             {categories.map((cat) => (
                               <SelectItem key={cat.id} value={cat.id}>
@@ -537,7 +539,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Separator />
 
                   <div className="space-y-2">
-                    <SectionLabel>Tags</SectionLabel>
+                    <SectionLabel>{t("tags")}</SectionLabel>
                     <Controller
                       name="tagIds"
                       control={control}
@@ -562,7 +564,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                             {/* Selected tag badges */}
                             <div className="flex flex-wrap gap-1.5 min-h-[26px] p-2 rounded-lg border border-slate-200 bg-white shadow-3xs">
                               {field.value.length === 0 ? (
-                                <span className="text-[10px] text-slate-400 italic">No tags selected</span>
+                                <span className="text-[10px] text-slate-400 italic">{t("noTagsSelected")}</span>
                               ) : (
                                 allTags
                                   .filter((t) => selectedIds.has(t.id))
@@ -585,7 +587,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                               <Search className="absolute left-2.5 top-2 size-3 text-slate-400" />
                               <Input
                                 type="text"
-                                placeholder="Search tags to add..."
+                                placeholder={t("searchTagsToAdd")}
                                 value={tagSearch}
                                 onChange={(e) => setTagSearch(e.target.value)}
                                 className="h-7 pl-7 text-[11px] bg-white border-slate-200"
@@ -604,7 +606,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                             {/* Tags list options */}
                             <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-lg p-1.5 bg-white space-y-1">
                               {filteredTags.length === 0 ? (
-                                <p className="text-[10px] text-slate-400 text-center py-2">No matching tags found</p>
+                                <p className="text-[10px] text-slate-400 text-center py-2">{t("noMatchingTagsFound")}</p>
                               ) : (
                                 filteredTags.map((tag) => {
                                   const isSelected = selectedIds.has(tag.id);
@@ -624,7 +626,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                                         {tag.name}
                                       </span>
                                       {isSelected && (
-                                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Added</span>
+                                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{t("added")}</span>
                                       )}
                                     </button>
                                   );
@@ -640,11 +642,11 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Separator />
 
                   <div className="space-y-3">
-                    <SectionLabel>Feature Flags</SectionLabel>
+                    <SectionLabel>{t("featureFlags")}</SectionLabel>
                     {([
-                      { name: "featured" as const, label: "Featured", desc: "Pin to homepage" },
-                      { name: "allowIndex" as const, label: "Allow Indexing", desc: "Let search engines index" },
-                      { name: "allowComments" as const, label: "Allow Comments", desc: "Enable comment section" },
+                      { name: "featured" as const, label: t("featured"), desc: t("pinToHomepage") },
+                      { name: "allowIndex" as const, label: t("allowIndexing"), desc: t("letSearchEnginesIndex") },
+                      { name: "allowComments" as const, label: t("allowComments"), desc: t("enableCommentSection") },
                     ]).map(({ name, label, desc }) => (
                       <div key={name} className="flex items-center justify-between">
                         <div>
@@ -665,17 +667,17 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Separator />
 
                   <div className="space-y-3">
-                    <SectionLabel>Cover Image</SectionLabel>
+                    <SectionLabel>{t("coverImage")}</SectionLabel>
                     {(["coverImage", "coverImageAlt", "coverImageCredit"] as const).map((f) =>
                       f === "coverImage" ? (
                         <div key={f} className="space-y-1">
-                          <FieldLabel>Image</FieldLabel>
+                          <FieldLabel>{t("image")}</FieldLabel>
                           <ImageUploadField
                             purpose="blog-cover"
                             value={watch("coverImage") || null}
                             onUploaded={(r) => setValue("coverImage", r.fileUrl)}
-                            label="Upload cover"
-                            hint="PNG or JPG, up to 5MB"
+                            label={t("uploadCover")}
+                            hint={t("pngOrJpgUpTo5mb")}
                             shape="square"
                             previewClassName="h-28 w-48"
                           />
@@ -683,11 +685,11 @@ export function BlogEditView({ postId }: { postId: string }) {
                       ) : (
                         <div key={f} className="space-y-1">
                           <FieldLabel>
-                            {f === "coverImageAlt" ? "Alt Text" : "Credit"}
+                            {f === "coverImageAlt" ? t("altText") : t("credit")}
                           </FieldLabel>
                           <Input
                             {...register(f)}
-                            placeholder={f === "coverImageAlt" ? "Descriptive alt text..." : "Photo by / Unsplash"}
+                            placeholder={f === "coverImageAlt" ? t("descriptiveAltText") : t("photoByUnsplash")}
                             className="h-8 text-sm bg-white"
                           />
                           {errors[f] && <p className="text-[10px] text-red-600">{errors[f]?.message}</p>}
@@ -698,56 +700,56 @@ export function BlogEditView({ postId }: { postId: string }) {
                 </>
               )}
 
-              {/* ── SEO TAB ── */}
+              {/* â”€â”€ SEO TAB â”€â”€ */}
               {activeTab === "seo" && (
                 <>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <SectionLabel>SEO Title</SectionLabel>
+                      <SectionLabel>{t("seoTitle")}</SectionLabel>
                       <span className={`text-[10px] font-bold ${(watchedSeoTitle?.length ?? 0) > 60 ? "text-amber-600" : "text-slate-400"}`}>
                         {watchedSeoTitle?.length ?? 0}/70
                       </span>
                     </div>
-                    <Input {...register("seoTitle")} placeholder="Override title in search results..." className="h-9 text-sm bg-white" />
+                    <Input {...register("seoTitle")} placeholder={t("overrideTitleInSearchResults")} className="h-9 text-sm bg-white" />
                     {errors.seoTitle && <p className="text-[10px] text-red-600">{errors.seoTitle.message}</p>}
                   </div>
 
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <SectionLabel>SEO Description</SectionLabel>
+                      <SectionLabel>{t("seoDescription")}</SectionLabel>
                       <span className={`text-[10px] font-bold ${(watchedSeoDescription?.length ?? 0) > 140 ? "text-amber-600" : "text-slate-400"}`}>
                         {watchedSeoDescription?.length ?? 0}/160
                       </span>
                     </div>
-                    <Textarea {...register("seoDescription")} placeholder="Meta description shown in search results..." className="resize-none text-sm min-h-[72px] bg-white" rows={3} />
+                    <Textarea {...register("seoDescription")} placeholder={t("metaDescriptionShownInSearch")} className="resize-none text-sm min-h-[72px] bg-white" rows={3} />
                     {errors.seoDescription && <p className="text-[10px] text-red-600">{errors.seoDescription.message}</p>}
                   </div>
 
                   <div className="space-y-1.5">
-                    <SectionLabel>Canonical URL</SectionLabel>
-                    <Input {...register("canonicalUrl")} placeholder="https://..." className="h-9 text-sm bg-white" />
+                    <SectionLabel>{t("canonicalUrl")}</SectionLabel>
+                    <Input {...register("canonicalUrl")} placeholder={t("https")} className="h-9 text-sm bg-white" />
                     {errors.canonicalUrl && <p className="text-[10px] text-red-600">{errors.canonicalUrl.message}</p>}
                   </div>
 
                   <div className="space-y-1.5">
-                    <SectionLabel>OG Image URL</SectionLabel>
-                    <Input {...register("ogImage")} placeholder="https://..." className="h-9 text-sm bg-white" />
+                    <SectionLabel>{t("ogImageUrl")}</SectionLabel>
+                    <Input {...register("ogImage")} placeholder={t("https")} className="h-9 text-sm bg-white" />
                     {errors.ogImage && <p className="text-[10px] text-red-600">{errors.ogImage.message}</p>}
                   </div>
 
                   <Separator />
 
                   <div className="space-y-3">
-                    <SectionLabel>Twitter Card</SectionLabel>
+                    <SectionLabel>{t("twitterCard")}</SectionLabel>
                     {(["twitterTitle", "twitterDescription", "twitterImage"] as const).map((f) => (
                       <div key={f} className="space-y-1">
                         <FieldLabel>
-                          {f === "twitterTitle" ? "Twitter Title" : f === "twitterDescription" ? "Description" : "Image URL"}
+                          {f === "twitterTitle" ? t("twitterTitle") : f === "twitterDescription" ? t("twitterDescription") : t("twitterImageUrl")}
                         </FieldLabel>
                         {f === "twitterDescription" ? (
-                          <Textarea {...register(f)} placeholder="Twitter description..." className="resize-none text-sm min-h-[56px] bg-white" rows={2} />
+                          <Textarea {...register(f)} placeholder={t("twitterDescription")} className="resize-none text-sm min-h-[56px] bg-white" rows={2} />
                         ) : (
-                          <Input {...register(f)} placeholder={f === "twitterImage" ? "https://..." : "Twitter title..."} className="h-8 text-sm bg-white" />
+                          <Input {...register(f)} placeholder={f === "twitterImage" ? t("https") : t("twitterTitle")} className="h-8 text-sm bg-white" />
                         )}
                         {errors[f] && <p className="text-[10px] text-red-600">{errors[f]?.message}</p>}
                       </div>

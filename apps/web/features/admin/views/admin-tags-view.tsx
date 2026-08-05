@@ -24,8 +24,10 @@ import {
   DialogFooter,
 } from "@moja/ui/components/ui/dialog";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useTranslations } from "next-intl";
 
 export function AdminTagsView() {
+  const t = useTranslations("adminDashboard.adminTagsView");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,11 +44,11 @@ export function AdminTagsView() {
     ...trpc.admin.createBlogTag.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries(trpc.admin.listBlogTags.pathFilter());
-      toast.success("Tag created successfully");
+      toast.success(t("tagCreated"));
       resetForm();
     },
     onError: (err: any) => {
-      toast.error(err?.message ?? "Failed to create tag");
+      toast.error(err?.message ?? t("failedToCreate"));
     },
   });
 
@@ -54,11 +56,11 @@ export function AdminTagsView() {
     ...trpc.admin.updateBlogTag.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries(trpc.admin.listBlogTags.pathFilter());
-      toast.success("Tag updated successfully");
+      toast.success(t("tagUpdated"));
       resetForm();
     },
     onError: (err: any) => {
-      toast.error(err?.message ?? "Failed to update tag");
+      toast.error(err?.message ?? t("failedToUpdate"));
     },
   });
 
@@ -66,10 +68,10 @@ export function AdminTagsView() {
     ...trpc.admin.deleteBlogTag.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries(trpc.admin.listBlogTags.pathFilter());
-      toast.success("Tag deleted");
+      toast.success(t("tagDeleted"));
     },
     onError: (err: any) => {
-      toast.error(err?.message ?? "Failed to delete tag");
+      toast.error(err?.message ?? t("failedToDelete"));
     },
   });
 
@@ -97,7 +99,7 @@ export function AdminTagsView() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this tag? It will be removed from all posts using it.")) {
+    if (confirm(t("deleteConfirm"))) {
       deleteTag.mutate({ id });
     }
   };
@@ -106,8 +108,8 @@ export function AdminTagsView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Blog Tags</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Manage keywords used to label and filter blog content.</p>
+          <h2 className="text-xl font-bold text-slate-900">{t("title")}</h2>
+          <p className="text-xs text-slate-500 mt-0.5">{t("subtitle")}</p>
         </div>
         <Button
           onClick={() => {
@@ -117,7 +119,7 @@ export function AdminTagsView() {
           className="gap-2 bg-slate-900 text-white hover:bg-slate-800 h-9 text-xs font-semibold"
         >
           <Plus className="size-4" />
-          Add Tag
+          {t("addTag")}
         </Button>
       </div>
 
@@ -125,16 +127,16 @@ export function AdminTagsView() {
         <Table>
           <TableHeader className="bg-slate-50/70">
             <TableRow>
-              <TableHead className="w-1/2 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Tag</TableHead>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">URL Slug</TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Actions</TableHead>
+              <TableHead className="w-1/2 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("tag")}</TableHead>
+              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("urlSlug")}</TableHead>
+              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tags.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center py-10 text-slate-400 text-xs">
-                  No tags found. Click "Add Tag" to get started.
+                  {t("noTags")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -158,7 +160,7 @@ export function AdminTagsView() {
                         className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900"
                       >
                         <Edit2 className="size-3.5" />
-                        <span className="sr-only">Edit</span>
+                        <span className="sr-only">{t("edit")}</span>
                       </Button>
                       <Button
                         onClick={() => handleDelete(tag.id)}
@@ -168,7 +170,7 @@ export function AdminTagsView() {
                         disabled={deleteTag.isPending}
                       >
                         <Trash2 className="size-3.5" />
-                        <span className="sr-only">Delete</span>
+                        <span className="sr-only">{t("delete")}</span>
                       </Button>
                     </div>
                   </TableCell>
@@ -187,24 +189,24 @@ export function AdminTagsView() {
                 <Hash className="size-4 text-white" />
               </div>
               <DialogTitle className="text-base font-bold text-slate-900">
-                {editingTag ? "Edit Tag" : "Add Tag"}
+                {editingTag ? t("editTag") : t("addTagTitle")}
               </DialogTitle>
             </div>
             <DialogDescription className="text-xs text-slate-500 leading-relaxed">
-              Create keywords to label posts (e.g. news, safety, travel).
+              {t("createKeywords")}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <div className="space-y-1">
               <label htmlFor="tag-name" className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
-                Name
+                {t("name")}
               </label>
               <Input
                 id="tag-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. travel-safety"
+                placeholder={t("namePlaceholder")}
                 className="h-9 text-sm bg-white"
                 required
                 autoFocus
@@ -219,7 +221,7 @@ export function AdminTagsView() {
                 onClick={resetForm}
                 disabled={createTag.isPending || updateTag.isPending}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 type="submit"
@@ -229,10 +231,10 @@ export function AdminTagsView() {
                 {createTag.isPending || updateTag.isPending ? (
                   <>
                     <Spinner className="mr-2 size-3.5 text-white" />
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
-                  "Save Tag"
+                  t("saveTag")
                 )}
               </Button>
             </DialogFooter>

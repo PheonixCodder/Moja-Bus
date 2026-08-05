@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useQueryStates } from "nuqs";
 import { useTRPC } from "@/trpc/client";
+import { useTranslations } from "next-intl";
 import { WithdrawalsKpiCards } from "../components/withdrawals-kpi-cards";
 import { WithdrawalsFilterBar } from "../components/withdrawals-filter-bar";
 import { WithdrawalsTable } from "../components/withdrawals-table";
@@ -17,6 +18,7 @@ const PAGE_SIZE = 15;
 export function AdminWithdrawalsView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const t = useTranslations("adminDashboard.adminWithdrawalsView");
   const [{ status, page, from, to }] = useQueryStates(
     withdrawalsSearchParams,
     { shallow: false }

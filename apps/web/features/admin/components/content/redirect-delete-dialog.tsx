@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
@@ -31,18 +32,19 @@ interface RedirectDeleteDialogProps {
 }
 
 export function RedirectDeleteDialog({ open, onOpenChange, redirect }: RedirectDeleteDialogProps) {
+  const t = useTranslations("adminDashboard.redirectDeleteDialog");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation(
     trpc.admin.deleteBlogRedirect.mutationOptions({
       onSuccess: () => {
-        toast.success("Redirect deleted successfully");
+        toast.success(t("deleteSuccess"));
         queryClient.invalidateQueries(trpc.admin.listBlogRedirects.pathFilter());
         onOpenChange(false);
       },
       onError: (error: any) => {
-        toast.error(error.message || "Failed to delete redirect");
+        toast.error(error.message || t("deleteError"));
       },
     })
   );
@@ -56,17 +58,13 @@ export function RedirectDeleteDialog({ open, onOpenChange, redirect }: RedirectD
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>{t("title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the redirect from{" "}
-            <span className="font-mono text-slate-700 font-medium">
-              {redirect?.source}
-            </span>
-            . Any incoming traffic to that old URL will start throwing 404 Not Found errors unless a new redirect is created.
+            {t("description", { source: redirect?.source ?? "" })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleteMutation.isPending}>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -75,7 +73,7 @@ export function RedirectDeleteDialog({ open, onOpenChange, redirect }: RedirectD
             className={buttonVariants({ variant: "destructive" })}
             disabled={deleteMutation.isPending}
           >
-            {deleteMutation.isPending ? "Deleting..." : "Delete Redirect"}
+            {deleteMutation.isPending ? t("deleting") : t("deleteRedirect")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

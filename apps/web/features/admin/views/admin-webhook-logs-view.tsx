@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@moja/ui/components/ui/card";
 import { WebhookLogsFilters } from "../components/audit/webhooks/webhook-logs-filters";
 import { WebhookLogsTable } from "../components/audit/webhooks/webhook-logs-table";
@@ -16,6 +17,8 @@ function TableFallback() {
 }
 
 export function AdminWebhookLogsView() {
+  const t = useTranslations("adminDashboard.adminWebhookLogsView");
+
   return (
     <div className="space-y-6">
       <Card className="p-4 bg-muted/30 border-dashed">

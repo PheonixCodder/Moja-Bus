@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryStates } from "nuqs";
+import { useTranslations } from "next-intl";
 import { webhookLogsSearchParams } from "../../../lib/search-params";
 import { Input } from "@moja/ui/components/ui/input";
 import { Search } from "lucide-react";
@@ -13,6 +14,7 @@ import {
 } from "@moja/ui/components/ui/select";
 
 export function WebhookLogsFilters() {
+  const t = useTranslations("adminDashboard.webhookLogsFilters");
   const [params, setParams] = useQueryStates(webhookLogsSearchParams);
 
   return (
@@ -21,7 +23,7 @@ export function WebhookLogsFilters() {
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search reference or idempotency key..."
+          placeholder={t("searchPlaceholder")}
           className="w-full bg-background pl-8"
           value={params.search}
           onChange={(e) => setParams({ search: e.target.value || "", page: 1 })}
@@ -33,10 +35,10 @@ export function WebhookLogsFilters() {
           onValueChange={(val) => setParams({ provider: val, page: 1 })}
         >
           <SelectTrigger className="w-[140px] bg-background">
-            <SelectValue placeholder="Provider" />
+            <SelectValue placeholder={t("provider")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="All">All Providers</SelectItem>
+            <SelectItem value="All">{t("allProviders")}</SelectItem>
             <SelectItem value="Paystack">Paystack</SelectItem>
             <SelectItem value="Stripe">Stripe</SelectItem>
           </SelectContent>
@@ -47,13 +49,13 @@ export function WebhookLogsFilters() {
           onValueChange={(val) => setParams({ status: val, page: 1 })}
         >
           <SelectTrigger className="w-[140px] bg-background">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("allStatuses")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="All">All Statuses</SelectItem>
-            <SelectItem value="Processed">Processed</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="Failed">Failed</SelectItem>
+            <SelectItem value="All">{t("allStatuses")}</SelectItem>
+            <SelectItem value="Processed">{t("processed")}</SelectItem>
+            <SelectItem value="Pending">{t("pending")}</SelectItem>
+            <SelectItem value="Failed">{t("failed")}</SelectItem>
           </SelectContent>
         </Select>
       </div>

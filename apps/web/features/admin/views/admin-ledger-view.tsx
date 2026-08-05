@@ -14,8 +14,10 @@ import { LedgerTable } from "../components/ledger-table";
 import { LedgerFilters } from "../components/ledger-filters";
 import { LedgerKpiCards } from "../components/ledger-kpi-cards";
 import { LedgerPagination } from "../components/ledger-pagination";
+import { useTranslations } from "next-intl";
 
 export function AdminLedgerView() {
+  const t = useTranslations("adminDashboard.adminLedgerView");
   const trpc = useTRPC();
 
   // URL state query parameters synced via nuqs

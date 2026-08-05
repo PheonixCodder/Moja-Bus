@@ -28,6 +28,7 @@ import {
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface MdxEditorWrapperProps {
   markdown: string;
@@ -36,6 +37,8 @@ interface MdxEditorWrapperProps {
 }
 
 export function MdxEditorWrapper({ markdown, onChange, readOnly = false }: MdxEditorWrapperProps) {
+  const t = useTranslations("adminDashboard.mdxEditorWrapper");
+
   return (
     <div className="w-full min-w-0 overflow-hidden">
       <MDXEditor
@@ -70,7 +73,7 @@ export function MdxEditorWrapper({ markdown, onChange, readOnly = false }: MdxEd
         }),
         imagePlugin({
           imageUploadHandler: async () => {
-            toast.error("Image upload not configured. Add an S3 endpoint to enable image uploads.");
+            toast.error(t("imageUploadNotConfigured"));
             throw new Error("Image upload not configured");
           },
         }),

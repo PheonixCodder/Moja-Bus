@@ -15,6 +15,7 @@ import {
 import { Card } from "@moja/ui/components/ui/card";
 import { ActivityLogsTable } from "../components/audit/activity-logs-table";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useTranslations } from "next-intl";
 
 const CHANNELS = [
   { value: "email", label: "Email" },
@@ -67,6 +68,7 @@ const TEMPLATE_OPTIONS = [
 ];
 
 export function AdminActivityLogsView() {
+  const t = useTranslations("adminDashboard.adminActivityLogsView");
   const [search, setSearch] = useQueryState("search", parseAsString.withDefault(""));
   const [channel, setChannel] = useQueryState("channel", parseAsString.withDefault(""));
   const [template, setTemplate] = useQueryState("template", parseAsString.withDefault(""));
@@ -101,7 +103,7 @@ export function AdminActivityLogsView() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search events..."
+            placeholder={t("searchPlaceholder")}
             className="pl-8"
             value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
@@ -116,10 +118,10 @@ export function AdminActivityLogsView() {
           }}
         >
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Channels" />
+            <SelectValue placeholder={t("allChannels")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">All Channels</SelectItem>
+            <SelectItem value="__all__">{t("allChannels")}</SelectItem>
             {CHANNELS.map((ch) => (
               <SelectItem key={ch.value} value={ch.value}>
                 {ch.label}
@@ -136,10 +138,10 @@ export function AdminActivityLogsView() {
           }}
         >
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="All Workflows" />
+            <SelectValue placeholder={t("allWorkflows")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">All Workflows</SelectItem>
+            <SelectItem value="__all__">{t("allWorkflows")}</SelectItem>
             {TEMPLATE_OPTIONS.map((t) => (
               <SelectItem key={t.value} value={t.value}>
                 {t.label}
@@ -151,7 +153,7 @@ export function AdminActivityLogsView() {
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1.5 text-muted-foreground">
             <X className="h-3.5 w-3.5" />
-            Clear
+            {t("clearFilters")}
           </Button>
         )}
       </div>

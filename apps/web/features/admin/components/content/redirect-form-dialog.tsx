@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
@@ -48,6 +49,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFormDialogProps) {
+  const t = useTranslations("adminDashboard.redirectFormDialog");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const isEditing = !!redirect;
@@ -83,12 +85,12 @@ export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFor
   const createMutation = useMutation(
     trpc.admin.createBlogRedirect.mutationOptions({
       onSuccess: () => {
-        toast.success("Redirect created successfully");
+        toast.success(t("createSuccess"));
         queryClient.invalidateQueries(trpc.admin.listBlogRedirects.pathFilter());
         onOpenChange(false);
       },
       onError: (error: any) => {
-        toast.error(error.message || "Failed to create redirect");
+        toast.error(error.message || t("createError"));
       },
     })
   );
@@ -96,12 +98,12 @@ export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFor
   const updateMutation = useMutation(
     trpc.admin.updateBlogRedirect.mutationOptions({
       onSuccess: () => {
-        toast.success("Redirect updated successfully");
+        toast.success(t("updateSuccess"));
         queryClient.invalidateQueries(trpc.admin.listBlogRedirects.pathFilter());
         onOpenChange(false);
       },
       onError: (error: any) => {
-        toast.error(error.message || "Failed to update redirect");
+        toast.error(error.message || t("updateError"));
       },
     })
   );
@@ -120,31 +122,31 @@ export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFor
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Redirect" : "Create Redirect"}</DialogTitle>
+          <DialogTitle>{isEditing ? t("editTitle") : t("createTitle")}</DialogTitle>
           <DialogDescription>
-            {isEditing 
-              ? "Update the source, destination, or redirect type." 
-              : "Map an old URL path to a new destination to preserve SEO rankings."}
+            {isEditing
+              ? t("editDescription")
+              : t("createDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">Source Path</label>
-            <Input placeholder="/old-blog-post-url" className="font-mono text-sm" {...register("source")} />
+            <label className="text-sm font-medium leading-none">{t("sourceLabel")}</label>
+            <Input placeholder={t("sourcePlaceholder")} className="font-mono text-sm" {...register("source")} />
             {errors.source && <p className="text-[0.8rem] font-medium text-destructive">{errors.source.message}</p>}
-            <p className="text-[0.8rem] text-muted-foreground">The old URL path (must start with /)</p>
+            <p className="text-[0.8rem] text-muted-foreground">{t("sourceHint")}</p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">Destination Path</label>
-            <Input placeholder="/blog/new-post-url" className="font-mono text-sm" {...register("destination")} />
+            <label className="text-sm font-medium leading-none">{t("destinationLabel")}</label>
+            <Input placeholder={t("destinationPlaceholder")} className="font-mono text-sm" {...register("destination")} />
             {errors.destination && <p className="text-[0.8rem] font-medium text-destructive">{errors.destination.message}</p>}
-            <p className="text-[0.8rem] text-muted-foreground">Where the user should be redirected</p>
+            <p className="text-[0.8rem] text-muted-foreground">{t("destinationHint")}</p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">Redirect Type</label>
+            <label className="text-sm font-medium leading-none">{t("typeLabel")}</label>
             <Controller
               control={control}
               name="type"
@@ -154,25 +156,25 @@ export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFor
                   value={field.value.toString()}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t("typePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="301">301 - Permanent</SelectItem>
-                    <SelectItem value="302">302 - Temporary</SelectItem>
+                    <SelectItem value="301">{t("type301")}</SelectItem>
+                    <SelectItem value="302">{t("type302")}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
             />
             {errors.type && <p className="text-[0.8rem] font-medium text-destructive">{errors.type.message}</p>}
-            <p className="text-[0.8rem] text-muted-foreground">Use 301 for SEO preservation. Use 302 for temporary campaigns.</p>
+            <p className="text-[0.8rem] text-muted-foreground">{t("typeHint")}</p>
           </div>
 
           <div className="flex justify-end pt-4 space-x-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Saving..." : isEditing ? "Save Changes" : "Create Redirect"}
+              {isPending ? t("saving") : isEditing ? t("saveChanges") : t("createRedirect")}
             </Button>
           </div>
         </form>

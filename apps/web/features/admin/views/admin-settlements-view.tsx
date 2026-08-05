@@ -5,6 +5,7 @@ import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import { SettlementsClearingCard } from "../components/settlements-clearing-card";
 import { SettlementsPayoutPanel } from "../components/settlements-payout-panel";
 import { SettlementsHistoryTable } from "../components/settlements-history-table";
+import { useTranslations } from "next-intl";
 
 function SectionSkeleton({ rows = 3 }: { rows?: number }) {
   return (
@@ -19,6 +20,7 @@ function SectionSkeleton({ rows = 3 }: { rows?: number }) {
 }
 
 export function AdminSettlementsView() {
+  const t = useTranslations("adminDashboard.adminSettlementsView");
   return (
     <div className="space-y-8">
       {/* Section 1 — Treasury Clearing Balance */}
@@ -32,10 +34,10 @@ export function AdminSettlementsView() {
       <section>
         <div className="mb-3">
           <h2 className="text-sm font-semibold text-foreground tracking-tight">
-            Manual Offline Settlement
+            {t("manualOfflineSettlement")}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Record a disbursement made outside the Paystack transfer system (e.g. cash, bank wire).
+            {t("recordDisbursement")}
           </p>
         </div>
         <Suspense fallback={<SectionSkeleton rows={5} />}>
@@ -47,10 +49,10 @@ export function AdminSettlementsView() {
       <section>
         <div className="mb-3">
           <h2 className="text-sm font-semibold text-foreground tracking-tight">
-            Settlement History
+            {t("settlementHistory")}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Chronological log of all manually recorded operator payouts.
+            {t("payoutLog")}
           </p>
         </div>
         <Suspense fallback={<SectionSkeleton rows={6} />}>

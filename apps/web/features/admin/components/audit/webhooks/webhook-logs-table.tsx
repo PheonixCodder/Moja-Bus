@@ -3,6 +3,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { useQueryStates } from "nuqs";
+import { useTranslations } from "next-intl";
 import { webhookLogsSearchParams } from "../../../lib/search-params";
 import { format } from "date-fns";
 import {
@@ -20,6 +21,7 @@ import { useState } from "react";
 import { WebhookPayloadDrawer } from "./webhook-payload-drawer";
 
 export function WebhookLogsTable() {
+  const t = useTranslations("adminDashboard.webhookLogsTable");
   const [params, setParams] = useQueryStates(webhookLogsSearchParams);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const trpc = useTRPC();
@@ -42,12 +44,12 @@ export function WebhookLogsTable() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead>Status</TableHead>
-              <TableHead>Provider</TableHead>
-              <TableHead>Event Type</TableHead>
-              <TableHead>Reference</TableHead>
-              <TableHead>Received</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("status")}</TableHead>
+              <TableHead>{t("provider")}</TableHead>
+              <TableHead>{t("eventType")}</TableHead>
+              <TableHead>{t("reference")}</TableHead>
+              <TableHead>{t("received")}</TableHead>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -56,7 +58,7 @@ export function WebhookLogsTable() {
                 <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Inbox className="h-6 w-6 text-muted-foreground/50" />
-                    <p>No webhook events found</p>
+                    <p>{t("noEvents")}</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -66,24 +68,24 @@ export function WebhookLogsTable() {
                 const isFailed = event.error !== null;
 
                 let statusBadge = (
-                  <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20">
-                    Pending
-                  </Badge>
-                );
+                     <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20">
+                       {t("pending")}
+                     </Badge>
+                   );
 
-                if (isProcessed) {
-                  statusBadge = (
-                    <Badge variant="secondary" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
-                      Processed
-                    </Badge>
-                  );
-                } else if (isFailed) {
-                  statusBadge = (
-                    <Badge variant="secondary" className="bg-red-500/10 text-red-500 hover:bg-red-500/20">
-                      Failed
-                    </Badge>
-                  );
-                }
+                 if (isProcessed) {
+                   statusBadge = (
+                     <Badge variant="secondary" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                       {t("processed")}
+                     </Badge>
+                   );
+                 } else if (isFailed) {
+                   statusBadge = (
+                     <Badge variant="secondary" className="bg-red-500/10 text-red-500 hover:bg-red-500/20">
+                       {t("failed")}
+                     </Badge>
+                   );
+                 }
 
                 return (
                   <TableRow key={event.id} className="group">
@@ -125,22 +127,22 @@ export function WebhookLogsTable() {
             {Math.min(params.page * params.pageSize, data.total)} of {data.total} results
           </p>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={params.page <= 1}
-              onClick={() => setParams({ page: params.page - 1 })}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={params.page >= totalPages}
-              onClick={() => setParams({ page: params.page + 1 })}
-            >
-              Next
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={params.page <= 1}
+                onClick={() => setParams({ page: params.page - 1 })}
+              >
+                {t("previous")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={params.page >= totalPages}
+                onClick={() => setParams({ page: params.page + 1 })}
+              >
+                {t("next")}
+              </Button>
           </div>
         </div>
       )}

@@ -6,6 +6,7 @@ import { useQueryState } from "nuqs";
 import { Building, Clock } from "lucide-react";
 import { useTRPC } from "@/trpc/client";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 import { VerificationDetailsHeader } from "../components/verification-details-header";
 import { VerificationDetailsDocuments } from "../components/verification-details-documents";
@@ -22,6 +23,7 @@ interface AdminVerificationDetailsViewProps {
 
 export function AdminVerificationDetailsView({ companyId }: AdminVerificationDetailsViewProps) {
   const trpc = useTRPC();
+  const t = useTranslations("adminDashboard.adminVerificationDetailsView");
 
   // Tab State synced to URL
   const [activeTab, setActiveTab] = useQueryState("tab", { defaultValue: "overview" });
@@ -59,7 +61,7 @@ export function AdminVerificationDetailsView({ companyId }: AdminVerificationDet
           )}
         >
           <Building className="size-4" />
-          Overview
+          {t("overview")}
         </button>
         <button
           onClick={() => setActiveTab("history")}
@@ -71,7 +73,7 @@ export function AdminVerificationDetailsView({ companyId }: AdminVerificationDet
           )}
         >
           <Clock className="size-4" />
-          Activity logs
+          {t("activityLogs")}
         </button>
       </div>
 

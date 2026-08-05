@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
@@ -37,6 +38,7 @@ type Redirect = {
 };
 
 export function RedirectsTable() {
+  const t = useTranslations("adminDashboard.redirectsTable");
   const trpc = useTRPC();
   const [q] = useQueryState("q", parseAsString.withDefault(""));
   const [page] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -57,18 +59,18 @@ export function RedirectsTable() {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent bg-slate-50/50">
-            <TableHead className="w-[35%] pl-6">Source</TableHead>
-            <TableHead className="w-[35%]">Destination</TableHead>
-            <TableHead className="w-[10%]">Type</TableHead>
-            <TableHead className="w-[15%]">Created</TableHead>
-            <TableHead className="w-[5%] text-right pr-6">Actions</TableHead>
+            <TableHead className="w-[35%] pl-6">{t("source")}</TableHead>
+            <TableHead className="w-[35%]">{t("destination")}</TableHead>
+            <TableHead className="w-[10%]">{t("type")}</TableHead>
+            <TableHead className="w-[15%]">{t("created")}</TableHead>
+            <TableHead className="w-[5%] text-right pr-6">{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.items.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="h-24 text-center text-slate-500">
-                No redirects found.
+                {t("noResults")}
               </TableCell>
             </TableRow>
           ) : (
@@ -96,21 +98,21 @@ export function RedirectsTable() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity">
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">{t("openMenu")}</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => setEditingRedirect(redirect)}>
                         <Pencil className="mr-2 h-4 w-4 text-slate-500" />
-                        Edit
+                        {t("edit")}
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => setDeletingRedirect(redirect)}
                         className="text-red-600 focus:text-red-600 focus:bg-red-50"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
+                        {t("delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -120,7 +122,7 @@ export function RedirectsTable() {
           )}
         </TableBody>
       </Table>
-      
+
       {data.total > 0 && (
         <div className="border-t p-4">
           <RedirectsPagination totalItems={data.total} limit={limit} />
@@ -128,8 +130,8 @@ export function RedirectsTable() {
       )}
 
       {/* Edit Dialog */}
-      <RedirectFormDialog 
-        open={!!editingRedirect} 
+      <RedirectFormDialog
+        open={!!editingRedirect}
         onOpenChange={(isOpen) => !isOpen && setEditingRedirect(null)}
         redirect={editingRedirect}
       />

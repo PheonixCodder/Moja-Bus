@@ -1,6 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { buildSearchEntries } from "@/features/search/lib/build-search-entries";
+import { geocodePoint } from "@/lib/geo/geocode-point";
+import { loadGeoDataset } from "@/lib/geo/load-geo-dataset";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 const citySearchResultSchema = z.object({
@@ -85,7 +87,7 @@ export const locationsRouter = createTRPCRouter({
         cities.find(
           (c) =>
             normalize(c.name) === target ||
-            (c.nameEn && normalize(c.nameEn) === target)
+            (c.nameEn && normalize(c.nameEn) === target),
         ) || null
       );
     }),
@@ -204,5 +206,42 @@ export const locationsRouter = createTRPCRouter({
           name: input.name.trim(),
         },
       });
+    }),
+
+  geocodePoint: publicProcedure
+    .input(
+      z.object({
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
+      }),
+    )
+    .output(
+      z.object({
+        cityId: z.string(),
+        cityName: z.string(),
+        municipalityId: z.string(),
+        municipalityName: z.string(),
+        quarterId: z.string().nullable(),
+        quarterName: z.string().nullable(),
+        method: z.enum(["polygon", "nearest"]),
+        distanceMeters: z.number(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { municipalities, quarters } = await loadGeoDataset(ctx.prisma);
+
+      const resolved = geocodePoint({
+        latitude: input.latitude,
+        longitude: input.longitude,
+        municipalities,
+        quarters,
+      });
+      if (!resolved) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not resolve coordinates to a location.",
+        });
+      }
+      return resolved;
     }),
 });

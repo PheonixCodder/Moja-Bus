@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ interface ActivityLogDetailDialogProps {
 }
 
 export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLogDetailDialogProps) {
+  const t = useTranslations("adminDashboard.activityLogDetailDialog");
   const jobs = log.jobs ?? [];
   const createdAt = log.createdAt ? new Date(log.createdAt) : null;
 
@@ -27,10 +29,10 @@ export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLog
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-mono text-sm">
-            {log.template?.name ?? log.template?.identifier ?? "Unknown Workflow"}
+            {log.template?.name ?? log.template?.identifier ?? t("unknownWorkflow")}
           </DialogTitle>
           <DialogDescription>
-            {createdAt ? format(createdAt, "PPpp") : "Unknown time"} ·{" "}
+            {createdAt ? format(createdAt, "PPpp") : t("unknownTime")} ·{" "}
             <span className="font-mono text-xs">
               {log._id ?? log.id ?? "—"}
             </span>
@@ -41,7 +43,7 @@ export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLog
           {/* Subscriber */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-              Subscriber
+              {t("subscriber")}
             </p>
             <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
               <p className="font-medium">{log.subscriber?.firstName ?? "—"} {log.subscriber?.lastName ?? ""}</p>
@@ -58,7 +60,7 @@ export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLog
           {jobs.length > 0 && (
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                Steps ({jobs.length})
+                {t("steps", { count: jobs.length })}
               </p>
               <div className="space-y-2">
                 {jobs.map((job: any, i: number) => (
@@ -94,7 +96,7 @@ export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLog
           {/* Raw Payload */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-              Payload
+              {t("payload")}
             </p>
             <ScrollArea className="h-[160px] rounded-md border bg-muted/30">
               <pre className="p-3 text-[11px] font-mono leading-relaxed text-foreground whitespace-pre-wrap break-all">

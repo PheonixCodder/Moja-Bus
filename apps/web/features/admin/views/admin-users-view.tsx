@@ -5,6 +5,7 @@ import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { useState } from "react";
 import { toast } from "sonner";
 import { useQueryState, parseAsInteger } from "nuqs";
+import { useTranslations } from "next-intl";
 import {
   Users,
   Search,
@@ -49,6 +50,7 @@ import {
 export function AdminUsersView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const t = useTranslations("adminDashboard.adminUsersView");
 
   const [searchQuery, setSearchQuery] = useQueryState("q", { defaultValue: "" });
   const [selectedRole, setSelectedRole] = useQueryState("role", { defaultValue: "" });
@@ -79,12 +81,12 @@ export function AdminUsersView() {
   const updateRoleMutation = useMutation(
     trpc.admin.updateUserRole.mutationOptions({
       onSuccess: () => {
-        toast.success("User role updated successfully");
+        toast.success(t("userRoleUpdated"));
         setIsRoleModalOpen(false);
         queryClient.invalidateQueries(trpc.admin.listUsers.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to update user role");
+        toast.error(err.message || t("failedToUpdateRole"));
       },
     })
   );
@@ -92,12 +94,12 @@ export function AdminUsersView() {
   const suspendCompanyMutation = useMutation(
     trpc.admin.suspendCompany.mutationOptions({
       onSuccess: () => {
-        toast.success("Operator company has been suspended");
+        toast.success(t("operatorCompanySuspended"));
         setIsSuspendConfirmOpen(false);
         queryClient.invalidateQueries(trpc.admin.listUsers.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to suspend company");
+        toast.error(err.message || t("failedToSuspendCompany"));
       },
     })
   );
@@ -105,12 +107,12 @@ export function AdminUsersView() {
   const activateCompanyMutation = useMutation(
     trpc.admin.activateCompany.mutationOptions({
       onSuccess: () => {
-        toast.success("Operator company has been activated");
+        toast.success(t("operatorCompanyActivated"));
         setIsSuspendConfirmOpen(false);
         queryClient.invalidateQueries(trpc.admin.listUsers.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to activate company");
+        toast.error(err.message || t("failedToActivateCompany"));
       },
     })
   );
@@ -153,7 +155,7 @@ export function AdminUsersView() {
             <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search by name, email, or phone..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -165,7 +167,7 @@ export function AdminUsersView() {
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Shield className="size-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Role:</span>
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{t("role")}</span>
             <Select
               value={selectedRole || "ALL"}
               onValueChange={(val) => {
@@ -174,13 +176,13 @@ export function AdminUsersView() {
               }}
             >
               <SelectTrigger className="h-10 w-full sm:w-40 bg-white">
-                <SelectValue placeholder="All Roles" />
+                <SelectValue placeholder={t("allRoles")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All Roles</SelectItem>
-                <SelectItem value="TRAVELER">Traveler</SelectItem>
-                <SelectItem value="OPERATOR">Operator</SelectItem>
-                <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="ALL">{t("allRoles")}</SelectItem>
+                <SelectItem value="TRAVELER">{t("traveler")}</SelectItem>
+                <SelectItem value="OPERATOR">{t("operator")}</SelectItem>
+                <SelectItem value="ADMIN">{t("admin")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -194,9 +196,9 @@ export function AdminUsersView() {
             <Users className="size-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-slate-800">No Users Found</h3>
+            <h3 className="text-sm font-bold text-slate-800">{t("noUsersFound")}</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-              There are no user profiles matching the search query or role filter.
+              {t("noUsersMatchFilters")}
             </p>
           </div>
         </div>
@@ -206,11 +208,11 @@ export function AdminUsersView() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 hover:bg-slate-50">
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">User Details</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Contact Info</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Role</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Operator Company</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">Actions</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("userDetails")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("contactInfo")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("roleColumn")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("operatorCompany")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -289,7 +291,7 @@ export function AdminUsersView() {
                             }}
                           >
                             <UserCog className="size-3.5" />
-                            Role
+                            {t("roleButton")}
                           </Button>
 
                           {/* Suspend/Activate Company */}
@@ -311,12 +313,12 @@ export function AdminUsersView() {
                               {company.status === "SUSPENDED" ? (
                                 <>
                                   <UserCheck className="size-3.5" />
-                                  Activate Company
+                                  {t("activateCompany")}
                                 </>
                               ) : (
                                 <>
                                   <UserX className="size-3.5" />
-                                  Suspend Company
+                                  {t("suspendCompany")}
                                 </>
                               )}
                             </Button>
@@ -367,17 +369,17 @@ export function AdminUsersView() {
           <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
             <DialogHeader>
               <DialogTitle className="text-lg font-bold text-slate-900">
-                Change User Role
+                {t("changeUserRole")}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                Change the access role of {selectedUser.fullName}. Warning: promoting/demoting users changes their dashboard access permissions instantly.
+                {t("changeRoleDescription", { userName: selectedUser.fullName })}
               </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleUpdateRole} className="space-y-4 py-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Target System Role
+                  {t("targetSystemRole")}
                 </label>
                 <Select
                   value={targetRole}
@@ -387,16 +389,16 @@ export function AdminUsersView() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="TRAVELER">Traveler</SelectItem>
-                    <SelectItem value="OPERATOR">Operator</SelectItem>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
+                    <SelectItem value="TRAVELER">{t("traveler")}</SelectItem>
+                    <SelectItem value="OPERATOR">{t("operator")}</SelectItem>
+                    <SelectItem value="ADMIN">{t("admin")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <DialogFooter className="pt-4 gap-2 sm:gap-0">
                 <Button type="button" variant="outline" className="h-9" onClick={() => setIsRoleModalOpen(false)}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -406,10 +408,10 @@ export function AdminUsersView() {
                   {updateRoleMutation.isPending ? (
                     <>
                       <Spinner className="mr-2 size-3.5 text-white" />
-                      Saving...
+                      {t("saving")}
                     </>
                   ) : (
-                    "Save Role"
+                    t("saveRole")
                   )}
                 </Button>
               </DialogFooter>
@@ -425,16 +427,16 @@ export function AdminUsersView() {
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <AlertTriangle className={manageAction === "suspend" ? "size-5 text-red-600" : "size-5 text-emerald-600"} />
-                {manageAction === "suspend" ? "Suspend Company" : "Activate Company"}
+                {manageAction === "suspend" ? t("suspendCompany") : t("activateCompany")}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
                 {manageAction === "suspend" ? (
                   <span>
-                    Are you sure you want to suspend "{companyToManage.name}"? This blocks their route schedule ticket sales and suspends all associated operator staff accounts.
+                    {t("areYouSureSuspend", { companyName: companyToManage.name })}
                   </span>
                 ) : (
                   <span>
-                    Are you sure you want to restore access for "{companyToManage.name}"? This allows them to resume intercity trip sales and restores their operators status.
+                    {t("areYouSureActivate", { companyName: companyToManage.name })}
                   </span>
                 )}
               </DialogDescription>
@@ -442,7 +444,7 @@ export function AdminUsersView() {
 
             <DialogFooter className="pt-4 gap-2 sm:gap-0">
               <Button variant="outline" className="h-9" onClick={() => setIsSuspendConfirmOpen(false)}>
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 className={
@@ -456,12 +458,12 @@ export function AdminUsersView() {
                 {suspendCompanyMutation.isPending || activateCompanyMutation.isPending ? (
                   <>
                     <Spinner className="mr-2 size-3.5 text-white" />
-                    Updating...
+                    {t("updating")}
                   </>
                 ) : manageAction === "suspend" ? (
-                  "Suspend"
+                  t("suspend")
                 ) : (
-                  "Activate"
+                  t("activate")
                 )}
               </Button>
             </DialogFooter>

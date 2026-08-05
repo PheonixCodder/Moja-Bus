@@ -12,6 +12,7 @@ import { Badge } from "@moja/ui/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { UserProfileHeader } from "../components/user-profile-header";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 const bookingStatusMeta: Record<string, { label: string; className: string }> = {
   CONFIRMED:       { label: "Confirmed",       className: "bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
@@ -22,6 +23,7 @@ const bookingStatusMeta: Record<string, { label: string; className: string }> = 
 };
 
 export function AdminTravelerProfileView({ userId }: { userId: string }) {
+  const t = useTranslations("adminDashboard.adminTravelerProfileView");
   const trpc = useTRPC();
   const { data: user } = useSuspenseQuery(trpc.admin.getUserProfile.queryOptions({ userId }));
 
@@ -39,16 +41,16 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
         emailVerified={user.emailVerified}
         createdAt={user.createdAt}
         backHref="/dashboard/admin/users/travelers"
-        backLabel="Back to Travelers"
+        backLabel={t("backToTravelers")}
       />
 
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total Bookings", value: user.bookings.length, icon: Ticket },
-          { label: "Confirmed", value: confirmedBookings, icon: Calendar },
-          { label: "Saved Passengers", value: user.passengerProfile?.savedPassengers?.length ?? 0, icon: Users },
-          { label: "Active Sessions", value: user.sessions.length, icon: Monitor },
+          { label: t("totalBookings"), value: user.bookings.length, icon: Ticket },
+          { label: t("confirmed"), value: confirmedBookings, icon: Calendar },
+          { label: t("savedPassengers"), value: user.passengerProfile?.savedPassengers?.length ?? 0, icon: Users },
+          { label: t("activeSessions"), value: user.sessions.length, icon: Monitor },
         ].map(({ label, value, icon: Icon }) => (
           <Card key={label} className="border shadow-sm">
             <CardContent className="p-4 flex flex-col gap-1">
@@ -68,12 +70,12 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Ticket className="h-4 w-4 text-muted-foreground" />
-              Recent Bookings
+              {t("recentBookings")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {user.bookings.length === 0 ? (
-              <div className="px-6 py-8 text-center text-muted-foreground text-sm">No bookings yet</div>
+              <div className="px-6 py-8 text-center text-muted-foreground text-sm">{t("noBookings")}</div>
             ) : (
               <div className="divide-y">
                 {user.bookings.map((booking) => {
@@ -118,18 +120,18 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
-                Account Details
+                {t("accountDetails")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {[
-                { label: "User ID", value: user.id.slice(0, 16) + "…" },
-                { label: "Email Verified", value: user.emailVerified ? "Yes" : "No" },
-                { label: "Work Email", value: user.workEmail || "—" },
-                { label: "Work Phone", value: user.workPhone || "—" },
-                { label: "Marketing Opt-in", value: user.passengerProfile?.marketingOptIn ? "Yes" : "No" },
-                { label: "Joined", value: format(user.createdAt, "PPP") },
-                { label: "Last Updated", value: format(user.updatedAt, "PPP") },
+                { label: t("userId"), value: user.id.slice(0, 16) + "…" },
+                { label: t("emailVerified"), value: user.emailVerified ? t("yes") : t("no") },
+                { label: t("workEmail"), value: user.workEmail || "—" },
+                { label: t("workPhone"), value: user.workPhone || "—" },
+                { label: t("marketingOptIn"), value: user.passengerProfile?.marketingOptIn ? t("yes") : t("no") },
+                { label: t("joined"), value: format(user.createdAt, "PPP") },
+                { label: t("lastUpdated"), value: format(user.updatedAt, "PPP") },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between gap-2">
                   <span className="text-muted-foreground shrink-0">{label}</span>
@@ -145,7 +147,7 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  Saved Passengers
+                  {t("savedPassengers")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -155,7 +157,7 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-sm">{p.fullName}</span>
                         {p.isSelf && (
-                          <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Self</Badge>
+                          <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{t("self")}</Badge>
                         )}
                       </div>
                       <span className="text-xs text-muted-foreground mt-0.5">{p.phone}</span>
@@ -173,7 +175,7 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <Monitor className="h-4 w-4 text-muted-foreground" />
-                  Recent Sessions
+                  {t("activeSessions")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">

@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@moja/ui/components/ui/select";
 import { Separator } from "@moja/ui/components/ui/separator";
+import { useTranslations } from "next-intl";
 
 interface VerificationsPaginationProps {
   page: number;
@@ -50,6 +51,7 @@ export function VerificationsPagination({
   onPageChange,
   onPageSizeChange,
 }: VerificationsPaginationProps) {
+  const t = useTranslations("adminDashboard.verificationsPagination");
   const pageCount = Math.max(Math.ceil(total / pageSize), 1);
   const currentPage = Math.min(page, pageCount);
   const pageNumbers = getPageNumbers(currentPage, pageCount);
@@ -61,7 +63,7 @@ export function VerificationsPagination({
       <div className="flex items-center justify-between px-4">
         <div className="flex items-center gap-4 text-muted-foreground text-sm">
           <div className="flex items-center gap-2">
-            <span>Rows per page</span>
+            <span>{t("rowsPerPage")}</span>
             <Select
               value={`${pageSize}`}
               onValueChange={(value) => onPageSizeChange(Number(value))}
@@ -81,7 +83,7 @@ export function VerificationsPagination({
             </Select>
           </div>
           <span>
-            Page {currentPage} of {pageCount}
+            {t("pageInfo", { current: currentPage, total: pageCount })}
           </span>
         </div>
 

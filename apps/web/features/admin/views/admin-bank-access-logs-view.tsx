@@ -6,8 +6,10 @@ import { BankAccessLogsFilters } from "../components/audit/bank-access/bank-acce
 import { BankAccessLogsTable } from "../components/audit/bank-access/bank-access-logs-table";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { ShieldAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function AdminBankAccessLogsView() {
+  const t = useTranslations("adminDashboard.adminBankAccessLogsView");
   return (
     <div className="space-y-6">
 
@@ -20,7 +22,7 @@ export function AdminBankAccessLogsView() {
           fallback={
             <div className="flex flex-col items-center justify-center p-12 text-center h-[400px]">
               <Spinner className="h-8 w-8 text-muted-foreground/50 mb-4" />
-              <p className="text-sm text-muted-foreground">Loading audit logs...</p>
+              <p className="text-sm text-muted-foreground">{t("loadingLogs")}</p>
             </div>
           }
         >

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useQueryState } from "nuqs";
 import { Search } from "lucide-react";
 import { Input } from "@moja/ui/components/ui/input";
@@ -14,6 +15,7 @@ import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { useTransition } from "react";
 
 export function AdminRoutesHeader() {
+  const t = useTranslations("adminDashboard.adminRoutesHeader");
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useQueryState("q", { defaultValue: "", shallow: false });
   const [status, setStatus] = useQueryState("status", { defaultValue: "All", shallow: false });
@@ -24,7 +26,7 @@ export function AdminRoutesHeader() {
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search by route, terminal, or operator name..."
+            placeholder={t("searchPlaceholder")}
             className="pl-9 bg-background"
             value={search}
             onChange={(e) => {
@@ -44,14 +46,14 @@ export function AdminRoutesHeader() {
             }}
           >
             <SelectTrigger className="w-[140px] bg-background">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t("statusPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">All Statuses</SelectItem>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="SUSPENDED">Suspended</SelectItem>
-              <SelectItem value="ARCHIVED">Archived</SelectItem>
+              <SelectItem value="All">{t("allStatuses")}</SelectItem>
+              <SelectItem value="ACTIVE">{t("active")}</SelectItem>
+              <SelectItem value="DRAFT">{t("draft")}</SelectItem>
+              <SelectItem value="SUSPENDED">{t("suspended")}</SelectItem>
+              <SelectItem value="ARCHIVED">{t("archived")}</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -42,8 +42,10 @@ import {
 import { Switch } from "@moja/ui/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
 import { Badge } from "@moja/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 export function AdminSettingsView() {
+  const t = useTranslations("adminDashboard.adminSettingsView");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -62,11 +64,11 @@ export function AdminSettingsView() {
   const updateSettingsMutation = useMutation(
     trpc.payments.updatePlatformSettings.mutationOptions({
       onSuccess: () => {
-        toast.success("Platform settings updated successfully");
+        toast.success(t("platformSettingsUpdated"));
         queryClient.invalidateQueries(trpc.payments.getPlatformSettings.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to update platform settings");
+        toast.error(err.message || t("failedToUpdateSettings"));
       },
     })
   );
@@ -74,12 +76,12 @@ export function AdminSettingsView() {
   const createTierMutation = useMutation(
     trpc.payments.createCommissionTier.mutationOptions({
       onSuccess: () => {
-        toast.success("Distance tier created successfully");
+        toast.success(t("distanceTierCreated"));
         setIsTierModalOpen(false);
         queryClient.invalidateQueries(trpc.payments.listCommissionTiers.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to create distance tier");
+        toast.error(err.message || t("failedToCreateTier"));
       },
     })
   );
@@ -87,12 +89,12 @@ export function AdminSettingsView() {
   const updateTierMutation = useMutation(
     trpc.payments.updateCommissionTier.mutationOptions({
       onSuccess: () => {
-        toast.success("Distance tier updated successfully");
+        toast.success(t("distanceTierUpdated"));
         setIsTierModalOpen(false);
         queryClient.invalidateQueries(trpc.payments.listCommissionTiers.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to update distance tier");
+        toast.error(err.message || t("failedToUpdateTier"));
       },
     })
   );
@@ -100,12 +102,12 @@ export function AdminSettingsView() {
   const deleteTierMutation = useMutation(
     trpc.payments.deleteCommissionTier.mutationOptions({
       onSuccess: () => {
-        toast.success("Distance tier deleted successfully");
+        toast.success(t("distanceTierDeleted"));
         setIsDeleteConfirmOpen(false);
         queryClient.invalidateQueries(trpc.payments.listCommissionTiers.pathFilter());
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to delete distance tier");
+        toast.error(err.message || t("failedToDeleteTier"));
       },
     })
   );
@@ -172,7 +174,7 @@ export function AdminSettingsView() {
   const handleSaveTier = (e: React.FormEvent) => {
     e.preventDefault();
     if (!tierLabel.trim() || !tierMinDist || !tierCommBps) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("pleaseFillAllFields"));
       return;
     }
 
@@ -205,11 +207,11 @@ export function AdminSettingsView() {
       <TabsList className="bg-slate-100 p-1 rounded-md border border-slate-200">
         <TabsTrigger value="global" className="px-4 py-2 font-semibold text-xs flex items-center gap-1.5 rounded-sm transition-all">
           <Percent className="size-3.5" />
-          Global Settings
+          {t("globalSettings")}
         </TabsTrigger>
         <TabsTrigger value="tiers" className="px-4 py-2 font-semibold text-xs flex items-center gap-1.5 rounded-sm transition-all">
           <Layers className="size-3.5" />
-          Commission Distance Tiers
+          {t("commissionDistanceTiers")}
         </TabsTrigger>
       </TabsList>
 
@@ -217,9 +219,9 @@ export function AdminSettingsView() {
       <TabsContent value="global">
         <Card className="bg-white border-border shadow-sm max-w-xl">
           <CardHeader>
-            <CardTitle className="text-sm font-bold text-slate-800">Default Global Rates</CardTitle>
+            <CardTitle className="text-sm font-bold text-slate-800">{t("defaultGlobalRates")}</CardTitle>
             <CardDescription>
-              These fee percentages apply to checkout calculations when no distance-based tier matches.
+              {t("globalRatesDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -228,7 +230,7 @@ export function AdminSettingsView() {
                 {/* Default Commission */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Default Commission Rate (%)
+                    {t("defaultCommissionRate")}
                   </label>
                   <div className="relative">
                     <Input
@@ -246,14 +248,14 @@ export function AdminSettingsView() {
                     <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">%</span>
                   </div>
                   <p className="text-[10px] text-slate-400">
-                    Platform's base revenue cut from operator seat ticket sales.
+                    {t("platformBaseRevenue")}
                   </p>
                 </div>
 
                 {/* Default Convenience Fee */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Convenience Fee Rate (%)
+                    {t("convenienceFeeRate")}
                   </label>
                   <div className="relative">
                     <Input
@@ -271,7 +273,7 @@ export function AdminSettingsView() {
                     <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">%</span>
                   </div>
                   <p className="text-[10px] text-slate-400">
-                    Passenger service fee added to ticket subtotal during checkout.
+                    {t("passengerServiceFee")}
                   </p>
                 </div>
               </div>
@@ -285,10 +287,10 @@ export function AdminSettingsView() {
                   {updateSettingsMutation.isPending ? (
                     <>
                       <Spinner className="mr-2 size-3.5 text-white" />
-                      Saving...
+                      {t("saving")}
                     </>
                   ) : (
-                    "Save Settings"
+                    t("saveSettings")
                   )}
                 </Button>
               </div>
@@ -302,14 +304,14 @@ export function AdminSettingsView() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-slate-800">Distance Commission Bands</h3>
+              <h3 className="text-sm font-bold text-slate-800">{t("distanceCommissionBands")}</h3>
               <p className="text-xs text-slate-500">
-                Map platform commission rates dynamically based on the route travel distance.
+                {t("mapPlatformCommission")}
               </p>
             </div>
             <Button onClick={openAddTier} className="bg-primary hover:bg-primary-hover text-white gap-1.5 h-9 font-semibold text-xs">
               <Plus className="size-3.5" />
-              Add Distance Tier
+              {t("addDistanceTier")}
             </Button>
           </div>
 
@@ -319,9 +321,9 @@ export function AdminSettingsView() {
                 <Layers className="size-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-slate-800">No Distance Tiers</h3>
+                <h3 className="text-sm font-bold text-slate-800">{t("noDistanceTiers")}</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                  You haven't defined any distance-based commission tiers. All routes default to global platform rates.
+                  {t("noTiersDefined")}
                 </p>
               </div>
             </div>
@@ -330,13 +332,13 @@ export function AdminSettingsView() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Label</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Distance Range</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Commission (Bps)</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Commission %</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Sort Order</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Status</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">Actions</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("label")}</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("distanceRange")}</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("commissionBps")}</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("commissionPct")}</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("sortOrder")}</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("status")}</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -352,7 +354,7 @@ export function AdminSettingsView() {
                       <TableCell className="px-4 py-3 text-slate-600 text-xs">{tier.sortOrder}</TableCell>
                       <TableCell className="px-4 py-3">
                         <Badge className={tier.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"}>
-                          {tier.isActive ? "Active" : "Inactive"}
+                          {tier.isActive ? t("active") : t("inactive")}
                         </Badge>
                       </TableCell>
                       <TableCell className="px-4 py-3 text-right">
@@ -389,10 +391,10 @@ export function AdminSettingsView() {
         <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900">
-              {editingTier ? "Edit Commission Distance Tier" : "Add Commission Distance Tier"}
+              {editingTier ? t("editCommissionTier") : t("addCommissionTier")}
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Setup distance bands in km and define the commission in basis points (1% = 100 bps).
+              {t("setupDistanceBands")}
             </DialogDescription>
           </DialogHeader>
 
@@ -400,11 +402,11 @@ export function AdminSettingsView() {
             {/* Label */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Tier Label
+                {t("tierLabel")}
               </label>
               <Input
                 type="text"
-                placeholder="e.g. Short haul (Under 100km)"
+                placeholder={t("tierLabelPlaceholder")}
                 value={tierLabel}
                 onChange={(e) => setTierLabel(e.target.value)}
                 required
@@ -415,7 +417,7 @@ export function AdminSettingsView() {
               {/* Min Distance */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Min Distance (km)
+                  {t("minDistanceKm")}
                 </label>
                 <Input
                   type="number"
@@ -431,11 +433,11 @@ export function AdminSettingsView() {
               {/* Max Distance */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Max Distance (km)
+                  {t("maxDistanceKm")}
                 </label>
                 <Input
                   type="number"
-                  placeholder="No limit"
+                  placeholder={t("noLimit")}
                   min="0"
                   step="0.1"
                   value={tierMaxDist}
@@ -448,7 +450,7 @@ export function AdminSettingsView() {
               {/* Commission in Bps */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Commission (Bps)
+                  {t("commissionBpsLabel")}
                 </label>
                 <div className="relative">
                   <Input
@@ -468,7 +470,7 @@ export function AdminSettingsView() {
               {/* Sort Order */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Sort Order
+                  {t("sortOrderLabel")}
                 </label>
                 <Input
                   type="number"
@@ -482,15 +484,15 @@ export function AdminSettingsView() {
             {/* Is Active */}
             <div className="flex items-center justify-between border-t border-slate-100 pt-4">
               <div>
-                <div className="text-xs font-bold text-slate-800">Tier Status</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Toggle active state for matching calculations</div>
+                <div className="text-xs font-bold text-slate-800">{t("tierStatus")}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">{t("toggleActive")}</div>
               </div>
               <Switch checked={tierIsActive} onCheckedChange={setTierIsActive} />
             </div>
 
             <DialogFooter className="pt-4 gap-2 sm:gap-0">
               <Button type="button" variant="outline" className="h-9" onClick={() => setIsTierModalOpen(false)}>
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 type="submit"
@@ -500,10 +502,10 @@ export function AdminSettingsView() {
                 {createTierMutation.isPending || updateTierMutation.isPending ? (
                   <>
                     <Spinner className="mr-2 size-3.5 text-white" />
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
-                  "Save Tier"
+                  t("saveTier")
                 )}
               </Button>
             </DialogFooter>
@@ -518,16 +520,16 @@ export function AdminSettingsView() {
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <AlertTriangle className="size-5 text-red-600" />
-                Delete Distance Tier
+                {t("deleteDistanceTier")}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                Are you sure you want to delete the commission tier "{tierToDelete.label}"? This action cannot be undone.
+                {t("deleteTierConfirm", { tierLabel: tierToDelete.label })}
               </DialogDescription>
             </DialogHeader>
 
             <DialogFooter className="pt-4 gap-2 sm:gap-0">
               <Button variant="outline" className="h-9" onClick={() => setIsDeleteConfirmOpen(false)}>
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 className="bg-red-600 hover:bg-red-700 text-white h-9"
@@ -537,10 +539,10 @@ export function AdminSettingsView() {
                 {deleteTierMutation.isPending ? (
                   <>
                     <Spinner className="mr-2 size-3.5 text-white" />
-                    Deleting...
+                    {t("deleting")}
                   </>
                 ) : (
-                  "Delete"
+                  t("delete")
                 )}
               </Button>
             </DialogFooter>

@@ -364,7 +364,7 @@ model Company {
   // Status & Verification
   status          CompanyStatus @default(DRAFT)
   verifiedAt      DateTime?
-  // Proper FK relation — no free-text admin ID string
+  // Proper FK relation â€” no free-text admin ID string
   verifiedById    String?
   verifiedBy      User?         @relation("CompanyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
   rejectionReason String?
@@ -426,11 +426,11 @@ model CompanyDocument {
   type     DocumentType
   fileName String
   fileUrl  String // S3/Cloudflare URL (empty for private docs served via signed GET)
-  objectKey String? // S3 object key — authoritative for private documents
+  objectKey String? // S3 object key â€” authoritative for private documents
   fileSize Int // Bytes
   mimeType String // application/pdf, image/jpeg, etc.
 
-  // Verification — proper FK to User
+  // Verification â€” proper FK to User
   status       DocumentStatus @default(PENDING)
   reviewedById String?
   reviewedBy   User?          @relation("DocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
@@ -441,7 +441,7 @@ model CompanyDocument {
   expiresAt      DateTime?
   reminderSentAt DateTime?
 
-  // Versioning — new upload supersedes old; old document retained for audit
+  // Versioning â€” new upload supersedes old; old document retained for audit
   isCurrent    Boolean           @default(true)
   supersededAt DateTime?
   replacedById String?
@@ -466,7 +466,7 @@ model BankAccount {
   // Bank Details
   bankName           String
   bankCode           String?
-  // Encrypted at rest (enc:v1: prefix) — see apps/web/lib/bank-crypto.ts
+  // Encrypted at rest (enc:v1: prefix) â€” see apps/web/lib/bank-crypto.ts
   accountNumber      String
   accountNumberLast4 String?
   accountName        String // Must match company name
@@ -474,7 +474,7 @@ model BankAccount {
   swiftCode          String?
   iban               String?
 
-  // Verification — proper FK to User
+  // Verification â€” proper FK to User
   isVerified             Boolean   @default(false)
   verifiedAt             DateTime?
   verifiedById           String?
@@ -544,7 +544,7 @@ model Operator {
 
   // Role & Status
   // permissions[] is the authoritative IAM action set (see @moja/schemas permissions).
-  // OWNER bypasses checks at runtime — stored set may be empty for owners.
+  // OWNER bypasses checks at runtime â€” stored set may be empty for owners.
   permissions            String[]  @default([])
   permissionsUpdatedAt   DateTime?
   permissionsUpdatedBy   String?
@@ -648,7 +648,7 @@ model PendingOperatorSignup {
 }
 
 // ============================================
-// ENUMS — FLEET & OPERATIONS
+// ENUMS â€” FLEET & OPERATIONS
 // ============================================
 
 enum BusStatus {
@@ -728,19 +728,44 @@ enum TripStatus {
 // not stored. TripSeat.isActive marks physical usability only.
 
 // ============================================
-// CITIES (Platform-seeded — Côte d'Ivoire only)
+// GEO CAPTURE ENUMS (Terminal link capture)
+// ============================================
+
+/// Lifecycle of a terminal's geography. COMPLETE = fully geo-linked and bookable.
+enum LocationGeoCaptureStatus {
+  COMPLETE
+  PENDING_CAPTURE // operator created bare terminal, awaiting a shared capture link
+  PENDING_CONFIRMATION // GPS captured + resolved, waiting for operator approval
+}
+
+/// Lifecycle of a single capture-link attempt.
+/// OPEN → PENDING_CONFIRMATION (submit) → CONFIRMED (submitter confirms preview)
+/// → operator approveCapture flips the terminal to COMPLETE. rejectCapture/expiry
+/// terminate the attempt without making the terminal geo-complete.
+enum LocationCaptureStatus {
+  OPEN // link minted, not yet opened
+  PENDING_CONFIRMATION // GPS submitted + place resolved, awaiting submitter confirmation
+  CONFIRMED // submitter confirmed the resolved preview; awaiting operator approval
+  REJECTED // operator rejected; terminal back to PENDING_CAPTURE
+  EXPIRED // TTL elapsed before completion
+}
+
+// ============================================
+// CITIES (Platform-seeded â€” CÃ´te d'Ivoire only)
 // ============================================
 
 model City {
   id         String  @id @default(cuid())
   name       String // French (official language of CI)
   nameEn     String? // Optional English for future use
-  region     String // e.g. "Vallée du Bandama"
+  region     String // e.g. "VallÃ©e du Bandama"
   district   String // e.g. "Savanes"
   latitude   Float?
   longitude  Float?
   isActive   Boolean @default(true)
-  isMajorHub Boolean @default(false) // Abidjan, Bouaké, Yamoussoukro, etc.
+  isMajorHub Boolean @default(false) // Abidjan, BouakÃ©, Yamoussoukro, etc.
+  pcode      String? // External admin code (e.g. department "CI2001") for idempotent import
+  source     String? // "OSM" | "GADM" | "OFFICIAL" | "CURATED"
 
   locations     CompanyLocation[]
   municipalities Municipality[]
@@ -751,7 +776,7 @@ model City {
 }
 
 // ============================================
-// MUNICIPALITIES & QUARTERS (Côte d'Ivoire)
+// MUNICIPALITIES & QUARTERS (CÃ´te d'Ivoire)
 // ============================================
 // Every City has at least one Municipality. For large cities (Abidjan) there
 // are multiple (e.g. Cocody, Yopougon). For single-commune cities a single
@@ -767,6 +792,13 @@ model Municipality {
   isActive Boolean   @default(true)
   /// True when this is the only municipality for its city; frontend skips the dropdown
   isPassThrough Boolean @default(false)
+
+  // Coordinates & geometry (PostGIS). geometry is the sous-prÃ©fecture/commune polygon.
+  latitude  Float?
+  longitude Float?
+  geometry  Unsupported("geometry")?
+  pcode     String? // External admin code (e.g. "CI200101") for idempotent import
+  source    String? // "OSM" | "GADM" | "OFFICIAL" | "CURATED"
 
   quarters  Quarter[]
   locations CompanyLocation[]
@@ -784,6 +816,13 @@ model Quarter {
   nameEn         String?
   isActive       Boolean      @default(true)
 
+  // Coordinates & geometry (PostGIS). geometry is a point or small polygon where available.
+  latitude   Float?
+  longitude  Float?
+  geometry   Unsupported("geometry")?
+  externalId String? // OSM id or external reference for idempotent import
+  source     String? // "OSM" | "GADM" | "OFFICIAL" | "CURATED"
+
   locations CompanyLocation[]
 
   @@unique([municipalityId, name])
@@ -792,7 +831,7 @@ model Quarter {
 }
 
 // ============================================
-// COMPANY LOCATION (extended — terminal promotion)
+// COMPANY LOCATION (extended â€” terminal promotion)
 // ============================================
 // CompanyLocation already holds operator depots from onboarding.
 // Adding cityId FK + isTerminal flag promotes a location to a
@@ -807,14 +846,19 @@ model CompanyLocation {
   cityId       String?
   cityRelation City?   @relation(fields: [cityId], references: [id])
 
-  // Municipality & Quarter (Côte d'Ivoire hierarchy)
+  // Municipality & Quarter (CÃ´te d'Ivoire hierarchy)
   municipalityId String?
   municipality   Municipality? @relation(fields: [municipalityId], references: [id])
   quarterId      String?
   quarter        Quarter?     @relation(fields: [quarterId], references: [id])
 
-  // Terminal promotion — operator checks this in the dashboard
+  // Terminal promotion â€” operator checks this in the dashboard
   isTerminal Boolean @default(false)
+
+  // Geo-capture lifecycle (GPS capture link). COMPLETE = bookable/searchable.
+  geoCaptureStatus LocationGeoCaptureStatus @default(COMPLETE)
+  captureToken     String?                   @unique
+  captureExpiresAt DateTime?
 
   // Location Details
   name         String
@@ -846,6 +890,7 @@ model CompanyLocation {
   destRoutes   Route[]         @relation("RouteDestTerminal")
   waypoints    RouteWaypoint[]
   tripStops    TripStop[]
+  captures     LocationCapture[]
 
   @@index([companyId])
   @@index([cityId])
@@ -855,8 +900,48 @@ model CompanyLocation {
   @@map("company_location")
 }
 
+// Capture-link attempts + audit trail for a CompanyLocation. Each attempt mints
+// a single-use, expiring token; GPS + resolved place are stored for operator
+// approval before the terminal becomes geo-complete (COMPLETE).
+model LocationCapture {
+  id         String            @id @default(cuid())
+  locationId String
+  location   CompanyLocation   @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  token     String                 @unique
+  expiresAt DateTime
+  status    LocationCaptureStatus  @default(OPEN)
+
+  // GPS point submitted by the share-page recipient
+  latitude       Float?
+  longitude      Float?
+  accuracyMeters Int?
+  capturedAt     DateTime?
+  device         String?
+  userAgent      String?
+  ip             String?
+
+  // Place resolved from the GPS point by the geo engine (awaits operator approval)
+  resolvedCityId       String?
+  resolvedMunicipalityId String?
+  resolvedQuarterId    String?
+
+  // Submitter details editable on the share page (enriches address)
+  submitterName  String?
+  submitterPhone String?
+  notes          String?
+
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  @@index([locationId])
+  @@index([token])
+  @@index([status])
+  @@map("location_capture")
+}
+
 // ============================================
-// FLEET — BUS TYPE & SEAT LAYOUT TEMPLATES
+// FLEET â€” BUS TYPE & SEAT LAYOUT TEMPLATES
 // ============================================
 
 model BusType {
@@ -912,7 +997,7 @@ model SeatTemplate {
   row        Int
   col        Int
   deck       Int      @default(1)
-  label      String // "1A", "1B", "2A" — shown to operators and passengers
+  label      String // "1A", "1B", "2A" â€” shown to operators and passengers
   seatType   SeatType @default(PASSENGER_WINDOW)
   isBookable Boolean  @default(true)
 
@@ -921,7 +1006,7 @@ model SeatTemplate {
 }
 
 // ============================================
-// FLEET — BUS & SEATS
+// FLEET â€” BUS & SEATS
 // ============================================
 
 model Bus {
@@ -961,7 +1046,7 @@ model Seat {
   row      Int
   col      Int
   deck     Int      @default(1)
-  label    String // "1A", "2B" — copied from SeatTemplate, operator can rename
+  label    String // "1A", "2B" â€” copied from SeatTemplate, operator can rename
   seatType   SeatType
   isBookable Boolean  @default(true) // immutable: copied from SeatTemplate.isBookable
   isActive   Boolean  @default(true) // false = operator disabled (broken/damaged)
@@ -983,7 +1068,7 @@ model Route {
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  name String // "Abidjan – Bouaké Express"
+  name String // "Abidjan â€“ BouakÃ© Express"
 
   originTerminalId String
   originTerminal   CompanyLocation @relation("RouteOriginTerminal", fields: [originTerminalId], references: [id])
@@ -1035,7 +1120,7 @@ model RouteWaypoint {
 }
 
 // ============================================
-// SCHEDULES — TEMPLATES + CALENDAR
+// SCHEDULES â€” TEMPLATES + CALENDAR
 // ============================================
 
 model Schedule {
@@ -1046,7 +1131,7 @@ model Schedule {
   route     Route   @relation(fields: [routeId], references: [id])
 
   name          String? // "Morning Express", "Night Service"
-  // Primary departure time "06:00" — HH:mm, CI timezone is UTC+0 (no DST).
+  // Primary departure time "06:00" â€” HH:mm, CI timezone is UTC+0 (no DST).
   // Kept as the first element of departureTimes for sorting/back-compat.
   departureTime  String @db.VarChar(5)
   // Full cadence: every departure time the schedule runs, sorted HH:mm.
@@ -1057,7 +1142,7 @@ model Schedule {
   // Total estimated duration - can differ per schedule based on traffic/time
   estimatedMinutes Int?
 
-  // Preferred bus for trip generation only — trips remain per-trip assignable
+  // Preferred bus for trip generation only â€” trips remain per-trip assignable
   preferredBusId String?
   preferredBus   Bus?    @relation("SchedulePreferredBus", fields: [preferredBusId], references: [id], onDelete: SetNull)
 
@@ -1153,12 +1238,12 @@ model Fare {
   type      FareType  @default(FIXED)
 
   // Which segment this price covers (by waypoint stopOrder indices)
-  // 0 → N = full route. 2 → N = board at intermediate stop 2.
+  // 0 â†’ N = full route. 2 â†’ N = board at intermediate stop 2.
   fromStopOrder Int @default(0)
   toStopOrder   Int
 
   durationMinutes Int // travel time from departure at fromStop to arrival at toStop
-  priceXOF   Int // price in CFA Francs — always XOF for CI
+  priceXOF   Int // price in CFA Francs â€” always XOF for CI
   validFrom  DateTime?
   validUntil DateTime?
   isActive   Boolean   @default(true)
@@ -1170,7 +1255,7 @@ model Fare {
 }
 
 // ============================================
-// TRIPS — THE OPERATIONAL ENTITY
+// TRIPS â€” THE OPERATIONAL ENTITY
 // ============================================
 
 model Trip {
@@ -1180,14 +1265,14 @@ model Trip {
   companyId  String
   company    Company  @relation(fields: [companyId], references: [id])
 
-  // Bus assigned PER TRIP — not per schedule (maintenance/swap support)
+  // Bus assigned PER TRIP â€” not per schedule (maintenance/swap support)
   busId String
   bus   Bus    @relation(fields: [busId], references: [id])
 
   // Schedule-derived but stored immutably on trip creation
   departureDate DateTime // full timestamp: 2025-08-15T06:00:00Z
 
-  // Snapshot of the route's service type at generation — search filters on
+  // Snapshot of the route's service type at generation â€” search filters on
   // this instead of re-deriving from terminal geometry
   serviceType ServiceType @default(INTERCITY)
 
@@ -1201,7 +1286,7 @@ model Trip {
   cancelReason     String?
   notes            String?
 
-  // Route snapshot frozen at trip creation — protects historical bookings
+  // Route snapshot frozen at trip creation â€” protects historical bookings
   // if the route is later edited or deleted
   routeSnapshotJson Json
 
@@ -1225,8 +1310,8 @@ model Trip {
   @@map("trip")
 }
 
-// TripStops — instantiated from RouteWaypoints when a trip is created.
-// Search queries these for intermediate boarding (Daloa → Man on an Abidjan → Man bus).
+// TripStops â€” instantiated from RouteWaypoints when a trip is created.
+// Search queries these for intermediate boarding (Daloa â†’ Man on an Abidjan â†’ Man bus).
 
 model TripStop {
   id         String          @id @default(cuid())
@@ -1498,7 +1583,7 @@ model FinancialAccount {
   status               AccountStatus   @default(NORMAL)
   allowNegativeBalance Boolean         @default(false)
 
-  // ⚠️ READ MODEL: Derived Cache. Mutated EXCLUSIVELY by AccountingEngine
+  // âš ï¸ READ MODEL: Derived Cache. Mutated EXCLUSIVELY by AccountingEngine
   postedBalance    BigInt @default(0) // Total settled
   reservedBalance  BigInt @default(0) // Locked in reservations
   availableBalance BigInt @default(0) // posted - reserved
@@ -1989,7 +2074,7 @@ model ContactInquiry {
   message   String               @db.Text
   status    ContactInquiryStatus @default(NEW)
 
-  // Author — set server-side from the session (null = logged-out guest)
+  // Author â€” set server-side from the session (null = logged-out guest)
   userId String?
   user   User? @relation("ContactInquiryAuthor", fields: [userId], references: [id], onDelete: SetNull)
 

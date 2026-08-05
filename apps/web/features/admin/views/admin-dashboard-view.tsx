@@ -11,6 +11,7 @@ import { DashboardActivityFeed } from "../components/dashboard/dashboard-activit
 import { DashboardPlatformHealth } from "../components/dashboard/dashboard-platform-health";
 import { DashboardTreasuryCards } from "../components/dashboard/dashboard-treasury-cards";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 function StatsSkeleton() {
   return (
@@ -85,6 +86,7 @@ function DashboardContent() {
 }
 
 export function AdminDashboardView() {
+  const t = useTranslations("adminDashboard.adminDashboardView");
   return (
     <Suspense fallback={<StatsSkeleton />}>
       <DashboardContent />

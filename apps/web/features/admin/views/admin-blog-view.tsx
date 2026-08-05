@@ -42,8 +42,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 
 export function AdminBlogView() {
+  const t = useTranslations("adminDashboard.adminBlogView");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -88,13 +90,13 @@ export function AdminBlogView() {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-2">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Blog Portal</h1>
-          <p className="text-gray-500 mt-1">Manage platform publishing, editorial folders, and content tags.</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t("title")}</h1>
+          <p className="text-gray-500 mt-1">{t("subtitle")}</p>
         </div>
         {activeTab === "posts" && (
           <Button onClick={() => setIsNewPostOpen(true)} className="gap-2 bg-gray-900 text-white hover:bg-gray-800 h-9 font-semibold text-xs shrink-0 self-start sm:self-auto">
             <Plus className="size-4" />
-            New Post
+            {t("newPost")}
           </Button>
         )}
       </div>
@@ -112,7 +114,7 @@ export function AdminBlogView() {
             }`}
           >
             <BookOpen className="size-4" />
-            Posts
+            {t("posts")}
           </button>
           <button
             type="button"
@@ -124,7 +126,7 @@ export function AdminBlogView() {
             }`}
           >
             <FolderKanban className="size-4" />
-            Categories
+            {t("categories")}
           </button>
           <button
             type="button"
@@ -136,7 +138,7 @@ export function AdminBlogView() {
             }`}
           >
             <Hash className="size-4" />
-            Tags
+            {t("tags")}
           </button>
         </div>
       </div>
@@ -155,7 +157,7 @@ export function AdminBlogView() {
             <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search by title or excerpt..."
+              placeholder={t("searchPlaceholder")}
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               className="h-10 pl-9 pr-4 text-sm"
@@ -164,7 +166,7 @@ export function AdminBlogView() {
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Filter className="size-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Status:</span>
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{t("statusLabel")}</span>
             <Select
               value={selectedStatus || "ALL"}
               onValueChange={(val) => {
@@ -173,15 +175,15 @@ export function AdminBlogView() {
               }}
             >
               <SelectTrigger className="h-10 w-full sm:w-40 bg-white">
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder={t("allStatuses")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All Statuses</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
-                <SelectItem value="REVIEW">In Review</SelectItem>
-                <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                <SelectItem value="PUBLISHED">Published</SelectItem>
-                <SelectItem value="ARCHIVED">Archived</SelectItem>
+                <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
+                <SelectItem value="DRAFT">{t("draft")}</SelectItem>
+                <SelectItem value="REVIEW">{t("inReview")}</SelectItem>
+                <SelectItem value="SCHEDULED">{t("scheduled")}</SelectItem>
+                <SelectItem value="PUBLISHED">{t("published")}</SelectItem>
+                <SelectItem value="ARCHIVED">{t("archived")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -199,17 +201,17 @@ export function AdminBlogView() {
             <SearchX className="size-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-slate-800">No blog posts found</h3>
+            <h3 className="text-sm font-bold text-slate-800">{t("noPostsFound")}</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-              {searchQuery || selectedStatus 
-                ? "No posts match your current search and filters."
-                : "Get started by creating your first blog post to share updates and content."}
+              {searchQuery || selectedStatus
+                ? t("noPostsMatchFilters")
+                : t("getStartedCreatingPost")}
             </p>
           </div>
           {!(searchQuery || selectedStatus) && (
             <Button onClick={() => setIsNewPostOpen(true)} variant="outline" className="mt-4 gap-2 h-9">
               <Plus className="size-4" />
-              Create First Post
+              {t("createFirstPost")}
             </Button>
           )}
         </div>
@@ -219,13 +221,13 @@ export function AdminBlogView() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 hover:bg-slate-50">
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Cover</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Title</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Status</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Author</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Views</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Last Updated</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">Actions</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("cover")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("title")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("status")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("author")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("views")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("lastUpdated")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -266,7 +268,7 @@ export function AdminBlogView() {
                       <div className="flex justify-end">
                         <Button onClick={() => router.push(`/dashboard/admin/content/posts/${post.id}/edit`)} size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900">
                           <Edit2 className="size-4" />
-                          <span className="sr-only">Edit</span>
+                          <span className="sr-only">{t("edit")}</span>
                         </Button>
                       </div>
                     </TableCell>
@@ -280,7 +282,7 @@ export function AdminBlogView() {
           {blogData.total > pageSize && (
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-500 font-medium">
-                Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, blogData.total)} of {blogData.total} posts
+                {t("showing", { start: currentPage * pageSize + 1, end: Math.min((currentPage + 1) * pageSize, blogData.total), total: blogData.total })}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -290,7 +292,7 @@ export function AdminBlogView() {
                   onClick={() => setCurrentPageParam((p) => p - 1)}
                   className="h-8 text-xs font-semibold"
                 >
-                  Previous
+                  {t("previous")}
                 </Button>
                 <Button
                   size="sm"
@@ -299,7 +301,7 @@ export function AdminBlogView() {
                   onClick={() => setCurrentPageParam((p) => p + 1)}
                   className="h-8 text-xs font-semibold"
                 >
-                  Next
+                  {t("next")}
                 </Button>
               </div>
             </div>

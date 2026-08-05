@@ -10,8 +10,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@moja/ui/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 export function AdminDispatchView() {
+  const t = useTranslations("adminDashboard.adminDispatchView");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
@@ -34,7 +36,7 @@ export function AdminDispatchView() {
           disabled={refreshing}
         >
           <RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
-          Refresh
+          {t("refresh")}
         </Button>
       </div>
 
@@ -55,7 +57,7 @@ export function AdminDispatchView() {
           <div className="flex flex-col items-center justify-center p-20 border border-border rounded-xl bg-card border-dashed">
             <Spinner className="size-8" />
             <p className="text-sm text-muted-foreground mt-4 animate-pulse">
-              Loading global dispatch board...
+              {t("loadingDispatchBoard")}
             </p>
           </div>
         }

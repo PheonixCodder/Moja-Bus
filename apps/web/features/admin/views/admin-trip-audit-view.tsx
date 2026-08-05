@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { useQueryState } from "nuqs";
 import { tripAuditSearchParams } from "@/features/admin/lib/search-params";
+import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
 import { Suspense } from "react";
 import { Spinner } from "@moja/ui/components/ui/spinner";
@@ -24,6 +25,7 @@ function TabFallback() {
 }
 
 export function AdminTripAuditView({ tripId }: { tripId: string }) {
+  const t = useTranslations("adminDashboard.adminTripAuditView");
   const [tab, setTab] = useQueryState("tab", tripAuditSearchParams.tab);
 
   return (
@@ -43,7 +45,7 @@ export function AdminTripAuditView({ tripId }: { tripId: string }) {
             className="rounded-full px-5 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=inactive]:hover:bg-muted/80 flex items-center gap-2"
           >
             <Map className="h-4 w-4" />
-            Overview
+            {t("overview")}
           </TabsTrigger>
           <TabsTrigger 
             value="manifest" 
@@ -51,7 +53,7 @@ export function AdminTripAuditView({ tripId }: { tripId: string }) {
             className="rounded-full px-5 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=inactive]:hover:bg-muted/80 flex items-center gap-2"
           >
             <Users className="h-4 w-4" />
-            Manifest
+            {t("manifest")}
           </TabsTrigger>
           <TabsTrigger 
             value="occupancy" 
@@ -59,7 +61,7 @@ export function AdminTripAuditView({ tripId }: { tripId: string }) {
             className="rounded-full px-5 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=inactive]:hover:bg-muted/80 flex items-center gap-2"
           >
             <Bus className="h-4 w-4" />
-            Occupancy
+            {t("occupancy")}
           </TabsTrigger>
           <TabsTrigger 
             value="reviews" 
@@ -67,7 +69,7 @@ export function AdminTripAuditView({ tripId }: { tripId: string }) {
             className="rounded-full px-5 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=inactive]:hover:bg-muted/80 flex items-center gap-2"
           >
             <Star className="h-4 w-4" />
-            Reviews
+            {t("reviews")}
           </TabsTrigger>
         </TabsList>
 

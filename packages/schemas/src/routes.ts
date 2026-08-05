@@ -221,10 +221,19 @@ const baseTerminalSchema = z.object({
   isTerminal: z.boolean().default(false),
   isActive: z.boolean().default(true),
   operatingHours: z.any().optional().nullable(),
+  // Geo-capture lifecycle. COMPLETE (default) terminals must be geo-complete
+  // (lat/long/city required). Non-COMPLETE terminals are geo-incomplete by
+  // design — their location is filled by the GPS capture-link flow before an
+  // operator approves them.
+  geoCaptureStatus: z
+    .enum(["COMPLETE", "PENDING_CAPTURE", "PENDING_CONFIRMATION"])
+    .optional(),
 });
 
 export const createTerminalSchema = baseTerminalSchema.superRefine((data, ctx) => {
-  if (data.isTerminal) {
+  const isCapturePending =
+    data.geoCaptureStatus != null && data.geoCaptureStatus !== "COMPLETE";
+  if (data.isTerminal && !isCapturePending) {
     if (data.latitude == null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

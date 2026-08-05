@@ -4,8 +4,10 @@ import { Suspense } from "react";
 import { BlogAnalyticsToolbar } from "../components/blog/blog-analytics-toolbar";
 import { BlogAnalyticsContent } from "../components/blog/blog-analytics-content";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useTranslations } from "next-intl";
 
 export function AdminBlogAnalyticsView() {
+  const t = useTranslations("adminDashboard.adminBlogAnalyticsView");
   return (
     <div className="flex flex-col gap-4">
       <BlogAnalyticsToolbar />

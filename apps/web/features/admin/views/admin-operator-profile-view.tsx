@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui
 import { UserProfileHeader } from "../components/user-profile-header";
 import { cn } from "@moja/ui/lib/utils";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 const companyStatusMeta: Record<string, { label: string; className: string; icon: any }> = {
   ACTIVE:               { label: "Active",              icon: CheckCircle2, className: "bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
@@ -26,6 +27,7 @@ const companyStatusMeta: Record<string, { label: string; className: string; icon
 const onboardingStepLabels = ["Company", "Documents", "Bank", "Profile", "Terms"];
 
 export function AdminOperatorProfileView({ userId }: { userId: string }) {
+  const t = useTranslations("adminDashboard.adminOperatorProfileView");
   const trpc = useTRPC();
   const { data: user } = useSuspenseQuery(trpc.admin.getUserProfile.queryOptions({ userId }));
 
@@ -43,17 +45,17 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
         emailVerified={user.emailVerified}
         createdAt={user.createdAt}
         backHref="/dashboard/admin/users/operators"
-        backLabel="Back to Operators"
+        backLabel={t("backToOperators")}
       />
 
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Companies", value: user.operatorProfiles.length, icon: Building2 },
-          { label: "Active Sessions", value: user.sessions.length, icon: Monitor },
-          { label: "Staff Role", value: primaryOperator?.role ?? "—", icon: Briefcase },
+          { label: t("companies"), value: user.operatorProfiles.length, icon: Building2 },
+          { label: t("activeSessions"), value: user.sessions.length, icon: Monitor },
+          { label: t("staffRole"), value: primaryOperator?.role ?? "—", icon: Briefcase },
           {
-            label: "Onboarding",
+            label: t("onboarding"),
             value: primaryOperator?.onboardingProgress
               ? `${primaryOperator.onboardingProgress.completedStepCount}/${primaryOperator.onboardingProgress.totalSteps}`
               : "—",
@@ -76,12 +78,12 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
         {/* Company Cards */}
         <div className="lg:col-span-2 space-y-4">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider px-1">
-            Associated Companies
+            {t("associatedCompanies")}
           </h2>
           {user.operatorProfiles.length === 0 ? (
             <Card className="border shadow-sm">
               <CardContent className="py-10 text-center text-muted-foreground text-sm">
-                No associated companies found.
+                {t("noCompanies")}
               </CardContent>
             </Card>
           ) : (
@@ -119,19 +121,19 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                     {/* Staff role */}
                     <div className="flex flex-wrap gap-4 text-sm">
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">Staff Role</span>
+                        <span className="text-xs text-muted-foreground">{t("staffRoleLabel")}</span>
                         <span className="font-medium">{op.role}</span>
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">Operator Status</span>
+                        <span className="text-xs text-muted-foreground">{t("operatorStatus")}</span>
                         <span className="font-medium">{op.status}</span>
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">Identity Verified</span>
-                        <span className="font-medium">{op.isVerified ? "Yes" : "No"}</span>
+                        <span className="text-xs text-muted-foreground">{t("identityVerified")}</span>
+                        <span className="font-medium">{op.isVerified ? t("yes") : t("no")}</span>
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">Joined</span>
+                        <span className="text-xs text-muted-foreground">{t("joined")}</span>
                         <span className="font-medium">{format(op.joinedAt, "MMM d, yyyy")}</span>
                       </div>
                     </div>
@@ -140,8 +142,8 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                     {progress && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Onboarding Progress</span>
-                          <span className="font-medium">{progress.completedStepCount}/{progress.totalSteps} steps</span>
+                          <span className="text-muted-foreground">{t("onboardingProgress")}</span>
+                          <span className="font-medium">{progress.completedStepCount}/{progress.totalSteps} {t("steps")}</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div
@@ -173,7 +175,7 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                         href={`/dashboard/admin/verifications/${company.id}`}
                         className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                       >
-                        View Verification Details →
+                        {t("viewVerificationDetails")}
                       </Link>
                     </div>
                   </CardContent>

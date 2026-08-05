@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Loader2, PenLine } from "lucide-react";
 import { Input } from "@moja/ui/components/ui/input";
 import { Button } from "@moja/ui/components/ui/button";
@@ -26,6 +27,7 @@ interface NewBlogPostDialogProps {
 export function NewBlogPostDialog({ open, onOpenChange }: NewBlogPostDialogProps) {
   const router = useRouter();
   const trpc = useTRPC();
+  const t = useTranslations("adminDashboard.newBlogPostDialog");
   const [title, setTitle] = useState("");
 
   const createDraft = useMutation({
@@ -55,11 +57,11 @@ export function NewBlogPostDialog({ open, onOpenChange }: NewBlogPostDialogProps
               <PenLine className="size-4 text-white" />
             </div>
             <DialogTitle className="text-base font-bold text-slate-900">
-              Create New Post
+              {t("createNewPost")}
             </DialogTitle>
           </div>
           <DialogDescription className="text-xs text-slate-500 leading-relaxed">
-            Give your post a title to get started. You can change everything later in the full editor.
+            {t("giveYourPostATitle")}
           </DialogDescription>
         </DialogHeader>
 
@@ -69,14 +71,14 @@ export function NewBlogPostDialog({ open, onOpenChange }: NewBlogPostDialogProps
               htmlFor="new-post-title"
               className="text-xs font-bold text-slate-700 uppercase tracking-wider"
             >
-              Post Title
+              {t("postTitle")}
             </label>
             <Input
               id="new-post-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. 5 Tips for Safe Intercity Travel"
+              placeholder={t("e.g.5TipsForSafeIntercityTravel")}
               className="h-10 text-sm"
               autoFocus
               required
@@ -91,7 +93,7 @@ export function NewBlogPostDialog({ open, onOpenChange }: NewBlogPostDialogProps
               onClick={() => onOpenChange(false)}
               disabled={createDraft.isPending}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -101,10 +103,10 @@ export function NewBlogPostDialog({ open, onOpenChange }: NewBlogPostDialogProps
               {createDraft.isPending ? (
                 <>
                   <Spinner className="mr-2 size-3.5 text-white" />
-                  Creating...
+                  {t("creating")}
                 </>
               ) : (
-                "Create Draft"
+                t("createDraft")
               )}
             </Button>
           </DialogFooter>

@@ -8,10 +8,10 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | Post-urban UX polish — stops on map (shared route map) + timeline |
-| **Last major milestone** | Booking surfaces now render segment stops on a Leaflet map via a shared `RouteMapPreview` (operator drawer, admin drawer, booking dialog toggle, booking-details); seat map centering + stops timeline done earlier (107/107 tests) |
-| **Web unit tests** | 107/107 pass |
-| **Next priority** | Booking dialog polish + stops-on-map complete — back to standard roadmap (booking ownership hardening, performance, mobile MVP). Deferred sugar: urban price-range hint in PricingStep |
+| **Phase** | Ivory Coast geography import (M0) + geo engine (M1) + backend capture-link (M2) + public capture page (M3) + operator UI (M4) + search/consumer audit (M5) done — M6 verification next |
+| **Last major milestone** | Full CI geography imported (188 cities / 200 municipalities / 3230 quarters, PostGIS geometry) via a single idempotent importer; seed delegates to it. No legacy geo records remain (Abidjan layer relabeled CURATED). Abidjan coords backfilled (13/13 communes + 81/81 quarters). Offline geo-resolution engine live. **M2 backend capture-link + M3 public capture share page + M4 operator UI shipped** (`CaptureService`, `captures` tRPC router, rate limiter, cron sweeper, `/capture/[token]` page; capture-mode terminal editor with link card, Comboboxes, capture-status badges + filter + resolve approve/reject drawer). **M5 search/consumer audit green** (guards verified: pending terminals unreachable in routes/search; +3 full-188-city regression tests). Web typecheck now fully clean (pre-existing `features/admin/*` errors fixed) and `next build` green. |
+| **Web unit tests** | 227/227 pass |
+| **Next priority** | M6: final verification — typecheck, unit suites, `next build`, manual E2E of the full capture flow. Then booking ownership hardening, performance (Redis for search), mobile MVP. |
 
 ### Changes Made:
 - ✅ Removed `seatClass` field from `Fare` model in Prisma schema
@@ -40,6 +40,68 @@
 ---
 
 ## Milestone Log (newest first)
+
+### Ivory Coast Geo-Capture — M5 Search/Consumer Audit (2026-08-05)
+
+- [x] **`geo-fixtures.ts`** verified against full importer output (188 cities w/ hub flags, 13 Abidjan communes + 81 quarters, 187 pass-through) — no change needed.
+- [x] **New regression tests** `build-search-entries.test.ts` ("full 188-city dataset", +3): every pass-through city → exactly one city-level row (no `City (City)` dup); no municipality row duplicates its city name; composite key unique across full Abidjan quarter set (95 entries).
+- [x] **`searchCities`** `take: 10` + composite autocomplete key verified.
+- [x] **`getCityDetails`/`getGeoPlaceLabel`/`validate-search-pair`** dataset-agnostic (id/name-based, accent-normalized).
+- [x] **`routes.getCities` → Combobox** — covered by M4.
+- [x] **Mobile app** (`apps/traveler-app/`) — search is a placeholder shell, zero hard-coded cities.
+- [x] **Non-COMPLETE terminals unreachable** — guards verified: `submit` writes only lat/long (city ids stay null until approve); `routes.create/update` reject city-less terminals (`missingCity`); search matches only by city/muni/quarter ids; editor capture mode only for new terminals.
+- [x] **Verification:** web `tsc --noEmit` clean; **227/227 tests pass** (60 suites); `next build` ✓; biome clean on changed test file.
+- [ ] **M6 (next):** final verification — typecheck, unit suites, manual E2E; update context files.
+
+### Ivory Coast Geo-Capture — M4 Operator UI (2026-08-05)
+
+- [x] **Schema** `packages/schemas/src/routes.ts`: `geoCaptureStatus` (optional `COMPLETE | PENDING_CAPTURE | PENDING_CONFIRMATION`) on `baseTerminalSchema`; `createTerminalSchema.superRefine` skips city/lat/long-required checks when capture pending (`status != null && !== "COMPLETE"`).
+- [x] **Router** `apps/web/trpc/routers/terminals.ts`: `list` includes latest active capture; `create` persists `geoCaptureStatus` (default COMPLETE); `update` city-guard only when effective status COMPLETE.
+- [x] **Editor** `terminal-editor-sheet.tsx` (rewrite): capture-mode toggle (auto-forced for non-COMPLETE edits) = name + phone + Primary/Active only → `create/update` with `PENDING_CAPTURE` → `captures.createCapture` → link card (copy + WhatsApp + expiry); placeholder address `CAPTURE_ADDRESS_PLACEHOLDER`; PENDING_CONFIRMATION banner; header status badge; standard-mode City/Municipality/Quarter native selects → **Comboboxes** (`locations.searchMunicipalities/searchQuarters`, skipToken), pass-through auto-select kept.
+- [x] **Table** `terminals-table.tsx`: `CaptureStatusBadge` (Awaiting capture / Location submitted / Pending approval) + violet "Resolve capture" button when latest capture CONFIRMED → `onResolveCapture`.
+- [x] **View** `operator-terminals-view.tsx` (rewrite): CAPTURE filter, `kpi.pendingCaptures` StatCard, Resolve drawer (`getGeoPlaceLabel` skipToken, coords 5dp, accuracy, submitter, device, notes; Approve emerald / Reject destructive; `approveCapture`/`rejectCapture`).
+- [x] **Service** `capture-service.ts`: exported `CAPTURE_ADDRESS_PLACEHOLDER`; `approveCapture` auto-fills `addressLine1` from resolved label (`formatLocationLabel`) when null/placeholder, leaves real addresses untouched; `findCaptureInCompany` exposes `locationAddressLine1`.
+- [x] **i18n** `capture.*` / `resolve.*` / `kpi.pendingCaptures` in `en.json` + `fr.json` (English in both).
+- [x] **Verification:** web `tsc --noEmit` clean (exit 0); **224/224 tests pass** (59 suites; +2 approve-address tests); `next build` ✓; biome clean (repo-conventional `useLiteralKeys`/`noExplicitAny` only).
+
+### Ivory Coast Geo-Capture — M3 Public Capture Page (2026-08-05)
+
+- [x] **Server page** `apps/web/app/[locale]/capture/[token]/page.tsx`: `generateMetadata`; `createCaptureService(getPrismaClient()).getInfo({token})` server-side; TRPCError → friendly expired/rejected/invalid error screens; mirrors the `tickets/[token]` pattern.
+- [x] **Client view** `apps/web/features/capture/components/capture-page-view.tsx`: mobile-first branded flow — radar signature (navy disc + brand-pink crosshair + `animate-ping` rings, `motion-reduce:hidden`), terminal/company card, optional name/phone/street-landmark fields → `navigator.geolocation.getCurrentPosition` (enableHighAccuracy / 15s / no cache) → client 150m accuracy gate → `captures.submit` → resolved preview (`formatLocationLabel`, coords + ±accuracy) → `captures.confirm` → success + "waiting for approval". Handles reopen (confirmPrompt / already-done), permission-denied / locate-failed / accuracy / server errors with retry.
+- [x] **i18n** `capturePage` namespace in `en.json` + `fr.json` (English in both per language rule).
+- [x] **Street/landmark → `notes`** (LocationCapture has no addressLine1 column; schema untouched).
+- [x] **Pre-existing build blockers fixed** (user-approved): `features/admin/*` typecheck errors — `redirect-delete-dialog` `?? ""`, `redirects-table` missing `useTranslations` import, `admin-verifications-view` passes `t: columnsT` (namespace `adminDashboard.verificationsColumns`) to `getCompanyColumns`.
+- [x] **Verification:** web `tsc --noEmit` fully clean (exit 0); `next build` green (`ƒ /[locale]/capture/[token]`, 125 static pages); **222/222 web tests pass**; biome clean on new files.
+
+### Ivory Coast Geo-Capture — M2 Backend Capture-Link (2026-08-05)
+
+- [x] **`CaptureService`** (`apps/web/features/capture/services/capture-service.ts`): `CAPTURE_TTL_MS = 7d`, `MAX_ACCURACY_METERS = 150`, `defaultSubmitLimiter` (10 req/10 min). Raw 256-bit base64url tokens, single-use, stored raw. Operations: `createCapture` (idempotent — re-shares a live OPEN/PENDING_CONFIRMATION/CONFIRMED attempt), `getInfo` (auto-expires), `submit` (accuracy gate → `token:ip` rate limit → require OPEN → geo-resolve → capture + terminal `PENDING_CONFIRMATION` with tentative coords, one tx; stores device via UA regex / ip / submitter / notes), `confirm` (idempotent → `CONFIRMED`), `approveCapture` (require CONFIRMED + resolved ids → terminal `COMPLETE` + geo-linked + `CAPTURE_APPROVED` ActivityLog + clears token), `rejectCapture` (`REJECTED` + `PENDING_CAPTURE` + `CAPTURE_REJECTED` log), `sweepExpired` (expire stale; terminal reverts COMPLETE if city set else stays PENDING_CAPTURE). `createCaptureService(prisma)` wires the offline resolver (`loadGeoDataset` + `geocodePoint`).
+- [x] **Rate limiter** `apps/web/lib/rate-limit.ts`: in-memory fixed-window (`createRateLimiter({windowMs, max, now?, store?})` → `{ok, retryAfterMs}`); injectable store.
+- [x] **Shared dataset loader** `apps/web/lib/geo/load-geo-dataset.ts` (`loadGeoDataset(prisma)` via `$queryRaw` + `ST_AsGeoJSON`); `locations.geocodePoint` refactored onto it.
+- [x] **`captures` tRPC router** (`trpc/routers/captures.ts`, registered in `_app.ts`): `createCapture`/`approveCapture`/`rejectCapture` (`operatorCompanyProcedure`, `terminals:update`), `getInfo`/`submit`/`confirm` public. IP from `x-forwarded-for` → `x-real-ip`.
+- [x] **Cron sweeper** `app/api/cron/sweep-captures/route.ts` (GET, `assertCronAuthorized`) → `sweepExpired()`.
+- [x] **Tests:** `lib/__tests__/rate-limit.test.ts` (3) + `features/capture/services/__tests__/capture-service.test.ts` (19), registered in the hardcoded web test list → **222/222 web tests pass**.
+- [x] **Verification:** `npx tsc --noEmit` clean (only pre-existing `features/admin/*` errors); biome clean on touched files (one repo-conventional `useLiteralKeys` info). Schema enum comments updated for plan semantics (submitter confirms → `CONFIRMED`, operator approves → `COMPLETE`).
+
+### Ivory Coast Geography Import — M0 Data Pipeline (2026-08-05)
+
+- [x] **PostGIS 3.6.0 installed on Neon** (`CREATE EXTENSION IF NOT EXISTS postgis`); PostgreSQL 18.4 via pooler host. Migrations applied via `prisma migrate diff` → manual SQL → `migrate deploy` (dev hangs on shadow-DB).
+- [x] **Migration `20260804000000_add_geo_capture`** applied: `City.pcode/source`; `Municipality.latitude/longitude/geometry(Unsupported)/pcode/source`; `Quarter.latitude/longitude/geometry/externalId/source`; `CompanyLocation.geoCaptureStatus/captureToken/captureExpiresAt`; `LocationCapture` model + `LocationGeoCaptureStatus`/`LocationCaptureStatus` enums (M1 capture-link groundwork); GiST indexes on municipality/quarter geometry.
+- [x] **GDAL-free GeoJSON conversion** (`convert-populated-places.ts`): Node `node:sqlite` reads the `.gpkg` (GPB→WKB→GeoJSON) → `ivory_coast_data/populated_places.geojson` (9090 point features).
+- [x] **Importer `import-ivory-coast-geo.ts`** exports `runIvoryCoastGeoImport(prisma)`; CLI guard fixed (was double-firing on import). Domain mapping City=urban commune / Municipality=commune / Quarter=quartier. Candidates = OSM city/town ∪ GADM dept capitals ∪ seed cities.
+- [x] **Dataset loaded:** 188 cities, 200 municipalities (187 pass-through + 13 Abidjan communes), 3230 quarters (3149 OSM-assigned), geometry on 187 municipalities, 168/510 sous-préfectures linked, 14 districts / 33 regions. Fully idempotent (0 creates on re-run).
+- [x] **Abidjan communes embedded** (`ABIDJAN_COMMUNES`, 13 communes / 81 quarters, `source: CURATED`) — importer is the single geographic source of truth. Relabeled from `LEGACY` → `CURATED` (2026-08-05): **0 legacy records remain** in the DB (cities 100% OSM/GADM with coords).
+- [x] **Abidjan coordinate backfill (2026-08-05):** `readAbidjanCoords()` reads `ivory_coast_data/abidjan_communes_quarters_osm.csv` (user-supplied + OSM-derived coords) → sets `latitude/longitude` on the 13 Abidjan commune municipalities + their quarters. Sources: full Geofabrik extract `ivory-coast.gpkg` (Node `node:sqlite` + custom GPKG WKB decoder), matching via commune point-in-polygon + name matching, spurious hits manually rejected (Agboville/Bacongo=Frazzaville/Ficgayo-in-Yopougon). DB verified: **13/13 communes + 81/81 quarters have coords** (last 10 filled from user-supplied coords: Adjamé/Monsieur; Attécoubé/Abia, Agbo, Ahongbon, Baco, Dogosso; Treichville/Djelan, Ficgayo, Mobidoum; Yopougon/Nianguan).
+- [x] **M1 — Geo-resolution engine (2026-08-05):** `apps/web/lib/geo/geocode-point.ts` — pure, offline `geocodePoint()` (point-in-polygon w/ smallest-area-on-overlap + holes, nearest-quarter within resolved municipality, nearest-municipality fallback). `locations.geocodePoint` tRPC procedure (`$queryRaw` loads `ST_AsGeoJSON(m.geometry)` MultiPolygons + quarter coords). 13 unit tests registered → **200/200 web tests pass**. Smoke-tested against live DB (Cocody/Abobo/Yopougon/Adjamé quarters + Bouaké polygon resolve correctly). No third-party services.
+- [x] **M2 (done 2026-08-05):** backend capture-link — see "M2 Backend Capture-Link" milestone above.
+- [x] **Hub flags preserved** (`MAJOR_HUBS`: Abidjan, Bouaké, Yamoussoukro, San-Pédro, Daloa, Korhogo, Man); stale legacy pass-through cleanup rule added (removed "Duekoué").
+- [x] **`seed.ts` delegates geography** to `runIvoryCoastGeoImport`; removed hardcoded CITIES + MUNICIPALITIES/QUARTERS. Fixed 2 pre-existing latent bugs the refactor exposed (bus-type upsert `where:{name}` → findFirst+create; 7 `findUniqueOrThrow({where:{name}})` → `findFirstOrThrow({companyId:null,name})`). Seed runs end-to-end idempotently.
+- [x] **Test fixtures regenerated** (`geo-fixtures.ts`): `seedCities` → 188 cities with hub flags (sourced from DB); `seedAbidjanMunicipalities` verified against DB (13 communes / 81 quarters). Web tests **187/187 pass**.
+- [x] **M3-M6 (planned):** public capture share page; operator Combobox + capture mode + approve/reject drawer; search/consumer audit; verification.
+- [x] **M3 (done 2026-08-05):** public capture share page — see "M3 Public Capture Page" milestone above.
+- [ ] **M4:** operator UI — Combobox migration, capture mode + approve/reject drawer, status badges, i18n.
+- [ ] **M5:** search/consumer audit (§8) + tests green.
+- [ ] **M6:** verification — typecheck, unit suites, manual E2E; update context files.
 
 ### Stops on Map — Shared RouteMapPreview Across Operator + Passenger (2026-08-02)
 
@@ -493,6 +555,7 @@
 | `staff` | Live | Team management |
 | `terminals` | Live | Terminal CRUD |
 | `locations` | Live | City details for search UI |
+| `captures` | Live | Capture-link token lifecycle (public getInfo/submit/confirm + operator create/approve/reject) |
 | `invitation` | Live | Staff invite accept flow |
 
 ---
@@ -565,5 +628,5 @@ Agent app, driver app, multi-country, cargo, subscriptions, loyalty, public API
 4. **When blocked** — add to Blockers & Risks
 5. **End of session** — run `/remember save` and sync this file
 
-**Last updated:** 2026-08-02  
-**Updated by:** Stops on map — shared RouteMapPreview (operator + passenger surfaces)
+**Last updated:** 2026-08-05  
+**Updated by:** Ivory Coast geo-capture — M3 public capture page (M2 backend capture-link before it)

@@ -1,18 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  useSuspenseQueries,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { useQueryState, parseAsString, parseAsBoolean } from "nuqs";
-import { Plus, Search, Building, MapPin, CheckCircle, Navigation } from "lucide-react";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-
 import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -21,10 +9,44 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@moja/ui/components/ui/dialog";
-import { useTRPC } from "@/trpc/client";
-import { TerminalsTable } from "@/features/operator/components/terminals/terminals-table";
-import { TerminalEditorSheet } from "@/features/operator/components/terminals/terminal-editor-sheet";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@moja/ui/components/ui/drawer";
+import { Input } from "@moja/ui/components/ui/input";
+import { Label } from "@moja/ui/components/ui/label";
+import { Spinner } from "@moja/ui/components/ui/spinner";
+import {
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQueries,
+} from "@tanstack/react-query";
+import {
+  Building,
+  CheckCircle,
+  Link2,
+  MapPin,
+  Navigation,
+  Plus,
+  Search,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { parseAsBoolean, parseAsString, useQueryState } from "nuqs";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { StatCard } from "@/features/operator/components/stat-card";
+import { TerminalEditorSheet } from "@/features/operator/components/terminals/terminal-editor-sheet";
+import { TerminalsTable } from "@/features/operator/components/terminals/terminals-table";
+import { formatLocationLabel } from "@/lib/format-location-label";
+import { useTRPC } from "@/trpc/client";
+
+const FILTERS = ["ALL", "TERMINAL", "DEPOT", "CAPTURE"] as const;
 
 export function OperatorTerminalsView() {
   const trpc = useTRPC();
@@ -37,14 +59,25 @@ export function OperatorTerminalsView() {
     ],
   });
 
-  const [search, setSearch] = useQueryState("search", parseAsString.withDefault(""));
-  const [typeFilter, setTypeFilter] = useQueryState("typeFilter", parseAsString.withDefault("ALL"));
-  const [drawerOpen, setDrawerOpen] = useQueryState("drawer", parseAsBoolean.withDefault(false));
+  const [search, setSearch] = useQueryState(
+    "search",
+    parseAsString.withDefault(""),
+  );
+  const [typeFilter, setTypeFilter] = useQueryState(
+    "typeFilter",
+    parseAsString.withDefault("ALL"),
+  );
+  const [drawerOpen, setDrawerOpen] = useQueryState(
+    "drawer",
+    parseAsBoolean.withDefault(false),
+  );
 
   const [editingLocation, setEditingLocation] = useState<any>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [locationToDelete, setLocationToDelete] = useState<any>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [resolvingCapture, setResolvingCapture] = useState<any>(null);
+  const [resolvingSubmitting, setResolvingSubmitting] = useState(false);
   const t = useTranslations("operatorDashboard.terminals");
   const tc = useTranslations("common");
 
@@ -60,6 +93,31 @@ export function OperatorTerminalsView() {
         queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
     }),
   );
+  const approveMutation = useMutation(
+    trpc.captures.approveCapture.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
+    }),
+  );
+  const rejectMutation = useMutation(
+    trpc.captures.rejectCapture.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
+    }),
+  );
+
+  const resolvedLabelQuery = useQuery(
+    trpc.locations.getGeoPlaceLabel.queryOptions(
+      resolvingCapture?.resolvedCityId
+        ? {
+            cityId: resolvingCapture.resolvedCityId,
+            municipalityId:
+              resolvingCapture.resolvedMunicipalityId ?? undefined,
+            quarterId: resolvingCapture.resolvedQuarterId ?? undefined,
+          }
+        : skipToken,
+    ),
+  );
 
   const filteredLocations = useMemo(() => {
     if (!locations) return [];
@@ -69,12 +127,15 @@ export function OperatorTerminalsView() {
         !q ||
         loc.name.toLowerCase().includes(q) ||
         loc.addressLine1.toLowerCase().includes(q) ||
-        (loc.cityRelation?.name && loc.cityRelation.name.toLowerCase().includes(q));
+        loc.cityRelation?.name?.toLowerCase().includes(q);
 
+      const isCapturePending =
+        loc.geoCaptureStatus != null && loc.geoCaptureStatus !== "COMPLETE";
       const matchesType =
         typeFilter === "ALL" ||
         (typeFilter === "TERMINAL" && loc.isTerminal) ||
-        (typeFilter === "DEPOT" && !loc.isTerminal);
+        (typeFilter === "DEPOT" && !loc.isTerminal) ||
+        (typeFilter === "CAPTURE" && isCapturePending);
 
       return matchesSearch && matchesType;
     });
@@ -87,6 +148,10 @@ export function OperatorTerminalsView() {
       terminals: list.filter((l: any) => l.isTerminal).length,
       depots: list.filter((l: any) => !l.isTerminal).length,
       active: list.filter((l: any) => l.isActive).length,
+      pending: list.filter(
+        (l: any) =>
+          l.geoCaptureStatus != null && l.geoCaptureStatus !== "COMPLETE",
+      ).length,
     };
   }, [locations]);
 
@@ -107,7 +172,11 @@ export function OperatorTerminalsView() {
         id: loc.id,
         data: { isTerminal: !currentVal },
       });
-      toast.success(t("toast.locationUpdated", { type: !currentVal ? "Passenger Terminal" : "Depot / Operations" }));
+      toast.success(
+        t("toast.locationUpdated", {
+          type: !currentVal ? "Passenger Terminal" : "Depot / Operations",
+        }),
+      );
     } catch (err: any) {
       toast.error(err.message || t("toast.updateFailed"));
     } finally {
@@ -127,6 +196,38 @@ export function OperatorTerminalsView() {
     }
   };
 
+  const handleApproveCapture = async () => {
+    if (!resolvingCapture) return;
+    if (!window.confirm(t("resolve.approveConfirm"))) return;
+    setResolvingSubmitting(true);
+    try {
+      await approveMutation.mutateAsync({ captureId: resolvingCapture.id });
+      toast.success(t("resolve.approved"));
+      setResolvingCapture(null);
+    } catch (err: any) {
+      toast.error(err.message || t("resolve.approveFailed"));
+    } finally {
+      setResolvingSubmitting(false);
+    }
+  };
+
+  const handleRejectCapture = async () => {
+    if (!resolvingCapture) return;
+    if (!window.confirm(t("resolve.rejectConfirm"))) return;
+    setResolvingSubmitting(true);
+    try {
+      await rejectMutation.mutateAsync({ captureId: resolvingCapture.id });
+      toast.success(t("resolve.rejected"));
+      setResolvingCapture(null);
+    } catch (err: any) {
+      toast.error(err.message || t("resolve.rejectFailed"));
+    } finally {
+      setResolvingSubmitting(false);
+    }
+  };
+
+  const resolvedLabel = resolvedLabelQuery.data;
+
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -144,11 +245,32 @@ export function OperatorTerminalsView() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label={t("kpi.totalLocations")} value={stats.total} icon={Building} />
-        <StatCard label={t("kpi.passengerTerminals")} value={stats.terminals} icon={MapPin} />
-        <StatCard label={t("kpi.depotsOffices")} value={stats.depots} icon={Navigation} />
-        <StatCard label={t("kpi.activeSites")} value={stats.active} icon={CheckCircle} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <StatCard
+          label={t("kpi.totalLocations")}
+          value={stats.total}
+          icon={Building}
+        />
+        <StatCard
+          label={t("kpi.passengerTerminals")}
+          value={stats.terminals}
+          icon={MapPin}
+        />
+        <StatCard
+          label={t("kpi.depotsOffices")}
+          value={stats.depots}
+          icon={Navigation}
+        />
+        <StatCard
+          label={t("kpi.activeSites")}
+          value={stats.active}
+          icon={CheckCircle}
+        />
+        <StatCard
+          label={t("kpi.pendingCaptures")}
+          value={stats.pending}
+          icon={Link2}
+        />
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -163,7 +285,7 @@ export function OperatorTerminalsView() {
         </div>
 
         <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-          {["ALL", "TERMINAL", "DEPOT"].map((type) => (
+          {FILTERS.map((type) => (
             <Button
               key={type}
               variant={typeFilter === type ? "default" : "outline"}
@@ -171,7 +293,13 @@ export function OperatorTerminalsView() {
               onClick={() => setTypeFilter(type)}
               className="text-xs uppercase tracking-wider font-semibold"
             >
-              {type === "ALL" ? t("allLocations") : type === "TERMINAL" ? t("terminals") : t("depots")}
+              {type === "ALL"
+                ? t("allLocations")
+                : type === "TERMINAL"
+                  ? t("terminals")
+                  : type === "DEPOT"
+                    ? t("depots")
+                    : `${t("capture.pendingFilter")} (${stats.pending})`}
             </Button>
           ))}
         </div>
@@ -184,6 +312,12 @@ export function OperatorTerminalsView() {
         onDelete={(loc) => {
           setLocationToDelete(loc);
           setDeleteConfirmOpen(true);
+        }}
+        onResolveCapture={(loc) => {
+          const capture = loc.captures?.[0];
+          setResolvingCapture(
+            capture ? { ...capture, locationName: loc.name } : null,
+          );
         }}
         togglingId={togglingId}
       />
@@ -207,7 +341,10 @@ export function OperatorTerminalsView() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
               {tc("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleDeleteConfirm}>
@@ -216,6 +353,133 @@ export function OperatorTerminalsView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Drawer
+        open={!!resolvingCapture}
+        onOpenChange={(open) => {
+          if (!open && !resolvingSubmitting) setResolvingCapture(null);
+        }}
+      >
+        <DrawerContent className="max-h-[90vh]">
+          <div className="mx-auto w-full max-w-2xl overflow-y-auto p-6 space-y-5">
+            <DrawerHeader className="px-0">
+              <DrawerTitle className="text-xl font-bold flex items-center gap-2">
+                <Link2 className="size-5 text-primary" />
+                {t("resolve.title")}
+              </DrawerTitle>
+              <DrawerDescription>{t("resolve.description")}</DrawerDescription>
+            </DrawerHeader>
+
+            {resolvingCapture && (
+              <div className="space-y-4">
+                <div className="rounded-lg border border-border p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>{t("resolve.terminal")}</Label>
+                    <span className="text-sm font-semibold text-foreground text-right">
+                      {resolvingCapture.locationName ?? "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>{t("resolve.resolvedLocation")}</Label>
+                    <span className="text-sm font-semibold text-foreground text-right">
+                      {resolvedLabel
+                        ? formatLocationLabel({
+                            cityName: resolvedLabel.cityName,
+                            municipalityName: resolvedLabel.municipalityName,
+                            quarterName: resolvedLabel.quarterName,
+                            isUrban: false,
+                          })
+                        : t("resolve.notYetResolved")}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>{t("resolve.coordinates")}</Label>
+                    <span className="text-sm font-mono text-foreground text-right">
+                      {resolvingCapture.latitude != null &&
+                      resolvingCapture.longitude != null
+                        ? `${resolvingCapture.latitude.toFixed(5)}, ${resolvingCapture.longitude.toFixed(5)}`
+                        : "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>{t("resolve.accuracyLabel")}</Label>
+                    <span className="text-sm font-semibold text-foreground text-right">
+                      {t("resolve.accuracyMeters", {
+                        accuracy: resolvingCapture.accuracyMeters ?? "—",
+                      })}
+                    </span>
+                  </div>
+
+                  {resolvingCapture.capturedAt && (
+                    <div className="flex items-center justify-between gap-2">
+                      <Label>{t("resolve.submittedLabel")}</Label>
+                      <span className="text-sm text-muted-foreground text-right">
+                        {new Date(resolvingCapture.capturedAt).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-lg border border-border p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>{t("resolve.submittedBy")}</Label>
+                    <span className="text-sm text-foreground text-right">
+                      {resolvingCapture.submitterName
+                        ? `${resolvingCapture.submitterName}${resolvingCapture.submitterPhone ? ` · ${resolvingCapture.submitterPhone}` : ""}`
+                        : t("resolve.noSubmitter")}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>{t("resolve.device")}</Label>
+                    <span className="text-sm text-muted-foreground text-right">
+                      {resolvingCapture.device ?? "—"}
+                    </span>
+                  </div>
+
+                  {resolvingCapture.notes && (
+                    <div className="space-y-1">
+                      <Label>{t("resolve.notesLabel")}</Label>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {resolvingCapture.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <DrawerFooter className="px-0 pt-4 flex-row justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setResolvingCapture(null)}
+                disabled={resolvingSubmitting}
+              >
+                {tc("cancel")}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRejectCapture}
+                disabled={resolvingSubmitting}
+              >
+                {resolvingSubmitting && <Spinner className="mr-2 size-4" />}
+                {t("resolve.reject")}
+              </Button>
+              <Button
+                onClick={handleApproveCapture}
+                disabled={resolvingSubmitting}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                {resolvingSubmitting && <Spinner className="mr-2 size-4" />}
+                {t("resolve.approve")}
+              </Button>
+            </DrawerFooter>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

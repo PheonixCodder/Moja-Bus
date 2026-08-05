@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { buildSearchEntries } from "../build-search-entries";
-import { seedAbidjanMunicipalities, seedCities } from "./geo-fixtures";
+import {
+  seedAbidjanMunicipalities,
+  seedCities,
+  seedPassThroughCities,
+} from "./geo-fixtures";
 
 const city = (
   name: string,
@@ -185,5 +189,103 @@ describe("buildSearchEntries — full seeded dataset", () => {
 
   it("a blank query yields no rows", () => {
     assert.equal(buildSearchEntries([], [], []).length, 0);
+  });
+});
+
+describe("buildSearchEntries — full 188-city dataset", () => {
+  const allCities = seedCities.map((c) => city(c.name, c.isMajorHub));
+  const allMunicipalities = allCities
+    .filter((c) => c.name !== "Abidjan")
+    .map((c) => ({
+      id: `m-${c.name}`,
+      name: c.name,
+      isPassThrough: true,
+      city: c,
+    }));
+  const allQuarters = seedAbidjanMunicipalities.flatMap((m) =>
+    m.quarters.map((q) => ({
+      id: `q-${m.name}-${q}`,
+      name: q,
+      municipality: {
+        id: `m-${m.name}`,
+        name: m.name,
+        city: city("Abidjan", true),
+      },
+    })),
+  );
+
+  it("typing any pass-through city yields exactly one city-level row (no 'City (City)' duplicate)", () => {
+    for (const c of seedPassThroughCities) {
+      const entries = buildSearchEntries(
+        [city(c.name, c.isMajorHub)],
+        [
+          {
+            id: `m-${c.name}`,
+            name: c.name,
+            isPassThrough: true,
+            city: city(c.name, c.isMajorHub),
+          },
+        ],
+        [],
+        10,
+      );
+      assert.equal(entries.length, 1, `city ${c.name} should yield 1 row`);
+      assert.equal(
+        entries[0]?.level,
+        "city",
+        `city ${c.name} should be city level`,
+      );
+      assert.equal(entries[0]?.name, c.name);
+      assert.equal(entries[0]?.hierarchyLabel, c.name);
+    }
+  });
+
+  it("never emits a municipality row that duplicates its city name across the whole dataset", () => {
+    const entries = buildSearchEntries(
+      allCities,
+      allMunicipalities,
+      allQuarters,
+      10,
+    );
+    for (const e of entries) {
+      if (e.level !== "municipality") continue;
+      assert.notEqual(
+        e.name,
+        e.hierarchyLabel,
+        `duplicate municipality label ${e.hierarchyLabel}`,
+      );
+    }
+  });
+
+  it("the composite key stays unique across the full Abidjan quarter set", () => {
+    const abidjan = city("Abidjan", true);
+    const munis = seedAbidjanMunicipalities.map((m) => ({
+      id: `m-${m.name}`,
+      name: m.name,
+      isPassThrough: false,
+      city: abidjan,
+    }));
+    const quarters = seedAbidjanMunicipalities.flatMap((m) =>
+      m.quarters.map((q) => ({
+        id: `q-${m.name}-${q}`,
+        name: q,
+        municipality: {
+          id: `m-${m.name}`,
+          name: m.name,
+          city: abidjan,
+        },
+      })),
+    );
+    const entries = buildSearchEntries([abidjan], munis, quarters, 100);
+    const keys = entries.map(
+      (e) =>
+        `${e.id}|${e.municipalityId ?? ""}|${e.quarterId ?? ""}|${e.level}`,
+    );
+    assert.equal(
+      new Set(keys).size,
+      keys.length,
+      `key collision in ${keys.join(", ")}`,
+    );
+    assert.equal(entries.length, 1 + munis.length + quarters.length);
   });
 });

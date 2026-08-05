@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MapPin, Building, Shield, User, Phone, CheckCircle, Navigation } from "lucide-react";
+import {
+  MapPin,
+  CheckCircle,
+  Smartphone,
+  Copy,
+  Check,
+  MessageCircle,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
@@ -29,6 +36,7 @@ import {
   ComboboxEmpty,
 } from "@moja/ui/components/ui/combobox";
 import { useTRPC } from "@/trpc/client";
+import { CAPTURE_ADDRESS_PLACEHOLDER } from "@/features/capture/services/capture-service";
 
 const DAYS_OF_WEEK = [
   "monday",
@@ -44,6 +52,14 @@ const DEFAULT_OPERATING_HOURS = DAYS_OF_WEEK.reduce((acc, day) => {
   acc[day] = { open: "06:00", close: "20:00", closed: false };
   return acc;
 }, {} as Record<string, { open: string; close: string; closed: boolean }>);
+
+type CaptureMode = "standard" | "capture";
+
+interface CaptureLinkResult {
+  url: string;
+  token: string;
+  expiresAt: Date;
+}
 
 interface TerminalEditorSheetProps {
   isOpen: boolean;
@@ -75,10 +91,21 @@ export function TerminalEditorSheet({
         queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
     }),
   );
+  const createCaptureMutation = useMutation(
+    trpc.captures.createCapture.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
+    }),
+  );
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+
+  // Capture link UI
+  const [mode, setMode] = useState<CaptureMode>("standard");
+  const [captureResult, setCaptureResult] = useState<CaptureLinkResult | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Form inputs
   const [name, setName] = useState("");
@@ -99,6 +126,11 @@ export function TerminalEditorSheet({
   const [managerPhone, setManagerPhone] = useState("");
   const [managerEmail, setManagerEmail] = useState("");
   const [operatingHours, setOperatingHours] = useState(DEFAULT_OPERATING_HOURS);
+
+  const isCapturePending =
+    !!editingLocation &&
+    editingLocation.geoCaptureStatus != null &&
+    editingLocation.geoCaptureStatus !== "COMPLETE";
 
   const municipalitiesQuery = useQuery(
     trpc.locations.searchMunicipalities.queryOptions(
@@ -153,6 +185,8 @@ export function TerminalEditorSheet({
             : editingLocation.operatingHours
           : DEFAULT_OPERATING_HOURS
       );
+      setMode(isCapturePending ? "capture" : "standard");
+      setCaptureResult(null);
       setFormErrors({});
       setIsDirty(false);
     } else {
@@ -174,10 +208,80 @@ export function TerminalEditorSheet({
       setManagerPhone("");
       setManagerEmail("");
       setOperatingHours(DEFAULT_OPERATING_HOURS);
+      setMode("standard");
+      setCaptureResult(null);
       setFormErrors({});
       setIsDirty(false);
     }
   }, [editingLocation, isOpen]);
+
+  const handleGenerateCapture = async () => {
+    setSubmitting(true);
+    setFormErrors({});
+
+    const errors: Record<string, string> = {};
+    if (!name.trim()) errors["name"] = "Name is required";
+    if (!phone.trim()) errors["phone"] = "Phone number is required";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      let terminalId = editingLocation?.id as string | undefined;
+      if (!terminalId) {
+        const created = await createMutation.mutateAsync({
+          name: name.trim(),
+          addressLine1: CAPTURE_ADDRESS_PLACEHOLDER,
+          phone: phone.trim(),
+          isTerminal: true,
+          isPrimary,
+          isActive,
+          geoCaptureStatus: "PENDING_CAPTURE",
+        });
+        terminalId = created.id;
+        toast.success(t("capture.captureCreated"));
+      } else {
+        await updateMutation.mutateAsync({
+          id: terminalId,
+          data: {
+            name: name.trim(),
+            phone: phone.trim(),
+            isPrimary,
+            isActive,
+            geoCaptureStatus:
+              editingLocation.geoCaptureStatus ?? "PENDING_CAPTURE",
+          },
+        });
+      }
+
+      const result = await createCaptureMutation.mutateAsync({
+        terminalId,
+      });
+      setCaptureResult(result);
+      setCopied(false);
+      setIsDirty(false);
+      toast.success(t("capture.linkGenerated"));
+    } catch (err: any) {
+      toast.error(err.message || t("capture.linkGenerationFailed"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!captureResult) return;
+    try {
+      await navigator.clipboard.writeText(captureResult.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success(t("capture.copied"));
+    } catch {
+      toast.error(t("capture.linkGenerationFailed"));
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,7 +290,8 @@ export function TerminalEditorSheet({
 
     const errors: Record<string, string> = {};
     if (!name.trim()) errors["name"] = "Name is required";
-    if (!addressLine1.trim()) errors["addressLine1"] = "Address line 1 is required";
+    if (!addressLine1.trim())
+      errors["addressLine1"] = "Address line 1 is required";
     if (!phone.trim()) errors["phone"] = "Phone number is required";
     if (isTerminal && !cityId)
       errors["cityId"] = "City is required for passenger terminals";
@@ -238,12 +343,34 @@ export function TerminalEditorSheet({
     }
   };
 
+  const captureStatusBadge = (() => {
+    const status = editingLocation?.geoCaptureStatus;
+    if (!status || status === "COMPLETE") return null;
+    const submitted = status === "PENDING_CONFIRMATION";
+    return (
+      <span
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+          submitted
+            ? "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+            : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+        }`}
+      >
+        {submitted
+          ? t("capture.statusSubmitted")
+          : t("capture.statusAwaitingCapture")}
+      </span>
+    );
+  })();
+
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent
         className="max-h-[90vh]"
         onPointerDownOutside={(e) => {
-          if (isDirty && !window.confirm("You have unsaved changes. Discard changes?")) {
+          if (
+            isDirty &&
+            !window.confirm("You have unsaved changes. Discard changes?")
+          ) {
             e.preventDefault();
           }
         }}
@@ -254,290 +381,669 @@ export function TerminalEditorSheet({
               <MapPin className="size-5 text-primary" />
               {editingLocation ? `${tc("edit")} Location` : t("addLocation")}
             </DrawerTitle>
-            <DrawerDescription>
+            <DrawerDescription className="flex items-center gap-2">
               {t("pageDescription")}
+              {captureStatusBadge}
             </DrawerDescription>
           </DrawerHeader>
 
-          <form onSubmit={handleSave} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider">
-                  {tc("name")} *
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="e.g. Abidjan Central Terminal"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setIsDirty(true);
-                  }}
-                  className={formErrors["name"] ? "border-destructive" : ""}
-                />
-                {formErrors["name"] && (
-                  <p className="text-xs text-destructive">{formErrors["name"]}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider">
-                  {tc("phone")} *
-                </Label>
-                <PhoneInput
-                  id="phone"
-                  value={phone}
-                  onChange={(val) => {
-                    setPhone(val || "");
-                    setIsDirty(true);
-                  }}
-                  className={formErrors["phone"] ? "border-destructive" : ""}
-                />
-                {formErrors["phone"] && (
-                  <p className="text-xs text-destructive">{formErrors["phone"]}</p>
-                )}
-              </div>
+          {!editingLocation && (
+            <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/30 p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("standard");
+                  setCaptureResult(null);
+                }}
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+                  mode === "standard"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t("capture.standardMode")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("capture");
+                  setCaptureResult(null);
+                }}
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                  mode === "capture"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Smartphone className="size-4" />
+                {t("capture.captureMode")}
+              </button>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="addressLine1" className="text-xs font-semibold uppercase tracking-wider">
-                  {tc("address")} *
-                </Label>
-                <Input
-                  id="addressLine1"
-                  placeholder="Street address or location details"
-                  value={addressLine1}
-                  onChange={(e) => {
-                    setAddressLine1(e.target.value);
-                    setIsDirty(true);
-                  }}
-                  className={formErrors["addressLine1"] ? "border-destructive" : ""}
-                />
-                {formErrors["addressLine1"] && (
-                  <p className="text-xs text-destructive">{formErrors["addressLine1"]}</p>
-                )}
-              </div>
+          {mode === "capture" ? (
+            <div className="space-y-6">
+              {!captureResult && (
+                <>
+                  <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <Smartphone className="size-5 text-primary mt-0.5" />
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-foreground">
+                          {t("capture.captureMode")}
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          {t("capture.captureModeDescription")}
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="cityId" className="text-xs font-semibold uppercase tracking-wider">
-                  {tc("city")}
-                </Label>
-                <select
-                  id="cityId"
-                  value={cityId}
-                  onChange={(e) => {
-                    setCityId(e.target.value);
-                    setMunicipalityId("");
-                    setQuarterId("");
-                    setIsDirty(true);
-                  }}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">Select city...</option>
-                  {cities.map((city: any) => (
-                    <option key={city.id} value={city.id}>
-                      {city.name}
-                    </option>
-                  ))}
-                </select>
-                {formErrors["cityId"] && (
-                  <p className="text-xs text-destructive">{formErrors["cityId"]}</p>
-                )}
-              </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="capture-name"
+                          className="text-xs font-semibold uppercase tracking-wider"
+                        >
+                          {tc("name")} *
+                        </Label>
+                        <Input
+                          id="capture-name"
+                          placeholder="e.g. Bouaké North Terminal"
+                          value={name}
+                          onChange={(e) => {
+                            setName(e.target.value);
+                            setIsDirty(true);
+                          }}
+                          className={
+                            formErrors["name"] ? "border-destructive" : ""
+                          }
+                        />
+                        {formErrors["name"] && (
+                          <p className="text-xs text-destructive">
+                            {formErrors["name"]}
+                          </p>
+                        )}
+                      </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="municipalityId" className="text-xs font-semibold uppercase tracking-wider">
-                  Municipality
-                </Label>
-                {cityId && municipalities.length > 0 ? (
-                  <>
-                    {municipalities.length === 1 && municipalities[0]?.isPassThrough ? (
-                      <Input
-                        id="municipalityId"
-                        value={municipalities[0]?.name ?? ""}
-                        readOnly
-                        className="bg-muted"
-                      />
-                    ) : (
-                      <select
-                        id="municipalityId"
-                        value={municipalityId}
-                        onChange={(e) => {
-                          setMunicipalityId(e.target.value);
-                          setQuarterId("");
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="capture-phone"
+                          className="text-xs font-semibold uppercase tracking-wider"
+                        >
+                          {tc("phone")} *
+                        </Label>
+                        <PhoneInput
+                          id="capture-phone"
+                          value={phone}
+                          onChange={(val) => {
+                            setPhone(val || "");
+                            setIsDirty(true);
+                          }}
+                          className={
+                            formErrors["phone"] ? "border-destructive" : ""
+                          }
+                        />
+                        {formErrors["phone"] && (
+                          <p className="text-xs text-destructive">
+                            {formErrors["phone"]}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <CheckCircle className="size-3.5 text-primary" />
+                      {t("capture.captureOnlyNamePhone")}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-border p-4 space-y-4">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                      Location Role & Status
+                    </h4>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium">
+                          Passenger Terminal
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Capture links can only be generated for passenger
+                          terminals.
+                        </p>
+                      </div>
+                      <Switch checked disabled />
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-border pt-3">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium">Primary Hub</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Set as company primary operational headquarters.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={isPrimary}
+                        onCheckedChange={(v) => {
+                          setIsPrimary(v);
                           setIsDirty(true);
                         }}
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        <option value="">Select municipality...</option>
-                        {municipalities.map((m: any) => (
-                          <option key={m.id} value={m.id}>
-                            {m.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </>
-                ) : (
-                  <Input
-                    id="municipalityId"
-                    value=""
-                    readOnly
-                    placeholder={cityId ? "No municipalities found" : "Select a city first"}
-                    className="bg-muted"
-                  />
-                )}
-              </div>
-            </div>
+                      />
+                    </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="quarterId" className="text-xs font-semibold uppercase tracking-wider">
-                  Quarter / Neighbourhood
-                </Label>
-                <select
-                  id="quarterId"
-                  value={quarterId}
-                  onChange={(e) => {
-                    setQuarterId(e.target.value);
-                    setIsDirty(true);
-                  }}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">{municipalityId ? "Select quarter..." : "Select a municipality first..."}</option>
-                  {quarters.map((q: any) => (
-                    <option key={q.id} value={q.id}>
-                      {q.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                    <div className="flex items-center justify-between border-t border-border pt-3">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium">Active Status</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Enable or disable operations at this location.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={isActive}
+                        onCheckedChange={(v) => {
+                          setIsActive(v);
+                          setIsDirty(true);
+                        }}
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="latitude" className="text-xs font-semibold uppercase tracking-wider">
-                  Latitude
-                </Label>
-                <Input
-                  id="latitude"
-                  type="number"
-                  step="any"
-                  placeholder="e.g. 5.359952"
-                  value={latitude}
-                  onChange={(e) => {
-                    setLatitude(e.target.value);
-                    setIsDirty(true);
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="longitude" className="text-xs font-semibold uppercase tracking-wider">
-                  Longitude
-                </Label>
-                <Input
-                  id="longitude"
-                  type="number"
-                  step="any"
-                  placeholder="e.g. -4.008256"
-                  value={longitude}
-                  onChange={(e) => {
-                    setLongitude(e.target.value);
-                    setIsDirty(true);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="state" className="text-xs font-semibold uppercase tracking-wider">
-                  State / Region
-                </Label>
-                <Input
-                  id="state"
-                  placeholder="e.g. Lagunes"
-                  value={stateValue}
-                  onChange={(e) => {
-                    setStateValue(e.target.value);
-                    setIsDirty(true);
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-border p-4 space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                Location Role & Status
-              </h4>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Passenger Terminal</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Mark as a bookable passenger terminal for departure and arrival routes.
-                  </p>
-                </div>
-                <Switch
-                  checked={isTerminal}
-                  onCheckedChange={(v) => {
-                    setIsTerminal(v);
-                    setIsDirty(true);
-                  }}
-                />
-              </div>
-
-              {isTerminal && !cityId && (
-                <p className="text-xs text-destructive border-t border-border pt-2">
-                  Select a city above before saving — a passenger terminal must
-                  have a city assigned.
-                </p>
+                  {editingLocation?.geoCaptureStatus === "PENDING_CONFIRMATION" && (
+                    <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-4 text-sm text-foreground space-y-1">
+                      <p className="font-semibold flex items-center gap-2">
+                        <CheckCircle className="size-4 text-sky-600" />
+                        {t("capture.statusSubmitted")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("capture.submittedNote")}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
 
-              <div className="flex items-center justify-between border-t border-border pt-3">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Primary Hub</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Set as company primary operational headquarters.
-                  </p>
+              {captureResult && (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                      <CheckCircle className="size-4 text-emerald-600" />
+                      {t("capture.linkGenerated")}
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t("capture.linkTitle")}
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 truncate rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-xs text-foreground">
+                          {captureResult.url}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopyLink}
+                          className="shrink-0"
+                        >
+                          {copied ? (
+                            <Check className="mr-1.5 size-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="mr-1.5 size-3.5" />
+                          )}
+                          {copied ? t("capture.copied") : t("capture.copy")}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("capture.linkHint")}
+                    </p>
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <span className="text-xs text-muted-foreground">
+                        {t("capture.expiresOn", {
+                          date: new Date(captureResult.expiresAt).toLocaleString(),
+                        })}
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="shrink-0 bg-[#25D366] hover:bg-[#1da851] text-white"
+                        onClick={() =>
+                          window.open(
+                            `https://wa.me/?text=${encodeURIComponent(captureResult.url)}`,
+                            "_blank",
+                          )
+                        }
+                      >
+                        <MessageCircle className="mr-1.5 size-3.5" />
+                        {t("capture.shareWhatsApp")}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <Switch
-                  checked={isPrimary}
-                  onCheckedChange={(v) => {
-                    setIsPrimary(v);
-                    setIsDirty(true);
-                  }}
-                />
-              </div>
+              )}
 
-              <div className="flex items-center justify-between border-t border-border pt-3">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Active Status</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Enable or disable operations at this location.
-                  </p>
-                </div>
-                <Switch
-                  checked={isActive}
-                  onCheckedChange={(v) => {
-                    setIsActive(v);
-                    setIsDirty(true);
-                  }}
-                />
-              </div>
+              <DrawerFooter className="px-0 pt-4 flex-row justify-end gap-3">
+                {!captureResult ? (
+                  <>
+                    <DrawerClose asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onClose}
+                        disabled={submitting}
+                      >
+                        {tc("cancel")}
+                      </Button>
+                    </DrawerClose>
+                    <Button
+                      type="button"
+                      onClick={handleGenerateCapture}
+                      disabled={submitting}
+                    >
+                      {submitting && <Spinner className="mr-2 size-4" />}
+                      {editingLocation
+                        ? t("capture.generateLink")
+                        : t("capture.createAndGenerateLink")}
+                    </Button>
+                  </>
+                ) : (
+                  <DrawerClose asChild>
+                    <Button type="button" onClick={onClose}>
+                      <CheckCircle className="mr-2 size-4" />
+                      {tc("save")} &amp; Close
+                    </Button>
+                  </DrawerClose>
+                )}
+              </DrawerFooter>
             </div>
+          ) : (
+            <form onSubmit={handleSave} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="name"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    {tc("name")} *
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g. Abidjan Central Terminal"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setIsDirty(true);
+                    }}
+                    className={
+                      formErrors["name"] ? "border-destructive" : ""
+                    }
+                  />
+                  {formErrors["name"] && (
+                    <p className="text-xs text-destructive">
+                      {formErrors["name"]}
+                    </p>
+                  )}
+                </div>
 
-            <DrawerFooter className="px-0 pt-4 flex-row justify-end gap-3">
-              <DrawerClose asChild>
-                <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-                  {tc("cancel")}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="phone"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    {tc("phone")} *
+                  </Label>
+                  <PhoneInput
+                    id="phone"
+                    value={phone}
+                    onChange={(val) => {
+                      setPhone(val || "");
+                      setIsDirty(true);
+                    }}
+                    className={
+                      formErrors["phone"] ? "border-destructive" : ""
+                    }
+                  />
+                  {formErrors["phone"] && (
+                    <p className="text-xs text-destructive">
+                      {formErrors["phone"]}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="addressLine1"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    {tc("address")} *
+                  </Label>
+                  <Input
+                    id="addressLine1"
+                    placeholder="Street address or location details"
+                    value={addressLine1}
+                    onChange={(e) => {
+                      setAddressLine1(e.target.value);
+                      setIsDirty(true);
+                    }}
+                    className={
+                      formErrors["addressLine1"] ? "border-destructive" : ""
+                    }
+                  />
+                  {formErrors["addressLine1"] && (
+                    <p className="text-xs text-destructive">
+                      {formErrors["addressLine1"]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="cityId"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    {tc("city")}
+                  </Label>
+                  <Combobox
+                    items={cities.map((city: any) => ({
+                      value: city.id,
+                      label: city.name,
+                    }))}
+                    value={cityId}
+                    onValueChange={(val) => {
+                      setCityId(val || "");
+                      setMunicipalityId("");
+                      setQuarterId("");
+                      setIsDirty(true);
+                    }}
+                  >
+                    <ComboboxInput
+                      id="cityId"
+                      placeholder="Select city..."
+                      className="w-full text-sm"
+                      value={
+                        cityId
+                          ? (cities.find((c: any) => c.id === cityId)?.name ?? "")
+                          : ""
+                      }
+                    />
+                    <ComboboxContent>
+                      <ComboboxEmpty>No city found.</ComboboxEmpty>
+                      <ComboboxList>
+                        {cities.map((city: any) => (
+                          <ComboboxItem key={city.id} value={city.id}>
+                            {city.name}
+                          </ComboboxItem>
+                        ))}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                  {formErrors["cityId"] && (
+                    <p className="text-xs text-destructive">
+                      {formErrors["cityId"]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="municipalityId"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    Municipality
+                  </Label>
+                  {cityId && municipalities.length > 0 ? (
+                    <>
+                      {municipalities.length === 1 &&
+                      municipalities[0]?.isPassThrough ? (
+                        <Input
+                          id="municipalityId"
+                          value={municipalities[0]?.name ?? ""}
+                          readOnly
+                          className="bg-muted"
+                        />
+                      ) : (
+                        <Combobox
+                          items={municipalities.map((m: any) => ({
+                            value: m.id,
+                            label: m.name,
+                          }))}
+                          value={municipalityId}
+                          onValueChange={(val) => {
+                            setMunicipalityId(val || "");
+                            setQuarterId("");
+                            setIsDirty(true);
+                          }}
+                        >
+                          <ComboboxInput
+                            id="municipalityId"
+                            placeholder="Select municipality..."
+                            className="w-full text-sm"
+                            value={
+                              municipalityId
+                                ? (municipalities.find(
+                                    (m: any) => m.id === municipalityId,
+                                  )?.name ?? "")
+                                : ""
+                            }
+                          />
+                          <ComboboxContent>
+                            <ComboboxEmpty>
+                              No municipality found.
+                            </ComboboxEmpty>
+                            <ComboboxList>
+                              {municipalities.map((m: any) => (
+                                <ComboboxItem key={m.id} value={m.id}>
+                                  {m.name}
+                                </ComboboxItem>
+                              ))}
+                            </ComboboxList>
+                          </ComboboxContent>
+                        </Combobox>
+                      )}
+                    </>
+                  ) : (
+                    <Input
+                      id="municipalityId"
+                      value=""
+                      readOnly
+                      placeholder={
+                        cityId ? "No municipalities found" : "Select a city first"
+                      }
+                      className="bg-muted"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="quarterId"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    Quarter / Neighbourhood
+                  </Label>
+                  <Combobox
+                    items={quarters.map((q: any) => ({
+                      value: q.id,
+                      label: q.name,
+                    }))}
+                    value={quarterId}
+                    onValueChange={(val) => {
+                      setQuarterId(val || "");
+                      setIsDirty(true);
+                    }}
+                  >
+                    <ComboboxInput
+                      id="quarterId"
+                      placeholder={
+                        municipalityId
+                          ? "Select quarter..."
+                          : "Select a municipality first..."
+                      }
+                      className="w-full text-sm"
+                      value={
+                        quarterId
+                          ? (quarters.find((q: any) => q.id === quarterId)?.name ??
+                            "")
+                          : ""
+                      }
+                    />
+                    <ComboboxContent>
+                      <ComboboxEmpty>No quarter found.</ComboboxEmpty>
+                      <ComboboxList>
+                        {quarters.map((q: any) => (
+                          <ComboboxItem key={q.id} value={q.id}>
+                            {q.name}
+                          </ComboboxItem>
+                        ))}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="latitude"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    Latitude
+                  </Label>
+                  <Input
+                    id="latitude"
+                    type="number"
+                    step="any"
+                    placeholder="e.g. 5.359952"
+                    value={latitude}
+                    onChange={(e) => {
+                      setLatitude(e.target.value);
+                      setIsDirty(true);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="longitude"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    Longitude
+                  </Label>
+                  <Input
+                    id="longitude"
+                    type="number"
+                    step="any"
+                    placeholder="e.g. -4.008256"
+                    value={longitude}
+                    onChange={(e) => {
+                      setLongitude(e.target.value);
+                      setIsDirty(true);
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="state"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    State / Region
+                  </Label>
+                  <Input
+                    id="state"
+                    placeholder="e.g. Lagunes"
+                    value={stateValue}
+                    onChange={(e) => {
+                      setStateValue(e.target.value);
+                      setIsDirty(true);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border p-4 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  Location Role & Status
+                </h4>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">
+                      Passenger Terminal
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Mark as a bookable passenger terminal for departure and
+                      arrival routes.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isTerminal}
+                    onCheckedChange={(v) => {
+                      setIsTerminal(v);
+                      setIsDirty(true);
+                    }}
+                  />
+                </div>
+
+                {isTerminal && !cityId && (
+                  <p className="text-xs text-destructive border-t border-border pt-2">
+                    Select a city above before saving — a passenger terminal must
+                    have a city assigned.
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between border-t border-border pt-3">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">Primary Hub</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Set as company primary operational headquarters.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isPrimary}
+                    onCheckedChange={(v) => {
+                      setIsPrimary(v);
+                      setIsDirty(true);
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between border-t border-border pt-3">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">Active Status</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Enable or disable operations at this location.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isActive}
+                    onCheckedChange={(v) => {
+                      setIsActive(v);
+                      setIsDirty(true);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <DrawerFooter className="px-0 pt-4 flex-row justify-end gap-3">
+                <DrawerClose asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={submitting}
+                  >
+                    {tc("cancel")}
+                  </Button>
+                </DrawerClose>
+                <Button type="submit" disabled={submitting}>
+                  {submitting && <Spinner className="mr-2 size-4" />}
+                  {editingLocation ? `${tc("save")} Changes` : t("addLocation")}
                 </Button>
-              </DrawerClose>
-              <Button type="submit" disabled={submitting}>
-                {submitting && <Spinner className="mr-2 size-4" />}
-                {editingLocation ? `${tc("save")} Changes` : t("addLocation")}
-              </Button>
-            </DrawerFooter>
-          </form>
+              </DrawerFooter>
+            </form>
+          )}
         </div>
       </DrawerContent>
     </Drawer>

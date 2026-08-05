@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
@@ -37,6 +38,7 @@ interface AdminRouteDrawerProps {
 }
 
 export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerProps) {
+  const t = useTranslations("adminDashboard.adminRouteDrawer");
   const trpc = useTRPC();
   
   const { data: route, isLoading } = useQuery({
@@ -81,7 +83,7 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
       <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-4xl flex flex-col rounded-none border-l border-border bg-card">
         <DrawerHeader className="border-b border-border px-6 py-5 shrink-0 bg-background/50 backdrop-blur-md">
           <DrawerTitle className="text-lg font-bold">
-            {isLoading ? "Loading Route..." : route?.name}
+            {isLoading ? t("loadingRoute") : route?.name}
           </DrawerTitle>
           <DrawerDescription className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
             {route && (
@@ -103,11 +105,11 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
         <div className="flex flex-1 overflow-hidden">
           {/* Left: Waypoints Timeline */}
           <div className="w-[320px] overflow-y-auto border-r border-border bg-card px-6 py-6 space-y-6">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Route Waypoints</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("routeWaypoints")}</h3>
             
             <div className="space-y-0">
               {isLoading && (
-                <div className="text-sm text-muted-foreground animate-pulse">Loading stops...</div>
+                <div className="text-sm text-muted-foreground animate-pulse">{t("loadingStops")}</div>
               )}
               {allStops.map((stop, i) => {
                 const isOrigin = i === 0;

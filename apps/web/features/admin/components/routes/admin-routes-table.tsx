@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { useQueryStates } from "nuqs";
@@ -24,6 +25,7 @@ interface AdminRoutesTableProps {
 }
 
 export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
+  const t = useTranslations("adminDashboard.adminRoutesTable");
   const trpc = useTRPC();
   const [{ q, status, page, pageSize }] = useQueryStates(adminRoutesSearchParams);
 
@@ -35,8 +37,8 @@ export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
     return (
       <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-xl bg-card">
         <Empty>
-          <EmptyTitle>No routes found</EmptyTitle>
-          <EmptyDescription>Try adjusting your search or filters.</EmptyDescription>
+          <EmptyTitle>{t("noRoutes")}</EmptyTitle>
+          <EmptyDescription>{t("tryAdjustingSearch")}</EmptyDescription>
         </Empty>
       </div>
     );
@@ -47,12 +49,12 @@ export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead>Route Name</TableHead>
-            <TableHead>Operator</TableHead>
-            <TableHead>Path</TableHead>
-            <TableHead>Distance</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t("routeName")}</TableHead>
+            <TableHead>{t("operator")}</TableHead>
+            <TableHead>{t("path")}</TableHead>
+            <TableHead>{t("distance")}</TableHead>
+            <TableHead>{t("status")}</TableHead>
+            <TableHead className="text-right">{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -64,7 +66,7 @@ export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
                   {route.serviceType === "URBAN" && <UrbanBadge />}
                 </div>
                 <div className="text-[11px] text-muted-foreground mt-0.5">
-                  {(route._count?.waypoints ?? 0) + 2} stops
+                  {(route._count?.waypoints ?? 0) + 2} {t("stops")}
                 </div>
               </TableCell>
               <TableCell>
@@ -108,7 +110,7 @@ export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
                   onClick={() => onViewRoute(route.id)}
                 >
                   <Map className="size-3.5" />
-                  View Map
+                  {t("viewMap")}
                 </Button>
               </TableCell>
             </TableRow>

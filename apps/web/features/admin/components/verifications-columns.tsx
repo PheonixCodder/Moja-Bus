@@ -29,6 +29,7 @@ import {
 import { cn } from "@moja/ui/lib/utils";
 import Link from "next/link";
 import { formatAdminDate } from "@/lib/format-date";
+import type { useTranslations } from "next-intl";
 
 export interface CompanyRow {
   id: string;
@@ -67,12 +68,14 @@ interface ColumnsConfig {
   onApprove: (company: CompanyRow) => void;
   onReject: (company: CompanyRow) => void;
   isApproving: boolean;
+  t: ReturnType<typeof useTranslations>;
 }
 
 export function getCompanyColumns({
   onReview,
   onApprove,
   onReject,
+  t,
 }: ColumnsConfig): ColumnDef<CompanyRow>[] {
   return [
     {
@@ -80,7 +83,7 @@ export function getCompanyColumns({
       header: ({ table }: any) => (
         <div className="flex items-center justify-center">
           <Checkbox
-            aria-label="Select all companies"
+            aria-label={t("selectAllCompanies")}
             checked={
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && "indeterminate")
@@ -92,7 +95,7 @@ export function getCompanyColumns({
       cell: ({ row }: any) => (
         <div className="flex items-center justify-center">
           <Checkbox
-            aria-label={`Select ${row.original.name}`}
+            aria-label={`${t("selectRow", { name: row.original.name })}`}
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
           />
@@ -103,7 +106,7 @@ export function getCompanyColumns({
     },
     {
       accessorKey: "name",
-      header: "Company",
+      header: t("company"),
       cell: ({ row }: any) => {
         const company = row.original;
         return (
@@ -119,7 +122,7 @@ export function getCompanyColumns({
                 {company.name}
               </Link>
               <div className="truncate text-slate-400 text-[10px] uppercase font-mono mt-0.5">
-                Reg: {company.registrationNumber} • Tax: {company.taxId}
+                Reg: {company.registrationNumber} • {t("tax")}: {company.taxId}
               </div>
             </div>
           </div>
@@ -128,10 +131,10 @@ export function getCompanyColumns({
     },
     {
       id: "representative",
-      header: "Representative",
+      header: t("representative"),
       cell: ({ row }: any) => {
         const rep = row.original.operators[0]?.user;
-        if (!rep) return <span className="text-xs text-slate-400">N/A</span>;
+        if (!rep) return <span className="text-xs text-slate-400">{t("na")}</span>;
         return (
           <div className="grid gap-0.5 text-xs">
             <div className="font-semibold text-slate-700 flex items-center gap-1.5">
@@ -154,14 +157,14 @@ export function getCompanyColumns({
     },
     {
       id: "kycProgress",
-      header: "KYC Checklist",
+      header: t("kycChecklist"),
       cell: ({ row }: any) => {
         const check = row.original.verification;
         const items = [
-          { label: "ID", active: check?.ownerIdentityVerified, icon: User },
-          { label: "Bank", active: check?.bankVerified, icon: Landmark },
-          { label: "Docs", active: check?.documentsVerified, icon: FileText },
-          { label: "Permit", active: check?.permitVerified, icon: Activity },
+          { label: t("id"), active: check?.ownerIdentityVerified, icon: User },
+          { label: t("bank"), active: check?.bankVerified, icon: Landmark },
+          { label: t("docs"), active: check?.documentsVerified, icon: FileText },
+          { label: t("permit"), active: check?.permitVerified, icon: Activity },
         ];
 
         return (
@@ -169,7 +172,7 @@ export function getCompanyColumns({
             {items.map((item) => (
               <div
                 key={item.label}
-                title={`${item.label}: ${item.active ? "Verified" : "Pending"}`}
+                title={`${item.label}: ${item.active ? t("verified") : t("pending")}`}
                 className={cn(
                   "flex items-center gap-0.5 rounded px-1.5 py-0.5 border text-[10px] font-bold tracking-tight select-none",
                   item.active
@@ -187,7 +190,7 @@ export function getCompanyColumns({
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: t("status"),
       cell: ({ row }: any) => {
         const status = row.original.status;
         let badgeClass = "bg-slate-50 text-slate-700 border-slate-200";
@@ -210,14 +213,14 @@ export function getCompanyColumns({
         return (
           <Badge className={cn("gap-1.5 border px-2 py-1 font-semibold text-xs", badgeClass)} variant="outline">
             <span className={cn("size-1.5 rounded-full", dotClass)} />
-            {status.replace(/_/g, " ")}
+            {t(`statusLabels.${status}`) ?? status.replace(/_/g, " ")}
           </Badge>
         );
       },
     },
     {
       accessorKey: "createdAt",
-      header: "Submitted",
+      header: t("submitted"),
       cell: ({ row }: any) => {
         const date = new Date(row.original.createdAt);
         return (
@@ -229,7 +232,7 @@ export function getCompanyColumns({
     },
     {
       id: "actions",
-      header: () => <div className="text-right">Actions</div>,
+      header: () => <div className="text-right">{t("actions")}</div>,
       cell: ({ row }: any) => {
         const company = row.original;
         const hasBank = company.bankAccounts && company.bankAccounts.length > 0;
@@ -240,7 +243,7 @@ export function getCompanyColumns({
               <DropdownMenuTrigger
                 render={
                   <Button
-                    aria-label={`Open actions for ${company.name}`}
+                    aria-label={t("openActions", { name: company.name })}
                     className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                     size="icon-sm"
                     variant="ghost"
@@ -254,7 +257,7 @@ export function getCompanyColumns({
                   onClick={() => onReview(company)}
                   className="cursor-pointer text-xs"
                 >
-                  Review documents
+                  {t("reviewDocuments")}
                 </DropdownMenuItem>
                 {company.status === "PENDING_VERIFICATION" && (
                   <>
@@ -263,13 +266,13 @@ export function getCompanyColumns({
                       onClick={() => onApprove(company)}
                       className={cn("cursor-pointer text-xs", !hasBank && "opacity-50 cursor-not-allowed")}
                     >
-                      Verify & Approve
+                      {t("verifyApprove")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onReject(company)}
                       className="cursor-pointer text-xs text-red-600 focus:bg-red-50 focus:text-red-700"
                     >
-                      Reject request
+                      {t("rejectRequest")}
                     </DropdownMenuItem>
                   </>
                 )}

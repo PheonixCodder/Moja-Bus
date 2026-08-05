@@ -286,7 +286,6 @@ export const auth = betterAuth({
         getTempName: (phone) => `User ${phone}`,
       },
     }),
-    nextCookies(),
   ],
 });
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { ArrowUpRight } from "lucide-react";
@@ -15,6 +16,7 @@ interface BlogKpiStripProps {
 }
 
 export function BlogKpiStrip({ kpis }: BlogKpiStripProps) {
+  const t = useTranslations("adminDashboard.blogKpiStrip");
   return (
     <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
       <div className="grid grid-cols-2 divide-x divide-y xl:grid-cols-5 xl:divide-y-0">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryState, parseAsInteger } from "nuqs";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -9,6 +10,7 @@ interface ActivityLogsPaginationProps {
 }
 
 export function ActivityLogsPagination({ hasMore }: ActivityLogsPaginationProps) {
+  const t = useTranslations("adminDashboard.activityLogsPagination");
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(0));
 
   const currentPage = page; // 0-indexed
@@ -17,7 +19,7 @@ export function ActivityLogsPagination({ hasMore }: ActivityLogsPaginationProps)
   return (
     <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
       <span>
-        Page {displayPage}
+        {t("pageInfo", { current: displayPage })}
       </span>
       <div className="flex items-center gap-1">
         <Button

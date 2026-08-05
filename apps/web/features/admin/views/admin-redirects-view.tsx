@@ -8,8 +8,10 @@ import { Plus, Search } from "lucide-react";
 import { RedirectsTable } from "../components/content/redirects-table";
 import { RedirectFormDialog } from "../components/content/redirect-form-dialog";
 import { Card } from "@moja/ui/components/ui/card";
+import { useTranslations } from "next-intl";
 
 export function AdminRedirectsView() {
+  const t = useTranslations("adminDashboard.adminRedirectsView");
   const [q, setQ] = useQueryState("q", parseAsString.withDefault(""));
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [searchInputValue, setSearchInputValue] = useState(q);
@@ -33,7 +35,7 @@ export function AdminRedirectsView() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search source or destination..."
+            placeholder={t("searchPlaceholder")}
             className="pl-8"
             value={searchInputValue}
             onChange={(e) => handleSearchChange(e.target.value)}
@@ -41,21 +43,21 @@ export function AdminRedirectsView() {
         </div>
         <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          New Redirect
+          {t("newRedirect")}
         </Button>
       </div>
 
       {/* Main Table Area */}
       <Card className="overflow-hidden">
-        <Suspense fallback={<div className="h-40 flex items-center justify-center">Loading redirects...</div>}>
+        <Suspense fallback={<div className="h-40 flex items-center justify-center">{t("loadingRedirects")}</div>}>
           <RedirectsTable />
         </Suspense>
       </Card>
 
       {/* Create Dialog */}
-      <RedirectFormDialog 
-        open={isCreateOpen} 
-        onOpenChange={setIsCreateOpen} 
+      <RedirectFormDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
       />
     </div>
   );

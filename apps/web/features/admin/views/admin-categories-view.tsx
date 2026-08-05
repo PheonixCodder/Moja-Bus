@@ -32,8 +32,10 @@ import {
   SelectValue,
 } from "@moja/ui/components/ui/select";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useTranslations } from "next-intl";
 
 export function AdminCategoriesView() {
+  const t = useTranslations("adminDashboard.adminCategoriesView");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -57,11 +59,11 @@ export function AdminCategoriesView() {
     ...trpc.admin.createBlogCategory.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries(trpc.admin.listBlogCategories.pathFilter());
-      toast.success("Category created successfully");
+      toast.success(t("categoryCreated"));
       resetForm();
     },
     onError: (err: any) => {
-      toast.error(err?.message ?? "Failed to create category");
+      toast.error(err?.message ?? t("failedToCreate"));
     },
   });
 
@@ -69,11 +71,11 @@ export function AdminCategoriesView() {
     ...trpc.admin.updateBlogCategory.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries(trpc.admin.listBlogCategories.pathFilter());
-      toast.success("Category updated successfully");
+      toast.success(t("categoryUpdated"));
       resetForm();
     },
     onError: (err: any) => {
-      toast.error(err?.message ?? "Failed to update category");
+      toast.error(err?.message ?? t("failedToUpdate"));
     },
   });
 
@@ -81,10 +83,10 @@ export function AdminCategoriesView() {
     ...trpc.admin.deleteBlogCategory.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries(trpc.admin.listBlogCategories.pathFilter());
-      toast.success("Category deleted");
+      toast.success(t("categoryDeleted"));
     },
     onError: (err: any) => {
-      toast.error(err?.message ?? "Failed to delete category");
+      toast.error(err?.message ?? t("failedToDelete"));
     },
   });
 
@@ -130,7 +132,7 @@ export function AdminCategoriesView() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this category? Any posts using this category will have it cleared.")) {
+    if (confirm(t("deleteConfirm"))) {
       deleteCategory.mutate({ id });
     }
   };
@@ -142,8 +144,8 @@ export function AdminCategoriesView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Blog Categories</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Organize your blog posts into nested hierarchies.</p>
+          <h2 className="text-xl font-bold text-slate-900">{t("title")}</h2>
+          <p className="text-xs text-slate-500 mt-0.5">{t("subtitle")}</p>
         </div>
         <Button
           onClick={() => {
@@ -153,7 +155,7 @@ export function AdminCategoriesView() {
           className="gap-2 bg-slate-900 text-white hover:bg-slate-800 h-9 text-xs font-semibold"
         >
           <Plus className="size-4" />
-          Add Category
+          {t("addCategory")}
         </Button>
       </div>
 
@@ -161,17 +163,17 @@ export function AdminCategoriesView() {
         <Table>
           <TableHeader className="bg-slate-50/70">
             <TableRow>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Name</TableHead>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Description</TableHead>
-              <TableHead className="w-1/4 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Parent Category</TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">Actions</TableHead>
+              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("name")}</TableHead>
+              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("description")}</TableHead>
+              <TableHead className="w-1/4 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("parentCategory")}</TableHead>
+              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {categories.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-10 text-slate-400 text-xs">
-                  No categories found. Click "Add Category" to get started.
+                  {t("noCategories")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -210,7 +212,7 @@ export function AdminCategoriesView() {
                         className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900"
                       >
                         <Edit2 className="size-3.5" />
-                        <span className="sr-only">Edit</span>
+                        <span className="sr-only">{t("edit")}</span>
                       </Button>
                       <Button
                         onClick={() => handleDelete(cat.id)}
@@ -220,7 +222,7 @@ export function AdminCategoriesView() {
                         disabled={deleteCategory.isPending}
                       >
                         <Trash2 className="size-3.5" />
-                        <span className="sr-only">Delete</span>
+                        <span className="sr-only">{t("delete")}</span>
                       </Button>
                     </div>
                   </TableCell>
@@ -239,24 +241,24 @@ export function AdminCategoriesView() {
                 <FolderKanban className="size-4 text-white" />
               </div>
               <DialogTitle className="text-base font-bold text-slate-900">
-                {editingCategory ? "Edit Category" : "Add Category"}
+                {editingCategory ? t("editCategory") : t("addCategoryTitle")}
               </DialogTitle>
             </div>
             <DialogDescription className="text-xs text-slate-500 leading-relaxed">
-              Create a category folder to group related posts.
+              {t("createCategoryFolder")}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <div className="space-y-1">
               <label htmlFor="cat-name" className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
-                Name
+                {t("name")}
               </label>
               <Input
                 id="cat-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Travel Guides"
+                placeholder={t("namePlaceholder")}
                 className="h-9 text-sm bg-white"
                 required
                 autoFocus
@@ -265,18 +267,18 @@ export function AdminCategoriesView() {
 
             <div className="space-y-1">
               <label htmlFor="cat-parent" className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
-                Parent Category (Optional)
+                {t("parentCategory")}
               </label>
               <Select
                 value={parentId || "__none__"}
                 onValueChange={(val) => setParentId(!val || val === "__none__" ? "" : val)}
               >
                 <SelectTrigger id="cat-parent" className="w-full h-9 text-sm bg-white">
-                  <SelectValue placeholder="No parent category (Top Level)" />
+                  <SelectValue placeholder={t("noParentCategory")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">
-                    <span className="text-slate-400">None (Top Level Category)</span>
+                    <span className="text-slate-400">{t("noParentCategory")}</span>
                   </SelectItem>
                   {parentOptions.map((po) => (
                     <SelectItem key={po.id} value={po.id}>
@@ -289,13 +291,13 @@ export function AdminCategoriesView() {
 
             <div className="space-y-1">
               <label htmlFor="cat-desc" className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
-                Description (Optional)
+                {t("description")}
               </label>
               <Textarea
                 id="cat-desc"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief description of this category..."
+                placeholder={t("optionalDescription")}
                 className="text-sm resize-none min-h-[60px] bg-white"
                 rows={2}
               />
@@ -309,7 +311,7 @@ export function AdminCategoriesView() {
                 onClick={resetForm}
                 disabled={createCategory.isPending || updateCategory.isPending}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 type="submit"
@@ -319,10 +321,10 @@ export function AdminCategoriesView() {
                 {createCategory.isPending || updateCategory.isPending ? (
                   <>
                     <Spinner className="mr-2 size-3.5 text-white" />
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
-                  "Save Category"
+                  t("saveCategory")
                 )}
               </Button>
             </DialogFooter>

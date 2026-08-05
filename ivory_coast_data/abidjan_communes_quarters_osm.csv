@@ -1,0 +1,95 @@
+level,commune,name,pcode,latitude,longitude
+commune,,Abobo,,5.435484,-4.029005
+quarter,Abobo,Abobo Baoule,,5.434294,-3.996019
+quarter,Abobo,Abobo Sagbe,,5.416294,-4.031819
+quarter,Abobo,Abobo Te,,5.405696,-3.996819
+quarter,Abobo,Agbekoi,,5.429527,-4.009983
+quarter,Abobo,Anonkoi 2,,5.423906,-4.049968
+quarter,Abobo,Gare Abobo,,5.426316,-4.020225
+commune,,Adjamé,,5.353121,-4.022203
+quarter,Adjamé,Adjamé Liberté,,5.353444,-4.014858
+quarter,Adjamé,Adjamé village,,5.353121,-4.022201
+quarter,Adjamé,Anador,,5.410785,-4.014253
+quarter,Adjamé,Attié,,5.347555,-4.079699
+quarter,Adjamé,Djinou,,5.358867,-4.000883
+quarter,Adjamé,Monsieur,,5.3551,-4.0202
+commune,,Attécoubé,,5.351086,-4.035357
+quarter,Attécoubé,Abia,,5.3340,-4.0416
+quarter,Attécoubé,Agbo,,5.3421,-4.0450
+quarter,Attécoubé,Ahongbon,,5.3375,-4.0492
+quarter,Attécoubé,Attecoube Centre,,5.348172,-4.034076
+quarter,Attécoubé,Baco,,5.3444,-4.0322
+quarter,Attécoubé,Camp Militaire,,5.321576,-4.064652
+quarter,Attécoubé,Dogosso,,5.3403,-4.0381
+quarter,Attécoubé,Gare Attecoube,,5.345350,-4.037206
+commune,,Cocody,,5.357367,-3.994936
+quarter,Cocody,Angré,,5.405434,-3.983628
+quarter,Cocody,Blokosso,,5.322916,-4.003705
+quarter,Cocody,Bonie,,5.351238,-3.954505
+quarter,Cocody,Cocody Centre,,5.357367,-3.994934
+quarter,Cocody,Danga,,5.338801,-4.006062
+quarter,Cocody,Deux-Plateaux,,5.369667,-3.991953
+quarter,Cocody,M'Badon,,5.327676,-3.934731
+quarter,Cocody,Palmeraie,,5.430034,-3.980490
+quarter,Cocody,Riviera 2,,5.34646,-3.97476
+quarter,Cocody,Riviera 3,,5.353404,-3.958367
+quarter,Cocody,Riviera 4,,5.33902,-3.955454
+quarter,Cocody,Saint-Jean,,5.336062,-4.003577
+commune,,Koumassi,,5.292262,-3.959311
+quarter,Koumassi,Koumassi Campement,,5.310553,-3.936301
+quarter,Koumassi,Koumassi Gare,,5.292705,-3.958580
+quarter,Koumassi,Koumassi Marché,,5.307498,-3.952955
+quarter,Koumassi,Koumassi Nord,,5.312105,-3.945159
+quarter,Koumassi,Koumassi Remblais,,5.297936,-3.966854
+quarter,Koumassi,Koumassi Sud,,5.292705,-3.958580
+quarter,Koumassi,Petite Koumassi,,5.292705,-3.958580
+commune,,Marcory,,5.303613,-3.985392
+quarter,Marcory,Anoumabo,,5.309659,-3.968216
+quarter,Marcory,Marcory Avenue 3,,5.303612,-3.985395
+quarter,Marcory,Marcory Gare,,5.303612,-3.985395
+quarter,Marcory,Marcory Nord,,5.303612,-3.985395
+quarter,Marcory,Marcory Sud,,5.303612,-3.985395
+quarter,Marcory,Marcory Zone 4,,5.291338,-3.982321
+commune,,Plateau,,5.32805,-4.021248
+quarter,Plateau,Le Plateau,,5.32805,-4.021248
+quarter,Plateau,Plateau Centre,,5.327982,-4.024393
+quarter,Plateau,Plateau Gare,,5.327982,-4.024393
+quarter,Plateau,Plateau Nord,,5.327982,-4.024393
+commune,,Port-Bouët,,5.256879,-3.958624
+quarter,Port-Bouët,Abidjan Port,,5.257073,-3.937057
+quarter,Port-Bouët,Gare Port-Bouet,,5.257569,-3.972958
+quarter,Port-Bouët,Koumassi Port,,5.296269,-3.965974
+quarter,Port-Bouët,Port Bouet Centre,,5.256881,-3.958626
+quarter,Port-Bouët,Vridi,,5.264859,-4.002323
+quarter,Port-Bouët,Vridi Gare,,5.264857,-4.002323
+commune,,Treichville,,5.306006,-4.008111
+quarter,Treichville,Belleville,,5.464717,-4.048478
+quarter,Treichville,Djelan,,5.3055,-4.0125
+quarter,Treichville,Ficgayo,,5.3012,-4.0150
+quarter,Treichville,Gare Treichville,,5.306008,-4.008105
+quarter,Treichville,Mobidoum,,5.2975,-4.0090
+quarter,Treichville,Treichville Centre,,5.306008,-4.008105
+commune,,Yopougon,,5.335196,-4.075756
+quarter,Yopougon,Andokoi,,5.364572,-4.065773
+quarter,Yopougon,Ayé,,5.342565,-4.108640
+quarter,Yopougon,Bel Air,,5.345937,-4.062688
+quarter,Yopougon,Camp Militaire,,5.321576,-4.064652
+quarter,Yopougon,Gare Yopougon,,5.335194,-4.075756
+quarter,Yopougon,Koute,,5.325144,-4.07331
+quarter,Yopougon,Nianguan,,5.3392,-4.0885
+quarter,Yopougon,Niangon,,5.323584,-4.098217
+quarter,Yopougon,Niangon Adiaho,,5.323584,-4.098217
+quarter,Yopougon,Selmer,,5.340372,-4.070022
+quarter,Yopougon,Sicogi,,5.344094,-4.07743
+quarter,Yopougon,Sodeci,,5.351151,-4.101157
+quarter,Yopougon,Toit Rouge,,5.333710,-4.055019
+quarter,Yopougon,Yopougon Centre,,5.335194,-4.075756
+commune,,Anyama,,5.495891,-4.056922
+quarter,Anyama,Anyama Centre,,5.495835,-4.055352
+quarter,Anyama,Anyama Gare,,5.495835,-4.055352
+quarter,Anyama,Anyama Nord,,5.495835,-4.055352
+commune,,Bingerville,,5.357773,-3.888559
+quarter,Bingerville,Bingerville Centre,,5.352350,-3.876723
+quarter,Bingerville,Bingerville Gare,,5.352350,-3.876723
+commune,,Brodoukou,,5.514041,-3.930510
+quarter,Brodoukou,Brodoukou Centre,,5.514041,-3.930510

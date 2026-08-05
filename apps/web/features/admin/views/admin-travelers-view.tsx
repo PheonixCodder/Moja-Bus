@@ -6,8 +6,10 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Travelers } from "../components/travelers";
 import type { TravelerRow } from "../components/travelers-columns";
+import { useTranslations } from "next-intl";
 
 export function AdminTravelersView() {
+  const t = useTranslations("adminDashboard.adminTravelersView");
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.admin.listUsers.queryOptions({

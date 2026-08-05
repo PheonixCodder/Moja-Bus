@@ -2,6 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
+import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { useTRPC } from "@/trpc/client";
 import { Badge } from "@moja/ui/components/ui/badge";
@@ -28,6 +29,7 @@ const CHANNEL_COLORS: Record<string, string> = {
 };
 
 export function ActivityLogsTable() {
+  const t = useTranslations("adminDashboard.activityLogsTable");
   const trpc = useTRPC();
   const [search] = useQueryState("search", parseAsString.withDefault(""));
   const [channel] = useQueryState("channel", parseAsString.withDefault(""));
@@ -55,14 +57,14 @@ export function ActivityLogsTable() {
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
         <div className="rounded-full bg-muted p-4">
           <Eye className="h-6 w-6 text-muted-foreground" />
         </div>
         <div>
-          <p className="text-sm font-medium text-foreground">No events found</p>
+          <p className="text-sm font-medium text-foreground">{t("noEvents")}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Try adjusting your filters or search term.
+            {t("noEventsDescription")}
           </p>
         </div>
       </div>
@@ -76,22 +78,22 @@ export function ActivityLogsTable() {
           <TableHeader>
             <TableRow className="border-b bg-muted/30">
               <TableHead className="w-[160px] whitespace-nowrap pl-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Time
+                {t("time")}
               </TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Subscriber
+                {t("subscriber")}
               </TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Workflow
+                {t("workflow")}
               </TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Channels
+                {t("channels")}
               </TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Status
+                {t("status")}
               </TableHead>
               <TableHead className="pr-4 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Details
+                {t("details")}
               </TableHead>
             </TableRow>
           </TableHeader>

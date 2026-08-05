@@ -1,9 +1,9 @@
+import type { Prisma } from "@moja/db";
+import { createTerminalSchema, updateTerminalSchema } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 import { requirePermission } from "@/lib/permissions/authorize";
-import { createTerminalSchema, updateTerminalSchema } from "@moja/schemas";
-import type { PrismaClient, Prisma } from "@moja/db";
+import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 
 // Phase 0 (first-class urban): terminals must be geo-complete. When a terminal
 // is created/updated without a municipality, auto-assign the city's single
@@ -22,7 +22,7 @@ async function ensureTerminalGeography(
     select: { id: true },
   });
   if (munis.length === 1) {
-    return { municipalityId: munis[0]!.id };
+    return { municipalityId: munis[0]?.id };
   }
   return { municipalityId: undefined };
 }
@@ -47,6 +47,13 @@ export const terminalsRouter = createTRPCRouter({
           cityRelation: true,
           municipality: true,
           quarter: true,
+          captures: {
+            where: {
+              status: { in: ["OPEN", "PENDING_CONFIRMATION", "CONFIRMED"] },
+            },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
         },
         orderBy: { name: "asc" },
       });
@@ -95,6 +102,7 @@ export const terminalsRouter = createTRPCRouter({
             isPrimary: data.isPrimary,
             isTerminal: data.isTerminal,
             isActive: data.isActive,
+            geoCaptureStatus: data.geoCaptureStatus ?? "COMPLETE",
             operatingHours: data.operatingHours ?? null,
           },
           include: {
@@ -125,8 +133,10 @@ export const terminalsRouter = createTRPCRouter({
 
         const data = input.data;
 
-        const isDeactivating = data.isActive === false && existingLocation.isActive;
-        const isDemoting = data.isTerminal === false && existingLocation.isTerminal;
+        const isDeactivating =
+          data.isActive === false && existingLocation.isActive;
+        const isDemoting =
+          data.isTerminal === false && existingLocation.isTerminal;
 
         if (isDeactivating || isDemoting) {
           const [linkedRoute, waypoint] = await Promise.all([
@@ -144,7 +154,10 @@ export const terminalsRouter = createTRPCRouter({
             tx.routeWaypoint.findFirst({
               where: {
                 terminalId: input.id,
-                route: { companyId: ctx.companyId, status: { not: "ARCHIVED" } },
+                route: {
+                  companyId: ctx.companyId,
+                  status: { not: "ARCHIVED" },
+                },
               },
               select: { id: true },
             }),
@@ -170,12 +183,17 @@ export const terminalsRouter = createTRPCRouter({
         }
 
         // Phase 0: a passenger terminal must always have a city relation.
-        // Block promotion/edits that would leave the terminal geo-incomplete.
+        // Block promotion/edits that would leave a geo-complete terminal
+        // without a city. Terminals in the capture lifecycle (geoCaptureStatus
+        // ≠ COMPLETE) are geo-incomplete by design until a capture is approved.
         const isOrBecomingTerminal =
           data.isTerminal === true || existingLocation.isTerminal;
         const effectiveCityId =
           data.cityId !== undefined ? data.cityId : existingLocation.cityId;
-        if (isOrBecomingTerminal && !effectiveCityId) {
+        const geoComplete =
+          (data.geoCaptureStatus ?? existingLocation.geoCaptureStatus) ===
+          "COMPLETE";
+        if (isOrBecomingTerminal && !effectiveCityId && geoComplete) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message:
@@ -195,8 +213,11 @@ export const terminalsRouter = createTRPCRouter({
         const updatePayload = Object.fromEntries(
           Object.entries(data).filter(([, v]) => v !== undefined),
         ) as Parameters<typeof tx.companyLocation.update>[0]["data"];
-        if (geo.municipalityId !== undefined && data.municipalityId === undefined) {
-          updatePayload["municipalityId"] = geo.municipalityId;
+        if (
+          geo.municipalityId !== undefined &&
+          data.municipalityId === undefined
+        ) {
+          updatePayload.municipalityId = geo.municipalityId;
         }
 
         return tx.companyLocation.update({
