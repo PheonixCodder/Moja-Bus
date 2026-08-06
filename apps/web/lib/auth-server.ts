@@ -6,7 +6,6 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { phoneNumber } from "better-auth/plugins/phone-number";
-import { nextCookies } from "better-auth/next-js";
 import { expo } from "@better-auth/expo";
 
 import { sendAuthOtp, type AuthOtpType } from "./auth-email";

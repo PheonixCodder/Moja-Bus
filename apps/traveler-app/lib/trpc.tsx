@@ -34,7 +34,8 @@ export function getTrpcClient() {
 					transformer: superjson,
 					url: `${baseURL}/api/trpc`,
 					async headers() {
-						const cookie = authClient.getCookie();
+						const cookie = (authClient as any).getCookie();
+						console.log("[mobile] outgoing cookie:", cookie);
 						if (cookie) {
 							return { Cookie: cookie };
 						}

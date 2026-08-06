@@ -12,7 +12,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/expo": "^1.6.20",
+		"@better-auth/expo": "^1.6.22",
 		"@expo-google-fonts/montserrat": "^0.4.2",
 		"@expo/vector-icons": "^15.1.1",
 		"@hugeicons/core-free-icons": "^4.2.3",
@@ -63,6 +63,7 @@
 		"expo-image-picker": "latest",
 		"expo-linking": "latest",
 		"expo-localization": "latest",
+		"expo-network": "latest",
 		"expo-notifications": "latest",
 		"expo-router": "latest",
 		"expo-secure-store": "latest",
