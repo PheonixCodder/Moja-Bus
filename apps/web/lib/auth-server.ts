@@ -21,7 +21,7 @@ function collectTrustedOrigins(baseUrl: string): string[] {
       "http://127.0.0.1:3001",
       "http://127.0.0.1:19006",
     ]),
-    "travelerapp://",
+    "traveler-app://",
     // Mobile / Expo origins — always trusted regardless of NODE_ENV
     // so the traveler-app works against production deployments
     "exp://",
