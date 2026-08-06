@@ -27,6 +27,7 @@ type Row = {
   resolvedCityId?: string | null;
   resolvedMunicipalityId?: string | null;
   resolvedQuarterId?: string | null;
+  reverseGeocodedAddress?: string | null;
   submitterName?: string | null;
   device?: string | null;
   companyId?: string;
@@ -83,6 +84,7 @@ function makeDeps(handlers: {
   terminal?: Row;
   liveCapture?: Row | null;
   resolvePlace?: CaptureServiceDeps["resolvePlace"];
+  reverseGeocode?: CaptureServiceDeps["reverseGeocode"];
   submitLimiter?: (key: string) => { ok: boolean; retryAfterMs: number };
   now?: () => Date;
 }): { service: CaptureService; updated: { terminal?: Row; capture?: Row } } {
@@ -131,6 +133,9 @@ function makeDeps(handlers: {
         method: "nearest",
         distanceMeters: 45,
       })),
+    ...(handlers.reverseGeocode
+      ? { reverseGeocode: handlers.reverseGeocode }
+      : {}),
     now: handlers.now ?? (() => NOW),
     generateToken: () => TOKEN,
     appUrl: "https://mojaride.com",
@@ -232,6 +237,14 @@ describe("CaptureService.getInfo", () => {
       expectError("BAD_REQUEST", /rejected/i),
     );
   });
+
+  it("rejects a capture that was already approved", async () => {
+    const { service } = makeDeps({ row: captureRow({ status: "APPROVED" }) });
+    await assert.rejects(
+      () => service.getInfo({ token: TOKEN }),
+      expectError("BAD_REQUEST", /already been approved/i),
+    );
+  });
 });
 
 describe("CaptureService.submit", () => {
@@ -308,6 +321,25 @@ describe("CaptureService.submit", () => {
     );
   });
 
+  it("rejects submitting to a capture that was already approved", async () => {
+    const { service } = makeDeps({
+      row: captureRow({
+        status: "APPROVED",
+        resolvedMunicipalityId: "m-1",
+      }),
+    });
+    await assert.rejects(
+      () =>
+        service.submit({
+          token: TOKEN,
+          latitude: 5.35,
+          longitude: -4.02,
+          accuracyMeters: 20,
+        }),
+      expectError("BAD_REQUEST", /already been completed/i),
+    );
+  });
+
   it("rejects when the GPS point cannot be resolved", async () => {
     const { service } = makeDeps({ resolvePlace: async () => null });
     await assert.rejects(
@@ -320,6 +352,36 @@ describe("CaptureService.submit", () => {
         }),
       expectError("BAD_REQUEST", /could not match/i),
     );
+  });
+
+  it("stores and returns the reverse-geocoded street address", async () => {
+    const { service, updated } = makeDeps({
+      reverseGeocode: async () => "12 Rue du Commerce, Adjamé",
+    });
+    const result = await service.submit({
+      token: TOKEN,
+      latitude: 5.351,
+      longitude: -4.021,
+      accuracyMeters: 18,
+    });
+
+    assert.equal(result.resolvedAddress, "12 Rue du Commerce, Adjamé");
+    assert.equal(updated.capture?.reverseGeocodedAddress, "12 Rue du Commerce, Adjamé");
+  });
+
+  it("stores null address and succeeds when reverse geocoding fails", async () => {
+    const { service, updated } = makeDeps({
+      reverseGeocode: async () => null,
+    });
+    const result = await service.submit({
+      token: TOKEN,
+      latitude: 5.351,
+      longitude: -4.021,
+      accuracyMeters: 18,
+    });
+
+    assert.equal(result.status, "PENDING_CONFIRMATION");
+    assert.equal(updated.capture?.reverseGeocodedAddress, null);
   });
 });
 
@@ -359,11 +421,26 @@ describe("CaptureService.confirm", () => {
     assert.equal(result.status, "CONFIRMED");
     assert.equal(result.resolved.cityName, "Abidjan");
   });
+
+  it("rejects confirming a capture that was already approved", async () => {
+    const { service } = makeDeps({
+      row: captureRow({
+        status: "APPROVED",
+        resolvedCityId: "city-1",
+        resolvedMunicipalityId: "m-1",
+      }),
+    });
+    await assert.rejects(
+      () => service.confirm({ token: TOKEN }),
+      expectError("BAD_REQUEST", /already been approved/i),
+    );
+  });
 });
 
 describe("CaptureService.approveCapture", () => {
   it("links the terminal and flips it to COMPLETE, writing an ActivityLog", async () => {
     let logged = false;
+    let approvedStatus: string | null = null;
     const prisma = {
       companyLocation: {
         update: async ({ data }: { data: Row }) => ({
@@ -381,6 +458,10 @@ describe("CaptureService.approveCapture", () => {
             latitude: 5.351,
             longitude: -4.021,
           }),
+        update: async ({ data }: { data: Row }) => {
+          approvedStatus = data.status ?? null;
+          return {};
+        },
       },
       city: { findUnique: async () => ({ id: "city-1", name: "Abidjan" }) },
       municipality: {
@@ -414,6 +495,7 @@ describe("CaptureService.approveCapture", () => {
     assert.equal(terminal.municipalityId, "m-1");
     assert.equal(terminal.quarterId, "q-1");
     assert.equal(terminal.captureToken, null);
+    assert.equal(approvedStatus, "APPROVED");
     assert.ok(logged);
   });
 
@@ -436,6 +518,7 @@ describe("CaptureService.approveCapture", () => {
             longitude: -4.021,
             location: terminalRow({ addressLine1: "(pending GPS capture)" }),
           }),
+        update: async () => ({}),
       },
       city: { findUnique: async () => ({ id: "city-1", name: "Abidjan" }) },
       municipality: {
@@ -462,6 +545,53 @@ describe("CaptureService.approveCapture", () => {
     assert.equal(terminal.addressLine1, "Abidjan (Adjamé - Monsieur)");
   });
 
+  it("prefers the reverse-geocoded street address over the hierarchy label", async () => {
+    const prisma = {
+      companyLocation: {
+        update: async ({ data }: { data: Row }) => ({
+          ...terminalRow(),
+          ...data,
+        }),
+      },
+      locationCapture: {
+        findUnique: async () =>
+          captureRow({
+            status: "CONFIRMED",
+            resolvedCityId: "city-1",
+            resolvedMunicipalityId: "m-1",
+            resolvedQuarterId: "q-1",
+            latitude: 5.351,
+            longitude: -4.021,
+            reverseGeocodedAddress: "12 Rue du Commerce, Adjamé",
+            location: terminalRow({ addressLine1: "(pending GPS capture)" }),
+          }),
+        update: async () => ({}),
+      },
+      city: { findUnique: async () => ({ id: "city-1", name: "Abidjan" }) },
+      municipality: {
+        findUnique: async () => ({ id: "m-1", name: "Adjamé" }),
+      },
+      quarter: { findUnique: async () => ({ id: "q-1", name: "Monsieur" }) },
+      activityLog: { create: async () => ({}) },
+      $transaction: async <T>(fn: (tx: unknown) => Promise<T>) => fn(prisma),
+    };
+
+    const service = new CaptureService({
+      prisma: prisma as never,
+      resolvePlace: async () => null,
+      now: () => NOW,
+      generateToken: () => TOKEN,
+    });
+
+    const terminal = await service.approveCapture({
+      companyId: COMPANY_A,
+      userId: USER_A,
+      captureId: CAPTURE_ID,
+    });
+
+    assert.equal(terminal.addressLine1, "12 Rue du Commerce, Adjamé");
+  });
+
   it("leaves a real address untouched on approval", async () => {
     const baseTerminal = terminalRow({ addressLine1: "Rue du Commerce 12" });
     const prisma = {
@@ -482,6 +612,7 @@ describe("CaptureService.approveCapture", () => {
             longitude: -4.021,
             location: terminalRow({ addressLine1: "Rue du Commerce 12" }),
           }),
+        update: async () => ({}),
       },
       city: { findUnique: async () => ({ id: "city-1", name: "Abidjan" }) },
       municipality: {

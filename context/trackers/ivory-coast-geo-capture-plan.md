@@ -1,6 +1,6 @@
 # Plan: Full Côte d'Ivoire Geography + GPS Capture for Terminals
 
-**Status:** Approved — M0 (data) + M1 (geo engine) + M2 (backend capture) + M3 (public capture page) + M4 (operator UI) + M5 (search/consumer audit) done; M6 (verification) next
+**Status:** Approved — M0 (data) + M1 (geo engine) + M2 (backend capture) + M3 (public capture page) + M4 (operator UI) + M5 (search/consumer audit) done; M6 (verification) next. **Post-plan deliverables (2026-08-05): portable geo seed document shipped** — `packages/db/seed/geo-seed.sql` + `export:geo-seed` script (idempotent 188/200/3230 upserts with PostGIS geometry + coords, validated against the live DB). **Resolve-capture button bug fixed** — `LocationCaptureStatus` gains `APPROVED` (migration applied), `approveCapture` marks the capture `APPROVED` (drops from `terminals.list` include filter) + UI guard; button now disappears after approval. **Reverse geocoding for the capture flow (2026-08-06):** OSM Nominatim public API (env-overridable base URL) — `captures.submit` reverse-geocodes the GPS point (`accept-language=fr`, 1 req/s limiter, 24 h cache, null-on-failure) and stores it in the new `location_capture.reverse_geocoded_address` column (migration `20260805000001`, applied + recorded on live Neon); the Resolve drawer shows it as "Suggested address"; `approveCapture` writes it to the terminal's `addressLine1` (preferred over the offline hierarchy label). **Foundation SQL cleanup (2026-08-06):** deleted stale unused `apps/web/migrations/001_foundation_constraints.sql` + `_rollback.sql` (dead code — `run-migrations.ts` not wired; Dockerfile uses `prisma migrate deploy`).
 **Date:** 2026-08-05
 
 ## 0. Goals
@@ -188,3 +188,19 @@ New `apps/web/lib/geo/geocode-point.ts` (pure + `$queryRaw`), exposed via tRPC. 
 - Geometry storage: **PostGIS geometry column**.
 - Capture write mode: **Pending terminal, operator approves**.
 - `.gpkg` handled by one-time conversion to GeoJSON (GDAL), importer reads GeoJSON.
+
+---
+
+## 13. Reverse geocoding (post-plan deliverable, 2026-08-06)
+
+Implements plan §4 item 4 / §9 "optional free reverse-geocode for address label".
+
+- **Decision (user-confirmed):** OSM **Nominatim public API** (`https://nominatim.openstreetmap.org`) — zero paid third-party. `REVERSE_GEOCODE_BASE_URL` env override lets us swap to a self-hosted/paid Nominatim later with no code change.
+- **Timing:** reverse-geocode **at submit time**, store the street address on the `LocationCapture`; operator sees it in the Resolve drawer; `approveCapture` applies it to the terminal's `addressLine1` (preferred over the offline `formatLocationLabel` hierarchy label).
+- **Client** `apps/web/lib/geo/reverse-geocode.ts`: valid `User-Agent` (`MojaRide/1.0 (support@mojaride.com)`), 1 req/s shared limiter (existing `createRateLimiter`), 4 s timeout (`AbortController`), 24 h cache keyed by 4-dp-rounded coords (~11 m), **null on every failure** (network / HTTP error / rate limit / timeout / malformed payload) — the capture flow can never break because of Nominatim. Params `format=jsonv2`, `zoom=18`, `accept-language=fr`. `formatNominatimAddress`: `"${house_number} ${road|pedestrian}, ${neighbourhood|suburb|quarter|city|town|municipality}"`, fallback `display_name`.
+- **Schema:** `LocationCapture.reverseGeocodedAddress String?`; migration `20260805000001_add_capture_reverse_geocoded_address` (single `ALTER TABLE ... ADD COLUMN`), applied + recorded on live Neon (checksum `b0654a7f…`), column verified.
+- **Service:** `CaptureServiceDeps.reverseGeocode?` (default `async () => null`); `submit` stores + returns `resolvedAddress`; `approveCapture` fill order `capture.reverseGeocodedAddress?.trim() || formatLocationLabel(...)` only when `addressLine1` null/placeholder; factory wires `createReverseGeocoder()`.
+- **UI/i18n:** Resolve drawer "Suggested address" (or "No street address found"); capture preview shows `preview.resolvedAddress` + "Street address" subtitle. `en.json` + `fr.json`: `resolve.suggestedAddress` / `resolve.noSuggestedAddress` / `capturePage.resolvedAddress` (English in both per language rule).
+- **Tests:** `lib/geo/__tests__/reverse-geocode.test.ts` (9: formatNominatimAddress ×4, client ×7; registered in `apps/web/package.json`) + `capture-service.test.ts` +3 (store+return, null-on-failure, prefer-over-label). **245/245 web tests pass.** Web `tsc --noEmit` clean for all touched files (the sole reported error `auth-server.ts(262,5) expo` is a pre-existing unrelated traveler-app Better Auth working-tree leftover; better-auth left untouched per user instruction).
+- **Housekeeping:** deleted stale `apps/web/migrations/001_foundation_constraints.sql` + `_rollback.sql` + empty dir (dead — `run-migrations.ts` sole consumer isn't wired to any npm script; Dockerfile `migrate` stage = `prisma migrate deploy` only).
+

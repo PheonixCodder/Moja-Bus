@@ -395,6 +395,14 @@ export function OperatorTerminalsView() {
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
+                    <Label>{t("resolve.suggestedAddress")}</Label>
+                    <span className="text-sm font-semibold text-foreground text-right">
+                      {resolvingCapture.reverseGeocodedAddress ??
+                        t("resolve.noSuggestedAddress")}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
                     <Label>{t("resolve.coordinates")}</Label>
                     <span className="text-sm font-mono text-foreground text-right">
                       {resolvingCapture.latitude != null &&

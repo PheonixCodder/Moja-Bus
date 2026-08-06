@@ -5,6 +5,7 @@ import { formatLocationLabel } from "@/lib/format-location-label";
 import type { GeoResolvedPlace } from "@/lib/geo/geocode-point";
 import { geocodePoint } from "@/lib/geo/geocode-point";
 import { loadGeoDataset } from "@/lib/geo/load-geo-dataset";
+import { createReverseGeocoder } from "@/lib/geo/reverse-geocode";
 import { createRateLimiter } from "@/lib/rate-limit";
 
 /**
@@ -15,7 +16,7 @@ import { createRateLimiter } from "@/lib/rate-limit";
  *   captures.submit        → LocationCapture PENDING_CONFIRMATION (resolved ids),
  *                            terminal PENDING_CONFIRMATION + tentative lat/long
  *   captures.confirm       → LocationCapture CONFIRMED (submitter confirms preview)
- *   operator.approveCapture → terminal COMPLETE + linked city/municipality/quarter
+ *   operator.approveCapture → LocationCapture APPROVED, terminal COMPLETE + linked city/municipality/quarter
  *   operator.rejectCapture  → LocationCapture REJECTED, terminal back PENDING_CAPTURE
  *   sweeper cron            → stale attempts EXPIRED, terminal reverts if it was complete
  *
@@ -44,6 +45,11 @@ export interface CaptureServiceDeps {
     latitude: number;
     longitude: number;
   }) => Promise<GeoResolvedPlace | null>;
+  /** Reverse geocoder: GPS → street address. Best-effort; null on any failure. */
+  reverseGeocode?: (input: {
+    latitude: number;
+    longitude: number;
+  }) => Promise<string | null>;
   now?: () => Date;
   generateToken?: () => string;
   appUrl?: string;
@@ -66,6 +72,9 @@ function classifyDevice(userAgent: string | null): string | null {
 export class CaptureService {
   private readonly prisma: PrismaClient;
   private readonly resolvePlace: CaptureServiceDeps["resolvePlace"];
+  private readonly reverseGeocode: NonNullable<
+    CaptureServiceDeps["reverseGeocode"]
+  >;
   private readonly now: () => Date;
   private readonly generateToken: () => string;
   private readonly appUrl: string;
@@ -77,6 +86,7 @@ export class CaptureService {
   constructor(deps: CaptureServiceDeps) {
     this.prisma = deps.prisma;
     this.resolvePlace = deps.resolvePlace;
+    this.reverseGeocode = deps.reverseGeocode ?? (async () => null);
     this.now = deps.now ?? (() => new Date());
     this.generateToken =
       deps.generateToken ??
@@ -188,6 +198,12 @@ export class CaptureService {
         message: "This capture link was rejected by the operator.",
       });
     }
+    if (capture.status === "APPROVED") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This capture has already been approved.",
+      });
+    }
 
     const loc = capture.location;
     return {
@@ -260,7 +276,7 @@ export class CaptureService {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
-          capture.status === "CONFIRMED"
+          capture.status === "CONFIRMED" || capture.status === "APPROVED"
             ? "This capture link has already been completed."
             : "This capture link has already been submitted.",
       });
@@ -279,6 +295,10 @@ export class CaptureService {
     }
 
     const capturedAt = this.now();
+    const reverseGeocodedAddress = await this.reverseGeocode({
+      latitude: input.latitude,
+      longitude: input.longitude,
+    });
     await this.prisma.$transaction(async (tx) => {
       await tx.locationCapture.update({
         where: { id: capture.id },
@@ -294,6 +314,7 @@ export class CaptureService {
           resolvedCityId: resolved.cityId,
           resolvedMunicipalityId: resolved.municipalityId,
           resolvedQuarterId: resolved.quarterId,
+          reverseGeocodedAddress,
           submitterName: input.submitterName ?? null,
           submitterPhone: input.submitterPhone ?? null,
           notes: input.notes ?? null,
@@ -313,6 +334,7 @@ export class CaptureService {
     return {
       status: "PENDING_CONFIRMATION" as const,
       resolved,
+      resolvedAddress: reverseGeocodedAddress,
       accuracyMeters: input.accuracyMeters,
       latitude: input.latitude,
       longitude: input.longitude,
@@ -361,6 +383,13 @@ export class CaptureService {
         resolved: await this.previewFromCapture(capture),
       };
     }
+    if (capture.status === "APPROVED") {
+      // Terminal already geo-linked by the operator — a fresh attempt is moot.
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This capture has already been approved.",
+      });
+    }
 
     const updated = await this.prisma.locationCapture.update({
       where: { id: capture.id },
@@ -404,6 +433,8 @@ export class CaptureService {
 
     // Auto-derive the full address for capture-created terminals (which are
     // created with a placeholder addressLine1). Leave a real address alone.
+    // Prefer the reverse-geocoded street address; fall back to the hierarchy
+    // label (city / municipality / quarter) when no street address is known.
     const preview = await this.previewFromCapture(capture);
     const resolvedLabel = formatLocationLabel({
       cityName: preview.cityName,
@@ -411,11 +442,17 @@ export class CaptureService {
       quarterName: preview.quarterName,
       isUrban: false,
     });
+    const derivedAddress =
+      capture.reverseGeocodedAddress?.trim() || resolvedLabel || null;
     const fillAddress =
       !capture.locationAddressLine1 ||
       capture.locationAddressLine1 === CAPTURE_ADDRESS_PLACEHOLDER;
 
     const terminal = await this.prisma.$transaction(async (tx) => {
+      await tx.locationCapture.update({
+        where: { id: capture.id },
+        data: { status: "APPROVED" },
+      });
       const updated = await tx.companyLocation.update({
         where: { id: capture.locationId },
         data: {
@@ -423,9 +460,7 @@ export class CaptureService {
           cityId: capture.resolvedCityId,
           municipalityId: capture.resolvedMunicipalityId,
           quarterId: capture.resolvedQuarterId,
-          ...(fillAddress && resolvedLabel
-            ? { addressLine1: resolvedLabel }
-            : {}),
+          ...(fillAddress && derivedAddress ? { addressLine1: derivedAddress } : {}),
           ...(capture.latitude != null ? { latitude: capture.latitude } : {}),
           ...(capture.longitude != null
             ? { longitude: capture.longitude }
@@ -448,6 +483,7 @@ export class CaptureService {
             quarterId: capture.resolvedQuarterId,
             latitude: capture.latitude,
             longitude: capture.longitude,
+            addressLine1: derivedAddress,
           },
         },
       });
@@ -607,6 +643,7 @@ export class CaptureService {
 
 /** Default resolver used by the tRPC layer: full offline dataset → pure engine. */
 export function createCaptureService(prisma: PrismaClient): CaptureService {
+  const reverseGeocode = createReverseGeocoder();
   return new CaptureService({
     prisma,
     resolvePlace: async (input) => {
@@ -618,5 +655,6 @@ export function createCaptureService(prisma: PrismaClient): CaptureService {
         quarters,
       });
     },
+    reverseGeocode,
   });
 }

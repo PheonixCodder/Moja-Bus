@@ -291,13 +291,26 @@ export function CapturePageView({ token, initialInfo }: CapturePageViewProps) {
             <p className="text-xs uppercase tracking-wide text-slate-500">
               {t("terminalLabel")}
             </p>
-            <p className="font-bold text-slate-900">{resolvedLabel}</p>
-            {preview.resolved.quarterName ? (
-              <p className="text-xs text-slate-500">
-                {preview.resolved.cityName} ·{" "}
-                {preview.resolved.municipalityName}
-              </p>
-            ) : null}
+            {preview.resolvedAddress ? (
+              <>
+                <p className="font-bold text-slate-900">
+                  {preview.resolvedAddress}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {t("resolvedAddress")} · {resolvedLabel}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-bold text-slate-900">{resolvedLabel}</p>
+                {preview.resolved.quarterName ? (
+                  <p className="text-xs text-slate-500">
+                    {preview.resolved.cityName} ·{" "}
+                    {preview.resolved.municipalityName}
+                  </p>
+                ) : null}
+              </>
+            )}
             <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">
               <Crosshair className="size-3.5" />
               {preview.latitude.toFixed(5)}, {preview.longitude.toFixed(5)} · ±

@@ -23,7 +23,8 @@
     "migrate-ledger": "tsx scripts/migrate-ledger.ts",
     "reconcile-ledger": "tsx scripts/reconcile-ledger.ts",
     "import:geo": "tsx scripts/import-ivory-coast-geo.ts",
-    "convert:places": "tsx scripts/convert-populated-places.ts"
+    "convert:places": "tsx scripts/convert-populated-places.ts",
+    "export:geo-seed": "tsx scripts/export-geo-seed.ts"
   },
   "dependencies": {
     "@moja/config": "workspace:*",

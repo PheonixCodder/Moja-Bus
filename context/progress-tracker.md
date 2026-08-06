@@ -8,10 +8,10 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | Ivory Coast geography import (M0) + geo engine (M1) + backend capture-link (M2) + public capture page (M3) + operator UI (M4) + search/consumer audit (M5) done — M6 verification next |
-| **Last major milestone** | Full CI geography imported (188 cities / 200 municipalities / 3230 quarters, PostGIS geometry) via a single idempotent importer; seed delegates to it. No legacy geo records remain (Abidjan layer relabeled CURATED). Abidjan coords backfilled (13/13 communes + 81/81 quarters). Offline geo-resolution engine live. **M2 backend capture-link + M3 public capture share page + M4 operator UI shipped** (`CaptureService`, `captures` tRPC router, rate limiter, cron sweeper, `/capture/[token]` page; capture-mode terminal editor with link card, Comboboxes, capture-status badges + filter + resolve approve/reject drawer). **M5 search/consumer audit green** (guards verified: pending terminals unreachable in routes/search; +3 full-188-city regression tests). Web typecheck now fully clean (pre-existing `features/admin/*` errors fixed) and `next build` green. |
-| **Web unit tests** | 227/227 pass |
-| **Next priority** | M6: final verification — typecheck, unit suites, `next build`, manual E2E of the full capture flow. Then booking ownership hardening, performance (Redis for search), mobile MVP. |
+| **Phase** | Ivory Coast geography import (M0) + geo engine (M1) + backend capture-link (M2) + public capture page (M3) + operator UI (M4) + search/consumer audit (M5) done — M6 verification next. **Geo seed document delivered (portable SQL snapshot). Resolve-capture button bug fixed (APPROVED terminal state). Reverse geocoding shipped (Nominatim → suggested address → addressLine1). Foundation SQL cleanup done.** |
+| **Last major milestone** | Full CI geography imported (188 cities / 200 municipalities / 3230 quarters, PostGIS geometry) via a single idempotent importer; seed delegates to it. No legacy geo records remain (Abidjan layer relabeled CURATED). Abidjan coords backfilled (13/13 communes + 81/81 quarters). Offline geo-resolution engine live. **M2 backend capture-link + M3 public capture share page + M4 operator UI shipped** (`CaptureService`, `captures` tRPC router, rate limiter, cron sweeper, `/capture/[token]` page; capture-mode terminal editor with link card, Comboboxes, capture-status badges + filter + resolve approve/reject drawer). **M5 search/consumer audit green** (guards verified: pending terminals unreachable in routes/search; +3 full-188-city regression tests). **Geo seed doc delivered**: `packages/db/seed/geo-seed.sql` (idempotent 188/200/3230 upserts w/ PostGIS geometry + coords, portable via `export:geo-seed` script), validated against the live DB. **Resolve-capture button fix**: `LocationCaptureStatus` gains `APPROVED` (migration applied on live DB), `approveCapture` marks the capture `APPROVED` so it leaves the `terminals.list` include filter, + UI guard; button now disappears after approval. **Reverse geocoding**: `captures.submit` reverse-geocodes the GPS point via OSM Nominatim (env-overridable base URL, `accept-language=fr`, 1 req/s limiter, 24 h cache, null-on-failure) into `location_capture.reverse_geocoded_address` (migration `20260805000001`, applied + recorded on live Neon); Resolve drawer shows "Suggested address"; `approveCapture` writes it to the terminal `addressLine1` (preferred over the offline hierarchy label; real addresses untouched). **Foundation SQL cleanup**: deleted stale unused `apps/web/migrations/001_foundation_constraints.sql` + `_rollback.sql` (dead code — `run-migrations.ts` not wired; Dockerfile `migrate` = `prisma migrate deploy` only). |
+| **Web unit tests** | 245/245 pass |
+| **Next priority** | M6: final verification — typecheck, unit suites, `next build`, manual E2E of the full capture flow. Then booking ownership hardening, performance (Redis for search), mobile MVP. NOTE: `web` typecheck currently reports one pre-existing unrelated error (`apps/web/lib/auth-server.ts:262 expo` — traveler-app Better Auth working-tree leftover); all reverse-geocoding files are clean. |
 
 ### Changes Made:
 - ✅ Removed `seatClass` field from `Fare` model in Prisma schema
@@ -40,6 +40,35 @@
 ---
 
 ## Milestone Log (newest first)
+
+### Reverse Geocoding + Foundation SQL Cleanup (2026-08-06)
+
+- [x] **Reverse geocoding for the capture flow** — user-confirmed decisions: OSM **Nominatim public API** (`REVERSE_GEOCODE_BASE_URL` env override), reverse-geocode **at submit time** + store on capture, `accept-language=fr` (data only — UI stays English per language rule).
+- [x] **Client** `apps/web/lib/geo/reverse-geocode.ts`: `createReverseGeocoder(deps)` → `reverseGeocode({latitude, longitude})`; valid `User-Agent` (`MojaRide/1.0 (support@mojaride.com)`), 1 req/s shared limiter (`createRateLimiter`), 4 s `AbortController` timeout, 24 h cache keyed by 4-dp-rounded coords, **null on every failure** (network/HTTP/rate-limit/timeout/malformed) so a capture never breaks on Nominatim. `formatNominatimAddress`: `"${house_number} ${road|pedestrian}, ${neighbourhood|suburb|quarter|city|town|municipality}"`, fallback `display_name`.
+- [x] **Schema + migration:** `LocationCapture.reverseGeocodedAddress String?`; `20260805000001_add_capture_reverse_geocoded_address` applied + recorded on live Neon (checksum `b0654a7f…`), column verified; `pnpm --filter @moja/db generate` ran.
+- [x] **Service:** `CaptureServiceDeps.reverseGeocode?` (default null); `submit` stores + returns `resolvedAddress`; `approveCapture` fill order = `reverseGeocodedAddress?.trim() || formatLocationLabel(...)` (only when `addressLine1` null/placeholder; real addresses untouched); factory wires `createReverseGeocoder()`.
+- [x] **UI/i18n:** Resolve drawer "Suggested address" / "No street address found"; capture preview shows `preview.resolvedAddress` + "Street address" subtitle; `en.json` + `fr.json` keys (English in both).
+- [x] **Tests:** `reverse-geocode.test.ts` (9) + `capture-service.test.ts` +3 — **245/245 web tests pass** (61 suites). All touched files typecheck clean (sole reported error is the pre-existing unrelated `auth-server.ts expo` leftover; better-auth left untouched).
+- [x] **Foundation SQL cleanup (user request):** deleted `apps/web/migrations/001_foundation_constraints.sql` + `_rollback.sql` + empty dir — proven dead: `run-migrations.ts` (only consumer) isn't wired to any npm script; Dockerfile `migrate` stage runs `prisma migrate deploy` only.
+
+### Resolve Capture Button Fix — APPROVED terminal state (2026-08-05)
+
+- [x] **Bug:** after approving a capture, the violet "Resolve Capture" button stayed. Root cause: `approveCapture` never updated the capture's own status (stayed `CONFIRMED`), so `terminals.list`'s live-captures include filter (`status IN OPEN/PENDING_CONFIRMATION/CONFIRMED`) kept returning it; the badge hid (keys off `geoCaptureStatus`) but the button didn't. `rejectCapture` worked because it sets `REJECTED`.
+- [x] **Schema:** added `APPROVED` to `LocationCaptureStatus` (`packages/db/prisma/schema.prisma`); new migration `20260805000000_add_capture_approved` (`ALTER TYPE ... ADD VALUE 'APPROVED'`) applied + recorded on the live Neon DB (Prisma checksum = sha256 of file content, verified against `add_geo_capture`); `prisma generate` ran.
+- [x] **Service:** `approveCapture` now sets the capture to `APPROVED` inside the transaction; `getInfo`/`submit`/`confirm` reject APPROVED with clear messages.
+- [x] **UI:** Resolve button in `terminals-table.tsx` additionally requires `geoCaptureStatus !== "COMPLETE"` (defense-in-depth).
+- [x] **Tests:** +3 (confirm/getInfo/submit reject APPROVED); approveCapture asserts capture `APPROVED`. **230/230 tests pass** (60 suites). Web `tsc --noEmit` clean.
+- [x] **Verified (user asked):** `apps/web/migrations/001_foundation_constraints.sql` (+`_rollback`) NOT used on live DB — targets PascalCase tables that don't exist; snake_case Prisma schema only. Stale history; ignored.
+
+### Geo Seed Document — Portable SQL Snapshot (2026-08-05)
+
+- [x] User requested a "seed like document" for all cities/municipalities/quartiers. Choices confirmed: **Portable SQL snapshot**, **Everything** (188 cities / 200 municipalities / 3230 quarters incl. PostGIS geometry + coords), **same Neon dev DB**.
+- [x] New `packages/db/scripts/export-geo-seed.ts`: reads connected DB (municipalities joined to city name, quarters joined to city + municipality names) → emits `packages/db/seed/geo-seed.sql`. Idempotent `ON CONFLICT DO UPDATE` keyed on natural constraints (`city.name`; `municipality("cityId", name)`; `quarter("municipalityId", name)`); parent ids resolved by name subselects → portable to a fresh DB. Geometry `ST_AsGeoJSON` → `ST_SetSRID(ST_GeomFromGeoJSON(..), 4326)`; `lit()` SQL escaping.
+- [x] Fixed mid-task bug: municipality/quarter INSERTs referenced parent-name fields the SELECTs didn't fetch — added `JOIN city` / `JOIN municipality`+`city` so `cityName`/`muniName` are real columns.
+- [x] Added `"export:geo-seed": "tsx scripts/export-geo-seed.ts"` to `packages/db/package.json`.
+- [x] **Validated**: generated file (3636 lines, ~4 MB, 3 INSERTs: 25 KB city / 3272 KB municipality / 700 KB quarter) executed against the live Neon DB inside `BEGIN ... ROLLBACK` (syntax + upsert keys + geometry round-trip OK) via a throwaway `pg` script (no psql on this box). Deleted the validator + `_probe-geo.ts`.
+- [x] **Usage:** `pnpm --filter @moja/db export:geo-seed` to re-generate; `psql "$DATABASE_URL" -f packages/db/seed/geo-seed.sql` to apply (re-runnable; on fresh DB run `db:push`/`migrate deploy` + `CREATE EXTENSION IF NOT EXISTS postgis` first).
+- [x] Context files updated (`memory.md`, this tracker). NOTE: `packages/db/src/index.ts:50-52` TS2835 errors pre-existing/unrelated (only `package.json` touched in `packages/db`); `scripts/` excluded from db tsconfig — exporter verified by runtime execution.
 
 ### Ivory Coast Geo-Capture — M5 Search/Consumer Audit (2026-08-05)
 

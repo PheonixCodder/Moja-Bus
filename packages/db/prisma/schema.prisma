@@ -740,12 +740,13 @@ enum LocationGeoCaptureStatus {
 
 /// Lifecycle of a single capture-link attempt.
 /// OPEN → PENDING_CONFIRMATION (submit) → CONFIRMED (submitter confirms preview)
-/// → operator approveCapture flips the terminal to COMPLETE. rejectCapture/expiry
+/// → APPROVED (operator approveCapture flips the terminal to COMPLETE). rejectCapture/expiry
 /// terminate the attempt without making the terminal geo-complete.
 enum LocationCaptureStatus {
   OPEN // link minted, not yet opened
   PENDING_CONFIRMATION // GPS submitted + place resolved, awaiting submitter confirmation
   CONFIRMED // submitter confirmed the resolved preview; awaiting operator approval
+  APPROVED // operator approved; terminal COMPLETE and geo-linked
   REJECTED // operator rejected; terminal back to PENDING_CAPTURE
   EXPIRED // TTL elapsed before completion
 }
@@ -925,6 +926,10 @@ model LocationCapture {
   resolvedCityId       String?
   resolvedMunicipalityId String?
   resolvedQuarterId    String?
+
+  // Street address reverse-geocoded from the GPS point (Nominatim). Optional:
+  // falls back to the hierarchy label on approve when absent.
+  reverseGeocodedAddress String?
 
   // Submitter details editable on the share page (enriches address)
   submitterName  String?

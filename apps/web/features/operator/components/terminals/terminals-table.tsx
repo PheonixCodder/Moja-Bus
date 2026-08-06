@@ -160,17 +160,18 @@ export function TerminalsTable({
                 </div>
               </td>
               <td className="px-4 py-3.5 text-right space-x-1">
-                {loc.captures?.[0]?.status === "CONFIRMED" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 text-[11px] font-semibold text-violet-600 dark:text-violet-400 border-violet-500/30 hover:bg-violet-500/10"
-                    onClick={() => onResolveCapture(loc)}
-                  >
-                    <Link2 className="size-3.5" />
-                    {t("resolve.title")}
-                  </Button>
-                )}
+                {loc.geoCaptureStatus !== "COMPLETE" &&
+                  loc.captures?.[0]?.status === "CONFIRMED" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5 text-[11px] font-semibold text-violet-600 dark:text-violet-400 border-violet-500/30 hover:bg-violet-500/10"
+                      onClick={() => onResolveCapture(loc)}
+                    >
+                      <Link2 className="size-3.5" />
+                      {t("resolve.title")}
+                    </Button>
+                  )}
                 <Button
                   variant="ghost"
                   size="icon"
