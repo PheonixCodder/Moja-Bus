@@ -53,6 +53,19 @@ Last updated: 2026-08-02
 - `turbo test` passes (all tests)
 - TypeScript compiles clean
 
+## Expo + Better Auth audit fixes (2026-08-06)
+
+- Fixed `trustedOrigins` scheme mismatch: `app.json` has `"scheme": "traveler-app"` (with hyphen) but `trustedOrigins` had `"travelerapp://"` (without hyphen). Changed to `"traveler-app://"`.
+- Added missing `expo-network` dependency to traveler-app per official Expo integration docs.
+- Deleted dead `expo-client-plugin.ts` (was dropping `getCookie` from Expo plugin actions).
+- Removed unused `createExpoPlugin` import from `auth-client.ts`.
+- Removed unused `nextCookies` import from `auth-server.ts`.
+- Aligned `@better-auth/expo` version: traveler-app `^1.6.20` → `^1.6.22` (matches web app).
+- Added `storagePrefix: "traveler-app"` to `expoClient()` config.
+- Added `as any` type assertions for `expoClient()` plugin and `authClient.getCookie()` to resolve known `@better-auth/expo` type incompatibilities with `createAuthClient`.
+- `auth-client.ts` now uses `expoClient()` directly (not wrapped in custom `createExpoPlugin`).
+- `trpc.tsx` uses `(authClient as any).getCookie()` in `httpBatchLink` headers callback.
+
 ## Next session starts with
 
 - Test the onboarding flow end-to-end: launch app → see onboarding → tap through → land on login
