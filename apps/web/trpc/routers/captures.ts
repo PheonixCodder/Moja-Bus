@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createCaptureService } from "@/features/capture/services/capture-service";
-import { requirePermission } from "@/lib/permissions/authorize";
+import { requireAnyPermission } from "@/lib/permissions/authorize";
 import {
   createTRPCRouter,
   operatorCompanyProcedure,
@@ -29,7 +29,7 @@ export const capturesRouter = createTRPCRouter({
   createCapture: operatorCompanyProcedure
     .input(z.object({ terminalId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "terminals:update");
+      requireAnyPermission(ctx, ["terminals:update", "terminals:geocapture"]);
       const service = createCaptureService(ctx.prisma);
       return service.createCapture({ terminalId: input.terminalId });
     }),
@@ -84,7 +84,7 @@ export const capturesRouter = createTRPCRouter({
   approveCapture: operatorCompanyProcedure
     .input(captureIdSchema)
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "terminals:update");
+      requireAnyPermission(ctx, ["terminals:update", "terminals:geocapture"]);
       const service = createCaptureService(ctx.prisma);
       return service.approveCapture({
         companyId: ctx.companyId,
@@ -99,7 +99,7 @@ export const capturesRouter = createTRPCRouter({
   rejectCapture: operatorCompanyProcedure
     .input(captureIdSchema)
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "terminals:update");
+      requireAnyPermission(ctx, ["terminals:update", "terminals:geocapture"]);
       const service = createCaptureService(ctx.prisma);
       return service.rejectCapture({
         companyId: ctx.companyId,

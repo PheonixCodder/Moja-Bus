@@ -1,5 +1,4 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { AccountingEngine, FinancialAccountService, Prisma } from "@moja/db";
 import {
   cancelBookingSchema,
   createCommissionTierSchema,
@@ -12,23 +11,20 @@ import {
   updateCommissionTierSchema,
   updatePlatformSettingsSchema,
 } from "@moja/schemas";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
-import { PaymentService } from "@/features/payments/payment-service";
-import {
-  isPaystackConfigured,
-  paystackListBanks,
-} from "../../features/payments/providers/paystack-client";
-import { FinancialAccountService, AccountingEngine, Prisma } from "@moja/db";
-import { CancellationService } from "@/features/payments/services/cancellation-service";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import { TripDetailsService } from "@/features/booking/services/trip-details-service";
+import { PaymentService } from "@/features/payments/payment-service";
+import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { toSafeDisplayNumber } from "@/lib/money";
-
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "ADMIN") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-  }
-  return next({ ctx });
-});
+import { requireAdminPermission } from "@/lib/permissions/admin-authorize";
+import { paystackListBanks } from "../../features/payments/providers/paystack-client";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "../init";
 
 export const paymentsRouter = createTRPCRouter({
   getCheckoutPricing: publicProcedure
@@ -50,79 +46,80 @@ export const paymentsRouter = createTRPCRouter({
       });
     }),
 
-   getHoldPricing: protectedProcedure
-     .input(z.object({ holdId: z.string() }))
-     .query(async ({ ctx, input }) => {
-       const snapshot = await ctx.prisma.pricingSnapshot.findFirst({
-         where: { holdGroupId: input.holdId },
-         orderBy: { createdAt: "desc" },
-       });
-       if (!snapshot) {
-         throw new TRPCError({
-           code: "NOT_FOUND",
-           message: "Pricing snapshot not found for this hold",
-         });
-       }
+  getHoldPricing: protectedProcedure
+    .input(z.object({ holdId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const snapshot = await ctx.prisma.pricingSnapshot.findFirst({
+        where: { holdGroupId: input.holdId },
+        orderBy: { createdAt: "desc" },
+      });
+      if (!snapshot) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Pricing snapshot not found for this hold",
+        });
+      }
 
-       const holdGroup = await ctx.prisma.holdGroup.findUnique({
-         where: { id: input.holdId },
-         select: { id: true },
-       });
-       if (!holdGroup) {
-         throw new TRPCError({
-           code: "NOT_FOUND",
-           message: "Hold group not found",
-         });
-       }
+      const holdGroup = await ctx.prisma.holdGroup.findUnique({
+        where: { id: input.holdId },
+        select: { id: true },
+      });
+      if (!holdGroup) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Hold group not found",
+        });
+      }
 
-       const booking = await ctx.prisma.booking.findFirst({
-         where: {
-           holdGroupId: input.holdId,
-           userId: ctx.user.id,
-         },
-         select: { id: true },
-       });
-       if (!booking) {
-         throw new TRPCError({
-           code: "FORBIDDEN",
-           message: "Access denied: no booking found for this hold",
-         });
-       }
+      const booking = await ctx.prisma.booking.findFirst({
+        where: {
+          holdGroupId: input.holdId,
+          userId: ctx.user.id,
+        },
+        select: { id: true },
+      });
+      if (!booking) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Access denied: no booking found for this hold",
+        });
+      }
 
-       return {
+      return {
         subtotalBaseXOF: snapshot.subtotalBaseXOF,
         convenienceFeeXOF: snapshot.convenienceFeeXOF,
         chargeAmountXOF: snapshot.chargeAmountXOF,
       };
     }),
 
-   cancelBooking: protectedProcedure
-     .input(cancelBookingSchema)
-     .mutation(async ({ ctx, input }) => {
-       let userCompanyId: string | undefined;
-       if (ctx.user.role === "OPERATOR") {
-         const operatorProfile = await ctx.prisma.operator.findFirst({
-           where: { userId: ctx.user.id, deletedAt: null },
-         });
-         userCompanyId = operatorProfile?.companyId ?? undefined;
-if (
-            operatorProfile &&
-            (!hasPermission(
-              operatorProfile.role,
-              operatorProfile.permissions ?? [],
-              "bookings:update",
-            ) || !hasPermission(
+  cancelBooking: protectedProcedure
+    .input(cancelBookingSchema)
+    .mutation(async ({ ctx, input }) => {
+      let userCompanyId: string | undefined;
+      if (ctx.user.role === "OPERATOR") {
+        const operatorProfile = await ctx.prisma.operator.findFirst({
+          where: { userId: ctx.user.id, deletedAt: null },
+        });
+        userCompanyId = operatorProfile?.companyId ?? undefined;
+        if (
+          operatorProfile &&
+          (!hasPermission(
+            operatorProfile.role,
+            operatorProfile.permissions ?? [],
+            "bookings:update",
+          ) ||
+            !hasPermission(
               operatorProfile.role,
               operatorProfile.permissions ?? [],
               "bookings:cancel",
             ))
-          ) {
-           throw new TRPCError({
-             code: "FORBIDDEN",
-             message: "Access denied: missing permission bookings:update",
-           });
-         }
-       }
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Access denied: missing permission bookings:update",
+          });
+        }
+      }
 
       const service = new CancellationService(ctx.prisma);
       return service.cancelBooking({
@@ -136,6 +133,7 @@ if (
     }),
 
   getPlatformSettings: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "platform:settings:read");
     const settings = await ctx.prisma.platformSettings.findUnique({
       where: { id: "default" },
     });
@@ -148,22 +146,19 @@ if (
   updatePlatformSettings: adminProcedure
     .input(updatePlatformSettingsSchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:settings:update");
       const { defaultCommissionBps, defaultConvenienceFeeBps } = input;
       return ctx.prisma.platformSettings.upsert({
         where: { id: "default" },
         create: {
           id: "default",
-          ...(defaultCommissionBps != null
-            ? { defaultCommissionBps }
-            : {}),
+          ...(defaultCommissionBps != null ? { defaultCommissionBps } : {}),
           ...(defaultConvenienceFeeBps != null
             ? { defaultConvenienceFeeBps }
             : {}),
         },
         update: {
-          ...(defaultCommissionBps != null
-            ? { defaultCommissionBps }
-            : {}),
+          ...(defaultCommissionBps != null ? { defaultCommissionBps } : {}),
           ...(defaultConvenienceFeeBps != null
             ? { defaultConvenienceFeeBps }
             : {}),
@@ -172,6 +167,7 @@ if (
     }),
 
   listCommissionTiers: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "platform:commission:manage");
     return ctx.prisma.commissionDistanceTier.findMany({
       orderBy: { sortOrder: "asc" },
     });
@@ -180,6 +176,7 @@ if (
   createCommissionTier: adminProcedure
     .input(createCommissionTierSchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:commission:manage");
       const { maxDistanceKm, ...rest } = input;
       return ctx.prisma.commissionDistanceTier.create({
         data: {
@@ -192,6 +189,7 @@ if (
   updateCommissionTier: adminProcedure
     .input(updateCommissionTierSchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:commission:manage");
       const { id, maxDistanceKm, ...data } = input;
       return ctx.prisma.commissionDistanceTier.update({
         where: { id },
@@ -205,6 +203,7 @@ if (
   deleteCommissionTier: adminProcedure
     .input(deleteCommissionTierSchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:commission:manage");
       await ctx.prisma.commissionDistanceTier.delete({
         where: { id: input.id },
       });
@@ -215,9 +214,10 @@ if (
     .input(
       listLedgerEntriesSchema.extend({
         accountClass: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:ledger:read");
       const accountService = new FinancialAccountService(ctx.prisma);
       let accountIds: string[] = [];
 
@@ -225,20 +225,28 @@ if (
 
       if (accountClass === "OPERATOR_RECEIVABLE") {
         if (input.companyId) {
-          const opAcct = await accountService.getOperatorReceivableAccount(input.companyId);
+          const opAcct = await accountService.getOperatorReceivableAccount(
+            input.companyId,
+          );
           accountIds.push(opAcct.id);
         } else {
           const opAccts = await ctx.prisma.financialAccount.findMany({
-            where: { ownerType: "COMPANY", accountClass: "OPERATOR_RECEIVABLE" },
+            where: {
+              ownerType: "COMPANY",
+              accountClass: "OPERATOR_RECEIVABLE",
+            },
           });
           accountIds = opAccts.map((a) => a.id);
         }
       } else if (accountClass === "PAYSTACK_CLEARING") {
-        const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+        const clearingAcct =
+          await accountService.getSystemPaystackClearingAccount();
         accountIds.push(clearingAcct.id);
       } else if (accountClass === "PLATFORM_FEES") {
-        const platformCommissionAcct = await accountService.getPlatformCommissionRevenueAccount();
-        const platformConvenienceAcct = await accountService.getPlatformConvenienceFeeRevenueAccount();
+        const platformCommissionAcct =
+          await accountService.getPlatformCommissionRevenueAccount();
+        const platformConvenienceAcct =
+          await accountService.getPlatformConvenienceFeeRevenueAccount();
         accountIds.push(platformCommissionAcct.id, platformConvenienceAcct.id);
       } else {
         const accts = await ctx.prisma.financialAccount.findMany({
@@ -262,7 +270,9 @@ if (
         ctx.prisma.ledgerEntry.count({ where }),
       ]);
 
-      const companyIds = Array.from(new Set(entries.map((e) => e.account.ownerId)));
+      const companyIds = Array.from(
+        new Set(entries.map((e) => e.account.ownerId)),
+      );
       const companies = await ctx.prisma.company.findMany({
         where: { id: { in: companyIds } },
         select: { id: true, name: true },
@@ -296,12 +306,15 @@ if (
     }),
 
   getTreasuryOverview: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "platform:financials:read");
     const accountService = new FinancialAccountService(ctx.prisma);
-    const [clearing, commissionRevenue, convenienceRevenue] = await Promise.all([
-      accountService.getSystemPaystackClearingAccount(),
-      accountService.getPlatformCommissionRevenueAccount(),
-      accountService.getPlatformConvenienceFeeRevenueAccount(),
-    ]);
+    const [clearing, commissionRevenue, convenienceRevenue] = await Promise.all(
+      [
+        accountService.getSystemPaystackClearingAccount(),
+        accountService.getPlatformCommissionRevenueAccount(),
+        accountService.getPlatformConvenienceFeeRevenueAccount(),
+      ],
+    );
 
     return {
       clearingBalance: toSafeDisplayNumber(clearing.postedBalance),
@@ -314,8 +327,11 @@ if (
   exportOperatorLedger: adminProcedure
     .input(exportOperatorLedgerSchema)
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:ledger:read");
       const accountService = new FinancialAccountService(ctx.prisma);
-      const operatorAcct = await accountService.getOperatorReceivableAccount(input.companyId);
+      const operatorAcct = await accountService.getOperatorReceivableAccount(
+        input.companyId,
+      );
 
       const entries = await ctx.prisma.ledgerEntry.findMany({
         where: { accountId: operatorAcct.id },
@@ -323,7 +339,7 @@ if (
         include: { transaction: true },
       });
 
-      const mappedEntries = entries.map(e => ({
+      const mappedEntries = entries.map((e) => ({
         id: e.id,
         companyId: input.companyId,
         entryType: e.side === "CREDIT" ? "CREDIT" : "DEBIT",
@@ -344,23 +360,30 @@ if (
   recordSettlement: adminProcedure
     .input(recordSettlementSchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:settlements:manage");
       const accountService = new FinancialAccountService(ctx.prisma);
-      const operatorAcct = await accountService.getOperatorReceivableAccount(input.companyId);
+      const operatorAcct = await accountService.getOperatorReceivableAccount(
+        input.companyId,
+      );
       const amount = input.amountXOF;
 
       // Stable per-attempt nonce (client-supplied when available). Makes the
       // settlement exactly-once: a duplicate request carrying the same key is
       // short-circuited instead of double-debiting the operator (F-19).
-      const idempotencyKey = input.idempotencyKey?.trim() || crypto.randomUUID();
+      const idempotencyKey =
+        input.idempotencyKey?.trim() || crypto.randomUUID();
 
       const { txId, duplicate } = await ctx.prisma.$transaction(async (tx) => {
-        const clearingAcct = await accountService.getSystemPaystackClearingAccount();
+        const clearingAcct =
+          await accountService.getSystemPaystackClearingAccount();
 
         // Acquire an exclusive row lock on the operator account FIRST so concurrent
         // settlements for the same company serialize. This makes the balance check
         // + ledger post atomic — previously the balance check was a non-locking read
         // outside the tx, allowing a double-debit race (F-19).
-        const lockedAccounts = await tx.$queryRaw<{ available_balance: number }[]>(
+        const lockedAccounts = await tx.$queryRaw<
+          { available_balance: number }[]
+        >(
           Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${operatorAcct.id} FOR UPDATE`,
         );
 
@@ -432,9 +455,10 @@ if (
       z.object({
         limit: z.number().int().min(1).max(100).default(20),
         offset: z.number().int().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:settlements:read");
       const [transactions, total] = await Promise.all([
         ctx.prisma.financialTransaction.findMany({
           where: { type: "SETTLEMENT" },
@@ -447,7 +471,9 @@ if (
             },
           },
         }),
-        ctx.prisma.financialTransaction.count({ where: { type: "SETTLEMENT" } }),
+        ctx.prisma.financialTransaction.count({
+          where: { type: "SETTLEMENT" },
+        }),
       ]);
 
       // Collect company IDs from DEBIT entries (operator receivable side)
@@ -456,11 +482,11 @@ if (
           transactions.flatMap((tx) =>
             tx.entries
               .filter(
-                (e) => e.side === "DEBIT" && e.account.ownerType === "COMPANY"
+                (e) => e.side === "DEBIT" && e.account.ownerType === "COMPANY",
               )
-              .map((e) => e.account.ownerId)
-          )
-        )
+              .map((e) => e.account.ownerId),
+          ),
+        ),
       );
 
       const companies = await ctx.prisma.company.findMany({
@@ -471,7 +497,7 @@ if (
 
       const items = transactions.map((tx) => {
         const debitEntry = tx.entries.find(
-          (e) => e.side === "DEBIT" && e.account.ownerType === "COMPANY"
+          (e) => e.side === "DEBIT" && e.account.ownerType === "COMPANY",
         );
         const companyId = debitEntry?.account.ownerId ?? null;
         const company = companyId ? companyMap.get(companyId) : null;

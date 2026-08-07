@@ -1,24 +1,28 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { AccountingEngine, FinancialAccountService } from "@moja/db";
 import {
-  adminVerifyCompanySchema,
-  adminRejectCompanySchema,
-  adminListUsersSchema,
-  adminUpdateUserRoleSchema,
-  adminListOperationsSchema,
-  adminListCompaniesSchema,
   adminGetCompanySchema,
-  adminUpdateVerificationChecklistSchema,
+  adminListCompaniesSchema,
   adminListLedgerEntriesSchema,
+  adminListOperationsSchema,
+  adminListUsersSchema,
+  adminRejectCompanySchema,
+  adminUpdateUserRoleSchema,
+  adminUpdateVerificationChecklistSchema,
+  adminVerifyCompanySchema,
   tripStatusEnum,
 } from "@moja/schemas";
-import { FinancialAccountService, AccountingEngine } from "@moja/db";
-import { toSafeDisplayNumber } from "@/lib/money";
-import { createTRPCRouter, adminProcedure } from "../init";
-import { revealBankAccountNumber } from "@/lib/bank-account";
-import { logBankAccess } from "@/lib/bank-access";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
+import { logBankAccess } from "@/lib/bank-access";
+import { revealBankAccountNumber } from "@/lib/bank-account";
+import { toSafeDisplayNumber } from "@/lib/money";
 import { getNovuClient } from "@/lib/novu";
+import {
+  requireAdminAnyPermission,
+  requireAdminPermission,
+} from "@/lib/permissions/admin-authorize";
+import { adminProcedure, createTRPCRouter } from "../init";
 
 function slugify(text: string): string {
   return text
@@ -33,6 +37,7 @@ function slugify(text: string): string {
 
 export const adminRouter = createTRPCRouter({
   getDashboardKPIs: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "platform:financials:read");
     const [
       gmvResult,
       commissionResult,
@@ -77,6 +82,8 @@ export const adminRouter = createTRPCRouter({
   listCompaniesForVerification: adminProcedure
     .input(adminListCompaniesSchema)
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "companies:read");
+
       const where: any = {};
 
       if (input.status) {
@@ -87,7 +94,9 @@ export const adminRouter = createTRPCRouter({
         const searchLower = input.search.toLowerCase();
         where.OR = [
           { name: { contains: searchLower, mode: "insensitive" } },
-          { registrationNumber: { contains: searchLower, mode: "insensitive" } },
+          {
+            registrationNumber: { contains: searchLower, mode: "insensitive" },
+          },
           { taxId: { contains: searchLower, mode: "insensitive" } },
           {
             operators: {
@@ -134,6 +143,7 @@ export const adminRouter = createTRPCRouter({
   getCompanyForVerification: adminProcedure
     .input(adminGetCompanySchema)
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "companies:read");
       const company = await ctx.prisma.company.findUnique({
         where: { id: input.companyId },
         include: {
@@ -179,6 +189,7 @@ export const adminRouter = createTRPCRouter({
   updateCompanyVerificationChecklist: adminProcedure
     .input(adminUpdateVerificationChecklistSchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "verifications:manage");
       const verification = await ctx.prisma.companyVerification.upsert({
         where: { companyId: input.companyId },
         update: {
@@ -215,6 +226,7 @@ export const adminRouter = createTRPCRouter({
   listLedgerEntries: adminProcedure
     .input(adminListLedgerEntriesSchema)
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:ledger:read");
       const where: any = {};
 
       if (input.side) {
@@ -239,29 +251,33 @@ export const adminRouter = createTRPCRouter({
         ];
       }
 
-      const [items, total, debitSumResult, creditSumResult] = await Promise.all([
-        ctx.prisma.ledgerEntry.findMany({
-          where,
-          orderBy: { effectiveAt: "desc" },
-          take: input.limit,
-          skip: input.offset,
-          include: {
-            transaction: true,
-            account: true,
-          },
-        }),
-        ctx.prisma.ledgerEntry.count({ where }),
-        ctx.prisma.ledgerEntry.aggregate({
-          _sum: { amount: true },
-          where: { side: "DEBIT" },
-        }),
-        ctx.prisma.ledgerEntry.aggregate({
-          _sum: { amount: true },
-          where: { side: "CREDIT" },
-        }),
-      ]);
+      const [items, total, debitSumResult, creditSumResult] = await Promise.all(
+        [
+          ctx.prisma.ledgerEntry.findMany({
+            where,
+            orderBy: { effectiveAt: "desc" },
+            take: input.limit,
+            skip: input.offset,
+            include: {
+              transaction: true,
+              account: true,
+            },
+          }),
+          ctx.prisma.ledgerEntry.count({ where }),
+          ctx.prisma.ledgerEntry.aggregate({
+            _sum: { amount: true },
+            where: { side: "DEBIT" },
+          }),
+          ctx.prisma.ledgerEntry.aggregate({
+            _sum: { amount: true },
+            where: { side: "CREDIT" },
+          }),
+        ],
+      );
 
-      const ownerIds = Array.from(new Set(items.map((item) => item.account.ownerId)));
+      const ownerIds = Array.from(
+        new Set(items.map((item) => item.account.ownerId)),
+      );
 
       const [users, companies] = await Promise.all([
         ctx.prisma.user.findMany({
@@ -309,8 +325,8 @@ export const adminRouter = createTRPCRouter({
       };
     }),
 
-
   listPendingOperators: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "companies:read");
     return ctx.prisma.company.findMany({
       where: { status: "PENDING_VERIFICATION" },
       include: {
@@ -332,17 +348,19 @@ export const adminRouter = createTRPCRouter({
     });
   }),
 
-
   verifyOperator: adminProcedure
     .input(adminVerifyCompanySchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "companies:verify");
       const company = await ctx.prisma.company.findUnique({
         where: { id: input.companyId },
         include: {
           bankAccounts: true,
           operators: {
             where: { role: "OWNER" },
-            include: { user: { select: { id: true, email: true, fullName: true } } },
+            include: {
+              user: { select: { id: true, email: true, fullName: true } },
+            },
           },
         },
       });
@@ -354,7 +372,9 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      const pendingBank = company.bankAccounts.find((b) => !b.isVerified) || company.bankAccounts[0];
+      const pendingBank =
+        company.bankAccounts.find((b) => !b.isVerified) ||
+        company.bankAccounts[0];
       if (!pendingBank) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
@@ -362,7 +382,9 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      const decryptedAccountNumber = revealBankAccountNumber(pendingBank as any);
+      const decryptedAccountNumber = revealBankAccountNumber(
+        pendingBank as any,
+      );
 
       // Audit-log the full bank-number reveal (operator reveals are logged;
       // admin reveals must be too — see F-22).
@@ -389,7 +411,10 @@ export const adminRouter = createTRPCRouter({
           });
           recipientCode = result.recipientCode;
         } catch (error: any) {
-          console.error("Paystack Transfer Recipient Registration Error:", error);
+          console.error(
+            "Paystack Transfer Recipient Registration Error:",
+            error,
+          );
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: `Paystack registration failed: ${error.message || "Unknown error"}`,
@@ -452,7 +477,10 @@ export const adminRouter = createTRPCRouter({
               transactionId: `operator-verification-approved-${company.id}`,
             });
           } catch (err) {
-            console.error("Failed to trigger operator-verification-approved via Novu:", err);
+            console.error(
+              "Failed to trigger operator-verification-approved via Novu:",
+              err,
+            );
           }
         }
       }
@@ -463,12 +491,15 @@ export const adminRouter = createTRPCRouter({
   rejectOperator: adminProcedure
     .input(adminRejectCompanySchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "companies:verify");
       const company = await ctx.prisma.company.findUnique({
         where: { id: input.companyId },
         include: {
           operators: {
             where: { role: "OWNER" },
-            include: { user: { select: { id: true, email: true, fullName: true } } },
+            include: {
+              user: { select: { id: true, email: true, fullName: true } },
+            },
           },
         },
       });
@@ -521,7 +552,10 @@ export const adminRouter = createTRPCRouter({
               transactionId: `operator-verification-rejected-${company.id}`,
             });
           } catch (err) {
-            console.error("Failed to trigger operator-verification-rejected via Novu:", err);
+            console.error(
+              "Failed to trigger operator-verification-rejected via Novu:",
+              err,
+            );
           }
         }
       }
@@ -532,6 +566,7 @@ export const adminRouter = createTRPCRouter({
   listUsers: adminProcedure
     .input(adminListUsersSchema)
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "users:read");
       const where: any = {};
 
       if (input.role) {
@@ -575,6 +610,7 @@ export const adminRouter = createTRPCRouter({
   getUserProfile: adminProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "users:read");
       const user = await ctx.prisma.user.findUnique({
         where: { id: input.userId },
         include: {
@@ -609,7 +645,9 @@ export const adminRouter = createTRPCRouter({
                       route: {
                         select: {
                           name: true,
-                          originTerminal: { select: { city: true, name: true } },
+                          originTerminal: {
+                            select: { city: true, name: true },
+                          },
                           destTerminal: { select: { city: true, name: true } },
                         },
                       },
@@ -636,6 +674,7 @@ export const adminRouter = createTRPCRouter({
   updateUserRole: adminProcedure
     .input(adminUpdateUserRoleSchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "users:update");
       if (input.userId === ctx.user.id) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -662,19 +701,21 @@ export const adminRouter = createTRPCRouter({
       const novu = getNovuClient();
       if (novu && updatedUser.email) {
         try {
-          await novu.trigger({
-            workflowId: "user-role-updated",
-            to: {
-              subscriberId: updatedUser.email,
-              email: updatedUser.email,
-            },
-            payload: {
-              email: updatedUser.email,
-              userName: updatedUser.fullName ?? "User",
-              newRole: input.role as any,
-            },
-            transactionId: `user-role-updated-${updatedUser.id}-${Date.now()}`,
-          }).catch(() => {});
+          await novu
+            .trigger({
+              workflowId: "user-role-updated",
+              to: {
+                subscriberId: updatedUser.email,
+                email: updatedUser.email,
+              },
+              payload: {
+                email: updatedUser.email,
+                userName: updatedUser.fullName ?? "User",
+                newRole: input.role as any,
+              },
+              transactionId: `user-role-updated-${updatedUser.id}-${Date.now()}`,
+            })
+            .catch(() => {});
         } catch (err) {
           console.error("Failed to trigger user-role-updated:", err);
         }
@@ -686,6 +727,7 @@ export const adminRouter = createTRPCRouter({
   suspendCompany: adminProcedure
     .input(z.object({ companyId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "companies:suspend");
       const company = await ctx.prisma.company.findUnique({
         where: { id: input.companyId },
       });
@@ -721,27 +763,38 @@ export const adminRouter = createTRPCRouter({
       // Trigger operator-account-suspended
       const operators = await ctx.prisma.operator.findMany({
         where: { companyId: input.companyId, deletedAt: null },
-        include: { user: { select: { id: true, email: true, fullName: true, phoneNumber: true } } },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              fullName: true,
+              phoneNumber: true,
+            },
+          },
+        },
       });
       const novu = getNovuClient();
       if (novu && operators.length > 0) {
         try {
           for (const op of operators) {
             if (op.user.email) {
-              await novu.trigger({
-                workflowId: "operator-account-suspended",
-                to: {
-                  subscriberId: op.user.email,
-                  email: op.user.email,
-                },
-                payload: {
-                  email: op.user.email,
-                  operatorName: op.user.fullName ?? "Operator Staff",
-                  companyName: company.name,
-                  phone: op.user.phoneNumber ?? undefined,
-                },
-                transactionId: `operator-account-suspended-${op.user.id}-${Date.now()}`,
-              }).catch(() => {});
+              await novu
+                .trigger({
+                  workflowId: "operator-account-suspended",
+                  to: {
+                    subscriberId: op.user.email,
+                    email: op.user.email,
+                  },
+                  payload: {
+                    email: op.user.email,
+                    operatorName: op.user.fullName ?? "Operator Staff",
+                    companyName: company.name,
+                    phone: op.user.phoneNumber ?? undefined,
+                  },
+                  transactionId: `operator-account-suspended-${op.user.id}-${Date.now()}`,
+                })
+                .catch(() => {});
             }
           }
         } catch (err) {
@@ -755,6 +808,7 @@ export const adminRouter = createTRPCRouter({
   activateCompany: adminProcedure
     .input(z.object({ companyId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "companies:suspend");
       const company = await ctx.prisma.company.findUnique({
         where: { id: input.companyId },
       });
@@ -782,7 +836,8 @@ export const adminRouter = createTRPCRouter({
             companyId: input.companyId,
             userId: ctx.user.id,
             action: "ACTIVATE_COMPANY",
-            description: "Restored company access and operator staff status to active.",
+            description:
+              "Restored company access and operator staff status to active.",
           },
         });
       });
@@ -790,26 +845,30 @@ export const adminRouter = createTRPCRouter({
       // Trigger operator-account-restored
       const owners = await ctx.prisma.operator.findMany({
         where: { companyId: input.companyId, role: "OWNER", deletedAt: null },
-        include: { user: { select: { id: true, email: true, fullName: true } } },
+        include: {
+          user: { select: { id: true, email: true, fullName: true } },
+        },
       });
       const novu = getNovuClient();
       if (novu && owners.length > 0) {
         try {
           for (const owner of owners) {
             if (owner.user.email) {
-              await novu.trigger({
-                workflowId: "operator-account-restored",
-                to: {
-                  subscriberId: owner.user.email,
-                  email: owner.user.email,
-                },
-                payload: {
-                  email: owner.user.email,
-                  ownerName: owner.user.fullName ?? "Operator Owner",
-                  companyName: company.name,
-                },
-                transactionId: `operator-account-restored-${owner.user.id}-${Date.now()}`,
-              }).catch(() => {});
+              await novu
+                .trigger({
+                  workflowId: "operator-account-restored",
+                  to: {
+                    subscriberId: owner.user.email,
+                    email: owner.user.email,
+                  },
+                  payload: {
+                    email: owner.user.email,
+                    ownerName: owner.user.fullName ?? "Operator Owner",
+                    companyName: company.name,
+                  },
+                  transactionId: `operator-account-restored-${owner.user.id}-${Date.now()}`,
+                })
+                .catch(() => {});
             }
           }
         } catch (err) {
@@ -823,6 +882,7 @@ export const adminRouter = createTRPCRouter({
   listOperations: adminProcedure
     .input(adminListOperationsSchema)
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:trips:read");
       const where: any = {};
       if (input.companyId) {
         where.companyId = input.companyId;
@@ -859,7 +919,9 @@ export const adminRouter = createTRPCRouter({
       const list = items.map((trip) => ({
         id: trip.id,
         companyName: trip.company.name,
-        routeLabel: trip.schedule.route.name || `${trip.schedule.route.originTerminal.city || trip.schedule.route.originTerminal.name} → ${trip.schedule.route.destTerminal.city || trip.schedule.route.destTerminal.name}`,
+        routeLabel:
+          trip.schedule.route.name ||
+          `${trip.schedule.route.originTerminal.city || trip.schedule.route.originTerminal.name} → ${trip.schedule.route.destTerminal.city || trip.schedule.route.destTerminal.name}`,
         departureDate: trip.departureDate,
         status: trip.status,
         delayMinutes: trip.delayMinutes ?? 0,
@@ -877,9 +939,10 @@ export const adminRouter = createTRPCRouter({
         status: z.string().optional(),
         from: z.string().optional(),
         to: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:withdrawals:read");
       const dateFilter =
         input.from && input.to
           ? {
@@ -922,9 +985,9 @@ export const adminRouter = createTRPCRouter({
           items.flatMap((tx) =>
             tx.entries
               .filter((e) => e.account.ownerType === "COMPANY")
-              .map((e) => e.account.ownerId)
-          )
-        )
+              .map((e) => e.account.ownerId),
+          ),
+        ),
       );
 
       const companies = await ctx.prisma.company.findMany({
@@ -936,7 +999,7 @@ export const adminRouter = createTRPCRouter({
       return {
         items: items.map((tx) => {
           const operatorEntry = tx.entries.find(
-            (e) => e.account.accountClass === "OPERATOR_RECEIVABLE"
+            (e) => e.account.accountClass === "OPERATOR_RECEIVABLE",
           );
           const companyId = operatorEntry?.account.ownerId || "";
           const companyName = companyMap.get(companyId) || "Unknown Operator";
@@ -963,9 +1026,10 @@ export const adminRouter = createTRPCRouter({
         transactionId: z.string(),
         action: z.enum(["FORCE_COMPLETE", "FORCE_FAIL"]),
         reason: z.string().min(1),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:withdrawals:resolve");
       const tx = await ctx.prisma.financialTransaction.findUnique({
         where: { id: input.transactionId },
         include: { entries: { include: { account: true } } },
@@ -991,14 +1055,14 @@ export const adminRouter = createTRPCRouter({
           data: {
             status: "SETTLED",
             metadata: {
-              ...(tx.metadata as object || {}),
+              ...((tx.metadata as object) || {}),
               forceCompletedBy: ctx.user.id,
               forceCompleteReason: input.reason,
               forceCompletedAt: new Date(),
             },
           },
         });
-        
+
         if (updated.count === 0) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -1012,14 +1076,14 @@ export const adminRouter = createTRPCRouter({
             data: {
               status: "FAILED",
               metadata: {
-                ...(tx.metadata as object || {}),
+                ...((tx.metadata as object) || {}),
                 forceFailedBy: ctx.user.id,
                 forceFailedReason: input.reason,
                 forceFailedAt: new Date(),
               },
             },
           });
-          
+
           if (updated.count === 0) {
             throw new TRPCError({
               code: "BAD_REQUEST",
@@ -1028,7 +1092,9 @@ export const adminRouter = createTRPCRouter({
           }
 
           const engine = new AccountingEngine("PAYOUT_REVERSAL", {
-            ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
+            ...(tx.externalPaymentId
+              ? { externalPaymentId: tx.externalPaymentId }
+              : {}),
             description: `Manual admin reversal: ${input.reason}`,
             metadata: {
               originalTxId: tx.id,
@@ -1069,16 +1135,19 @@ export const adminRouter = createTRPCRouter({
             });
 
             if (feeTx && feeTx.entries.length > 0) {
-              const feeReverseEngine = new AccountingEngine("PAYOUT_FEE_REVERSAL", {
-                externalPaymentId: tx.externalPaymentId,
-                description: `Fee reversal for manually failed payout ${tx.id}`,
-                metadata: {
-                  originalFeeTxId: feeTx.id,
-                  originalPayoutTxId: tx.id,
-                  reversedBy: ctx.user.id,
-                  reason: input.reason,
+              const feeReverseEngine = new AccountingEngine(
+                "PAYOUT_FEE_REVERSAL",
+                {
+                  externalPaymentId: tx.externalPaymentId,
+                  description: `Fee reversal for manually failed payout ${tx.id}`,
+                  metadata: {
+                    originalFeeTxId: feeTx.id,
+                    originalPayoutTxId: tx.id,
+                    reversedBy: ctx.user.id,
+                    reason: input.reason,
+                  },
                 },
-              });
+              );
 
               for (const entry of feeTx.entries) {
                 if (entry.side === "DEBIT") {
@@ -1109,7 +1178,7 @@ export const adminRouter = createTRPCRouter({
 
       // Trigger withdrawal resolution alerts
       const operatorEntry = tx.entries.find(
-        (e) => e.account.accountClass === "OPERATOR_RECEIVABLE"
+        (e) => e.account.accountClass === "OPERATOR_RECEIVABLE",
       );
       const companyId = operatorEntry?.account.ownerId || "";
       const company = await ctx.prisma.company.findUnique({
@@ -1118,7 +1187,9 @@ export const adminRouter = createTRPCRouter({
       });
       const owners = await ctx.prisma.operator.findMany({
         where: { companyId, role: "OWNER", deletedAt: null },
-        include: { user: { select: { id: true, email: true, fullName: true } } },
+        include: {
+          user: { select: { id: true, email: true, fullName: true } },
+        },
       });
 
       const novu = getNovuClient();
@@ -1127,23 +1198,26 @@ export const adminRouter = createTRPCRouter({
           const amountVal = toSafeDisplayNumber(operatorEntry?.amount);
           for (const owner of owners) {
             if (owner.user.email) {
-              await novu.trigger({
-                workflowId: "operator-withdrawal-resolved",
-                to: {
-                  subscriberId: owner.user.email,
-                  email: owner.user.email,
-                },
-                payload: {
-                  email: owner.user.email,
-                  ownerName: owner.user.fullName ?? "Operator Owner",
-                  companyName: company.name,
-                  transactionId: input.transactionId,
-                  amountXOF: amountVal,
-                  status: input.action === "FORCE_COMPLETE" ? "SETTLED" : "FAILED",
-                  reason: input.reason,
-                },
-                transactionId: `operator-withdrawal-resolved-${input.transactionId}-${owner.user.id}`,
-              }).catch(() => {});
+              await novu
+                .trigger({
+                  workflowId: "operator-withdrawal-resolved",
+                  to: {
+                    subscriberId: owner.user.email,
+                    email: owner.user.email,
+                  },
+                  payload: {
+                    email: owner.user.email,
+                    ownerName: owner.user.fullName ?? "Operator Owner",
+                    companyName: company.name,
+                    transactionId: input.transactionId,
+                    amountXOF: amountVal,
+                    status:
+                      input.action === "FORCE_COMPLETE" ? "SETTLED" : "FAILED",
+                    reason: input.reason,
+                  },
+                  transactionId: `operator-withdrawal-resolved-${input.transactionId}-${owner.user.id}`,
+                })
+                .catch(() => {});
             }
           }
         } catch (err) {
@@ -1160,22 +1234,24 @@ export const adminRouter = createTRPCRouter({
           try {
             const amountVal = toSafeDisplayNumber(operatorEntry?.amount);
             for (const admin of admins) {
-              await novu.trigger({
-                workflowId: "admin-payout-failed",
-                to: {
-                  subscriberId: admin.email,
-                  email: admin.email,
-                },
-                payload: {
-                  adminEmail: admin.email,
-                  transactionId: input.transactionId,
-                  companyName: company.name,
-                  amountXOF: amountVal,
-                  errorCode: "FORCE_FAIL",
-                  errorMessage: input.reason,
-                },
-                transactionId: `admin-payout-failed-${input.transactionId}-${admin.id}`,
-              }).catch(() => {});
+              await novu
+                .trigger({
+                  workflowId: "admin-payout-failed",
+                  to: {
+                    subscriberId: admin.email,
+                    email: admin.email,
+                  },
+                  payload: {
+                    adminEmail: admin.email,
+                    transactionId: input.transactionId,
+                    companyName: company.name,
+                    amountXOF: amountVal,
+                    errorCode: "FORCE_FAIL",
+                    errorMessage: input.reason,
+                  },
+                  transactionId: `admin-payout-failed-${input.transactionId}-${admin.id}`,
+                })
+                .catch(() => {});
             }
           } catch (err) {
             console.error("Failed to trigger admin-payout-failed:", err);
@@ -1191,9 +1267,10 @@ export const adminRouter = createTRPCRouter({
       z.object({
         from: z.string().optional(),
         to: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:withdrawals:read");
       // Build optional date range filter
       const dateFilter =
         input.from && input.to
@@ -1212,7 +1289,9 @@ export const adminRouter = createTRPCRouter({
         _count: { id: true },
       });
 
-      const countMap = new Map(statusGroups.map((g) => [g.status, g._count.id]));
+      const countMap = new Map(
+        statusGroups.map((g) => [g.status, g._count.id]),
+      );
 
       // Aggregate DEBIT amounts per status from LedgerEntry (operator receivable side)
       const [pendingSum, settledSum, failedSum] = await Promise.all([
@@ -1268,6 +1347,7 @@ export const adminRouter = createTRPCRouter({
     }),
 
   getOnboardingFunnel: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "companies:read");
     const funnelSteps = await ctx.prisma.operatorOnboarding.groupBy({
       by: ["currentStep"],
       _count: { _all: true },
@@ -1281,7 +1361,7 @@ export const adminRouter = createTRPCRouter({
     return {
       totalStarted: total,
       totalCompleted: completed,
-      steps: funnelSteps.map(step => ({
+      steps: funnelSteps.map((step) => ({
         step: step.currentStep,
         count: step._count._all,
       })),
@@ -1290,17 +1370,22 @@ export const adminRouter = createTRPCRouter({
 
   // --- BLOG MANAGEMENT ---
   createBlogPostDraft: adminProcedure
-    .input(z.object({
-      title: z.string().min(1).max(200),
-      content: z.string().default(""),
-      categoryId: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        title: z.string().min(1).max(200),
+        content: z.string().default(""),
+        categoryId: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:posts:create");
       const baseSlug = slugify(input.title).slice(0, 60);
       const suffix = Math.random().toString(36).slice(2, 8);
       const slug = `${baseSlug}-${suffix}`;
 
-      const wordCount = input.content ? input.content.split(/\s+/).filter(Boolean).length : 0;
+      const wordCount = input.content
+        ? input.content.split(/\s+/).filter(Boolean).length
+        : 0;
       const readingTime = Math.ceil(wordCount / 200);
 
       return ctx.prisma.blogPost.create({
@@ -1317,42 +1402,53 @@ export const adminRouter = createTRPCRouter({
     }),
 
   updateBlogPost: adminProcedure
-    .input(z.object({
-      id: z.string(),
-      // Core content
-      title: z.string().min(1).max(200).optional(),
-      slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase letters, numbers, and hyphens only").optional(),
-      content: z.string().optional(),
-      excerpt: z.string().max(500).nullish(),
-      // Status & scheduling
-      status: z.enum(["DRAFT", "REVIEW", "SCHEDULED", "PUBLISHED", "ARCHIVED"]).optional(),
-      scheduledFor: z.date().nullish(),
-      // Media
-      coverImage: z.string().url().nullish(),
-      coverImageAlt: z.string().max(200).nullish(),
-      coverImageCredit: z.string().max(200).nullish(),
-      ogImage: z.string().url().nullish(),
-      // Author overrides
-      displayAuthorName: z.string().max(100).nullish(),
-      displayAuthorBio: z.string().max(500).nullish(),
-      displayAuthorAvatar: z.string().url().nullish(),
-      // Category & Tags
-      categoryId: z.string().nullish(),
-      tagIds: z.array(z.string()).optional(),
-      // Feature flags
-      featured: z.boolean().optional(),
-      featuredOrder: z.number().int().nullish(),
-      allowIndex: z.boolean().optional(),
-      allowComments: z.boolean().optional(),
-      // SEO
-      seoTitle: z.string().max(70).nullish(),
-      seoDescription: z.string().max(160).nullish(),
-      canonicalUrl: z.string().url().nullish(),
-      twitterTitle: z.string().max(70).nullish(),
-      twitterDescription: z.string().max(200).nullish(),
-      twitterImage: z.string().url().nullish(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        // Core content
+        title: z.string().min(1).max(200).optional(),
+        slug: z
+          .string()
+          .regex(
+            /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+            "Slug must be lowercase letters, numbers, and hyphens only",
+          )
+          .optional(),
+        content: z.string().optional(),
+        excerpt: z.string().max(500).nullish(),
+        // Status & scheduling
+        status: z
+          .enum(["DRAFT", "REVIEW", "SCHEDULED", "PUBLISHED", "ARCHIVED"])
+          .optional(),
+        scheduledFor: z.date().nullish(),
+        // Media
+        coverImage: z.string().url().nullish(),
+        coverImageAlt: z.string().max(200).nullish(),
+        coverImageCredit: z.string().max(200).nullish(),
+        ogImage: z.string().url().nullish(),
+        // Author overrides
+        displayAuthorName: z.string().max(100).nullish(),
+        displayAuthorBio: z.string().max(500).nullish(),
+        displayAuthorAvatar: z.string().url().nullish(),
+        // Category & Tags
+        categoryId: z.string().nullish(),
+        tagIds: z.array(z.string()).optional(),
+        // Feature flags
+        featured: z.boolean().optional(),
+        featuredOrder: z.number().int().nullish(),
+        allowIndex: z.boolean().optional(),
+        allowComments: z.boolean().optional(),
+        // SEO
+        seoTitle: z.string().max(70).nullish(),
+        seoDescription: z.string().max(160).nullish(),
+        canonicalUrl: z.string().url().nullish(),
+        twitterTitle: z.string().max(70).nullish(),
+        twitterDescription: z.string().max(200).nullish(),
+        twitterImage: z.string().url().nullish(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:posts:update");
       const { id, tagIds, status, ...rest } = input;
 
       // Fetch current status to determine if we need to set publishedAt
@@ -1368,12 +1464,12 @@ export const adminRouter = createTRPCRouter({
           ? new Date()
           : undefined;
 
-      const wordCount = rest.content !== undefined
-        ? rest.content.split(/\s+/).filter(Boolean).length
-        : undefined;
-      const readingTime = wordCount !== undefined
-        ? Math.ceil(wordCount / 200)
-        : undefined;
+      const wordCount =
+        rest.content !== undefined
+          ? rest.content.split(/\s+/).filter(Boolean).length
+          : undefined;
+      const readingTime =
+        wordCount !== undefined ? Math.ceil(wordCount / 200) : undefined;
 
       return ctx.prisma.blogPost.update({
         where: { id },
@@ -1393,13 +1489,16 @@ export const adminRouter = createTRPCRouter({
     }),
 
   listBlogPosts: adminProcedure
-    .input(z.object({
-      search: z.string().optional(),
-      status: z.string().optional(),
-      limit: z.number().int().min(1).max(100).default(20),
-      offset: z.number().int().min(0).default(0),
-    }))
+    .input(
+      z.object({
+        search: z.string().optional(),
+        status: z.string().optional(),
+        limit: z.number().int().min(1).max(100).default(20),
+        offset: z.number().int().min(0).default(0),
+      }),
+    )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:posts:read");
       const where: any = { deletedAt: null };
 
       if (input.status) {
@@ -1433,6 +1532,7 @@ export const adminRouter = createTRPCRouter({
   getBlogPostById: adminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:posts:read");
       const post = await ctx.prisma.blogPost.findUnique({
         where: { id: input.id },
         include: {
@@ -1446,6 +1546,7 @@ export const adminRouter = createTRPCRouter({
     }),
 
   listBlogCategories: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "content:categories:manage");
     return ctx.prisma.blogCategory.findMany({
       orderBy: { name: "asc" },
       include: {
@@ -1455,12 +1556,15 @@ export const adminRouter = createTRPCRouter({
   }),
 
   createBlogCategory: adminProcedure
-    .input(z.object({
-      name: z.string().min(1).max(50),
-      parentId: z.string().nullish(),
-      description: z.string().max(200).nullish(),
-    }))
+    .input(
+      z.object({
+        name: z.string().min(1).max(50),
+        parentId: z.string().nullish(),
+        description: z.string().max(200).nullish(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:categories:manage");
       const slug = slugify(input.name);
 
       return ctx.prisma.blogCategory.create({
@@ -1474,21 +1578,24 @@ export const adminRouter = createTRPCRouter({
     }),
 
   updateBlogCategory: adminProcedure
-    .input(z.object({
-      id: z.string(),
-      name: z.string().min(1).max(50).optional(),
-      parentId: z.string().nullish(),
-      description: z.string().max(200).nullish(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1).max(50).optional(),
+        parentId: z.string().nullish(),
+        description: z.string().max(200).nullish(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:categories:manage");
       const { id, name, parentId, description } = input;
       const data: any = {};
-      
+
       if (name !== undefined) {
         data.name = name;
         data.slug = slugify(name);
       }
-      
+
       if (parentId !== undefined) {
         const targetParentId = parentId || null;
         if (targetParentId) {
@@ -1502,14 +1609,16 @@ export const adminRouter = createTRPCRouter({
           // Traverse parents upward to check for cycles
           let currentParentId: string | null = targetParentId;
           while (currentParentId) {
-            const parentCat: { parentId: string | null } | null = await ctx.prisma.blogCategory.findUnique({
-              where: { id: currentParentId },
-              select: { parentId: true },
-            });
+            const parentCat: { parentId: string | null } | null =
+              await ctx.prisma.blogCategory.findUnique({
+                where: { id: currentParentId },
+                select: { parentId: true },
+              });
             if (parentCat?.parentId === id) {
               throw new TRPCError({
                 code: "BAD_REQUEST",
-                message: "Circular dependency detected: a category cannot be parented to its own descendant.",
+                message:
+                  "Circular dependency detected: a category cannot be parented to its own descendant.",
               });
             }
             currentParentId = parentCat?.parentId || null;
@@ -1517,7 +1626,7 @@ export const adminRouter = createTRPCRouter({
         }
         data.parentId = targetParentId;
       }
-      
+
       if (description !== undefined) {
         data.description = description || null;
       }
@@ -1531,6 +1640,7 @@ export const adminRouter = createTRPCRouter({
   deleteBlogCategory: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:categories:manage");
       const postsCount = await ctx.prisma.blogPost.count({
         where: { categoryId: input.id },
       });
@@ -1546,15 +1656,18 @@ export const adminRouter = createTRPCRouter({
     }),
 
   listBlogTags: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "content:tags:manage");
     return ctx.prisma.blogTag.findMany({
       orderBy: { name: "asc" },
     });
   }),
 
   createBlogTag: adminProcedure
-    .input(z.object({
-      name: z.string().min(1).max(30),
-    }))
+    .input(
+      z.object({
+        name: z.string().min(1).max(30),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const slug = slugify(input.name);
 
@@ -1567,11 +1680,14 @@ export const adminRouter = createTRPCRouter({
     }),
 
   updateBlogTag: adminProcedure
-    .input(z.object({
-      id: z.string(),
-      name: z.string().min(1).max(30),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1).max(30),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:tags:manage");
       const slug = slugify(input.name);
 
       return ctx.prisma.blogTag.update({
@@ -1586,6 +1702,7 @@ export const adminRouter = createTRPCRouter({
   deleteBlogTag: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:tags:manage");
       const postsCount = await ctx.prisma.blogPost.count({
         where: { tags: { some: { id: input.id } } },
       });
@@ -1601,11 +1718,18 @@ export const adminRouter = createTRPCRouter({
     }),
 
   getBlogAnalytics: adminProcedure
-    .input(z.object({
-      period: z.enum(["7d", "30d", "90d", "all"]).default("30d"),
-    }))
+    .input(
+      z.object({
+        period: z.enum(["7d", "30d", "90d", "all"]).default("30d"),
+      }),
+    )
     .query(async ({ ctx, input }) => {
-      const periodDays: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
+      requireAdminPermission(ctx, "content:analytics:read");
+      const periodDays: Record<string, number> = {
+        "7d": 7,
+        "30d": 30,
+        "90d": 90,
+      };
       const since =
         input.period === "all"
           ? undefined
@@ -1630,14 +1754,30 @@ export const adminRouter = createTRPCRouter({
           _sum: { viewCount: true },
           where: { deletedAt: null },
         }),
-        ctx.prisma.blogPost.count({ where: { status: "PUBLISHED", deletedAt: null } }),
-        ctx.prisma.blogPost.count({ where: { status: "DRAFT", deletedAt: null } }),
-        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "SHARE" } }),
-        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "CTA_CLICK" } }),
-        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "READ_25" } }),
-        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "READ_50" } }),
-        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "READ_75" } }),
-        ctx.prisma.blogEvent.count({ where: { ...eventWhere, eventType: "READ_100" } }),
+        ctx.prisma.blogPost.count({
+          where: { status: "PUBLISHED", deletedAt: null },
+        }),
+        ctx.prisma.blogPost.count({
+          where: { status: "DRAFT", deletedAt: null },
+        }),
+        ctx.prisma.blogEvent.count({
+          where: { ...eventWhere, eventType: "SHARE" },
+        }),
+        ctx.prisma.blogEvent.count({
+          where: { ...eventWhere, eventType: "CTA_CLICK" },
+        }),
+        ctx.prisma.blogEvent.count({
+          where: { ...eventWhere, eventType: "READ_25" },
+        }),
+        ctx.prisma.blogEvent.count({
+          where: { ...eventWhere, eventType: "READ_50" },
+        }),
+        ctx.prisma.blogEvent.count({
+          where: { ...eventWhere, eventType: "READ_75" },
+        }),
+        ctx.prisma.blogEvent.count({
+          where: { ...eventWhere, eventType: "READ_100" },
+        }),
         ctx.prisma.blogPost.findMany({
           where: { deletedAt: null },
           orderBy: { viewCount: "desc" },
@@ -1696,9 +1836,10 @@ export const adminRouter = createTRPCRouter({
         search: z.string().optional(),
         page: z.number().int().min(1).default(1),
         limit: z.number().int().min(1).max(100).default(20),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:redirects:manage");
       const where: any = {};
       if (input.search) {
         where.OR = [
@@ -1724,9 +1865,10 @@ export const adminRouter = createTRPCRouter({
         source: z.string().min(1),
         destination: z.string().min(1),
         type: z.number().default(301),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:redirects:manage");
       return ctx.prisma.blogRedirect.create({ data: input });
     }),
 
@@ -1737,9 +1879,10 @@ export const adminRouter = createTRPCRouter({
         source: z.string().min(1),
         destination: z.string().min(1),
         type: z.number().default(301),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:redirects:manage");
       const { id, ...data } = input;
       return ctx.prisma.blogRedirect.update({ where: { id }, data });
     }),
@@ -1747,22 +1890,26 @@ export const adminRouter = createTRPCRouter({
   deleteBlogRedirect: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:redirects:manage");
       return ctx.prisma.blogRedirect.delete({ where: { id: input.id } });
     }),
 
   listDispatchTrips: adminProcedure
     .input(
       z.object({
-        status: z.preprocess(
-          (val) => (typeof val === "string" ? val.toUpperCase() : val),
-          z.union([tripStatusEnum, z.literal("ALL"), z.literal("ACTIVE")])
-        ).optional(),
+        status: z
+          .preprocess(
+            (val) => (typeof val === "string" ? val.toUpperCase() : val),
+            z.union([tripStatusEnum, z.literal("ALL"), z.literal("ACTIVE")]),
+          )
+          .optional(),
         companyId: z.string().nullable().optional(),
         from: z.string().nullable().optional(),
         to: z.string().nullable().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:trips:read");
       const filters: any = {};
 
       if (input?.status && input.status !== "ALL") {
@@ -1834,6 +1981,7 @@ export const adminRouter = createTRPCRouter({
   getDispatchTrip: adminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:trips:read");
       const trip = await ctx.prisma.trip.findUnique({
         where: { id: input.id },
         include: {
@@ -1898,6 +2046,7 @@ export const adminRouter = createTRPCRouter({
   getTripAudit: adminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:trips:read");
       const trip = await ctx.prisma.trip.findUnique({
         where: { id: input.id },
         include: {
@@ -1963,13 +2112,16 @@ export const adminRouter = createTRPCRouter({
     }),
 
   listRoutes: adminProcedure
-    .input(z.object({
-      search: z.string().optional(),
-      status: z.string().optional(),
-      page: z.number().optional().default(1),
-      pageSize: z.number().optional().default(15),
-    }))
+    .input(
+      z.object({
+        search: z.string().optional(),
+        status: z.string().optional(),
+        page: z.number().optional().default(1),
+        pageSize: z.number().optional().default(15),
+      }),
+    )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:routes:read");
       const where: any = {};
       if (input.status && input.status !== "All") {
         where.status = input.status;
@@ -1977,9 +2129,23 @@ export const adminRouter = createTRPCRouter({
       if (input.search) {
         where.OR = [
           { name: { contains: input.search, mode: "insensitive" } },
-          { company: { name: { contains: input.search, mode: "insensitive" } } },
-          { originTerminal: { cityRelation: { name: { contains: input.search, mode: "insensitive" } } } },
-          { destTerminal: { cityRelation: { name: { contains: input.search, mode: "insensitive" } } } },
+          {
+            company: { name: { contains: input.search, mode: "insensitive" } },
+          },
+          {
+            originTerminal: {
+              cityRelation: {
+                name: { contains: input.search, mode: "insensitive" },
+              },
+            },
+          },
+          {
+            destTerminal: {
+              cityRelation: {
+                name: { contains: input.search, mode: "insensitive" },
+              },
+            },
+          },
         ];
       }
 
@@ -2009,6 +2175,7 @@ export const adminRouter = createTRPCRouter({
   getRoute: adminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:routes:read");
       const route = await ctx.prisma.route.findUnique({
         where: { id: input.id },
         include: {
@@ -2041,9 +2208,10 @@ export const adminRouter = createTRPCRouter({
         templates: z.array(z.string()).optional(),
         subscriberIds: z.array(z.string()).optional(),
         transactionId: z.string().optional(),
-      })
+      }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "audit:read");
       const novu = getNovuClient();
       if (!novu) {
         throw new TRPCError({
@@ -2052,18 +2220,26 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      let templateIds: string[] | undefined = undefined;
+      let templateIds: string[] | undefined;
       if (input.templates?.length) {
         const workflows = await novu.workflows.list({ limit: 100 });
-        const workflowsData = (workflows as any).result?.data || (workflows as any).data || [];
-        
-        const matchingWorkflows = workflowsData.filter((w: any) => 
-          input.templates!.includes(w.identifier) || input.templates!.includes(w.name)
+        const workflowsData =
+          (workflows as any).result?.data || (workflows as any).data || [];
+
+        const matchingWorkflows = workflowsData.filter(
+          (w: any) =>
+            input.templates!.includes(w.identifier) ||
+            input.templates!.includes(w.name),
         );
         templateIds = matchingWorkflows.map((w: any) => w._id || w.id);
-        
+
         if (templateIds && templateIds.length === 0) {
-           return { items: [], hasMore: false, page: input.page, limit: input.limit };
+          return {
+            items: [],
+            hasMore: false,
+            page: input.page,
+            limit: input.limit,
+          };
         }
       }
 
@@ -2072,8 +2248,12 @@ export const adminRouter = createTRPCRouter({
         limit: input.limit,
         ...(input.search ? { search: input.search } : {}),
         ...(input.channels?.length ? { channels: input.channels as any } : {}),
-        ...(templateIds && templateIds.length > 0 ? { templates: templateIds as string[] } : {}),
-        ...(input.subscriberIds?.length ? { subscriberIds: input.subscriberIds } : {}),
+        ...(templateIds && templateIds.length > 0
+          ? { templates: templateIds as string[] }
+          : {}),
+        ...(input.subscriberIds?.length
+          ? { subscriberIds: input.subscriberIds }
+          : {}),
         ...(input.transactionId ? { transactionId: input.transactionId } : {}),
       });
 
@@ -2095,9 +2275,10 @@ export const adminRouter = createTRPCRouter({
         companyId: z.string().optional(),
         userId: z.string().optional(),
         action: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "audit:bank-access:read");
       const { page, limit, companyId, userId, action } = input;
       const skip = page * limit;
 
@@ -2132,9 +2313,10 @@ export const adminRouter = createTRPCRouter({
         search: z.string().optional(),
         status: z.string().optional(),
         provider: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "audit:webhooks:read");
       const { page, limit, search, status, provider } = input;
       const skip = page * limit;
 
@@ -2181,9 +2363,10 @@ export const adminRouter = createTRPCRouter({
       z.object({
         from: z.string(),
         to: z.string(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:financials:read");
       const from = new Date(input.from);
       const to = new Date(input.to);
       const windowMs = to.getTime() - from.getTime();
@@ -2249,23 +2432,29 @@ export const adminRouter = createTRPCRouter({
       ]);
 
       // 2. Absolute Balances (Treasury View)
-      const [
-        systemAssetAcc,
-        operatorLiabilitySum,
-        passengerWalletSum,
-      ] = await Promise.all([
-        ctx.prisma.financialAccount.findFirst({
-          where: { accountCategory: "ASSET", accountClass: "PAYSTACK_CLEARING" },
-        }),
-        ctx.prisma.financialAccount.aggregate({
-          _sum: { postedBalance: true },
-          where: { accountCategory: "LIABILITY", accountClass: "OPERATOR_RECEIVABLE" },
-        }),
-        ctx.prisma.financialAccount.aggregate({
-          _sum: { postedBalance: true },
-          where: { accountCategory: "LIABILITY", accountClass: "PASSENGER_WALLET" },
-        }),
-      ]);
+      const [systemAssetAcc, operatorLiabilitySum, passengerWalletSum] =
+        await Promise.all([
+          ctx.prisma.financialAccount.findFirst({
+            where: {
+              accountCategory: "ASSET",
+              accountClass: "PAYSTACK_CLEARING",
+            },
+          }),
+          ctx.prisma.financialAccount.aggregate({
+            _sum: { postedBalance: true },
+            where: {
+              accountCategory: "LIABILITY",
+              accountClass: "OPERATOR_RECEIVABLE",
+            },
+          }),
+          ctx.prisma.financialAccount.aggregate({
+            _sum: { postedBalance: true },
+            where: {
+              accountCategory: "LIABILITY",
+              accountClass: "PASSENGER_WALLET",
+            },
+          }),
+        ]);
 
       // 3. Platform Operational Stats
       const [
@@ -2279,20 +2468,29 @@ export const adminRouter = createTRPCRouter({
         ctx.prisma.user.count({ where: { role: "TRAVELER" } }),
         ctx.prisma.company.count(),
         ctx.prisma.company.count({ where: { status: "PENDING_VERIFICATION" } }),
-        ctx.prisma.trip.count({ where: { status: { in: ["BOARDING", "DEPARTED", "DELAYED"] } } }),
+        ctx.prisma.trip.count({
+          where: { status: { in: ["BOARDING", "DEPARTED", "DELAYED"] } },
+        }),
         ctx.prisma.booking.count({
           where: { status: "CONFIRMED", createdAt: { gte: from, lte: to } },
         }),
         ctx.prisma.booking.count({
-          where: { status: "CONFIRMED", createdAt: { gte: prevFrom, lt: prevTo } },
+          where: {
+            status: "CONFIRMED",
+            createdAt: { gte: prevFrom, lt: prevTo },
+          },
         }),
       ]);
 
       // Calculate Period GMV (Platform Revenue + Operator Earnings from Bookings)
       const currentRevenue = toSafeDisplayNumber(revenueCurrent._sum.amount);
       const prevRevenue = toSafeDisplayNumber(revenuePrev._sum.amount);
-      const currentOperatorEarnings = toSafeDisplayNumber(operatorEarningsCurrent._sum.amount);
-      const prevOperatorEarnings = toSafeDisplayNumber(operatorEarningsPrev._sum.amount);
+      const currentOperatorEarnings = toSafeDisplayNumber(
+        operatorEarningsCurrent._sum.amount,
+      );
+      const prevOperatorEarnings = toSafeDisplayNumber(
+        operatorEarningsPrev._sum.amount,
+      );
 
       const currentGMV = currentRevenue + currentOperatorEarnings;
       const previousGMV = prevRevenue + prevOperatorEarnings;
@@ -2322,8 +2520,9 @@ export const adminRouter = createTRPCRouter({
       });
 
       const dayCount = Math.max(1, Math.ceil(windowMs / (24 * 60 * 60 * 1000)));
-      const trendMap: Record<string, { revenue: number; operator: number }> = {};
-      
+      const trendMap: Record<string, { revenue: number; operator: number }> =
+        {};
+
       for (let i = 0; i < dayCount; i++) {
         const d = new Date(from);
         d.setDate(d.getDate() + i);
@@ -2341,9 +2540,9 @@ export const adminRouter = createTRPCRouter({
         if (mapEntry) mapEntry.operator += toSafeDisplayNumber(entry.amount);
       }
 
-      const revenueTrend = Object.entries(trendMap).map(([date, data]) => ({ 
-        date, 
-        gmv: data.revenue + data.operator 
+      const revenueTrend = Object.entries(trendMap).map(([date, data]) => ({
+        date,
+        gmv: data.revenue + data.operator,
       }));
 
       const gmvDeltaPct =
@@ -2363,24 +2562,29 @@ export const adminRouter = createTRPCRouter({
         commission: currentRevenue,
         bookingsCurrent,
         bookingDeltaPct,
-        
+
         // Treasury Balances
         systemLiquidity: toSafeDisplayNumber(systemAssetAcc?.postedBalance),
-        operatorPayables: toSafeDisplayNumber(operatorLiabilitySum._sum.postedBalance),
-        passengerWallets: toSafeDisplayNumber(passengerWalletSum._sum.postedBalance),
+        operatorPayables: toSafeDisplayNumber(
+          operatorLiabilitySum._sum.postedBalance,
+        ),
+        passengerWallets: toSafeDisplayNumber(
+          passengerWalletSum._sum.postedBalance,
+        ),
 
         // Platform Health
         travelersCount,
         operatorsCount,
         pendingOperatorsCount,
         activeTripsCount,
-        
+
         // Chart
         revenueTrend,
       };
     }),
 
   getRecentActivity: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "platform:financials:read");
     const [recentCompanies, recentBookings] = await Promise.all([
       ctx.prisma.company.findMany({
         orderBy: { createdAt: "desc" },
@@ -2410,4 +2614,3 @@ export const adminRouter = createTRPCRouter({
     return { recentCompanies, recentBookings };
   }),
 });
-

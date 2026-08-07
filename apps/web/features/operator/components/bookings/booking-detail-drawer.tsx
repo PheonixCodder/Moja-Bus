@@ -45,7 +45,7 @@ export function BookingDetailDrawer({
   const queryClient = useQueryClient();
   const { can } = useStaffPermissions();
   const t = useTranslations("operatorDashboard.bookings");
-  const canCancel = can("bookings:update");
+  const canCancel = can("bookings:update") && can("bookings:cancel");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [refundChannel, setRefundChannel] = useState<RefundChannel>("WALLET");
   const [cancelReason, setCancelReason] = useState("");

@@ -81,9 +81,10 @@ export function AdminStaffView() {
   const invitationsQuery = useQuery(
     trpc.adminStaff.listInvitations.queryOptions({}),
   );
-  const activityQuery = useQuery(
-    trpc.adminStaff.getActivityLog.queryOptions({ limit: 100 }),
-  );
+  const activityQuery = useQuery({
+    ...trpc.adminStaff.getActivityLog.queryOptions({ limit: 100 }),
+    enabled: can("audit:read"),
+  });
 
   const members = (staffQuery.data?.members ?? []) as AdminStaffMember[];
   const total = staffQuery.data?.total ?? 0;
@@ -364,6 +365,7 @@ export function AdminStaffView() {
           canInvite={can("admin-staff:invite")}
           canUpdate={can("admin-staff:update")}
           canDelete={can("admin-staff:remove")}
+          canTransfer={role === "SUPER_ADMIN"}
           onRetry={() => staffQuery.refetch()}
           onInvite={() => void setParams({ invite: true })}
           onPageChange={(next) => void setParams({ page: next })}
@@ -381,7 +383,7 @@ export function AdminStaffView() {
           invitations={pendingInvites}
           onResend={handleResendInvite}
           onCancel={handleCancelInvite}
-          canDelete={can("admin-staff:remove")}
+          canInvite={can("admin-staff:invite")}
         />
 
         <AdminStaffActivitySection activities={activityLog} />

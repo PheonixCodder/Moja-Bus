@@ -4,7 +4,7 @@ import { companyStepSchema, profileStepSchema, bankStepSchema, documentSchema } 
 import { operatorCompanyProcedure } from "../../init";
 import { requirePermission, requireAnyPermission, requireOwner } from "@/lib/permissions/authorize";
 import { deleteStorageObject } from "@/lib/storage";
-import { maskBankAccountForClient, prepareBankAccountStorage, revealBankAccountNumber } from "@/lib/bank-account";
+import { maskBankAccountForClient, prepareBankAccountStorage } from "@/lib/bank-account";
 import { logBankAccess } from "@/lib/bank-access";
 import { paystackRegisterRecipient } from "@/features/payments/providers/paystack-client";
 
@@ -80,7 +80,7 @@ export const operatorSettingsProcedures = {
   updateCompany: operatorCompanyProcedure
     .input(companyStepSchema.partial())
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
+      requirePermission(ctx, "company:profile:update");
       const parsed = companyStepSchema.partial().safeParse(input);
       if (!parsed.success) {
         throw new TRPCError({
@@ -234,155 +234,7 @@ export const operatorSettingsProcedures = {
         });
       }
 
-      return maskBankAccountForClient(updatedBank);
-    }),
-
-    /** @deprecated This endpoint is no longer used by the UI. */
-    updateBank: operatorCompanyProcedure
-     .input(bankStepSchema)
-     .mutation(async ({ ctx, input }) => {
-       requireOwner(ctx);
-      const parsed = bankStepSchema.safeParse(input);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Validation failed",
-          cause: parsed.error,
-        });
-      }
-
-      if (!parsed.data.bankCode) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Please select a bank.",
-        });
-      }
-
-      const registered = await registerRecipientForBank({
-        accountNumber: parsed.data.accountNumber,
-        bankCode: parsed.data.bankCode,
-        bankType: parsed.data.bankType ?? null,
-        accountName: parsed.data.accountName,
-      });
-
-      const encryptedAccount = prepareBankAccountStorage(parsed.data.accountNumber);
-      const bankPayload = {
-        bankName: parsed.data.bankName,
-        accountName: parsed.data.accountName,
-        accountNumber: encryptedAccount.accountNumber,
-        accountNumberLast4: encryptedAccount.accountNumberLast4,
-        bankCode: parsed.data.bankCode,
-        branch: parsed.data.branch,
-        swiftCode: parsed.data.swiftCode,
-        iban: parsed.data.iban,
-      };
-
-      const existingBank = await ctx.prisma.bankAccount.findFirst({
-        where: { companyId: ctx.companyId },
-      });
-
-      const verificationPayload = {
-        type: parsed.data.bankType ?? "bceao",
-        currency: "XOF",
-        resolvedAccountName: registered.resolvedAccountName,
-        accountNameMatched: registered.accountNameMatched,
-      };
-
-      let updatedBank;
-      if (existingBank) {
-        updatedBank = await ctx.prisma.bankAccount.update({
-          where: { id: existingBank.id },
-          data: {
-            bankName: bankPayload.bankName,
-            accountNumber: bankPayload.accountNumber,
-            accountNumberLast4: bankPayload.accountNumberLast4,
-            accountName: bankPayload.accountName,
-            isVerified: true,
-            verificationProvider: "PAYSTACK",
-            verifiedByProvider: true,
-            verificationPayload,
-            lastVerificationAt: new Date(),
-            verifiedAt: new Date(),
-            paystackTransferRecipientCode: registered.recipientCode,
-            ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
-            ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
-            ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
-            ...(bankPayload.iban !== undefined && { iban: bankPayload.iban }),
-          },
-        });
-      } else {
-        updatedBank = await ctx.prisma.bankAccount.create({
-          data: {
-            companyId: ctx.companyId,
-            bankName: bankPayload.bankName,
-            accountNumber: bankPayload.accountNumber,
-            accountNumberLast4: bankPayload.accountNumberLast4,
-            accountName: bankPayload.accountName,
-            isActive: true,
-            isDefault: true,
-            isVerified: true,
-            verificationProvider: "PAYSTACK",
-            verifiedByProvider: true,
-            verificationPayload,
-            lastVerificationAt: new Date(),
-            verifiedAt: new Date(),
-            paystackTransferRecipientCode: registered.recipientCode,
-            ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
-            ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
-            ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
-            ...(bankPayload.iban !== undefined && { iban: bankPayload.iban }),
-          },
-        });
-      }
-
-      await logBankAccess(ctx.prisma, {
-        companyId: ctx.companyId,
-        userId: ctx.user.id,
-        action: existingBank ? "UPDATE" : "CREATE",
-      });
-
-      if (updatedBank.isDefault) {
-        await ctx.prisma.company.update({
-          where: { id: ctx.companyId },
-          data: { paystackTransferRecipientCode: registered.recipientCode },
-        });
-      }
-
-      return maskBankAccountForClient(updatedBank);
-    }),
-
-  /** @deprecated This endpoint is no longer used by the UI. */
-  revealBankAccount: operatorCompanyProcedure
-    .input(z.object({ bankAccountId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:view");
-      if (ctx.operator.role !== "OWNER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only the company owner can reveal the full bank account number.",
-        });
-      }
-
-      const bankAccount = await ctx.prisma.bankAccount.findFirst({
-        where: { id: input.bankAccountId, companyId: ctx.companyId },
-      });
-
-      if (!bankAccount) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bank account not found.",
-        });
-      }
-
-      await logBankAccess(ctx.prisma, {
-        companyId: ctx.companyId,
-        userId: ctx.user.id,
-        action: "VIEW_FULL",
-      });
-
-      return {
-        accountNumber: revealBankAccountNumber(bankAccount),
-      };
+return maskBankAccountForClient(updatedBank);
     }),
 
   listBankAccounts: operatorCompanyProcedure
@@ -460,47 +312,6 @@ addBankAccount: operatorCompanyProcedure
       });
 
       return maskBankAccountForClient(newAccount);
-    }),
-
-    /** @deprecated This endpoint is no longer used by the UI. */
-    setDefaultBankAccount: operatorCompanyProcedure
-     .input(z.object({ bankAccountId: z.string() }))
-     .mutation(async ({ ctx, input }) => {
-       requireOwner(ctx);
-      const bankAccount = await ctx.prisma.bankAccount.findFirst({
-        where: { id: input.bankAccountId, companyId: ctx.companyId },
-      });
-
-      if (!bankAccount) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bank account not found",
-        });
-      }
-
-      if (!bankAccount.isVerified) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: "Only verified bank accounts can be set as default.",
-        });
-      }
-
-      await ctx.prisma.$transaction([
-        ctx.prisma.bankAccount.updateMany({
-          where: { companyId: ctx.companyId },
-          data: { isDefault: false },
-        }),
-        ctx.prisma.bankAccount.update({
-          where: { id: input.bankAccountId },
-          data: { isDefault: true },
-        }),
-        ctx.prisma.company.update({
-          where: { id: ctx.companyId },
-          data: { paystackTransferRecipientCode: bankAccount.paystackTransferRecipientCode },
-        }),
-      ]);
-
-      return { success: true };
     }),
 
    deleteBankAccount: operatorCompanyProcedure

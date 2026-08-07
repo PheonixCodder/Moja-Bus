@@ -22,6 +22,7 @@ import {
 import { getNovuClient } from "@/lib/novu";
 import {
   type AdminPermissionContext,
+  adminHasPermission,
   getAdminEffectivePermissionsFn,
   requireAdminCanGrant,
   requireAdminPermission,
@@ -31,7 +32,11 @@ import {
   canAssignAdminRole,
   canModifyAdminMember,
 } from "@/lib/permissions/admin-staff-hierarchy";
-import { adminStaffProcedure, createTRPCRouter } from "../init";
+import {
+  adminStaffProcedure,
+  createTRPCRouter,
+  publicProcedure,
+} from "../init";
 
 type Ctx = AdminPermissionContext & {
   prisma: PrismaClient;
@@ -126,6 +131,224 @@ function assertCanAssignAdminRole(ctx: Ctx, targetRole: string) {
 }
 
 export const adminStaffRouter = createTRPCRouter({
+  /**
+   * PUBLIC — validate an admin-staff invitation token and return its details.
+   * No authentication required; used to render the `/admin/invite` landing page.
+   * Never returns the raw (or hashed) token.
+   */
+  validateToken: publicProcedure
+    .input(z.object({ token: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(input.token)
+        .digest("hex");
+
+      const invitation = await ctx.prisma.adminStaffInvitation.findUnique({
+        where: { token: hashedToken },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          jobTitle: true,
+          message: true,
+          expiresAt: true,
+          status: true,
+          invitedBy: { select: { fullName: true } },
+        },
+      });
+
+      if (!invitation) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "This invitation link is invalid or has expired.",
+        });
+      }
+
+      if (invitation.status !== "PENDING") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            invitation.status === "ACCEPTED"
+              ? "This invitation has already been accepted."
+              : "This invitation has been cancelled or has expired.",
+        });
+      }
+
+      if (new Date(invitation.expiresAt) < new Date()) {
+        await ctx.prisma.adminStaffInvitation.update({
+          where: { token: hashedToken },
+          data: { status: "EXPIRED" },
+        });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "This invitation has expired. Please ask the sender for a new one.",
+        });
+      }
+
+      return invitation;
+    }),
+
+  /**
+   * PUBLIC — accept an admin-staff invitation.
+   * If the invitee is not signed in, returns `requiresAuth` so the client
+   * completes an OTP sign-in (creating the account if needed) with the token
+   * preserved, then calls this again. On acceptance the user's role is set to
+   * ADMIN and a live AdminStaff profile is created from the invitation.
+   */
+  accept: publicProcedure
+    .input(z.object({ token: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(input.token)
+        .digest("hex");
+
+      const invitation = await ctx.prisma.adminStaffInvitation.findUnique({
+        where: { token: hashedToken },
+        include: {
+          invitedBy: { select: { fullName: true, email: true } },
+        },
+      });
+
+      if (!invitation) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invitation not found.",
+        });
+      }
+      if (invitation.status !== "PENDING") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This invitation is no longer valid.",
+        });
+      }
+      if (new Date(invitation.expiresAt) < new Date()) {
+        await ctx.prisma.adminStaffInvitation.update({
+          where: { token: hashedToken },
+          data: { status: "EXPIRED" },
+        });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This invitation has expired.",
+        });
+      }
+
+      if (!ctx.user) {
+        return {
+          requiresAuth: true as const,
+          email: invitation.email,
+        };
+      }
+
+      if (ctx.user.email !== invitation.email) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `This invitation was sent to ${invitation.email}. Please sign in with that account.`,
+        });
+      }
+
+      const userId = ctx.user.id;
+      const userName = ctx.user.name ?? "A new member";
+
+      const existingStaff = await ctx.prisma.adminStaff.findUnique({
+        where: { userId },
+      });
+
+      // Copy invitation permissions; fall back to the role template if the set
+      // is empty (legacy invitations persisted before perms were included).
+      const grantedPermissions =
+        invitation.permissions.length > 0
+          ? invitation.permissions
+          : getAdminTemplatePermissions(invitation.role);
+
+      await ctx.prisma.$transaction([
+        ctx.prisma.user.update({
+          where: { id: userId },
+          data: {
+            emailVerified: true,
+            role: "ADMIN",
+          },
+        }),
+        existingStaff
+          ? ctx.prisma.adminStaff.update({
+              where: { id: existingStaff.id },
+              data: {
+                role: invitation.role,
+                permissions: grantedPermissions,
+                permissionsUpdatedAt: new Date(),
+                status: "ACTIVE",
+                isActive: true,
+                deletedAt: null,
+                jobTitle: invitation.jobTitle ?? existingStaff.jobTitle,
+              },
+            })
+          : ctx.prisma.adminStaff.create({
+              data: {
+                userId,
+                role: invitation.role,
+                permissions: grantedPermissions,
+                permissionsUpdatedAt: new Date(),
+                status: "ACTIVE",
+                isActive: true,
+                jobTitle: invitation.jobTitle ?? null,
+              },
+            }),
+        ctx.prisma.adminStaffInvitation.update({
+          where: { token: hashedToken },
+          data: {
+            status: "ACCEPTED",
+            acceptedById: userId,
+            acceptedAt: new Date(),
+          },
+        }),
+        ctx.prisma.adminStaffActivityLog.create({
+          data: {
+            userId,
+            action: "INVITATION_ACCEPTED",
+            description: `${userName} accepted their invitation as ${invitation.role}.`,
+            metadata: {
+              email: invitation.email,
+              role: invitation.role,
+              permissions: grantedPermissions,
+              invitationId: invitation.id,
+            },
+          },
+        }),
+      ]);
+
+      // Trigger Novu acceptance alert to the inviter
+      const novu = getNovuClient();
+      if (novu) {
+        try {
+          await novu.trigger({
+            workflowId: "admin-staff-acceptance-alert",
+            to: {
+              subscriberId: invitation.invitedBy?.email ?? invitation.email,
+              email: invitation.invitedBy?.email ?? invitation.email,
+            },
+            payload: {
+              staffName: userName,
+              staffEmail: invitation.email,
+              role: invitation.role,
+            },
+            transactionId: `admin-staff-acceptance-${invitation.id}-${userId}`,
+          });
+          console.log(
+            `[NOVU] Triggered admin-staff-acceptance-alert for inviter ${invitation.invitedById}`,
+          );
+        } catch (err) {
+          console.error(
+            "[NOVU] Failed to trigger admin-staff-acceptance-alert workflow:",
+            err,
+          );
+        }
+      }
+
+      return { success: true };
+    }),
+
   getMyPermissions: adminStaffProcedure.query(async ({ ctx }) => {
     const permissions = getAdminEffectivePermissionsFn(ctx.adminStaff);
     return {
@@ -167,6 +390,8 @@ export const adminStaffRouter = createTRPCRouter({
         ctx.prisma.adminStaff.count({ where }),
       ]);
 
+      const canViewSensitive = adminHasPermission(ctx, "admin-staff:update");
+
       return {
         members: members.map((m) => ({
           id: m.id,
@@ -177,12 +402,23 @@ export const adminStaffRouter = createTRPCRouter({
           department: m.department,
           isActive: m.isActive,
           joinedAt: m.joinedAt,
-          permissions: m.permissions,
-          user: {
-            ...m.user,
-            phone: m.user.phoneNumber,
-          },
-          lastLoginAt: m.user.sessions[0]?.createdAt ?? null,
+          ...(canViewSensitive
+            ? {
+                permissions: m.permissions,
+                user: {
+                  ...m.user,
+                  phone: m.user.phoneNumber,
+                },
+                lastLoginAt: m.user.sessions[0]?.createdAt ?? null,
+              }
+            : {
+                user: {
+                  id: m.user.id,
+                  fullName: m.user.fullName,
+                  email: m.user.email,
+                  image: m.user.image,
+                },
+              }),
           canModify:
             m.role !== "SUPER_ADMIN" &&
             canModifyAdminMember(ctx.adminStaff.role, m.role),
@@ -597,17 +833,20 @@ export const adminStaffRouter = createTRPCRouter({
       ]);
 
       return {
-        invitations: invitations.map((inv) => ({
-          ...inv,
-          isExpired: inv.expiresAt < new Date(),
-          daysUntilExpiry:
-            inv.status === "PENDING"
-              ? Math.ceil(
-                  (inv.expiresAt.getTime() - Date.now()) /
-                    (1000 * 60 * 60 * 24),
-                )
-              : null,
-        })),
+        invitations: invitations.map((inv) => {
+          const { token, ...safeInv } = inv;
+          return {
+            ...safeInv,
+            isExpired: inv.expiresAt < new Date(),
+            daysUntilExpiry:
+              inv.status === "PENDING"
+                ? Math.ceil(
+                    (inv.expiresAt.getTime() - Date.now()) /
+                      (1000 * 60 * 60 * 24),
+                  )
+                : null,
+          };
+        }),
         total,
         hasMore: input.offset + input.limit < total,
       };
@@ -866,10 +1105,12 @@ export const adminStaffRouter = createTRPCRouter({
       }
 
       return {
-        ...updated,
+        id: updated.id,
+        email: updated.email,
+        role: updated.role,
+        status: updated.status,
+        expiresAt: updated.expiresAt,
         resendCount: resendCount + 1,
-        newInviteUrl:
-          process.env["NODE_ENV"] === "production" ? undefined : inviteUrl,
       };
     }),
 

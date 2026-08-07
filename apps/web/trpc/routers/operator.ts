@@ -254,7 +254,7 @@ export const operatorRouter = createTRPCRouter({
   }),
 
    completeOnboarding: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-     requirePermission(ctx, "company:update");
+     requirePermission(ctx, "company:profile:update");
      const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
@@ -372,7 +372,7 @@ export const operatorRouter = createTRPCRouter({
   }),
 
    resubmitVerification: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-     requirePermission(ctx, "company:update");
+     requirePermission(ctx, "company:profile:update");
      const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
@@ -455,7 +455,7 @@ export const operatorRouter = createTRPCRouter({
    saveOnboardingStep: operatorCompanyProcedure
      .input(saveOnboardingStepSchema)
      .mutation(async ({ ctx, input }) => {
-       requirePermission(ctx, "company:update");
+       requirePermission(ctx, "company:profile:update");
        const {
         step,
         companyData,
@@ -940,7 +940,7 @@ export const operatorRouter = createTRPCRouter({
        }),
      )
      .mutation(async ({ ctx, input }) => {
-       requirePermission(ctx, "company:update");
+       requirePermission(ctx, "company:profile:update");
        const operator = await ctx.prisma.operator.findFirst({
         where: { userId: ctx.user.id, deletedAt: null },
         orderBy: { joinedAt: "desc" },
@@ -1193,7 +1193,7 @@ export const operatorRouter = createTRPCRouter({
   checkInBooking: operatorCompanyProcedure
     .input(operatorCheckInBookingSchema)
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "bookings:update");
+      requireAnyPermission(ctx, ["bookings:update", "bookings:checkin"]);
       const service = new OperatorBookingService(ctx.prisma);
       return service.checkIn(ctx.companyId, input);
     }),
@@ -1202,6 +1202,7 @@ export const operatorRouter = createTRPCRouter({
     .input(cancelBookingSchema)
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "bookings:update");
+      requirePermission(ctx, "bookings:cancel");
       const service = new CancellationService(ctx.prisma);
       return service.cancelBooking({
         bookingReference: input.bookingReference,
@@ -1219,7 +1220,7 @@ export const operatorRouter = createTRPCRouter({
   bulkCheckInBookings: operatorCompanyProcedure
     .input(z.object({ tripId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "bookings:update");
+      requireAnyPermission(ctx, ["bookings:update", "bookings:checkin"]);
       const service = new OperatorBookingService(ctx.prisma);
       const bookings = await ctx.prisma.booking.findMany({
         where: {
@@ -1255,6 +1256,7 @@ export const operatorRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "bookings:update");
+      requirePermission(ctx, "bookings:cancel");
       const service = new CancellationService(ctx.prisma);
       const bookings = await ctx.prisma.booking.findMany({
         where: {
@@ -1622,6 +1624,11 @@ export const operatorRouter = createTRPCRouter({
       endOfDay.setUTCMilliseconds(-1);
       
       const canReadFleet = operatorHasPermission(ctx, "fleet:read");
+      // Sub-gate the sensitive sections so a read-only role (e.g. SUPPORT with
+      // only trips:read/bookings:read) is never shown revenue it isn't
+      // authorized for, and booking activity is only shown to bookings:read.
+      const canReadRevenue = operatorHasPermission(ctx, "revenue:view");
+      const canReadBookings = operatorHasPermission(ctx, "bookings:read");
       const [todayTrips, totalBuses, activeBuses, bookingsCreatedToday, recentBookings] = await Promise.all([
         ctx.prisma.trip.findMany({
           where: {
@@ -1670,56 +1677,63 @@ export const operatorRouter = createTRPCRouter({
               where: { companyId, status: "ACTIVE", deletedAt: null },
             })
           : Promise.resolve(null),
-        ctx.prisma.booking.findMany({
-          where: {
-            trip: { companyId },
-            status: "CONFIRMED",
-            issuedAt: {
-              gte: startOfDay,
-              lte: endOfDay,
-            },
-          },
-          include: {
-            holdGroup: {
-              include: { pricingSnapshot: true },
-            },
-          },
-        }),
-        ctx.prisma.booking.findMany({
-          where: {
-            trip: { companyId },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          include: {
-            trip: {
+        canReadBookings
+          ? ctx.prisma.booking.findMany({
+              where: {
+                trip: { companyId },
+                status: "CONFIRMED",
+                issuedAt: {
+                  gte: startOfDay,
+                  lte: endOfDay,
+                },
+              },
               include: {
-                schedule: {
+                holdGroup: {
+                  include: { pricingSnapshot: true },
+                },
+              },
+            })
+          : Promise.resolve([]),
+        canReadBookings
+          ? ctx.prisma.booking.findMany({
+              where: {
+                trip: { companyId },
+              },
+              orderBy: { createdAt: "desc" },
+              take: 5,
+              include: {
+                trip: {
                   include: {
-                    route: {
+                    schedule: {
                       include: {
-                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        route: {
+                          include: {
+                            originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                            destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                          },
+                        },
                       },
                     },
                   },
                 },
               },
-            },
-          },
-        })
+            })
+          : Promise.resolve([]),
       ]);
 
-      let revenueTodayXOF = 0;
-      const processedHoldGroups = new Set<string>();
-      for (const booking of bookingsCreatedToday) {
-        const hg = booking.holdGroup;
-        if (!hg) continue;
-        if (!processedHoldGroups.has(hg.id)) {
-          processedHoldGroups.add(hg.id);
-          const ps = hg.pricingSnapshot;
-          if (ps) {
-            revenueTodayXOF += ps.operatorNetXOF;
+      let revenueTodayXOF: number | null = null;
+      if (canReadRevenue) {
+        revenueTodayXOF = 0;
+        const processedHoldGroups = new Set<string>();
+        for (const booking of bookingsCreatedToday) {
+          const hg = booking.holdGroup;
+          if (!hg) continue;
+          if (!processedHoldGroups.has(hg.id)) {
+            processedHoldGroups.add(hg.id);
+            const ps = hg.pricingSnapshot;
+            if (ps) {
+              revenueTodayXOF += ps.operatorNetXOF;
+            }
           }
         }
       }
@@ -1751,33 +1765,35 @@ export const operatorRouter = createTRPCRouter({
         ? Math.round((totalBookingsToday / totalSeatsToday) * 100) 
         : 0;
 
-      const activities = recentBookings.map((b) => {
-        const origin = b.trip.schedule?.route?.originTerminal?.cityRelation?.name ?? "Unknown";
-        const dest = b.trip.schedule?.route?.destTerminal?.cityRelation?.name ?? "Unknown";
-        
-        let actionLabel = "Booked ticket";
-        if (b.status === "CONFIRMED") {
-          actionLabel = b.checkedInAt ? "Checked in" : "Purchased ticket";
-        } else if (b.status === "CANCELLED") {
-          actionLabel = "Cancelled booking";
-        } else if (b.status === "PENDING_PAYMENT") {
-          actionLabel = "Reserved seat (pending payment)";
-        }
+const activities = canReadBookings
+        ? recentBookings.map((b) => {
+          const origin = b.trip.schedule?.route?.originTerminal?.cityRelation?.name ?? "Unknown";
+          const dest = b.trip.schedule?.route?.destTerminal?.cityRelation?.name ?? "Unknown";
+          
+          let actionLabel = "Booked ticket";
+          if (b.status === "CONFIRMED") {
+            actionLabel = b.checkedInAt ? "Checked in" : "Purchased ticket";
+          } else if (b.status === "CANCELLED") {
+            actionLabel = "Cancelled booking";
+          } else if (b.status === "PENDING_PAYMENT") {
+            actionLabel = "Reserved seat (pending payment)";
+          }
 
-        const timestamp = b.checkedInAt && b.checkedInAt > b.createdAt 
-          ? b.checkedInAt.toISOString() 
-          : b.createdAt.toISOString();
+          const timestamp = b.checkedInAt && b.checkedInAt > b.createdAt 
+            ? b.checkedInAt.toISOString() 
+            : b.createdAt.toISOString();
 
-        return {
-          id: b.id,
-          passengerName: b.passengerName,
-          action: actionLabel,
-          routeLabel: `${origin} → ${dest}`,
-          timestamp,
-          status: b.status,
-          bookingReference: b.bookingReference,
-        };
-      });
+          return {
+            id: b.id,
+            passengerName: b.passengerName,
+            action: actionLabel,
+            routeLabel: `${origin} → ${dest}`,
+            timestamp,
+            status: b.status,
+            bookingReference: b.bookingReference,
+          };
+        })
+        : [];
 
       return {
         stats: {

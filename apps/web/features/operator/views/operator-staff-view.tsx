@@ -363,7 +363,7 @@ export function OperatorStaffView() {
           invitations={pendingInvites}
           onResend={handleResendInvite}
           onCancel={handleCancelInvite}
-          canDelete={can("staff:remove")}
+          canDelete={can("staff:invite")}
         />
 
         <StaffActivitySection activities={activityLog} />

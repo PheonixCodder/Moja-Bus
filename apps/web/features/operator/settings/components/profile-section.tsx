@@ -27,7 +27,7 @@ export function ProfileSection({ onManage }: ProfileSectionProps) {
           </CardTitle>
           <CardDescription>Your public business details</CardDescription>
         </div>
-        {can("company:update") ? (
+        {can("company:profile:update") ? (
           <Button variant="outline" size="sm" onClick={onManage}>
             <Pencil className="w-4 h-4 mr-2" />
             Edit

@@ -15,14 +15,14 @@ interface AdminStaffInvitationCardProps {
   invitation: AdminStaffInvitation & { createdAt?: Date | string };
   onResend: (invitation: AdminStaffInvitation) => void;
   onCancel: (invitation: AdminStaffInvitation) => void;
-  canDelete: boolean;
+  canInvite: boolean;
 }
 
 export function AdminStaffInvitationCard({
   invitation,
   onResend,
   onCancel,
-  canDelete,
+  canInvite,
 }: AdminStaffInvitationCardProps) {
   const t = useTranslations("adminDashboard.staff.invitationCard");
   const expiry = formatInvitationExpiry(invitation.expiresAt);
@@ -67,7 +67,7 @@ export function AdminStaffInvitationCard({
       </div>
 
       <div className="flex gap-2 border-t border-border mt-1 pt-3">
-        {canDelete ? (
+        {canInvite ? (
           <Button
             variant="outline"
             size="sm"
@@ -78,7 +78,7 @@ export function AdminStaffInvitationCard({
             {t("resend")}
           </Button>
         ) : null}
-        {canDelete ? (
+        {canInvite ? (
           <Button
             variant="outline"
             size="sm"

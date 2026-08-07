@@ -1,10 +1,13 @@
-import { initTRPC, TRPCError } from "@trpc/server";
-import { ZodError } from "zod";
-import superjson from "superjson";
 import { getPrismaClient } from "@moja/db";
+import { initTRPC, TRPCError } from "@trpc/server";
+import superjson from "superjson";
+import { ZodError } from "zod";
 import { auth } from "@/lib/auth-server";
 
-export async function createContextFromHeaders(headers: Headers, resHeaders?: Headers) {
+export async function createContextFromHeaders(
+  headers: Headers,
+  resHeaders?: Headers,
+) {
   let response: any;
   let res: Headers | undefined;
 
@@ -19,68 +22,9 @@ export async function createContextFromHeaders(headers: Headers, resHeaders?: He
     console.error("[auth] getSession threw:", err);
   }
 
-	if (!response?.user) {
-    const cookieHeader = headers.get("cookie") ?? "";
-    const cookieNames = cookieHeader
-      .split(";")
-      .map((c) => c.trim().split("=")[0]);
-
-    const sessionDataCookie = headers.get("cookie")
-      ?.split(";")
-      .map((c) => c.trim())
-      .find((c) => c.startsWith("__Secure-better-auth.session_data="));
-
-    const sessionTokenCookie = headers.get("cookie")
-      ?.split(";")
-      .map((c) => c.trim())
-      .find((c) => c.startsWith("__Secure-better-auth.session_token="));
-
-    console.warn("[auth] no session resolved", {
-      cookieLen: cookieHeader.length,
-      cookieNames,
-      hasSessionTokenCookie: !!sessionTokenCookie,
-      sessionDataCookieValue: sessionDataCookie?.split("=").slice(1).join("=") ?? null,
-    });
-
-    // Direct DB check: bypass Better Auth adapter to see if session exists in DB.
-    try {
-      const prisma = getPrismaClient();
-      const rawCookieValue = sessionDataCookie?.split("=").slice(1).join("=");
-      if (rawCookieValue) {
-        const parts = rawCookieValue.split(".");
-        if (parts.length === 3) {
-          const payload = JSON.parse(
-            Buffer.from(parts[1]!.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString()
-          );
-          const token = payload?.session?.token;
-          if (token) {
-            const dbSession = await prisma.session.findUnique({
-              where: { token },
-              select: { id: true, token: true, expiresAt: true, userId: true },
-            });
-            console.warn("[auth] direct DB lookup:", {
-              token,
-              foundInDB: !!dbSession,
-              expiresAt: dbSession?.expiresAt?.toISOString() ?? null,
-            });
-          }
-        }
-      }
-    } catch (dbErr) {
-      console.error("[auth] direct DB lookup threw:", dbErr);
-    }
-
-    try {
-      const fresh = await auth.api.getSession({
-        headers,
-        query: { disableCookieCache: true },
-      });
-      console.warn("[auth] retry bypassing cache:", {
-        foundSession: !!fresh?.user,
-      });
-    } catch (err2) {
-      console.error("[auth] retry bypassing cache threw:", err2);
-    }
+  if (!response?.user) {
+    // Muted: session/token debug logging was removed (O19). Verify sessions via
+    // the normal auth stack; errors are still surfaced above.
   }
 
   if (res && resHeaders) {
@@ -120,7 +64,7 @@ export const createCallerFactory = t.createCallerFactory;
 /**
  * CSRF POSTURE:
  * Better Auth uses SameSite=Lax cookies for sessions. To protect tRPC mutations
- * from Cross-Site Request Forgery (CSRF), we enforce an Origin header check 
+ * from Cross-Site Request Forgery (CSRF), we enforce an Origin header check
  * on all state-mutating procedures.
  */
 const csrfMiddleware = t.middleware(({ type, next, ctx }) => {
@@ -180,12 +124,16 @@ export const operatorProcedure = protectedProcedure.use(({ ctx, next }) => {
 export const operatorCompanyProcedure = operatorProcedure.use(
   async ({ ctx, next }) => {
     const cacheKey = `operator:${ctx.user.id}`;
-    const cached = ctx._cache.get(cacheKey) as Awaited<ReturnType<typeof ctx.prisma.operator.findFirst>> | undefined;
+    const cached = ctx._cache.get(cacheKey) as
+      | Awaited<ReturnType<typeof ctx.prisma.operator.findFirst>>
+      | undefined;
 
-    const operatorProfile = cached ?? await ctx.prisma.operator.findFirst({
-      where: { userId: ctx.user.id, deletedAt: null },
-      orderBy: { joinedAt: "desc" },
-    });
+    const operatorProfile =
+      cached ??
+      (await ctx.prisma.operator.findFirst({
+        where: { userId: ctx.user.id, deletedAt: null },
+        orderBy: { joinedAt: "desc" },
+      }));
 
     if (!cached && operatorProfile) {
       ctx._cache.set(cacheKey, operatorProfile);
@@ -215,7 +163,7 @@ export const operatorCompanyProcedure = operatorProcedure.use(
   },
 );
 
-export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.user.role !== "ADMIN") {
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -223,37 +171,36 @@ export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
     });
   }
 
+  // ADMIN-role is only authoritative when backed by a live AdminStaff profile.
+  // This single gate protects the *entire* admin surface (admin.ts, payments
+  // admin procedures, contact admin) from: (a) role-ADMIN users with no staff
+  // row, and (b) SUSPENDED staff whose underlying user.role is still ADMIN.
+  // (Permits per-procedure keys, enforced below via requireAdminPermission.)
+  const adminStaff = await ctx.prisma.adminStaff.findUnique({
+    where: { userId: ctx.user.id, deletedAt: null },
+  });
+  if (!adminStaff) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin staff profile not found",
+    });
+  }
+  if (adminStaff.status === "SUSPENDED") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Your admin access is suspended",
+    });
+  }
+
   return next({
     ctx: {
       ...ctx,
       user: ctx.user,
+      adminStaff,
     },
   });
 });
 
-export const adminStaffProcedure = adminProcedure.use(
-  async ({ ctx, next }) => {
-    const adminStaff = await ctx.prisma.adminStaff.findUnique({
-      where: { userId: ctx.user.id, deletedAt: null },
-    });
-    if (!adminStaff) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Admin staff profile not found",
-      });
-    }
-    if (adminStaff.status === "SUSPENDED") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Your admin access is suspended",
-      });
-    }
-
-    return next({
-      ctx: {
-        ...ctx,
-        adminStaff,
-      },
-    });
-  },
-);
+// Backwards-compatible alias for routers that referenced the older chained
+// procedure. The hardened adminProcedure already loads + blocks the profile.
+export const adminStaffProcedure = adminProcedure;

@@ -128,18 +128,6 @@ export const staffRouter = createTRPCRouter({
     };
   }),
 
-  /** @deprecated Use getMyPermissions */
-  getMyRole: operatorCompanyProcedure.query(async ({ ctx }) => {
-    const permissions = getOperatorEffectivePermissions(ctx.operator);
-    return {
-      role: ctx.operator.role,
-      permissions,
-      companyId: ctx.companyId,
-      status: ctx.operator.status,
-      isActive: ctx.operator.isActive,
-    };
-  }),
-
   listStaff: operatorCompanyProcedure
     .input(ListStaffSchema)
     .query(async ({ ctx, input }) => {
@@ -824,6 +812,18 @@ export const staffRouter = createTRPCRouter({
         });
       }
 
+      const canResend =
+        ctx.operator.role === "OWNER" ||
+        ctx.operator.role === "ADMIN" ||
+        invite.invitedById === ctx.user.id ||
+        ctx.user.role === "ADMIN";
+      if (!canResend) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Can only resend invitations you sent or have admin privileges.",
+        });
+      }
+
       const resendCount = await ctx.prisma.activityLog.count({
         where: {
           companyId: ctx.companyId,
@@ -936,15 +936,4 @@ export const staffRouter = createTRPCRouter({
         hasMore: input.offset + input.limit < total,
       };
     }),
-
-  /** @deprecated This endpoint is no longer used by the UI. Use getMyPermissions instead. */
-  getPermissionCatalog: operatorCompanyProcedure.query(async ({ ctx }) => {
-    requirePermission(ctx, "staff:invite");
-    const grantable = getOperatorEffectivePermissions(ctx.operator);
-    return {
-      grantable,
-      templates: ROLE_TEMPLATES,
-      role: ctx.operator.role,
-    };
-  }),
 });

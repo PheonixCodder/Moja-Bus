@@ -168,7 +168,7 @@ export function StaffMemberRow({
             )
           ) : null}
 
-          {canDelete && member.role !== "OWNER" ? (
+          {callerRole === "OWNER" && member.role !== "OWNER" ? (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -178,6 +178,11 @@ export function StaffMemberRow({
                 <ArrowRightLeft className="mr-2 h-3.5 w-3.5" />
                 {t("transferOwnership")}
               </DropdownMenuItem>
+            </>
+          ) : null}
+
+          {canDelete && member.role !== "OWNER" ? (
+            <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-[13px] cursor-pointer text-red-600 focus:text-red-600"

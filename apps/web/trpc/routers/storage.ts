@@ -10,7 +10,48 @@ import {
   StorageError,
 } from "@/lib/storage";
 import { getStoragePurpose, type StorageKeyContext, type StoragePurposeId } from "@/lib/storage/purposes";
-import { requirePermission } from "@/lib/permissions/authorize";
+import { requirePermission, type PermissionContext } from "@/lib/permissions/authorize";
+
+type OperatorCtx = {
+  prisma: { operator: { findFirst: (args: any) => Promise<any> } };
+  user: { id: string };
+};
+
+async function resolveOperator(ctx: OperatorCtx) {
+  const operator = await ctx.prisma.operator.findFirst({
+    where: { userId: ctx.user.id, deletedAt: null },
+    orderBy: { joinedAt: "desc" },
+  });
+  if (!operator) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Operator profile not found.",
+    });
+  }
+  return operator as {
+    id: string;
+    role: string;
+    permissions: unknown;
+    status: string;
+    companyId: string | null;
+  };
+}
+
+function operatorPermissionContext(
+  ctx: { user: { id: string; role: string } },
+  operator: { role: string; permissions: unknown; status: string; companyId: string | null },
+): PermissionContext {
+  return {
+    user: { id: ctx.user.id, role: ctx.user.role },
+    operator: {
+      role: operator.role,
+      permissions: (operator.permissions as string[]) ?? [],
+      status: operator.status,
+      companyId: operator.companyId ?? "",
+    },
+    companyId: operator.companyId ?? "",
+  };
+}
 
 const presignUploadInput = z.object({
   purpose: z.string().min(1),
@@ -65,23 +106,16 @@ export const storageRouter = createTRPCRouter({
         }
         const operator = await resolveOperator(ctx);
         requirePermission(
-          {
-            user: { id: ctx.user.id, role: ctx.user.role },
-            operator: {
-              role: operator.role,
-              permissions: (operator.permissions as string[]) ?? [],
-              status: operator.status,
-              companyId: operator.companyId!,
-            },
-            companyId: operator.companyId!,
-          },
-          "company:update",
+          operatorPermissionContext(ctx, operator),
+          "company:profile:update",
         );
         // During onboarding the company may not exist yet (COMPANY step runs
         // before the company row is created). Key under the operator id so the
         // upload still works; it gets re-keyed under the company from settings.
         keyContext.companyId = operator.companyId ?? `pending/${operator.id}`;
-        if (purpose.id === "operator-profile-photo" && !keyContext.staffId) {
+        // O15: never trust a client-supplied staffId for profile photos — the
+        // caller's operator id is the only allowed owner of that key.
+        if (purpose.id === "operator-profile-photo") {
           keyContext.staffId = operator.id;
         }
       }
@@ -131,17 +165,47 @@ export const storageRouter = createTRPCRouter({
       }
 
        if (purpose.id === "operator-document") {
+         const isAdmin = ctx.user.role === "ADMIN";
+         const caller = isAdmin ? undefined : await resolveOperator(ctx);
+         const callerCompanyId = caller?.companyId ?? undefined;
+
          const doc = await ctx.prisma.companyDocument.findFirst({
            where: {
              ...(input.documentId ? { id: input.documentId } : {}),
              ...(input.objectKey ? { objectKey: input.objectKey } : {}),
+             // Non-admin operators may only ever reach documents belonging to
+             // their own company (prevents cross-company IDOR via documentId).
+             ...(callerCompanyId ? { companyId: callerCompanyId } : {}),
            },
          });
          if (!doc) {
            throw new TRPCError({ code: "NOT_FOUND", message: "Document not found." });
          }
 
-         requirePermission(ctx, "financials:view");
+         requirePermission(
+           isAdmin
+             ? {
+                 user: { id: ctx.user.id, role: ctx.user.role },
+                 operator: {
+                   role: "OWNER",
+                   permissions: [],
+                   status: "ACTIVE",
+                   companyId: doc.companyId,
+                 },
+                 companyId: doc.companyId,
+               }
+             : operatorPermissionContext(ctx, caller!),
+           "financials:view",
+         );
+
+         // Defense-in-depth: even if the caller reaches here, the document must
+         // belong to their company (non-admin) or an explicit admin target.
+         if (!isAdmin && doc.companyId !== callerCompanyId) {
+           throw new TRPCError({
+             code: "FORBIDDEN",
+             message: "Access denied: document does not belong to your company.",
+           });
+         }
 
          if (!doc.objectKey) {
           throw new TRPCError({

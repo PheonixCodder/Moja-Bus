@@ -1,6 +1,9 @@
+import { getPrismaClient } from "@moja/db";
+import { getAdminEffectivePermissions } from "@moja/schemas";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import { AdminStaffView } from "@/features/admin/views/admin-staff-view";
+import { getServerSession } from "@/lib/auth-server";
 import { HydrateClient, prefetch, trpc } from "@/trpc/server";
 
 export const metadata = {
@@ -9,7 +12,21 @@ export const metadata = {
 };
 
 export default async function AdminStaffPage() {
-  await Promise.all([
+  const session = await getServerSession();
+  const staff = session?.user?.id
+    ? await getPrismaClient().adminStaff.findUnique({
+        where: { userId: session.user.id, deletedAt: null },
+        select: { role: true, permissions: true },
+      })
+    : null;
+  const canReadActivity = staff
+    ? getAdminEffectivePermissions(
+        staff.role,
+        staff.permissions ?? [],
+      ).includes("audit:read")
+    : false;
+
+  const prefetches = [
     prefetch(
       trpc.adminStaff.listStaff.queryOptions({
         search: undefined,
@@ -20,9 +37,16 @@ export default async function AdminStaffPage() {
       }),
     ),
     prefetch(trpc.adminStaff.listInvitations.queryOptions({ limit: 20 })),
-    prefetch(trpc.adminStaff.getActivityLog.queryOptions({ limit: 100 })),
     prefetch(trpc.adminStaff.getMyPermissions.queryOptions()),
-  ]);
+  ];
+
+  if (canReadActivity) {
+    prefetches.push(
+      prefetch(trpc.adminStaff.getActivityLog.queryOptions({ limit: 100 })),
+    );
+  }
+
+  await Promise.all(prefetches);
 
   return (
     <HydrateClient>

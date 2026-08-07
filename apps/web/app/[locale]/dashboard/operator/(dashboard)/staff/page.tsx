@@ -28,7 +28,7 @@ export default async function OperatorStaffPage() {
     ),
     prefetch(trpc.staff.listInvitations.queryOptions({ limit: 20 })),
     prefetch(trpc.staff.getActivityLog.queryOptions({ limit: 100 })),
-    prefetch(trpc.staff.getMyRole.queryOptions()),
+    prefetch(trpc.staff.getMyPermissions.queryOptions()),
   ]);
 
   return (

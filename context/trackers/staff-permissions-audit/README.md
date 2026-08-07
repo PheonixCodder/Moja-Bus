@@ -1,63 +1,74 @@
 # Staff System & Permissions Audit
 
-> **Scope:** Complete audit of the operator staff system — roles, permission templates, per-action/per-page authorization, sidebar gating, staff management, invitations, and settings.
-> **Generated:** 2026-08-06 · **Auditor:** opencode (deep audit)
-> **Code areas covered:** `packages/db/prisma/schema.prisma`, `packages/schemas/src/` (esp. `permissions.ts`, `operator.ts`), `apps/web/trpc/routers/` (all routers), `apps/web/lib/permissions/` (`authorize.ts`, `staff-hierarchy.ts`), `apps/web/app/[locale]/dashboard/operator/**`, `apps/web/features/operator/**`.
+> **Scope:** Complete audit of the operator staff system **and** the platform-admin staff system —
+> roles, permission catalog, per-action/per-item authorization, sidebar gating, staff management,
+> invitations, settings, and the underlying Prisma/session model.
+> **Generated:** 2026-08-06 (1st pass) · **Re-audited:** 2026-08-07 (2nd pass, both systems)
+> **Author:** opencode (deep audit)
+> **Note:** **`12-consolidated-findings-2026-08-07.md` is the LIVE, canonical findings doc.**
 
 ---
 
-## How to read this report
+## How to read this report (2nd pass, 2026-08-07)
+
+The second-pass audit split audit work by subsystem under three folders. Read them in this order:
 
 | File | Content |
 |---|---|
-| [`01-iam-architecture.md`](./01-iam-architecture.md) | How the whole IAM system works: permission catalog, roles, hierarchy, the 3 guard layers, effective-permission model. Read this first. |
-| [`02-permission-catalog.md`](./02-permission-catalog.md) | The full permission catalog (31 keys) + the role templates + a per-role × permission matrix. |
-| [`03-role-template-analysis.md`](./03-role-template-analysis.md) | **Which roles are missing and which templates are wrong** — the template-level findings. |
-| [`04-router-guard-audit.md`](./04-router-guard-audit.md) | Every tRPC procedure and the exact permission it requires (server-side truth). |
-| [`05-page-route-audit.md`](./05-page-route-audit.md) | Every operator page: guard layers, sidebar nav gating, and what a user without the read permission sees. |
-| [`06-action-gating-audit.md`](./06-action-gating-audit.md) | View-level gating of every create/edit/delete/cancel/check-in/withdraw action (client side). |
-| [`07-staff-management-audit.md`](./07-staff-management-audit.md) | Deep dive on the Staff page: invite, role edit, permission editor, suspend, remove, transfer, activity log. |
-| [`08-settings-audit.md`](./08-settings-audit.md) | Deep dive on Settings: company/personal/banking/compliance/notifications, incl. the `financials:view` bug. |
-| [`09-flows.md`](./09-flows.md) | End-to-end flows: staff invite → accept, role change, permission grant, suspend, ownership transfer, side effects. |
-| [`10-consolidated-findings.md`](./10-consolidated-findings.md) | **All gaps & inconsistencies** consolidated, ranked by severity (CRITICAL / HIGH / MEDIUM / LOW). |
-| [`11-recommendations.md`](./11-recommendations.md) | Prioritized, concrete remediation plan following production/enterprise patterns. |
+| [`00-baseline-source-of-truth.md`](./00-baseline-source-of-truth.md) | **Verified** operator catalog (42 keys), role-template matrix, role hierarchy, authorize helpers, procedure chain, Prisma models. Start here. |
+| [`12-consolidated-findings-2026-08-07.md`](./12-consolidated-findings-2026-08-07.md) | **LIVE consolidated findings** across operator + admin + shared, ranked by severity. This is the canonical open-gap tracker. |
+| [`operator/`](./operator/) | Operator subsystem audits: `01-staff-router.ts.md`, `02-cross-cutting-routers.ts.md`, `03-features-ui.ts.md`. |
+| [`admin/`](./admin/) | Platform-admin subsystem audits: `01-admin-staff-router.ts.md`, `02-features-ui.ts.md`. |
+| [`shared/`](./shared/) | Pages / route-guards / prefetch / Prisma schema audits: `04-pages-guards-schema.ts.md`. |
+
+### Archived history (1st pass, 2026-08-06 — stale, operator-only)
+
+These flat files are the original operator-only audit. **They are preserved as history** but are
+**superseded** by `00-` + `12-` + the subsystem folders (they still reference the old "31 keys",
+`company:update`, 6 roles, and have no admin-system coverage). Consult them only for historical
+context; do not rely on their counts or statuses.
+
+| Archived file | 1st-pass content |
+|---|---|
+| [`01-iam-architecture.md`](./01-iam-architecture.md) | Original operator IAM architecture narrative. |
+| [`02-permission-catalog.md`](./02-permission-catalog.md) | Original catalog listing (stale: "31 keys"). |
+| [`03-role-template-analysis.md`](./03-role-template-analysis.md) | Original role-template analysis. | 
+| [`04-router-guard-audit.md`](./04-router-guard-audit.md) | Original operator router-procedure gate audit. |
+| [`05-page-route-audit.md`](./05-page-route-audit.md) | Original operator page/sidebar audit. |
+| [`06-action-gating-audit.md`](./06-action-gating-audit.md) | Original view-level action gating. |
+| [`07-staff-management-audit.md`](./07-staff-management-audit.md) | Original Staff page deep dive. |
+| [`08-settings-audit.md`](./08-settings-audit.md) | Original Settings deep dive. |
+| [`09-flows.md`](./09-flows.md) | Original end-to-end flows. |
+| [`10-consolidated-findings.md`](./10-consolidated-findings.md) | Original consolidated findings (superseded by `12-`). |
+| [`11-recommendations.md`](./11-recommendations.md) | Original remediation plan. |
 
 ---
 
-## Executive summary
+## Executive summary (2nd pass)
 
 ### What is good
-- **Server-side enforcement is solid.** Every operator data mutation/query in the feature routers is gated through `requirePermission(ctx, "<key>")` in `apps/web/lib/permissions/authorize.ts:43`. An OWNER bypass, platform-ADMIN bypass, and SUSPENDED-block are centralized in `operatorHasPermission` (`authorize.ts:34`).
-- **Ownership transfer** is hardened with an OTP (`staff.requestTransferOtp` / `staff.transferOwnership`, `trpc/routers/staff.ts:388-551`).
-- **Privilege retention is prevented**: role changes always reset permissions to the target role template (`staff.ts:273-275`), and invitation acceptance copies `invitation.permissions` onto the operator record.
-- **Grant confinement**: `requireCanGrant` (`authorize.ts:75`) stops a caller from granting permissions they don't hold; the client permission matrix hides non-grantable keys.
-- The sidebar (`operator-sidebar.tsx`) hides nav items per permission, and the permission catalog is a single source of truth in `packages/schemas/src/permissions.ts`.
+- **Operator server-side enforcement is solid.** Every operator data mutation/query in the feature routers is gated through `requirePermission(ctx, "<key>")` (`apps/web/lib/permissions/authorize.ts:43`); OWNER / platform-ADMIN bypass and SUSPENDED-block are centralized in `operatorHasPermission`.
+- **Operator ownership transfer** is hardened with an OTP (`staff.requestTransferOtp`/`transferOwnership`); role changes reset permissions to the role template; grant confinement is enforced by `requireCanGrant`; sessions are force-invalidated (`session.deleteMany`) on operator suspend/remove.
+- **Admin-staff router is correct.** `admin-staff.ts` gates on `admin-staff:*` + `requireAdminCanGrant` + hierarchy; SUPER_ADMIN is protected and transfer is SUPER_ADMIN+OTP-gated; sessions deleted on suspend/remove. The catalog, hierarchy and grant helpers there are sound.
 
-### What is broken (headline items)
-1. **No explicit route-level guard on any page.** Every page relies on the router's `requirePermission` throwing, which surfaces as a raw `error.tsx` crash — not an "access denied" state. Any staff member (e.g. SUPPORT) can type any operator URL and hit an error boundary with a leaked technical message. (`05-page-route-audit.md`)
-2. **Settings edit UI is not gated client-side at all.** A `company:view`-only staff sees full edit forms/upload/delete controls everywhere; only the server 403s on submit. (`08-settings-audit.md`)
-3. **`financials:view` gate is a ghost key.** `settings-sidebar.tsx:38` gates the Financials tab on `perms.includes("financials:view")`, but that key does **not** exist in the catalog — the tab is effectively OWNER-only, blocking FINANCE staff who are server-authorized (`listBankAccounts` = `company:view`). (`08-settings-audit.md`)
-4. **6 of 11 views have zero client-side `can()` gating** (Fleet, Routes, Terminals, Revenue, Withdraw, Dashboard) — add/edit/delete/withdraw buttons are shown to view-only staff. (`06-action-gating-audit.md`)
-5. **Suspend/activate is shown without any permission check** on the staff page; `canModify` (computed server-side) is never consumed by the UI. (`07-staff-management-audit.md`)
-6. **Unguarded onboarding mutations**: `operator.saveOnboardingStep` (writes company + **bank account + Paystack recipient**), `operator.completeOnboarding`, `operator.resubmitVerification`, `operator.reopenOnboardingStep` have **no permission key** — only company membership. (`04-router-guard-audit.md`)
-7. **`bookings:update` is used for destructive cancels** (`operator.cancelBooking`, `bulkCancelBookings`) and **schedule edits can cancel booked trips** without `trips:cancel`. (`04-router-guard-audit.md`)
-8. **Overview mismatch**: the sidebar shows Overview to everyone, but `operator.getDashboardMetrics` requires `trips:read | bookings:read | company:view`, so a `reviews:read`-only staff gets a crash on the home page. (`05-page-route-audit.md`)
-9. **`AccessDeniedCard` is dead code** — defined, never used. (`06-action-gating-audit.md`)
-10. **Client/server role-model divergence**: platform `ADMIN` bypass exists server-side but is invisible client-side; OPERATIONS/FINANCE/SUPPORT role sheets fall back to leaking all 5 non-owner roles as assignable.
+### What is broken (headline items, 2nd pass)
+1. **CRITICAL — the entire `admin.ts` router is gated only by `User.role === "ADMIN"`.** No `admin-staff:*` key, no `requireSuperAdmin`; the 57-key admin catalog is enforced only inside the Admin Staff screen. Suspended/demoted admins keep full backend access. (`12-` A1 / `admin/01`)
+2. **CRITICAL — admin invites are dead.** `/admin/invite` has no route and no accept mutation; admins are provisioned only via seed script. `admin/01` A2.
+3. **Operator compliance-doc IDOR** — `storage.presignDownload` isn't company-scoped → cross-company read. (`12-` O1 / `operator/02`)
+4. **`getDashboardMetrics` revenue leak** to read-only staff. (`12-` O2)
+5. **`bookings:checkin` is dead** — CONDUCTOR can't check in; cancel key inconsistent across routers. (`12-` O7/O8)
+6. **Various client leaks** (fleet view, bookings CSV export, settings forms) and wrong client keys (transfer visibility, invite cancel/resend). (`12-` O3-O6, O10, O11)
+7. **No AdminRouteGuard**; admin layout checks only `user.role`. (`12-` S1)
+8. Operator `OperatorRouteGuard` is client-only and doesn't gate SSR prefetch (routes page). (`12-` S2)
+9. No schema single-owner constraint; invitation-token columns not labelled as hashes; no `emailVerifiedAt`. (`12-` S3-S5)
 
-### Missing roles (high-level)
-- There is **no role below SUPPORT** (e.g. no viewer-only "READ ONLY" or "INSPECTOR"/"AUDITOR" role), yet SUPPORT itself is the de-facto read+check-in role.
-- There is **no explicit "DISPATCHER" / "CONDUCTOR"** separation — dispatch (trips:update) and boarding (bookings:update) are lumped into OPERATIONS and SUPPORT respectively.
-- There is **no account/ledger "FINANCE-ADMIN"** separation — FINANCE has `revenue:view` + `withdrawals:view` but **not** `withdrawals:create`, so a finance officer can view revenue but never request the payouts they manage.
-- There is no **read-only variant of each template** (no `:read`-only tier), which is why view-only staff see edit controls.
-- There is no per-resource **"OWNER/ADMIN exclusive"** gating key for bank reveal, ownership transfer, or settings beyond role checks.
-- Full analysis in [`03-role-template-analysis.md`](./03-role-template-analysis.md).
+### Key corrected facts (vs 1st pass)
+- Operator catalog is **42 keys** (not 31 / 40); confirmed by counting `PERMISSION_META`.
+- 9 operator roles (added DISPATCHER / TREASURY / CONDUCTOR); platform-ADMIN not a role here.
+- Admin system = 6 roles; `admin-staff:*` + `audit:read` are the only enforced admin keys.
 
----
-
-### Counts
-- 31 permission keys, 8 groups (Routes, Terminals, Fleet, Schedules, Trips, Bookings, Financials, Staff, Company, Reviews — 10 groups in `PERMISSION_META`).
-- 6 staff roles (`OWNER`, `ADMIN`, `MANAGER`, `OPERATIONS`, `FINANCE`, `SUPPORT`).
-- ~135 tRPC procedures audited (of which ~60 operator-company-scoped).
-- 19 operator routes/pages audited (11 data pages + settings tree + onboarding/welcome).
-- 12 operator views audited (5 gated, 6 un-gated, 1 N/A).
+### Counts (2nd pass)
+- **Operator:** 42 permission keys · 9 roles · ~135 tRPC procedures audited.
+- **Admin:** 6 roles · 14 admin-staff procedures correctly gated · **45+ admin.ts procedures with ZERO IAM gate** · 57 admin-catalog keys, only 5 enforced.
+- **Shared:** pages / guards / Prisma model audit.
+- **~32 consolidated open findings** ranked in [`12-consolidated-findings-2026-08-07.md`](./12-consolidated-findings-2026-08-07.md).

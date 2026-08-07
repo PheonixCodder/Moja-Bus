@@ -14,10 +14,13 @@ import { toast } from "sonner";
 import { Building2, Save } from "lucide-react";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@moja/ui/components/ui/card";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 export function CompanyProfileView() {
   const { data: settings } = useCompanySettings();
   const form = useProfileForm(settings?.company || {});
+  const { can } = useStaffPermissions();
+  const canManage = can("company:profile:update");
   
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -201,7 +204,7 @@ export function CompanyProfileView() {
           <CardFooter className="border-t border-border bg-muted/20 px-6 py-4 flex justify-end">
             <Button 
               type="submit" 
-              disabled={!form.formState.isDirty || mutation.isPending}
+              disabled={!canManage || !form.formState.isDirty || mutation.isPending}
               className="w-full sm:w-auto"
             >
               <Save className="w-4 h-4 mr-2" />

@@ -1,26 +1,33 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import type { PermissionKey } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import {
-  requirePermission,
-  requireAnyPermission,
+  getOperatorEffectivePermissions,
+  operatorHasPermission,
   requireAllPermissions,
+  requireAnyPermission,
   requireCanGrant,
   requireOwner,
-  operatorHasPermission,
-  getOperatorEffectivePermissions,
+  requirePermission,
 } from "@/lib/permissions/authorize";
 
-function createMockCtx(overrides: Partial<{
-  userRole: string;
-  operatorRole: string;
-  operatorPermissions: string[];
-  operatorStatus: string;
-  companyId: string;
-}> = {}) {
+function createMockCtx(
+  overrides: Partial<{
+    userRole: string;
+    operatorRole: string;
+    operatorPermissions: string[];
+    operatorStatus: string;
+    companyId: string;
+  }> = {},
+) {
   const userRole = overrides.userRole ?? "OPERATOR";
   const operatorRole = overrides.operatorRole ?? "MANAGER";
-  const operatorPermissions = overrides.operatorPermissions ?? ["routes:read", "terminals:read", "company:view"];
+  const operatorPermissions = overrides.operatorPermissions ?? [
+    "routes:read",
+    "terminals:read",
+    "company:view",
+  ];
   const operatorStatus = overrides.operatorStatus ?? "ACTIVE";
   const companyId = overrides.companyId ?? "company-1";
 
@@ -40,7 +47,7 @@ describe("Authorization Functions", () => {
   describe("operatorHasPermission", () => {
     it("returns true for ADMIN user role regardless of permissions", () => {
       const ctx = createMockCtx({ userRole: "ADMIN" });
-      assert.ok(operatorHasPermission(ctx, "any:permission"));
+      assert.ok(operatorHasPermission(ctx, "any:permission" as PermissionKey));
     });
 
     it("returns false for SUSPENDED operator", () => {
@@ -59,26 +66,32 @@ describe("Authorization Functions", () => {
     });
 
     it("returns true for OWNER operator role (implicit all)", () => {
-      const ctx = createMockCtx({ operatorRole: "OWNER", operatorPermissions: [] });
-      assert.ok(operatorHasPermission(ctx, "any:permission"));
+      const ctx = createMockCtx({
+        operatorRole: "OWNER",
+        operatorPermissions: [],
+      });
+      assert.ok(operatorHasPermission(ctx, "any:permission" as PermissionKey));
     });
   });
 
   describe("getOperatorEffectivePermissions", () => {
     it("returns all keys for OWNER", () => {
-      const ctx = createMockCtx({ operatorRole: "OWNER", operatorPermissions: [] });
+      const ctx = createMockCtx({
+        operatorRole: "OWNER",
+        operatorPermissions: [],
+      });
       const perms = getOperatorEffectivePermissions(ctx.operator);
       assert.ok(perms.length > 0);
     });
 
     it("returns only valid permissions from stored list", () => {
-      const ctx = createMockCtx({ 
-        operatorPermissions: ["routes:read", "invalid:key", "terminals:read"] 
+      const ctx = createMockCtx({
+        operatorPermissions: ["routes:read", "invalid:key", "terminals:read"],
       });
       const perms = getOperatorEffectivePermissions(ctx.operator);
       assert.ok(perms.includes("routes:read"));
       assert.ok(perms.includes("terminals:read"));
-      assert.ok(!perms.includes("invalid:key"));
+      assert.ok(!perms.includes("invalid:key" as PermissionKey));
     });
   });
 
@@ -105,7 +118,10 @@ describe("Authorization Functions", () => {
     });
 
     it("throws for SUSPENDED operator", () => {
-      const ctx = createMockCtx({ operatorStatus: "SUSPENDED", operatorPermissions: ["routes:read"] });
+      const ctx = createMockCtx({
+        operatorStatus: "SUSPENDED",
+        operatorPermissions: ["routes:read"],
+      });
       try {
         requirePermission(ctx, "routes:read");
         assert.fail("Should have thrown");
@@ -136,7 +152,9 @@ describe("Authorization Functions", () => {
 
   describe("requireAllPermissions", () => {
     it("allows when all permissions are present", () => {
-      const ctx = createMockCtx({ operatorPermissions: ["routes:read", "terminals:read"] });
+      const ctx = createMockCtx({
+        operatorPermissions: ["routes:read", "terminals:read"],
+      });
       requireAllPermissions(ctx, ["routes:read", "terminals:read"]); // Should not throw
     });
 
@@ -159,7 +177,9 @@ describe("Authorization Functions", () => {
     });
 
     it("allows when actor can grant all proposed permissions", () => {
-      const ctx = createMockCtx({ operatorPermissions: ["routes:read", "terminals:read"] });
+      const ctx = createMockCtx({
+        operatorPermissions: ["routes:read", "terminals:read"],
+      });
       requireCanGrant(ctx, ["routes:read"]); // Should not throw
     });
 
@@ -205,7 +225,9 @@ describe("Authorization Functions", () => {
     });
 
     it("checks terminals:geocapture permission", () => {
-      const ctx = createMockCtx({ operatorPermissions: ["terminals:geocapture"] });
+      const ctx = createMockCtx({
+        operatorPermissions: ["terminals:geocapture"],
+      });
       assert.ok(operatorHasPermission(ctx, "terminals:geocapture"));
     });
 
@@ -215,17 +237,23 @@ describe("Authorization Functions", () => {
     });
 
     it("checks company:profile:update permission", () => {
-      const ctx = createMockCtx({ operatorPermissions: ["company:profile:update"] });
+      const ctx = createMockCtx({
+        operatorPermissions: ["company:profile:update"],
+      });
       assert.ok(operatorHasPermission(ctx, "company:profile:update"));
     });
 
     it("checks company:banking:update permission", () => {
-      const ctx = createMockCtx({ operatorPermissions: ["company:banking:update"] });
+      const ctx = createMockCtx({
+        operatorPermissions: ["company:banking:update"],
+      });
       assert.ok(operatorHasPermission(ctx, "company:banking:update"));
     });
 
     it("checks company:compliance:update permission", () => {
-      const ctx = createMockCtx({ operatorPermissions: ["company:compliance:update"] });
+      const ctx = createMockCtx({
+        operatorPermissions: ["company:compliance:update"],
+      });
       assert.ok(operatorHasPermission(ctx, "company:compliance:update"));
     });
 

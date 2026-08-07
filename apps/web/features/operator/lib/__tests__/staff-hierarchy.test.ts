@@ -113,7 +113,7 @@ describe("Staff Hierarchy Functions", () => {
       assert.ok(canAssignRole("MANAGER", "TREASURY"));
       assert.ok(canAssignRole("MANAGER", "DISPATCHER"));
       assert.ok(canAssignRole("MANAGER", "CONDUCTOR"));
-      assert.ok(canAssignRole("MANAGER", "OPERATIONS"));
+      assert.ok(!canAssignRole("MANAGER", "OPERATIONS"));
       assert.ok(!canAssignRole("MANAGER", "ADMIN"));
       assert.ok(!canAssignRole("MANAGER", "MANAGER"));
     });

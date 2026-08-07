@@ -24,6 +24,7 @@ interface AdminStaffMembersSectionProps {
   canInvite: boolean;
   canUpdate: boolean;
   canDelete: boolean;
+  canTransfer: boolean;
   onRetry: () => void;
   onInvite: () => void;
   onPageChange: (page: number) => void;
@@ -46,6 +47,7 @@ export function AdminStaffMembersSection({
   canInvite,
   canUpdate,
   canDelete,
+  canTransfer,
   onRetry,
   onInvite,
   onPageChange,
@@ -148,6 +150,7 @@ export function AdminStaffMembersSection({
                     isLast={idx === members.length - 1}
                     canUpdate={canUpdate}
                     canDelete={canDelete}
+                    canTransfer={canTransfer}
                     onEditRole={onEditRole}
                     onEditPermissions={onEditPermissions}
                     onStatusChange={onStatusChange}

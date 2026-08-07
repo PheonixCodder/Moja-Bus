@@ -16,7 +16,6 @@ export async function generateMetadata({ params }: Props) {
 export default async function RoutesPage() {
   await Promise.all([
     prefetch(trpc.routes.list.queryOptions()),
-    prefetch(trpc.terminals.list.queryOptions({ bookableOnly: true })),
   ]);
 
   return (

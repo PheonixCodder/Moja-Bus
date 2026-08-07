@@ -34,10 +34,10 @@ export function OperatorTripsView() {
   const t = useTranslations("operatorDashboard.trips");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { can } = useStaffPermissions();
+  const { can, canAny } = useStaffPermissions();
   const canUpdate = can("trips:update");
   const canCancel = can("trips:cancel");
-  const canCheckIn = can("bookings:update");
+  const canCheckIn = canAny(["bookings:update", "bookings:checkin"]);
   const canReadFleet = can("fleet:read");
 
   const STATUS_CHIPS: { status: TripStatus; label: string; dot: string }[] =

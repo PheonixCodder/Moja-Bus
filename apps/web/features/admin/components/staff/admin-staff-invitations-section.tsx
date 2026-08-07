@@ -9,14 +9,14 @@ interface AdminStaffInvitationsSectionProps {
   invitations: Array<AdminStaffInvitation & { createdAt?: Date | string }>;
   onResend: (invitation: AdminStaffInvitation) => void;
   onCancel: (invitation: AdminStaffInvitation) => void;
-  canDelete: boolean;
+  canInvite: boolean;
 }
 
 export function AdminStaffInvitationsSection({
   invitations,
   onResend,
   onCancel,
-  canDelete,
+  canInvite,
 }: AdminStaffInvitationsSectionProps) {
   const t = useTranslations("adminDashboard.staff.invitationsSection");
   return (
@@ -40,7 +40,7 @@ export function AdminStaffInvitationsSection({
               invitation={invitation}
               onResend={onResend}
               onCancel={onCancel}
-              canDelete={canDelete}
+              canInvite={canInvite}
             />
           ))}
         </div>

@@ -256,8 +256,12 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
 /** Who may assign which role labels (OWNER never via invite). */
 export const ASSIGNABLE_ROLES: Record<StaffRole, StaffRole[]> = {
   OWNER: ["ADMIN", "MANAGER", "OPERATIONS", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
-  ADMIN: ["MANAGER", "OPERATIONS", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
-  MANAGER: ["OPERATIONS", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
+  // D3: ADMIN/MANAGER cannot assign OPERATIONS — the OPERATIONS template
+  // includes `trips:create` which neither holds, so `requireCanGrant`
+  // (server-side) rejects it. Drop it here so the roster doesn't offer a role
+  // the server refuses.
+  ADMIN: ["MANAGER", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
+  MANAGER: ["SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
   OPERATIONS: [],
   FINANCE: [],
   SUPPORT: [],

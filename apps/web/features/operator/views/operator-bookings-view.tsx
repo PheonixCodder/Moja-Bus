@@ -1,28 +1,25 @@
 "use client";
 
-import { Suspense } from "react";
-import { useTranslations } from "next-intl";
-import { useQueryStates } from "nuqs";
-import {
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { Download, ScanLine, Search } from "lucide-react";
-import { toast } from "sonner";
+import type { OperatorBookingFilter } from "@moja/types";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
-import { useTRPC } from "@/trpc/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Download, ScanLine, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { Suspense } from "react";
+import { toast } from "sonner";
+import { BookingDetailDrawer } from "@/features/operator/components/bookings/booking-detail-drawer";
+import { BookingsList } from "@/features/operator/components/bookings/bookings-list";
 import {
   TicketScanner,
   type TicketScanResult,
 } from "@/features/operator/components/ticket-scanner";
-import { BookingsList } from "@/features/operator/components/bookings/bookings-list";
-import { BookingDetailDrawer } from "@/features/operator/components/bookings/booking-detail-drawer";
-import { bookingListParsers } from "@/features/operator/lib/bookings/booking-search-params";
-import { useDebounce } from "@/features/operator/hooks/useDebounce";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
-import type { OperatorBookingFilter } from "@moja/types";
+import { useDebounce } from "@/features/operator/hooks/useDebounce";
+import { bookingListParsers } from "@/features/operator/lib/bookings/booking-search-params";
+import { useTRPC } from "@/trpc/client";
 
 const PAGE_SIZE = 50;
 
@@ -36,8 +33,8 @@ export function OperatorBookingsView() {
   const t = useTranslations("operatorDashboard.bookings");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { can } = useStaffPermissions();
-  const canCheckIn = can("bookings:update");
+  const { can, canAny } = useStaffPermissions();
+  const canCheckIn = canAny(["bookings:update", "bookings:checkin"]);
   const [params, setParams] = useQueryStates(bookingListParsers);
   const { filter, q, status, tripId, page, detail } = params;
   const debouncedQ = useDebounce(q, 300);
@@ -49,7 +46,9 @@ export function OperatorBookingsView() {
           trpc.operator.listBookings.pathFilter(),
         );
         if (result.alreadyCheckedIn) {
-          toast.info(t("toast.alreadyCheckedIn", { name: result.passengerName }));
+          toast.info(
+            t("toast.alreadyCheckedIn", { name: result.passengerName }),
+          );
         } else {
           toast.success(t("toast.checkedIn", { name: result.passengerName }));
         }
@@ -84,43 +83,45 @@ export function OperatorBookingsView() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">{t("title")}</h1>
-          <p className="text-sm text-text-secondary mt-1">
-            {t("description")}
-          </p>
+          <p className="text-sm text-text-secondary mt-1">{t("description")}</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={async () => {
-              try {
-                const result = await queryClient.fetchQuery(
-                  trpc.operator.exportBookingsCsv.queryOptions({
-                    ...listInput,
-                    limit: 100,
-                    offset: 0,
-                  }),
-                );
-                const blob = new Blob([result.csv], {
-                  type: "text/csv;charset=utf-8",
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `bookings-${filter}.csv`;
-                a.click();
-                URL.revokeObjectURL(url);
-                toast.success(t("toast.exported", { count: result.count }));
-              } catch (err: unknown) {
-                const message =
-                  err instanceof Error ? err.message : t("toast.exportFailed");
-                toast.error(message);
-              }
-            }}
-          >
-            <Download className="size-4" />
-            {t("exportCsv")}
-          </Button>
+          {can("revenue:export") && (
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={async () => {
+                try {
+                  const result = await queryClient.fetchQuery(
+                    trpc.operator.exportBookingsCsv.queryOptions({
+                      ...listInput,
+                      limit: 100,
+                      offset: 0,
+                    }),
+                  );
+                  const blob = new Blob([result.csv], {
+                    type: "text/csv;charset=utf-8",
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `bookings-${filter}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success(t("toast.exported", { count: result.count }));
+                } catch (err: unknown) {
+                  const message =
+                    err instanceof Error
+                      ? err.message
+                      : t("toast.exportFailed");
+                  toast.error(message);
+                }
+              }}
+            >
+              <Download className="size-4" />
+              {t("exportCsv")}
+            </Button>
+          )}
           {canCheckIn ? (
             <Button
               variant="secondary"
@@ -187,7 +188,9 @@ export function OperatorBookingsView() {
             size="sm"
             variant="ghost"
             className="h-7 text-xs text-muted-foreground"
-            onClick={() => void setParams({ status: "ALL", tripId: "", page: 1 })}
+            onClick={() =>
+              void setParams({ status: "ALL", tripId: "", page: 1 })
+            }
           >
             {t("clearFilters")}
           </Button>

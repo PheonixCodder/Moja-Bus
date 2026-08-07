@@ -71,6 +71,7 @@ export function RoleSheet({
 
   const t = useTranslations("operatorDashboard.staff");
   const [role, setRole] = useState<StaffRole>("SUPPORT");
+  const [resetPermissions, setResetPermissions] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {

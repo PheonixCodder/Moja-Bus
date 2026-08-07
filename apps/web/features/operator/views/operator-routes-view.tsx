@@ -1,17 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
-import {
-  useSuspenseQueries,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { Plus, Search, Map as MapIcon, CheckCircle2, Clock, Route as RouteIcon } from "lucide-react";
-import { toast } from "sonner";
-
 import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
 import {
   Empty,
   EmptyContent,
@@ -20,14 +9,32 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@moja/ui/components/ui/empty";
-import { useTRPC } from "@/trpc/client";
-import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
-import { StatCard } from "@/features/operator/components/stat-card";
+import { Input } from "@moja/ui/components/ui/input";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import {
+  CheckCircle2,
+  Clock,
+  Map as MapIcon,
+  Plus,
+  Route as RouteIcon,
+  Search,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { DeleteRouteDialog } from "@/features/operator/components/routes/delete-route-dialog";
 import { RouteCard } from "@/features/operator/components/routes/route-card";
 import { RouteFormDrawer } from "@/features/operator/components/routes/route-form-drawer";
-import { DeleteRouteDialog } from "@/features/operator/components/routes/delete-route-dialog";
 import { RouteSuccessPanel } from "@/features/operator/components/routes/route-success-panel";
+import { StatCard } from "@/features/operator/components/stat-card";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 
 type RouteType = RouterOutputs["routes"]["list"][number];
 
@@ -40,13 +47,19 @@ export function OperatorRoutesView() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
 
-  const [{ data: routes }, { data: terminals }] = useSuspenseQueries({
-    queries: [
-      trpc.routes.list.queryOptions({
-        showArchived: statusFilter === "ARCHIVED" || statusFilter === "ALL",
-      }),
-      trpc.terminals.list.queryOptions({ bookableOnly: true }),
-    ],
+  const canManageRoute = can("routes:create") || can("routes:update");
+
+  const { data: routes } = useSuspenseQuery(
+    trpc.routes.list.queryOptions({
+      showArchived: statusFilter === "ARCHIVED" || statusFilter === "ALL",
+    }),
+  );
+  // S2: only fetch terminals when the user can actually open the route form
+  // (server requires terminals:read). Keeps a routes:read-only user from
+  // erroring out on a control they can't use.
+  const { data: terminals } = useQuery({
+    ...trpc.terminals.list.queryOptions({ bookableOnly: true }),
+    enabled: canManageRoute,
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRouteId, setEditingRouteId] = useState<string | null>(null);
@@ -60,13 +73,16 @@ export function OperatorRoutesView() {
       const matchesSearch =
         !q ||
         r.name.toLowerCase().includes(q) ||
-        (r.originTerminal?.name && r.originTerminal.name.toLowerCase().includes(q)) ||
-        (r.originTerminal?.cityRelation?.name && r.originTerminal.cityRelation.name.toLowerCase().includes(q)) ||
-        (r.destTerminal?.name && r.destTerminal.name.toLowerCase().includes(q)) ||
-        (r.destTerminal?.cityRelation?.name && r.destTerminal.cityRelation.name.toLowerCase().includes(q));
+        (r.originTerminal?.name &&
+          r.originTerminal.name.toLowerCase().includes(q)) ||
+        (r.originTerminal?.cityRelation?.name &&
+          r.originTerminal.cityRelation.name.toLowerCase().includes(q)) ||
+        (r.destTerminal?.name &&
+          r.destTerminal.name.toLowerCase().includes(q)) ||
+        (r.destTerminal?.cityRelation?.name &&
+          r.destTerminal.cityRelation.name.toLowerCase().includes(q));
 
-      const matchesStatus =
-        statusFilter === "ALL" || r.status === statusFilter;
+      const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -115,20 +131,36 @@ export function OperatorRoutesView() {
             {t("pageDescription")}
           </p>
         </div>
-         {can("routes:create") ? (
-           <Button onClick={handleAddNew} className="shrink-0">
-             <Plus className="mr-2 size-4" />
-             {t("createRoute")}
-           </Button>
-         ) : null}
-       </div>
+        {can("routes:create") ? (
+          <Button onClick={handleAddNew} className="shrink-0">
+            <Plus className="mr-2 size-4" />
+            {t("createRoute")}
+          </Button>
+        ) : null}
+      </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label={t("kpi.totalRoutes")} value={stats.total} icon={RouteIcon} />
-        <StatCard label={t("kpi.activeRoutes")} value={stats.active} icon={CheckCircle2} />
-        <StatCard label={t("kpi.draftRoutes")} value={stats.drafts} icon={MapIcon} />
-        <StatCard label={t("kpi.suspended")} value={stats.suspended} icon={Clock} />
+        <StatCard
+          label={t("kpi.totalRoutes")}
+          value={stats.total}
+          icon={RouteIcon}
+        />
+        <StatCard
+          label={t("kpi.activeRoutes")}
+          value={stats.active}
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label={t("kpi.draftRoutes")}
+          value={stats.drafts}
+          icon={MapIcon}
+        />
+        <StatCard
+          label={t("kpi.suspended")}
+          value={stats.suspended}
+          icon={Clock}
+        />
       </div>
 
       {/* Success Callout Panel */}
@@ -173,18 +205,16 @@ export function OperatorRoutesView() {
             </EmptyMedia>
             <EmptyHeader>
               <EmptyTitle>{t("noRoutesTitle")}</EmptyTitle>
-              <EmptyDescription>
-                {t("noRoutesDesc")}
-              </EmptyDescription>
+              <EmptyDescription>{t("noRoutesDesc")}</EmptyDescription>
             </EmptyHeader>
-             <EmptyContent>
-               {can("routes:create") ? (
-                 <Button size="sm" onClick={handleAddNew}>
-                   <Plus className="size-3.5 mr-1.5" />
-                   {t("createRoute")}
-                 </Button>
-               ) : null}
-             </EmptyContent>
+            <EmptyContent>
+              {can("routes:create") ? (
+                <Button size="sm" onClick={handleAddNew}>
+                  <Plus className="size-3.5 mr-1.5" />
+                  {t("createRoute")}
+                </Button>
+              ) : null}
+            </EmptyContent>
           </Empty>
         ) : (
           <Empty className="py-16">
@@ -193,9 +223,7 @@ export function OperatorRoutesView() {
             </EmptyMedia>
             <EmptyHeader>
               <EmptyTitle>{t("noMatchTitle")}</EmptyTitle>
-              <EmptyDescription>
-                {t("noMatchDesc")}
-              </EmptyDescription>
+              <EmptyDescription>{t("noMatchDesc")}</EmptyDescription>
             </EmptyHeader>
           </Empty>
         )
@@ -207,8 +235,6 @@ export function OperatorRoutesView() {
               route={route}
               onEdit={can("routes:update") ? handleEdit : undefined}
               onDelete={can("routes:delete") ? setDeletingRoute : undefined}
-              canEdit={can("routes:update")}
-              canDelete={can("routes:delete")}
             />
           ))}
         </div>

@@ -36,6 +36,7 @@ interface AdminStaffMemberRowProps {
   isLast: boolean;
   canUpdate: boolean;
   canDelete: boolean;
+  canTransfer: boolean;
   onEditRole: (member: AdminStaffMember) => void;
   onEditPermissions: (member: AdminStaffMember) => void;
   onStatusChange: (member: AdminStaffMember, status: AdminStaffStatus) => void;
@@ -48,6 +49,7 @@ export function AdminStaffMemberRow({
   isLast,
   canUpdate,
   canDelete,
+  canTransfer,
   onEditRole,
   onEditPermissions,
   onStatusChange,
@@ -152,7 +154,7 @@ export function AdminStaffMemberRow({
             )
           ) : null}
 
-          {canDelete && !isSuperAdmin ? (
+          {canTransfer && !isSuperAdmin ? (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -162,6 +164,11 @@ export function AdminStaffMemberRow({
                 <ArrowRightLeft className="mr-2 h-3.5 w-3.5" />
                 {t("table.transferOwnership")}
               </DropdownMenuItem>
+            </>
+          ) : null}
+
+          {canDelete && !isSuperAdmin ? (
+            <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-[13px] cursor-pointer text-red-600 focus:text-red-600"

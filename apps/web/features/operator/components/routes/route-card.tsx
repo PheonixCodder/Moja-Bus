@@ -1,10 +1,10 @@
 "use client";
 
+import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
+import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { ArrowRight, CalendarClock, Pencil, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@moja/ui/components/ui/button";
-import { Badge } from "@moja/ui/components/ui/badge";
-import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { UrbanBadge } from "@/components/urban-badge";
 import { formatCityWithMuni } from "@/lib/format-location-label";
 import type { RouterOutputs } from "@/trpc/client";
@@ -22,8 +22,8 @@ function formatOffset(minutes: number): string {
 
 interface RouteCardProps {
   route: RouteType;
-  onEdit: (route: RouteType) => void;
-  onDelete: (route: RouteType) => void;
+  onEdit?: ((route: RouteType) => void) | undefined;
+  onDelete?: ((route: RouteType) => void) | undefined;
 }
 
 export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
@@ -41,22 +41,34 @@ export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
                 {route.name}
               </p>
               {route.status === "DRAFT" && (
-                <Badge variant="secondary" className="text-[10px] uppercase font-bold py-0 h-4">
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] uppercase font-bold py-0 h-4"
+                >
                   {t("status.DRAFT")}
                 </Badge>
               )}
               {route.status === "ACTIVE" && (
-                <Badge variant="default" className="text-[10px] uppercase font-bold py-0 h-4 bg-emerald-500 hover:bg-emerald-600 text-white">
+                <Badge
+                  variant="default"
+                  className="text-[10px] uppercase font-bold py-0 h-4 bg-emerald-500 hover:bg-emerald-600 text-white"
+                >
                   {t("status.ACTIVE")}
                 </Badge>
               )}
               {route.status === "SUSPENDED" && (
-                <Badge variant="outline" className="text-[10px] uppercase font-bold py-0 h-4 text-amber-600 border-amber-600/30 bg-amber-50">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] uppercase font-bold py-0 h-4 text-amber-600 border-amber-600/30 bg-amber-50"
+                >
                   {t("status.SUSPENDED")}
                 </Badge>
               )}
               {route.status === "ARCHIVED" && (
-                <Badge variant="outline" className="text-[10px] uppercase font-bold py-0 h-4 text-muted-foreground border-border bg-muted">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] uppercase font-bold py-0 h-4 text-muted-foreground border-border bg-muted"
+                >
                   {t("status.ARCHIVED")}
                 </Badge>
               )}
@@ -83,22 +95,26 @@ export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
             </div>
           </div>
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 text-muted-foreground hover:text-foreground"
-              onClick={() => onEdit(route)}
-            >
-              <Pencil className="size-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 text-muted-foreground hover:text-destructive"
-              onClick={() => onDelete(route)}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-muted-foreground hover:text-foreground"
+                onClick={() => onEdit(route)}
+              >
+                <Pencil className="size-3.5" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-muted-foreground hover:text-destructive"
+                onClick={() => onDelete(route)}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            )}
           </div>
         </div>
 

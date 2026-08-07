@@ -28,7 +28,7 @@ export function BankingView() {
   const { data: settings } = useCompanySettings();
 
   // Check permissions for banking actions
-  const canManageBanking = can("company:banking:update") || can("financials:view");
+  const canManageBanking = can("company:banking:update");
 
   const { data: bankAccounts } = useBankAccounts();
   const deleteBankMutation = useDeleteBankAccount();

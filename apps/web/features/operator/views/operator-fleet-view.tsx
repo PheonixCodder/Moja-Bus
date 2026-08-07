@@ -150,9 +150,11 @@ interface BusCardProps {
   onEdit: (bus: Bus) => void;
   onDelete: (bus: Bus) => void;
   onViewMap: (bus: Bus) => void;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
-function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
+function BusCard({ bus, onEdit, onDelete, onViewMap, canEdit, canDelete }: BusCardProps) {
   const t = useTranslations("operatorDashboard.fleet");
   const status = STATUS_CONFIG[bus.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.INACTIVE;
 
@@ -239,23 +241,27 @@ function BusCard({ bus, onEdit, onDelete, onViewMap }: BusCardProps) {
               <LayoutGrid className="size-3.5 mr-1" />
               {t("busCard.plan")}
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted"
-              onClick={() => onEdit(bus)}
-            >
-              <Pencil className="size-3.5 mr-1" />
-              {t("busCard.edit")}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-              onClick={() => onDelete(bus)}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
+            {canEdit && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted"
+                onClick={() => onEdit(bus)}
+              >
+                <Pencil className="size-3.5 mr-1" />
+                {t("busCard.edit")}
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+                onClick={() => onDelete(bus)}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
@@ -271,9 +277,10 @@ interface LayoutCardProps {
   layout: CustomLayout;
   onDelete: (layout: CustomLayout) => void;
   onPreview: (layout: CustomLayout) => void;
+  canDelete: boolean;
 }
 
-function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
+function CustomLayoutCard({ layout, onDelete, onPreview, canDelete }: LayoutCardProps) {
   const t = useTranslations("operatorDashboard.fleet");
   const busCount = layout._count.buses;
 
@@ -346,16 +353,18 @@ function CustomLayoutCard({ layout, onDelete, onPreview }: LayoutCardProps) {
             <LayoutGrid className="size-3.5 mr-1" />
             {t("layouts.previewBtn")}
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-            onClick={() => onDelete(layout)}
-            disabled={busCount > 0}
-            title={busCount > 0 ? t("layouts.layoutDeleteTooltip", { count: busCount }) : t("layouts.deleteLayout")}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
+          {canDelete && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+              onClick={() => onDelete(layout)}
+              disabled={busCount > 0}
+              title={busCount > 0 ? t("layouts.layoutDeleteTooltip", { count: busCount }) : t("layouts.deleteLayout")}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -513,6 +522,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
   const tc = useTranslations("common");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { can } = useStaffPermissions();
 
   const { data: customLayouts } = useSuspenseQuery(
     trpc.fleet.getCustomLayouts.queryOptions(),
@@ -562,14 +572,16 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               {t("layouts.myLayoutsDesc")}
             </p>
           </div>
-          <Button
-            size="sm"
-            className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
-            onClick={() => setBuilderOpen(true)}
-          >
-            <Plus className="size-4" />
-            {t("layouts.createCustomLayout")}
-          </Button>
+          {can("fleet:create") && (
+            <Button
+              size="sm"
+              className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
+              onClick={() => setBuilderOpen(true)}
+            >
+              <Plus className="size-4" />
+              {t("layouts.createCustomLayout")}
+            </Button>
+          )}
         </div>
 
         {customLayouts.length === 0 ? (
@@ -585,14 +597,16 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>
-                <Button
-                  size="sm"
-                  className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
-                  onClick={() => setBuilderOpen(true)}
-                >
-                  <Plus className="size-4" />
-                  {t("layouts.createCustomLayout")}
-                </Button>
+                {can("fleet:create") && (
+                  <Button
+                    size="sm"
+                    className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
+                    onClick={() => setBuilderOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                    {t("layouts.createCustomLayout")}
+                  </Button>
+                )}
               </EmptyContent>
             </Empty>
           </div>
@@ -604,6 +618,7 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                 layout={layout}
                 onDelete={setDeletingLayout}
                 onPreview={setPreviewLayout}
+                canDelete={can("fleet:delete")}
               />
             ))}
           </div>
@@ -858,26 +873,30 @@ export function OperatorFleetView() {
           <div className="flex items-center gap-2">
             {activeTab === "buses" ? (
               <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 border-dashed border-border text-xs gap-1.5"
-                  onClick={() => setBusTypeDialogOpen(true)}
-                >
-                  <Plus className="size-3.5" />
-                  {t("addBusType")}
-                </Button>
-                <Button
-                  size="sm"
-                  className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
-                  onClick={() => {
-                    setEditingBus(null);
-                    setAddModalOpen(true);
-                  }}
-                >
-                  <Plus className="size-4" />
-                  {t("addVehicle")}
-                </Button>
+                {can("fleet:create") && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 border-dashed border-border text-xs gap-1.5"
+                    onClick={() => setBusTypeDialogOpen(true)}
+                  >
+                    <Plus className="size-3.5" />
+                    {t("addBusType")}
+                  </Button>
+                )}
+                {can("fleet:create") && (
+                  <Button
+                    size="sm"
+                    className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5"
+                    onClick={() => {
+                      setEditingBus(null);
+                      setAddModalOpen(true);
+                    }}
+                  >
+                    <Plus className="size-4" />
+                    {t("addVehicle")}
+                  </Button>
+                )}
               </>
             ) : null}
           </div>
@@ -1047,7 +1066,7 @@ export function OperatorFleetView() {
                       : t("empty.emptyDescription")}
                   </EmptyDescription>
                 </EmptyHeader>
-                {!search && statusFilter === "ALL" && (
+                {!search && statusFilter === "ALL" && can("fleet:create") && (
                   <EmptyContent>
                     <Button
                       size="sm"
@@ -1076,6 +1095,8 @@ export function OperatorFleetView() {
                   }}
                   onDelete={setDeletingBus}
                   onViewMap={handleViewMap}
+                  canEdit={can("fleet:update")}
+                  canDelete={can("fleet:delete")}
                 />
               ))}
             </div>

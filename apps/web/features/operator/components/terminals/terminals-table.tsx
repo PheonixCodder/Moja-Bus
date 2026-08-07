@@ -8,10 +8,10 @@ import { formatCityWithMuni } from "@/lib/format-location-label";
 
 interface TerminalsTableProps {
   locations: any[];
-  onEdit: (loc: any) => void;
-  onToggleTerminal: (loc: any, currentVal: boolean) => void;
-  onDelete: (loc: any) => void;
-  onResolveCapture: (loc: any) => void;
+  onEdit?: ((loc: any) => void) | undefined;
+  onToggleTerminal?: ((loc: any, currentVal: boolean) => void) | undefined;
+  onDelete?: ((loc: any) => void) | undefined;
+  onResolveCapture?: ((loc: any) => void) | undefined;
   togglingId?: string | null;
   canEdit: boolean;
   canDelete: boolean;
@@ -56,6 +56,10 @@ export function TerminalsTable({
   onDelete,
   onResolveCapture,
   togglingId,
+  canToggle,
+  canResolveCapture,
+  canEdit,
+  canDelete,
 }: TerminalsTableProps) {
   const t = useTranslations("operatorDashboard.terminals");
   const tc = useTranslations("common");
@@ -114,22 +118,22 @@ export function TerminalsTable({
                   </div>
                 </div>
               </td>
-               <td className="px-4 py-3.5">
-                 <div className="flex items-center gap-2">
-                   {canToggle ? (
-                     <Switch
-                       checked={loc.isTerminal}
-                       disabled={togglingId === loc.id}
-                       onCheckedChange={() =>
-                         onToggleTerminal(loc, loc.isTerminal)
-                       }
-                     />
-                   ) : null}
-                   <span className="text-xs font-medium text-muted-foreground">
-                     {loc.isTerminal ? t("terminals") : t("depots")}
-                   </span>
-                 </div>
-               </td>
+              <td className="px-4 py-3.5">
+                <div className="flex items-center gap-2">
+                  {canToggle && onToggleTerminal ? (
+                    <Switch
+                      checked={loc.isTerminal}
+                      disabled={togglingId === loc.id}
+                      onCheckedChange={() =>
+                        onToggleTerminal(loc, loc.isTerminal)
+                      }
+                    />
+                  ) : null}
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {loc.isTerminal ? t("terminals") : t("depots")}
+                  </span>
+                </div>
+              </td>
               <td className="px-4 py-3.5 text-xs text-muted-foreground">
                 <div>
                   {formatCityWithMuni(
@@ -165,42 +169,44 @@ export function TerminalsTable({
                     )}
                 </div>
               </td>
-               <td className="px-4 py-3.5 text-right space-x-1">
-                 {canResolveCapture && loc.geoCaptureStatus !== "COMPLETE" &&
-                   loc.captures?.[0]?.status === "CONFIRMED" && (
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       className="h-8 gap-1.5 text-[11px] font-semibold text-violet-600 dark:text-violet-400 border-violet-500/30 hover:bg-violet-500/10"
-                       onClick={() => onResolveCapture(loc)}
-                     >
-                       <Link2 className="size-3.5" />
-                       {t("resolve.title")}
-                     </Button>
-                   )}
-                 {canEdit ? (
-                   <Button
-                     variant="ghost"
-                     size="icon"
-                     className="size-8"
-                     onClick={() => onEdit(loc)}
-                     title={tc("edit")}
-                   >
-                     <Pencil className="size-3.5" />
-                   </Button>
-                 ) : null}
-                 {canDelete ? (
-                   <Button
-                     variant="ghost"
-                     size="icon"
-                     className="size-8 text-destructive hover:bg-destructive/10"
-                     onClick={() => onDelete(loc)}
-                     title={t("deleteLocation")}
-                   >
-                     <Trash2 className="size-3.5" />
-                   </Button>
-                 ) : null}
-               </td>
+              <td className="px-4 py-3.5 text-right space-x-1">
+                {canResolveCapture &&
+                  onResolveCapture &&
+                  loc.geoCaptureStatus !== "COMPLETE" &&
+                  loc.captures?.[0]?.status === "CONFIRMED" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5 text-[11px] font-semibold text-violet-600 dark:text-violet-400 border-violet-500/30 hover:bg-violet-500/10"
+                      onClick={() => onResolveCapture(loc)}
+                    >
+                      <Link2 className="size-3.5" />
+                      {t("resolve.title")}
+                    </Button>
+                  )}
+                {canEdit && onEdit ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    onClick={() => onEdit(loc)}
+                    title={tc("edit")}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+                ) : null}
+                {canDelete && onDelete ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-destructive hover:bg-destructive/10"
+                    onClick={() => onDelete(loc)}
+                    title={t("deleteLocation")}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                ) : null}
+              </td>
             </tr>
           ))}
         </tbody>

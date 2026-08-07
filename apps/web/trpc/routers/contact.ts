@@ -5,6 +5,7 @@ import {
   submitInquirySchema,
 } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
+import { requireAdminPermission } from "@/lib/permissions/admin-authorize";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "../init";
 
 const SUBMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -56,6 +57,7 @@ export const contactRouter = createTRPCRouter({
   listInquiries: adminProcedure
     .input(adminListInquiriesSchema)
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "support:inquiries:read");
       const where: Record<string, unknown> = {};
 
       if (input.status) {
@@ -97,6 +99,7 @@ export const contactRouter = createTRPCRouter({
   getInquiry: adminProcedure
     .input(adminGetInquirySchema)
     .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "support:inquiries:read");
       const inquiry = await ctx.prisma.contactInquiry.findUnique({
         where: { id: input.id },
         include: {
@@ -131,6 +134,7 @@ export const contactRouter = createTRPCRouter({
   updateInquiryStatus: adminProcedure
     .input(adminUpdateInquiryStatusSchema)
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "support:inquiries:respond");
       const { id, status, adminNote } = input;
       const isTerminal = status === "RESOLVED" || status === "CLOSED";
 

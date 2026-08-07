@@ -1,9 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
 import type { PermissionKey, StaffRole } from "@moja/schemas";
 import { ASSIGNABLE_ROLES } from "@moja/schemas";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 
 export function useStaffPermissions() {
   const trpc = useTRPC();
@@ -18,12 +18,18 @@ export function useStaffPermissions() {
     return permissionSet.has(key);
   }
 
+  function canAny(keys: PermissionKey[]): boolean {
+    if (role === "OWNER") return true;
+    return keys.some((key) => permissionSet.has(key));
+  }
+
   return {
     role,
     permissions,
     companyId: query.data?.companyId ?? null,
     isLoading: query.isLoading,
     can,
+    canAny,
     assignableRoles: (ASSIGNABLE_ROLES[role] ?? []) as StaffRole[],
     refetch: query.refetch,
   };
