@@ -743,10 +743,12 @@ fares: {
       return { success: true };
     }),
 
-  updateBasic: operatorCompanyProcedure
-    .input(z.object({ id: z.string(), data: updateScheduleBasicSchema }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "schedules:update");
+updateBasic: operatorCompanyProcedure
+      .input(z.object({ id: z.string(), data: updateScheduleBasicSchema }))
+      .mutation(async ({ ctx, input }) => {
+        requirePermission(ctx, "schedules:update");
+        requirePermission(ctx, "trips:cancel");
+        requirePermission(ctx, "trips:dispatch");
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });
@@ -883,10 +885,12 @@ fares: {
       return updated;
     }),
 
-  updateCalendar: operatorCompanyProcedure
-    .input(z.object({ id: z.string(), data: updateCalendarSchema }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "schedules:update");
+updateCalendar: operatorCompanyProcedure
+      .input(z.object({ id: z.string(), data: updateCalendarSchema }))
+      .mutation(async ({ ctx, input }) => {
+        requirePermission(ctx, "schedules:update");
+        requirePermission(ctx, "trips:cancel");
+        requirePermission(ctx, "trips:dispatch");
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
         include: { calendar: true },
@@ -981,15 +985,17 @@ fares: {
       return updated;
     }),
 
-  reconcileFutureTrips: operatorCompanyProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        busId: z.string().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "schedules:update");
+reconcileFutureTrips: operatorCompanyProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          busId: z.string().optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        requirePermission(ctx, "schedules:update");
+        requirePermission(ctx, "trips:cancel");
+        requirePermission(ctx, "trips:dispatch");
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
         include: { calendar: true },
@@ -1288,14 +1294,15 @@ fares: {
       }
     }),
 
-  addException: operatorCompanyProcedure
-    .input(
-      exceptionSchema.extend({
-        scheduleId: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "schedules:update");
+   addException: operatorCompanyProcedure
+     .input(
+       exceptionSchema.extend({
+         scheduleId: z.string(),
+       }),
+     )
+     .mutation(async ({ ctx, input }) => {
+       requirePermission(ctx, "schedules:update");
+       requirePermission(ctx, "trips:cancel");
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.scheduleId, companyId: ctx.companyId },
       });
@@ -1452,10 +1459,11 @@ fares: {
       return exception;
     }),
 
-  removeException: operatorCompanyProcedure
-    .input(z.object({ exceptionId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "schedules:update");
+   removeException: operatorCompanyProcedure
+     .input(z.object({ exceptionId: z.string() }))
+     .mutation(async ({ ctx, input }) => {
+       requirePermission(ctx, "schedules:update");
+       requirePermission(ctx, "trips:cancel");
       const exception = await ctx.prisma.serviceException.findFirst({
         where: { id: input.exceptionId },
         include: { schedule: true },

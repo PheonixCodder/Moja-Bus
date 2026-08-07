@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Suspense, useState } from "react";
+import { AdminRouteDrawer } from "@/features/admin/components/routes/admin-route-drawer";
 import { AdminRoutesHeader } from "@/features/admin/components/routes/admin-routes-header";
 import { AdminRoutesTable } from "@/features/admin/components/routes/admin-routes-table";
-import { AdminRouteDrawer } from "@/features/admin/components/routes/admin-route-drawer";
-import { useTranslations } from "next-intl";
 
 export function AdminRoutesView() {
   const t = useTranslations("adminDashboard.adminRoutesView");
@@ -13,7 +13,13 @@ export function AdminRoutesView() {
   return (
     <div className="flex flex-col gap-4">
       <AdminRoutesHeader />
-      <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">{t("loadingRoutes")}</div>}>
+      <Suspense
+        fallback={
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            {t("loadingRoutes")}
+          </div>
+        }
+      >
         <AdminRoutesTable onViewRoute={setSelectedRouteId} />
       </Suspense>
       <AdminRouteDrawer

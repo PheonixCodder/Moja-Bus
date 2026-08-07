@@ -61,6 +61,7 @@ import {
   ComboboxItem,
   ComboboxEmpty,
 } from "@moja/ui/components/ui/combobox";
+import { AccessDeniedCard } from "@/features/operator/components/access-denied-card";
 
 import type { RouterOutputs } from "@/trpc/client";
 import { useTRPC } from "@/trpc/client";
@@ -73,6 +74,7 @@ import { AddBusModal } from "@/features/operator/components/add-bus-modal";
 import { SeatMapPreview } from "@/features/operator/components/seat-map-preview";
 import { LayoutBuilderSheet } from "@/features/operator/components/layout-builder-sheet";
 import { AddBusTypeDialog } from "@/features/operator/components/fleet/add-bus-type-dialog";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 type Bus = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 type FleetStats = RouterOutputs["fleet"]["getBuses"]["stats"];
@@ -756,12 +758,18 @@ function SeatMapFetcher({ busId }: { busId: string }) {
 // ──────────────────────────────────────────────
 
 export function OperatorFleetView() {
-  const t = useTranslations("operatorDashboard.fleet");
-  const tc = useTranslations("common");
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const trpc = useTRPC();
+   const t = useTranslations("operatorDashboard.fleet");
+   const tc = useTranslations("common");
+   const { can } = useStaffPermissions();
+ 
+   if (!can("fleet:read")) {
+     return <AccessDeniedCard permission="fleet:read" />;
+   }
+ 
+   const searchParams = useSearchParams();
+   const router = useRouter();
+   const queryClient = useQueryClient();
+   const trpc = useTRPC();
 
   const { data } = useSuspenseQuery(trpc.fleet.getBuses.queryOptions());
   const { data: busTypes } = useSuspenseQuery(trpc.fleet.getBusTypes.queryOptions());

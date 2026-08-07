@@ -1,6 +1,5 @@
 "use client";
 
-import { flexRender, type Table as TableType } from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -9,8 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
+import { flexRender, type Table as TableType } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
-import { LedgerEntryRow } from "./ledger-columns";
+import type { LedgerEntryRow } from "./ledger-columns";
 
 interface LedgerTableProps {
   table: TableType<LedgerEntryRow>;
@@ -31,7 +31,10 @@ export function LedgerTable({ table }: LedgerTableProps) {
                 >
                   {header.isPlaceholder
                     ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                 </TableHead>
               ))}
             </TableRow>
@@ -46,10 +49,7 @@ export function LedgerTable({ table }: LedgerTableProps) {
                 className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className="py-3 px-4 align-middle"
-                  >
+                  <TableCell key={cell.id} className="py-3 px-4 align-middle">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

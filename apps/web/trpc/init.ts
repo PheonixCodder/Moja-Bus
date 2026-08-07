@@ -230,3 +230,30 @@ export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
     },
   });
 });
+
+export const adminStaffProcedure = adminProcedure.use(
+  async ({ ctx, next }) => {
+    const adminStaff = await ctx.prisma.adminStaff.findUnique({
+      where: { userId: ctx.user.id, deletedAt: null },
+    });
+    if (!adminStaff) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Admin staff profile not found",
+      });
+    }
+    if (adminStaff.status === "SUSPENDED") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Your admin access is suspended",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        adminStaff,
+      },
+    });
+  },
+);

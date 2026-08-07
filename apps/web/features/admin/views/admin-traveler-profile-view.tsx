@@ -1,33 +1,67 @@
 "use client";
 
+import { Badge } from "@moja/ui/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
+import { cn } from "@moja/ui/lib/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
 import { format } from "date-fns";
 import {
-  Calendar, CreditCard, MapPin, Monitor,
-  Users, Ticket, Star,
+  Calendar,
+  CreditCard,
+  MapPin,
+  Monitor,
+  Star,
+  Ticket,
+  Users,
 } from "lucide-react";
-
-import { Badge } from "@moja/ui/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
-import { UserProfileHeader } from "../components/user-profile-header";
-import { cn } from "@moja/ui/lib/utils";
 import { useTranslations } from "next-intl";
+import { useTRPC } from "@/trpc/client";
+import { UserProfileHeader } from "../components/user-profile-header";
 
-const bookingStatusMeta: Record<string, { label: string; className: string }> = {
-  CONFIRMED:       { label: "Confirmed",       className: "bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
-  PENDING_PAYMENT: { label: "Pending Payment", className: "bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-  CANCELLED:       { label: "Cancelled",       className: "bg-red-100/60 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
-  EXPIRED:         { label: "Expired",         className: "bg-zinc-100/60 text-zinc-500 dark:bg-zinc-800/40 dark:text-zinc-400" },
-  COMPLETED:       { label: "Completed",       className: "bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-};
+const bookingStatusMeta: Record<string, { label: string; className: string }> =
+  {
+    CONFIRMED: {
+      label: "Confirmed",
+      className:
+        "bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    },
+    PENDING_PAYMENT: {
+      label: "Pending Payment",
+      className:
+        "bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    },
+    CANCELLED: {
+      label: "Cancelled",
+      className:
+        "bg-red-100/60 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    },
+    EXPIRED: {
+      label: "Expired",
+      className:
+        "bg-zinc-100/60 text-zinc-500 dark:bg-zinc-800/40 dark:text-zinc-400",
+    },
+    COMPLETED: {
+      label: "Completed",
+      className:
+        "bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    },
+  };
 
 export function AdminTravelerProfileView({ userId }: { userId: string }) {
   const t = useTranslations("adminDashboard.adminTravelerProfileView");
   const trpc = useTRPC();
-  const { data: user } = useSuspenseQuery(trpc.admin.getUserProfile.queryOptions({ userId }));
+  const { data: user } = useSuspenseQuery(
+    trpc.admin.getUserProfile.queryOptions({ userId }),
+  );
 
-  const confirmedBookings = user.bookings.filter((b) => b.status === "CONFIRMED" || b.status === "COMPLETED").length;
+  const confirmedBookings = user.bookings.filter(
+    (b) => b.status === "CONFIRMED" || b.status === "COMPLETED",
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -47,10 +81,22 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: t("totalBookings"), value: user.bookings.length, icon: Ticket },
+          {
+            label: t("totalBookings"),
+            value: user.bookings.length,
+            icon: Ticket,
+          },
           { label: t("confirmed"), value: confirmedBookings, icon: Calendar },
-          { label: t("savedPassengers"), value: user.passengerProfile?.savedPassengers?.length ?? 0, icon: Users },
-          { label: t("activeSessions"), value: user.sessions.length, icon: Monitor },
+          {
+            label: t("savedPassengers"),
+            value: user.passengerProfile?.savedPassengers?.length ?? 0,
+            icon: Users,
+          },
+          {
+            label: t("activeSessions"),
+            value: user.sessions.length,
+            icon: Monitor,
+          },
         ].map(({ label, value, icon: Icon }) => (
           <Card key={label} className="border shadow-sm">
             <CardContent className="p-4 flex flex-col gap-1">
@@ -75,17 +121,30 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
           </CardHeader>
           <CardContent className="p-0">
             {user.bookings.length === 0 ? (
-              <div className="px-6 py-8 text-center text-muted-foreground text-sm">{t("noBookings")}</div>
+              <div className="px-6 py-8 text-center text-muted-foreground text-sm">
+                {t("noBookings")}
+              </div>
             ) : (
               <div className="divide-y">
                 {user.bookings.map((booking) => {
                   const route = booking.trip?.schedule?.route;
-                  const origin = route?.originTerminal?.city || route?.originTerminal?.name || "—";
-                  const dest = route?.destTerminal?.city || route?.destTerminal?.name || "—";
-                  const meta = bookingStatusMeta[booking.status] ?? bookingStatusMeta["EXPIRED"]!;
+                  const origin =
+                    route?.originTerminal?.city ||
+                    route?.originTerminal?.name ||
+                    "—";
+                  const dest =
+                    route?.destTerminal?.city ||
+                    route?.destTerminal?.name ||
+                    "—";
+                  const meta =
+                    bookingStatusMeta[booking.status] ??
+                    bookingStatusMeta["EXPIRED"]!;
 
                   return (
-                    <div key={booking.id} className="px-6 py-3 flex items-center justify-between gap-4">
+                    <div
+                      key={booking.id}
+                      className="px-6 py-3 flex items-center justify-between gap-4"
+                    >
                       <div className="flex flex-col min-w-0">
                         <span className="font-medium text-sm truncate">
                           {origin} → {dest}
@@ -101,7 +160,13 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
                         <span className="text-sm font-semibold text-foreground">
                           {booking.farePaid.toLocaleString()} XOF
                         </span>
-                        <Badge variant="outline" className={cn("border-0 text-[11px] px-2", meta.className)}>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "border-0 text-[11px] px-2",
+                            meta.className,
+                          )}
+                        >
                           {meta.label}
                         </Badge>
                       </div>
@@ -126,16 +191,31 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
             <CardContent className="space-y-3 text-sm">
               {[
                 { label: t("userId"), value: user.id.slice(0, 16) + "…" },
-                { label: t("emailVerified"), value: user.emailVerified ? t("yes") : t("no") },
+                {
+                  label: t("emailVerified"),
+                  value: user.emailVerified ? t("yes") : t("no"),
+                },
                 { label: t("workEmail"), value: user.workEmail || "—" },
                 { label: t("workPhone"), value: user.workPhone || "—" },
-                { label: t("marketingOptIn"), value: user.passengerProfile?.marketingOptIn ? t("yes") : t("no") },
+                {
+                  label: t("marketingOptIn"),
+                  value: user.passengerProfile?.marketingOptIn
+                    ? t("yes")
+                    : t("no"),
+                },
                 { label: t("joined"), value: format(user.createdAt, "PPP") },
-                { label: t("lastUpdated"), value: format(user.updatedAt, "PPP") },
+                {
+                  label: t("lastUpdated"),
+                  value: format(user.updatedAt, "PPP"),
+                },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between gap-2">
-                  <span className="text-muted-foreground shrink-0">{label}</span>
-                  <span className="font-medium text-right truncate">{value}</span>
+                  <span className="text-muted-foreground shrink-0">
+                    {label}
+                  </span>
+                  <span className="font-medium text-right truncate">
+                    {value}
+                  </span>
                 </div>
               ))}
             </CardContent>
@@ -155,13 +235,26 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
                   {user.passengerProfile!.savedPassengers.map((p) => (
                     <div key={p.id} className="px-6 py-3 flex flex-col">
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm">{p.fullName}</span>
+                        <span className="font-medium text-sm">
+                          {p.fullName}
+                        </span>
                         {p.isSelf && (
-                          <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{t("self")}</Badge>
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] h-5 px-1.5"
+                          >
+                            {t("self")}
+                          </Badge>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground mt-0.5">{p.phone}</span>
-                      {p.label && <span className="text-xs text-muted-foreground italic">{p.label}</span>}
+                      <span className="text-xs text-muted-foreground mt-0.5">
+                        {p.phone}
+                      </span>
+                      {p.label && (
+                        <span className="text-xs text-muted-foreground italic">
+                          {p.label}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -181,15 +274,25 @@ export function AdminTravelerProfileView({ userId }: { userId: string }) {
               <CardContent className="p-0">
                 <div className="divide-y">
                   {user.sessions.map((s) => (
-                    <div key={s.id} className="px-6 py-3 flex flex-col gap-0.5 min-w-0">
-                      <span className="text-xs font-medium truncate w-full" title={s.userAgent || "Unknown device"}>
+                    <div
+                      key={s.id}
+                      className="px-6 py-3 flex flex-col gap-0.5 min-w-0"
+                    >
+                      <span
+                        className="text-xs font-medium truncate w-full"
+                        title={s.userAgent || "Unknown device"}
+                      >
                         {s.userAgent || "Unknown device"}
                       </span>
                       <span className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1 overflow-hidden">
                         <Monitor className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{s.ipAddress || "Unknown IP"}</span>
+                        <span className="truncate">
+                          {s.ipAddress || "Unknown IP"}
+                        </span>
                         <span className="opacity-40 shrink-0">·</span>
-                        <span className="shrink-0">{format(s.createdAt, "MMM d, HH:mm")}</span>
+                        <span className="shrink-0">
+                          {format(s.createdAt, "MMM d, HH:mm")}
+                        </span>
                       </span>
                     </div>
                   ))}

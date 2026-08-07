@@ -26,7 +26,7 @@
     "build": "echo \"No build configured for @moja/schemas\"",
     "lint": "biome check package.json tsconfig.json src",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/__tests__/routes-service-type.test.ts"
+    "test": "tsx --test src/__tests__/routes-service-type.test.ts src/__tests__/admin-permissions.test.ts src/__tests__/admin-staff-hierarchy.test.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"

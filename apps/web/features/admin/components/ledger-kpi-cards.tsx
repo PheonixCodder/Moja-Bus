@@ -1,8 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
-import { ShieldCheck, ShieldAlert, Coins, Scale } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
+import { Coins, Scale, ShieldAlert, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toSafeDisplayNumber } from "@/lib/money";
 
@@ -21,7 +26,11 @@ export function LedgerKpiCards({
 }: LedgerKpiCardsProps) {
   const t = useTranslations("adminDashboard.ledgerKpiCards");
   const formatCurrency = (val: bigint) => {
-    return new Intl.NumberFormat("en-US").format(toSafeDisplayNumber(val)) + " " + t("xof");
+    return (
+      new Intl.NumberFormat("en-US").format(toSafeDisplayNumber(val)) +
+      " " +
+      t("xof")
+    );
   };
 
   return (
@@ -95,7 +104,9 @@ export function LedgerKpiCards({
           </CardHeader>
           <CardContent className="flex items-start justify-between">
             <div>
-              <div className={`text-sm font-bold ${isBalanced ? "text-emerald-700" : "text-rose-700"}`}>
+              <div
+                className={`text-sm font-bold ${isBalanced ? "text-emerald-700" : "text-rose-700"}`}
+              >
                 {isBalanced ? t("systemBalanced") : t("balanceMismatch")}
               </div>
               <p className="text-slate-400 text-[10px] font-medium mt-1">

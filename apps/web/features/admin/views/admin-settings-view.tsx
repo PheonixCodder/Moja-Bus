@@ -1,28 +1,25 @@
 "use client";
 
-import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { useQueryState } from "nuqs";
-import {
-  Layers,
-  Percent,
-  Plus,
-  Edit2,
-  Trash2,
-  AlertTriangle,
-} from "lucide-react";
+import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
 } from "@moja/ui/components/ui/card";
-import { Button } from "@moja/ui/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@moja/ui/components/ui/dialog";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { Switch } from "@moja/ui/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -32,32 +29,46 @@ import {
   TableRow,
 } from "@moja/ui/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@moja/ui/components/ui/dialog";
-import { Switch } from "@moja/ui/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
-import { Badge } from "@moja/ui/components/ui/badge";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@moja/ui/components/ui/tabs";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  Edit2,
+  Layers,
+  Percent,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useQueryState } from "nuqs";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 export function AdminSettingsView() {
   const t = useTranslations("adminDashboard.adminSettingsView");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useQueryState("tab", { defaultValue: "global" });
+  const [activeTab, setActiveTab] = useQueryState("tab", {
+    defaultValue: "global",
+  });
 
   // Suspense Queries
   const { data: settings } = useSuspenseQuery(
-    trpc.payments.getPlatformSettings.queryOptions()
+    trpc.payments.getPlatformSettings.queryOptions(),
   );
 
   const { data: tiers } = useSuspenseQuery(
-    trpc.payments.listCommissionTiers.queryOptions()
+    trpc.payments.listCommissionTiers.queryOptions(),
   );
 
   // Mutations
@@ -65,12 +76,14 @@ export function AdminSettingsView() {
     trpc.payments.updatePlatformSettings.mutationOptions({
       onSuccess: () => {
         toast.success(t("platformSettingsUpdated"));
-        queryClient.invalidateQueries(trpc.payments.getPlatformSettings.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.payments.getPlatformSettings.pathFilter(),
+        );
       },
       onError: (err) => {
         toast.error(err.message || t("failedToUpdateSettings"));
       },
-    })
+    }),
   );
 
   const createTierMutation = useMutation(
@@ -78,12 +91,14 @@ export function AdminSettingsView() {
       onSuccess: () => {
         toast.success(t("distanceTierCreated"));
         setIsTierModalOpen(false);
-        queryClient.invalidateQueries(trpc.payments.listCommissionTiers.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.payments.listCommissionTiers.pathFilter(),
+        );
       },
       onError: (err) => {
         toast.error(err.message || t("failedToCreateTier"));
       },
-    })
+    }),
   );
 
   const updateTierMutation = useMutation(
@@ -91,12 +106,14 @@ export function AdminSettingsView() {
       onSuccess: () => {
         toast.success(t("distanceTierUpdated"));
         setIsTierModalOpen(false);
-        queryClient.invalidateQueries(trpc.payments.listCommissionTiers.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.payments.listCommissionTiers.pathFilter(),
+        );
       },
       onError: (err) => {
         toast.error(err.message || t("failedToUpdateTier"));
       },
-    })
+    }),
   );
 
   const deleteTierMutation = useMutation(
@@ -104,12 +121,14 @@ export function AdminSettingsView() {
       onSuccess: () => {
         toast.success(t("distanceTierDeleted"));
         setIsDeleteConfirmOpen(false);
-        queryClient.invalidateQueries(trpc.payments.listCommissionTiers.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.payments.listCommissionTiers.pathFilter(),
+        );
       },
       onError: (err) => {
         toast.error(err.message || t("failedToDeleteTier"));
       },
-    })
+    }),
   );
 
   // Local Form state
@@ -142,7 +161,7 @@ export function AdminSettingsView() {
   const handleUpdateSettings = (e: React.FormEvent) => {
     e.preventDefault();
     if (commissionPct === null || conveniencePct === null) return;
-    
+
     updateSettingsMutation.mutate({
       defaultCommissionBps: Math.round(commissionPct * 100),
       defaultConvenienceFeeBps: Math.round(conveniencePct * 100),
@@ -203,13 +222,23 @@ export function AdminSettingsView() {
   };
 
   return (
-    <Tabs value={activeTab ?? "global"} onValueChange={(val) => setActiveTab(val)} className="space-y-6">
+    <Tabs
+      value={activeTab ?? "global"}
+      onValueChange={(val) => setActiveTab(val)}
+      className="space-y-6"
+    >
       <TabsList className="bg-slate-100 p-1 rounded-md border border-slate-200">
-        <TabsTrigger value="global" className="px-4 py-2 font-semibold text-xs flex items-center gap-1.5 rounded-sm transition-all">
+        <TabsTrigger
+          value="global"
+          className="px-4 py-2 font-semibold text-xs flex items-center gap-1.5 rounded-sm transition-all"
+        >
           <Percent className="size-3.5" />
           {t("globalSettings")}
         </TabsTrigger>
-        <TabsTrigger value="tiers" className="px-4 py-2 font-semibold text-xs flex items-center gap-1.5 rounded-sm transition-all">
+        <TabsTrigger
+          value="tiers"
+          className="px-4 py-2 font-semibold text-xs flex items-center gap-1.5 rounded-sm transition-all"
+        >
           <Layers className="size-3.5" />
           {t("commissionDistanceTiers")}
         </TabsTrigger>
@@ -219,10 +248,10 @@ export function AdminSettingsView() {
       <TabsContent value="global">
         <Card className="bg-white border-border shadow-sm max-w-xl">
           <CardHeader>
-            <CardTitle className="text-sm font-bold text-slate-800">{t("defaultGlobalRates")}</CardTitle>
-            <CardDescription>
-              {t("globalRatesDesc")}
-            </CardDescription>
+            <CardTitle className="text-sm font-bold text-slate-800">
+              {t("defaultGlobalRates")}
+            </CardTitle>
+            <CardDescription>{t("globalRatesDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleUpdateSettings} className="space-y-6">
@@ -245,7 +274,9 @@ export function AdminSettingsView() {
                       }}
                       className="h-10 pr-8"
                     />
-                    <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">%</span>
+                    <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">
+                      %
+                    </span>
                   </div>
                   <p className="text-[10px] text-slate-400">
                     {t("platformBaseRevenue")}
@@ -270,7 +301,9 @@ export function AdminSettingsView() {
                       }}
                       className="h-10 pr-8"
                     />
-                    <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">%</span>
+                    <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">
+                      %
+                    </span>
                   </div>
                   <p className="text-[10px] text-slate-400">
                     {t("passengerServiceFee")}
@@ -304,12 +337,17 @@ export function AdminSettingsView() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-slate-800">{t("distanceCommissionBands")}</h3>
+              <h3 className="text-sm font-bold text-slate-800">
+                {t("distanceCommissionBands")}
+              </h3>
               <p className="text-xs text-slate-500">
                 {t("mapPlatformCommission")}
               </p>
             </div>
-            <Button onClick={openAddTier} className="bg-primary hover:bg-primary-hover text-white gap-1.5 h-9 font-semibold text-xs">
+            <Button
+              onClick={openAddTier}
+              className="bg-primary hover:bg-primary-hover text-white gap-1.5 h-9 font-semibold text-xs"
+            >
               <Plus className="size-3.5" />
               {t("addDistanceTier")}
             </Button>
@@ -321,7 +359,9 @@ export function AdminSettingsView() {
                 <Layers className="size-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-slate-800">{t("noDistanceTiers")}</h3>
+                <h3 className="text-sm font-bold text-slate-800">
+                  {t("noDistanceTiers")}
+                </h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
                   {t("noTiersDefined")}
                 </p>
@@ -332,28 +372,58 @@ export function AdminSettingsView() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("label")}</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("distanceRange")}</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("commissionBps")}</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("commissionPct")}</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("sortOrder")}</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("status")}</TableHead>
-                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("actions")}</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      {t("label")}
+                    </TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      {t("distanceRange")}
+                    </TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      {t("commissionBps")}
+                    </TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      {t("commissionPct")}
+                    </TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      {t("sortOrder")}
+                    </TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      {t("status")}
+                    </TableHead>
+                    <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                      {t("actions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tiers.map((tier) => (
                     <TableRow key={tier.id} className="hover:bg-slate-50/50">
-                      <TableCell className="px-4 py-3 font-semibold text-slate-900">{tier.label}</TableCell>
+                      <TableCell className="px-4 py-3 font-semibold text-slate-900">
+                        {tier.label}
+                      </TableCell>
                       <TableCell className="px-4 py-3 text-slate-600 text-xs">
                         {tier.minDistanceKm} km
-                        {tier.maxDistanceKm ? ` - ${tier.maxDistanceKm} km` : " +"}
+                        {tier.maxDistanceKm
+                          ? ` - ${tier.maxDistanceKm} km`
+                          : " +"}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-slate-600 text-xs font-mono">{tier.commissionBps} bps</TableCell>
-                      <TableCell className="px-4 py-3 text-slate-900 text-xs font-bold">{(tier.commissionBps / 100).toFixed(2)}%</TableCell>
-                      <TableCell className="px-4 py-3 text-slate-600 text-xs">{tier.sortOrder}</TableCell>
+                      <TableCell className="px-4 py-3 text-slate-600 text-xs font-mono">
+                        {tier.commissionBps} bps
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-slate-900 text-xs font-bold">
+                        {(tier.commissionBps / 100).toFixed(2)}%
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-slate-600 text-xs">
+                        {tier.sortOrder}
+                      </TableCell>
                       <TableCell className="px-4 py-3">
-                        <Badge className={tier.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"}>
+                        <Badge
+                          className={
+                            tier.isActive
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-slate-100 text-slate-600 border-slate-200"
+                          }
+                        >
                           {tier.isActive ? t("active") : t("inactive")}
                         </Badge>
                       </TableCell>
@@ -463,7 +533,9 @@ export function AdminSettingsView() {
                     required
                     className="pr-8"
                   />
-                  <span className="absolute right-3 top-2.5 text-[10px] text-slate-400 font-semibold">bps</span>
+                  <span className="absolute right-3 top-2.5 text-[10px] text-slate-400 font-semibold">
+                    bps
+                  </span>
                 </div>
               </div>
 
@@ -484,22 +556,37 @@ export function AdminSettingsView() {
             {/* Is Active */}
             <div className="flex items-center justify-between border-t border-slate-100 pt-4">
               <div>
-                <div className="text-xs font-bold text-slate-800">{t("tierStatus")}</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">{t("toggleActive")}</div>
+                <div className="text-xs font-bold text-slate-800">
+                  {t("tierStatus")}
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  {t("toggleActive")}
+                </div>
               </div>
-              <Switch checked={tierIsActive} onCheckedChange={setTierIsActive} />
+              <Switch
+                checked={tierIsActive}
+                onCheckedChange={setTierIsActive}
+              />
             </div>
 
             <DialogFooter className="pt-4 gap-2 sm:gap-0">
-              <Button type="button" variant="outline" className="h-9" onClick={() => setIsTierModalOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9"
+                onClick={() => setIsTierModalOpen(false)}
+              >
                 {t("cancel")}
               </Button>
               <Button
                 type="submit"
                 className="bg-primary hover:bg-primary-hover text-white h-9"
-                disabled={createTierMutation.isPending || updateTierMutation.isPending}
+                disabled={
+                  createTierMutation.isPending || updateTierMutation.isPending
+                }
               >
-                {createTierMutation.isPending || updateTierMutation.isPending ? (
+                {createTierMutation.isPending ||
+                updateTierMutation.isPending ? (
                   <>
                     <Spinner className="mr-2 size-3.5 text-white" />
                     {t("saving")}
@@ -528,13 +615,19 @@ export function AdminSettingsView() {
             </DialogHeader>
 
             <DialogFooter className="pt-4 gap-2 sm:gap-0">
-              <Button variant="outline" className="h-9" onClick={() => setIsDeleteConfirmOpen(false)}>
+              <Button
+                variant="outline"
+                className="h-9"
+                onClick={() => setIsDeleteConfirmOpen(false)}
+              >
                 {t("cancel")}
               </Button>
               <Button
                 className="bg-red-600 hover:bg-red-700 text-white h-9"
                 disabled={deleteTierMutation.isPending}
-                onClick={() => deleteTierMutation.mutate({ id: tierToDelete.id })}
+                onClick={() =>
+                  deleteTierMutation.mutate({ id: tierToDelete.id })
+                }
               >
                 {deleteTierMutation.isPending ? (
                   <>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { Star, MessageCircle } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@moja/ui/lib/utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { MessageCircle, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useTRPC } from "@/trpc/client";
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -15,7 +15,9 @@ function StarRating({ rating }: { rating: number }) {
           key={i}
           className={cn(
             "size-4",
-            i < rating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"
+            i < rating
+              ? "fill-amber-400 text-amber-400"
+              : "fill-slate-200 text-slate-200",
           )}
         />
       ))}
@@ -27,7 +29,7 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
   const t = useTranslations("adminDashboard.tripAuditReviews");
   const trpc = useTRPC();
   const { data: trip } = useSuspenseQuery(
-    trpc.admin.getTripAudit.queryOptions({ id: tripId })
+    trpc.admin.getTripAudit.queryOptions({ id: tripId }),
   );
 
   const bookingsWithReviews = trip.bookings.filter((b) => b.review != null);
@@ -36,7 +38,9 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
     return (
       <div className="rounded-lg border border-border bg-card p-16 text-center shadow-sm">
         <MessageCircle className="size-10 text-muted-foreground/30 mx-auto mb-3" />
-        <h3 className="text-sm font-semibold text-foreground">{t("noReviewsYet")}</h3>
+        <h3 className="text-sm font-semibold text-foreground">
+          {t("noReviewsYet")}
+        </h3>
         <p className="text-sm text-muted-foreground mt-1">
           {t("noReviewsDescription")}
         </p>
@@ -66,7 +70,7 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
         <div className="flex flex-col gap-1.5 flex-1">
           {[5, 4, 3, 2, 1].map((star) => {
             const count = bookingsWithReviews.filter(
-              (b) => b.review?.rating === star
+              (b) => b.review?.rating === star,
             ).length;
             const pct =
               bookingsWithReviews.length > 0
@@ -74,7 +78,9 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
                 : 0;
             return (
               <div key={star} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-3">{star}</span>
+                <span className="text-xs text-muted-foreground w-3">
+                  {star}
+                </span>
                 <Star className="size-3 fill-amber-400 text-amber-400" />
                 <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
                   <div
@@ -82,7 +88,9 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground w-4">{count}</span>
+                <span className="text-xs text-muted-foreground w-4">
+                  {count}
+                </span>
               </div>
             );
           })}

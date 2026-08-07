@@ -27,20 +27,6 @@ const presignUploadInput = z.object({
     .optional(),
 });
 
-async function resolveOperator(ctx: any) {
-  const operator = await ctx.prisma.operator.findFirst({
-    where: { userId: ctx.user.id, deletedAt: null },
-    orderBy: { joinedAt: "desc" },
-  });
-  if (!operator || !operator.companyId) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Operator company not found.",
-    });
-  }
-  return operator;
-}
-
 export const storageRouter = createTRPCRouter({
   /**
    * Single presign endpoint. The client always calls this with a `purpose`;
@@ -144,28 +130,20 @@ export const storageRouter = createTRPCRouter({
         });
       }
 
-      if (purpose.id === "operator-document") {
-        const doc = await ctx.prisma.companyDocument.findFirst({
-          where: {
-            ...(input.documentId ? { id: input.documentId } : {}),
-            ...(input.objectKey ? { objectKey: input.objectKey } : {}),
-          },
-        });
-        if (!doc) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Document not found." });
-        }
+       if (purpose.id === "operator-document") {
+         const doc = await ctx.prisma.companyDocument.findFirst({
+           where: {
+             ...(input.documentId ? { id: input.documentId } : {}),
+             ...(input.objectKey ? { objectKey: input.objectKey } : {}),
+           },
+         });
+         if (!doc) {
+           throw new TRPCError({ code: "NOT_FOUND", message: "Document not found." });
+         }
 
-        const isAdmin = ctx.user.role === "ADMIN";
-        let isOwner = false;
-        if (ctx.user.role === "OPERATOR") {
-          const operator = await resolveOperator(ctx);
-          isOwner = operator.companyId === doc.companyId;
-        }
+         requirePermission(ctx, "financials:view");
 
-        if (!isAdmin && !isOwner) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied." });
-        }
-        if (!doc.objectKey) {
+         if (!doc.objectKey) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Document has no stored object key.",

@@ -1,11 +1,7 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { useQueryStates } from "nuqs";
-import { useTranslations } from "next-intl";
-import { webhookLogsSearchParams } from "../../../lib/search-params";
-import { format } from "date-fns";
+import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Table,
   TableBody,
@@ -14,10 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
-import { Badge } from "@moja/ui/components/ui/badge";
-import { Button } from "@moja/ui/components/ui/button";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { Eye, Inbox } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
 import { useState } from "react";
+import { useTRPC } from "@/trpc/client";
+import { webhookLogsSearchParams } from "../../../lib/search-params";
 import { WebhookPayloadDrawer } from "./webhook-payload-drawer";
 
 export function WebhookLogsTable() {
@@ -33,7 +33,7 @@ export function WebhookLogsTable() {
       search: params.search || undefined,
       status: params.status,
       provider: params.provider,
-    })
+    }),
   );
 
   const totalPages = Math.ceil(data.total / params.pageSize);
@@ -55,7 +55,10 @@ export function WebhookLogsTable() {
           <TableBody>
             {data.items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Inbox className="h-6 w-6 text-muted-foreground/50" />
                     <p>{t("noEvents")}</p>
@@ -68,29 +71,40 @@ export function WebhookLogsTable() {
                 const isFailed = event.error !== null;
 
                 let statusBadge = (
-                     <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20">
-                       {t("pending")}
-                     </Badge>
-                   );
+                  <Badge
+                    variant="secondary"
+                    className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
+                  >
+                    {t("pending")}
+                  </Badge>
+                );
 
-                 if (isProcessed) {
-                   statusBadge = (
-                     <Badge variant="secondary" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
-                       {t("processed")}
-                     </Badge>
-                   );
-                 } else if (isFailed) {
-                   statusBadge = (
-                     <Badge variant="secondary" className="bg-red-500/10 text-red-500 hover:bg-red-500/20">
-                       {t("failed")}
-                     </Badge>
-                   );
-                 }
+                if (isProcessed) {
+                  statusBadge = (
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                    >
+                      {t("processed")}
+                    </Badge>
+                  );
+                } else if (isFailed) {
+                  statusBadge = (
+                    <Badge
+                      variant="secondary"
+                      className="bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                    >
+                      {t("failed")}
+                    </Badge>
+                  );
+                }
 
                 return (
                   <TableRow key={event.id} className="group">
                     <TableCell>{statusBadge}</TableCell>
-                    <TableCell className="capitalize font-medium">{event.provider}</TableCell>
+                    <TableCell className="capitalize font-medium">
+                      {event.provider}
+                    </TableCell>
                     <TableCell>
                       <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
                         {event.eventType}
@@ -124,30 +138,34 @@ export function WebhookLogsTable() {
         <div className="flex items-center justify-between pt-4">
           <p className="text-sm text-muted-foreground">
             Showing {params.page * params.pageSize - params.pageSize + 1} to{" "}
-            {Math.min(params.page * params.pageSize, data.total)} of {data.total} results
+            {Math.min(params.page * params.pageSize, data.total)} of{" "}
+            {data.total} results
           </p>
           <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={params.page <= 1}
-                onClick={() => setParams({ page: params.page - 1 })}
-              >
-                {t("previous")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={params.page >= totalPages}
-                onClick={() => setParams({ page: params.page + 1 })}
-              >
-                {t("next")}
-              </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={params.page <= 1}
+              onClick={() => setParams({ page: params.page - 1 })}
+            >
+              {t("previous")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={params.page >= totalPages}
+              onClick={() => setParams({ page: params.page + 1 })}
+            >
+              {t("next")}
+            </Button>
           </div>
         </div>
       )}
 
-      <WebhookPayloadDrawer event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+      <WebhookPayloadDrawer
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+      />
     </>
   );
 }

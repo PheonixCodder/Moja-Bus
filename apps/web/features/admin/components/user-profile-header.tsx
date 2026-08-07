@@ -1,11 +1,18 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft, CheckCircle2, XCircle, Mail, Phone, Shield } from "lucide-react";
-import { format } from "date-fns";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
+import { format } from "date-fns";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Mail,
+  Phone,
+  Shield,
+  XCircle,
+} from "lucide-react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 type UserRole = "TRAVELER" | "OPERATOR" | "ADMIN";
@@ -24,13 +31,30 @@ interface UserProfileHeaderProps {
 }
 
 const roleMeta: Record<UserRole, { label: string; className: string }> = {
-  TRAVELER: { label: "Traveler", className: "bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-  OPERATOR: { label: "Operator", className: "bg-violet-100/60 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
-  ADMIN: { label: "Admin", className: "bg-rose-100/60 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
+  TRAVELER: {
+    label: "Traveler",
+    className:
+      "bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  },
+  OPERATOR: {
+    label: "Operator",
+    className:
+      "bg-violet-100/60 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+  },
+  ADMIN: {
+    label: "Admin",
+    className:
+      "bg-rose-100/60 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+  },
 };
 
 function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 function getAvatarTone(name: string) {
@@ -42,7 +66,8 @@ function getAvatarTone(name: string) {
     "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
   ];
   let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < name.length; i++)
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return tones[Math.abs(hash) % tones.length]!;
 }
 
@@ -74,7 +99,7 @@ export function UserProfileHeader({
             <div
               className={cn(
                 "h-20 w-20 rounded-xl flex items-center justify-center text-2xl font-bold border-4 border-card shadow-md shrink-0",
-                toneClass
+                toneClass,
               )}
             >
               {initials}
@@ -82,17 +107,26 @@ export function UserProfileHeader({
             <div className="pb-1 space-y-1">
               <h1 className="text-2xl font-bold tracking-tight">{fullName}</h1>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className={cn("border-0 text-xs", roleBadge.className)}>
+                <Badge
+                  variant="outline"
+                  className={cn("border-0 text-xs", roleBadge.className)}
+                >
                   <Shield className="h-3 w-3 mr-1" />
                   {roleBadge.label}
                 </Badge>
                 {emailVerified ? (
-                  <Badge variant="outline" className="border-0 text-xs bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  <Badge
+                    variant="outline"
+                    className="border-0 text-xs bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  >
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                     {t("verified")}
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="border-0 text-xs bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                  <Badge
+                    variant="outline"
+                    className="border-0 text-xs bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  >
                     <XCircle className="h-3 w-3 mr-1" />
                     {t("unverified")}
                   </Badge>

@@ -1,18 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { type Table as ReactTable, flexRender } from "@tanstack/react-table";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { useTranslations } from "next-intl";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@moja/ui/components/ui/table";
 import {
   Pagination,
   PaginationContent,
@@ -22,14 +9,32 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@moja/ui/components/ui/pagination";
-import { type OperatorRow } from "./operators-columns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@moja/ui/components/ui/table";
+import { flexRender, type Table as ReactTable } from "@tanstack/react-table";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import * as React from "react";
+import type { OperatorRow } from "./operators-columns";
 
 function getPageNumbers(currentPage: number, pageCount: number) {
   if (pageCount <= 3) {
     return Array.from({ length: pageCount }, (_, index) => index + 1);
   }
   if (currentPage <= 2) return [1, 2, 3];
-  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount];
+  if (currentPage >= pageCount - 1)
+    return [pageCount - 2, pageCount - 1, pageCount];
   return [currentPage - 1, currentPage, currentPage + 1];
 }
 
@@ -49,19 +54,22 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
         <Table>
           <TableHeader className="bg-muted/30">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b-muted">
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent border-b-muted"
+              >
                 {headerGroup.headers.map((header) => {
                   if (header.column.id === "search") return null;
                   return (
-                    <TableHead 
-                      key={header.id} 
+                    <TableHead
+                      key={header.id}
                       className="h-10 text-xs font-medium text-muted-foreground whitespace-nowrap"
                     >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -80,8 +88,14 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
                   {row.getVisibleCells().map((cell) => {
                     if (cell.column.id === "search") return null;
                     return (
-                      <TableCell key={cell.id} className="py-3 px-4 align-middle">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      <TableCell
+                        key={cell.id}
+                        className="py-3 px-4 align-middle"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </TableCell>
                     );
                   })}
@@ -89,7 +103,10 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   <div className="flex flex-col items-center justify-center text-sm">
                     <p>{t("noOperatorsFound")}</p>
                     <p className="text-xs opacity-70">{t("adjustFilters")}</p>
@@ -104,14 +121,26 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
       <div className="flex items-center justify-between px-4 py-4 mt-auto border-t">
         <div className="text-xs text-muted-foreground">
           {t("showing")}{" "}
-          <span className="font-medium text-foreground">{table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}</span>{" "}
+          <span className="font-medium text-foreground">
+            {table.getState().pagination.pageIndex *
+              table.getState().pagination.pageSize +
+              1}
+          </span>{" "}
           {t("to")}{" "}
-          <span className="font-medium text-foreground">{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}</span>{" "}
+          <span className="font-medium text-foreground">
+            {Math.min(
+              (table.getState().pagination.pageIndex + 1) *
+                table.getState().pagination.pageSize,
+              table.getFilteredRowModel().rows.length,
+            )}
+          </span>{" "}
           {t("of")}{" "}
-          <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span>{" "}
+          <span className="font-medium text-foreground">
+            {table.getFilteredRowModel().rows.length}
+          </span>{" "}
           {t("operators")}
         </div>
-        
+
         <Pagination className="w-auto mx-0">
           <PaginationContent className="gap-1">
             <PaginationItem className="hidden sm:inline-flex">
@@ -132,7 +161,11 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
                 href="#"
                 size="sm"
                 text=""
-                className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : undefined}
+                className={
+                  !table.getCanPreviousPage()
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
                 onClick={(event) => {
                   event?.preventDefault();
                   table.previousPage();
@@ -148,7 +181,9 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
               <PaginationItem key={`page-${pageNumber}`}>
                 <PaginationLink
                   href="#"
-                  isActive={table.getState().pagination.pageIndex === pageNumber - 1}
+                  isActive={
+                    table.getState().pagination.pageIndex === pageNumber - 1
+                  }
                   onClick={(event) => {
                     event?.preventDefault();
                     table.setPageIndex(pageNumber - 1);
@@ -158,7 +193,8 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
                 </PaginationLink>
               </PaginationItem>
             ))}
-            {pageNumbers[pageNumbers.length - 1] !== undefined && pageNumbers[pageNumbers.length - 1]! < pageCount ? (
+            {pageNumbers[pageNumbers.length - 1] !== undefined &&
+            pageNumbers[pageNumbers.length - 1]! < pageCount ? (
               <PaginationItem>
                 <PaginationEllipsis />
               </PaginationItem>
@@ -168,7 +204,11 @@ export function OperatorsTable({ table }: OperatorsTableProps) {
                 href="#"
                 size="sm"
                 text=""
-                className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : undefined}
+                className={
+                  !table.getCanNextPage()
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
                 onClick={(event) => {
                   event?.preventDefault();
                   table.nextPage();

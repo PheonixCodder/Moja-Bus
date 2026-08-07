@@ -1,20 +1,13 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useQueryState, parseAsInteger } from "nuqs";
-import { useTRPC } from "@/trpc/client";
-import { format } from "date-fns";
-import { useTranslations } from "next-intl";
+import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
 import {
-  History,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  FileText,
-} from "lucide-react";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import {
   Table,
   TableBody,
@@ -23,9 +16,21 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
-import { Badge } from "@moja/ui/components/ui/badge";
-import { Button } from "@moja/ui/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FileText,
+  History,
+  User,
+  XCircle,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { parseAsInteger, useQueryState } from "nuqs";
+import { useTRPC } from "@/trpc/client";
 
 function formatXOF(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -76,7 +81,7 @@ export function SettlementsHistoryTable() {
     trpc.payments.listSettlementHistory.queryOptions({
       limit: PAGE_SIZE,
       offset,
-    })
+    }),
   );
 
   const { items, total } = data;
@@ -108,7 +113,9 @@ export function SettlementsHistoryTable() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <FileText className="size-5 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium text-foreground">{t("noSettlementsYet")}</p>
+            <p className="text-sm font-medium text-foreground">
+              {t("noSettlementsYet")}
+            </p>
             <p className="max-w-xs text-xs text-muted-foreground">
               {t("noSettlementsDescription")}
             </p>
@@ -172,8 +179,15 @@ export function SettlementsHistoryTable() {
                       </span>
                     </TableCell>
                     <TableCell className="py-3.5 max-w-[240px]">
-                      <p className="truncate text-xs text-muted-foreground" title={item.note ?? ""}>
-                        {item.note || <span className="italic text-muted-foreground/60">{t("noNote")}</span>}
+                      <p
+                        className="truncate text-xs text-muted-foreground"
+                        title={item.note ?? ""}
+                      >
+                        {item.note || (
+                          <span className="italic text-muted-foreground/60">
+                            {t("noNote")}
+                          </span>
+                        )}
                       </p>
                     </TableCell>
                     <TableCell className="py-3.5">
@@ -185,7 +199,9 @@ export function SettlementsHistoryTable() {
                           </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground/50">{t("none")}</span>
+                        <span className="text-xs text-muted-foreground/50">
+                          {t("none")}
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="py-3.5">
@@ -200,7 +216,11 @@ export function SettlementsHistoryTable() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between border-t border-border px-6 py-3">
                 <p className="text-xs text-muted-foreground">
-                  {t("showing", { from: offset + 1, to: Math.min(offset + PAGE_SIZE, total), total })}
+                  {t("showing", {
+                    from: offset + 1,
+                    to: Math.min(offset + PAGE_SIZE, total),
+                    total,
+                  })}
                 </p>
                 <div className="flex items-center gap-1">
                   <Button

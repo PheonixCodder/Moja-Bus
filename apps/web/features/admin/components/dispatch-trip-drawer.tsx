@@ -1,9 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { cn } from "@moja/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import {
   Drawer,
   DrawerContent,
@@ -11,15 +7,26 @@ import {
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
 import { Spinner } from "@moja/ui/components/ui/spinner";
-import { ArrowRight, User, Phone, CheckCircle2, AlertTriangle, AlertCircle } from "lucide-react";
-import type { RouterOutputs } from "@/trpc/client";
+import { cn } from "@moja/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  Phone,
+  User,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   buildConsecutiveSegments,
   countSegmentOccupancy,
   getSegmentSeatStatus,
   type TripSegment,
 } from "@/features/booking/lib/trip-segments";
+import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 
 type TripDetail = RouterOutputs["admin"]["getDispatchTrip"];
 
@@ -42,7 +49,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
-            color
+            color,
           )}
           style={{ width: `${pct}%` }}
         />
@@ -94,7 +101,7 @@ function SegmentSeatGrid({
             </div>
             {Array.from({ length: maxCol }, (_, col) => {
               const seat = seats.find(
-                (s: any) => s.seat.row === row + 1 && s.seat.col === col + 1
+                (s: any) => s.seat.row === row + 1 && s.seat.col === col + 1,
               );
               if (!seat || seat.seat.seatType === "EMPTY_SPACE") {
                 return <div key={col} className="w-7 h-7" />;
@@ -115,16 +122,16 @@ function SegmentSeatGrid({
                 seat.seatId,
                 bookings,
                 segment,
-                isBlocked
+                isBlocked,
               );
               const statusLabel =
                 seatStatus === "booked"
                   ? t("booked")
                   : seatStatus === "held"
-                  ? t("held")
-                  : seatStatus === "blocked"
-                  ? t("blocked")
-                  : t("available");
+                    ? t("held")
+                    : seatStatus === "blocked"
+                      ? t("blocked")
+                      : t("available");
 
               return (
                 <div
@@ -139,7 +146,7 @@ function SegmentSeatGrid({
                     seatStatus === "blocked" &&
                       "bg-slate-200 text-slate-400 border-slate-300",
                     seatStatus === "available" &&
-                      "bg-background border-border text-muted-foreground hover:border-primary/30"
+                      "bg-background border-border text-muted-foreground hover:border-primary/30",
                   )}
                 >
                   {seat.seat.label}
@@ -152,19 +159,27 @@ function SegmentSeatGrid({
         <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border">
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-primary border-primary border" />
-            <span className="text-[11px] text-muted-foreground">{t("booked")}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {t("booked")}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-amber-400 border border-amber-500" />
-            <span className="text-[11px] text-muted-foreground">{t("held")}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {t("held")}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-background border border-border" />
-            <span className="text-[11px] text-muted-foreground">{t("available")}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {t("available")}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-slate-200 border border-slate-300" />
-            <span className="text-[11px] text-muted-foreground">{t("blocked")}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {t("blocked")}
+            </span>
           </div>
         </div>
       </div>
@@ -179,9 +194,7 @@ function SegmentOccupancySection({ trip }: { trip: TripDetail }) {
 
   if (segments.length === 0) {
     return (
-      <p className="text-xs text-muted-foreground">
-        {t("noRouteSegments")}
-      </p>
+      <p className="text-xs text-muted-foreground">{t("noRouteSegments")}</p>
     );
   }
 
@@ -208,10 +221,7 @@ function SegmentOccupancySection({ trip }: { trip: TripDetail }) {
                 </span>
               ) : null}
             </div>
-            <SeatFillBar
-              booked={counts.occupied}
-              total={trip.totalSeats}
-            />
+            <SeatFillBar booked={counts.occupied} total={trip.totalSeats} />
             {(trip.seats?.length ?? 0) > 0 ? (
               <SegmentSeatGrid trip={trip} segment={segment} />
             ) : null}
@@ -234,9 +244,7 @@ function PassengerManifestList({ trip }: { trip: TripDetail }) {
         <h4 className="text-sm font-medium text-foreground">
           {t("noConfirmedPassengers")}
         </h4>
-        <p className="text-xs text-muted-foreground">
-          {t("noPassengersYet")}
-        </p>
+        <p className="text-xs text-muted-foreground">{t("noPassengersYet")}</p>
       </div>
     );
   }
@@ -271,8 +279,10 @@ function PassengerManifestList({ trip }: { trip: TripDetail }) {
                 )}
                 <span className="mx-1">•</span>
                 <span className="text-[10px] uppercase">
-                  {booking.originTripStop?.terminal.cityRelation?.name ?? "..."} →{" "}
-                  {booking.destinationTripStop?.terminal.cityRelation?.name ?? "..."}
+                  {booking.originTripStop?.terminal.cityRelation?.name ?? "..."}{" "}
+                  →{" "}
+                  {booking.destinationTripStop?.terminal.cityRelation?.name ??
+                    "..."}
                 </span>
               </div>
             </div>
@@ -340,7 +350,10 @@ export function DispatchTripDrawer({
                 </span>
               </DrawerTitle>
               <div className="text-xs text-muted-foreground mt-2">
-                {format(new Date(trip.departureDate), "EEEE, MMM d, yyyy 'at' h:mm a")}
+                {format(
+                  new Date(trip.departureDate),
+                  "EEEE, MMM d, yyyy 'at' h:mm a",
+                )}
               </div>
             </DrawerHeader>
 
@@ -373,15 +386,15 @@ export function DispatchTripDrawer({
                     )}
                   </div>
                 </div>
-                
-                {trip.status === 'CANCELLED' && trip.cancelReason && (
-                   <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+
+                {trip.status === "CANCELLED" && trip.cancelReason && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                     <p className="text-xs font-bold text-red-700 flex items-center gap-1.5 mb-1">
                       <AlertCircle className="size-3.5" />
                       {t("tripCancelled")}
                     </p>
                     <p className="text-sm text-red-900">{trip.cancelReason}</p>
-                   </div>
+                  </div>
                 )}
 
                 {/* Segments Map */}

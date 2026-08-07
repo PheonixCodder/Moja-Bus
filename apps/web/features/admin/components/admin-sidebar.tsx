@@ -1,5 +1,6 @@
 "use client";
 
+import type { AdminPermissionKey } from "@moja/schemas";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
 import {
   DropdownMenu,
@@ -49,6 +50,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useAdminPermissions } from "@/features/admin/hooks/use-admin-permissions";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import type { User as AuthUser } from "@/lib/auth-client";
 
@@ -56,15 +58,23 @@ interface MenuItem {
   title: string;
   url: string;
   icon: LucideIcon;
+  /** Permission key required to see this item. Omit to always show. */
+  permission?: AdminPermissionKey;
 }
 
 interface NavSectionProps {
   label?: string;
   items: MenuItem[];
   pathname: string;
+  /** When provided, filters items by permission. */
+  can?: (key: AdminPermissionKey) => boolean;
 }
 
-function NavSection({ label, items, pathname }: NavSectionProps) {
+function NavSection({ label, items, pathname, can }: NavSectionProps) {
+  const visibleItems = can
+    ? items.filter((item) => !item.permission || can(item.permission))
+    : items;
+  if (visibleItems.length === 0) return null;
   return (
     <SidebarGroup>
       {label ? (
@@ -74,7 +84,7 @@ function NavSection({ label, items, pathname }: NavSectionProps) {
       ) : null}
       <SidebarGroupContent>
         <SidebarMenu className="gap-0.5">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const isActive =
               item.url === "/dashboard/admin"
                 ? pathname === item.url
@@ -122,6 +132,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
   const sidebar = useSidebar();
   const { signOut } = useAuth();
+  const { can } = useAdminPermissions();
   const t = useTranslations("adminDashboard.nav");
   const tSection = useTranslations("adminDashboard.sections");
   const tFooter = useTranslations("adminDashboard");
@@ -202,6 +213,12 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       title: t("verifications"),
       url: "/dashboard/admin/verifications",
       icon: ShieldCheck,
+    },
+    {
+      title: t("staff"),
+      url: "/dashboard/admin/staff",
+      icon: Users,
+      permission: "admin-staff:read",
     },
     { title: t("settings"), url: "/dashboard/admin/settings", icon: Settings },
   ];
@@ -319,6 +336,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           label={tSection("platform")}
           items={platformItems}
           pathname={pathname}
+          can={can}
         />
         <NavSection
           label={tSection("support")}

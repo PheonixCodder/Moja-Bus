@@ -1,20 +1,25 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { useQueryState } from "nuqs";
-import { tripAuditSearchParams } from "@/features/admin/lib/search-params";
-import { useTranslations } from "next-intl";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
-import { Suspense } from "react";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@moja/ui/components/ui/tabs";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Bus, Map, Star, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryState } from "nuqs";
+import { Suspense } from "react";
 import { TripAuditHeader } from "@/features/admin/components/trip-audit-header";
 import { TripAuditKpiCards } from "@/features/admin/components/trip-audit-kpi-cards";
-import { TripAuditTimeline } from "@/features/admin/components/trip-audit-timeline";
 import { TripAuditManifest } from "@/features/admin/components/trip-audit-manifest";
 import { TripAuditOccupancy } from "@/features/admin/components/trip-audit-occupancy";
 import { TripAuditReviews } from "@/features/admin/components/trip-audit-reviews";
-import { Map, Users, Bus, Star } from "lucide-react";
+import { TripAuditTimeline } from "@/features/admin/components/trip-audit-timeline";
+import { tripAuditSearchParams } from "@/features/admin/lib/search-params";
+import { useTRPC } from "@/trpc/client";
 
 function TabFallback() {
   return (
@@ -37,34 +42,38 @@ export function AdminTripAuditView({ tripId }: { tripId: string }) {
       <TripAuditKpiCards tripId={tripId} />
 
       {/* Tabs */}
-      <Tabs value={tab} className={"flex flex-col"} onValueChange={(v) => setTab(v)}>
+      <Tabs
+        value={tab}
+        className={"flex flex-col"}
+        onValueChange={(v) => setTab(v)}
+      >
         <TabsList className="w-full sm:w-max p-1 h-auto bg-muted/60 backdrop-blur-md border border-border/50 rounded-full shadow-sm flex items-center overflow-x-auto no-scrollbar">
-          <TabsTrigger 
-            value="overview" 
+          <TabsTrigger
+            value="overview"
             id="trip-audit-tab-overview"
             className="rounded-full px-5 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=inactive]:hover:bg-muted/80 flex items-center gap-2"
           >
             <Map className="h-4 w-4" />
             {t("overview")}
           </TabsTrigger>
-          <TabsTrigger 
-            value="manifest" 
+          <TabsTrigger
+            value="manifest"
             id="trip-audit-tab-manifest"
             className="rounded-full px-5 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=inactive]:hover:bg-muted/80 flex items-center gap-2"
           >
             <Users className="h-4 w-4" />
             {t("manifest")}
           </TabsTrigger>
-          <TabsTrigger 
-            value="occupancy" 
+          <TabsTrigger
+            value="occupancy"
             id="trip-audit-tab-occupancy"
             className="rounded-full px-5 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=inactive]:hover:bg-muted/80 flex items-center gap-2"
           >
             <Bus className="h-4 w-4" />
             {t("occupancy")}
           </TabsTrigger>
-          <TabsTrigger 
-            value="reviews" 
+          <TabsTrigger
+            value="reviews"
             id="trip-audit-tab-reviews"
             className="rounded-full px-5 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=inactive]:hover:bg-muted/80 flex items-center gap-2"
           >

@@ -1,7 +1,7 @@
-import { getTranslations } from "next-intl/server";
-import React, { ReactNode } from "react";
-import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import { Separator } from "@moja/ui/components/ui/separator";
+import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
+import { getTranslations } from "next-intl/server";
+import React, { type ReactNode } from "react";
 
 interface AdminPageShellProps {
   title: string;
@@ -26,19 +26,26 @@ export async function AdminPageShell({
         <div className="flex items-center gap-4">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
           <Separator orientation="vertical" className="h-4 bg-border" />
-          
+
           {/* Breadcrumbs */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-            <span className="text-slate-400">{t("overview.breadcrumb.admin")}</span>
+            <span className="text-slate-400">
+              {t("overview.breadcrumb.admin")}
+            </span>
             {breadcrumbs?.map((crumb, idx) => (
               <React.Fragment key={idx}>
                 <span className="text-slate-300">/</span>
                 {crumb.href ? (
-                  <a href={crumb.href} className="hover:text-primary transition-colors">
+                  <a
+                    href={crumb.href}
+                    className="hover:text-primary transition-colors"
+                  >
                     {crumb.label}
                   </a>
                 ) : (
-                  <span className="text-slate-700 font-semibold">{crumb.label}</span>
+                  <span className="text-slate-700 font-semibold">
+                    {crumb.label}
+                  </span>
                 )}
               </React.Fragment>
             ))}

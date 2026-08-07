@@ -1,9 +1,6 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { useQueryState } from "nuqs";
-import { tripAuditSearchParams } from "@/features/admin/lib/search-params";
+import { Badge } from "@moja/ui/components/ui/badge";
 import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
@@ -20,12 +17,22 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
-import { Badge } from "@moja/ui/components/ui/badge";
-import { Search, ArrowRight, CheckCircle2, Clock, User, XCircle } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@moja/ui/lib/utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Search,
+  User,
+  XCircle,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useQueryState } from "nuqs";
+import { tripAuditSearchParams } from "@/features/admin/lib/search-params";
 import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 
 type TripAudit = RouterOutputs["admin"]["getTripAudit"];
 type Booking = TripAudit["bookings"][number];
@@ -64,24 +71,20 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
       </Badge>
     );
   }
-  return (
-    <Badge variant="outline">
-      {booking.status}
-    </Badge>
-  );
+  return <Badge variant="outline">{booking.status}</Badge>;
 }
 
 export function TripAuditManifest({ tripId }: { tripId: string }) {
   const t = useTranslations("adminDashboard.tripAuditManifest");
   const trpc = useTRPC();
   const { data: trip } = useSuspenseQuery(
-    trpc.admin.getTripAudit.queryOptions({ id: tripId })
+    trpc.admin.getTripAudit.queryOptions({ id: tripId }),
   );
 
   const [q, setQ] = useQueryState("q", tripAuditSearchParams.q);
   const [statusFilter, setStatusFilter] = useQueryState(
     "status",
-    tripAuditSearchParams.status
+    tripAuditSearchParams.status,
   );
 
   const filtered = trip.bookings.filter((b) => {
@@ -136,19 +139,36 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/70">
-              <TableHead className="font-semibold text-xs">{t("seat")}</TableHead>
-              <TableHead className="font-semibold text-xs">{t("passenger")}</TableHead>
-              <TableHead className="font-semibold text-xs">{t("segment")}</TableHead>
-              <TableHead className="font-semibold text-xs">{t("reference")}</TableHead>
-              <TableHead className="font-semibold text-xs">{t("fare")}</TableHead>
-              <TableHead className="font-semibold text-xs">{t("status")}</TableHead>
-              <TableHead className="font-semibold text-xs">{t("bookedAt")}</TableHead>
+              <TableHead className="font-semibold text-xs">
+                {t("seat")}
+              </TableHead>
+              <TableHead className="font-semibold text-xs">
+                {t("passenger")}
+              </TableHead>
+              <TableHead className="font-semibold text-xs">
+                {t("segment")}
+              </TableHead>
+              <TableHead className="font-semibold text-xs">
+                {t("reference")}
+              </TableHead>
+              <TableHead className="font-semibold text-xs">
+                {t("fare")}
+              </TableHead>
+              <TableHead className="font-semibold text-xs">
+                {t("status")}
+              </TableHead>
+              <TableHead className="font-semibold text-xs">
+                {t("bookedAt")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground text-sm">
+                <TableCell
+                  colSpan={7}
+                  className="h-32 text-center text-muted-foreground text-sm"
+                >
                   {t("noPassengersMatch")}
                 </TableCell>
               </TableRow>
@@ -162,18 +182,24 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="text-sm font-medium">{booking.passengerName}</p>
-                      <p className="text-xs text-muted-foreground">{booking.passengerPhone}</p>
+                      <p className="text-sm font-medium">
+                        {booking.passengerName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {booking.passengerPhone}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <span>
-                        {booking.originTripStop?.terminal.cityRelation?.name ?? "?"}
+                        {booking.originTripStop?.terminal.cityRelation?.name ??
+                          "?"}
                       </span>
                       <ArrowRight className="size-3 shrink-0" />
                       <span>
-                        {booking.destinationTripStop?.terminal.cityRelation?.name ?? "?"}
+                        {booking.destinationTripStop?.terminal.cityRelation
+                          ?.name ?? "?"}
                       </span>
                     </div>
                   </TableCell>
@@ -202,10 +228,17 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
         {filtered.length > 0 && (
           <div className="border-t border-border bg-slate-50/50 px-4 py-2 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              {t("showingPassengers", { shown: filtered.length, total: trip.bookings.length })}
+              {t("showingPassengers", {
+                shown: filtered.length,
+                total: trip.bookings.length,
+              })}
             </span>
             <span className="text-xs font-semibold text-foreground">
-              {t("totalFare", { fare: filtered.reduce((s, b) => s + b.farePaid, 0).toLocaleString() })}
+              {t("totalFare", {
+                fare: filtered
+                  .reduce((s, b) => s + b.farePaid, 0)
+                  .toLocaleString(),
+              })}
             </span>
           </div>
         )}

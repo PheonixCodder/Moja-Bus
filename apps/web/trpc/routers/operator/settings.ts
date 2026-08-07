@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { companyStepSchema, profileStepSchema, bankStepSchema, documentSchema } from "@moja/schemas";
 import { operatorCompanyProcedure } from "../../init";
-import { requirePermission } from "@/lib/permissions/authorize";
+import { requirePermission, requireAnyPermission, requireOwner } from "@/lib/permissions/authorize";
 import { deleteStorageObject } from "@/lib/storage";
 import { maskBankAccountForClient, prepareBankAccountStorage, revealBankAccountNumber } from "@/lib/bank-account";
 import { logBankAccess } from "@/lib/bank-access";
@@ -119,16 +119,15 @@ export const operatorSettingsProcedures = {
       return updatedCompany;
     }),
 
-  updateProfile: operatorCompanyProcedure
-    .input(profileStepSchema.partial())
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
-      const operator = await ctx.prisma.operator.findFirst({
-        where: { userId: ctx.user.id, deletedAt: null },
-        orderBy: { joinedAt: "desc" },
-      });
-      if (!operator)
-        throw new TRPCError({ code: "NOT_FOUND", message: "Operator not found" });
+   updateProfile: operatorCompanyProcedure
+     .input(profileStepSchema.partial())
+     .mutation(async ({ ctx, input }) => {
+       const operator = await ctx.prisma.operator.findFirst({
+         where: { userId: ctx.user.id, deletedAt: null },
+         orderBy: { joinedAt: "desc" },
+       });
+       if (!operator)
+         throw new TRPCError({ code: "NOT_FOUND", message: "Operator not found" });
         
       const parsed = profileStepSchema.partial().safeParse(input);
       if (!parsed.success) {
@@ -157,7 +156,7 @@ export const operatorSettingsProcedures = {
   updateBankAccount: operatorCompanyProcedure
     .input(bankStepSchema.extend({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
+      requirePermission(ctx, "company:banking:update");
 
       const { id, ...cleanData } = input;
 
@@ -238,10 +237,11 @@ export const operatorSettingsProcedures = {
       return maskBankAccountForClient(updatedBank);
     }),
 
-  updateBank: operatorCompanyProcedure
-    .input(bankStepSchema)
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
+    /** @deprecated This endpoint is no longer used by the UI. */
+    updateBank: operatorCompanyProcedure
+     .input(bankStepSchema)
+     .mutation(async ({ ctx, input }) => {
+       requireOwner(ctx);
       const parsed = bankStepSchema.safeParse(input);
       if (!parsed.success) {
         throw new TRPCError({
@@ -351,6 +351,7 @@ export const operatorSettingsProcedures = {
       return maskBankAccountForClient(updatedBank);
     }),
 
+  /** @deprecated This endpoint is no longer used by the UI. */
   revealBankAccount: operatorCompanyProcedure
     .input(z.object({ bankAccountId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -386,7 +387,7 @@ export const operatorSettingsProcedures = {
 
   listBankAccounts: operatorCompanyProcedure
     .query(async ({ ctx }) => {
-      requirePermission(ctx, "company:view");
+      requireAnyPermission(ctx, ["company:view", "financials:view"]);
       const bankAccounts = await ctx.prisma.bankAccount.findMany({
         where: { companyId: ctx.companyId },
         orderBy: { createdAt: "desc" },
@@ -394,21 +395,21 @@ export const operatorSettingsProcedures = {
       return bankAccounts.map((b) => maskBankAccountForClient(b));
     }),
 
-  addBankAccount: operatorCompanyProcedure
-    .input(
-      z.object({
-        bankName: z.string().min(1),
-        bankCode: z.string().min(1),
-        bankType: z.string().nullable().optional(),
-        accountNumber: z.string().min(1),
-        accountName: z.string().min(1),
-        branch: z.string().nullable().optional(),
-        swiftCode: z.string().nullable().optional(),
-        iban: z.string().nullable().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
+addBankAccount: operatorCompanyProcedure
+      .input(
+        z.object({
+          bankName: z.string().min(1),
+          bankCode: z.string().min(1),
+          bankType: z.string().nullable().optional(),
+          accountNumber: z.string().min(1),
+          accountName: z.string().min(1),
+          branch: z.string().nullable().optional(),
+          swiftCode: z.string().nullable().optional(),
+          iban: z.string().nullable().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        requirePermission(ctx, "company:banking:update");
       // Use the operator-provided name. Paystack validates the account number
       // when the recipient is registered — wrong details fail here immediately.
       const resolvedName = input.accountName || "Operator Account";
@@ -461,10 +462,11 @@ export const operatorSettingsProcedures = {
       return maskBankAccountForClient(newAccount);
     }),
 
-  setDefaultBankAccount: operatorCompanyProcedure
-    .input(z.object({ bankAccountId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
+    /** @deprecated This endpoint is no longer used by the UI. */
+    setDefaultBankAccount: operatorCompanyProcedure
+     .input(z.object({ bankAccountId: z.string() }))
+     .mutation(async ({ ctx, input }) => {
+       requireOwner(ctx);
       const bankAccount = await ctx.prisma.bankAccount.findFirst({
         where: { id: input.bankAccountId, companyId: ctx.companyId },
       });
@@ -501,10 +503,10 @@ export const operatorSettingsProcedures = {
       return { success: true };
     }),
 
-  deleteBankAccount: operatorCompanyProcedure
-    .input(z.object({ bankAccountId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
+   deleteBankAccount: operatorCompanyProcedure
+     .input(z.object({ bankAccountId: z.string() }))
+     .mutation(async ({ ctx, input }) => {
+       requireOwner(ctx);
       const bankAccount = await ctx.prisma.bankAccount.findFirst({
         where: { id: input.bankAccountId, companyId: ctx.companyId },
       });
@@ -533,7 +535,7 @@ export const operatorSettingsProcedures = {
   addDocument: operatorCompanyProcedure
     .input(documentSchema)
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
+      requirePermission(ctx, "company:compliance:update");
       const parsed = documentSchema.safeParse(input);
       if (!parsed.success) {
         throw new TRPCError({
@@ -559,7 +561,7 @@ export const operatorSettingsProcedures = {
   deleteDocument: operatorCompanyProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      requirePermission(ctx, "company:update");
+      requirePermission(ctx, "company:compliance:update");
       const document = await ctx.prisma.companyDocument.findFirst({
         where: {
           id: input.id,

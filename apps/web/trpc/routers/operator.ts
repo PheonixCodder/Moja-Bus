@@ -253,8 +253,9 @@ export const operatorRouter = createTRPCRouter({
     };
   }),
 
-  completeOnboarding: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-    const operator = await ctx.prisma.operator.findFirst({
+   completeOnboarding: operatorCompanyProcedure.mutation(async ({ ctx }) => {
+     requirePermission(ctx, "company:update");
+     const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
       include: { 
@@ -370,8 +371,9 @@ export const operatorRouter = createTRPCRouter({
     return { success: true };
   }),
 
-  resubmitVerification: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-    const operator = await ctx.prisma.operator.findFirst({
+   resubmitVerification: operatorCompanyProcedure.mutation(async ({ ctx }) => {
+     requirePermission(ctx, "company:update");
+     const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
       include: { company: true },
@@ -450,10 +452,11 @@ export const operatorRouter = createTRPCRouter({
       return { isAvailable: !existing };
     }),
 
-  saveOnboardingStep: operatorCompanyProcedure
-    .input(saveOnboardingStepSchema)
-    .mutation(async ({ ctx, input }) => {
-      const {
+   saveOnboardingStep: operatorCompanyProcedure
+     .input(saveOnboardingStepSchema)
+     .mutation(async ({ ctx, input }) => {
+       requirePermission(ctx, "company:update");
+       const {
         step,
         companyData,
         documentsData,
@@ -930,14 +933,15 @@ export const operatorRouter = createTRPCRouter({
     }),
 
   /** Re-open a completed onboarding step so the operator can edit it again. */
-  reopenOnboardingStep: operatorCompanyProcedure
-    .input(
-      z.object({
-        step: z.enum(["COMPANY", "DOCUMENTS", "BANK", "PROFILE", "TERMS"]),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const operator = await ctx.prisma.operator.findFirst({
+   reopenOnboardingStep: operatorCompanyProcedure
+     .input(
+       z.object({
+         step: z.enum(["COMPANY", "DOCUMENTS", "BANK", "PROFILE", "TERMS"]),
+       }),
+     )
+     .mutation(async ({ ctx, input }) => {
+       requirePermission(ctx, "company:update");
+       const operator = await ctx.prisma.operator.findFirst({
         where: { userId: ctx.user.id, deletedAt: null },
         orderBy: { joinedAt: "desc" },
         include: { onboardingProgress: true },
@@ -1152,7 +1156,7 @@ export const operatorRouter = createTRPCRouter({
   exportBookingsCsv: operatorCompanyProcedure
     .input(operatorListBookingsSchema)
     .query(async ({ ctx, input }) => {
-      requirePermission(ctx, "bookings:read");
+      requirePermission(ctx, "revenue:export");
       const service = new OperatorBookingService(ctx.prisma);
       const { items } = await service.listCompanyBookings(ctx.companyId, {
         ...input,
@@ -1866,10 +1870,11 @@ export const operatorRouter = createTRPCRouter({
    * UI can decide whether to show the 2FA step and how to word the frequency
    * rule. (F-18)
    */
-  getWithdrawalControls: operatorCompanyProcedure.query(async ({ ctx }) => {
-    const settings = await ctx.prisma.platformSettings.findUnique({
-      where: { id: "default" },
-    });
+   getWithdrawalControls: operatorCompanyProcedure.query(async ({ ctx }) => {
+     requirePermission(ctx, "withdrawals:view");
+     const settings = await ctx.prisma.platformSettings.findUnique({
+       where: { id: "default" },
+     });
     return {
       require2FA: Boolean(settings?.require2FAForWithdrawals),
       frequencyHours: settings?.withdrawalFrequencyHours ?? 0,

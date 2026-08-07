@@ -1,35 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useQueryState, parseAsInteger } from "nuqs";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import {
-  Search,
-  Building,
-  ShieldCheck,
-  FileText,
-  ExternalLink,
-  ChevronRight,
-  User,
-  Mail,
-  Phone,
-  Landmark,
-  ShieldAlert,
-} from "lucide-react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
-
-import { useTRPC } from "@/trpc/client";
-import { Card, CardContent } from "@moja/ui/components/ui/card";
-import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
 import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
+import { Card, CardContent } from "@moja/ui/components/ui/card";
+import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -38,13 +12,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
-
-import { VerificationsTable } from "../components/verifications-table";
-import { getCompanyColumns, type CompanyRow } from "../components/verifications-columns";
-import { VerificationsPagination } from "../components/verifications-pagination";
-import { VerificationsApproveDialog } from "../components/verifications-approve-dialog";
-import { VerificationsRejectDialog } from "../components/verifications-reject-dialog";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import {
+  Building,
+  ChevronRight,
+  ExternalLink,
+  FileText,
+  Landmark,
+  Mail,
+  Phone,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  User,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { parseAsInteger, useQueryState } from "nuqs";
+import { useState } from "react";
+import { useTRPC } from "@/trpc/client";
 import { OperatorOnboardingFunnel } from "../components/operator-onboarding-funnel";
+import { VerificationsApproveDialog } from "../components/verifications-approve-dialog";
+import {
+  type CompanyRow,
+  getCompanyColumns,
+} from "../components/verifications-columns";
+import { VerificationsPagination } from "../components/verifications-pagination";
+import { VerificationsRejectDialog } from "../components/verifications-reject-dialog";
+import { VerificationsTable } from "../components/verifications-table";
 
 export function AdminVerificationsView() {
   const trpc = useTRPC();
@@ -53,10 +54,17 @@ export function AdminVerificationsView() {
   const columnsT = useTranslations("adminDashboard.verificationsColumns");
 
   // Search parameters managed by nuqs
-  const [searchQuery, setSearchQuery] = useQueryState("q", { defaultValue: "" });
-  const [statusFilter, setStatusFilter] = useQueryState("status", { defaultValue: "PENDING_VERIFICATION" });
+  const [searchQuery, setSearchQuery] = useQueryState("q", {
+    defaultValue: "",
+  });
+  const [statusFilter, setStatusFilter] = useQueryState("status", {
+    defaultValue: "PENDING_VERIFICATION",
+  });
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [pageSize, setPageSize] = useQueryState("pageSize", parseAsInteger.withDefault(10));
+  const [pageSize, setPageSize] = useQueryState(
+    "pageSize",
+    parseAsInteger.withDefault(10),
+  );
 
   const currentPage = page - 1; // 0-indexed for Prisma offset
 
@@ -67,11 +75,13 @@ export function AdminVerificationsView() {
       status: statusFilter === "ALL" ? undefined : (statusFilter as any),
       limit: pageSize,
       offset: currentPage * pageSize,
-    })
+    }),
   );
 
   // Selected Row / Modal States
-  const [selectedCompany, setSelectedCompany] = useState<CompanyRow | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyRow | null>(
+    null,
+  );
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -132,7 +142,9 @@ export function AdminVerificationsView() {
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Building className="size-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{t("status")}</span>
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              {t("status")}
+            </span>
             <Select
               value={statusFilter}
               onValueChange={(value) => {
@@ -140,13 +152,19 @@ export function AdminVerificationsView() {
                 setPage(1);
               }}
             >
-              <SelectTrigger size="sm" className="h-9 w-full sm:w-48 bg-white text-slate-800 text-xs" id="status-filter-select">
+              <SelectTrigger
+                size="sm"
+                className="h-9 w-full sm:w-48 bg-white text-slate-800 text-xs"
+                id="status-filter-select"
+              >
                 <SelectValue placeholder={t("allStatuses")} />
               </SelectTrigger>
               <SelectContent className="bg-white border border-border shadow-md rounded">
                 <SelectGroup>
                   <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
-                  <SelectItem value="PENDING_VERIFICATION">{t("pendingVerification")}</SelectItem>
+                  <SelectItem value="PENDING_VERIFICATION">
+                    {t("pendingVerification")}
+                  </SelectItem>
                   <SelectItem value="ACTIVE">{t("active")}</SelectItem>
                   <SelectItem value="DRAFT">{t("draft")}</SelectItem>
                   <SelectItem value="REJECTED">{t("rejected")}</SelectItem>

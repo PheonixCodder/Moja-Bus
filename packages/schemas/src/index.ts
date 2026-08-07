@@ -16,3 +16,4 @@ export * from "./payments-admin";
 export * from "./admin";
 export * from "./wallet";
 export * from "./contact";
+export * from "./admin-permissions";

@@ -1,18 +1,18 @@
 "use client";
 
-import { useQueryStates } from "nuqs";
-import { useTranslations } from "next-intl";
-import { dashboardSearchParams } from "../../lib/search-params";
+import { Button } from "@moja/ui/components/ui/button";
 import { Calendar } from "@moja/ui/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@moja/ui/components/ui/popover";
-import { Button } from "@moja/ui/components/ui/button";
-import { CalendarIcon, ChevronDown } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { format, subDays } from "date-fns";
+import { CalendarIcon, ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { dashboardSearchParams } from "../../lib/search-params";
 
 export function DashboardDatePicker() {
   const t = useTranslations("adminDashboard.overview.revenueChart.datePicker");
@@ -35,7 +35,7 @@ export function DashboardDatePicker() {
             variant="outline"
             className={cn(
               "w-[260px] justify-start text-left font-normal",
-              !from && "text-muted-foreground"
+              !from && "text-muted-foreground",
             )}
           />
         }
@@ -94,7 +94,9 @@ export function DashboardDatePicker() {
               if (range?.from) {
                 setParams({
                   from: range.from.toISOString(),
-                  to: range.to ? range.to.toISOString() : range.from.toISOString(),
+                  to: range.to
+                    ? range.to.toISOString()
+                    : range.from.toISOString(),
                 });
               }
             }}

@@ -1,9 +1,9 @@
 "use client";
 
+import { Separator } from "@moja/ui/components/ui/separator";
+import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
-import { Separator } from "@moja/ui/components/ui/separator";
 
 export interface BreadcrumbItem {
   label: string;
@@ -29,7 +29,10 @@ export function DashboardHeader({ breadcrumbs }: DashboardHeaderProps) {
             <div key={item.tKey ?? item.label} className="flex items-center">
               {idx > 0 && <span className="mx-1 text-text-muted/40">/</span>}
               {item.href && !isLast ? (
-                <Link href={item.href} className="hover:text-text-primary transition-colors">
+                <Link
+                  href={item.href}
+                  className="hover:text-text-primary transition-colors"
+                >
                   {label}
                 </Link>
               ) : (

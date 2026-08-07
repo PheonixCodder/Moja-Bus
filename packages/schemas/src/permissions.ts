@@ -13,6 +13,9 @@ export const STAFF_ROLES = [
   "OPERATIONS",
   "FINANCE",
   "SUPPORT",
+  "TREASURY",
+  "DISPATCHER",
+  "CONDUCTOR",
 ] as const;
 
 export type StaffRole = (typeof STAFF_ROLES)[number];
@@ -31,6 +34,7 @@ export const PERMISSION_META = {
   "terminals:create": { group: "Terminals", label: "Create terminals" },
   "terminals:update": { group: "Terminals", label: "Edit terminals" },
   "terminals:delete": { group: "Terminals", label: "Delete terminals" },
+  "terminals:geocapture": { group: "Terminals", label: "Geocapture terminal coordinates" },
 
   // Fleet
   "fleet:read": { group: "Fleet", label: "View buses & layouts" },
@@ -49,13 +53,18 @@ export const PERMISSION_META = {
   "trips:create": { group: "Trips", label: "Create trips" },
   "trips:update": { group: "Trips", label: "Edit / dispatch trips" },
   "trips:cancel": { group: "Trips", label: "Cancel trips" },
+  "trips:dispatch": { group: "Trips", label: "Dispatch trips" },
 
   // Bookings
   "bookings:read": { group: "Bookings", label: "View bookings" },
   "bookings:update": { group: "Bookings", label: "Modify / check-in bookings" },
+  "bookings:cancel": { group: "Bookings", label: "Cancel bookings" },
+  "bookings:checkin": { group: "Bookings", label: "Check in passengers" },
 
   // Revenue & withdrawals
   "revenue:view": { group: "Financials", label: "View revenue" },
+  "revenue:export": { group: "Financials", label: "Export revenue data" },
+  "financials:view": { group: "Financials", label: "View financials & payouts" },
   "withdrawals:view": { group: "Financials", label: "View withdrawals" },
   "withdrawals:create": { group: "Financials", label: "Request withdrawals" },
 
@@ -67,7 +76,10 @@ export const PERMISSION_META = {
 
   // Company
   "company:view": { group: "Company", label: "View company settings" },
-  "company:update": { group: "Company", label: "Edit company settings" },
+  "company:profile:update": { group: "Company", label: "Edit company profile" },
+  "company:banking:update": { group: "Company", label: "Manage bank accounts" },
+  "company:compliance:update": { group: "Company", label: "Manage compliance documents" },
+  "company:delete": { group: "Company", label: "Delete company" },
 
   // Reviews
   "reviews:read": { group: "Reviews", label: "View passenger reviews" },
@@ -115,6 +127,7 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "terminals:create",
     "terminals:update",
     "terminals:delete",
+    "terminals:geocapture",
     "fleet:read",
     "fleet:create",
     "fleet:update",
@@ -124,14 +137,17 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "schedules:update",
     "schedules:delete",
     "trips:read",
-    "trips:create",
     "trips:update",
     "trips:cancel",
+    "trips:dispatch",
     "bookings:read",
     "bookings:update",
+    "bookings:cancel",
     "reviews:read",
     "reviews:respond",
     "revenue:view",
+    "revenue:export",
+    "financials:view",
     "withdrawals:view",
     "withdrawals:create",
     "staff:read",
@@ -139,7 +155,10 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "staff:update",
     "staff:remove",
     "company:view",
-    "company:update",
+    "company:profile:update",
+    "company:banking:update",
+    "company:compliance:update",
+    "company:delete",
   ],
 
   MANAGER: [
@@ -156,7 +175,6 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "schedules:create",
     "schedules:update",
     "trips:read",
-    "trips:create",
     "trips:update",
     "trips:cancel",
     "bookings:read",
@@ -178,6 +196,7 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "trips:cancel",
     "bookings:read",
     "bookings:update",
+    "bookings:cancel",
     "reviews:read",
     "reviews:respond",
   ],
@@ -187,6 +206,8 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "bookings:read",
     "reviews:read",
     "revenue:view",
+    "revenue:export",
+    "financials:view",
     "withdrawals:view",
     "company:view",
   ],
@@ -195,20 +216,54 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "schedules:read",
     "trips:read",
     "bookings:read",
-    "bookings:update",
     "reviews:read",
-    "reviews:respond",
+  ],
+
+  TREASURY: [
+    "routes:read",
+    "bookings:read",
+    "reviews:read",
+    "revenue:view",
+    "revenue:export",
+    "financials:view",
+    "withdrawals:view",
+    "withdrawals:create",
+    "company:view",
+  ],
+
+  DISPATCHER: [
+    "routes:read",
+    "terminals:read",
+    "fleet:read",
+    "schedules:read",
+    "trips:read",
+    "trips:update",
+    "trips:cancel",
+    "trips:dispatch",
+    "bookings:read",
+  ],
+
+  CONDUCTOR: [
+    "routes:read",
+    "trips:read",
+    "bookings:read",
+    "bookings:update",
+    "bookings:checkin",
+    "reviews:read",
   ],
 };
 
 /** Who may assign which role labels (OWNER never via invite). */
 export const ASSIGNABLE_ROLES: Record<StaffRole, StaffRole[]> = {
-  OWNER: ["ADMIN", "MANAGER", "OPERATIONS", "FINANCE", "SUPPORT"],
-  ADMIN: ["MANAGER", "OPERATIONS", "FINANCE", "SUPPORT"],
-  MANAGER: ["OPERATIONS", "SUPPORT"],
+  OWNER: ["ADMIN", "MANAGER", "OPERATIONS", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
+  ADMIN: ["MANAGER", "OPERATIONS", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
+  MANAGER: ["OPERATIONS", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
   OPERATIONS: [],
   FINANCE: [],
   SUPPORT: [],
+  TREASURY: [],
+  DISPATCHER: [],
+  CONDUCTOR: [],
 };
 
 export const ROLE_LEVELS: Record<StaffRole, number> = {
@@ -216,6 +271,9 @@ export const ROLE_LEVELS: Record<StaffRole, number> = {
   ADMIN: 500,
   MANAGER: 400,
   OPERATIONS: 300,
+  DISPATCHER: 350,
+  TREASURY: 260,
+  CONDUCTOR: 275,
   FINANCE: 250,
   SUPPORT: 200,
 };

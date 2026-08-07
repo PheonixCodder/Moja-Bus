@@ -1,23 +1,23 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-  DrawerDescription,
 } from "@moja/ui/components/ui/drawer";
-import { Map, ArrowRight } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Map } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { useTRPC } from "@/trpc/client";
 
 const RouteMapPreview = dynamic(
   () => import("@/features/operator/components/route-map-preview"),
-  { ssr: false, loading: () => <MapSkeleton /> }
+  { ssr: false, loading: () => <MapSkeleton /> },
 );
 
 function MapSkeleton() {
@@ -37,10 +37,14 @@ interface AdminRouteDrawerProps {
   onClose: () => void;
 }
 
-export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerProps) {
+export function AdminRouteDrawer({
+  routeId,
+  open,
+  onClose,
+}: AdminRouteDrawerProps) {
   const t = useTranslations("adminDashboard.adminRouteDrawer");
   const trpc = useTRPC();
-  
+
   const { data: route, isLoading } = useQuery({
     ...trpc.admin.getRoute.queryOptions({ id: routeId ?? "" }),
     enabled: open && !!routeId,
@@ -48,25 +52,27 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
 
   if (!open) return null;
 
-  const allStops = route ? [
-    {
-      id: "origin",
-      terminal: route.originTerminal,
-    },
-    ...route.waypoints.map(wp => ({
-      id: wp.id,
-      terminal: wp.terminal,
-    })),
-    {
-      id: "dest",
-      terminal: route.destTerminal,
-    },
-  ] : [];
+  const allStops = route
+    ? [
+        {
+          id: "origin",
+          terminal: route.originTerminal,
+        },
+        ...route.waypoints.map((wp) => ({
+          id: wp.id,
+          terminal: wp.terminal,
+        })),
+        {
+          id: "dest",
+          terminal: route.destTerminal,
+        },
+      ]
+    : [];
 
   const mapPoints = allStops
-    .map(s => s.terminal)
-    .filter(t => t.latitude != null && t.longitude != null)
-    .map(t => ({
+    .map((s) => s.terminal)
+    .filter((t) => t.latitude != null && t.longitude != null)
+    .map((t) => ({
       id: t.id,
       name: t.name,
       cityName: t.cityRelation?.name ?? t.city ?? "Côte d'Ivoire",
@@ -75,11 +81,7 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
     }));
 
   return (
-    <Drawer
-      open={open}
-      onOpenChange={(v) => !v && onClose()}
-      direction="right"
-    >
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()} direction="right">
       <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-4xl flex flex-col rounded-none border-l border-border bg-card">
         <DrawerHeader className="border-b border-border px-6 py-5 shrink-0 bg-background/50 backdrop-blur-md">
           <DrawerTitle className="text-lg font-bold">
@@ -88,12 +90,16 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
           <DrawerDescription className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
             {route && (
               <>
-                <span className="font-medium text-foreground">{route.company.name}</span>
+                <span className="font-medium text-foreground">
+                  {route.company.name}
+                </span>
                 <span>•</span>
                 <span>
-                  {route.originTerminal.cityRelation?.name ?? route.originTerminal.city} 
-                  <ArrowRight className="inline mx-1 size-3" /> 
-                  {route.destTerminal.cityRelation?.name ?? route.destTerminal.city}
+                  {route.originTerminal.cityRelation?.name ??
+                    route.originTerminal.city}
+                  <ArrowRight className="inline mx-1 size-3" />
+                  {route.destTerminal.cityRelation?.name ??
+                    route.destTerminal.city}
                 </span>
                 <span>•</span>
                 <span>{route.status}</span>
@@ -105,25 +111,35 @@ export function AdminRouteDrawer({ routeId, open, onClose }: AdminRouteDrawerPro
         <div className="flex flex-1 overflow-hidden">
           {/* Left: Waypoints Timeline */}
           <div className="w-[320px] overflow-y-auto border-r border-border bg-card px-6 py-6 space-y-6">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("routeWaypoints")}</h3>
-            
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("routeWaypoints")}
+            </h3>
+
             <div className="space-y-0">
               {isLoading && (
-                <div className="text-sm text-muted-foreground animate-pulse">{t("loadingStops")}</div>
+                <div className="text-sm text-muted-foreground animate-pulse">
+                  {t("loadingStops")}
+                </div>
               )}
               {allStops.map((stop, i) => {
                 const isOrigin = i === 0;
                 const isDest = i === allStops.length - 1;
-                
+
                 return (
                   <div key={stop.id} className="flex items-stretch gap-4">
                     {/* Timeline */}
                     <div className="flex flex-col items-center shrink-0">
-                      <div className={cn(
-                        "size-3.5 rounded-full border-2 mt-1",
-                        isOrigin || isDest ? "border-primary bg-primary" : "border-primary/50 bg-background"
-                      )} />
-                      {!isDest && <div className="w-px flex-1 bg-border min-h-[2.5rem] my-1" />}
+                      <div
+                        className={cn(
+                          "size-3.5 rounded-full border-2 mt-1",
+                          isOrigin || isDest
+                            ? "border-primary bg-primary"
+                            : "border-primary/50 bg-background",
+                        )}
+                      />
+                      {!isDest && (
+                        <div className="w-px flex-1 bg-border min-h-[2.5rem] my-1" />
+                      )}
                     </div>
 
                     {/* Content */}

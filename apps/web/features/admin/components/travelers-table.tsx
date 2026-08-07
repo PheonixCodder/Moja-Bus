@@ -1,10 +1,6 @@
 "use client";
 "use no memo";
 
-import type { MouseEvent } from "react";
-import { flexRender, type Table as TableType } from "@tanstack/react-table";
-import { useTranslations } from "next-intl";
-
 import {
   Pagination,
   PaginationContent,
@@ -14,13 +10,28 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@moja/ui/components/ui/pagination";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@moja/ui/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
 import { Separator } from "@moja/ui/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@moja/ui/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@moja/ui/components/ui/table";
+import { flexRender, type Table as TableType } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
+import type { MouseEvent } from "react";
 
 import type { TravelerRow } from "./travelers-columns";
-
-
 
 function getPageNumbers(currentPage: number, pageCount: number) {
   if (pageCount <= 3) {
@@ -28,7 +39,8 @@ function getPageNumbers(currentPage: number, pageCount: number) {
   }
 
   if (currentPage <= 2) return [1, 2, 3];
-  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount];
+  if (currentPage >= pageCount - 1)
+    return [pageCount - 2, pageCount - 1, pageCount];
 
   return [currentPage - 1, currentPage, currentPage + 1];
 }
@@ -36,7 +48,10 @@ function getPageNumbers(currentPage: number, pageCount: number) {
 export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
   const t = useTranslations("adminDashboard.travelersTable");
   const pageCount = Math.max(table.getPageCount(), 1);
-  const currentPage = Math.min(table.getState().pagination.pageIndex + 1, pageCount);
+  const currentPage = Math.min(
+    table.getState().pagination.pageIndex + 1,
+    pageCount,
+  );
   const pageNumbers = getPageNumbers(currentPage, pageCount);
   const rowsPerPage = `${table.getState().pagination.pageSize}`;
 
@@ -48,8 +63,16 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-border/60">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="py-4 font-normal text-muted-foreground">
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead
+                    key={header.id}
+                    className="py-4 font-normal text-muted-foreground"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -66,14 +89,20 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-3 py-4 align-middle">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-24 text-center">
+                <TableCell
+                  colSpan={table.getVisibleLeafColumns().length}
+                  className="h-24 text-center"
+                >
                   {t("noTravelersFound")}
                 </TableCell>
               </TableRow>
@@ -92,7 +121,11 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => table.setPageSize(Number(value))}
             >
-              <SelectTrigger size="sm" className="w-20" id="travelers-rows-per-page">
+              <SelectTrigger
+                size="sm"
+                className="w-20"
+                id="travelers-rows-per-page"
+              >
                 <SelectValue placeholder={rowsPerPage} />
               </SelectTrigger>
               <SelectContent side="top">
@@ -117,7 +150,11 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
               <PaginationPrevious
                 href="#"
                 text=""
-                className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : undefined}
+                className={
+                  !table.getCanPreviousPage()
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
                 onClick={(event) => {
                   event?.preventDefault();
                   table.previousPage();
@@ -133,7 +170,9 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
               <PaginationItem key={`page-${pageNumber}`}>
                 <PaginationLink
                   href="#"
-                  isActive={table.getState().pagination.pageIndex === pageNumber - 1}
+                  isActive={
+                    table.getState().pagination.pageIndex === pageNumber - 1
+                  }
                   onClick={(event) => {
                     event?.preventDefault();
                     table.setPageIndex(pageNumber - 1);
@@ -143,7 +182,8 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
                 </PaginationLink>
               </PaginationItem>
             ))}
-            {pageNumbers[pageNumbers.length - 1] !== undefined && pageNumbers[pageNumbers.length - 1]! < pageCount ? (
+            {pageNumbers[pageNumbers.length - 1] !== undefined &&
+            pageNumbers[pageNumbers.length - 1]! < pageCount ? (
               <PaginationItem>
                 <PaginationEllipsis />
               </PaginationItem>
@@ -152,7 +192,11 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
               <PaginationNext
                 href="#"
                 text=""
-                className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : undefined}
+                className={
+                  !table.getCanNextPage()
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
                 onClick={(event) => {
                   event?.preventDefault();
                   table.nextPage();

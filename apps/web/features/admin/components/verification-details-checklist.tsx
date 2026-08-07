@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
-import { useTRPC } from "@/trpc/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 interface VerificationDetailsChecklistProps {
   companyId: string;
@@ -37,12 +43,14 @@ export function VerificationDetailsChecklist({
     trpc.admin.updateCompanyVerificationChecklist.mutationOptions({
       onSuccess: () => {
         toast.success(t("checklistUpdated"));
-        queryClient.invalidateQueries(trpc.admin.getCompanyForVerification.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.admin.getCompanyForVerification.pathFilter(),
+        );
       },
       onError: (err) => {
         toast.error(err.message || t("failedToUpdateChecklist"));
       },
-    })
+    }),
   );
 
   const handleToggle = (key: keyof typeof state, checked: boolean) => {

@@ -9,12 +9,14 @@ interface StaffInvitationsSectionProps {
   invitations: Array<StaffInvitation & { createdAt?: Date | string }>;
   onResend: (invitation: StaffInvitation) => void;
   onCancel: (invitation: StaffInvitation) => void;
+  canDelete: boolean;
 }
 
 export function StaffInvitationsSection({
   invitations,
   onResend,
   onCancel,
+  canDelete,
 }: StaffInvitationsSectionProps) {
   const t = useTranslations("operatorDashboard.staff.invitationsSection");
   return (
@@ -40,6 +42,7 @@ export function StaffInvitationsSection({
               invitation={invitation}
               onResend={onResend}
               onCancel={onCancel}
+              canDelete={canDelete}
             />
           ))}
         </div>

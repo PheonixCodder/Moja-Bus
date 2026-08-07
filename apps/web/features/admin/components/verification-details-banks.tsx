@@ -1,14 +1,22 @@
 "use client";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Landmark, ShieldAlert } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
 import { useTranslations } from "next-intl";
 
 interface VerificationDetailsBanksProps {
   bankAccounts: any[];
 }
 
-export function VerificationDetailsBanks({ bankAccounts }: VerificationDetailsBanksProps) {
+export function VerificationDetailsBanks({
+  bankAccounts,
+}: VerificationDetailsBanksProps) {
   const t = useTranslations("adminDashboard.verificationDetailsBanks");
   return (
     <Card className="bg-white border-border shadow-sm">
@@ -31,7 +39,9 @@ export function VerificationDetailsBanks({ bankAccounts }: VerificationDetailsBa
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
                     <Landmark className="size-4.5 text-slate-400 shrink-0" />
-                    <span className="font-semibold text-slate-800 text-sm">{bank.bankName}</span>
+                    <span className="font-semibold text-slate-800 text-sm">
+                      {bank.bankName}
+                    </span>
                     {bank.isDefault && (
                       <span className="text-[9px] font-bold bg-green-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wider select-none">
                         {t("default")}
@@ -50,13 +60,17 @@ export function VerificationDetailsBanks({ bankAccounts }: VerificationDetailsBa
                 </div>
                 <div className="grid grid-cols-2 gap-y-2 mt-2 text-xs text-slate-500 border-t border-slate-50/50 pt-2.5">
                   <div>
-                    <span className="font-medium text-slate-400">{t("accountHolder")}</span>
+                    <span className="font-medium text-slate-400">
+                      {t("accountHolder")}
+                    </span>
                     <div className="font-semibold text-slate-800 mt-0.5 uppercase tracking-wide">
                       {bank.accountName}
                     </div>
                   </div>
                   <div>
-                    <span className="font-medium text-slate-400">{t("accountNumber")}</span>
+                    <span className="font-medium text-slate-400">
+                      {t("accountNumber")}
+                    </span>
                     <div className="font-semibold text-slate-800 mt-0.5 font-mono">
                       •••• •••• {bank.accountNumberLast4 || t("na")}
                     </div>

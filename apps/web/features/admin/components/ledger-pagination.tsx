@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Select,
@@ -9,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface LedgerPaginationProps {
@@ -33,11 +33,14 @@ export function LedgerPagination({
     <div className="flex items-center justify-between border border-border bg-white rounded-md p-4 shadow-sm">
       <div className="text-xs text-slate-500 font-medium select-none">
         {t("showing")}{" "}
-        <span className="font-semibold text-slate-700">{total === 0 ? 0 : (page - 1) * pageSize + 1}</span>{" "}
+        <span className="font-semibold text-slate-700">
+          {total === 0 ? 0 : (page - 1) * pageSize + 1}
+        </span>{" "}
         {t("to")}{" "}
-        <span className="font-semibold text-slate-700">{Math.min(page * pageSize, total)}</span>{" "}
-        {t("of")}{" "}
-        <span className="font-semibold text-slate-700">{total}</span>{" "}
+        <span className="font-semibold text-slate-700">
+          {Math.min(page * pageSize, total)}
+        </span>{" "}
+        {t("of")} <span className="font-semibold text-slate-700">{total}</span>{" "}
         {t("entries")}
       </div>
 

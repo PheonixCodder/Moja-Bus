@@ -1,13 +1,10 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { dispatchSearchParams } from "../lib/search-params";
-import { useQueryStates } from "nuqs";
-import { cn } from "@moja/ui/lib/utils";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import {
   Empty,
   EmptyDescription,
@@ -15,6 +12,9 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@moja/ui/components/ui/empty";
+import { cn } from "@moja/ui/lib/utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
   AlertCircle,
   ArrowRight,
@@ -26,8 +26,12 @@ import {
   Radio,
   XCircle,
 } from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
 import type { RouterOutputs } from "@/trpc/client";
-import { format } from "date-fns";
+import { useTRPC } from "@/trpc/client";
+import { dispatchSearchParams } from "../lib/search-params";
 
 type Trip = RouterOutputs["admin"]["listDispatchTrips"][number];
 
@@ -69,7 +73,7 @@ function TripStatusBadge({ status }: { status: string }) {
     <span
       className={cn(
         "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] font-bold",
-        cfg?.color ?? "bg-slate-100 text-slate-700"
+        cfg?.color ?? "bg-slate-100 text-slate-700",
       )}
     >
       <Icon className="size-3" />
@@ -97,7 +101,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
-            color
+            color,
           )}
           style={{ width: `${pct}%` }}
         />
@@ -115,8 +119,12 @@ function TripCard({
 }) {
   const t = useTranslations("adminDashboard.dispatchTripList");
   const { schedule, bus, _count, departureDate } = trip;
-  const origin = schedule.route.originTerminal.cityRelation?.name || schedule.route.originTerminal.name;
-  const dest = schedule.route.destTerminal.cityRelation?.name || schedule.route.destTerminal.name;
+  const origin =
+    schedule.route.originTerminal.cityRelation?.name ||
+    schedule.route.originTerminal.name;
+  const dest =
+    schedule.route.destTerminal.cityRelation?.name ||
+    schedule.route.destTerminal.name;
 
   return (
     <div
@@ -163,10 +171,7 @@ function TripCard({
 
       {/* Seat fill bar */}
       <div className="border-t border-border pt-3">
-        <SeatFillBar
-          booked={_count.bookings}
-          total={trip.totalSeats || 0}
-        />
+        <SeatFillBar booked={_count.bookings} total={trip.totalSeats || 0} />
       </div>
 
       {/* View full audit link */}
@@ -183,7 +188,10 @@ function TripCard({
 }
 
 function groupTripsByCompany(trips: Trip[]) {
-  const map = new Map<string, { companyName: string; logoUrl: string | null; trips: Trip[] }>();
+  const map = new Map<
+    string,
+    { companyName: string; logoUrl: string | null; trips: Trip[] }
+  >();
   for (const trip of trips) {
     const key = trip.company.name;
     if (!map.has(key)) {
@@ -195,15 +203,21 @@ function groupTripsByCompany(trips: Trip[]) {
     }
     map.get(key)!.trips.push(trip);
   }
-  return Array.from(map.values()).sort((a, b) => a.companyName.localeCompare(b.companyName));
+  return Array.from(map.values()).sort((a, b) =>
+    a.companyName.localeCompare(b.companyName),
+  );
 }
 
-export function DispatchTripList({ onOpenTrip }: { onOpenTrip: (id: string) => void }) {
+export function DispatchTripList({
+  onOpenTrip,
+}: {
+  onOpenTrip: (id: string) => void;
+}) {
   const t = useTranslations("adminDashboard.dispatchTripList");
   const trpc = useTRPC();
   const [{ status, companyId, from, to }] = useQueryStates(
     dispatchSearchParams,
-    { shallow: false }
+    { shallow: false },
   );
 
   const { data: trips = [] } = useSuspenseQuery(
@@ -212,7 +226,7 @@ export function DispatchTripList({ onOpenTrip }: { onOpenTrip: (id: string) => v
       companyId,
       from,
       to,
-    })
+    }),
   );
 
   const grouped = groupTripsByCompany(trips);
@@ -225,9 +239,7 @@ export function DispatchTripList({ onOpenTrip }: { onOpenTrip: (id: string) => v
         </EmptyMedia>
         <EmptyHeader>
           <EmptyTitle>{t("noActiveTrips")}</EmptyTitle>
-          <EmptyDescription>
-            {t("noTripsDescription")}
-          </EmptyDescription>
+          <EmptyDescription>{t("noTripsDescription")}</EmptyDescription>
         </EmptyHeader>
       </Empty>
     );

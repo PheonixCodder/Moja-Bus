@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@moja/ui/components/ui/sidebar";
 import { TooltipProvider } from "@moja/ui/components/ui/tooltip";
 import { OperatorSidebar } from "@/features/operator/components/operator-sidebar";
+import { OperatorRouteGuard } from "@/features/operator/components/route-guard";
 import { getServerSession, getUser } from "@/lib/auth-server";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 import { OperatorDashboardHeader } from "@/features/operator/components/operator-dashboard-header";
@@ -50,7 +51,9 @@ export default async function OperatorLayout({
           </Suspense>
           <SidebarInset className="min-h-0 min-w-0 bg-bg-base relative">
             <OperatorDashboardHeader />
-            <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+            <main className="flex min-h-0 flex-1 flex-col">
+              <OperatorRouteGuard>{children}</OperatorRouteGuard>
+            </main>
             <Toaster />
           </SidebarInset>
         </SidebarProvider>

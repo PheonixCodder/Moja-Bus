@@ -1,11 +1,7 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
-import { useTranslations } from "next-intl";
-import { formatDistanceToNow } from "date-fns";
-import { useTRPC } from "@/trpc/client";
 import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Table,
   TableBody,
@@ -14,11 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
-import { ActivityLogsPagination } from "./activity-logs-pagination";
-import { ActivityLogDetailDialog } from "./activity-log-detail-dialog";
-import { useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 import { Eye } from "lucide-react";
-import { Button } from "@moja/ui/components/ui/button";
+import { useTranslations } from "next-intl";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { useTRPC } from "@/trpc/client";
+import { ActivityLogDetailDialog } from "./activity-log-detail-dialog";
+import { ActivityLogsPagination } from "./activity-logs-pagination";
 
 const CHANNEL_COLORS: Record<string, string> = {
   email: "bg-blue-100 text-blue-700 border-blue-200",
@@ -48,8 +48,8 @@ export function ActivityLogsTable() {
       },
       {
         placeholderData: (prev: any) => prev,
-      }
-    )
+      },
+    ),
   );
 
   const items = data?.items ?? [];
@@ -57,7 +57,7 @@ export function ActivityLogsTable() {
 
   if (items.length === 0) {
     return (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
         <div className="rounded-full bg-muted p-4">
           <Eye className="h-6 w-6 text-muted-foreground" />
         </div>
@@ -100,11 +100,18 @@ export function ActivityLogsTable() {
           <TableBody>
             {items.map((log: any) => {
               const jobs = log.jobs ?? [];
-              const channels = [...new Set(jobs.map((j: any) => j.type as string).filter(Boolean))];
+              const channels = [
+                ...new Set(
+                  jobs.map((j: any) => j.type as string).filter(Boolean),
+                ),
+              ];
               const createdAt = log.createdAt ? new Date(log.createdAt) : null;
 
               return (
-                <TableRow key={String(log._id ?? log.id)} className="hover:bg-muted/20">
+                <TableRow
+                  key={String(log._id ?? log.id)}
+                  className="hover:bg-muted/20"
+                >
                   <TableCell className="pl-4 text-xs text-muted-foreground whitespace-nowrap">
                     {createdAt
                       ? formatDistanceToNow(createdAt, { addSuffix: true })
@@ -113,7 +120,9 @@ export function ActivityLogsTable() {
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-foreground truncate max-w-[160px]">
-                        {log.subscriber?.firstName ?? log.subscriber?.subscriberId ?? "—"}
+                        {log.subscriber?.firstName ??
+                          log.subscriber?.subscriberId ??
+                          "—"}
                       </span>
                       <span className="text-xs text-muted-foreground font-mono truncate max-w-[160px]">
                         {log.subscriber?.subscriberId ?? ""}
@@ -127,19 +136,22 @@ export function ActivityLogsTable() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {channels.length > 0
-                        ? channels.map((ch) => (
-                            <Badge
-                              key={String(ch)}
-                              variant="outline"
-                              className={`text-[10px] px-1.5 py-0 font-medium ${
-                                CHANNEL_COLORS[String(ch)] ?? "bg-slate-100 text-slate-600"
-                              }`}
-                            >
-                              {String(ch)}
-                            </Badge>
-                          ))
-                        : <span className="text-xs text-muted-foreground">—</span>}
+                      {channels.length > 0 ? (
+                        channels.map((ch) => (
+                          <Badge
+                            key={String(ch)}
+                            variant="outline"
+                            className={`text-[10px] px-1.5 py-0 font-medium ${
+                              CHANNEL_COLORS[String(ch)] ??
+                              "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {String(ch)}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -150,8 +162,8 @@ export function ActivityLogsTable() {
                           log.status === "sent" || log.status === "completed"
                             ? "border-green-200 bg-green-50 text-green-700 text-[10px]"
                             : log.status === "failed" || log.status === "error"
-                            ? "border-red-200 bg-red-50 text-red-700 text-[10px]"
-                            : "border-yellow-200 bg-yellow-50 text-yellow-700 text-[10px]"
+                              ? "border-red-200 bg-red-50 text-red-700 text-[10px]"
+                              : "border-yellow-200 bg-yellow-50 text-yellow-700 text-[10px]"
                         }
                       >
                         {log.status}
@@ -183,7 +195,9 @@ export function ActivityLogsTable() {
         <ActivityLogDetailDialog
           log={selectedLog}
           open={!!selectedLog}
-          onOpenChange={(open) => { if (!open) setSelectedLog(null); }}
+          onOpenChange={(open) => {
+            if (!open) setSelectedLog(null);
+          }}
         />
       )}
     </>

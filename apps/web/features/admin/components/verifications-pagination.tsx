@@ -1,6 +1,5 @@
 "use client";
 
-import type { MouseEvent } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -20,6 +19,7 @@ import {
 } from "@moja/ui/components/ui/select";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { useTranslations } from "next-intl";
+import type { MouseEvent } from "react";
 
 interface VerificationsPaginationProps {
   page: number;
@@ -39,7 +39,8 @@ function getPageNumbers(currentPage: number, pageCount: number) {
   }
 
   if (currentPage <= 2) return [1, 2, 3];
-  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount];
+  if (currentPage >= pageCount - 1)
+    return [pageCount - 2, pageCount - 1, pageCount];
 
   return [currentPage - 1, currentPage, currentPage + 1];
 }
@@ -68,7 +69,11 @@ export function VerificationsPagination({
               value={`${pageSize}`}
               onValueChange={(value) => onPageSizeChange(Number(value))}
             >
-              <SelectTrigger size="sm" className="w-20" id="verifications-rows-per-page">
+              <SelectTrigger
+                size="sm"
+                className="w-20"
+                id="verifications-rows-per-page"
+              >
                 <SelectValue placeholder={`${pageSize}`} />
               </SelectTrigger>
               <SelectContent side="top">
@@ -93,7 +98,11 @@ export function VerificationsPagination({
               <PaginationPrevious
                 href="#"
                 text=""
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : undefined}
+                className={
+                  currentPage === 1
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
                 onClick={(event) => {
                   preventNavigation(event);
                   if (currentPage > 1) onPageChange(currentPage - 1);
@@ -122,7 +131,8 @@ export function VerificationsPagination({
               </PaginationItem>
             ))}
 
-            {pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < pageCount ? (
+            {pageNumbers.length > 0 &&
+            pageNumbers[pageNumbers.length - 1]! < pageCount ? (
               <PaginationItem>
                 <PaginationEllipsis />
               </PaginationItem>
@@ -132,7 +142,11 @@ export function VerificationsPagination({
               <PaginationNext
                 href="#"
                 text=""
-                className={currentPage >= pageCount ? "pointer-events-none opacity-50" : undefined}
+                className={
+                  currentPage >= pageCount
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
                 onClick={(event) => {
                   preventNavigation(event);
                   if (currentPage < pageCount) onPageChange(currentPage + 1);

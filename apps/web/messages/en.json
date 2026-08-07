@@ -2398,7 +2398,8 @@
       "bankAccess": "Bank Access Logs",
       "webhooks": "Webhooks",
       "settings": "Settings",
-      "inquiries": "Inquiries"
+      "inquiries": "Inquiries",
+      "staff": "Admin Staff"
     },
     "sections": {
       "financials": "Financials",
@@ -3739,6 +3740,125 @@
       "cancel": "Cancel",
       "creating": "Creating...",
       "createDraft": "Create Draft"
+    },
+    "staff": {
+      "metaTitle": "Admin Staff",
+      "metaDescription": "Manage platform admin team members, roles, and permissions",
+      "title": "Admin Staff",
+      "headerDescription": "Invite and manage platform administrators with granular permissions",
+      "invite": "Invite Admin",
+      "permissions": "Permissions",
+      "cancel": "Cancel",
+      "memberAvatarAlt": "Member avatar",
+      "membersSection": {
+        "title": "Admin Team ({total})",
+        "loading": "refreshing...",
+        "loadError": "Failed to load admin staff",
+        "retry": "Retry",
+        "noResults": "No matching team members",
+        "adjustFilters": "Try adjusting your search or filters",
+        "empty": "No admin team members yet",
+        "emptyDescription": "Invite your first platform administrator to get started",
+        "showing": "Showing {start}-{end} of {total}",
+        "previous": "Previous",
+        "pageInfo": "Page {page} of {totalPages}",
+        "next": "Next"
+      },
+      "invitationsSection": {
+        "title": "Pending Invitations ({count})",
+        "empty": "No pending invitations"
+      },
+      "invitationCard": {
+        "sentBy": "Sent by {name} · {date}",
+        "resend": "Resend",
+        "cancel": "Cancel"
+      },
+      "activitySection": {
+        "title": "Activity Log",
+        "empty": "No activity yet"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by name, email, job title...",
+        "roleLabel": "Role",
+        "statusLabel": "Status",
+        "roleAll": "All Roles",
+        "statusAll": "All Statuses"
+      },
+      "table": {
+        "statusActive": "Active",
+        "statusInactive": "Inactive",
+        "statusSuspended": "Suspended",
+        "editRole": "Edit Role",
+        "editPermissions": "Edit Permissions",
+        "suspend": "Suspend",
+        "activate": "Activate",
+        "transferOwnership": "Transfer Ownership",
+        "remove": "Remove from Team"
+      },
+      "inviteSheet": {
+        "title": "Invite Admin Staff",
+        "description": "Enter details to invite a new admin team member",
+        "emailLabel": "Email",
+        "emailPlaceholder": "admin@moja.com",
+        "emailRequired": "Please enter an email address",
+        "roleLabel": "Role",
+        "jobTitleLabel": "Job Title",
+        "departmentLabel": "Department",
+        "permissionRequired": "Select at least one permission",
+        "messageLabel": "Personal Message (optional)",
+        "send": "Send Invitation"
+      },
+      "roleSheet": {
+        "title": "Change Role",
+        "description": "Select a new role. Permissions will be reset to the role template.",
+        "newRoleLabel": "New Role",
+        "templateIncludes": "Role includes:",
+        "resetNotice": "This will replace current permissions with the role's default template.",
+        "save": "Save Role"
+      },
+      "editPermissionsSheet": {
+        "title": "Edit Permissions",
+        "description": "Customize individual permissions for this admin",
+        "save": "Save Permissions"
+      },
+      "transferDialog": {
+        "title": "Transfer Admin Ownership",
+        "description": "You are about to transfer Super Admin ownership to {name}. This action is irreversible.",
+        "warning": "This will demote you to Admin and grant {name} full platform control.",
+        "verificationCode": "Verification Code",
+        "codePlaceholder": "6-digit code",
+        "sendCode": "Send Code",
+        "resendIn": "Resend in {cooldown}s",
+        "codeSent": "Verification code sent",
+        "codeFailed": "Failed to send verification code",
+        "confirm": "Transfer Ownership"
+      },
+      "removeDialog": {
+        "title": "Remove Admin",
+        "description": "Are you sure you want to remove {name} from the admin team? Their admin access will be revoked immediately.",
+        "confirm": "Remove"
+      },
+      "permissionMatrix": {
+        "filterPlaceholder": "Filter permissions..."
+      },
+      "toast": {
+        "invitationSent": "Invitation sent to {email}",
+        "inviteFailed": "Failed to send invitation",
+        "roleUpdated": "Role updated",
+        "roleUpdateFailed": "Failed to update role",
+        "permissionsUpdated": "Permissions updated",
+        "permissionsUpdateFailed": "Failed to update permissions",
+        "statusChanged": "Status changed to {status} for {name}",
+        "statusUpdateFailed": "Failed to update status",
+        "removed": "Removed {name} from admin team",
+        "removeFailed": "Failed to remove admin",
+        "ownershipTransferred": "Admin ownership transferred",
+        "ownershipTransferFailed": "Failed to transfer ownership",
+        "invitationCancelled": "Invitation cancelled for {email}",
+        "cancelInviteFailed": "Failed to cancel invitation",
+        "invitationResent": "Invitation resent to {email}",
+        "resendInviteFailed": "Failed to resend invitation"
+      }
     }
   },
   "invite": {

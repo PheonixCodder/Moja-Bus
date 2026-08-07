@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja
 import { Button } from "@moja/ui/components/ui/button";
 import { Building2, Pencil } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 interface ProfileSectionProps {
   onManage: () => void;
@@ -12,6 +13,7 @@ interface ProfileSectionProps {
 
 export function ProfileSection({ onManage }: ProfileSectionProps) {
   const { data: settings } = useCompanySettings();
+  const { can } = useStaffPermissions();
   const company = settings?.company;
   const operator = settings?.operator;
 
@@ -25,10 +27,12 @@ export function ProfileSection({ onManage }: ProfileSectionProps) {
           </CardTitle>
           <CardDescription>Your public business details</CardDescription>
         </div>
-        <Button variant="outline" size="sm" onClick={onManage}>
-          <Pencil className="w-4 h-4 mr-2" />
-          Edit
-        </Button>
+        {can("company:update") ? (
+          <Button variant="outline" size="sm" onClick={onManage}>
+            <Pencil className="w-4 h-4 mr-2" />
+            Edit
+          </Button>
+        ) : null}
       </CardHeader>
       <CardContent className="flex-1 mt-4">
         <div className="flex items-start gap-4">

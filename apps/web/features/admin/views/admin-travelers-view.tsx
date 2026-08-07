@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
-import { format } from "date-fns";
-import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
+import { useTRPC } from "@/trpc/client";
 import { Travelers } from "../components/travelers";
 import type { TravelerRow } from "../components/travelers-columns";
-import { useTranslations } from "next-intl";
 
 export function AdminTravelersView() {
   const t = useTranslations("adminDashboard.adminTravelersView");
@@ -16,7 +16,7 @@ export function AdminTravelersView() {
       limit: 100,
       offset: 0,
       role: "TRAVELER",
-    })
+    }),
   );
 
   const travelers: TravelerRow[] = useMemo(() => {

@@ -1,21 +1,5 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import {
-  Check,
-  Clock,
-  MoreHorizontal,
-  X,
-  Building,
-  User,
-  Mail,
-  Phone,
-  ShieldAlert,
-  ShieldCheck,
-  Landmark,
-  FileText,
-  Activity,
-} from "lucide-react";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
@@ -27,9 +11,25 @@ import {
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
 import { cn } from "@moja/ui/lib/utils";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  Activity,
+  Building,
+  Check,
+  Clock,
+  FileText,
+  Landmark,
+  Mail,
+  MoreHorizontal,
+  Phone,
+  ShieldAlert,
+  ShieldCheck,
+  User,
+  X,
+} from "lucide-react";
 import Link from "next/link";
-import { formatAdminDate } from "@/lib/format-date";
 import type { useTranslations } from "next-intl";
+import { formatAdminDate } from "@/lib/format-date";
 
 export interface CompanyRow {
   id: string;
@@ -88,7 +88,9 @@ export function getCompanyColumns({
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && "indeterminate")
             }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
           />
         </div>
       ),
@@ -134,7 +136,8 @@ export function getCompanyColumns({
       header: t("representative"),
       cell: ({ row }: any) => {
         const rep = row.original.operators[0]?.user;
-        if (!rep) return <span className="text-xs text-slate-400">{t("na")}</span>;
+        if (!rep)
+          return <span className="text-xs text-slate-400">{t("na")}</span>;
         return (
           <div className="grid gap-0.5 text-xs">
             <div className="font-semibold text-slate-700 flex items-center gap-1.5">
@@ -163,7 +166,11 @@ export function getCompanyColumns({
         const items = [
           { label: t("id"), active: check?.ownerIdentityVerified, icon: User },
           { label: t("bank"), active: check?.bankVerified, icon: Landmark },
-          { label: t("docs"), active: check?.documentsVerified, icon: FileText },
+          {
+            label: t("docs"),
+            active: check?.documentsVerified,
+            icon: FileText,
+          },
           { label: t("permit"), active: check?.permitVerified, icon: Activity },
         ];
 
@@ -177,7 +184,7 @@ export function getCompanyColumns({
                   "flex items-center gap-0.5 rounded px-1.5 py-0.5 border text-[10px] font-bold tracking-tight select-none",
                   item.active
                     ? "bg-green-50 text-green-700 border-green-200"
-                    : "bg-slate-50 text-slate-400 border-slate-200"
+                    : "bg-slate-50 text-slate-400 border-slate-200",
                 )}
               >
                 <item.icon className="size-3 shrink-0" />
@@ -211,7 +218,13 @@ export function getCompanyColumns({
         }
 
         return (
-          <Badge className={cn("gap-1.5 border px-2 py-1 font-semibold text-xs", badgeClass)} variant="outline">
+          <Badge
+            className={cn(
+              "gap-1.5 border px-2 py-1 font-semibold text-xs",
+              badgeClass,
+            )}
+            variant="outline"
+          >
             <span className={cn("size-1.5 rounded-full", dotClass)} />
             {t(`statusLabels.${status}`) ?? status.replace(/_/g, " ")}
           </Badge>
@@ -252,7 +265,10 @@ export function getCompanyColumns({
                   </Button>
                 }
               />
-              <DropdownMenuContent align="end" className="bg-white border border-border rounded shadow-md">
+              <DropdownMenuContent
+                align="end"
+                className="bg-white border border-border rounded shadow-md"
+              >
                 <DropdownMenuItem
                   onClick={() => onReview(company)}
                   className="cursor-pointer text-xs"
@@ -264,7 +280,10 @@ export function getCompanyColumns({
                     <DropdownMenuItem
                       disabled={!hasBank}
                       onClick={() => onApprove(company)}
-                      className={cn("cursor-pointer text-xs", !hasBank && "opacity-50 cursor-not-allowed")}
+                      className={cn(
+                        "cursor-pointer text-xs",
+                        !hasBank && "opacity-50 cursor-not-allowed",
+                      )}
                     >
                       {t("verifyApprove")}
                     </DropdownMenuItem>

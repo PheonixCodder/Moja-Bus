@@ -1,17 +1,17 @@
 "use client";
 
-import { format } from "date-fns";
-import { useTranslations } from "next-intl";
+import { Badge } from "@moja/ui/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@moja/ui/components/ui/dialog";
-import { Badge } from "@moja/ui/components/ui/badge";
 import { ScrollArea } from "@moja/ui/components/ui/scroll-area";
 import { Separator } from "@moja/ui/components/ui/separator";
+import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 interface ActivityLogDetailDialogProps {
   open: boolean;
@@ -19,7 +19,11 @@ interface ActivityLogDetailDialogProps {
   log: any;
 }
 
-export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLogDetailDialogProps) {
+export function ActivityLogDetailDialog({
+  open,
+  onOpenChange,
+  log,
+}: ActivityLogDetailDialogProps) {
   const t = useTranslations("adminDashboard.activityLogDetailDialog");
   const jobs = log.jobs ?? [];
   const createdAt = log.createdAt ? new Date(log.createdAt) : null;
@@ -29,7 +33,9 @@ export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLog
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-mono text-sm">
-            {log.template?.name ?? log.template?.identifier ?? t("unknownWorkflow")}
+            {log.template?.name ??
+              log.template?.identifier ??
+              t("unknownWorkflow")}
           </DialogTitle>
           <DialogDescription>
             {createdAt ? format(createdAt, "PPpp") : t("unknownTime")} ·{" "}
@@ -46,10 +52,17 @@ export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLog
               {t("subscriber")}
             </p>
             <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
-              <p className="font-medium">{log.subscriber?.firstName ?? "—"} {log.subscriber?.lastName ?? ""}</p>
-              <p className="font-mono text-xs text-muted-foreground">{log.subscriber?.subscriberId ?? "—"}</p>
+              <p className="font-medium">
+                {log.subscriber?.firstName ?? "—"}{" "}
+                {log.subscriber?.lastName ?? ""}
+              </p>
+              <p className="font-mono text-xs text-muted-foreground">
+                {log.subscriber?.subscriberId ?? "—"}
+              </p>
               {log.subscriber?.email && (
-                <p className="text-xs text-muted-foreground">{log.subscriber.email}</p>
+                <p className="text-xs text-muted-foreground">
+                  {log.subscriber.email}
+                </p>
               )}
             </div>
           </div>
@@ -64,10 +77,18 @@ export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLog
               </p>
               <div className="space-y-2">
                 {jobs.map((job: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                  >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-muted-foreground">#{i + 1}</span>
-                      <Badge variant="outline" className="text-[10px] uppercase">
+                      <span className="text-xs font-mono text-muted-foreground">
+                        #{i + 1}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] uppercase"
+                      >
                         {job.type ?? "—"}
                       </Badge>
                     </div>
@@ -78,8 +99,8 @@ export function ActivityLogDetailDialog({ open, onOpenChange, log }: ActivityLog
                           job.status === "completed"
                             ? "border-green-200 bg-green-50 text-green-700 text-[10px]"
                             : job.status === "failed"
-                            ? "border-red-200 bg-red-50 text-red-700 text-[10px]"
-                            : "border-yellow-200 bg-yellow-50 text-yellow-700 text-[10px]"
+                              ? "border-red-200 bg-red-50 text-red-700 text-[10px]"
+                              : "border-yellow-200 bg-yellow-50 text-yellow-700 text-[10px]"
                         }
                       >
                         {job.status}

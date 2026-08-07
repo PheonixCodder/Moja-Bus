@@ -21,7 +21,7 @@ export function SettingsSidebar() {
       shortTitle: "Company",
       href: "/dashboard/operator/settings/company",
       icon: Building2,
-      show: role === "OWNER" || perms.includes("company:view"),
+      show: role === "OWNER" || perms.includes("company:view") || perms.includes("company:profile:update"),
     },
     {
       title: "Personal Profile",
@@ -35,14 +35,14 @@ export function SettingsSidebar() {
       shortTitle: "Financials",
       href: "/dashboard/operator/settings/banking",
       icon: Landmark,
-      show: role === "OWNER" || perms.includes("financials:view"),
+      show: role === "OWNER" || perms.includes("financials:view") || perms.includes("company:banking:update"),
     },
     {
       title: "Compliance & Docs",
       shortTitle: "Compliance",
       href: "/dashboard/operator/settings/compliance",
       icon: ShieldCheck,
-      show: role === "OWNER" || perms.includes("company:update"),
+      show: role === "OWNER" || perms.includes("company:view") || perms.includes("company:compliance:update"),
     },
     {
       title: "Notifications",

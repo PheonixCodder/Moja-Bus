@@ -1,16 +1,16 @@
 "use client";
 
-import { useQueryStates } from "nuqs";
-import { dispatchSearchParams } from "../lib/search-params";
-import { format, subDays, addDays } from "date-fns";
-import { CalendarIcon, Filter, X } from "lucide-react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { cn } from "@moja/ui/lib/utils";
-import { useTranslations } from "next-intl";
-
+import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Calendar } from "@moja/ui/components/ui/calendar";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@moja/ui/components/ui/combobox";
 import {
   Popover,
   PopoverContent,
@@ -23,16 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@moja/ui/components/ui/combobox";
-import { Badge } from "@moja/ui/components/ui/badge";
+import { cn } from "@moja/ui/lib/utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { addDays, format, subDays } from "date-fns";
+import { CalendarIcon, Filter, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
 import { useState } from "react";
+import { useTRPC } from "@/trpc/client";
+import { dispatchSearchParams } from "../lib/search-params";
+
 type DateRange = { from?: Date | undefined; to?: Date | undefined };
 
 export function DispatchFilterBar() {
@@ -40,11 +40,11 @@ export function DispatchFilterBar() {
   const trpc = useTRPC();
   const [{ status, companyId, from, to }, setParams] = useQueryStates(
     dispatchSearchParams,
-    { shallow: false }
+    { shallow: false },
   );
-   
+
   const { data: companies } = useSuspenseQuery(
-    trpc.public.listOperators.queryOptions()
+    trpc.public.listOperators.queryOptions(),
   );
 
   const [date, setDate] = useState<DateRange | undefined>({
@@ -140,29 +140,29 @@ export function DispatchFilterBar() {
         <PopoverTrigger
           className={cn(
             "inline-flex items-center justify-start text-left font-normal bg-bg-base h-9 border border-input rounded-md px-3 text-sm shadow-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full sm:w-[280px]",
-            !date && "text-muted-foreground"
+            !date && "text-muted-foreground",
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-            {date?.from ? (
-              date.to && date.from.getTime() !== date.to.getTime() ? (
-                <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
-                </>
-              ) : (
-                format(date.from, "LLL dd, y")
-              )
+          {date?.from ? (
+            date.to && date.from.getTime() !== date.to.getTime() ? (
+              <>
+                {format(date.from, "LLL dd, y")} -{" "}
+                {format(date.to, "LLL dd, y")}
+              </>
             ) : (
-              <span>{t("dateRangePlaceholder")}</span>
-            )}
-            {(from || to) && (
-              <Badge
-                variant="secondary"
-                className="ml-auto rounded-sm px-1 font-normal lg:hidden"
-              >
-                {t("filtered")}
-              </Badge>
+              format(date.from, "LLL dd, y")
+            )
+          ) : (
+            <span>{t("dateRangePlaceholder")}</span>
+          )}
+          {(from || to) && (
+            <Badge
+              variant="secondary"
+              className="ml-auto rounded-sm px-1 font-normal lg:hidden"
+            >
+              {t("filtered")}
+            </Badge>
           )}
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -214,7 +214,10 @@ export function DispatchFilterBar() {
         </PopoverContent>
       </Popover>
 
-      {(from || to || (status !== "ACTIVE" && status !== "ALL") || (companyId && companyId !== "ALL")) && (
+      {(from ||
+        to ||
+        (status !== "ACTIVE" && status !== "ALL") ||
+        (companyId && companyId !== "ALL")) && (
         <Button
           variant="ghost"
           className="h-9 px-2 text-text-muted hover:text-text-primary"

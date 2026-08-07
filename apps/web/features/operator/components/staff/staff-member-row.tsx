@@ -37,6 +37,7 @@ interface StaffMemberRowProps {
   isLast: boolean;
   callerRole: StaffRole;
   canUpdate: boolean;
+  canDelete: boolean;
   onEditRole: (member: StaffMember) => void;
   onEditPermissions: (member: StaffMember) => void;
   onStatusChange: (member: StaffMember, status: OperatorStatus) => void;
@@ -49,6 +50,7 @@ export function StaffMemberRow({
   isLast,
   callerRole,
   canUpdate,
+  canDelete,
   onEditRole,
   onEditPermissions,
   onStatusChange,
@@ -138,7 +140,7 @@ export function StaffMemberRow({
             </>
           ) : null}
 
-          {member.role !== "OWNER" ? (
+          {canUpdate ? (
             member.status === "ACTIVE" ? (
               <DropdownMenuItem
                 className="text-[13px] cursor-pointer text-amber-600 focus:text-amber-600"
@@ -146,6 +148,14 @@ export function StaffMemberRow({
               >
                 <PauseCircle className="mr-2 h-3.5 w-3.5" />
                 {t("suspend")}
+              </DropdownMenuItem>
+            ) : member.status === "INACTIVE" ? (
+              <DropdownMenuItem
+                className="text-[13px] cursor-pointer text-emerald-600 focus:text-emerald-600"
+                onClick={() => onStatusChange(member, "ACTIVE")}
+              >
+                <PlayCircle className="mr-2 h-3.5 w-3.5" />
+                {t("activate")}
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem
@@ -158,7 +168,7 @@ export function StaffMemberRow({
             )
           ) : null}
 
-          {callerRole === "OWNER" && member.role !== "OWNER" ? (
+          {canDelete && member.role !== "OWNER" ? (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem

@@ -1,17 +1,20 @@
 "use client";
 
+import { Button } from "@moja/ui/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import { withdrawalsSearchParams } from "../lib/search-params";
-import { Button } from "@moja/ui/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface WithdrawalsPaginationProps {
   total: number;
   pageSize: number;
 }
 
-export function WithdrawalsPagination({ total, pageSize }: WithdrawalsPaginationProps) {
+export function WithdrawalsPagination({
+  total,
+  pageSize,
+}: WithdrawalsPaginationProps) {
   const t = useTranslations("adminDashboard.withdrawalsPagination");
   const [{ page }, setParams] = useQueryStates(withdrawalsSearchParams, {
     shallow: false,

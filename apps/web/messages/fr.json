@@ -2376,7 +2376,8 @@
       "bankAccess": "Journaux d'accès bancaire",
       "webhooks": "Webhooks",
       "settings": "Paramètres",
-      "inquiries": "Inquiries"
+      "inquiries": "Inquiries",
+      "staff": "Équipe Admin"
     },
     "sections": {
       "financials": "Finances",
@@ -3710,6 +3711,125 @@
       "cancel": "Annuler",
       "creating": "Création...",
       "createDraft": "Créer un brouillon"
+    },
+    "staff": {
+      "metaTitle": "Équipe Admin",
+      "metaDescription": "Gérez les membres de l'équipe d'administration, leurs rôles et leurs permissions",
+      "title": "Équipe Admin",
+      "headerDescription": "Invitez et gérez les administrateurs de la plateforme avec des permissions granulaires",
+      "invite": "Inviter un admin",
+      "permissions": "Permissions",
+      "cancel": "Annuler",
+      "memberAvatarAlt": "Avatar du membre",
+      "membersSection": {
+        "title": "Équipe Admin ({total})",
+        "loading": "actualisation...",
+        "loadError": "Échec du chargement de l'équipe admin",
+        "retry": "Réessayer",
+        "noResults": "Aucun membre correspondant",
+        "adjustFilters": "Essayez d'ajuster votre recherche ou vos filtres",
+        "empty": "Aucun membre de l'équipe admin",
+        "emptyDescription": "Invitez votre premier administrateur de plateforme pour commencer",
+        "showing": "Affichage de {start}-{end} sur {total}",
+        "previous": "Précédent",
+        "pageInfo": "Page {page} sur {totalPages}",
+        "next": "Suivant"
+      },
+      "invitationsSection": {
+        "title": "Invitations en attente ({count})",
+        "empty": "Aucune invitation en attente"
+      },
+      "invitationCard": {
+        "sentBy": "Envoyé par {name} · {date}",
+        "resend": "Renvoyer",
+        "cancel": "Annuler"
+      },
+      "activitySection": {
+        "title": "Journal d'activité",
+        "empty": "Aucune activité pour le moment"
+      },
+      "filters": {
+        "searchPlaceholder": "Rechercher par nom, e-mail, poste...",
+        "roleLabel": "Rôle",
+        "statusLabel": "Statut",
+        "roleAll": "Tous les rôles",
+        "statusAll": "Tous les statuts"
+      },
+      "table": {
+        "statusActive": "Actif",
+        "statusInactive": "Inactif",
+        "statusSuspended": "Suspendu",
+        "editRole": "Modifier le rôle",
+        "editPermissions": "Modifier les permissions",
+        "suspend": "Suspendre",
+        "activate": "Activer",
+        "transferOwnership": "Transférer la propriété",
+        "remove": "Retirer de l'équipe"
+      },
+      "inviteSheet": {
+        "title": "Inviter un membre de l'équipe admin",
+        "description": "Entrez les détails pour inviter un nouveau membre de l'équipe admin",
+        "emailLabel": "E-mail",
+        "emailPlaceholder": "admin@moja.com",
+        "emailRequired": "Veuillez saisir une adresse e-mail",
+        "roleLabel": "Rôle",
+        "jobTitleLabel": "Poste",
+        "departmentLabel": "Département",
+        "permissionRequired": "Sélectionnez au moins une permission",
+        "messageLabel": "Message personnel (optionnel)",
+        "send": "Envoyer l'invitation"
+      },
+      "roleSheet": {
+        "title": "Changer de rôle",
+        "description": "Sélectionnez un nouveau rôle. Les permissions seront réinitialisées sur le modèle du rôle.",
+        "newRoleLabel": "Nouveau rôle",
+        "templateIncludes": "Le rôle comprend :",
+        "resetNotice": "Cela remplacera les permissions actuelles par le modèle par défaut du rôle.",
+        "save": "Enregistrer le rôle"
+      },
+      "editPermissionsSheet": {
+        "title": "Modifier les permissions",
+        "description": "Personnalisez les permissions individuelles de cet admin",
+        "save": "Enregistrer les permissions"
+      },
+      "transferDialog": {
+        "title": "Transférer la propriété admin",
+        "description": "Vous êtes sur le point de transférer la propriété Super Admin à {name}. Cette action est irréversible.",
+        "warning": "Cela vous rétrogradera en Admin et accordera à {name} un contrôle total sur la plateforme.",
+        "verificationCode": "Code de vérification",
+        "codePlaceholder": "Code à 6 chiffres",
+        "sendCode": "Envoyer le code",
+        "resendIn": "Renvoyer dans {cooldown}s",
+        "codeSent": "Code de vérification envoyé",
+        "codeFailed": "Échec de l'envoi du code de vérification",
+        "confirm": "Transférer la propriété"
+      },
+      "removeDialog": {
+        "title": "Retirer un admin",
+        "description": "Êtes-vous sûr de vouloir retirer {name} de l'équipe admin ? Son accès admin sera révoqué immédiatement.",
+        "confirm": "Retirer"
+      },
+      "permissionMatrix": {
+        "filterPlaceholder": "Filtrer les permissions..."
+      },
+      "toast": {
+        "invitationSent": "Invitation envoyée à {email}",
+        "inviteFailed": "Échec de l'envoi de l'invitation",
+        "roleUpdated": "Rôle mis à jour",
+        "roleUpdateFailed": "Échec de la mise à jour du rôle",
+        "permissionsUpdated": "Permissions mises à jour",
+        "permissionsUpdateFailed": "Échec de la mise à jour des permissions",
+        "statusChanged": "Statut changé en {status} pour {name}",
+        "statusUpdateFailed": "Échec de la mise à jour du statut",
+        "removed": "{name} a été retiré de l'équipe admin",
+        "removeFailed": "Échec du retrait de l'admin",
+        "ownershipTransferred": "Propriété admin transférée",
+        "ownershipTransferFailed": "Échec du transfert de la propriété",
+        "invitationCancelled": "Invitation annulée pour {email}",
+        "cancelInviteFailed": "Échec de l'annulation de l'invitation",
+        "invitationResent": "Invitation renvoyée à {email}",
+        "resendInviteFailed": "Échec du renvoi de l'invitation"
+      }
     }
   },
   "invite": {

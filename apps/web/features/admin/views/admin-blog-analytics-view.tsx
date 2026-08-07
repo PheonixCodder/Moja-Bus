@@ -1,10 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
-import { BlogAnalyticsToolbar } from "../components/blog/blog-analytics-toolbar";
-import { BlogAnalyticsContent } from "../components/blog/blog-analytics-content";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { useTranslations } from "next-intl";
+import { Suspense } from "react";
+import { BlogAnalyticsContent } from "../components/blog/blog-analytics-content";
+import { BlogAnalyticsToolbar } from "../components/blog/blog-analytics-toolbar";
 
 export function AdminBlogAnalyticsView() {
   const t = useTranslations("adminDashboard.adminBlogAnalyticsView");

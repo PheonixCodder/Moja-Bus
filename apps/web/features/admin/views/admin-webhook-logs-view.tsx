@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
-import { useTranslations } from "next-intl";
 import { Card } from "@moja/ui/components/ui/card";
+import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useTranslations } from "next-intl";
+import { Suspense } from "react";
 import { WebhookLogsFilters } from "../components/audit/webhooks/webhook-logs-filters";
 import { WebhookLogsTable } from "../components/audit/webhooks/webhook-logs-table";
-import { Spinner } from "@moja/ui/components/ui/spinner";
 
 function TableFallback() {
   return (

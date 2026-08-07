@@ -4,18 +4,31 @@ import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { Button } from "@moja/ui/components/ui/button";
 import { AlertCircle } from "lucide-react";
+import { AccessDeniedCard } from "@/features/operator/components/access-denied-card";
 
 export default function OperatorError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  error: Error & { digest?: string; data?: { code?: string } };
   reset: () => void;
 }) {
   const t = useTranslations("operatorDashboard.error");
   useEffect(() => {
     console.error(error);
   }, [error]);
+
+  const isForbidden =
+    (error as any).data?.code === "FORBIDDEN" ||
+    error.message?.startsWith("Access denied");
+
+  if (isForbidden) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center">
+        <AccessDeniedCard />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center">

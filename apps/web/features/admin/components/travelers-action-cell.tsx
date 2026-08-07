@@ -1,11 +1,5 @@
 "use client";
 
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +7,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { MoreHorizontal } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 import type { TravelerRow } from "./travelers-columns";
 
 export function TravelerActionCell({ row }: { row: TravelerRow }) {
@@ -37,14 +37,20 @@ export function TravelerActionCell({ row }: { row: TravelerRow }) {
         <MoreHorizontal className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => router.push(`/dashboard/admin/users/travelers/${row.id}`)}>
+        <DropdownMenuItem
+          onClick={() =>
+            router.push(`/dashboard/admin/users/travelers/${row.id}`)
+          }
+        >
           {t("viewProfile")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => toast.info(t("editUserComingSoon"))}>
           {t("editUser")}
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => updateRoleMutation.mutate({ userId: row.id, role: "OPERATOR" })}
+          onClick={() =>
+            updateRoleMutation.mutate({ userId: row.id, role: "OPERATOR" })
+          }
           disabled={updateRoleMutation.isPending}
         >
           {t("promoteToOperator")}

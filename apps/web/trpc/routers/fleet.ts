@@ -21,13 +21,14 @@ export const fleetRouter = createTRPCRouter({
     });
   }),
 
-  getPermissions: operatorCompanyProcedure.query(({ ctx }) => {
-    return {
-      canManageFleet:
-        operatorHasPermission(ctx, "fleet:create") ||
-        operatorHasPermission(ctx, "fleet:update"),
-    };
-  }),
+   getPermissions: operatorCompanyProcedure.query(({ ctx }) => {
+     return {
+       canManageFleet:
+         operatorHasPermission(ctx, "fleet:create") ||
+         operatorHasPermission(ctx, "fleet:update") ||
+         operatorHasPermission(ctx, "fleet:delete"),
+     };
+   }),
 
   // Platform defaults + calling company's custom layouts
   getLayoutTemplates: operatorCompanyProcedure.query(async ({ ctx }) => {

@@ -1,10 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { useTRPC } from "@/trpc/client";
-import { useTranslations } from "next-intl";
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@moja/ui/components/ui/dialog";
-import { Button } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 import { rejectVerificationFormSchema } from "../lib/schemas";
 
 interface VerificationsRejectDialogProps {
@@ -45,18 +45,23 @@ export function VerificationsRejectDialog({
         toast.success(t("verificationRejected"));
         onOpenChange(false);
         onSuccess();
-        queryClient.invalidateQueries(trpc.admin.listCompaniesForVerification.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.admin.listCompaniesForVerification.pathFilter(),
+        );
       },
       onError: (err) => {
         toast.error(err.message || t("failedToRejectCompany"));
       },
-    })
+    }),
   );
 
   const handleConfirm = () => {
-    const result = rejectVerificationFormSchema.safeParse({ reason: rejectionReason });
+    const result = rejectVerificationFormSchema.safeParse({
+      reason: rejectionReason,
+    });
     if (!result.success) {
-      const errorMsg = result.error.issues[0]?.message || t("invalidRejectionReason");
+      const errorMsg =
+        result.error.issues[0]?.message || t("invalidRejectionReason");
       setValidationError(errorMsg);
       toast.error(errorMsg);
       return;
@@ -92,12 +97,18 @@ export function VerificationsRejectDialog({
             }}
           />
           {validationError && (
-            <p className="text-xs text-destructive font-medium">{validationError}</p>
+            <p className="text-xs text-destructive font-medium">
+              {validationError}
+            </p>
           )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" className="h-9" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            className="h-9"
+            onClick={() => onOpenChange(false)}
+          >
             {t("cancel")}
           </Button>
           <Button

@@ -1,18 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useQueryState } from "nuqs";
-import { Building, Clock } from "lucide-react";
-import { useTRPC } from "@/trpc/client";
 import { cn } from "@moja/ui/lib/utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Building, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
-
-import { VerificationDetailsHeader } from "../components/verification-details-header";
-import { VerificationDetailsDocuments } from "../components/verification-details-documents";
+import { useQueryState } from "nuqs";
+import { useState } from "react";
+import { useTRPC } from "@/trpc/client";
 import { VerificationDetailsBanks } from "../components/verification-details-banks";
 import { VerificationDetailsChecklist } from "../components/verification-details-checklist";
 import { VerificationDetailsDecision } from "../components/verification-details-decision";
+import { VerificationDetailsDocuments } from "../components/verification-details-documents";
+import { VerificationDetailsHeader } from "../components/verification-details-header";
 import { VerificationDetailsTimeline } from "../components/verification-details-timeline";
 import { VerificationsApproveDialog } from "../components/verifications-approve-dialog";
 import { VerificationsRejectDialog } from "../components/verifications-reject-dialog";
@@ -21,16 +20,20 @@ interface AdminVerificationDetailsViewProps {
   companyId: string;
 }
 
-export function AdminVerificationDetailsView({ companyId }: AdminVerificationDetailsViewProps) {
+export function AdminVerificationDetailsView({
+  companyId,
+}: AdminVerificationDetailsViewProps) {
   const trpc = useTRPC();
   const t = useTranslations("adminDashboard.adminVerificationDetailsView");
 
   // Tab State synced to URL
-  const [activeTab, setActiveTab] = useQueryState("tab", { defaultValue: "overview" });
+  const [activeTab, setActiveTab] = useQueryState("tab", {
+    defaultValue: "overview",
+  });
 
   // Suspense Query company details
   const { data: company } = useSuspenseQuery(
-    trpc.admin.getCompanyForVerification.queryOptions({ companyId })
+    trpc.admin.getCompanyForVerification.queryOptions({ companyId }),
   );
 
   // Decision Modal Dialog States
@@ -57,7 +60,7 @@ export function AdminVerificationDetailsView({ companyId }: AdminVerificationDet
             "px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 -mb-px transition-colors flex items-center gap-1.5",
             activeTab === "overview"
               ? "border-primary text-primary"
-              : "border-transparent text-slate-400 hover:text-slate-600"
+              : "border-transparent text-slate-400 hover:text-slate-600",
           )}
         >
           <Building className="size-4" />
@@ -69,7 +72,7 @@ export function AdminVerificationDetailsView({ companyId }: AdminVerificationDet
             "px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 -mb-px transition-colors flex items-center gap-1.5",
             activeTab === "history"
               ? "border-primary text-primary"
-              : "border-transparent text-slate-400 hover:text-slate-600"
+              : "border-transparent text-slate-400 hover:text-slate-600",
           )}
         >
           <Clock className="size-4" />
@@ -101,7 +104,9 @@ export function AdminVerificationDetailsView({ companyId }: AdminVerificationDet
         </div>
       ) : (
         <div className="max-w-3xl">
-          <VerificationDetailsTimeline activityLogs={company.activityLogs || []} />
+          <VerificationDetailsTimeline
+            activityLogs={company.activityLogs || []}
+          />
         </div>
       )}
 

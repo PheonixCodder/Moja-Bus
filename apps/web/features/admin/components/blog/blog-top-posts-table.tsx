@@ -1,5 +1,13 @@
 "use client";
 
+import { Badge } from "@moja/ui/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import {
   Table,
   TableBody,
@@ -8,8 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@moja/ui/components/ui/card";
-import { Badge } from "@moja/ui/components/ui/badge";
 
 interface BlogTopPostsTableProps {
   posts: Array<{
@@ -27,7 +33,9 @@ export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
     <Card>
       <CardHeader>
         <CardTitle>Top Posts</CardTitle>
-        <CardDescription>Most viewed content in the selected period</CardDescription>
+        <CardDescription>
+          Most viewed content in the selected period
+        </CardDescription>
       </CardHeader>
       <CardContent className="px-0 pt-0">
         <Table>
@@ -43,7 +51,10 @@ export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
           <TableBody>
             {posts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center text-slate-500"
+                >
                   No posts found.
                 </TableCell>
               </TableRow>
@@ -58,7 +69,9 @@ export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={post.status === "PUBLISHED" ? "default" : "secondary"}
+                      variant={
+                        post.status === "PUBLISHED" ? "default" : "secondary"
+                      }
                       className="text-[10px] uppercase font-bold"
                     >
                       {post.status}

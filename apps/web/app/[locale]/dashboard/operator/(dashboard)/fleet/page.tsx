@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: Props) {
 }
 
 /**
- * Do not prefetch fleet lists here — SUPPORT without fleet:read would hit FORBIDDEN
- * during RSC prefetch. The client view loads data only when permitted.
+ * Fleet page — client view handles IAM gating.
+ * Users without fleet:read will see an access denied state.
  */
 export default function FleetPage() {
   return (

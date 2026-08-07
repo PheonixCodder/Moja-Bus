@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
-import { Input } from "@moja/ui/components/ui/input";
-import { Search, X } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
+import { Card } from "@moja/ui/components/ui/card";
+import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -12,10 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
-import { Card } from "@moja/ui/components/ui/card";
-import { ActivityLogsTable } from "../components/audit/activity-logs-table";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { Suspense, useState } from "react";
+import { ActivityLogsTable } from "../components/audit/activity-logs-table";
 
 const CHANNELS = [
   { value: "email", label: "Email" },
@@ -55,7 +55,10 @@ const TEMPLATE_OPTIONS = [
   { value: "passenger-profile-updated", label: "Profile Updated" },
   { value: "passenger-ticket-shared", label: "Ticket Shared" },
   // Platform Admin
-  { value: "admin-treasury-network-failure", label: "Treasury Network Failure" },
+  {
+    value: "admin-treasury-network-failure",
+    label: "Treasury Network Failure",
+  },
   { value: "admin-operator-signup-pending", label: "Operator Signup Pending" },
   { value: "admin-bank-account-pending", label: "Bank Account Pending" },
   { value: "admin-payout-failed", label: "Payout Failed" },
@@ -69,9 +72,18 @@ const TEMPLATE_OPTIONS = [
 
 export function AdminActivityLogsView() {
   const t = useTranslations("adminDashboard.adminActivityLogsView");
-  const [search, setSearch] = useQueryState("search", parseAsString.withDefault(""));
-  const [channel, setChannel] = useQueryState("channel", parseAsString.withDefault(""));
-  const [template, setTemplate] = useQueryState("template", parseAsString.withDefault(""));
+  const [search, setSearch] = useQueryState(
+    "search",
+    parseAsString.withDefault(""),
+  );
+  const [channel, setChannel] = useQueryState(
+    "channel",
+    parseAsString.withDefault(""),
+  );
+  const [template, setTemplate] = useQueryState(
+    "template",
+    parseAsString.withDefault(""),
+  );
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(0));
 
   const [searchInput, setSearchInput] = useState(search);
@@ -151,7 +163,12 @@ export function AdminActivityLogsView() {
         </Select>
 
         {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1.5 text-muted-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="gap-1.5 text-muted-foreground"
+          >
             <X className="h-3.5 w-3.5" />
             {t("clearFilters")}
           </Button>

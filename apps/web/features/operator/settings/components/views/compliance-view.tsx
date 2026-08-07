@@ -15,6 +15,7 @@ import { useStorageUpload } from "@/lib/storage-client";
 import { cn } from "@moja/ui/lib/utils";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@moja/ui/components/ui/alert-dialog";
 import { HealthScore } from "../health-score";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 const DOCUMENT_SLOTS = [
   {
@@ -42,6 +43,8 @@ const DOCUMENT_SLOTS = [
 export function ComplianceView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { can } = useStaffPermissions();
+  const canManageCompliance = can("company:compliance:update");
 
   const { data: settings } = useCompanySettings();
   
@@ -229,7 +232,7 @@ export function ComplianceView() {
               )}
 
               <div className="mt-4 pt-4 border-t border-border/60">
-                {isUploading ? (
+{isUploading ? (
                   <div className="space-y-2 py-3 text-center">
                     <Spinner className="w-5 h-5 mx-auto" />
                     <p className="text-[11px] text-primary font-semibold font-mono">
@@ -280,24 +283,26 @@ export function ComplianceView() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 sm:pl-2 border-t sm:border-t-0 border-border/40 w-full sm:w-auto justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleViewDocument(uploaded.id, uploaded.objectKey!)}
-                        className="inline-flex items-center justify-center w-8 h-8 border border-border hover:bg-slate-50 rounded-md text-muted-foreground transition-colors shrink-0 shadow-sm"
-                        title="View Document"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleTrashClick(uploaded)}
-                        className="inline-flex items-center justify-center w-8 h-8 border border-border hover:bg-red-50 hover:text-red-500 transition-colors rounded-md text-muted-foreground shrink-0 shadow-sm"
-                        title="Replace Document"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {canManageCompliance && (
+                      <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 sm:pl-2 border-t sm:border-t-0 border-border/40 w-full sm:w-auto justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleViewDocument(uploaded.id, uploaded.objectKey!)}
+                          className="inline-flex items-center justify-center w-8 h-8 border border-border hover:bg-slate-50 rounded-md text-muted-foreground transition-colors shrink-0 shadow-sm"
+                          title="View Document"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleTrashClick(uploaded)}
+                          className="inline-flex items-center justify-center w-8 h-8 border border-border hover:bg-red-50 hover:text-red-500 transition-colors rounded-md text-muted-foreground shrink-0 shadow-sm"
+                          title="Replace Document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="relative">

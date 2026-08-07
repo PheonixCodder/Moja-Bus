@@ -1,11 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { format } from "date-fns";
-import { CheckCircle2, MapPin, Clock } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { CheckCircle2, Clock, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useTRPC } from "@/trpc/client";
 
 const STATUS_ORDER = [
   "SCHEDULED",
@@ -24,7 +24,7 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
   const t = useTranslations("adminDashboard.tripAuditTimeline");
   const trpc = useTRPC();
   const { data: trip } = useQuery(
-    trpc.admin.getTripAudit.queryOptions({ id: tripId })
+    trpc.admin.getTripAudit.queryOptions({ id: tripId }),
   );
 
   if (!trip) return null;
@@ -58,8 +58,8 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
       time: trip.actualArrival
         ? format(new Date(trip.actualArrival), "MMM d, h:mm a")
         : trip.estimatedArrival
-        ? format(new Date(trip.estimatedArrival), "MMM d, h:mm a")
-        : null,
+          ? format(new Date(trip.estimatedArrival), "MMM d, h:mm a")
+          : null,
       note: trip.actualArrival ? t("actualArrival") : t("estimatedArrival"),
     },
   ];
@@ -85,10 +85,10 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
                     "relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full border-2 mt-0.5",
                     active &&
                       "border-primary bg-primary text-white shadow-md shadow-primary/30",
-                    done && !active &&
+                    done &&
+                      !active &&
                       "border-emerald-500 bg-emerald-500 text-white",
-                    !done &&
-                      "border-border bg-card text-muted-foreground"
+                    !done && "border-border bg-card text-muted-foreground",
                   )}
                 >
                   {done ? (
@@ -102,7 +102,11 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
                   <p
                     className={cn(
                       "text-sm font-semibold",
-                      active ? "text-primary" : done ? "text-foreground" : "text-muted-foreground"
+                      active
+                        ? "text-primary"
+                        : done
+                          ? "text-foreground"
+                          : "text-muted-foreground",
                     )}
                   >
                     {step.label}
@@ -146,7 +150,8 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
                   <div className="flex flex-wrap gap-3 mt-0.5">
                     {stop.scheduledArrival && (
                       <span className="text-xs text-muted-foreground">
-                        {t("arrLabel")}: {format(new Date(stop.scheduledArrival), "h:mm a")}
+                        {t("arrLabel")}:{" "}
+                        {format(new Date(stop.scheduledArrival), "h:mm a")}
                       </span>
                     )}
                     {stop.scheduledDeparture && (

@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { Users, Banknote, Clock, TrendingUp } from "lucide-react";
+import { Banknote, Clock, TrendingUp, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useTRPC } from "@/trpc/client";
 
 function KpiCard({
   label,
@@ -25,8 +25,8 @@ function KpiCard({
           highlight === "warning"
             ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-50"
             : highlight === "success"
-            ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-50"
-            : "flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100"
+              ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-50"
+              : "flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100"
         }
       >
         <Icon
@@ -34,8 +34,8 @@ function KpiCard({
             highlight === "warning"
               ? "size-5 text-amber-600"
               : highlight === "success"
-              ? "size-5 text-emerald-600"
-              : "size-5 text-slate-600"
+                ? "size-5 text-emerald-600"
+                : "size-5 text-slate-600"
           }
         />
       </div>
@@ -54,13 +54,13 @@ export function TripAuditKpiCards({ tripId }: { tripId: string }) {
   const t = useTranslations("adminDashboard.tripAuditKpiCards");
   const trpc = useTRPC();
   const { data: trip } = useQuery(
-    trpc.admin.getTripAudit.queryOptions({ id: tripId })
+    trpc.admin.getTripAudit.queryOptions({ id: tripId }),
   );
 
   if (!trip) return null;
 
   const confirmedBookings = trip.bookings.filter(
-    (b) => b.status === "CONFIRMED"
+    (b) => b.status === "CONFIRMED",
   );
   const boardedCount = confirmedBookings.filter((b) => b.boardedAt).length;
   const grossFare = confirmedBookings.reduce((sum, b) => sum + b.farePaid, 0);
@@ -78,14 +78,17 @@ export function TripAuditKpiCards({ tripId }: { tripId: string }) {
       <KpiCard
         label={t("occupancy")}
         value={`${occupancyPct}%`}
-        sub={t("occupancySub", { booked: confirmedBookings.length, total: trip.totalSeats })}
+        sub={t("occupancySub", {
+          booked: confirmedBookings.length,
+          total: trip.totalSeats,
+        })}
         icon={TrendingUp}
         highlight={
           occupancyPct >= 90
             ? "warning"
             : occupancyPct >= 60
-            ? "success"
-            : "neutral"
+              ? "success"
+              : "neutral"
         }
       />
       <KpiCard

@@ -1,8 +1,8 @@
 "use client";
 
+import { Badge } from "@moja/ui/components/ui/badge";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDownLeft, ArrowUpRight, Coins, Wallet } from "lucide-react";
-import { Badge } from "@moja/ui/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { formatAdminDate, formatAdminTime } from "@/lib/format-date";
 import { toSafeDisplayNumber } from "@/lib/money";
@@ -151,7 +151,7 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       const entry = row.original;
       const t = useTranslations("adminDashboard.ledgerColumns");
       const formattedAmount = new Intl.NumberFormat("en-US").format(
-        toSafeDisplayNumber(entry.amount)
+        toSafeDisplayNumber(entry.amount),
       );
       return (
         <div className="flex items-center gap-1.5">
@@ -178,12 +178,17 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       const t = useTranslations("adminDashboard.ledgerColumns");
       return (
         <div className="space-y-0.5 text-xs max-w-[200px] min-w-[120px]">
-          <div className="text-slate-700 font-medium truncate" title={entry.description || ""}>
+          <div
+            className="text-slate-700 font-medium truncate"
+            title={entry.description || ""}
+          >
             {entry.description || t("na")}
           </div>
           {entry.referenceId && (
             <div className="text-[10px] text-slate-400 truncate">
-              {t("refPrefix")} <span className="font-mono">{entry.referenceId}</span> ({entry.referenceType})
+              {t("refPrefix")}{" "}
+              <span className="font-mono">{entry.referenceId}</span> (
+              {entry.referenceType})
             </div>
           )}
         </div>

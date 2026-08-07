@@ -1,10 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { useTRPC } from "@/trpc/client";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +11,10 @@ import {
   AlertDialogTitle,
 } from "@moja/ui/components/ui/alert-dialog";
 import { buttonVariants } from "@moja/ui/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 type Redirect = {
   id: string;
@@ -31,7 +30,11 @@ interface RedirectDeleteDialogProps {
   redirect?: Redirect | null;
 }
 
-export function RedirectDeleteDialog({ open, onOpenChange, redirect }: RedirectDeleteDialogProps) {
+export function RedirectDeleteDialog({
+  open,
+  onOpenChange,
+  redirect,
+}: RedirectDeleteDialogProps) {
   const t = useTranslations("adminDashboard.redirectDeleteDialog");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -40,13 +43,15 @@ export function RedirectDeleteDialog({ open, onOpenChange, redirect }: RedirectD
     trpc.admin.deleteBlogRedirect.mutationOptions({
       onSuccess: () => {
         toast.success(t("deleteSuccess"));
-        queryClient.invalidateQueries(trpc.admin.listBlogRedirects.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.admin.listBlogRedirects.pathFilter(),
+        );
         onOpenChange(false);
       },
       onError: (error: any) => {
         toast.error(error.message || t("deleteError"));
       },
-    })
+    }),
   );
 
   const handleDelete = () => {
@@ -64,7 +69,9 @@ export function RedirectDeleteDialog({ open, onOpenChange, redirect }: RedirectD
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleteMutation.isPending}>{t("cancel")}</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleteMutation.isPending}>
+            {t("cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();

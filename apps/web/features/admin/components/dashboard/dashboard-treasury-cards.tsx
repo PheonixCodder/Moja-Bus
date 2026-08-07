@@ -1,7 +1,5 @@
 "use client";
 
-import { Building2, Wallet, Landmark } from "lucide-react";
-import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -9,6 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
+import { Building2, Landmark, Wallet } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface DashboardTreasuryCardsProps {
   systemLiquidity: number;

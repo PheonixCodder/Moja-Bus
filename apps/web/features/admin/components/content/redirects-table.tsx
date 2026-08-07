@@ -1,21 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { format } from "date-fns";
-import { useTranslations } from "next-intl";
-import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@moja/ui/components/ui/table";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import {
@@ -24,10 +8,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
-
-import { RedirectsPagination } from "./redirects-pagination";
-import { RedirectFormDialog } from "./redirect-form-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@moja/ui/components/ui/table";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { useTRPC } from "@/trpc/client";
 import { RedirectDeleteDialog } from "./redirect-delete-dialog";
+import { RedirectFormDialog } from "./redirect-form-dialog";
+import { RedirectsPagination } from "./redirects-pagination";
 
 type Redirect = {
   id: string;
@@ -47,12 +45,14 @@ export function RedirectsTable() {
   const { data } = useSuspenseQuery(
     trpc.admin.listBlogRedirects.queryOptions(
       { search: q || undefined, page, limit },
-      { placeholderData: (prev) => prev } // keepPreviousData
-    )
+      { placeholderData: (prev) => prev }, // keepPreviousData
+    ),
   );
 
   const [editingRedirect, setEditingRedirect] = useState<Redirect | null>(null);
-  const [deletingRedirect, setDeletingRedirect] = useState<Redirect | null>(null);
+  const [deletingRedirect, setDeletingRedirect] = useState<Redirect | null>(
+    null,
+  );
 
   return (
     <>
@@ -63,19 +63,27 @@ export function RedirectsTable() {
             <TableHead className="w-[35%]">{t("destination")}</TableHead>
             <TableHead className="w-[10%]">{t("type")}</TableHead>
             <TableHead className="w-[15%]">{t("created")}</TableHead>
-            <TableHead className="w-[5%] text-right pr-6">{t("actions")}</TableHead>
+            <TableHead className="w-[5%] text-right pr-6">
+              {t("actions")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.items.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+              <TableCell
+                colSpan={5}
+                className="h-24 text-center text-slate-500"
+              >
                 {t("noResults")}
               </TableCell>
             </TableRow>
           ) : (
             data.items.map((redirect) => (
-              <TableRow key={redirect.id} className="group hover:bg-slate-50/50">
+              <TableRow
+                key={redirect.id}
+                className="group hover:bg-slate-50/50"
+              >
                 <TableCell className="pl-6">
                   <span className="font-mono text-sm text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded-md">
                     {redirect.source}
@@ -87,7 +95,10 @@ export function RedirectsTable() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={redirect.type === 301 ? "default" : "secondary"} className="font-mono text-xs">
+                  <Badge
+                    variant={redirect.type === 301 ? "default" : "secondary"}
+                    className="font-mono text-xs"
+                  >
                     {redirect.type}
                   </Badge>
                 </TableCell>
@@ -97,13 +108,18 @@ export function RedirectsTable() {
                 <TableCell className="text-right pr-6">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                      >
                         <span className="sr-only">{t("openMenu")}</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditingRedirect(redirect)}>
+                      <DropdownMenuItem
+                        onClick={() => setEditingRedirect(redirect)}
+                      >
                         <Pencil className="mr-2 h-4 w-4 text-slate-500" />
                         {t("edit")}
                       </DropdownMenuItem>

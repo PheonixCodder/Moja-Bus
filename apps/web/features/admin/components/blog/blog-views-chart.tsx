@@ -1,26 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
-import { format, parseISO } from "date-fns";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-} from "recharts";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@moja/ui/components/ui/card";
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
 } from "@moja/ui/components/ui/chart";
+import { format, parseISO } from "date-fns";
+import { useMemo } from "react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 interface BlogViewsChartProps {
   data: Array<{ date: string; views: number }>;
@@ -51,21 +45,30 @@ export function BlogViewsChart({ data }: BlogViewsChartProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer
-          config={chartConfig}
-          className="h-[280px] w-full"
-        >
+        <ChartContainer config={chartConfig} className="h-[280px] w-full">
           <AreaChart
             data={chartData}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
             <defs>
               <linearGradient id="fillViews" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.0} />
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-views)"
+                  stopOpacity={0.3}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-views)"
+                  stopOpacity={0.0}
+                />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.5} />
+            <CartesianGrid
+              vertical={false}
+              strokeDasharray="3 3"
+              opacity={0.5}
+            />
             <XAxis
               dataKey="date"
               tickLine={false}

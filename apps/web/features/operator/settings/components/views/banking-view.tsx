@@ -16,12 +16,19 @@ import { useState } from "react";
 import { useBankAccounts, useDeleteBankAccount } from "../../api/use-bank-accounts";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { bankStepSchema, type BankStepInput } from "../../schemas";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import { useCompanySettings } from "../../api/use-company-settings";
 
 type BankFormValues = BankStepInput;
 
 export function BankingView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { can } = useStaffPermissions();
+  const { data: settings } = useCompanySettings();
+
+  // Check permissions for banking actions
+  const canManageBanking = can("company:banking:update") || can("financials:view");
 
   const { data: bankAccounts } = useBankAccounts();
   const deleteBankMutation = useDeleteBankAccount();
@@ -169,9 +176,11 @@ export function BankingView() {
             Manage your settlement bank accounts and mobile money wallets.
           </p>
         </div>
-        <Button onClick={handleOpenAdd} className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" /> Add Account
-        </Button>
+        {canManageBanking && (
+          <Button onClick={handleOpenAdd} className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" /> Add Account
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -217,23 +226,27 @@ export function BankingView() {
             )}
 
             <div className="absolute -top-3 -right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center gap-1">
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-8 w-8 rounded-full shadow-sm"
-                onClick={() => handleEdit(account)}
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="destructive"
-                size="icon"
-                className="h-8 w-8 rounded-full shadow-sm"
-                onClick={() => setDeletingId(account.id)}
-                disabled={deleteBankMutation.isPending}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              {canManageBanking && (
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-8 w-8 rounded-full shadow-sm"
+                  onClick={() => handleEdit(account)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
+              {canManageBanking && (
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="h-8 w-8 rounded-full shadow-sm"
+                  onClick={() => setDeletingId(account.id)}
+                  disabled={deleteBankMutation.isPending}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
         ))}

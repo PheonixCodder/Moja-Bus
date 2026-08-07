@@ -1,26 +1,24 @@
 "use client";
 
-import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useQueryState, parseAsInteger } from "nuqs";
-import { useTranslations } from "next-intl";
-import {
-  Users,
-  Search,
-  UserCheck,
-  UserX,
-  Building,
-  UserCog,
-  AlertTriangle,
-  Mail,
-  Phone,
-  Shield,
-} from "lucide-react";
-import { Card } from "@moja/ui/components/ui/card";
+import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
+import { Card } from "@moja/ui/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@moja/ui/components/ui/dialog";
 import { Input } from "@moja/ui/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
   Table,
@@ -31,41 +29,58 @@ import {
   TableRow,
 } from "@moja/ui/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@moja/ui/components/ui/dialog";
-import { Badge } from "@moja/ui/components/ui/badge";
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@moja/ui/components/ui/select";
+  AlertTriangle,
+  Building,
+  Mail,
+  Phone,
+  Search,
+  Shield,
+  UserCheck,
+  UserCog,
+  Users,
+  UserX,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { parseAsInteger, useQueryState } from "nuqs";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 export function AdminUsersView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const t = useTranslations("adminDashboard.adminUsersView");
 
-  const [searchQuery, setSearchQuery] = useQueryState("q", { defaultValue: "" });
-  const [selectedRole, setSelectedRole] = useQueryState("role", { defaultValue: "" });
-  const [currentPageParam, setCurrentPageParam] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [searchQuery, setSearchQuery] = useQueryState("q", {
+    defaultValue: "",
+  });
+  const [selectedRole, setSelectedRole] = useQueryState("role", {
+    defaultValue: "",
+  });
+  const [currentPageParam, setCurrentPageParam] = useQueryState(
+    "page",
+    parseAsInteger.withDefault(1),
+  );
   const currentPage = currentPageParam - 1; // 0-indexed internally
   const pageSize = 20;
 
   // Dialog State
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [targetRole, setTargetRole] = useState<"TRAVELER" | "OPERATOR" | "ADMIN">("TRAVELER");
+  const [targetRole, setTargetRole] = useState<
+    "TRAVELER" | "OPERATOR" | "ADMIN"
+  >("TRAVELER");
 
   const [isSuspendConfirmOpen, setIsSuspendConfirmOpen] = useState(false);
   const [companyToManage, setCompanyToManage] = useState<any>(null);
-  const [manageAction, setManageAction] = useState<"suspend" | "activate">("suspend");
+  const [manageAction, setManageAction] = useState<"suspend" | "activate">(
+    "suspend",
+  );
 
   // Suspense Queries
   const { data: usersData } = useSuspenseQuery(
@@ -74,7 +89,7 @@ export function AdminUsersView() {
       role: selectedRole || undefined,
       limit: pageSize,
       offset: currentPage * pageSize,
-    })
+    }),
   );
 
   // Mutations
@@ -88,7 +103,7 @@ export function AdminUsersView() {
       onError: (err) => {
         toast.error(err.message || t("failedToUpdateRole"));
       },
-    })
+    }),
   );
 
   const suspendCompanyMutation = useMutation(
@@ -101,7 +116,7 @@ export function AdminUsersView() {
       onError: (err) => {
         toast.error(err.message || t("failedToSuspendCompany"));
       },
-    })
+    }),
   );
 
   const activateCompanyMutation = useMutation(
@@ -114,7 +129,7 @@ export function AdminUsersView() {
       onError: (err) => {
         toast.error(err.message || t("failedToActivateCompany"));
       },
-    })
+    }),
   );
 
   const handleUpdateRole = (e: React.FormEvent) => {
@@ -167,7 +182,9 @@ export function AdminUsersView() {
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Shield className="size-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{t("role")}</span>
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              {t("role")}
+            </span>
             <Select
               value={selectedRole || "ALL"}
               onValueChange={(val) => {
@@ -196,7 +213,9 @@ export function AdminUsersView() {
             <Users className="size-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-slate-800">{t("noUsersFound")}</h3>
+            <h3 className="text-sm font-bold text-slate-800">
+              {t("noUsersFound")}
+            </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
               {t("noUsersMatchFilters")}
             </p>
@@ -208,11 +227,21 @@ export function AdminUsersView() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 hover:bg-slate-50">
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("userDetails")}</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("contactInfo")}</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("roleColumn")}</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("operatorCompany")}</TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("actions")}</TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                    {t("userDetails")}
+                  </TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                    {t("contactInfo")}
+                  </TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                    {t("roleColumn")}
+                  </TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                    {t("operatorCompany")}
+                  </TableHead>
+                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                    {t("actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -306,7 +335,11 @@ export function AdminUsersView() {
                               }
                               onClick={() => {
                                 setCompanyToManage(company);
-                                setManageAction(company.status === "SUSPENDED" ? "activate" : "suspend");
+                                setManageAction(
+                                  company.status === "SUSPENDED"
+                                    ? "activate"
+                                    : "suspend",
+                                );
                                 setIsSuspendConfirmOpen(true);
                               }}
                             >
@@ -336,7 +369,9 @@ export function AdminUsersView() {
           {usersData.total > pageSize && (
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-500 font-medium">
-                Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, usersData.total)} of {usersData.total} users
+                Showing {currentPage * pageSize + 1} -{" "}
+                {Math.min((currentPage + 1) * pageSize, usersData.total)} of{" "}
+                {usersData.total} users
               </span>
               <div className="flex gap-2">
                 <Button
@@ -372,7 +407,9 @@ export function AdminUsersView() {
                 {t("changeUserRole")}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                {t("changeRoleDescription", { userName: selectedUser.fullName })}
+                {t("changeRoleDescription", {
+                  userName: selectedUser.fullName,
+                })}
               </DialogDescription>
             </DialogHeader>
 
@@ -397,7 +434,12 @@ export function AdminUsersView() {
               </div>
 
               <DialogFooter className="pt-4 gap-2 sm:gap-0">
-                <Button type="button" variant="outline" className="h-9" onClick={() => setIsRoleModalOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-9"
+                  onClick={() => setIsRoleModalOpen(false)}
+                >
                   {t("cancel")}
                 </Button>
                 <Button
@@ -421,29 +463,48 @@ export function AdminUsersView() {
       </Dialog>
 
       {/* Suspend/Activate Company Dialog */}
-      <Dialog open={isSuspendConfirmOpen} onOpenChange={setIsSuspendConfirmOpen}>
+      <Dialog
+        open={isSuspendConfirmOpen}
+        onOpenChange={setIsSuspendConfirmOpen}
+      >
         {companyToManage && (
           <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <AlertTriangle className={manageAction === "suspend" ? "size-5 text-red-600" : "size-5 text-emerald-600"} />
-                {manageAction === "suspend" ? t("suspendCompany") : t("activateCompany")}
+                <AlertTriangle
+                  className={
+                    manageAction === "suspend"
+                      ? "size-5 text-red-600"
+                      : "size-5 text-emerald-600"
+                  }
+                />
+                {manageAction === "suspend"
+                  ? t("suspendCompany")
+                  : t("activateCompany")}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
                 {manageAction === "suspend" ? (
                   <span>
-                    {t("areYouSureSuspend", { companyName: companyToManage.name })}
+                    {t("areYouSureSuspend", {
+                      companyName: companyToManage.name,
+                    })}
                   </span>
                 ) : (
                   <span>
-                    {t("areYouSureActivate", { companyName: companyToManage.name })}
+                    {t("areYouSureActivate", {
+                      companyName: companyToManage.name,
+                    })}
                   </span>
                 )}
               </DialogDescription>
             </DialogHeader>
 
             <DialogFooter className="pt-4 gap-2 sm:gap-0">
-              <Button variant="outline" className="h-9" onClick={() => setIsSuspendConfirmOpen(false)}>
+              <Button
+                variant="outline"
+                className="h-9"
+                onClick={() => setIsSuspendConfirmOpen(false)}
+              >
                 {t("cancel")}
               </Button>
               <Button
@@ -452,10 +513,14 @@ export function AdminUsersView() {
                     ? "bg-red-600 hover:bg-red-700 text-white h-9"
                     : "bg-emerald-600 hover:bg-emerald-700 text-white h-9"
                 }
-                disabled={suspendCompanyMutation.isPending || activateCompanyMutation.isPending}
+                disabled={
+                  suspendCompanyMutation.isPending ||
+                  activateCompanyMutation.isPending
+                }
                 onClick={handleManageCompany}
               >
-                {suspendCompanyMutation.isPending || activateCompanyMutation.isPending ? (
+                {suspendCompanyMutation.isPending ||
+                activateCompanyMutation.isPending ? (
                   <>
                     <Spinner className="mr-2 size-3.5 text-white" />
                     {t("updating")}

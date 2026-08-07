@@ -1,29 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Tag, ArrowRight, FolderKanban } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
-import { Textarea } from "@moja/ui/components/ui/textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@moja/ui/components/ui/table";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@moja/ui/components/ui/dialog";
+import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -32,7 +18,32 @@ import {
   SelectValue,
 } from "@moja/ui/components/ui/select";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@moja/ui/components/ui/table";
+import { Textarea } from "@moja/ui/components/ui/textarea";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import {
+  ArrowRight,
+  Edit2,
+  FolderKanban,
+  Plus,
+  Tag,
+  Trash2,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 export function AdminCategoriesView() {
   const t = useTranslations("adminDashboard.adminCategoriesView");
@@ -52,7 +63,7 @@ export function AdminCategoriesView() {
   const [parentId, setParentId] = useState("");
 
   const { data: categories } = useSuspenseQuery(
-    trpc.admin.listBlogCategories.queryOptions()
+    trpc.admin.listBlogCategories.queryOptions(),
   );
 
   const createCategory = useMutation({
@@ -138,7 +149,9 @@ export function AdminCategoriesView() {
   };
 
   // Filter out the editing category from parent options to avoid circular references
-  const parentOptions = categories.filter((c) => !editingCategory || c.id !== editingCategory.id);
+  const parentOptions = categories.filter(
+    (c) => !editingCategory || c.id !== editingCategory.id,
+  );
 
   return (
     <div className="space-y-6">
@@ -163,16 +176,27 @@ export function AdminCategoriesView() {
         <Table>
           <TableHeader className="bg-slate-50/70">
             <TableRow>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("name")}</TableHead>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("description")}</TableHead>
-              <TableHead className="w-1/4 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("parentCategory")}</TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("actions")}</TableHead>
+              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                {t("name")}
+              </TableHead>
+              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                {t("description")}
+              </TableHead>
+              <TableHead className="w-1/4 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                {t("parentCategory")}
+              </TableHead>
+              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                {t("actions")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {categories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-10 text-slate-400 text-xs">
+                <TableCell
+                  colSpan={4}
+                  className="text-center py-10 text-slate-400 text-xs"
+                >
                   {t("noCategories")}
                 </TableCell>
               </TableRow>
@@ -184,10 +208,14 @@ export function AdminCategoriesView() {
                       {cat.parentId ? (
                         <>
                           <ArrowRight className="size-3 text-slate-400 ml-2" />
-                          <span className="text-slate-600 font-normal">{cat.name}</span>
+                          <span className="text-slate-600 font-normal">
+                            {cat.name}
+                          </span>
                         </>
                       ) : (
-                        <span className="text-slate-900 font-bold">{cat.name}</span>
+                        <span className="text-slate-900 font-bold">
+                          {cat.name}
+                        </span>
                       )}
                     </div>
                   </TableCell>
@@ -251,7 +279,10 @@ export function AdminCategoriesView() {
 
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <div className="space-y-1">
-              <label htmlFor="cat-name" className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+              <label
+                htmlFor="cat-name"
+                className="text-[10px] font-bold text-slate-700 uppercase tracking-wider"
+              >
                 {t("name")}
               </label>
               <Input
@@ -266,19 +297,29 @@ export function AdminCategoriesView() {
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="cat-parent" className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+              <label
+                htmlFor="cat-parent"
+                className="text-[10px] font-bold text-slate-700 uppercase tracking-wider"
+              >
                 {t("parentCategory")}
               </label>
               <Select
                 value={parentId || "__none__"}
-                onValueChange={(val) => setParentId(!val || val === "__none__" ? "" : val)}
+                onValueChange={(val) =>
+                  setParentId(!val || val === "__none__" ? "" : val)
+                }
               >
-                <SelectTrigger id="cat-parent" className="w-full h-9 text-sm bg-white">
+                <SelectTrigger
+                  id="cat-parent"
+                  className="w-full h-9 text-sm bg-white"
+                >
                   <SelectValue placeholder={t("noParentCategory")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">
-                    <span className="text-slate-400">{t("noParentCategory")}</span>
+                    <span className="text-slate-400">
+                      {t("noParentCategory")}
+                    </span>
                   </SelectItem>
                   {parentOptions.map((po) => (
                     <SelectItem key={po.id} value={po.id}>
@@ -290,7 +331,10 @@ export function AdminCategoriesView() {
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="cat-desc" className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+              <label
+                htmlFor="cat-desc"
+                className="text-[10px] font-bold text-slate-700 uppercase tracking-wider"
+              >
                 {t("description")}
               </label>
               <Textarea
@@ -315,7 +359,11 @@ export function AdminCategoriesView() {
               </Button>
               <Button
                 type="submit"
-                disabled={!name.trim() || createCategory.isPending || updateCategory.isPending}
+                disabled={
+                  !name.trim() ||
+                  createCategory.isPending ||
+                  updateCategory.isPending
+                }
                 className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs"
               >
                 {createCategory.isPending || updateCategory.isPending ? (

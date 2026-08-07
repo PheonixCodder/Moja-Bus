@@ -96,14 +96,15 @@ export function OperatorStaffView() {
   const callerRole: StaffRole = myPermissionsQuery.data?.role ?? "SUPPORT";
   const pendingInvites = invitations.filter((i) => i.status === "PENDING");
 
-  // Deep-link: ?member=<id> opens edit-permissions sheet
-  useEffect(() => {
-    if (!memberId || members.length === 0) return;
-    const found = members.find((m) => m.id === memberId);
-    if (found && found.role !== "OWNER") {
-      setPermissionsMember(found);
-    }
-  }, [memberId, members]);
+   // Deep-link: ?member=<id> opens edit-permissions sheet
+   useEffect(() => {
+     if (!memberId || members.length === 0) return;
+     if (!can("staff:update")) return;
+     const found = members.find((m) => m.id === memberId);
+     if (found && found.role !== "OWNER") {
+       setPermissionsMember(found);
+     }
+   }, [memberId, members, can]);
 
   const createInviteMutation = useMutation(
     trpc.staff.createInvitation.mutationOptions({
@@ -332,18 +333,19 @@ export function OperatorStaffView() {
       />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
-        <StaffMembersSection
-          members={members}
-          total={total}
-          page={page}
-          totalPages={totalPages}
-          isLoading={staffQuery.isLoading}
-          isFetching={staffQuery.isFetching}
-          isError={staffQuery.isError}
-          hasActiveFilters={hasActiveFilters}
-          canInvite={can("staff:invite")}
-          canUpdate={can("staff:update")}
-          callerRole={callerRole}
+         <StaffMembersSection
+           members={members}
+           total={total}
+           page={page}
+           totalPages={totalPages}
+           isLoading={staffQuery.isLoading}
+           isFetching={staffQuery.isFetching}
+           isError={staffQuery.isError}
+           hasActiveFilters={hasActiveFilters}
+           canInvite={can("staff:invite")}
+           canUpdate={can("staff:update")}
+           canDelete={can("staff:remove")}
+           callerRole={callerRole}
           onRetry={() => staffQuery.refetch()}
           onInvite={() => void setParams({ invite: true })}
           onPageChange={(next) => void setParams({ page: next })}
@@ -361,6 +363,7 @@ export function OperatorStaffView() {
           invitations={pendingInvites}
           onResend={handleResendInvite}
           onCancel={handleCancelInvite}
+          canDelete={can("staff:remove")}
         />
 
         <StaffActivitySection activities={activityLog} />

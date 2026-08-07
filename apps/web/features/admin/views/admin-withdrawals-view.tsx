@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
-import { useQueryStates } from "nuqs";
-import { useTRPC } from "@/trpc/client";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { WithdrawalsKpiCards } from "../components/withdrawals-kpi-cards";
+import { useQueryStates } from "nuqs";
+import { useState } from "react";
+import { useTRPC } from "@/trpc/client";
+import type { WithdrawalRow } from "../components/withdrawals-columns";
 import { WithdrawalsFilterBar } from "../components/withdrawals-filter-bar";
-import { WithdrawalsTable } from "../components/withdrawals-table";
+import { WithdrawalsKpiCards } from "../components/withdrawals-kpi-cards";
 import { WithdrawalsPagination } from "../components/withdrawals-pagination";
 import { WithdrawalsResolveDialog } from "../components/withdrawals-resolve-dialog";
-import type { WithdrawalRow } from "../components/withdrawals-columns";
+import { WithdrawalsTable } from "../components/withdrawals-table";
 import { withdrawalsSearchParams } from "../lib/search-params";
 
 const PAGE_SIZE = 15;
@@ -19,10 +19,9 @@ export function AdminWithdrawalsView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const t = useTranslations("adminDashboard.adminWithdrawalsView");
-  const [{ status, page, from, to }] = useQueryStates(
-    withdrawalsSearchParams,
-    { shallow: false }
-  );
+  const [{ status, page, from, to }] = useQueryStates(withdrawalsSearchParams, {
+    shallow: false,
+  });
 
   const [resolveRow, setResolveRow] = useState<WithdrawalRow | null>(null);
 
@@ -33,7 +32,7 @@ export function AdminWithdrawalsView() {
       status: status === "ALL" ? undefined : status,
       from: from || undefined,
       to: to || undefined,
-    })
+    }),
   );
 
   const handleResolved = () => {

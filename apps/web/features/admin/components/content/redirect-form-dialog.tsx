@@ -1,20 +1,13 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useEffect } from "react";
-import { z } from "zod";
-import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@moja/ui/components/ui/dialog";
 import { Input } from "@moja/ui/components/ui/input";
 import {
@@ -24,7 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
-import { Button } from "@moja/ui/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { useTRPC } from "@/trpc/client";
 
 type Redirect = {
   id: string;
@@ -41,20 +40,36 @@ interface RedirectFormDialogProps {
 }
 
 const formSchema = z.object({
-  source: z.string().min(1, "Source path is required").startsWith("/", "Must start with a /"),
-  destination: z.string().min(1, "Destination path is required").startsWith("/", "Must start with a /"),
+  source: z
+    .string()
+    .min(1, "Source path is required")
+    .startsWith("/", "Must start with a /"),
+  destination: z
+    .string()
+    .min(1, "Destination path is required")
+    .startsWith("/", "Must start with a /"),
   type: z.number(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFormDialogProps) {
+export function RedirectFormDialog({
+  open,
+  onOpenChange,
+  redirect,
+}: RedirectFormDialogProps) {
   const t = useTranslations("adminDashboard.redirectFormDialog");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const isEditing = !!redirect;
 
-  const { register, control, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       source: "",
@@ -86,26 +101,30 @@ export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFor
     trpc.admin.createBlogRedirect.mutationOptions({
       onSuccess: () => {
         toast.success(t("createSuccess"));
-        queryClient.invalidateQueries(trpc.admin.listBlogRedirects.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.admin.listBlogRedirects.pathFilter(),
+        );
         onOpenChange(false);
       },
       onError: (error: any) => {
         toast.error(error.message || t("createError"));
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
     trpc.admin.updateBlogRedirect.mutationOptions({
       onSuccess: () => {
         toast.success(t("updateSuccess"));
-        queryClient.invalidateQueries(trpc.admin.listBlogRedirects.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.admin.listBlogRedirects.pathFilter(),
+        );
         onOpenChange(false);
       },
       onError: (error: any) => {
         toast.error(error.message || t("updateError"));
       },
-    })
+    }),
   );
 
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -122,37 +141,65 @@ export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFor
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? t("editTitle") : t("createTitle")}</DialogTitle>
+          <DialogTitle>
+            {isEditing ? t("editTitle") : t("createTitle")}
+          </DialogTitle>
           <DialogDescription>
-            {isEditing
-              ? t("editDescription")
-              : t("createDescription")}
+            {isEditing ? t("editDescription") : t("createDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">{t("sourceLabel")}</label>
-            <Input placeholder={t("sourcePlaceholder")} className="font-mono text-sm" {...register("source")} />
-            {errors.source && <p className="text-[0.8rem] font-medium text-destructive">{errors.source.message}</p>}
-            <p className="text-[0.8rem] text-muted-foreground">{t("sourceHint")}</p>
+            <label className="text-sm font-medium leading-none">
+              {t("sourceLabel")}
+            </label>
+            <Input
+              placeholder={t("sourcePlaceholder")}
+              className="font-mono text-sm"
+              {...register("source")}
+            />
+            {errors.source && (
+              <p className="text-[0.8rem] font-medium text-destructive">
+                {errors.source.message}
+              </p>
+            )}
+            <p className="text-[0.8rem] text-muted-foreground">
+              {t("sourceHint")}
+            </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">{t("destinationLabel")}</label>
-            <Input placeholder={t("destinationPlaceholder")} className="font-mono text-sm" {...register("destination")} />
-            {errors.destination && <p className="text-[0.8rem] font-medium text-destructive">{errors.destination.message}</p>}
-            <p className="text-[0.8rem] text-muted-foreground">{t("destinationHint")}</p>
+            <label className="text-sm font-medium leading-none">
+              {t("destinationLabel")}
+            </label>
+            <Input
+              placeholder={t("destinationPlaceholder")}
+              className="font-mono text-sm"
+              {...register("destination")}
+            />
+            {errors.destination && (
+              <p className="text-[0.8rem] font-medium text-destructive">
+                {errors.destination.message}
+              </p>
+            )}
+            <p className="text-[0.8rem] text-muted-foreground">
+              {t("destinationHint")}
+            </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">{t("typeLabel")}</label>
+            <label className="text-sm font-medium leading-none">
+              {t("typeLabel")}
+            </label>
             <Controller
               control={control}
               name="type"
               render={({ field }) => (
                 <Select
-                  onValueChange={(val) => field.onChange(parseInt(val as string, 10))}
+                  onValueChange={(val) =>
+                    field.onChange(parseInt(val as string, 10))
+                  }
                   value={field.value.toString()}
                 >
                   <SelectTrigger>
@@ -165,16 +212,30 @@ export function RedirectFormDialog({ open, onOpenChange, redirect }: RedirectFor
                 </Select>
               )}
             />
-            {errors.type && <p className="text-[0.8rem] font-medium text-destructive">{errors.type.message}</p>}
-            <p className="text-[0.8rem] text-muted-foreground">{t("typeHint")}</p>
+            {errors.type && (
+              <p className="text-[0.8rem] font-medium text-destructive">
+                {errors.type.message}
+              </p>
+            )}
+            <p className="text-[0.8rem] text-muted-foreground">
+              {t("typeHint")}
+            </p>
           </div>
 
           <div className="flex justify-end pt-4 space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               {t("cancel")}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? t("saving") : isEditing ? t("saveChanges") : t("createRedirect")}
+              {isPending
+                ? t("saving")
+                : isEditing
+                  ? t("saveChanges")
+                  : t("createRedirect")}
             </Button>
           </div>
         </form>

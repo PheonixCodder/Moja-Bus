@@ -1,11 +1,11 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useQueryStates } from "nuqs";
-import { useTranslations } from "next-intl";
-import { format } from "date-fns";
-import { useTRPC } from "@/trpc/client";
-import { bankAccessLogSearchParams } from "../../../lib/search-params";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
+import { Badge } from "@moja/ui/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -14,9 +14,13 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
-import { Badge } from "@moja/ui/components/ui/badge";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { useTRPC } from "@/trpc/client";
+import { bankAccessLogSearchParams } from "../../../lib/search-params";
 import { BankAccessLogsPagination } from "./bank-access-logs-pagination";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 
 export function BankAccessLogsTable() {
   const t = useTranslations("adminDashboard.bankAccessLogsTable");
@@ -30,7 +34,7 @@ export function BankAccessLogsTable() {
       action: params.action || undefined,
       companyId: params.companyId || undefined,
       userId: params.userId || undefined,
-    })
+    }),
   );
 
   const items = data.items;
@@ -40,8 +44,18 @@ export function BankAccessLogsTable() {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center">
         <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-          <svg className="w-6 h-6 text-muted-foreground/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <svg
+            className="w-6 h-6 text-muted-foreground/50"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
           </svg>
         </div>
         <h3 className="text-sm font-medium">{t("noRecords")}</h3>
@@ -62,21 +76,28 @@ export function BankAccessLogsTable() {
               <TableHead>{t("action")}</TableHead>
               <TableHead>{t("targetCompany")}</TableHead>
               <TableHead>{t("userActor")}</TableHead>
-              <TableHead className="pr-4 text-right">{t("ipAddress")}</TableHead>
+              <TableHead className="pr-4 text-right">
+                {t("ipAddress")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.map((log: any) => (
-              <TableRow key={log.id} className="hover:bg-muted/20 transition-colors">
+              <TableRow
+                key={log.id}
+                className="hover:bg-muted/20 transition-colors"
+              >
                 <TableCell className="pl-4 text-xs text-muted-foreground whitespace-nowrap">
                   {format(new Date(log.createdAt), "MMM d, yyyy HH:mm:ss")}
                 </TableCell>
                 <TableCell>
-                  <Badge 
-                    variant={log.action === "VIEW_FULL" ? "destructive" : "secondary"}
+                  <Badge
+                    variant={
+                      log.action === "VIEW_FULL" ? "destructive" : "secondary"
+                    }
                     className={`text-[10px] uppercase font-mono px-1.5 py-0 ${
-                      log.action === "CREATE" || log.action === "UPDATE" 
-                        ? "bg-blue-100 text-blue-700 hover:bg-blue-200" 
+                      log.action === "CREATE" || log.action === "UPDATE"
+                        ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
                         : ""
                     }`}
                   >

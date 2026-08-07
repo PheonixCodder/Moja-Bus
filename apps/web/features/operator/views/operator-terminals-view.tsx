@@ -45,12 +45,14 @@ import { TerminalEditorSheet } from "@/features/operator/components/terminals/te
 import { TerminalsTable } from "@/features/operator/components/terminals/terminals-table";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useTRPC } from "@/trpc/client";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 const FILTERS = ["ALL", "TERMINAL", "DEPOT", "CAPTURE"] as const;
 
 export function OperatorTerminalsView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { can } = useStaffPermissions();
 
   const [{ data: locations }, { data: cities }] = useSuspenseQueries({
     queries: [
@@ -239,11 +241,13 @@ export function OperatorTerminalsView() {
             {t("pageDescription")}
           </p>
         </div>
-        <Button onClick={handleAddNew} className="shrink-0">
-          <Plus className="mr-2 size-4" />
-          {t("addLocation")}
-        </Button>
-      </div>
+         {can("terminals:create") ? (
+           <Button onClick={handleAddNew} className="shrink-0">
+             <Plus className="mr-2 size-4" />
+             {t("addLocation")}
+           </Button>
+         ) : null}
+       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard
@@ -305,22 +309,26 @@ export function OperatorTerminalsView() {
         </div>
       </div>
 
-      <TerminalsTable
-        locations={filteredLocations}
-        onEdit={handleEdit}
-        onToggleTerminal={handleToggleTerminal}
-        onDelete={(loc) => {
-          setLocationToDelete(loc);
-          setDeleteConfirmOpen(true);
-        }}
-        onResolveCapture={(loc) => {
-          const capture = loc.captures?.[0];
-          setResolvingCapture(
-            capture ? { ...capture, locationName: loc.name } : null,
-          );
-        }}
-        togglingId={togglingId}
-      />
+       <TerminalsTable
+         locations={filteredLocations}
+         onEdit={can("terminals:update") ? handleEdit : undefined}
+         onToggleTerminal={can("terminals:update") ? handleToggleTerminal : undefined}
+         onDelete={can("terminals:delete") ? (loc) => {
+           setLocationToDelete(loc);
+           setDeleteConfirmOpen(true);
+         } : undefined}
+onResolveCapture={can("terminals:geocapture") ? (loc) => {
+            const capture = loc.captures?.[0];
+            setResolvingCapture(
+              capture ? { ...capture, locationName: loc.name } : null,
+            );
+          } : undefined}
+          togglingId={togglingId}
+          canEdit={can("terminals:update")}
+          canDelete={can("terminals:delete")}
+          canToggle={can("terminals:update")}
+          canResolveCapture={can("terminals:geocapture")}
+       />
 
       <TerminalEditorSheet
         isOpen={drawerOpen}

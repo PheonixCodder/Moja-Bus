@@ -1,15 +1,23 @@
 "use client";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Clock, Shield } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
-import { formatAdminDateTime } from "@/lib/format-date";
 import { useTranslations } from "next-intl";
+import { formatAdminDateTime } from "@/lib/format-date";
 
 interface VerificationDetailsTimelineProps {
   activityLogs: any[];
 }
 
-export function VerificationDetailsTimeline({ activityLogs }: VerificationDetailsTimelineProps) {
+export function VerificationDetailsTimeline({
+  activityLogs,
+}: VerificationDetailsTimelineProps) {
   const t = useTranslations("adminDashboard.verificationDetailsTimeline");
   return (
     <Card className="bg-white border-border shadow-sm">
@@ -44,7 +52,9 @@ export function VerificationDetailsTimeline({ activityLogs }: VerificationDetail
                   {log.user && (
                     <div className="text-[10px] text-slate-400 font-bold flex items-center gap-1 pt-0.5">
                       <Shield className="size-3" />
-                      <span>{t("triggeredBy")} {log.user.fullName || log.user.email}</span>
+                      <span>
+                        {t("triggeredBy")} {log.user.fullName || log.user.email}
+                      </span>
                     </div>
                   )}
                 </div>

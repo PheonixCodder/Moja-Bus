@@ -21,9 +21,11 @@ interface RoutesTableProps {
   routes: any[];
   onEdit: (route: any) => void;
   onDelete: (route: any) => void;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
-export function RoutesTable({ routes, onEdit, onDelete }: RoutesTableProps) {
+export function RoutesTable({ routes, onEdit, onDelete, canEdit, canDelete }: RoutesTableProps) {
   if (!routes || routes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed rounded-lg bg-card/50">
@@ -81,24 +83,28 @@ export function RoutesTable({ routes, onEdit, onDelete }: RoutesTableProps) {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7 text-muted-foreground hover:text-foreground"
-                    onClick={() => onEdit(route)}
-                  >
-                    <Pencil className="size-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => onDelete(route)}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </div>
+                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                   {canEdit ? (
+                     <Button
+                       variant="ghost"
+                       size="icon"
+                       className="size-7 text-muted-foreground hover:text-foreground"
+                       onClick={() => onEdit(route)}
+                     >
+                       <Pencil className="size-3.5" />
+                     </Button>
+                   ) : null}
+                   {canDelete ? (
+                     <Button
+                       variant="ghost"
+                       size="icon"
+                       className="size-7 text-muted-foreground hover:text-destructive"
+                       onClick={() => onDelete(route)}
+                     >
+                       <Trash2 className="size-3.5" />
+                     </Button>
+                   ) : null}
+                 </div>
               </div>
 
               <div className="flex items-center gap-3 pt-1 border-t border-border">

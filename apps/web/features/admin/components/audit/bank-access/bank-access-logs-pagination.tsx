@@ -1,16 +1,19 @@
 "use client";
 
-import { useQueryState, parseAsInteger } from "nuqs";
-import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { parseAsInteger, useQueryState } from "nuqs";
 
 interface BankAccessLogsPaginationProps {
   totalCount: number;
   limit: number;
 }
 
-export function BankAccessLogsPagination({ totalCount, limit }: BankAccessLogsPaginationProps) {
+export function BankAccessLogsPagination({
+  totalCount,
+  limit,
+}: BankAccessLogsPaginationProps) {
   const t = useTranslations("adminDashboard.bankAccessLogsPagination");
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(0));
 
@@ -23,7 +26,9 @@ export function BankAccessLogsPagination({ totalCount, limit }: BankAccessLogsPa
       <span>
         {t("pageInfo", { current: displayPage, total: totalPages })}
         {totalCount > 0 && (
-          <span className="ml-1 text-xs">{t("totalRecords", { count: totalCount })}</span>
+          <span className="ml-1 text-xs">
+            {t("totalRecords", { count: totalCount })}
+          </span>
         )}
       </span>
       <div className="flex items-center gap-1">

@@ -19,7 +19,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@moja/ui/components/ui/sheet";
-import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import {
   PERMISSION_META,
   ROLE_LABELS,
@@ -45,11 +44,14 @@ interface RoleSheetProps {
 }
 
 const FALLBACK_ROLES: StaffRole[] = [
-  "ADMIN",
-  "MANAGER",
   "OPERATIONS",
+  "MANAGER",
+  "ADMIN",
   "FINANCE",
   "SUPPORT",
+  "TREASURY",
+  "DISPATCHER",
+  "CONDUCTOR",
 ];
 
 export function RoleSheet({
@@ -69,7 +71,6 @@ export function RoleSheet({
 
   const t = useTranslations("operatorDashboard.staff");
   const [role, setRole] = useState<StaffRole>("SUPPORT");
-  const [resetPermissions, setResetPermissions] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -144,17 +145,6 @@ export function RoleSheet({
               </Select>
             </div>
 
-            <label className="mb-4 flex items-start gap-2 rounded-lg border border-border p-3 cursor-pointer">
-              <Checkbox
-                checked={resetPermissions}
-                onCheckedChange={(v) => setResetPermissions(v === true)}
-                className="mt-0.5"
-              />
-              <span className="text-[13px] text-foreground">
-                {t("roleSheet.resetPermissions", { role: ROLE_LABELS[role] })}
-              </span>
-            </label>
-
             <div className="mb-6 rounded-lg border border-border bg-muted/30 p-3">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {t("roleSheet.templateIncludes")}
@@ -171,6 +161,9 @@ export function RoleSheet({
                   </li>
                 ) : null}
               </ul>
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                {t("roleSheet.resetNotice")}
+              </p>
             </div>
 
             <div className="mt-auto flex gap-2">

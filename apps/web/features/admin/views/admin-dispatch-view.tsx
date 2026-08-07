@@ -1,16 +1,16 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { DispatchFilterBar } from "../components/dispatch-filter-bar";
-import { DispatchTripList } from "../components/dispatch-trip-list";
-import { DispatchTripDrawer } from "../components/dispatch-trip-drawer";
-import { Spinner } from "@moja/ui/components/ui/spinner";
-import { useTRPC } from "@/trpc/client";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@moja/ui/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { Spinner } from "@moja/ui/components/ui/spinner";
 import { cn } from "@moja/ui/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Suspense, useState } from "react";
+import { useTRPC } from "@/trpc/client";
+import { DispatchFilterBar } from "../components/dispatch-filter-bar";
+import { DispatchTripDrawer } from "../components/dispatch-trip-drawer";
+import { DispatchTripList } from "../components/dispatch-trip-list";
 
 export function AdminDispatchView() {
   const t = useTranslations("adminDashboard.adminDispatchView");
@@ -21,7 +21,9 @@ export function AdminDispatchView() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await queryClient.invalidateQueries(trpc.admin.listDispatchTrips.pathFilter());
+    await queryClient.invalidateQueries(
+      trpc.admin.listDispatchTrips.pathFilter(),
+    );
     setRefreshing(false);
   };
 

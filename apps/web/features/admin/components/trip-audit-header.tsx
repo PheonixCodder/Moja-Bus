@@ -1,18 +1,18 @@
 "use client";
 
+import { Badge } from "@moja/ui/components/ui/badge";
+import { cn } from "@moja/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
 import { format } from "date-fns";
 import { ArrowRight, Bus, CalendarDays, MapPin } from "lucide-react";
-import { cn } from "@moja/ui/lib/utils";
-import { Badge } from "@moja/ui/components/ui/badge";
 import { useTranslations } from "next-intl";
+import { useTRPC } from "@/trpc/client";
 
 export function TripAuditHeader({ tripId }: { tripId: string }) {
   const t = useTranslations("adminDashboard.tripAuditHeader");
   const trpc = useTRPC();
   const { data: trip } = useQuery(
-    trpc.admin.getTripAudit.queryOptions({ id: tripId })
+    trpc.admin.getTripAudit.queryOptions({ id: tripId }),
   );
 
   if (!trip) return null;
@@ -30,16 +30,19 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
                 trip.status === "ARRIVED"
                   ? "default"
                   : trip.status === "SCHEDULED" || trip.status === "BOARDING"
-                  ? "secondary"
-                  : trip.status === "CANCELLED"
-                  ? "destructive"
-                  : "outline"
+                    ? "secondary"
+                    : trip.status === "CANCELLED"
+                      ? "destructive"
+                      : "outline"
               }
             >
               {t(`status.${trip.status}` as string)}
             </Badge>
             {trip.delayMinutes ? (
-              <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+              <Badge
+                variant="outline"
+                className="text-amber-600 border-amber-200 bg-amber-50"
+              >
                 {t("delayMinutes", { minutes: trip.delayMinutes })}
               </Badge>
             ) : null}
@@ -51,7 +54,10 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
           </h2>
           <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
             <CalendarDays className="size-4" />
-            {format(new Date(trip.departureDate), "EEEE, MMM d, yyyy 'at' h:mm a")}
+            {format(
+              new Date(trip.departureDate),
+              "EEEE, MMM d, yyyy 'at' h:mm a",
+            )}
           </p>
         </div>
 

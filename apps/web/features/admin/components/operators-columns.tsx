@@ -1,16 +1,11 @@
 "use client";
 
-import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { MoreHorizontal, ShieldOff, CheckCircle2, AlertCircle, Building2 } from "lucide-react";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
-
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -20,6 +15,19 @@ import {
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
 import { cn } from "@moja/ui/lib/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import {
+  AlertCircle,
+  Building2,
+  CheckCircle2,
+  MoreHorizontal,
+  ShieldOff,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 
 export type OperatorRow = {
@@ -34,16 +42,21 @@ export type OperatorRow = {
   avatar: string;
 };
 
-export const statusMeta: Record<string, { label: string; icon: any; className: string }> = {
+export const statusMeta: Record<
+  string,
+  { label: string; icon: any; className: string }
+> = {
   Active: {
     label: "Active",
     icon: CheckCircle2,
-    className: "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100/80",
+    className:
+      "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100/80",
   },
   Pending: {
     label: "Pending",
     icon: AlertCircle,
-    className: "bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-100/80",
+    className:
+      "bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-100/80",
   },
 };
 
@@ -73,7 +86,8 @@ export function getInitials(name: string) {
 
 // Custom filter function for the "search" column filter
 const searchFilter = (row: any, columnId: string, filterValue: string) => {
-  const searchableText = `${row.original.fullName} ${row.original.email} ${row.original.phone}`.toLowerCase();
+  const searchableText =
+    `${row.original.fullName} ${row.original.email} ${row.original.phone}`.toLowerCase();
   return searchableText.includes(filterValue.toLowerCase());
 };
 
@@ -91,7 +105,9 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
           <Checkbox
             aria-label={t("selectAllOperators")}
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
           />
         </div>
       ),
@@ -118,14 +134,21 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
         return (
           <div className="flex items-center gap-3">
             <Avatar className={cn("h-9 w-9 shrink-0 font-medium", toneClass)}>
-              <AvatarImage src={operator.avatar || undefined} alt={operator.fullName} />
+              <AvatarImage
+                src={operator.avatar || undefined}
+                alt={operator.fullName}
+              />
               <AvatarFallback className={cn("text-xs", toneClass)}>
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="font-medium text-sm text-foreground">{operator.fullName}</span>
-              <span className="text-xs text-muted-foreground">{operator.email}</span>
+              <span className="font-medium text-sm text-foreground">
+                {operator.fullName}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {operator.email}
+              </span>
             </div>
           </div>
         );
@@ -151,7 +174,10 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
               {companies[0]}
             </div>
             {companies.length > 1 && (
-              <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-medium rounded-sm">
+              <Badge
+                variant="secondary"
+                className="text-[10px] h-5 px-1.5 font-medium rounded-sm"
+              >
                 +{companies.length - 1} {t("more")}
               </Badge>
             )}
@@ -177,7 +203,13 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
         const Icon = meta?.icon;
 
         return (
-          <Badge variant="outline" className={cn("font-normal gap-1.5 px-2.5 py-0.5 border-0", meta?.className)}>
+          <Badge
+            variant="outline"
+            className={cn(
+              "font-normal gap-1.5 px-2.5 py-0.5 border-0",
+              meta?.className,
+            )}
+          >
             {Icon && <Icon className="h-3.5 w-3.5" />}
             {meta?.label || status}
           </Badge>
@@ -223,8 +255,16 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
                 <MoreHorizontal className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[180px]">
-                <p className="px-2 py-1 text-xs font-normal text-muted-foreground">{t("actions")}</p>
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/admin/users/operators/${operator.id}`)}>
+                <p className="px-2 py-1 text-xs font-normal text-muted-foreground">
+                  {t("actions")}
+                </p>
+                <DropdownMenuItem
+                  onClick={() =>
+                    router.push(
+                      `/dashboard/admin/users/operators/${operator.id}`,
+                    )
+                  }
+                >
                   {t("viewProfile")}
                 </DropdownMenuItem>
                 {operator.companies.length > 0 && (
@@ -232,7 +272,12 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => demoteMutation.mutate({ userId: operator.id, role: "TRAVELER" })}
+                  onClick={() =>
+                    demoteMutation.mutate({
+                      userId: operator.id,
+                      role: "TRAVELER",
+                    })
+                  }
                   className="text-amber-600 focus:text-amber-600"
                 >
                   <ShieldOff className="mr-2 h-4 w-4" />

@@ -1,13 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { formatXOF } from "@/features/operator/lib/currency";
-import { WithdrawalRow } from "./withdrawals-columns";
-import { toast } from "sonner";
-import { TRPCClientError } from "@trpc/client";
-
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,11 +9,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@moja/ui/components/ui/dialog";
-import { Button } from "@moja/ui/components/ui/button";
-import { Textarea } from "@moja/ui/components/ui/textarea";
 import { Label } from "@moja/ui/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@moja/ui/components/ui/radio-group";
+import { Textarea } from "@moja/ui/components/ui/textarea";
+import { useMutation } from "@tanstack/react-query";
+import { TRPCClientError } from "@trpc/client";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import { formatXOF } from "@/features/operator/lib/currency";
+import { useTRPC } from "@/trpc/client";
+import type { WithdrawalRow } from "./withdrawals-columns";
 
 interface WithdrawalsResolveDialogProps {
   row: WithdrawalRow | null;
@@ -37,7 +36,9 @@ export function WithdrawalsResolveDialog({
 }: WithdrawalsResolveDialogProps) {
   const trpc = useTRPC();
   const t = useTranslations("adminDashboard.withdrawalsResolveDialog");
-  const [action, setAction] = useState<"FORCE_COMPLETE" | "FORCE_FAIL">("FORCE_COMPLETE");
+  const [action, setAction] = useState<"FORCE_COMPLETE" | "FORCE_FAIL">(
+    "FORCE_COMPLETE",
+  );
   const [reason, setReason] = useState("");
 
   const resolveMutation = useMutation(
@@ -46,19 +47,17 @@ export function WithdrawalsResolveDialog({
         toast.success(
           action === "FORCE_COMPLETE"
             ? t("settledSuccess")
-            : t("failedSuccess")
+            : t("failedSuccess"),
         );
         setReason("");
         onSuccess();
       },
       onError: (err: any) => {
         toast.error(
-          err instanceof TRPCClientError
-            ? err.message
-            : t("resolveError")
+          err instanceof TRPCClientError ? err.message : t("resolveError"),
         );
       },
-    })
+    }),
   );
 
   if (!row) return null;
@@ -68,9 +67,7 @@ export function WithdrawalsResolveDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>
-            {t("description")}
-          </DialogDescription>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
@@ -92,7 +89,9 @@ export function WithdrawalsResolveDialog({
             <Label>{t("resolutionAction")}</Label>
             <RadioGroup
               value={action}
-              onValueChange={(val) => setAction(val as "FORCE_COMPLETE" | "FORCE_FAIL")}
+              onValueChange={(val) =>
+                setAction(val as "FORCE_COMPLETE" | "FORCE_FAIL")
+              }
               className="grid grid-cols-2 gap-4"
             >
               <div>
@@ -160,7 +159,11 @@ export function WithdrawalsResolveDialog({
               })
             }
             disabled={!reason.trim() || resolveMutation.isPending}
-            className={action === "FORCE_COMPLETE" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-rose-600 hover:bg-rose-700 text-white"}
+            className={
+              action === "FORCE_COMPLETE"
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                : "bg-rose-600 hover:bg-rose-700 text-white"
+            }
           >
             {resolveMutation.isPending ? t("applying") : t("applyResolution")}
           </Button>

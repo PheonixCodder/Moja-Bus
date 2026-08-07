@@ -1,18 +1,14 @@
 "use client";
 "use no memo";
 
-import * as React from "react";
-import { format } from "date-fns";
-import { MoreHorizontal, Mail, Phone } from "lucide-react";
-import type { Table as TableType } from "@tanstack/react-table";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
-import { Card, CardContent, CardFooter } from "@moja/ui/components/ui/card";
-import { Button } from "@moja/ui/components/ui/button";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
-import { cn } from "@moja/ui/lib/utils";
+import { Button } from "@moja/ui/components/ui/button";
+import { Card, CardContent, CardFooter } from "@moja/ui/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,32 +25,55 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@moja/ui/components/ui/pagination";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@moja/ui/components/ui/select";
-import { useTRPC } from "@/trpc/client";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
+import { cn } from "@moja/ui/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Table as TableType } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { Mail, MoreHorizontal, Phone } from "lucide-react";
+import { useTranslations } from "next-intl";
+import * as React from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
-import { type TravelerRow, statusMeta, getAvatarTone, getInitials } from "./travelers-columns";
+import {
+  getAvatarTone,
+  getInitials,
+  statusMeta,
+  type TravelerRow,
+} from "./travelers-columns";
 
 function getPageNumbers(currentPage: number, pageCount: number) {
   if (pageCount <= 3) {
     return Array.from({ length: pageCount }, (_, index) => index + 1);
   }
   if (currentPage <= 2) return [1, 2, 3];
-  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount];
+  if (currentPage >= pageCount - 1)
+    return [pageCount - 2, pageCount - 1, pageCount];
   return [currentPage - 1, currentPage, currentPage + 1];
 }
 
 export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
   const t = useTranslations("adminDashboard.travelersGrid");
   const pageCount = Math.max(table.getPageCount(), 1);
-  const currentPage = Math.min(table.getState().pagination.pageIndex + 1, pageCount);
+  const currentPage = Math.min(
+    table.getState().pagination.pageIndex + 1,
+    pageCount,
+  );
   const pageNumbers = getPageNumbers(currentPage, pageCount);
   const rowsPerPage = `${table.getState().pagination.pageSize}`;
 
   const rows = table.getRowModel().rows;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  
+
   const updateRoleMutation = useMutation({
     ...trpc.admin.updateUserRole.mutationOptions(),
     onSuccess: () => {
@@ -74,43 +93,85 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
             const traveler = row.original;
             const meta = statusMeta[traveler.status];
             return (
-              <Card key={traveler.id} className="flex flex-col overflow-hidden transition-all hover:shadow-md border-border/60">
+              <Card
+                key={traveler.id}
+                className="flex flex-col overflow-hidden transition-all hover:shadow-md border-border/60"
+              >
                 <CardContent className="p-5 flex-1 flex flex-col items-center text-center gap-3">
                   <div className="flex w-full justify-end mb-[-1rem]">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-sm" className="size-8 text-muted-foreground hover:bg-muted/50 rounded-md">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="size-8 text-muted-foreground hover:bg-muted/50 rounded-md"
+                        >
                           <MoreHorizontal className="size-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => toast.info(t("viewProfileComingSoon"))}>{t("viewProfile")}</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toast.info(t("editUserComingSoon"))}>{t("editUser")}</DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => updateRoleMutation.mutate({ userId: traveler.id, role: "OPERATOR" })}
+                        <DropdownMenuItem
+                          onClick={() => toast.info(t("viewProfileComingSoon"))}
+                        >
+                          {t("viewProfile")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => toast.info(t("editUserComingSoon"))}
+                        >
+                          {t("editUser")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            updateRoleMutation.mutate({
+                              userId: traveler.id,
+                              role: "OPERATOR",
+                            })
+                          }
                           disabled={updateRoleMutation.isPending}
                         >
                           {t("promoteToOperator")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive" onClick={() => toast.error(t("deactivationComingSoon"))}>
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() =>
+                            toast.error(t("deactivationComingSoon"))
+                          }
+                        >
                           {t("deactivateUser")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                   <Avatar className="size-16 font-medium ring-2 ring-background mt-2">
-                    <AvatarImage src={traveler.image ?? undefined} alt={traveler.name} />
-                    <AvatarFallback className={cn("text-lg", getAvatarTone(traveler.name))}>
+                    <AvatarImage
+                      src={traveler.image ?? undefined}
+                      alt={traveler.name}
+                    />
+                    <AvatarFallback
+                      className={cn("text-lg", getAvatarTone(traveler.name))}
+                    >
                       {getInitials(traveler.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="space-y-1">
-                    <h3 className="font-semibold leading-none tracking-tight">{traveler.name}</h3>
-                    <p className="text-xs text-muted-foreground">{t("joinedOn", { date: traveler.joinedDate })}</p>
+                    <h3 className="font-semibold leading-none tracking-tight">
+                      {traveler.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {t("joinedOn", { date: traveler.joinedDate })}
+                    </p>
                   </div>
-                  <Badge className={cn("gap-1 border px-2 py-0.5 font-medium mt-1 mx-auto", meta.badgeClass)} variant="outline">
-                    <span className={cn("size-1.5 rounded-full", meta.dotClass)} />
+                  <Badge
+                    className={cn(
+                      "gap-1 border px-2 py-0.5 font-medium mt-1 mx-auto",
+                      meta.badgeClass,
+                    )}
+                    variant="outline"
+                  >
+                    <span
+                      className={cn("size-1.5 rounded-full", meta.dotClass)}
+                    />
                     {traveler.status}
                   </Badge>
                   <div className="flex flex-col gap-1.5 mt-2 text-xs text-muted-foreground w-full items-center bg-slate-50/50 p-2.5 rounded-md border border-border/50">
@@ -142,7 +203,11 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => table.setPageSize(Number(value))}
             >
-              <SelectTrigger size="sm" className="w-20" id="travelers-grid-rows-per-page">
+              <SelectTrigger
+                size="sm"
+                className="w-20"
+                id="travelers-grid-rows-per-page"
+              >
                 <SelectValue placeholder={rowsPerPage} />
               </SelectTrigger>
               <SelectContent side="top">
@@ -167,7 +232,11 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
               <PaginationPrevious
                 href="#"
                 text=""
-                className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : undefined}
+                className={
+                  !table.getCanPreviousPage()
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
                 onClick={(event) => {
                   event?.preventDefault();
                   table.previousPage();
@@ -183,7 +252,9 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
               <PaginationItem key={`page-${pageNumber}`}>
                 <PaginationLink
                   href="#"
-                  isActive={table.getState().pagination.pageIndex === pageNumber - 1}
+                  isActive={
+                    table.getState().pagination.pageIndex === pageNumber - 1
+                  }
                   onClick={(event) => {
                     event.preventDefault();
                     table.setPageIndex(pageNumber - 1);
@@ -193,16 +264,21 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
                 </PaginationLink>
               </PaginationItem>
             ))}
-            {pageNumbers[pageNumbers.length - 1] !== undefined && pageNumbers[pageNumbers.length - 1]! < pageCount && (
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-            )}
+            {pageNumbers[pageNumbers.length - 1] !== undefined &&
+              pageNumbers[pageNumbers.length - 1]! < pageCount && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
             <PaginationItem>
               <PaginationNext
                 href="#"
                 text=""
-                className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : undefined}
+                className={
+                  !table.getCanNextPage()
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
                 onClick={(event) => {
                   event?.preventDefault();
                   table.nextPage();

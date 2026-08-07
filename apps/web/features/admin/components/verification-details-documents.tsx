@@ -1,23 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import {
-  FileText,
-  ExternalLink,
-  Loader2,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
+import { useMutation } from "@tanstack/react-query";
+import { ExternalLink, FileText, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { formatAdminDate } from "@/lib/format-date";
 import { useTRPC } from "@/trpc/client";
-import { useMutation } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 
 interface VerificationDetailsDocumentsProps {
   documents: any[];
 }
 
-export function VerificationDetailsDocuments({ documents }: VerificationDetailsDocumentsProps) {
+export function VerificationDetailsDocuments({
+  documents,
+}: VerificationDetailsDocumentsProps) {
   const t = useTranslations("adminDashboard.verificationDetailsDocuments");
   return (
     <Card className="bg-white border-border shadow-sm">
@@ -32,9 +36,7 @@ export function VerificationDetailsDocuments({ documents }: VerificationDetailsD
       <CardContent className="p-6 pt-0">
         <div className="grid gap-3">
           {documents && documents.length > 0 ? (
-            documents.map((doc) => (
-              <DocumentRow key={doc.id} doc={doc} />
-            ))
+            documents.map((doc) => <DocumentRow key={doc.id} doc={doc} />)
           ) : (
             <div className="text-center py-6 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
               {t("noDocumentsUploaded")}
@@ -61,7 +63,7 @@ function DocumentRow({ doc }: { doc: any }) {
       return;
     }
 
-    const newWindow = window.open('about:blank', '_blank', 'noreferrer');
+    const newWindow = window.open("about:blank", "_blank", "noreferrer");
     if (!newWindow) {
       // Fallback if blocked
       return;

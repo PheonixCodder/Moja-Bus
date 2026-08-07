@@ -1,17 +1,17 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { useQueryStates } from "nuqs";
-import { dashboardSearchParams } from "../lib/search-params";
-import { DashboardKpiCards } from "../components/dashboard/dashboard-kpi-cards";
-import { DashboardRevenueChart } from "../components/dashboard/dashboard-revenue-chart";
-import { DashboardActivityFeed } from "../components/dashboard/dashboard-activity-feed";
-import { DashboardPlatformHealth } from "../components/dashboard/dashboard-platform-health";
-import { DashboardTreasuryCards } from "../components/dashboard/dashboard-treasury-cards";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { Suspense } from "react";
+import { useTRPC } from "@/trpc/client";
+import { DashboardActivityFeed } from "../components/dashboard/dashboard-activity-feed";
+import { DashboardKpiCards } from "../components/dashboard/dashboard-kpi-cards";
+import { DashboardPlatformHealth } from "../components/dashboard/dashboard-platform-health";
+import { DashboardRevenueChart } from "../components/dashboard/dashboard-revenue-chart";
+import { DashboardTreasuryCards } from "../components/dashboard/dashboard-treasury-cards";
+import { dashboardSearchParams } from "../lib/search-params";
 
 function StatsSkeleton() {
   return (
@@ -35,11 +35,11 @@ function DashboardContent() {
   const [{ from, to }] = useQueryStates(dashboardSearchParams);
 
   const { data: stats } = useSuspenseQuery(
-    trpc.admin.getDashboardStats.queryOptions({ from, to })
+    trpc.admin.getDashboardStats.queryOptions({ from, to }),
   );
 
   const { data: activity } = useSuspenseQuery(
-    trpc.admin.getRecentActivity.queryOptions()
+    trpc.admin.getRecentActivity.queryOptions(),
   );
 
   return (

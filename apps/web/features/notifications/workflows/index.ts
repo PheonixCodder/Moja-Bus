@@ -3,6 +3,7 @@ import { operatorSignupOtpWorkflow } from "./auth/operator-signup-otp";
 import { operatorWelcomeWorkflow } from "./auth/operator-welcome";
 
 import { operatorStaffInviteWorkflow } from "./staff/operator-staff-invite";
+import { adminStaffInviteWorkflow } from "./staff/admin-staff-invite";
 import { staffAcceptanceAlertWorkflow } from "./staff/staff-acceptance-alert";
 
 import { passengerBookingConfirmedWorkflow } from "./payments/booking-confirmed";
@@ -43,6 +44,7 @@ export const workflows = [
   operatorSignupOtpWorkflow,
   operatorWelcomeWorkflow,
   operatorStaffInviteWorkflow,
+  adminStaffInviteWorkflow,
   staffAcceptanceAlertWorkflow,
   passengerBookingConfirmedWorkflow,
   passengerBookingRefundedWorkflow,

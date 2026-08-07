@@ -1,8 +1,24 @@
 "use client";
 "use no memo";
 
-import * as React from "react";
-
+import { Button } from "@moja/ui/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
+import { Input } from "@moja/ui/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
 import {
   type ColumnFiltersState,
   getCoreRowModel,
@@ -14,24 +30,26 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Download, Grid, Rows3, Search, Users } from "lucide-react";
-
-import { Button } from "@moja/ui/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@moja/ui/components/ui/card";
-import { Input } from "@moja/ui/components/ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@moja/ui/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
-
-import { type TravelerRow, statusMeta, getAvatarTone, getInitials, getTravelerColumns } from "./travelers-columns";
-import { TravelersTable } from "./travelers-table";
-import { TravelersGrid } from "./travelers-grid";
-import { useQueryStates } from "nuqs";
-import { travelerSearchParams } from "../lib/search-params";
 import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import * as React from "react";
+import { travelerSearchParams } from "../lib/search-params";
+import {
+  getAvatarTone,
+  getInitials,
+  getTravelerColumns,
+  statusMeta,
+  type TravelerRow,
+} from "./travelers-columns";
+import { TravelersGrid } from "./travelers-grid";
+import { TravelersTable } from "./travelers-table";
 
 export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
   const t = useTranslations("adminDashboard.travelers");
   const [rowSelection, setRowSelection] = React.useState({});
-  const [sorting, setSorting] = React.useState<SortingState>([{ id: "joinedDate", desc: true }]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "joinedDate", desc: true },
+  ]);
   const [params, setParams] = useQueryStates(travelerSearchParams);
   const viewType = params.view;
 
@@ -40,10 +58,11 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
   const columnFilters = React.useMemo(() => {
     const filters: ColumnFiltersState = [];
     if (params.search) filters.push({ id: "search", value: params.search });
-    if (params.status && params.status !== t("statusAll")) filters.push({ id: "status", value: params.status });
+    if (params.status && params.status !== t("statusAll"))
+      filters.push({ id: "status", value: params.status });
     return filters;
   }, [params.search, params.status, t]);
-  
+
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: viewType === "list" ? 10 : 12,
@@ -78,7 +97,10 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
     setParams({ view: newView });
     if (newView === "grid" && table.getState().pagination.pageSize === 10) {
       table.setPageSize(12);
-    } else if (newView === "list" && table.getState().pagination.pageSize === 12) {
+    } else if (
+      newView === "list" &&
+      table.getState().pagination.pageSize === 12
+    ) {
       table.setPageSize(10);
     }
   }
@@ -115,23 +137,32 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="flex flex-col gap-4 p-0 pt-4">
         <div className="flex flex-wrap items-center justify-between gap-3 px-4">
           <div className="flex flex-wrap items-center gap-3">
-            <Select value={params.status} onValueChange={(value) => {
+            <Select
+              value={params.status}
+              onValueChange={(value) => {
                 setParams({ status: value as any });
                 table.setPageIndex(0);
-              }}>
+              }}
+            >
               <SelectTrigger size="sm" className="h-8 w-[140px]">
-                <span className="text-muted-foreground">{t("statusLabel")}</span>
+                <span className="text-muted-foreground">
+                  {t("statusLabel")}
+                </span>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent align="start">
                 <SelectGroup>
                   <SelectItem value="All">{t("statusAll")}</SelectItem>
-                  <SelectItem value="Verified">{t("statusVerified")}</SelectItem>
-                  <SelectItem value="Unverified">{t("statusUnverified")}</SelectItem>
+                  <SelectItem value="Verified">
+                    {t("statusVerified")}
+                  </SelectItem>
+                  <SelectItem value="Unverified">
+                    {t("statusUnverified")}
+                  </SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -140,15 +171,25 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
 
         <div className="flex items-center justify-between gap-3 px-4 pb-2">
           <div className="text-muted-foreground text-sm tabular-nums">
-            {selectedCount > 0 ? t("selectedCount", { count: selectedCount }) : t("totalTravelers", { count: travelers.length })}
+            {selectedCount > 0
+              ? t("selectedCount", { count: selectedCount })
+              : t("totalTravelers", { count: travelers.length })}
           </div>
 
           <Tabs value={viewType} onValueChange={handleViewChange}>
             <TabsList className="h-8">
-              <TabsTrigger value="list" aria-label="List view" className="h-6 px-2">
+              <TabsTrigger
+                value="list"
+                aria-label="List view"
+                className="h-6 px-2"
+              >
                 <Rows3 className="size-3.5" />
               </TabsTrigger>
-              <TabsTrigger value="grid" aria-label="Grid view" className="h-6 px-2">
+              <TabsTrigger
+                value="grid"
+                aria-label="Grid view"
+                className="h-6 px-2"
+              >
                 <Grid className="size-3.5" />
               </TabsTrigger>
             </TabsList>

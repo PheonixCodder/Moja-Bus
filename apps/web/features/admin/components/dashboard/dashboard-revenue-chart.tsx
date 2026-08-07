@@ -1,14 +1,21 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer, Tooltip } from "recharts";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
-import { useTranslations } from "next-intl";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+} from "recharts";
 import { DashboardDatePicker } from "./dashboard-date-picker";
 
 interface RevenueTrendPoint {
@@ -45,7 +52,9 @@ export function DashboardRevenueChart({
   bookingsCurrent,
 }: DashboardRevenueChartProps) {
   const t = useTranslations("adminDashboard.overview.revenueChart");
-  const currency = useTranslations("adminDashboard.overview.kpiCards")("currency");
+  const currency = useTranslations("adminDashboard.overview.kpiCards")(
+    "currency",
+  );
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
@@ -62,7 +71,11 @@ export function DashboardRevenueChart({
                 margin={{ left: 0, right: 0, top: 4, bottom: 0 }}
                 barSize={revenueTrend.length > 30 ? 8 : 20}
               >
-                <CartesianGrid vertical={false} strokeDasharray="0" stroke="var(--border)" />
+                <CartesianGrid
+                  vertical={false}
+                  strokeDasharray="0"
+                  stroke="var(--border)"
+                />
                 <XAxis
                   dataKey="date"
                   tickLine={false}
@@ -70,11 +83,23 @@ export function DashboardRevenueChart({
                   tickMargin={10}
                   tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                   tickFormatter={(value) =>
-                    format(new Date(String(value)), revenueTrend.length > 14 ? "d MMM" : "d MMM")
+                    format(
+                      new Date(String(value)),
+                      revenueTrend.length > 14 ? "d MMM" : "d MMM",
+                    )
                   }
-                  interval={revenueTrend.length > 30 ? 6 : revenueTrend.length > 14 ? 2 : 0}
+                  interval={
+                    revenueTrend.length > 30
+                      ? 6
+                      : revenueTrend.length > 14
+                        ? 2
+                        : 0
+                  }
                 />
-                <Tooltip content={<CustomTooltip t={t} currency={currency} />} cursor={{ fill: "var(--muted)", radius: 4 }} />
+                <Tooltip
+                  content={<CustomTooltip t={t} currency={currency} />}
+                  cursor={{ fill: "var(--muted)", radius: 4 }}
+                />
                 <Bar
                   dataKey="gmv"
                   fill="var(--primary)"
@@ -90,9 +115,13 @@ export function DashboardRevenueChart({
             <div className="flex flex-col gap-1">
               <div className="font-semibold text-4xl tabular-nums leading-none">
                 {totalGmv.toLocaleString()}{" "}
-                <span className="font-normal text-lg text-muted-foreground">{currency}</span>
+                <span className="font-normal text-lg text-muted-foreground">
+                  {currency}
+                </span>
               </div>
-              <p className="text-muted-foreground text-sm">{t("totalRevenue")}</p>
+              <p className="text-muted-foreground text-sm">
+                {t("totalRevenue")}
+              </p>
             </div>
 
             <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background p-3">
@@ -101,7 +130,9 @@ export function DashboardRevenueChart({
               </div>
               <div className="font-semibold text-2xl tabular-nums leading-none">
                 {bookingsCurrent.toLocaleString()}{" "}
-                <span className="font-normal text-muted-foreground text-sm">{t("tickets")}</span>
+                <span className="font-normal text-muted-foreground text-sm">
+                  {t("tickets")}
+                </span>
               </div>
               <p className="text-muted-foreground text-sm">{t("inWindow")}</p>
             </div>

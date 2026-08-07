@@ -14,9 +14,11 @@ import {
 import { Button } from "@moja/ui/components/ui/button";
 import { CalendarIcon, ChevronDown, Download } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 export function RevenueHeader() {
   const t = useTranslations("operatorDashboard.revenue");
+  const { can } = useStaffPermissions();
   const [{ from, to }, setParams] = useQueryStates(revenueParsers, {
     shallow: false,
   });
@@ -27,6 +29,21 @@ export function RevenueHeader() {
       to: new Date(),
     });
   };
+
+  function handleExport() {
+    const rows = [
+      ["Date", "Revenue (XOF)", "Bookings", "Conversion Rate"],
+      [from.toLocaleDateString(), "—", "—", "—"],
+    ];
+    const csv = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `revenue-export-${from.toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -119,11 +136,13 @@ export function RevenueHeader() {
           </PopoverContent>
         </Popover>
 
-        <Button variant="outline" className="bg-white">
-          <Download className="mr-2 h-4 w-4" />
-          {t("export")}
-        </Button>
-      </div>
+        {can("revenue:export") ? (
+          <Button variant="outline" className="bg-white" onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" />
+            {t("export")}
+          </Button>
+        ) : null}
+       </div>
     </div>
   );
 }

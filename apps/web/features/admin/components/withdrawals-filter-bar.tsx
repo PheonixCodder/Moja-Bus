@@ -1,21 +1,13 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useQueryStates } from "nuqs";
-import { withdrawalsSearchParams } from "../lib/search-params";
-import { format, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
-
+import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
 import { Calendar } from "@moja/ui/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@moja/ui/components/ui/popover";
-import { Button } from "@moja/ui/components/ui/button";
-import { CalendarIcon, ChevronDown, ListFilter } from "lucide-react";
-import { cn } from "@moja/ui/lib/utils";
-import { Badge } from "@moja/ui/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -24,12 +16,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { cn } from "@moja/ui/lib/utils";
+import { format, subDays } from "date-fns";
+import { fr } from "date-fns/locale";
+import { CalendarIcon, ChevronDown, ListFilter } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { withdrawalsSearchParams } from "../lib/search-params";
 
 export function WithdrawalsFilterBar({ total }: { total: number }) {
   const t = useTranslations("adminDashboard.withdrawalsFilterBar");
   const [{ status, from, to }, setParams] = useQueryStates(
     withdrawalsSearchParams,
-    { shallow: false }
+    { shallow: false },
   );
 
   const setPreset = (days: number | null) => {
@@ -80,7 +79,7 @@ export function WithdrawalsFilterBar({ total }: { total: number }) {
                 variant="outline"
                 className={cn(
                   "w-[280px] h-9 justify-start text-left font-normal",
-                  !from && "text-muted-foreground"
+                  !from && "text-muted-foreground",
                 )}
               />
             }
@@ -159,7 +158,10 @@ export function WithdrawalsFilterBar({ total }: { total: number }) {
 
       <div className="flex items-center gap-2">
         <span className="text-sm text-text-muted">{t("totalMatching")}</span>
-        <Badge variant="secondary" className="px-2.5 py-0.5 rounded-full font-semibold">
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 rounded-full font-semibold"
+        >
           {total}
         </Badge>
       </div>

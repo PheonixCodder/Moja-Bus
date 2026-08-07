@@ -1,31 +1,39 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useQueryState, parseAsInteger } from "nuqs";
-import { useTRPC } from "@/trpc/client";
 import {
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
+import { useTranslations } from "next-intl";
+import { parseAsInteger, useQueryState } from "nuqs";
+import { useTRPC } from "@/trpc/client";
 import { ledgerColumns } from "../components/ledger-columns";
-import { LedgerTable } from "../components/ledger-table";
 import { LedgerFilters } from "../components/ledger-filters";
 import { LedgerKpiCards } from "../components/ledger-kpi-cards";
 import { LedgerPagination } from "../components/ledger-pagination";
-import { useTranslations } from "next-intl";
+import { LedgerTable } from "../components/ledger-table";
 
 export function AdminLedgerView() {
   const t = useTranslations("adminDashboard.adminLedgerView");
   const trpc = useTRPC();
 
   // URL state query parameters synced via nuqs
-  const [searchQuery, setSearchQuery] = useQueryState("q", { defaultValue: "" });
-  const [sideFilter, setSideFilter] = useQueryState("side", { defaultValue: "ALL" });
-  const [typeFilter, setTypeFilter] = useQueryState("type", { defaultValue: "ALL" });
+  const [searchQuery, setSearchQuery] = useQueryState("q", {
+    defaultValue: "",
+  });
+  const [sideFilter, setSideFilter] = useQueryState("side", {
+    defaultValue: "ALL",
+  });
+  const [typeFilter, setTypeFilter] = useQueryState("type", {
+    defaultValue: "ALL",
+  });
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [pageSize, setPageSize] = useQueryState("pageSize", parseAsInteger.withDefault(10));
+  const [pageSize, setPageSize] = useQueryState(
+    "pageSize",
+    parseAsInteger.withDefault(10),
+  );
 
   const currentPageIndex = page - 1; // 0-indexed offset
 
@@ -37,7 +45,7 @@ export function AdminLedgerView() {
       type: typeFilter === "ALL" ? undefined : typeFilter,
       limit: pageSize,
       offset: currentPageIndex * pageSize,
-    })
+    }),
   );
 
   const table = useReactTable({

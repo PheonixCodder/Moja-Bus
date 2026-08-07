@@ -1,12 +1,11 @@
 "use client";
 "use no memo";
 
-import { useTranslations } from "next-intl";
-import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
@@ -18,13 +17,22 @@ import {
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
 import { cn } from "@moja/ui/lib/utils";
+import type { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
+import type { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 export function getInitials(name: string) {
   const parts = name.split(" ").filter(Boolean);
   if (parts.length === 0) return "U";
   if (parts.length === 1) return parts[0]?.charAt(0).toUpperCase() || "U";
-  return ((parts[0]?.charAt(0) || "") + (parts[parts.length - 1]?.charAt(0) || "")).toUpperCase() || "U";
+  return (
+    (
+      (parts[0]?.charAt(0) || "") + (parts[parts.length - 1]?.charAt(0) || "")
+    ).toUpperCase() || "U"
+  );
 }
+
 import { TravelerActionCell } from "./travelers-action-cell";
 import { TravelerStatusBadge } from "./travelers-status-badge";
 
@@ -41,13 +49,18 @@ export type TravelerRow = {
   status: TravelerStatus;
 };
 
-export const statusMeta: Record<TravelerStatus, { badgeClass: string; dotClass: string }> = {
+export const statusMeta: Record<
+  TravelerStatus,
+  { badgeClass: string; dotClass: string }
+> = {
   Verified: {
-    badgeClass: "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    badgeClass:
+      "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     dotClass: "bg-emerald-500",
   },
   Unverified: {
-    badgeClass: "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    badgeClass:
+      "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400",
     dotClass: "bg-amber-500",
   },
 };
@@ -68,7 +81,9 @@ export function getAvatarTone(name: string) {
   return tones[name.length % tones.length];
 }
 
-export function getTravelerColumns(t: ReturnType<typeof useTranslations>): ColumnDef<TravelerRow>[] {
+export function getTravelerColumns(
+  t: ReturnType<typeof useTranslations>,
+): ColumnDef<TravelerRow>[] {
   return [
     {
       id: "select",
@@ -77,7 +92,9 @@ export function getTravelerColumns(t: ReturnType<typeof useTranslations>): Colum
           <Checkbox
             aria-label={t("selectAllTravelers")}
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
           />
         </div>
       ),
@@ -105,14 +122,23 @@ export function getTravelerColumns(t: ReturnType<typeof useTranslations>): Colum
       cell: ({ row }: { row: any }) => (
         <div className="flex items-center gap-3">
           <Avatar className="size-10 font-medium">
-            <AvatarImage src={row.original.image ?? undefined} alt={row.original.name} />
-            <AvatarFallback className={cn("text-xs", getAvatarTone(row.original.name))}>
+            <AvatarImage
+              src={row.original.image ?? undefined}
+              alt={row.original.name}
+            />
+            <AvatarFallback
+              className={cn("text-xs", getAvatarTone(row.original.name))}
+            >
               {getInitials(row.original.name)}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <div className="truncate font-medium text-foreground text-sm">{row.original.name}</div>
-            <div className="truncate text-muted-foreground text-sm">{row.original.email}</div>
+            <div className="truncate font-medium text-foreground text-sm">
+              {row.original.name}
+            </div>
+            <div className="truncate text-muted-foreground text-sm">
+              {row.original.email}
+            </div>
           </div>
         </div>
       ),
@@ -120,19 +146,25 @@ export function getTravelerColumns(t: ReturnType<typeof useTranslations>): Colum
     {
       accessorKey: "phone",
       header: t("phone"),
-      cell: ({ row }: { row: any }) => <div className="text-sm">{row.original.phone}</div>,
+      cell: ({ row }: { row: any }) => (
+        <div className="text-sm">{row.original.phone}</div>
+      ),
     },
     {
       accessorKey: "status",
       header: t("status"),
       filterFn: "equalsString",
-      cell: ({ row }: { row: any }) => <TravelerStatusBadge status={row.original.status} />,
+      cell: ({ row }: { row: any }) => (
+        <TravelerStatusBadge status={row.original.status} />
+      ),
     },
     {
       id: "joinedDate",
       accessorFn: (row: TravelerRow) => row.rawDate,
       header: t("joinedDate"),
-      cell: ({ row }: { row: any }) => <div className="text-foreground text-sm">{row.original.joinedDate}</div>,
+      cell: ({ row }: { row: any }) => (
+        <div className="text-foreground text-sm">{row.original.joinedDate}</div>
+      ),
     },
     {
       id: "actions",

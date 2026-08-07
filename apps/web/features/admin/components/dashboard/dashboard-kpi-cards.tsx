@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Badge } from "@moja/ui/components/ui/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
 } from "@moja/ui/components/ui/card";
-import { Badge } from "@moja/ui/components/ui/badge";
+import { ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface DashboardKpiCardsProps {
   gmv: number;
@@ -34,8 +34,13 @@ function DeltaBadge({ pct }: { pct: number | null }) {
           : "border-destructive/20 bg-destructive/10 text-destructive"
       }
     >
-      {isPositive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-      {isPositive ? "+" : ""}{pct}%
+      {isPositive ? (
+        <TrendingUp className="size-3" />
+      ) : (
+        <TrendingDown className="size-3" />
+      )}
+      {isPositive ? "+" : ""}
+      {pct}%
     </Badge>
   );
 }
@@ -73,9 +78,7 @@ export function DashboardKpiCards({
             <span className="text-sm text-muted-foreground">{currency}</span>
             <DeltaBadge pct={gmvDeltaPct} />
           </div>
-          <p className="text-sm text-muted-foreground">
-            {t("gmvDesc")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("gmvDesc")}</p>
         </CardContent>
       </Card>
 
@@ -97,9 +100,7 @@ export function DashboardKpiCards({
             </span>
             <span className="text-sm text-muted-foreground">{currency}</span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {t("commissionDesc")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("commissionDesc")}</p>
         </CardContent>
       </Card>
 
@@ -122,14 +123,22 @@ export function DashboardKpiCards({
             <DeltaBadge pct={bookingDeltaPct} />
           </div>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{travelersCount.toLocaleString()}</span>{" "}
+            <span className="font-medium text-foreground">
+              {travelersCount.toLocaleString()}
+            </span>{" "}
             {t("bookingsDesc", { count: travelersCount })}
           </p>
         </CardContent>
       </Card>
 
       {/* Pending Verifications */}
-      <Card className={pendingOperatorsCount > 0 ? "border-amber-200 bg-amber-50/40 dark:bg-amber-950/10 dark:border-amber-900/30" : ""}>
+      <Card
+        className={
+          pendingOperatorsCount > 0
+            ? "border-amber-200 bg-amber-50/40 dark:bg-amber-950/10 dark:border-amber-900/30"
+            : ""
+        }
+      >
         <CardHeader>
           <CardDescription>{t("pendingVerifications")}</CardDescription>
           <Link
@@ -145,13 +154,18 @@ export function DashboardKpiCards({
               {pendingOperatorsCount}
             </span>
             {pendingOperatorsCount > 0 && (
-              <Badge variant="outline" className="border-amber-300 bg-amber-500/10 text-amber-700">
+              <Badge
+                variant="outline"
+                className="border-amber-300 bg-amber-500/10 text-amber-700"
+              >
                 {t("actionNeeded")}
               </Badge>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{operatorsCount}</span>{" "}
+            <span className="font-medium text-foreground">
+              {operatorsCount}
+            </span>{" "}
             {t("pendingVerificationsDesc", { count: operatorsCount })}
           </p>
         </CardContent>

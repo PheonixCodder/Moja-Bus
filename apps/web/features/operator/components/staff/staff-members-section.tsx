@@ -24,6 +24,7 @@ interface StaffMembersSectionProps {
   hasActiveFilters: boolean;
   canInvite: boolean;
   canUpdate: boolean;
+  canDelete: boolean;
   callerRole: StaffRole;
   onRetry: () => void;
   onInvite: () => void;
@@ -46,6 +47,7 @@ export function StaffMembersSection({
   hasActiveFilters,
   canInvite,
   canUpdate,
+  canDelete,
   callerRole,
   onRetry,
   onInvite,
@@ -141,18 +143,19 @@ export function StaffMembersSection({
                   </div>
                 ))
               : members.map((member, idx) => (
-                  <StaffMemberRow
-                    key={member.id}
-                    member={member}
-                    isLast={idx === members.length - 1}
-                    callerRole={callerRole}
-                    canUpdate={canUpdate}
-                    onEditRole={onEditRole}
-                    onEditPermissions={onEditPermissions}
-                    onStatusChange={onStatusChange}
-                    onTransfer={onTransfer}
-                    onRemove={onRemove}
-                  />
+                   <StaffMemberRow
+                     key={member.id}
+                     member={member}
+                     isLast={idx === members.length - 1}
+                     callerRole={callerRole}
+                     canUpdate={canUpdate}
+                     canDelete={canDelete}
+                     onEditRole={onEditRole}
+                     onEditPermissions={onEditPermissions}
+                     onStatusChange={onStatusChange}
+                     onTransfer={onTransfer}
+                     onRemove={onRemove}
+                   />
                 ))}
           </div>
 

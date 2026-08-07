@@ -1,23 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useSuspenseQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import {
-  Building2,
-  Coins,
-  ReceiptText,
-  AlertTriangle,
-  CheckCircle2,
-  ChevronDown,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
-import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
   Select,
   SelectContent,
@@ -25,7 +17,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { Spinner } from "@moja/ui/components/ui/spinner";
 import { cn } from "@moja/ui/lib/utils";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  Building2,
+  CheckCircle2,
+  ChevronDown,
+  Coins,
+  ReceiptText,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 function formatXOF(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -40,7 +51,9 @@ interface SettlementsPayoutPanelProps {
   onSuccess?: () => void;
 }
 
-export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProps) {
+export function SettlementsPayoutPanel({
+  onSuccess,
+}: SettlementsPayoutPanelProps) {
   const t = useTranslations("adminDashboard.settlementsPayoutPanel");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -51,12 +64,14 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
 
   // Fetch operators list
   const { data: operators } = useSuspenseQuery(
-    trpc.public.listOperators.queryOptions()
+    trpc.public.listOperators.queryOptions(),
   );
 
   // Lazily fetch operator ledger once a company is selected
   const { data: operatorLedger, isLoading: isLoadingLedger } = useQuery({
-    ...trpc.payments.exportOperatorLedger.queryOptions({ companyId: selectedCompanyId }),
+    ...trpc.payments.exportOperatorLedger.queryOptions({
+      companyId: selectedCompanyId,
+    }),
     enabled: !!selectedCompanyId,
   });
 
@@ -67,14 +82,18 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
         setAmountStr("");
         setNote("");
         setSelectedCompanyId("");
-        queryClient.invalidateQueries(trpc.payments.getTreasuryOverview.pathFilter());
-        queryClient.invalidateQueries(trpc.payments.listSettlementHistory.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.payments.getTreasuryOverview.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          trpc.payments.listSettlementHistory.pathFilter(),
+        );
         onSuccess?.();
       },
       onError: (err) => {
         toast.error(err.message || t("failedToRecordSettlement"));
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -104,7 +123,9 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
     });
   };
 
-  const selectedOperatorName = operators.find((o) => o.id === selectedCompanyId)?.name;
+  const selectedOperatorName = operators.find(
+    (o) => o.id === selectedCompanyId,
+  )?.name;
   const balance = operatorLedger?.balanceXOF ?? null;
   const amount = parseInt(amountStr.replace(/\D/g, ""), 10) || 0;
   const exceedsBalance = balance !== null && amount > balance;
@@ -165,7 +186,7 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                   "rounded-lg border p-4 transition-colors duration-200",
                   selectedCompanyId
                     ? "border-border bg-muted/40"
-                    : "border-dashed border-border/50 bg-muted/20"
+                    : "border-dashed border-border/50 bg-muted/20",
                 )}
               >
                 {!selectedCompanyId ? (
@@ -187,7 +208,9 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                       {balance !== null ? formatXOF(balance) : "—"}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      {t("postedBalance", { count: operatorLedger?.entryCount ?? 0 })}
+                      {t("postedBalance", {
+                        count: operatorLedger?.entryCount ?? 0,
+                      })}
                     </p>
                   </div>
                 )}
@@ -209,16 +232,21 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                   inputMode="numeric"
                   placeholder={t("amountPlaceholder")}
                   value={amountStr}
-                  onChange={(e) => setAmountStr(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) =>
+                    setAmountStr(e.target.value.replace(/\D/g, ""))
+                  }
                   className={cn(
                     "h-10 border-border bg-background font-mono text-sm",
-                    exceedsBalance && "border-destructive focus-visible:ring-destructive"
+                    exceedsBalance &&
+                      "border-destructive focus-visible:ring-destructive",
                   )}
                 />
                 {exceedsBalance && (
                   <p className="flex items-center gap-1 text-[11px] text-destructive">
                     <AlertTriangle className="size-3" />
-                    {t("exceedsBalanceMessage", { balance: formatXOF(balance!) })}
+                    {t("exceedsBalanceMessage", {
+                      balance: formatXOF(balance!),
+                    })}
                   </p>
                 )}
                 {amount > 0 && !exceedsBalance && (
@@ -233,7 +261,8 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
                   htmlFor="settlement-note"
                   className="text-xs font-semibold text-foreground/70 uppercase tracking-wide"
                 >
-                  {t("referenceNote")} <span className="text-destructive">*</span>
+                  {t("referenceNote")}{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="settlement-note"
@@ -251,13 +280,24 @@ export function SettlementsPayoutPanel({ onSuccess }: SettlementsPayoutPanelProp
               <Button
                 id="settlement-submit-btn"
                 type="submit"
-                disabled={isPending || !selectedCompanyId || !amountStr || !note.trim() || exceedsBalance}
+                disabled={
+                  isPending ||
+                  !selectedCompanyId ||
+                  !amountStr ||
+                  !note.trim() ||
+                  exceedsBalance
+                }
                 className="mt-1 w-full h-10 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 font-semibold text-sm"
               >
                 {isPending ? (
-                  <><Spinner className="size-4 mr-2" /> {t("recording")}</>
+                  <>
+                    <Spinner className="size-4 mr-2" /> {t("recording")}
+                  </>
                 ) : (
-                  <><ReceiptText className="size-4 mr-2" /> {t("recordManualSettlement")}</>
+                  <>
+                    <ReceiptText className="size-4 mr-2" />{" "}
+                    {t("recordManualSettlement")}
+                  </>
                 )}
               </Button>
             </div>

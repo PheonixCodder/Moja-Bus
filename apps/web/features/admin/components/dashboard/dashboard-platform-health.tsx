@@ -1,23 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import {
-  ShieldAlert,
-  Activity,
-  Scale,
-  Users,
-  Webhook,
-  MapPin,
-} from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
-import { Button } from "@moja/ui/components/ui/button";
-import { Badge } from "@moja/ui/components/ui/badge";
+import {
+  Activity,
+  MapPin,
+  Scale,
+  ShieldAlert,
+  Users,
+  Webhook,
+} from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface DashboardPlatformHealthProps {
   pendingOperatorsCount: number;
@@ -29,13 +29,35 @@ export function DashboardPlatformHealth({
   activeTripsCount,
 }: DashboardPlatformHealthProps) {
   const t = useTranslations("adminDashboard.overview.platformHealth");
-  const quickLinksT = useTranslations("adminDashboard.overview.platformHealth.quickLinks");
+  const quickLinksT = useTranslations(
+    "adminDashboard.overview.platformHealth.quickLinks",
+  );
   const quickLinks = [
-    { label: quickLinksT("ledger"), href: "/dashboard/admin/financials/ledger", icon: Scale },
-    { label: quickLinksT("dispatch"), href: "/dashboard/admin/operations/dispatch", icon: Activity },
-    { label: quickLinksT("travelers"), href: "/dashboard/admin/users/travelers", icon: Users },
-    { label: quickLinksT("webhooks"), href: "/dashboard/admin/audit-logs/webhooks", icon: Webhook },
-    { label: quickLinksT("routes"), href: "/dashboard/admin/operations/routes", icon: MapPin },
+    {
+      label: quickLinksT("ledger"),
+      href: "/dashboard/admin/financials/ledger",
+      icon: Scale,
+    },
+    {
+      label: quickLinksT("dispatch"),
+      href: "/dashboard/admin/operations/dispatch",
+      icon: Activity,
+    },
+    {
+      label: quickLinksT("travelers"),
+      href: "/dashboard/admin/users/travelers",
+      icon: Users,
+    },
+    {
+      label: quickLinksT("webhooks"),
+      href: "/dashboard/admin/audit-logs/webhooks",
+      icon: Webhook,
+    },
+    {
+      label: quickLinksT("routes"),
+      href: "/dashboard/admin/operations/routes",
+      icon: MapPin,
+    },
   ];
   return (
     <Card>
@@ -52,10 +74,15 @@ export function DashboardPlatformHealth({
                 <span className="font-semibold">{pendingOperatorsCount}</span>{" "}
                 {pendingOperatorsCount === 1
                   ? t("pendingOperators", { count: pendingOperatorsCount })
-                  : t("pendingOperatorsPlural", { count: pendingOperatorsCount })}
+                  : t("pendingOperatorsPlural", {
+                      count: pendingOperatorsCount,
+                    })}
               </span>
             </div>
-            <Button variant="ghost" size="sm" className="h-7 text-xs px-2"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs px-2"
               nativeButton={false}
               render={<Link href="/dashboard/admin/verifications" />}
             >
@@ -73,7 +100,10 @@ export function DashboardPlatformHealth({
                   : t("activeTripsPlural", { count: activeTripsCount })}
               </span>
             </div>
-            <Button variant="ghost" size="sm" className="h-7 text-xs px-2"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs px-2"
               nativeButton={false}
               render={<Link href="/dashboard/admin/operations/dispatch" />}
             >
@@ -82,8 +112,13 @@ export function DashboardPlatformHealth({
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2.5">
-            <span className="text-sm text-muted-foreground">{t("cronJobs")}</span>
-            <Badge variant="outline" className="border-green-200 bg-green-500/10 text-green-700 text-[10px]">
+            <span className="text-sm text-muted-foreground">
+              {t("cronJobs")}
+            </span>
+            <Badge
+              variant="outline"
+              className="border-green-200 bg-green-500/10 text-green-700 text-[10px]"
+            >
               {t("cronActive")}
             </Badge>
           </div>

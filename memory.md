@@ -73,6 +73,15 @@ Last updated: 2026-08-02
 - Build out Bookings page
 - Build out Tickets page
 
+## Staff permissions audit (2026-08-06)
+
+- Completed full audit of staff permissions: wrote 11 audit files into `context/trackers/staff-permissions-audit/` (01–11 + README)
+- Converted `10-consolidated-findings.md` to live tracker with Status column
+- CRITICAL (C1, C2) and HIGH (H1–H4) findings: all fixed and marked Done
+- MEDIUM (M1–M20) findings: all fixed and marked Done
+- All changes typecheck clean for `apps/web` and `packages/schemas`
+- Key changes: `bookings:cancel` key added, `withdrawals:create` added to FINANCE template, `trips:cancel` enforced in schedules.ts, bank mutations OWNER-only, `financials:view` replaces company-membership check in storage.ts, session revocation on suspend/remove, `getHoldPricing` ownership assertion, client-side permission gating across staff/withdraw/settings/sidebar/quick-actions/routes/terminals views
+
 ## Open questions
 
 - Need final Moja Ride branded illustrations (currently using placeholder images from the template)

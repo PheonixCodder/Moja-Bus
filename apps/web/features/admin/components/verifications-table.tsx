@@ -1,7 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { flexRender, type Table as TableType } from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -10,6 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
+import { flexRender, type Table as TableType } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 import type { CompanyRow } from "./verifications-columns";
 
 interface VerificationsTableProps {
@@ -25,10 +25,16 @@ export function VerificationsTable({ table }: VerificationsTableProps) {
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="py-3 font-semibold text-slate-700 text-xs">
+                <TableHead
+                  key={header.id}
+                  className="py-3 font-semibold text-slate-700 text-xs"
+                >
                   {header.isPlaceholder
                     ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                 </TableHead>
               ))}
             </TableRow>

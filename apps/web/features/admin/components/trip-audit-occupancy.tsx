@@ -1,17 +1,17 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { ArrowRight, User } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { ArrowRight, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   buildConsecutiveSegments,
   countSegmentOccupancy,
   getSegmentSeatStatus,
   type TripSegment,
 } from "@/features/booking/lib/trip-segments";
-import { useTranslations } from "next-intl";
 import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 
 type TripAudit = RouterOutputs["admin"]["getTripAudit"];
 
@@ -32,7 +32,10 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
       </div>
       <div className="h-1.5 bg-border rounded-full overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-500", color)}
+          className={cn(
+            "h-full rounded-full transition-all duration-500",
+            color,
+          )}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -77,7 +80,7 @@ function SegmentSeatGrid({
             </div>
             {Array.from({ length: maxCol }, (_, col) => {
               const seat = seats.find(
-                (s) => s.seat.row === row + 1 && s.seat.col === col + 1
+                (s) => s.seat.row === row + 1 && s.seat.col === col + 1,
               );
               if (!seat || seat.seat.seatType === "EMPTY_SPACE") {
                 return <div key={col} className="w-7 h-7" />;
@@ -97,16 +100,16 @@ function SegmentSeatGrid({
                 seat.seatId,
                 bookings,
                 segment,
-                isBlocked
+                isBlocked,
               );
               const statusLabel =
                 seatStatus === "booked"
                   ? t("statusBooked")
                   : seatStatus === "held"
-                  ? t("statusHeld")
-                  : seatStatus === "blocked"
-                  ? t("statusBlocked")
-                  : t("statusAvailable");
+                    ? t("statusHeld")
+                    : seatStatus === "blocked"
+                      ? t("statusBlocked")
+                      : t("statusAvailable");
 
               return (
                 <div
@@ -114,11 +117,14 @@ function SegmentSeatGrid({
                   title={`Seat ${seat.seat.label} — ${statusLabel}`}
                   className={cn(
                     "w-7 h-7 rounded border text-[9px] font-bold flex items-center justify-center transition-colors",
-                    seatStatus === "booked" && "bg-primary text-white border-primary",
-                    seatStatus === "held" && "bg-amber-400 text-amber-950 border-amber-500",
-                    seatStatus === "blocked" && "bg-slate-200 text-slate-400 border-slate-300",
+                    seatStatus === "booked" &&
+                      "bg-primary text-white border-primary",
+                    seatStatus === "held" &&
+                      "bg-amber-400 text-amber-950 border-amber-500",
+                    seatStatus === "blocked" &&
+                      "bg-slate-200 text-slate-400 border-slate-300",
                     seatStatus === "available" &&
-                      "bg-background border-border text-muted-foreground hover:border-primary/30"
+                      "bg-background border-border text-muted-foreground hover:border-primary/30",
                   )}
                 >
                   {seat.seat.label}
@@ -132,8 +138,14 @@ function SegmentSeatGrid({
           {[
             { color: "bg-primary border-primary", label: t("legendBooked") },
             { color: "bg-amber-400 border-amber-500", label: t("legendHeld") },
-            { color: "bg-background border-border", label: t("legendAvailable") },
-            { color: "bg-slate-200 border-slate-300", label: t("legendBlocked") },
+            {
+              color: "bg-background border-border",
+              label: t("legendAvailable"),
+            },
+            {
+              color: "bg-slate-200 border-slate-300",
+              label: t("legendBlocked"),
+            },
           ].map(({ color, label }) => (
             <div key={label} className="flex items-center gap-1.5">
               <div className={cn("w-4 h-4 rounded border", color)} />
@@ -150,7 +162,7 @@ export function TripAuditOccupancy({ tripId }: { tripId: string }) {
   const t = useTranslations("adminDashboard.tripAuditOccupancy");
   const trpc = useTRPC();
   const { data: trip } = useSuspenseQuery(
-    trpc.admin.getTripAudit.queryOptions({ id: tripId })
+    trpc.admin.getTripAudit.queryOptions({ id: tripId }),
   );
 
   const segments = buildConsecutiveSegments(trip.tripStops ?? []);
@@ -185,7 +197,10 @@ export function TripAuditOccupancy({ tripId }: { tripId: string }) {
               </h4>
               {counts.held > 0 && (
                 <span className="text-[11px] text-muted-foreground">
-                  {t("confirmedHeld", { confirmed: counts.confirmed, held: counts.held })}
+                  {t("confirmedHeld", {
+                    confirmed: counts.confirmed,
+                    held: counts.held,
+                  })}
                 </span>
               )}
             </div>

@@ -33,11 +33,14 @@ import { useTranslations } from "next-intl";
 import { PermissionMatrix } from "./permission-matrix";
 
 const INVITABLE_ROLES: StaffRole[] = [
-  "ADMIN",
-  "MANAGER",
   "OPERATIONS",
+  "MANAGER",
+  "ADMIN",
   "FINANCE",
   "SUPPORT",
+  "TREASURY",
+  "DISPATCHER",
+  "CONDUCTOR",
 ];
 
 interface InviteSheetProps {

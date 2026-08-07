@@ -1,10 +1,21 @@
 "use client";
 
-import { ShieldCheck, ShieldAlert, BadgeCheck, AlertCircle } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
-import { Button } from "@moja/ui/components/ui/button";
 import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { cn } from "@moja/ui/lib/utils";
+import {
+  AlertCircle,
+  BadgeCheck,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface VerificationDetailsDecisionProps {
@@ -52,7 +63,13 @@ export function VerificationDetailsDecision({
               {t("decisionBoardDescription")}
             </CardDescription>
           </div>
-          <Badge className={cn("gap-1.5 border px-2 py-1 font-semibold text-xs", badgeClass)} variant="outline">
+          <Badge
+            className={cn(
+              "gap-1.5 border px-2 py-1 font-semibold text-xs",
+              badgeClass,
+            )}
+            variant="outline"
+          >
             <span className={cn("size-1.5 rounded-full", dotClass)} />
             {status.replace(/_/g, " ")}
           </Badge>
@@ -89,7 +106,9 @@ export function VerificationDetailsDecision({
             <div className="flex gap-2.5">
               <BadgeCheck className="size-5 text-green-600 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <div className="text-xs font-bold text-green-800">{t("operatorVerified")}</div>
+                <div className="text-xs font-bold text-green-800">
+                  {t("operatorVerified")}
+                </div>
                 <p className="text-[11px] text-green-700 leading-relaxed font-medium">
                   {t("operatorApproved")}{" "}
                   <span className="font-mono font-bold bg-green-100 px-1 py-0.5 rounded text-green-800">
@@ -100,9 +119,14 @@ export function VerificationDetailsDecision({
             </div>
             {company.verifiedAt && (
               <div className="text-[10px] text-slate-400 font-medium border-t border-green-100/50 pt-2 flex items-center justify-between">
-                <span>{t("verifiedOn")}: {new Date(company.verifiedAt).toLocaleString()}</span>
+                <span>
+                  {t("verifiedOn")}:{" "}
+                  {new Date(company.verifiedAt).toLocaleString()}
+                </span>
                 {company.verifiedById && (
-                  <span className="font-bold text-slate-500">{t("idLabel")}: {company.verifiedById.slice(0, 8)}</span>
+                  <span className="font-bold text-slate-500">
+                    {t("idLabel")}: {company.verifiedById.slice(0, 8)}
+                  </span>
                 )}
               </div>
             )}
@@ -114,7 +138,9 @@ export function VerificationDetailsDecision({
             <div className="flex gap-2.5">
               <AlertCircle className="size-5 text-red-600 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <div className="text-xs font-bold text-red-800">{t("registrationRejected")}</div>
+                <div className="text-xs font-bold text-red-800">
+                  {t("registrationRejected")}
+                </div>
                 <div className="text-[11px] text-red-700 leading-relaxed font-semibold">
                   {t("reasonLabel")}:
                   <p className="font-normal text-red-600 bg-white rounded border border-red-100/50 p-2.5 mt-1 leading-normal italic shadow-3xs">
@@ -125,7 +151,8 @@ export function VerificationDetailsDecision({
             </div>
             {company.activityLogs?.[0]?.createdAt && (
               <div className="text-[10px] text-slate-400 font-medium border-t border-red-100/50 pt-2">
-                {t("rejectedOn")}: {new Date(company.activityLogs[0].createdAt).toLocaleString()}
+                {t("rejectedOn")}:{" "}
+                {new Date(company.activityLogs[0].createdAt).toLocaleString()}
               </div>
             )}
           </div>
@@ -135,7 +162,9 @@ export function VerificationDetailsDecision({
           <div className="rounded-lg border border-sky-100 bg-sky-50/30 p-4 flex gap-2.5">
             <AlertCircle className="size-5 text-sky-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <div className="text-xs font-bold text-sky-800">{t("draftMode")}</div>
+              <div className="text-xs font-bold text-sky-800">
+                {t("draftMode")}
+              </div>
               <p className="text-[11px] text-sky-700 leading-relaxed font-medium">
                 {t("draftDescription")}
               </p>

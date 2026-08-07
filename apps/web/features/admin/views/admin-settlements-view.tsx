@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
-import { SettlementsClearingCard } from "../components/settlements-clearing-card";
-import { SettlementsPayoutPanel } from "../components/settlements-payout-panel";
-import { SettlementsHistoryTable } from "../components/settlements-history-table";
 import { useTranslations } from "next-intl";
+import { Suspense } from "react";
+import { SettlementsClearingCard } from "../components/settlements-clearing-card";
+import { SettlementsHistoryTable } from "../components/settlements-history-table";
+import { SettlementsPayoutPanel } from "../components/settlements-payout-panel";
 
 function SectionSkeleton({ rows = 3 }: { rows?: number }) {
   return (

@@ -1,35 +1,86 @@
 "use client";
 
+import { Badge } from "@moja/ui/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
+import { cn } from "@moja/ui/lib/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
 import { format } from "date-fns";
 import {
-  Building2, Monitor, CheckCircle2, XCircle,
-  Briefcase, User, Clock, AlertCircle,
+  AlertCircle,
+  Briefcase,
+  Building2,
+  CheckCircle2,
+  Clock,
+  Monitor,
+  User,
+  XCircle,
 } from "lucide-react";
-
-import { Badge } from "@moja/ui/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
-import { UserProfileHeader } from "../components/user-profile-header";
-import { cn } from "@moja/ui/lib/utils";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useTRPC } from "@/trpc/client";
+import { UserProfileHeader } from "../components/user-profile-header";
 
-const companyStatusMeta: Record<string, { label: string; className: string; icon: any }> = {
-  ACTIVE:               { label: "Active",              icon: CheckCircle2, className: "bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
-  PENDING_VERIFICATION: { label: "Pending Verification", icon: AlertCircle, className: "bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-  DRAFT:                { label: "Draft",               icon: Clock,        className: "bg-zinc-100/60 text-zinc-500 dark:bg-zinc-800/40 dark:text-zinc-400" },
-  SUSPENDED:            { label: "Suspended",           icon: XCircle,      className: "bg-red-100/60 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
-  REJECTED:             { label: "Rejected",            icon: XCircle,      className: "bg-red-100/60 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
-  VERIFIED:             { label: "Verified",            icon: CheckCircle2, className: "bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+const companyStatusMeta: Record<
+  string,
+  { label: string; className: string; icon: any }
+> = {
+  ACTIVE: {
+    label: "Active",
+    icon: CheckCircle2,
+    className:
+      "bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  },
+  PENDING_VERIFICATION: {
+    label: "Pending Verification",
+    icon: AlertCircle,
+    className:
+      "bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  },
+  DRAFT: {
+    label: "Draft",
+    icon: Clock,
+    className:
+      "bg-zinc-100/60 text-zinc-500 dark:bg-zinc-800/40 dark:text-zinc-400",
+  },
+  SUSPENDED: {
+    label: "Suspended",
+    icon: XCircle,
+    className:
+      "bg-red-100/60 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  },
+  REJECTED: {
+    label: "Rejected",
+    icon: XCircle,
+    className:
+      "bg-red-100/60 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  },
+  VERIFIED: {
+    label: "Verified",
+    icon: CheckCircle2,
+    className:
+      "bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  },
 };
 
-const onboardingStepLabels = ["Company", "Documents", "Bank", "Profile", "Terms"];
+const onboardingStepLabels = [
+  "Company",
+  "Documents",
+  "Bank",
+  "Profile",
+  "Terms",
+];
 
 export function AdminOperatorProfileView({ userId }: { userId: string }) {
   const t = useTranslations("adminDashboard.adminOperatorProfileView");
   const trpc = useTRPC();
-  const { data: user } = useSuspenseQuery(trpc.admin.getUserProfile.queryOptions({ userId }));
+  const { data: user } = useSuspenseQuery(
+    trpc.admin.getUserProfile.queryOptions({ userId }),
+  );
 
   const primaryOperator = user.operatorProfiles[0];
 
@@ -51,9 +102,21 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: t("companies"), value: user.operatorProfiles.length, icon: Building2 },
-          { label: t("activeSessions"), value: user.sessions.length, icon: Monitor },
-          { label: t("staffRole"), value: primaryOperator?.role ?? "—", icon: Briefcase },
+          {
+            label: t("companies"),
+            value: user.operatorProfiles.length,
+            icon: Building2,
+          },
+          {
+            label: t("activeSessions"),
+            value: user.sessions.length,
+            icon: Monitor,
+          },
+          {
+            label: t("staffRole"),
+            value: primaryOperator?.role ?? "—",
+            icon: Briefcase,
+          },
           {
             label: t("onboarding"),
             value: primaryOperator?.onboardingProgress
@@ -89,11 +152,15 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
           ) : (
             user.operatorProfiles.map((op) => {
               const company = op.company;
-              const statusMeta = companyStatusMeta[company.status] ?? companyStatusMeta["DRAFT"]!;
+              const statusMeta =
+                companyStatusMeta[company.status] ??
+                companyStatusMeta["DRAFT"]!;
               const StatusIcon = statusMeta.icon;
               const progress = op.onboardingProgress;
               const progressPct = progress
-                ? Math.round((progress.completedStepCount / progress.totalSteps) * 100)
+                ? Math.round(
+                    (progress.completedStepCount / progress.totalSteps) * 100,
+                  )
                 : 0;
 
               return (
@@ -105,13 +172,22 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                           <Building2 className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div>
-                          <CardTitle className="text-base font-semibold">{company.name}</CardTitle>
+                          <CardTitle className="text-base font-semibold">
+                            {company.name}
+                          </CardTitle>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Reg: {company.registrationNumber} · {company.businessType.replace(/_/g, " ")}
+                            Reg: {company.registrationNumber} ·{" "}
+                            {company.businessType.replace(/_/g, " ")}
                           </p>
                         </div>
                       </div>
-                      <Badge variant="outline" className={cn("border-0 text-xs shrink-0", statusMeta.className)}>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "border-0 text-xs shrink-0",
+                          statusMeta.className,
+                        )}
+                      >
                         <StatusIcon className="h-3 w-3 mr-1" />
                         {statusMeta.label}
                       </Badge>
@@ -121,20 +197,32 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                     {/* Staff role */}
                     <div className="flex flex-wrap gap-4 text-sm">
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">{t("staffRoleLabel")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("staffRoleLabel")}
+                        </span>
                         <span className="font-medium">{op.role}</span>
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">{t("operatorStatus")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("operatorStatus")}
+                        </span>
                         <span className="font-medium">{op.status}</span>
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">{t("identityVerified")}</span>
-                        <span className="font-medium">{op.isVerified ? t("yes") : t("no")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("identityVerified")}
+                        </span>
+                        <span className="font-medium">
+                          {op.isVerified ? t("yes") : t("no")}
+                        </span>
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">{t("joined")}</span>
-                        <span className="font-medium">{format(op.joinedAt, "MMM d, yyyy")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("joined")}
+                        </span>
+                        <span className="font-medium">
+                          {format(op.joinedAt, "MMM d, yyyy")}
+                        </span>
                       </div>
                     </div>
 
@@ -142,8 +230,13 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                     {progress && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">{t("onboardingProgress")}</span>
-                          <span className="font-medium">{progress.completedStepCount}/{progress.totalSteps} {t("steps")}</span>
+                          <span className="text-muted-foreground">
+                            {t("onboardingProgress")}
+                          </span>
+                          <span className="font-medium">
+                            {progress.completedStepCount}/{progress.totalSteps}{" "}
+                            {t("steps")}
+                          </span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div
@@ -159,7 +252,7 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                                 "text-[10px]",
                                 i < progress.completedStepCount
                                   ? "text-primary font-medium"
-                                  : "text-muted-foreground"
+                                  : "text-muted-foreground",
                               )}
                             >
                               {step}
@@ -198,19 +291,48 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 {[
-                  { label: "Job Title", value: primaryOperator.jobTitle || "—" },
-                  { label: "Personal Phone", value: primaryOperator.personalPhone || "—" },
-                  { label: "Date of Birth", value: primaryOperator.dateOfBirth ? format(primaryOperator.dateOfBirth, "PPP") : "—" },
-                  { label: "ID Type", value: primaryOperator.nationalIdType || "—" },
-                  { label: "National ID", value: primaryOperator.nationalIdNumber ? "••••••" + primaryOperator.nationalIdNumber.slice(-4) : "—" },
-                  { label: "Emergency Contact", value: primaryOperator.emergencyContactName || "—" },
-                  { label: "Emergency Phone", value: primaryOperator.emergencyContactPhone || "—" },
+                  {
+                    label: "Job Title",
+                    value: primaryOperator.jobTitle || "—",
+                  },
+                  {
+                    label: "Personal Phone",
+                    value: primaryOperator.personalPhone || "—",
+                  },
+                  {
+                    label: "Date of Birth",
+                    value: primaryOperator.dateOfBirth
+                      ? format(primaryOperator.dateOfBirth, "PPP")
+                      : "—",
+                  },
+                  {
+                    label: "ID Type",
+                    value: primaryOperator.nationalIdType || "—",
+                  },
+                  {
+                    label: "National ID",
+                    value: primaryOperator.nationalIdNumber
+                      ? "••••••" + primaryOperator.nationalIdNumber.slice(-4)
+                      : "—",
+                  },
+                  {
+                    label: "Emergency Contact",
+                    value: primaryOperator.emergencyContactName || "—",
+                  },
+                  {
+                    label: "Emergency Phone",
+                    value: primaryOperator.emergencyContactPhone || "—",
+                  },
                   { label: "Work Email", value: user.workEmail || "—" },
                   { label: "Work Phone", value: user.workPhone || "—" },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex justify-between gap-2">
-                    <span className="text-muted-foreground shrink-0">{label}</span>
-                    <span className="font-medium text-right truncate">{value}</span>
+                    <span className="text-muted-foreground shrink-0">
+                      {label}
+                    </span>
+                    <span className="font-medium text-right truncate">
+                      {value}
+                    </span>
                   </div>
                 ))}
               </CardContent>
@@ -229,15 +351,25 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
               <CardContent className="p-0">
                 <div className="divide-y">
                   {user.sessions.map((s) => (
-                    <div key={s.id} className="px-6 py-3 flex flex-col gap-0.5 min-w-0">
-                      <span className="text-xs font-medium truncate w-full" title={s.userAgent || "Unknown device"}>
+                    <div
+                      key={s.id}
+                      className="px-6 py-3 flex flex-col gap-0.5 min-w-0"
+                    >
+                      <span
+                        className="text-xs font-medium truncate w-full"
+                        title={s.userAgent || "Unknown device"}
+                      >
                         {s.userAgent || "Unknown device"}
                       </span>
                       <span className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1 overflow-hidden">
                         <Monitor className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{s.ipAddress || "Unknown IP"}</span>
+                        <span className="truncate">
+                          {s.ipAddress || "Unknown IP"}
+                        </span>
                         <span className="opacity-40 shrink-0">·</span>
-                        <span className="shrink-0">{format(s.createdAt, "MMM d, HH:mm")}</span>
+                        <span className="shrink-0">
+                          {format(s.createdAt, "MMM d, HH:mm")}
+                        </span>
                       </span>
                     </div>
                   ))}

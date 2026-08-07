@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { Toaster } from "sonner";
-import { TRPCReactProvider } from "@/trpc/client";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { routing } from "@/i18n/routing";
+import { Toaster } from "sonner";
 import { LangSetter } from "@/components/lang-setter";
+import { PostHogProvider } from "@/components/posthog-provider";
+import { routing } from "@/i18n/routing";
 import type { Locale } from "@/i18n/types";
+import { TRPCReactProvider } from "@/trpc/client";
 
 type Props = {
   children: React.ReactNode;
@@ -18,7 +19,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
 
+  const baseUrl = process.env["NEXT_PUBLIC_APP_URL"] ?? "http://localhost:3000";
+
   return {
+    // Resolves relative OG/Twitter image paths (blog, home, …) against the
+    // production origin so social previews don't fall back to localhost.
+    metadataBase: new URL(baseUrl),
     title: {
       default: t("title"),
       template: `%s | ${t("title")}`,
@@ -27,6 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: t("ogTitle"),
       description: t("ogDescription"),
+      siteName: process.env["NEXT_PUBLIC_APP_NAME"] ?? "Moja Ride",
     },
   };
 }
@@ -50,9 +57,11 @@ export default async function LocaleLayout({ children, params }: Props) {
     <NextIntlClientProvider messages={messages}>
       <TRPCReactProvider>
         <NuqsAdapter>
-          <LangSetter />
-          <Toaster />
-          {children}
+          <PostHogProvider>
+            <LangSetter />
+            <Toaster />
+            {children}
+          </PostHogProvider>
         </NuqsAdapter>
       </TRPCReactProvider>
     </NextIntlClientProvider>

@@ -1,10 +1,17 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { useQueryStates } from "nuqs";
-import { adminRoutesSearchParams } from "../../lib/search-params";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
+import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyTitle,
+} from "@moja/ui/components/ui/empty";
 import {
   Table,
   TableBody,
@@ -13,12 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
-import { Button } from "@moja/ui/components/ui/button";
-import { Badge } from "@moja/ui/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, Map } from "lucide-react";
-import { Empty, EmptyTitle, EmptyDescription } from "@moja/ui/components/ui/empty";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
 import { UrbanBadge } from "@/components/urban-badge";
+import { useTRPC } from "@/trpc/client";
+import { adminRoutesSearchParams } from "../../lib/search-params";
 
 interface AdminRoutesTableProps {
   onViewRoute: (id: string) => void;
@@ -27,10 +35,12 @@ interface AdminRoutesTableProps {
 export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
   const t = useTranslations("adminDashboard.adminRoutesTable");
   const trpc = useTRPC();
-  const [{ q, status, page, pageSize }] = useQueryStates(adminRoutesSearchParams);
+  const [{ q, status, page, pageSize }] = useQueryStates(
+    adminRoutesSearchParams,
+  );
 
   const { data } = useSuspenseQuery(
-    trpc.admin.listRoutes.queryOptions({ search: q, status, page, pageSize })
+    trpc.admin.listRoutes.queryOptions({ search: q, status, page, pageSize }),
   );
 
   if (data.items.length === 0) {
@@ -83,11 +93,13 @@ export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
               <TableCell>
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm truncate max-w-[120px]">
-                    {route.originTerminal.cityRelation?.name ?? route.originTerminal.city}
+                    {route.originTerminal.cityRelation?.name ??
+                      route.originTerminal.city}
                   </span>
                   <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
                   <span className="text-sm truncate max-w-[120px]">
-                    {route.destTerminal.cityRelation?.name ?? route.destTerminal.city}
+                    {route.destTerminal.cityRelation?.name ??
+                      route.destTerminal.city}
                   </span>
                 </div>
               </TableCell>

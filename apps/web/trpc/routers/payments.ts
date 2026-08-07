@@ -6,6 +6,7 @@ import {
   deleteCommissionTierSchema,
   exportOperatorLedgerSchema,
   getCheckoutPricingSchema,
+  hasPermission,
   listLedgerEntriesSchema,
   recordSettlementSchema,
   updateCommissionTierSchema,
@@ -49,36 +50,79 @@ export const paymentsRouter = createTRPCRouter({
       });
     }),
 
-  getHoldPricing: protectedProcedure
-    .input(z.object({ holdId: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const snapshot = await ctx.prisma.pricingSnapshot.findFirst({
-        where: { holdGroupId: input.holdId },
-        orderBy: { createdAt: "desc" },
-      });
-      if (!snapshot) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Pricing snapshot not found for this hold",
-        });
-      }
-      return {
+   getHoldPricing: protectedProcedure
+     .input(z.object({ holdId: z.string() }))
+     .query(async ({ ctx, input }) => {
+       const snapshot = await ctx.prisma.pricingSnapshot.findFirst({
+         where: { holdGroupId: input.holdId },
+         orderBy: { createdAt: "desc" },
+       });
+       if (!snapshot) {
+         throw new TRPCError({
+           code: "NOT_FOUND",
+           message: "Pricing snapshot not found for this hold",
+         });
+       }
+
+       const holdGroup = await ctx.prisma.holdGroup.findUnique({
+         where: { id: input.holdId },
+         select: { id: true },
+       });
+       if (!holdGroup) {
+         throw new TRPCError({
+           code: "NOT_FOUND",
+           message: "Hold group not found",
+         });
+       }
+
+       const booking = await ctx.prisma.booking.findFirst({
+         where: {
+           holdGroupId: input.holdId,
+           userId: ctx.user.id,
+         },
+         select: { id: true },
+       });
+       if (!booking) {
+         throw new TRPCError({
+           code: "FORBIDDEN",
+           message: "Access denied: no booking found for this hold",
+         });
+       }
+
+       return {
         subtotalBaseXOF: snapshot.subtotalBaseXOF,
         convenienceFeeXOF: snapshot.convenienceFeeXOF,
         chargeAmountXOF: snapshot.chargeAmountXOF,
       };
     }),
 
-  cancelBooking: protectedProcedure
-    .input(cancelBookingSchema)
-    .mutation(async ({ ctx, input }) => {
-      let userCompanyId: string | undefined;
-      if (ctx.user.role === "OPERATOR") {
-        const operatorProfile = await ctx.prisma.operator.findFirst({
-          where: { userId: ctx.user.id, deletedAt: null },
-        });
-        userCompanyId = operatorProfile?.companyId ?? undefined;
-      }
+   cancelBooking: protectedProcedure
+     .input(cancelBookingSchema)
+     .mutation(async ({ ctx, input }) => {
+       let userCompanyId: string | undefined;
+       if (ctx.user.role === "OPERATOR") {
+         const operatorProfile = await ctx.prisma.operator.findFirst({
+           where: { userId: ctx.user.id, deletedAt: null },
+         });
+         userCompanyId = operatorProfile?.companyId ?? undefined;
+if (
+            operatorProfile &&
+            (!hasPermission(
+              operatorProfile.role,
+              operatorProfile.permissions ?? [],
+              "bookings:update",
+            ) || !hasPermission(
+              operatorProfile.role,
+              operatorProfile.permissions ?? [],
+              "bookings:cancel",
+            ))
+          ) {
+           throw new TRPCError({
+             code: "FORBIDDEN",
+             message: "Access denied: missing permission bookings:update",
+           });
+         }
+       }
 
       const service = new CancellationService(ctx.prisma);
       return service.cancelBooking({

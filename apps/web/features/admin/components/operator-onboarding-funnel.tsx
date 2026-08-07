@@ -1,11 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Spinner } from "@moja/ui/components/ui/spinner";
-import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { Activity } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useTRPC } from "@/trpc/client";
 
 const STEP_ORDER = ["COMPANY", "DOCUMENTS", "BANK", "PROFILE", "TERMS"];
 
@@ -13,7 +19,7 @@ export function OperatorOnboardingFunnel() {
   const t = useTranslations("adminDashboard.onboardingFunnel");
   const trpc = useTRPC();
   const { data, isLoading } = useQuery(
-    trpc.admin.getOnboardingFunnel.queryOptions()
+    trpc.admin.getOnboardingFunnel.queryOptions(),
   );
 
   if (isLoading) {
@@ -29,15 +35,15 @@ export function OperatorOnboardingFunnel() {
   if (!data) return null;
 
   // We map the steps to display them in logical order, showing how many are stuck at each step.
-  const stepCounts = STEP_ORDER.map(stepName => {
-    const match = data.steps.find(s => s.step === stepName);
+  const stepCounts = STEP_ORDER.map((stepName) => {
+    const match = data.steps.find((s) => s.step === stepName);
     return {
       name: stepName,
       count: match?.count || 0,
     };
   });
 
-  const maxCount = Math.max(...stepCounts.map(s => s.count), 1); // Avoid division by zero
+  const maxCount = Math.max(...stepCounts.map((s) => s.count), 1); // Avoid division by zero
 
   return (
     <Card className="bg-white border-border shadow-sm">
@@ -60,7 +66,10 @@ export function OperatorOnboardingFunnel() {
             {stepCounts.map((s, i) => {
               const heightPct = Math.max((s.count / maxCount) * 100, 5); // min 5% height for visibility
               return (
-                <div key={s.name} className="flex flex-col items-center gap-2 group">
+                <div
+                  key={s.name}
+                  className="flex flex-col items-center gap-2 group"
+                >
                   <div className="text-xs font-bold text-slate-700">
                     {s.count}
                   </div>
@@ -71,7 +80,7 @@ export function OperatorOnboardingFunnel() {
                     {/* Active bar */}
                     <div
                       className="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm transition-all"
-                      style={{ height: s.count > 0 ? '4px' : '0' }}
+                      style={{ height: s.count > 0 ? "4px" : "0" }}
                     />
                   </div>
                   <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center">
@@ -81,7 +90,7 @@ export function OperatorOnboardingFunnel() {
               );
             })}
           </div>
-          
+
           <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100">
             <div className="text-xs font-medium text-slate-500">
               {t("totalStarted")}{" "}

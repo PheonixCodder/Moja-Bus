@@ -1,18 +1,18 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import Link from "next/link";
-import { Building2, Ticket, ArrowRight } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Badge } from "@moja/ui/components/ui/badge";
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@moja/ui/components/ui/card";
-import { Badge } from "@moja/ui/components/ui/badge";
-import { Button } from "@moja/ui/components/ui/button";
+import { formatDistanceToNow } from "date-fns";
+import { ArrowRight, Building2, Ticket } from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface RecentCompany {
   id: string;
@@ -37,8 +37,10 @@ interface DashboardActivityFeedProps {
 }
 
 function statusVariant(status: string) {
-  if (status === "ACTIVE") return "bg-green-500/10 text-green-700 border-green-200";
-  if (status === "PENDING_VERIFICATION") return "bg-amber-500/10 text-amber-700 border-amber-200";
+  if (status === "ACTIVE")
+    return "bg-green-500/10 text-green-700 border-green-200";
+  if (status === "PENDING_VERIFICATION")
+    return "bg-amber-500/10 text-amber-700 border-amber-200";
   if (status === "REJECTED") return "bg-red-500/10 text-red-700 border-red-200";
   return "bg-muted text-muted-foreground";
 }
@@ -55,15 +57,22 @@ export function DashboardActivityFeed({
   recentBookings,
 }: DashboardActivityFeedProps) {
   const t = useTranslations("adminDashboard.overview.activityFeed");
-  const statusT = useTranslations("adminDashboard.overview.activityFeed.status");
+  const statusT = useTranslations(
+    "adminDashboard.overview.activityFeed.status",
+  );
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {/* Recent Operator Signups */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-semibold">{t("recentOperators")}</CardTitle>
+          <CardTitle className="text-sm font-semibold">
+            {t("recentOperators")}
+          </CardTitle>
           <CardDescription>{t("recentOperatorsDesc")}</CardDescription>
-          <Button variant="ghost" size="sm" className="ml-auto h-7 px-2"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto h-7 px-2"
             nativeButton={false}
             render={<Link href="/dashboard/admin/verifications" />}
           >
@@ -72,7 +81,9 @@ export function DashboardActivityFeed({
         </CardHeader>
         <CardContent className="space-y-3">
           {recentCompanies.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">{t("noOperators")}</p>
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              {t("noOperators")}
+            </p>
           ) : (
             recentCompanies.map((company) => (
               <div key={company.id} className="flex items-center gap-3">
@@ -82,7 +93,9 @@ export function DashboardActivityFeed({
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{company.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(company.createdAt), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(company.createdAt), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
                 <Badge
@@ -100,9 +113,14 @@ export function DashboardActivityFeed({
       {/* Recent Bookings */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-semibold">{t("recentBookings")}</CardTitle>
+          <CardTitle className="text-sm font-semibold">
+            {t("recentBookings")}
+          </CardTitle>
           <CardDescription>{t("recentBookingsDesc")}</CardDescription>
-          <Button variant="ghost" size="sm" className="ml-auto h-7 px-2"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto h-7 px-2"
             nativeButton={false}
             render={<Link href="/dashboard/admin/operations/trips" />}
           >
@@ -111,7 +129,9 @@ export function DashboardActivityFeed({
         </CardHeader>
         <CardContent className="space-y-3">
           {recentBookings.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">{t("noBookings")}</p>
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              {t("noBookings")}
+            </p>
           ) : (
             recentBookings.map((booking) => (
               <div key={booking.id} className="flex items-center gap-3">
@@ -124,12 +144,16 @@ export function DashboardActivityFeed({
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {booking.company.name} ·{" "}
-                    {formatDistanceToNow(new Date(booking.createdAt), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(booking.createdAt), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
                 <span className="text-sm font-semibold tabular-nums shrink-0">
                   {booking.farePaid.toLocaleString()}{" "}
-                  <span className="text-xs font-normal text-muted-foreground">XOF</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    XOF
+                  </span>
                 </span>
               </div>
             ))

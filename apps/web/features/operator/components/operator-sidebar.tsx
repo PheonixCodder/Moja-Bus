@@ -19,6 +19,8 @@ import {
   TrendingUp,
   Banknote,
   Star,
+  ShieldCheck,
+  Shield,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -131,7 +133,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const statusPresentation = getCompanyStatusPresentation(status);
 
   const operationsItems: NavItem[] = [
-    { id: "overview", label: "Overview", path: "/dashboard/operator", icon: Gauge },
+    { id: "overview", label: "Overview", path: "/dashboard/operator", icon: Gauge, permissions: ["trips:read", "bookings:read", "company:view"] },
     {
       id: "dispatch-board",
       label: "Dispatch Board",
@@ -371,21 +373,29 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                 className="w-56 border-border bg-popover"
               >
                 <div className="px-2 py-1.5">
-                  <p className="truncate text-xs font-medium text-popover-foreground">
-                    {user?.name}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {user?.email}
-                  </p>
-                </div>
+                   <p className="truncate text-xs font-medium text-popover-foreground">
+                     {user?.name}
+                   </p>
+                   {user?.role === "ADMIN" ? (
+                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-500/10 rounded px-1.5 py-0.5 mt-0.5">
+                       <Shield className="size-3" />
+                       Platform Admin
+                     </span>
+                   ) : null}
+                   <p className="truncate text-xs text-muted-foreground">
+                     {user?.email}
+                   </p>
+                 </div>
                 <DropdownMenuSeparator className="bg-border" />
-                <DropdownMenuItem
-                  className="cursor-pointer text-popover-foreground/80 hover:text-popover-foreground"
-                  render={<Link href="/dashboard/operator/settings" />}
-                >
-                  <Settings className="mr-2 size-4 text-muted-foreground" />
-                  Settings
-                </DropdownMenuItem>
+                {can("company:view") ? (
+                  <DropdownMenuItem
+                    className="cursor-pointer text-popover-foreground/80 hover:text-popover-foreground"
+                    render={<Link href="/dashboard/operator/settings" />}
+                  >
+                    <Settings className="mr-2 size-4 text-muted-foreground" />
+                    Settings
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem
                   onClick={signOut}

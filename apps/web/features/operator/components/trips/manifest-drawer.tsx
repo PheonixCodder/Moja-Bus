@@ -532,36 +532,36 @@ export function ManifestDrawer({
                       </span>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      {pendingCheckIns.length > 0 ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-[11px] px-2"
-                          onClick={() => void handleCheckInAll()}
-                          disabled={bulkCheckInMutation.isPending}
-                        >
-                          {bulkCheckInMutation.isPending ? (
-                            <Spinner className="size-3" />
-                          ) : (
-                            t("checkInAll", { count: pendingCheckIns.length })
-                          )}
-                        </Button>
-                      ) : null}
-                      {selectedIds.size > 0 ? (
-                        <span className="text-[11px] font-semibold text-muted-foreground">
-                          {t("selected", { count: selectedIds.size })}
-                        </span>
-                      ) : null}
-                      {selectedIds.size > 0 && !bulkCancelOpen ? (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="h-7 text-[11px] px-2"
-                          onClick={() => setBulkCancelOpen(true)}
-                        >
-                          {t("cancelSelected")}
-                        </Button>
-                      ) : null}
+                       {canCheckIn && pendingCheckIns.length > 0 ? (
+                         <Button
+                           size="sm"
+                           variant="outline"
+                           className="h-7 text-[11px] px-2"
+                           onClick={() => void handleCheckInAll()}
+                           disabled={bulkCheckInMutation.isPending}
+                         >
+                           {bulkCheckInMutation.isPending ? (
+                             <Spinner className="size-3" />
+                           ) : (
+                             t("checkInAll", { count: pendingCheckIns.length })
+                           )}
+                         </Button>
+                       ) : null}
+                       {selectedIds.size > 0 ? (
+                         <span className="text-[11px] font-semibold text-muted-foreground">
+                           {t("selected", { count: selectedIds.size })}
+                         </span>
+                       ) : null}
+                       {canCancel && selectedIds.size > 0 && !bulkCancelOpen ? (
+                         <Button
+                           size="sm"
+                           variant="destructive"
+                           className="h-7 text-[11px] px-2"
+                           onClick={() => setBulkCancelOpen(true)}
+                         >
+                           {t("cancelSelected")}
+                         </Button>
+                       ) : null}
                       {selectedIds.size > 0 ? (
                         <Button
                           size="sm"

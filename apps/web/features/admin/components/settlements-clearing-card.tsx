@@ -1,18 +1,18 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
-import { useTranslations } from "next-intl";
-import {
-  Landmark,
-  ShieldCheck,
-  AlertTriangle,
-  TrendingUp,
-  Lock,
-  ArrowDownLeft,
-} from "lucide-react";
-import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
+import { Card, CardContent } from "@moja/ui/components/ui/card";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  ArrowDownLeft,
+  Landmark,
+  Lock,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useTRPC } from "@/trpc/client";
 
 function formatXOF(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -28,7 +28,7 @@ export function SettlementsClearingCard() {
   const trpc = useTRPC();
 
   const { data: treasury } = useSuspenseQuery(
-    trpc.payments.getTreasuryOverview.queryOptions()
+    trpc.payments.getTreasuryOverview.queryOptions(),
   );
 
   // getTreasuryOverview returns clearingBalance (posted) and revenueBalance
@@ -117,7 +117,9 @@ export function SettlementsClearingCard() {
                 {t("operatorPayables")}
               </p>
               <p className="text-sm font-bold text-foreground">
-                {formatXOF(Math.max(0, posted - (treasury.revenueBalance ?? 0)))}
+                {formatXOF(
+                  Math.max(0, posted - (treasury.revenueBalance ?? 0)),
+                )}
               </p>
             </div>
           </div>

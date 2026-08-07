@@ -1,16 +1,19 @@
 "use client";
 
-import { useQueryState, parseAsInteger } from "nuqs";
 import { Button } from "@moja/ui/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { parseAsInteger, useQueryState } from "nuqs";
 
 interface RedirectsPaginationProps {
   totalItems: number;
   limit: number;
 }
 
-export function RedirectsPagination({ totalItems, limit }: RedirectsPaginationProps) {
+export function RedirectsPagination({
+  totalItems,
+  limit,
+}: RedirectsPaginationProps) {
   const t = useTranslations("adminDashboard.redirectsPagination");
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const totalPages = Math.ceil(totalItems / limit) || 1;
@@ -21,7 +24,11 @@ export function RedirectsPagination({ totalItems, limit }: RedirectsPaginationPr
   return (
     <div className="flex items-center justify-between">
       <div className="text-sm text-muted-foreground">
-        {t("showing", { start: (page - 1) * limit + 1, end: Math.min(page * limit, totalItems), total: totalItems })}
+        {t("showing", {
+          start: (page - 1) * limit + 1,
+          end: Math.min(page * limit, totalItems),
+          total: totalItems,
+        })}
       </div>
       <div className="flex items-center space-x-2">
         <Button

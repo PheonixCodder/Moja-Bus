@@ -182,6 +182,24 @@ enum StaffRole {
   OPERATIONS
   FINANCE
   SUPPORT
+  TREASURY
+  DISPATCHER
+  CONDUCTOR
+}
+
+enum AdminStaffRole {
+  SUPER_ADMIN
+  ADMIN
+  OPERATIONS
+  SUPPORT
+  COMPLIANCE
+  FINANCE
+}
+
+enum AdminStaffStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
 }
 
 enum ContactInquiryStatus {
@@ -233,6 +251,12 @@ model User {
   acceptedInvitations StaffInvitation[] @relation("AcceptedBy")
   activityLogs        ActivityLog[]
   bankAccessLogs      BankAccessLog[]
+
+  // Admin Staff relations
+  adminStaff          AdminStaff?
+  sentAdminInvitations AdminStaffInvitation[] @relation("AdminInvitationsSent")
+  acceptedAdminInvitations AdminStaffInvitation[] @relation("AdminInvitationsAccepted")
+  adminStaffActivityLogs AdminStaffActivityLog[]
 
   bookings   Booking[]
   holdGroups HoldGroup[]
@@ -645,6 +669,79 @@ model PendingOperatorSignup {
   @@index([email])
   @@index([expiresAt])
   @@map("pending_operator_signup")
+}
+
+// ============================================
+// ADMIN STAFF IAM
+// ============================================
+
+model AdminStaff {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Role & Permissions
+  role            AdminStaffRole   @default(SUPPORT)
+  permissions     String[]         @default([])
+  permissionsUpdatedAt DateTime?
+  permissionsUpdatedBy String?
+  status          AdminStaffStatus @default(ACTIVE)
+  isActive        Boolean          @default(true)
+  deletedAt       DateTime?
+  
+  // Profile
+  jobTitle        String?
+  profilePhotoUrl String?
+  department      String?
+  
+  // Timestamps
+  joinedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([role])
+  @@index([status])
+  @@map("admin_staff")
+}
+
+model AdminStaffInvitation {
+  id          String   @id @default(cuid())
+  email       String
+  role        AdminStaffRole
+  permissions String[]
+  jobTitle    String?
+  message     String?
+  token       String   @unique
+  status      String   @default("PENDING")
+  expiresAt   DateTime
+  invitedById String
+  invitedBy   User     @relation("AdminInvitationsSent", fields: [invitedById], references: [id])
+  acceptedById String?
+  acceptedBy  User?    @relation("AdminInvitationsAccepted", fields: [acceptedById], references: [id])
+  acceptedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([email])
+  @@index([status])
+  @@index([invitedById])
+  @@map("admin_staff_invitation")
+}
+
+model AdminStaffActivityLog {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String
+  description String
+  metadata    Json?
+  targetUserId String?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([targetUserId])
+  @@map("admin_staff_activity_log")
 }
 
 // ============================================

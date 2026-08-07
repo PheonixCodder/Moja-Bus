@@ -1,17 +1,5 @@
 "use client";
 
-import * as React from "react";
-import {
-  type ColumnFiltersState,
-  type SortingState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { Download, LayoutGrid, List, Search } from "lucide-react";
-
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent, CardHeader } from "@moja/ui/components/ui/card";
 import { Input } from "@moja/ui/components/ui/input";
@@ -24,15 +12,25 @@ import {
   SelectValue,
 } from "@moja/ui/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
-import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-
+import {
+  type ColumnFiltersState,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+import { Download, LayoutGrid, List, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { getOperatorColumns, type OperatorRow } from "./operators-columns";
-import { OperatorsTable } from "./operators-table";
-import { OperatorsGrid } from "./operators-grid";
 import { useQueryStates } from "nuqs";
+import * as React from "react";
+import { useTRPC } from "@/trpc/client";
 import { operatorSearchParams } from "../lib/search-params";
+import { getOperatorColumns, type OperatorRow } from "./operators-columns";
+import { OperatorsGrid } from "./operators-grid";
+import { OperatorsTable } from "./operators-table";
 
 export function Operators() {
   const t = useTranslations("adminDashboard.operators");
@@ -44,19 +42,27 @@ export function Operators() {
   const columnFilters = React.useMemo(() => {
     const filters: ColumnFiltersState = [];
     if (params.search) filters.push({ id: "search", value: params.search });
-    if (params.status && params.status !== "All") filters.push({ id: "status", value: params.status });
+    if (params.status && params.status !== "All")
+      filters.push({ id: "status", value: params.status });
     return filters;
   }, [params.search, params.status]);
 
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(trpc.admin.listUsers.queryOptions({ role: "OPERATOR", limit: 100, offset: 0 }));
+  const { data } = useSuspenseQuery(
+    trpc.admin.listUsers.queryOptions({
+      role: "OPERATOR",
+      limit: 100,
+      offset: 0,
+    }),
+  );
 
   const tableData = React.useMemo(() => {
     return (data?.items || []).map((user) => {
       let status = "Active";
       if (!user.emailVerified) status = "Pending";
       // Determine companies
-      const companies = user.operatorProfiles?.map(op => op.company.name) || [];
+      const companies =
+        user.operatorProfiles?.map((op) => op.company.name) || [];
 
       return {
         id: user.id,
@@ -93,39 +99,50 @@ export function Operators() {
       <CardHeader className="p-0 pb-4 border-b">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 pt-4">
           <div className="flex items-center gap-4">
-          <h3 className="font-medium text-lg">{t("allOperators")}</h3>
-          <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-xs font-medium">
-            {tableData.length}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Tabs value={viewMode} onValueChange={(v) => setParams({ view: v as "list" | "grid" })} className="h-9">
-            <TabsList className="h-9 p-1">
-              <TabsTrigger value="list" className="h-7 px-3 flex gap-2">
-                <List className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only text-xs">{t("list")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="grid" className="h-7 px-3 flex gap-2">
-                <LayoutGrid className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only text-xs">{t("grid")}</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button variant="outline" size="sm" className="h-9 hidden sm:flex">
-            <Download className="mr-2 h-4 w-4" />
-            {t("export")}
-          </Button>
-        </div>
+            <h3 className="font-medium text-lg">{t("allOperators")}</h3>
+            <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-xs font-medium">
+              {tableData.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Tabs
+              value={viewMode}
+              onValueChange={(v) => setParams({ view: v as "list" | "grid" })}
+              className="h-9"
+            >
+              <TabsList className="h-9 p-1">
+                <TabsTrigger value="list" className="h-7 px-3 flex gap-2">
+                  <List className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only text-xs">
+                    {t("list")}
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="grid" className="h-7 px-3 flex gap-2">
+                  <LayoutGrid className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only text-xs">
+                    {t("grid")}
+                  </span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button variant="outline" size="sm" className="h-9 hidden sm:flex">
+              <Download className="mr-2 h-4 w-4" />
+              {t("export")}
+            </Button>
+          </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="flex flex-col gap-4 p-0 pt-4">
         <div className="flex flex-wrap items-center justify-between gap-3 px-4">
           <div className="flex flex-wrap items-center gap-3">
-            <Select value={params.status} onValueChange={(value) => {
-              setParams({ status: value as any });
-              table.setPageIndex(0);
-            }}>
+            <Select
+              value={params.status}
+              onValueChange={(value) => {
+                setParams({ status: value as any });
+                table.setPageIndex(0);
+              }}
+            >
               <SelectTrigger size="sm" className="h-8 w-[140px]">
                 <span className="text-muted-foreground">{t("status")}:</span>
                 <SelectValue />

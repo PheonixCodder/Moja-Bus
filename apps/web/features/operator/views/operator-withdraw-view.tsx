@@ -23,10 +23,12 @@ import {
 } from "@moja/ui/components/ui/table";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 export function OperatorWithdrawView() {
   const t = useTranslations("operatorDashboard.withdraw");
   const trpc = useTRPC();
+  const { can } = useStaffPermissions();
   const [amountXOF, setAmountXOF] = useState<string>("");
   // Stable per-attempt nonce sent to the server so a duplicate request
   // (double-click before the button disables, network retry) is treated as
@@ -219,59 +221,60 @@ export function OperatorWithdrawView() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("requestPayout")}</CardTitle>
-          <CardDescription>
-            {t("requestPayoutDesc")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 max-w-md">
-          <div className="space-y-2">
-            <Label htmlFor="amount">{t("amount")}</Label>
-            <div className="relative">
-              <Input
-                id="amount"
-                type="number"
-                placeholder="0"
-                value={amountXOF}
-                onChange={(e) => setAmountXOF(e.target.value)}
-                min="0"
-                max={toSafeDisplayNumber(availableBalance)}
-                disabled={withdrawMutation.isPending || availableBalance <= 0n}
-              />
-              <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">XOF</span>
-            </div>
-            {availableBalance > 0 && (
-              <p className="text-xs text-muted-foreground">
-                {t("maxAvailable", {
-                  amount: new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "XOF",
-                    maximumFractionDigits: 0,
-                  }).format(availableBalance)
-                })}
-              </p>
-            )}
-          </div>
-          {require2FA ? (
+      {can("withdrawals:create") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("requestPayout")}</CardTitle>
+            <CardDescription>
+              {t("requestPayoutDesc")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 max-w-md">
             <div className="space-y-2">
-              <Label htmlFor="twoFactorCode">{t("confirmationCode")}</Label>
-              <div className="flex gap-2">
+              <Label htmlFor="amount">{t("amount")}</Label>
+              <div className="relative">
                 <Input
-                  id="twoFactorCode"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  placeholder={t("codePlaceholder")}
-                  value={twoFactorCode}
-                  onChange={(e) => setTwoFactorCode(e.target.value)}
-                  disabled={withdrawMutation.isPending}
-                  className="max-w-[200px]"
+                  id="amount"
+                  type="number"
+                  placeholder="0"
+                  value={amountXOF}
+                  onChange={(e) => setAmountXOF(e.target.value)}
+                  min="0"
+                  max={toSafeDisplayNumber(availableBalance)}
+                  disabled={withdrawMutation.isPending || availableBalance <= 0n}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
+                <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">XOF</span>
+              </div>
+              {availableBalance > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {t("maxAvailable", {
+                    amount: new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "XOF",
+                      maximumFractionDigits: 0,
+                    }).format(availableBalance)
+                  })}
+                </p>
+              )}
+            </div>
+            {require2FA ? (
+              <div className="space-y-2">
+                <Label htmlFor="twoFactorCode">{t("confirmationCode")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="twoFactorCode"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder={t("codePlaceholder")}
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value)}
+                    disabled={withdrawMutation.isPending}
+                    className="max-w-[200px]"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
                   onClick={() => challengeMutation.mutate({})}
                   disabled={challengeMutation.isPending || withdrawMutation.isPending}
                 >
@@ -331,10 +334,11 @@ export function OperatorWithdrawView() {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : null}
 
-      {/* Withdrawal History Card */}
+       {/* Withdrawal History Card */}
       <Card className="border border-border bg-white rounded-lg shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
           <div>

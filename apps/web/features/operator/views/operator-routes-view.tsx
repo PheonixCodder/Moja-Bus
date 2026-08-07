@@ -21,6 +21,7 @@ import {
   EmptyTitle,
 } from "@moja/ui/components/ui/empty";
 import { useTRPC } from "@/trpc/client";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import { StatCard } from "@/features/operator/components/stat-card";
 import { RouteCard } from "@/features/operator/components/routes/route-card";
 import { RouteFormDrawer } from "@/features/operator/components/routes/route-form-drawer";
@@ -33,6 +34,7 @@ type RouteType = RouterOutputs["routes"]["list"][number];
 export function OperatorRoutesView() {
   const t = useTranslations("operatorDashboard.routes");
   const trpc = useTRPC();
+  const { can } = useStaffPermissions();
   const queryClient = useQueryClient();
 
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -113,11 +115,13 @@ export function OperatorRoutesView() {
             {t("pageDescription")}
           </p>
         </div>
-        <Button onClick={handleAddNew} className="shrink-0">
-          <Plus className="mr-2 size-4" />
-          {t("createRoute")}
-        </Button>
-      </div>
+         {can("routes:create") ? (
+           <Button onClick={handleAddNew} className="shrink-0">
+             <Plus className="mr-2 size-4" />
+             {t("createRoute")}
+           </Button>
+         ) : null}
+       </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -173,12 +177,14 @@ export function OperatorRoutesView() {
                 {t("noRoutesDesc")}
               </EmptyDescription>
             </EmptyHeader>
-            <EmptyContent>
-              <Button size="sm" onClick={handleAddNew}>
-                <Plus className="size-3.5 mr-1.5" />
-{t("createRoute")}
-              </Button>
-            </EmptyContent>
+             <EmptyContent>
+               {can("routes:create") ? (
+                 <Button size="sm" onClick={handleAddNew}>
+                   <Plus className="size-3.5 mr-1.5" />
+                   {t("createRoute")}
+                 </Button>
+               ) : null}
+             </EmptyContent>
           </Empty>
         ) : (
           <Empty className="py-16">
@@ -199,8 +205,10 @@ export function OperatorRoutesView() {
             <RouteCard
               key={route.id}
               route={route}
-              onEdit={handleEdit}
-              onDelete={setDeletingRoute}
+              onEdit={can("routes:update") ? handleEdit : undefined}
+              onDelete={can("routes:delete") ? setDeletingRoute : undefined}
+              canEdit={can("routes:update")}
+              canDelete={can("routes:delete")}
             />
           ))}
         </div>

@@ -1,10 +1,6 @@
 "use client";
 
-import { useQueryStates } from "nuqs";
-import { useTranslations } from "next-intl";
-import { webhookLogsSearchParams } from "../../../lib/search-params";
 import { Input } from "@moja/ui/components/ui/input";
-import { Search } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -12,6 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { webhookLogsSearchParams } from "../../../lib/search-params";
 
 export function WebhookLogsFilters() {
   const t = useTranslations("adminDashboard.webhookLogsFilters");

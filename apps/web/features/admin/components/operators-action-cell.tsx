@@ -1,11 +1,5 @@
 "use client";
 
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { MoreHorizontal, ShieldOff } from "lucide-react";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +7,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { MoreHorizontal, ShieldOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 import type { OperatorRow } from "./operators-columns";
 
 export function OperatorActionCell({ operator }: { operator: OperatorRow }) {
@@ -40,8 +40,14 @@ export function OperatorActionCell({ operator }: { operator: OperatorRow }) {
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[180px]">
-          <p className="px-2 py-1 text-xs font-normal text-muted-foreground">{t("actions")}</p>
-          <DropdownMenuItem onClick={() => router.push(`/dashboard/admin/users/operators/${operator.id}`)}>
+          <p className="px-2 py-1 text-xs font-normal text-muted-foreground">
+            {t("actions")}
+          </p>
+          <DropdownMenuItem
+            onClick={() =>
+              router.push(`/dashboard/admin/users/operators/${operator.id}`)
+            }
+          >
             {t("viewProfile")}
           </DropdownMenuItem>
           {operator.companies.length > 0 && (
@@ -49,7 +55,9 @@ export function OperatorActionCell({ operator }: { operator: OperatorRow }) {
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => demoteMutation.mutate({ userId: operator.id, role: "TRAVELER" })}
+            onClick={() =>
+              demoteMutation.mutate({ userId: operator.id, role: "TRAVELER" })
+            }
             className="text-amber-600 focus:text-amber-600"
           >
             <ShieldOff className="mr-2 h-4 w-4" />

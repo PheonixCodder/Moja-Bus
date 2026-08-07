@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
-import { Input } from "@moja/ui/components/ui/input";
 import { Button } from "@moja/ui/components/ui/button";
-import { Plus, Search } from "lucide-react";
-import { RedirectsTable } from "../components/content/redirects-table";
-import { RedirectFormDialog } from "../components/content/redirect-form-dialog";
 import { Card } from "@moja/ui/components/ui/card";
+import { Input } from "@moja/ui/components/ui/input";
+import { Plus, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { Suspense, useState } from "react";
+import { RedirectFormDialog } from "../components/content/redirect-form-dialog";
+import { RedirectsTable } from "../components/content/redirects-table";
 
 export function AdminRedirectsView() {
   const t = useTranslations("adminDashboard.adminRedirectsView");
@@ -49,16 +49,19 @@ export function AdminRedirectsView() {
 
       {/* Main Table Area */}
       <Card className="overflow-hidden">
-        <Suspense fallback={<div className="h-40 flex items-center justify-center">{t("loadingRedirects")}</div>}>
+        <Suspense
+          fallback={
+            <div className="h-40 flex items-center justify-center">
+              {t("loadingRedirects")}
+            </div>
+          }
+        >
           <RedirectsTable />
         </Suspense>
       </Card>
 
       {/* Create Dialog */}
-      <RedirectFormDialog
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
-      />
+      <RedirectFormDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
     </div>
   );
 }

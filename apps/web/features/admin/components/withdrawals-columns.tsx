@@ -1,20 +1,20 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { formatXOF } from "@/features/operator/lib/currency";
+import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
-import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
-import { ShieldAlert, ArrowRightCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@moja/ui/components/ui/tooltip";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { ArrowRightCircle, ShieldAlert } from "lucide-react";
 import type { useTranslations } from "next-intl";
+import { formatXOF } from "@/features/operator/lib/currency";
 
 export interface WithdrawalRow {
   id: string;
@@ -30,7 +30,7 @@ export interface WithdrawalRow {
 
 export function createWithdrawalsColumns(
   t: ReturnType<typeof useTranslations>,
-  onResolve: (row: WithdrawalRow) => void
+  onResolve: (row: WithdrawalRow) => void,
 ): ColumnDef<WithdrawalRow>[] {
   return [
     {
@@ -94,20 +94,29 @@ export function createWithdrawalsColumns(
           case "CREATED":
           case "POSTED":
             return (
-              <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
+              <Badge
+                variant="outline"
+                className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+              >
                 {t("pending")}
               </Badge>
             );
           case "SETTLED":
             return (
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+              <Badge
+                variant="outline"
+                className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+              >
                 {t("settled")}
               </Badge>
             );
           case "FAILED":
           case "REVERSED":
             return (
-              <Badge variant="outline" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20">
+              <Badge
+                variant="outline"
+                className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+              >
                 {status === "FAILED" ? t("failed") : t("reversed")}
               </Badge>
             );

@@ -33,6 +33,7 @@ import {
   RemoveStaffSchema,
   GetActivityLogSchema,
 } from "@/features/operator/lib/validations/staff";
+import { auth } from "@/lib/auth-server";
 
 type Ctx = PermissionContext & {
   prisma: PrismaClient;
@@ -310,14 +311,20 @@ export const staffRouter = createTRPCRouter({
       const target = await getTargetStaff(ctx, input.memberId);
       assertCanModifyTarget(ctx, target.role);
 
-      if (input.status === "SUSPENDED" && target.role === "OWNER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Cannot suspend the company owner.",
-        });
-      }
+       if (input.status === "SUSPENDED" && target.role === "OWNER") {
+         throw new TRPCError({
+           code: "FORBIDDEN",
+           message: "Cannot suspend the company owner.",
+         });
+       }
 
-      const updated = await ctx.prisma.operator.update({
+       if (input.status === "SUSPENDED") {
+         await ctx.prisma.session.deleteMany({
+           where: { userId: target.userId },
+         });
+       }
+
+       const updated = await ctx.prisma.operator.update({
         where: { id: target.id },
         data: {
           status: input.status,
@@ -357,15 +364,19 @@ export const staffRouter = createTRPCRouter({
         });
       }
 
-      await ctx.prisma.$transaction(async (tx) => {
-        await tx.operator.update({
-          where: { id: target.id },
-          data: {
-            deletedAt: new Date(),
-            isActive: false,
-            status: "INACTIVE",
-          },
-        });
+       await ctx.prisma.$transaction(async (tx) => {
+         await tx.operator.update({
+           where: { id: target.id },
+           data: {
+             deletedAt: new Date(),
+             isActive: false,
+             status: "INACTIVE",
+           },
+         });
+
+         await tx.session.deleteMany({
+           where: { userId: target.userId },
+         });
 
         await tx.activityLog.create({
           data: {
@@ -926,6 +937,7 @@ export const staffRouter = createTRPCRouter({
       };
     }),
 
+  /** @deprecated This endpoint is no longer used by the UI. Use getMyPermissions instead. */
   getPermissionCatalog: operatorCompanyProcedure.query(async ({ ctx }) => {
     requirePermission(ctx, "staff:invite");
     const grantable = getOperatorEffectivePermissions(ctx.operator);

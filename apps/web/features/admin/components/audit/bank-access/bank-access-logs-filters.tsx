@@ -1,8 +1,7 @@
 "use client";
 
-import { useQueryStates } from "nuqs";
-import { useTranslations } from "next-intl";
-import { bankAccessLogSearchParams } from "../../../lib/search-params";
+import { Button } from "@moja/ui/components/ui/button";
+import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -10,14 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
-import { Button } from "@moja/ui/components/ui/button";
 import { X } from "lucide-react";
-import { Input } from "@moja/ui/components/ui/input";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { bankAccessLogSearchParams } from "../../../lib/search-params";
 
 export function BankAccessLogsFilters() {
   const t = useTranslations("adminDashboard.bankAccessLogsFilters");
   const [{ action, companyId, userId }, setFilters] = useQueryStates(
-    bankAccessLogSearchParams
+    bankAccessLogSearchParams,
   );
 
   const hasFilters = Boolean(action || companyId || userId);
@@ -49,7 +49,7 @@ export function BankAccessLogsFilters() {
         }
         className="w-[200px]"
       />
-      
+
       <Input
         placeholder={t("filterByUserId")}
         value={userId || ""}

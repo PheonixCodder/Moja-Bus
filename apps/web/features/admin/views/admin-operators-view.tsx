@@ -1,9 +1,9 @@
 "use client";
 
-import { Operators } from "../components/operators";
-import { Plus } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
+import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Operators } from "../components/operators";
 
 export function AdminOperatorsView() {
   const t = useTranslations("adminDashboard.adminOperatorsView");

@@ -1,16 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useQueryStates } from "nuqs";
-import { useTRPC } from "@/trpc/client";
-import { withdrawalsSearchParams } from "../lib/search-params";
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-
 import {
   Table,
   TableBody,
@@ -19,20 +8,35 @@ import {
   TableHeader,
   TableRow,
 } from "@moja/ui/components/ui/table";
-import { createWithdrawalsColumns, type WithdrawalRow } from "./withdrawals-columns";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { useTRPC } from "@/trpc/client";
+import { withdrawalsSearchParams } from "../lib/search-params";
+import {
+  createWithdrawalsColumns,
+  type WithdrawalRow,
+} from "./withdrawals-columns";
 
 interface WithdrawalsTableProps {
   onResolve: (row: WithdrawalRow) => void;
   pageSize: number;
 }
 
-export function WithdrawalsTable({ onResolve, pageSize }: WithdrawalsTableProps) {
+export function WithdrawalsTable({
+  onResolve,
+  pageSize,
+}: WithdrawalsTableProps) {
   const trpc = useTRPC();
   const t = useTranslations("adminDashboard.withdrawalsTable");
-  const [{ status, from, to, page }] = useQueryStates(
-    withdrawalsSearchParams,
-    { shallow: false }
-  );
+  const [{ status, from, to, page }] = useQueryStates(withdrawalsSearchParams, {
+    shallow: false,
+  });
 
   const { data } = useSuspenseQuery(
     trpc.admin.listAllWithdrawals.queryOptions({
@@ -41,7 +45,7 @@ export function WithdrawalsTable({ onResolve, pageSize }: WithdrawalsTableProps)
       status: status === "ALL" ? undefined : status,
       from: from || undefined,
       to: to || undefined,
-    })
+    }),
   );
 
   const columns = createWithdrawalsColumns(t, onResolve);
@@ -58,15 +62,21 @@ export function WithdrawalsTable({ onResolve, pageSize }: WithdrawalsTableProps)
         <Table>
           <TableHeader className="bg-bg-muted/50">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b-border/60">
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent border-b-border/60"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="h-10 text-xs font-medium text-text-muted">
+                    <TableHead
+                      key={header.id}
+                      className="h-10 text-xs font-medium text-text-muted"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -86,7 +96,7 @@ export function WithdrawalsTable({ onResolve, pageSize }: WithdrawalsTableProps)
                     <TableCell key={cell.id} className="py-3">
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

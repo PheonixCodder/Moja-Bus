@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Tag as TagIcon, Hash } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@moja/ui/components/ui/dialog";
 import { Input } from "@moja/ui/components/ui/input";
+import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -16,28 +20,31 @@ import {
   TableRow,
 } from "@moja/ui/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@moja/ui/components/ui/dialog";
-import { Spinner } from "@moja/ui/components/ui/spinner";
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import { Edit2, Hash, Plus, Tag as TagIcon, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 export function AdminTagsView() {
   const t = useTranslations("adminDashboard.adminTagsView");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTag, setEditingTag] = useState<{ id: string; name: string } | null>(null);
+  const [editingTag, setEditingTag] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Form state
   const [name, setName] = useState("");
 
   const { data: tags } = useSuspenseQuery(
-    trpc.admin.listBlogTags.queryOptions()
+    trpc.admin.listBlogTags.queryOptions(),
   );
 
   const createTag = useMutation({
@@ -127,15 +134,24 @@ export function AdminTagsView() {
         <Table>
           <TableHeader className="bg-slate-50/70">
             <TableRow>
-              <TableHead className="w-1/2 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("tag")}</TableHead>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("urlSlug")}</TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("actions")}</TableHead>
+              <TableHead className="w-1/2 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                {t("tag")}
+              </TableHead>
+              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                {t("urlSlug")}
+              </TableHead>
+              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                {t("actions")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tags.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-10 text-slate-400 text-xs">
+                <TableCell
+                  colSpan={3}
+                  className="text-center py-10 text-slate-400 text-xs"
+                >
                   {t("noTags")}
                 </TableCell>
               </TableRow>
@@ -199,7 +215,10 @@ export function AdminTagsView() {
 
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <div className="space-y-1">
-              <label htmlFor="tag-name" className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+              <label
+                htmlFor="tag-name"
+                className="text-[10px] font-bold text-slate-700 uppercase tracking-wider"
+              >
                 {t("name")}
               </label>
               <Input
@@ -225,7 +244,9 @@ export function AdminTagsView() {
               </Button>
               <Button
                 type="submit"
-                disabled={!name.trim() || createTag.isPending || updateTag.isPending}
+                disabled={
+                  !name.trim() || createTag.isPending || updateTag.isPending
+                }
                 className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs"
               >
                 {createTag.isPending || updateTag.isPending ? (

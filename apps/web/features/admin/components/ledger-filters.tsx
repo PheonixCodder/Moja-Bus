@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
-import { Button } from "@moja/ui/components/ui/button";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface LedgerFiltersProps {
@@ -33,7 +33,8 @@ export function LedgerFilters({
   onClearFilters,
 }: LedgerFiltersProps) {
   const t = useTranslations("adminDashboard.ledgerFilters");
-  const hasActiveFilters = searchQuery !== "" || sideFilter !== "ALL" || typeFilter !== "ALL";
+  const hasActiveFilters =
+    searchQuery !== "" || sideFilter !== "ALL" || typeFilter !== "ALL";
 
   return (
     <div className="flex flex-col sm:flex-row items-center gap-4 bg-white border border-border rounded-lg p-4 shadow-sm">
@@ -50,7 +51,10 @@ export function LedgerFilters({
 
       {/* Filters selectors */}
       <div className="flex items-center gap-3 w-full sm:w-auto">
-        <Select value={sideFilter} onValueChange={(val) => onSideFilterChange(val || "ALL")}>
+        <Select
+          value={sideFilter}
+          onValueChange={(val) => onSideFilterChange(val || "ALL")}
+        >
           <SelectTrigger className="h-10 w-[120px] text-xs font-semibold bg-white border border-slate-200">
             <SelectValue placeholder={t("allSides")} />
           </SelectTrigger>
@@ -63,7 +67,10 @@ export function LedgerFilters({
           </SelectContent>
         </Select>
 
-        <Select value={typeFilter} onValueChange={(val) => onTypeFilterChange(val || "ALL")}>
+        <Select
+          value={typeFilter}
+          onValueChange={(val) => onTypeFilterChange(val || "ALL")}
+        >
           <SelectTrigger className="h-10 w-[160px] text-xs font-semibold bg-white border border-slate-200">
             <SelectValue placeholder={t("allTypes")} />
           </SelectTrigger>
@@ -73,8 +80,12 @@ export function LedgerFilters({
               <SelectItem value="BOOKING">{t("booking")}</SelectItem>
               <SelectItem value="TOP_UP">{t("walletTopUp")}</SelectItem>
               <SelectItem value="REFUND">{t("refund")}</SelectItem>
-              <SelectItem value="OPERATOR_PAYOUT">{t("operatorPayout")}</SelectItem>
-              <SelectItem value="PAYOUT_REVERSAL">{t("payoutReversal")}</SelectItem>
+              <SelectItem value="OPERATOR_PAYOUT">
+                {t("operatorPayout")}
+              </SelectItem>
+              <SelectItem value="PAYOUT_REVERSAL">
+                {t("payoutReversal")}
+              </SelectItem>
               <SelectItem value="SETTLEMENT">{t("settlement")}</SelectItem>
             </SelectGroup>
           </SelectContent>

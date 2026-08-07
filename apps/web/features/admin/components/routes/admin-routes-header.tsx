@@ -1,8 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useQueryState } from "nuqs";
-import { Search } from "lucide-react";
+import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
@@ -11,14 +9,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
-import { Card, CardContent } from "@moja/ui/components/ui/card";
+import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryState } from "nuqs";
 import { useTransition } from "react";
 
 export function AdminRoutesHeader() {
   const t = useTranslations("adminDashboard.adminRoutesHeader");
   const [isPending, startTransition] = useTransition();
-  const [search, setSearch] = useQueryState("q", { defaultValue: "", shallow: false });
-  const [status, setStatus] = useQueryState("status", { defaultValue: "All", shallow: false });
+  const [search, setSearch] = useQueryState("q", {
+    defaultValue: "",
+    shallow: false,
+  });
+  const [status, setStatus] = useQueryState("status", {
+    defaultValue: "All",
+    shallow: false,
+  });
 
   return (
     <Card className="border-border bg-card shadow-sm">

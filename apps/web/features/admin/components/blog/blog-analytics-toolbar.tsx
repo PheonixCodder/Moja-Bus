@@ -1,8 +1,8 @@
 "use client";
 
-import { useQueryState } from "nuqs";
-import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
+import { useTranslations } from "next-intl";
+import { useQueryState } from "nuqs";
 
 export function BlogAnalyticsToolbar() {
   const t = useTranslations("adminDashboard.blogAnalytics");
@@ -13,7 +13,9 @@ export function BlogAnalyticsToolbar() {
 
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-lg font-semibold text-slate-900 tracking-tight">{t("overview")}</h2>
+      <h2 className="text-lg font-semibold text-slate-900 tracking-tight">
+        {t("overview")}
+      </h2>
       <Tabs value={period} onValueChange={(v) => setPeriod(v)}>
         <TabsList>
           <TabsTrigger value="7d">{t("last7Days")}</TabsTrigger>

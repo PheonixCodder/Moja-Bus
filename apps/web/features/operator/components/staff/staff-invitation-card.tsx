@@ -15,12 +15,14 @@ interface StaffInvitationCardProps {
   invitation: StaffInvitation & { createdAt?: Date | string };
   onResend: (invitation: StaffInvitation) => void;
   onCancel: (invitation: StaffInvitation) => void;
+  canDelete: boolean;
 }
 
 export function StaffInvitationCard({
   invitation,
   onResend,
   onCancel,
+  canDelete,
 }: StaffInvitationCardProps) {
   const t = useTranslations("operatorDashboard.staff.invitationCard");
   const expiry = formatInvitationExpiry(invitation.expiresAt);
@@ -62,24 +64,28 @@ export function StaffInvitationCard({
       </div>
 
       <div className="flex gap-2 border-t border-border mt-1 pt-3">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 h-8 text-[12px] gap-1 font-semibold"
-          onClick={() => onResend(invitation)}
-        >
-          <RefreshCw className="h-3 w-3" />
-          {t("resend")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 h-8 text-[12px] gap-1 text-red-600 hover:text-red-600 hover:bg-red-50 border-red-200 font-semibold"
-          onClick={() => onCancel(invitation)}
-        >
-          <XCircle className="h-3 w-3" />
-          {t("cancel")}
-        </Button>
+        {canDelete ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 h-8 text-[12px] gap-1 font-semibold"
+            onClick={() => onResend(invitation)}
+          >
+            <RefreshCw className="h-3 w-3" />
+            {t("resend")}
+          </Button>
+        ) : null}
+        {canDelete ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 h-8 text-[12px] gap-1 text-red-600 hover:text-red-600 hover:bg-red-50 border-red-200 font-semibold"
+            onClick={() => onCancel(invitation)}
+          >
+            <XCircle className="h-3 w-3" />
+            {t("cancel")}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

@@ -1,15 +1,22 @@
 "use client";
 
-import { Building, User, Mail, Phone, ExternalLink } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Separator } from "@moja/ui/components/ui/separator";
+import { Building, ExternalLink, Mail, Phone, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface VerificationDetailsHeaderProps {
   company: any;
 }
 
-export function VerificationDetailsHeader({ company }: VerificationDetailsHeaderProps) {
+export function VerificationDetailsHeader({
+  company,
+}: VerificationDetailsHeaderProps) {
   const t = useTranslations("adminDashboard.verificationDetailsHeader");
   const rep = company.operators?.[0]?.user;
 
@@ -57,25 +64,33 @@ export function VerificationDetailsHeader({ company }: VerificationDetailsHeader
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
-            <div className="text-xs text-slate-400 font-medium">{t("businessType")}</div>
+            <div className="text-xs text-slate-400 font-medium">
+              {t("businessType")}
+            </div>
             <div className="font-semibold text-slate-800 text-sm mt-0.5">
               {company.businessType.replace(/_/g, " ")}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">{t("regNumber")}</div>
+            <div className="text-xs text-slate-400 font-medium">
+              {t("regNumber")}
+            </div>
             <div className="font-semibold text-slate-800 text-sm mt-0.5">
               {company.registrationNumber}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">{t("taxId")}</div>
+            <div className="text-xs text-slate-400 font-medium">
+              {t("taxId")}
+            </div>
             <div className="font-semibold text-slate-800 text-sm mt-0.5">
               {company.taxId}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">{t("established")}</div>
+            <div className="text-xs text-slate-400 font-medium">
+              {t("established")}
+            </div>
             <div className="font-semibold text-slate-800 text-sm mt-0.5">
               {company.yearEstablished || t("na")}
             </div>
@@ -92,18 +107,26 @@ export function VerificationDetailsHeader({ company }: VerificationDetailsHeader
           {rep ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-600 border border-slate-100 rounded-lg p-4 bg-slate-50/50">
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">{t("fullName")}</span>
-                <div className="font-semibold text-slate-800 text-sm">{rep.fullName}</div>
+                <span className="font-medium text-slate-400">
+                  {t("fullName")}
+                </span>
+                <div className="font-semibold text-slate-800 text-sm">
+                  {rep.fullName}
+                </div>
               </div>
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">{t("emailAddress")}</span>
+                <span className="font-medium text-slate-400">
+                  {t("emailAddress")}
+                </span>
                 <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
                   <Mail className="size-3 text-slate-400 shrink-0" />
                   {rep.email}
                 </div>
               </div>
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">{t("phoneContact")}</span>
+                <span className="font-medium text-slate-400">
+                  {t("phoneContact")}
+                </span>
                 <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
                   <Phone className="size-3 text-slate-400 shrink-0" />
                   {rep.phone || t("na")}
@@ -111,7 +134,9 @@ export function VerificationDetailsHeader({ company }: VerificationDetailsHeader
               </div>
             </div>
           ) : (
-            <p className="text-xs text-slate-400 italic">{t("noRepresentativeDetails")}</p>
+            <p className="text-xs text-slate-400 italic">
+              {t("noRepresentativeDetails")}
+            </p>
           )}
         </div>
       </CardContent>

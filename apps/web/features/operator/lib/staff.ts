@@ -23,6 +23,9 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
   OPERATIONS: "Operations",
   FINANCE: "Finance",
   SUPPORT: "Support",
+  TREASURY: "Treasury",
+  DISPATCHER: "Dispatcher",
+  CONDUCTOR: "Conductor",
 };
 
 export const ROLE_COLORS: Record<StaffRole, string> = {
@@ -32,6 +35,9 @@ export const ROLE_COLORS: Record<StaffRole, string> = {
   OPERATIONS: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
   FINANCE: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30",
   SUPPORT: "bg-slate-500/15 text-slate-600 border-slate-500/30",
+  TREASURY: "bg-indigo-500/15 text-indigo-600 border-indigo-500/30",
+  DISPATCHER: "bg-orange-500/15 text-orange-600 border-orange-500/30",
+  CONDUCTOR: "bg-pink-500/15 text-pink-600 border-pink-500/30",
 };
 
 export const ROLE_BADGE_CLASSES = ROLE_COLORS;

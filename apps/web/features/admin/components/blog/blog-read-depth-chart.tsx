@@ -1,5 +1,18 @@
 "use client";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@moja/ui/components/ui/chart";
 import { useMemo } from "react";
 import {
   Bar,
@@ -9,19 +22,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@moja/ui/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@moja/ui/components/ui/chart";
 
 interface BlogReadDepthChartProps {
   data: Array<{ stage: string; count: number }>;
@@ -42,14 +42,21 @@ export function BlogReadDepthChart({ data }: BlogReadDepthChartProps) {
         <CardDescription>How far down readers are scrolling</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-4">
-        <ChartContainer config={chartConfig} className="h-full min-h-[260px] w-full">
+        <ChartContainer
+          config={chartConfig}
+          className="h-full min-h-[260px] w-full"
+        >
           <BarChart
             accessibilityLayer
             data={data}
             layout="vertical"
             margin={{ right: 30, left: 0, top: 10, bottom: 0 }}
           >
-            <CartesianGrid horizontal={false} strokeDasharray="3 3" opacity={0.5} />
+            <CartesianGrid
+              horizontal={false}
+              strokeDasharray="3 3"
+              opacity={0.5}
+            />
             <XAxis type="number" hide />
             <YAxis
               dataKey="stage"
@@ -82,7 +89,9 @@ export function BlogReadDepthChart({ data }: BlogReadDepthChartProps) {
                 offset={8}
                 className="fill-foreground"
                 fontSize={12}
-                formatter={(value: any) => (typeof value === "number" ? value.toLocaleString() : value)}
+                formatter={(value: any) =>
+                  typeof value === "number" ? value.toLocaleString() : value
+                }
               />
             </Bar>
           </BarChart>

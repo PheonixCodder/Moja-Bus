@@ -1,13 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { type Table as ReactTable } from "@tanstack/react-table";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, ShieldOff, Building2 } from "lucide-react";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
 import {
@@ -26,19 +24,37 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@moja/ui/components/ui/pagination";
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { type OperatorRow, statusMeta, getAvatarTone, getInitials } from "./operators-columns";
 import { cn } from "@moja/ui/lib/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Table as ReactTable } from "@tanstack/react-table";
 import { format } from "date-fns";
+import {
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  MoreHorizontal,
+  ShieldOff,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import * as React from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
+import {
+  getAvatarTone,
+  getInitials,
+  type OperatorRow,
+  statusMeta,
+} from "./operators-columns";
 
 function getPageNumbers(currentPage: number, pageCount: number) {
   if (pageCount <= 3) {
     return Array.from({ length: pageCount }, (_, index) => index + 1);
   }
   if (currentPage <= 2) return [1, 2, 3];
-  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount];
+  if (currentPage >= pageCount - 1)
+    return [pageCount - 2, pageCount - 1, pageCount];
   return [currentPage - 1, currentPage, currentPage + 1];
 }
 
@@ -56,7 +72,7 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
   const rows = table.getRowModel().rows;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-   
+
   const demoteMutation = useMutation({
     ...trpc.admin.updateUserRole.mutationOptions(),
     onSuccess: () => {
@@ -78,12 +94,21 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
             const toneClass = getAvatarTone(operator.fullName);
             const meta = statusMeta[operator.status] || statusMeta["Active"];
             const StatusIcon = meta?.icon;
-            
+
             return (
-              <Card key={row.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200 border-muted">
+              <Card
+                key={row.id}
+                className="overflow-hidden hover:shadow-md transition-shadow duration-200 border-muted"
+              >
                 <CardContent className="p-0">
                   <div className="flex justify-between items-start p-4">
-                    <Badge variant="outline" className={cn("font-normal gap-1 px-2 py-0.5 border-0 text-[10px]", meta?.className)}>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "font-normal gap-1 px-2 py-0.5 border-0 text-[10px]",
+                        meta?.className,
+                      )}
+                    >
                       {StatusIcon && <StatusIcon className="h-3 w-3" />}
                       {meta?.label}
                     </Badge>
@@ -92,14 +117,23 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                         <MoreHorizontal className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <p className="px-2 py-1 text-xs font-normal text-muted-foreground">{t("actions")}</p>
+                        <p className="px-2 py-1 text-xs font-normal text-muted-foreground">
+                          {t("actions")}
+                        </p>
                         <DropdownMenuItem>{t("viewProfile")}</DropdownMenuItem>
                         {operator.companies.length > 0 && (
-                          <DropdownMenuItem>{t("manageCompany")}</DropdownMenuItem>
+                          <DropdownMenuItem>
+                            {t("manageCompany")}
+                          </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => demoteMutation.mutate({ userId: operator.id, role: "TRAVELER" })}
+                        <DropdownMenuItem
+                          onClick={() =>
+                            demoteMutation.mutate({
+                              userId: operator.id,
+                              role: "TRAVELER",
+                            })
+                          }
                           className="text-amber-600 focus:text-amber-600"
                         >
                           <ShieldOff className="mr-2 h-4 w-4" />
@@ -108,23 +142,40 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  
+
                   <div className="flex flex-col items-center px-4 pb-6">
-                    <Avatar className={cn("h-16 w-16 shrink-0 font-medium mb-3 shadow-sm", toneClass)}>
-                      <AvatarImage src={operator.avatar || undefined} alt={operator.fullName} />
+                    <Avatar
+                      className={cn(
+                        "h-16 w-16 shrink-0 font-medium mb-3 shadow-sm",
+                        toneClass,
+                      )}
+                    >
+                      <AvatarImage
+                        src={operator.avatar || undefined}
+                        alt={operator.fullName}
+                      />
                       <AvatarFallback className={cn("text-xl", toneClass)}>
                         {initials}
                       </AvatarFallback>
                     </Avatar>
-                    <h3 className="font-semibold text-base text-center line-clamp-1">{operator.fullName}</h3>
-                    <p className="text-sm text-muted-foreground text-center line-clamp-1 mb-4">{operator.email}</p>
-                    
+                    <h3 className="font-semibold text-base text-center line-clamp-1">
+                      {operator.fullName}
+                    </h3>
+                    <p className="text-sm text-muted-foreground text-center line-clamp-1 mb-4">
+                      {operator.email}
+                    </p>
+
                     {operator.companies && operator.companies.length > 0 ? (
                       <div className="flex items-center gap-1.5 justify-center w-full bg-muted/50 rounded-md py-1.5 px-3">
                         <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-xs font-medium truncate">{operator.companies[0]}</span>
+                        <span className="text-xs font-medium truncate">
+                          {operator.companies[0]}
+                        </span>
                         {operator.companies.length > 1 && (
-                          <Badge variant="secondary" className="text-[9px] h-4 px-1 py-0 ml-1 shrink-0">
+                          <Badge
+                            variant="secondary"
+                            className="text-[9px] h-4 px-1 py-0 ml-1 shrink-0"
+                          >
                             +{operator.companies.length - 1}
                           </Badge>
                         )}
@@ -132,19 +183,29 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                     ) : (
                       <div className="flex items-center gap-1.5 justify-center w-full text-muted-foreground py-1.5">
                         <Building2 className="h-3.5 w-3.5 opacity-50 shrink-0" />
-                        <span className="text-xs italic">{t("unassigned")}</span>
+                        <span className="text-xs italic">
+                          {t("unassigned")}
+                        </span>
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="grid grid-cols-2 divide-x border-t bg-muted/20">
                     <div className="p-3 text-center flex flex-col justify-center">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("phone")}</p>
-                      <p className="text-xs font-medium truncate">{operator.phone}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                        {t("phone")}
+                      </p>
+                      <p className="text-xs font-medium truncate">
+                        {operator.phone}
+                      </p>
                     </div>
                     <div className="p-3 text-center flex flex-col justify-center">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("joined")}</p>
-                      <p className="text-xs font-medium">{format(operator.joinedAt, "MMM d, yy")}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                        {t("joined")}
+                      </p>
+                      <p className="text-xs font-medium">
+                        {format(operator.joinedAt, "MMM d, yy")}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -167,10 +228,12 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
             {t("showing")}{" "}
             <span className="font-medium text-foreground">{rows.length}</span>{" "}
             {t("of")}{" "}
-            <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span>{" "}
+            <span className="font-medium text-foreground">
+              {table.getFilteredRowModel().rows.length}
+            </span>{" "}
             {t("operators")}
           </div>
-          
+
           <Pagination className="w-auto mx-0 order-1 sm:order-2">
             <PaginationContent>
               <PaginationItem className="hidden sm:inline-flex">
@@ -191,7 +254,11 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                   href="#"
                   size="sm"
                   text=""
-                  className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : undefined}
+                  className={
+                    !table.getCanPreviousPage()
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
                   onClick={(event) => {
                     event?.preventDefault();
                     table.previousPage();
@@ -207,7 +274,9 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                 <PaginationItem key={`page-${pageNumber}`}>
                   <PaginationLink
                     href="#"
-                    isActive={table.getState().pagination.pageIndex === pageNumber - 1}
+                    isActive={
+                      table.getState().pagination.pageIndex === pageNumber - 1
+                    }
                     onClick={(event) => {
                       event?.preventDefault();
                       table.setPageIndex(pageNumber - 1);
@@ -217,17 +286,22 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                   </PaginationLink>
                 </PaginationItem>
               ))}
-              {pageNumbers[pageNumbers.length - 1] !== undefined && pageNumbers[pageNumbers.length - 1]! < pageCount && (
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              )}
+              {pageNumbers[pageNumbers.length - 1] !== undefined &&
+                pageNumbers[pageNumbers.length - 1]! < pageCount && (
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )}
               <PaginationItem>
                 <PaginationNext
                   href="#"
                   size="sm"
                   text=""
-                  className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : undefined}
+                  className={
+                    !table.getCanNextPage()
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
                   onClick={(event) => {
                     event?.preventDefault();
                     table.nextPage();

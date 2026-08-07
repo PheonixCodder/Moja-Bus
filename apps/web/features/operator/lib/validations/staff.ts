@@ -84,7 +84,6 @@ export type InvitationIdInput = z.infer<typeof InvitationIdSchema>;
 export const RemoveStaffSchema = z.object({
   memberId: z.string().min(1),
   reason: z.string().max(500).optional(),
-  transferAssignments: z.boolean().default(false),
 });
 
 export type RemoveStaffInput = z.infer<typeof RemoveStaffSchema>;
