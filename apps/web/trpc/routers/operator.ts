@@ -253,7 +253,6 @@ export const operatorRouter = createTRPCRouter({
   }),
 
    completeOnboarding: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-     requirePermission(ctx, "company:profile:update");
      const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
@@ -371,7 +370,6 @@ export const operatorRouter = createTRPCRouter({
   }),
 
    resubmitVerification: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-     requirePermission(ctx, "company:profile:update");
      const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
@@ -454,7 +452,6 @@ export const operatorRouter = createTRPCRouter({
    saveOnboardingStep: operatorCompanyProcedure
      .input(saveOnboardingStepSchema)
      .mutation(async ({ ctx, input }) => {
-       requirePermission(ctx, "company:profile:update");
        const {
         step,
         companyData,
@@ -939,7 +936,6 @@ export const operatorRouter = createTRPCRouter({
        }),
      )
      .mutation(async ({ ctx, input }) => {
-       requirePermission(ctx, "company:profile:update");
        const operator = await ctx.prisma.operator.findFirst({
         where: { userId: ctx.user.id, deletedAt: null },
         orderBy: { joinedAt: "desc" },

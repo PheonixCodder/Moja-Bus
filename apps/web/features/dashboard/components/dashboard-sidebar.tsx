@@ -45,6 +45,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@moja/ui/components/ui/sidebar";
+import { DashboardSwitcher } from "@/components/dashboard-switcher";
 import type { User } from "@/lib/auth-client";
 
 interface MenuItem {
@@ -162,6 +163,9 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Cross-dashboard navigation */}
+        <DashboardSwitcher userRole={user?.role} />
       </SidebarContent>
 
       <SidebarFooter className="gap-4">
