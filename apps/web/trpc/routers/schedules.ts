@@ -732,9 +732,35 @@ fares: {
       }
 
       await ctx.prisma.$transaction(async (tx) => {
-        await tx.trip.deleteMany({
+        // Trips with NO booking rows at all can be removed outright.
+        const trips = await tx.trip.findMany({
           where: { scheduleId: schedule.id },
+          select: {
+            id: true,
+            _count: { select: { bookings: true } },
+          },
         });
+        const emptyIds = trips
+          .filter((t) => t._count.bookings === 0)
+          .map((t) => t.id);
+        const keptIds = trips
+          .filter((t) => t._count.bookings > 0)
+          .map((t) => t.id);
+
+        if (emptyIds.length > 0) {
+          await tx.trip.deleteMany({ where: { id: { in: emptyIds } } });
+        }
+
+        // Trips that still carry historical booking rows are detached from the
+        // schedule (scheduleId -> null via SetNull) and soft-archived so the
+        // booking history and financial records survive.
+        if (keptIds.length > 0) {
+          await tx.trip.updateMany({
+            where: { id: { in: keptIds } },
+            data: { archivedAt: new Date(), scheduleId: null },
+          });
+        }
+
         await tx.schedule.delete({
           where: { id: schedule.id },
         });

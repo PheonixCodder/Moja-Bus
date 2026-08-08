@@ -174,6 +174,7 @@ export const tripsRouter = createTRPCRouter({
 
       const filters: Record<string, unknown> = {
         companyId: ctx.companyId,
+        archivedAt: null,
         departureDate: {
           gte: startDate,
           lte: endDate,
@@ -312,7 +313,10 @@ export const tripsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:read");
-      const where: Prisma.TripWhereInput = { companyId: ctx.companyId };
+      const where: Prisma.TripWhereInput = {
+        companyId: ctx.companyId,
+        archivedAt: null,
+      };
       if (input?.scheduleId) where.scheduleId = input.scheduleId;
       if (input?.routeId) where.schedule = { routeId: input.routeId };
 
@@ -337,6 +341,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
         include: {
           bus: {
@@ -415,6 +420,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
         include: {
           bus: {
@@ -482,6 +488,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
         select: {
           id: true,

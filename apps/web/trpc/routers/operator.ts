@@ -1106,6 +1106,7 @@ export const operatorRouter = createTRPCRouter({
           ? ctx.prisma.trip.findMany({
               where: {
                 companyId,
+                archivedAt: null,
                 schedule: {
                   route: {
                     OR: [
@@ -1633,6 +1634,7 @@ export const operatorRouter = createTRPCRouter({
         ctx.prisma.trip.findMany({
           where: {
             companyId,
+            archivedAt: null,
             departureDate: {
               gte: startOfDay,
               lte: endOfDay,
