@@ -48,7 +48,7 @@ export class TripDetailsService {
       throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
     }
 
-    if (!trip.schedule.isActive) {
+    if (!trip.schedule?.isActive) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "This schedule is no longer available for booking",
@@ -91,13 +91,13 @@ export class TripDetailsService {
     const boardingStopOrder = originStop.stopOrder;
     const dropoffStopOrder = destStop.stopOrder;
 
-    const segmentFare = trip.schedule.fares.find(
+    const segmentFare = trip.schedule?.fares.find(
       (f) =>
         f.fromStopOrder <= boardingStopOrder &&
         f.toStopOrder >= dropoffStopOrder &&
         f.isActive,
     );
-    const fallbackFare = trip.schedule.fares.find((f) => f.isActive);
+    const fallbackFare = trip.schedule?.fares.find((f) => f.isActive);
     const priceXOF = segmentFare?.priceXOF ?? fallbackFare?.priceXOF ?? 5000;
 
     const searchRepo = new TripSearchReadRepository(this.prisma);

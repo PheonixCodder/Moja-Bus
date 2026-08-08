@@ -42,7 +42,7 @@ export const paymentsRouter = createTRPCRouter({
       return paymentService.getPricingPreview({
         baseFareXOF: details.priceXOF,
         seatCount: input.seatCount,
-        distanceKm: trip?.schedule.route.distanceKm ?? null,
+        distanceKm: trip?.schedule?.route.distanceKm ?? null,
       });
     }),
 

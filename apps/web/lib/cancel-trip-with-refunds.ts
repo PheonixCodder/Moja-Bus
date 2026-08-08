@@ -168,10 +168,10 @@ export async function cancelTripWithRefunds(params: {
           if (!email) continue;
 
           const originCity =
-            booking.trip.schedule.route.originTerminal.cityRelation?.name ??
+            booking.trip.schedule?.route.originTerminal.cityRelation?.name ??
             "Unknown";
           const destCity =
-            booking.trip.schedule.route.destTerminal.cityRelation?.name ??
+            booking.trip.schedule?.route.destTerminal.cityRelation?.name ??
             "Unknown";
           const refundResult = refundResults.find(
             (r) => r.bookingReference === booking.bookingReference,

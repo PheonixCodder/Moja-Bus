@@ -55,9 +55,9 @@ export async function sendBookingConfirmedEmails(
 
   if (!email) return;
 
-  const route = holdGroup.trip.schedule.route;
-  const originCityName = route.originTerminal.cityRelation?.name ?? "Côte d'Ivoire";
-  const destinationCityName = route.destTerminal.cityRelation?.name ?? "Côte d'Ivoire";
+  const route = holdGroup.trip.schedule?.route;
+  const originCityName = route?.originTerminal.cityRelation?.name ?? "Côte d'Ivoire";
+  const destinationCityName = route?.destTerminal.cityRelation?.name ?? "Côte d'Ivoire";
   const passengerName = holdGroup.bookings[0]?.passengerName ?? "Traveler";
   const companyName = holdGroup.trip.company.name;
   const departureTime = holdGroup.trip.departureDate;

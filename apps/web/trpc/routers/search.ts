@@ -215,7 +215,7 @@ export const searchRouter = createTRPCRouter({
         if (!destStop || originStop.stopOrder >= destStop.stopOrder) continue;
 
         const matchedFare = matchSegmentFare(
-          trip.schedule.fares,
+          trip.schedule?.fares ?? [],
           originStop.stopOrder,
           destStop.stopOrder,
           originStop.scheduledDeparture,

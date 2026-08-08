@@ -114,7 +114,7 @@ export class BookingHoldService {
     if (!trip) {
       throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
     }
-    if (!trip.schedule.isActive) {
+    if (!trip.schedule?.isActive) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "This schedule is no longer available for booking",
@@ -132,7 +132,7 @@ export class BookingHoldService {
     // price can never reach the hold. The passenger-facing "price changed"
     // warning for the login-resume case lives in the booking dialog (M28).
 
-    const distanceKm = trip.schedule.route.distanceKm ?? null;
+    const distanceKm = trip.schedule?.route.distanceKm ?? null;
     const { settings, tiers } = await loadPlatformSettings(this.prisma);
     const pricing = resolvePricing({
       baseFareXOF: details.priceXOF,

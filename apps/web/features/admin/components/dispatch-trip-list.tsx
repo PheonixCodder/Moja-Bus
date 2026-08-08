@@ -120,11 +120,11 @@ function TripCard({
   const t = useTranslations("adminDashboard.dispatchTripList");
   const { schedule, bus, _count, departureDate } = trip;
   const origin =
-    schedule.route.originTerminal.cityRelation?.name ||
-    schedule.route.originTerminal.name;
+    schedule?.route.originTerminal.cityRelation?.name ||
+    schedule?.route.originTerminal.name;
   const dest =
-    schedule.route.destTerminal.cityRelation?.name ||
-    schedule.route.destTerminal.name;
+    schedule?.route.destTerminal.cityRelation?.name ||
+    schedule?.route.destTerminal.name;
 
   return (
     <div

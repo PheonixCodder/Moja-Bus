@@ -341,9 +341,9 @@ export function DispatchTripDrawer({
             <DrawerHeader className="border-b border-border bg-slate-50/50 pb-4 text-left">
               <DrawerTitle className="text-base font-bold flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  {trip.schedule.route.originTerminal.cityRelation?.name}
+                  {trip.schedule?.route.originTerminal.cityRelation?.name}
                   <ArrowRight className="size-4 text-muted-foreground" />
-                  {trip.schedule.route.destTerminal.cityRelation?.name}
+                  {trip.schedule?.route.destTerminal.cityRelation?.name}
                 </span>
                 <span className="text-[10px] px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full font-semibold tracking-wider">
                   {trip.company.name}

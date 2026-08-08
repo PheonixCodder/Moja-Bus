@@ -920,8 +920,8 @@ export const adminRouter = createTRPCRouter({
         id: trip.id,
         companyName: trip.company.name,
         routeLabel:
-          trip.schedule.route.name ||
-          `${trip.schedule.route.originTerminal.city || trip.schedule.route.originTerminal.name} → ${trip.schedule.route.destTerminal.city || trip.schedule.route.destTerminal.name}`,
+          trip.schedule?.route.name ||
+          `${trip.schedule?.route.originTerminal.city || trip.schedule?.route.originTerminal.name} → ${trip.schedule?.route.destTerminal.city || trip.schedule?.route.destTerminal.name}`,
         departureDate: trip.departureDate,
         status: trip.status,
         delayMinutes: trip.delayMinutes ?? 0,

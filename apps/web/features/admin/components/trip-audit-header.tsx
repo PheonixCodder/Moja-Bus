@@ -48,9 +48,9 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
             ) : null}
           </div>
           <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            {trip.schedule.route.originTerminal.cityRelation?.name}
+            {trip.schedule?.route.originTerminal.cityRelation?.name}
             <ArrowRight className="size-5 text-muted-foreground" />
-            {trip.schedule.route.destTerminal.cityRelation?.name}
+            {trip.schedule?.route.destTerminal.cityRelation?.name}
           </h2>
           <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
             <CalendarDays className="size-4" />

@@ -821,13 +821,13 @@ export const tripsRouter = createTRPCRouter({
                   : null);
               if (email) {
                 const originCity =
-                  booking.trip.schedule.route.originTerminal.cityRelation
+                  booking.trip.schedule?.route.originTerminal.cityRelation
                     ?.name ?? "Unknown";
                 const destCity =
-                  booking.trip.schedule.route.destTerminal.cityRelation?.name ??
+                  booking.trip.schedule?.route.destTerminal.cityRelation?.name ??
                   "Unknown";
-                const originMunicipality = booking.trip.schedule.route.originTerminal.municipality?.name ?? null;
-                const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
+                const originMunicipality = booking.trip.schedule?.route.originTerminal.municipality?.name ?? null;
+                const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
 
                 await novu
                   .trigger({
@@ -1020,10 +1020,10 @@ export const tripsRouter = createTRPCRouter({
               for (const booking of bookings) {
                 const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
                 if (email) {
-                  const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
-                  const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
-                  const originMunicipality = booking.trip.schedule.route.originTerminal.municipality?.name ?? null;
-                  const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
+                  const originCity = booking.trip.schedule?.route.originTerminal.cityRelation?.name ?? "Unknown";
+                  const destCity = booking.trip.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
+                  const originMunicipality = booking.trip.schedule?.route.originTerminal.municipality?.name ?? null;
+                  const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
 
                   if (status === "BOARDING") {
                     await novu.trigger({
@@ -1139,8 +1139,8 @@ export const tripsRouter = createTRPCRouter({
               for (const booking of bookings) {
                 const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
                 if (email) {
-                  const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
-                  const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
+                  const destCity = booking.trip.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
+                  const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
                   await novu.trigger({
                     workflowId: "passenger-trip-gate-updated",
                     to: {

@@ -72,10 +72,10 @@ export const bookingRouter = createTRPCRouter({
             });
 
             if (details) {
-              const originCity = details.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
-              const destCity = details.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
-              const originMunicipality = details.schedule.route.originTerminal.municipality?.name ?? null;
-              const destMunicipality = details.schedule.route.destTerminal.municipality?.name ?? null;
+              const originCity = details.schedule?.route.originTerminal.cityRelation?.name ?? "Unknown";
+              const destCity = details.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
+              const originMunicipality = details.schedule?.route.originTerminal.municipality?.name ?? null;
+              const destMunicipality = details.schedule?.route.destTerminal.municipality?.name ?? null;
               await novu.trigger({
                 workflowId: "passenger-hold-created",
                 to: {
@@ -270,10 +270,10 @@ export const bookingRouter = createTRPCRouter({
         });
       }
 
-      const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
-      const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
-      const originMunicipality = booking.trip.schedule.route.originTerminal.municipality?.name ?? null;
-      const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
+      const originCity = booking.trip.schedule?.route.originTerminal.cityRelation?.name ?? "Unknown";
+      const destCity = booking.trip.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
+      const originMunicipality = booking.trip.schedule?.route.originTerminal.municipality?.name ?? null;
+      const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
 
       const novu = getNovuClient();
       if (novu) {
