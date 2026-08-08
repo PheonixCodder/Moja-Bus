@@ -15,9 +15,10 @@ export const authClient = createAuthClient({
 			scheme: "traveler-app",
 			storage: SecureStore,
 			storagePrefix: "traveler-app",
-		}) as any,
+		}) as unknown as { id: "expo"; $Infer: {} },
 	],
 });
+
 
 export type Session = typeof authClient.$Infer.Session;
 export type User = typeof authClient.$Infer.Session.user;

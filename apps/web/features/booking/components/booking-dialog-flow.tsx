@@ -123,7 +123,6 @@ export function BookingDialogFlow({ offerId, onClose }: { offerId: string; onClo
               selectedLabels={selectedLabels}
               onBack={() => setStep("seats")}
               onConfirmed={(result) => {
-                onClose();
                 const params = new URLSearchParams({
                   refs: result.bookingReferences.join(","),
                   tokens: result.ticketTokens.join(","),

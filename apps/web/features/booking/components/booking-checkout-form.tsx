@@ -12,7 +12,7 @@ import { CreditCard, Wallet } from "lucide-react";
 import { formatPriceXOF } from "@/features/search/lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
 import { useSession } from "@/lib/auth-client";
 import { usePaystackCheckout } from "@/features/payments/hooks/use-paystack-checkout";
@@ -67,6 +67,7 @@ export function BookingCheckoutForm({
   onConfirmed,
 }: BookingCheckoutFormProps) {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const { data: session } = useSession();
   const isLoggedIn = Boolean(session?.user);
 
@@ -264,6 +265,8 @@ export function BookingCheckoutForm({
         const confirmed = await walletCheckoutMutation.mutateAsync({
           holdId: hold.holdId,
         });
+
+        void queryClient.invalidateQueries(trpc.passenger.getWalletBalance.queryFilter());
 
         onConfirmed({
           holdId: confirmed.holdId,

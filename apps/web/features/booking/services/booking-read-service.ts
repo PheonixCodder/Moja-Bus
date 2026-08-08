@@ -248,8 +248,10 @@ export class BookingReadService {
   }
 
   async getTicketByToken(ticketToken: string): Promise<DigitalTicketDTO> {
-    const booking = await this.prisma.booking.findUnique({
-      where: { ticketToken },
+    const booking = await this.prisma.booking.findFirst({
+      where: {
+        OR: [{ ticketToken }, { bookingReference: ticketToken }],
+      },
       include: bookingInclude,
     });
 
@@ -261,8 +263,10 @@ export class BookingReadService {
   }
 
   async verifyTicketByToken(ticketToken: string) {
-    const booking = await this.prisma.booking.findUnique({
-      where: { ticketToken },
+    const booking = await this.prisma.booking.findFirst({
+      where: {
+        OR: [{ ticketToken }, { bookingReference: ticketToken }],
+      },
       select: {
         bookingReference: true,
         status: true,
