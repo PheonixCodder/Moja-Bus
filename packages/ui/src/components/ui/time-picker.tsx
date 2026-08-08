@@ -65,7 +65,17 @@ export function TimePicker({
   };
 
   // Quick preset times for common schedules
-  const presets = ["06:00", "07:30", "08:00", "09:00", "12:00", "14:00", "16:30", "18:00", "20:00"];
+  const presets = [
+    "06:00",
+    "07:30",
+    "08:00",
+    "09:00",
+    "12:00",
+    "14:00",
+    "16:30",
+    "18:00",
+    "20:00",
+  ];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -77,7 +87,7 @@ export function TimePicker({
             className={cn(
               "w-full justify-start text-left font-normal bg-background h-10 px-3",
               !value && "text-muted-foreground",
-              className
+              className,
             )}
           />
         }
@@ -93,57 +103,55 @@ export function TimePicker({
             Select Time
           </div>
           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <span className="text-[11px] text-muted-foreground">Hours</span>
-               <div className="max-h-48 overflow-y-auto">
-                 {hoursList.map((h) => {
-                   const selected = h === hour;
-                   return (
-                     <button
-                       key={h}
-                       type="button"
-                       role="option"
-                       aria-selected={selected}
-                       onClick={() => handleHourChange(h)}
-                       className={cn(
-                         "w-full h-9 px-2 text-left text-sm font-mono rounded-md border transition-colors",
-                         selected
-                           ? "bg-primary text-primary-foreground border-primary"
-                           : "bg-background hover:bg-muted border-input",
-                       )}
-                     >
-                       {h}
-                     </button>
-                   );
-                 })}
-               </div>
-             </div>
-             <div className="space-y-1">
-               <span className="text-[11px] text-muted-foreground">Minutes</span>
-               <div className="max-h-48 overflow-y-auto">
-                 {minutesList.map((m) => {
-                   const selected = m === minute;
-                   return (
-                     <button
-                       key={m}
-                       type="button"
-                       role="option"
-                       aria-selected={selected}
-                       onClick={() => handleMinuteChange(m)}
-                       className={cn(
-                         "w-full h-9 px-2 text-left text-sm font-mono rounded-md border transition-colors",
-                         selected
-                           ? "bg-primary text-primary-foreground border-primary"
-                           : "bg-background hover:bg-muted border-input",
-                       )}
-                     >
-                       {m}
-                     </button>
-                   );
-                 })}
-               </div>
-             </div>
-           </div>
+            <div className="space-y-1">
+              <span className="text-[11px] text-muted-foreground">Hours</span>
+              <div className="max-h-48 overflow-y-auto">
+                {hoursList.map((h) => {
+                  const selected = h === hour;
+                  return (
+                    <button
+                      key={h}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => handleHourChange(h)}
+                      className={cn(
+                        "w-full h-9 px-2 text-left text-sm font-mono rounded-md border transition-colors",
+                        selected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background hover:bg-muted border-input",
+                      )}
+                    >
+                      {h}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[11px] text-muted-foreground">Minutes</span>
+              <div className="max-h-48 overflow-y-auto">
+                {minutesList.map((m) => {
+                  const selected = m === minute;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => handleMinuteChange(m)}
+                      className={cn(
+                        "w-full h-9 px-2 text-left text-sm font-mono rounded-md border transition-colors",
+                        selected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background hover:bg-muted border-input",
+                      )}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
 
           <div className="pt-2 border-t">
             <span className="text-[11px] font-medium text-muted-foreground block mb-1.5">
@@ -162,7 +170,7 @@ export function TimePicker({
                     "text-xs px-2 py-1 rounded-md border font-mono transition-colors",
                     value === p
                       ? "bg-primary text-primary-foreground border-primary font-bold"
-                      : "bg-muted/50 hover:bg-muted text-muted-foreground"
+                      : "bg-muted/50 hover:bg-muted text-muted-foreground",
                   )}
                 >
                   {p}

@@ -1153,20 +1153,18 @@ reconcileFutureTrips: operatorCompanyProcedure
         });
       }
 
-      if (input.data.type && input.data.type !== fare.type) {
-        await assertNoFareOverlap(
-          ctx.prisma,
-          schedule.id,
-          input.fareId,
-          {
-            type: input.data.type,
-            fromStopOrder: fare.fromStopOrder,
-            toStopOrder: fare.toStopOrder,
-            validFrom: fare.validFrom,
-            validUntil: fare.validUntil,
-          },
-        );
-      }
+      await assertNoFareOverlap(
+        ctx.prisma,
+        schedule.id,
+        input.fareId,
+        {
+          type: input.data.type ?? fare.type,
+          fromStopOrder: fare.fromStopOrder,
+          toStopOrder: fare.toStopOrder,
+          validFrom: fare.validFrom,
+          validUntil: fare.validUntil,
+        },
+      );
 
       const updateData = Object.fromEntries(
         Object.entries(input.data).filter(([, v]) => v !== undefined),

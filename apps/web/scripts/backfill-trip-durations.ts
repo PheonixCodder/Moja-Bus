@@ -32,12 +32,20 @@ async function main() {
   }> = [];
 
   const total = await prisma.trip.count({
-    where: { status: "SCHEDULED", departureDate: { gte: cutoff } },
+    where: {
+      status: "SCHEDULED",
+      departureDate: { gte: cutoff },
+      archivedAt: null,
+    },
   });
 
   for (let skip = 0; skip < total; skip += BATCH) {
     const trips = await prisma.trip.findMany({
-      where: { status: "SCHEDULED", departureDate: { gte: cutoff } },
+      where: {
+        status: "SCHEDULED",
+        departureDate: { gte: cutoff },
+        archivedAt: null,
+      },
       select: {
         id: true,
         scheduleId: true,
@@ -48,7 +56,11 @@ async function main() {
             route: {
               select: {
                 waypoints: {
-                  select: { id: true, stopOrder: true, distanceFromOriginKm: true },
+                  select: {
+                    id: true,
+                    stopOrder: true,
+                    distanceFromOriginKm: true,
+                  },
                 },
               },
             },
@@ -142,7 +154,8 @@ async function main() {
           tripId: trip.id,
           departureDate: trip.departureDate,
           oldArrival: destStop.scheduledArrival,
-          oldEstimatedArrival: trip.estimatedArrival ?? destStop.scheduledArrival,
+          oldEstimatedArrival:
+            trip.estimatedArrival ?? destStop.scheduledArrival,
           newArrival,
         });
       }
