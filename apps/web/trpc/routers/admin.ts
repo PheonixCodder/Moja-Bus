@@ -62,7 +62,7 @@ export const adminRouter = createTRPCRouter({
         where: { status: "PENDING_VERIFICATION" },
       }),
       ctx.prisma.trip.count({
-        where: { status: { in: ["BOARDING", "DEPARTED"] } },
+        where: { status: { in: ["BOARDING", "DEPARTED"] }, archivedAt: null },
       }),
     ]);
 
@@ -2471,7 +2471,10 @@ export const adminRouter = createTRPCRouter({
         ctx.prisma.company.count(),
         ctx.prisma.company.count({ where: { status: "PENDING_VERIFICATION" } }),
         ctx.prisma.trip.count({
-          where: { status: { in: ["BOARDING", "DEPARTED", "DELAYED"] } },
+          where: {
+            status: { in: ["BOARDING", "DEPARTED", "DELAYED"] },
+            archivedAt: null,
+          },
         }),
         ctx.prisma.booking.count({
           where: { status: "CONFIRMED", createdAt: { gte: from, lte: to } },

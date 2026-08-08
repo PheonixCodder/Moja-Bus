@@ -310,6 +310,7 @@ export const fleetRouter = createTRPCRouter({
           companyId: ctx.companyId,
           departureDate: { gte: now },
           status: { notIn: ["CANCELLED", "ARRIVED"] },
+          archivedAt: null,
         },
         select: { id: true },
       });

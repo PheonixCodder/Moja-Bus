@@ -202,7 +202,9 @@ export const operatorRouter = createTRPCRouter({
         ctx.prisma.schedule.count({
           where: { companyId: operator.companyId, isActive: true },
         }),
-        ctx.prisma.trip.count({ where: { companyId: operator.companyId } }),
+        ctx.prisma.trip.count({
+          where: { companyId: operator.companyId, archivedAt: null },
+        }),
       ]);
       businessReadiness = [
         {

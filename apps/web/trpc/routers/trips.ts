@@ -532,6 +532,7 @@ export const tripsRouter = createTRPCRouter({
           where: {
             id: input.id,
             companyId: ctx.companyId,
+            archivedAt: null,
           },
           include: {
             seats: true,
@@ -729,6 +730,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
         include: { tripStops: true },
       });
@@ -889,6 +891,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
       });
 
@@ -948,6 +951,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
       });
 
@@ -1088,7 +1092,7 @@ export const tripsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:update");
       const trip = await ctx.prisma.trip.findFirst({
-        where: { id: input.id, companyId: ctx.companyId },
+        where: { id: input.id, companyId: ctx.companyId, archivedAt: null },
       });
       if (!trip) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
@@ -1104,7 +1108,7 @@ export const tripsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:update");
       const trip = await ctx.prisma.trip.findFirst({
-        where: { id: input.id, companyId: ctx.companyId },
+        where: { id: input.id, companyId: ctx.companyId, archivedAt: null },
       });
       if (!trip) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
@@ -1193,6 +1197,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.tripId,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
       });
 
