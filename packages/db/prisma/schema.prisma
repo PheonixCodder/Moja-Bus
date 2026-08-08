@@ -1361,11 +1361,11 @@ model Fare {
 // ============================================
 
 model Trip {
-  id         String   @id @default(cuid())
-  scheduleId String
-  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+  id         String    @id @default(cuid())
+  scheduleId String?
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
   companyId  String
-  company    Company  @relation(fields: [companyId], references: [id])
+  company    Company   @relation(fields: [companyId], references: [id])
 
   // Bus assigned PER TRIP â€” not per schedule (maintenance/swap support)
   busId String
@@ -1393,6 +1393,9 @@ model Trip {
   routeSnapshotJson Json
 
   totalSeats Int
+
+  // Set when a schedule is deleted but the trip still has booking history
+  archivedAt DateTime?
 
   tripStops  TripStop[]
   seats      TripSeat[]

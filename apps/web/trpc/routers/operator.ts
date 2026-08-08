@@ -18,11 +18,7 @@ import {
 import { TERMS_VERSION, PRIVACY_VERSION, COMMISSION_VERSION } from "@/lib/constants/legal";
 import crypto from "crypto";
 import { getNovuClient } from "@/lib/novu";
-import {
-  startOfAppCalendarDay,
-  addAppCalendarDays,
-  getCalendarDateKey,
-} from "@/lib/timezone";
+import { startOfAppCalendarDay, addAppCalendarDays } from "@/lib/timezone";
 import { toSafeDisplayNumber } from "@/lib/money";
 import { auth } from "@/lib/auth-server";
 
@@ -47,6 +43,7 @@ import {
 } from "@/lib/withdrawal-2fa";
 import { OperatorBookingService } from "@/features/operator/services/operator-booking-service";
 import { CancellationService } from "@/features/payments/services/cancellation-service";
+import { aggregateRevenueRows } from "@/features/payments/lib/revenue-analytics";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
 import {
   paystackRegisterRecipient,
@@ -202,7 +199,9 @@ export const operatorRouter = createTRPCRouter({
         ctx.prisma.schedule.count({
           where: { companyId: operator.companyId, isActive: true },
         }),
-        ctx.prisma.trip.count({ where: { companyId: operator.companyId } }),
+        ctx.prisma.trip.count({
+          where: { companyId: operator.companyId, archivedAt: null },
+        }),
       ]);
       businessReadiness = [
         {
@@ -1106,6 +1105,7 @@ export const operatorRouter = createTRPCRouter({
           ? ctx.prisma.trip.findMany({
               where: {
                 companyId,
+                archivedAt: null,
                 schedule: {
                   route: {
                     OR: [
@@ -1396,10 +1396,10 @@ export const operatorRouter = createTRPCRouter({
         JOIN "pricing_snapshot" ps ON ps."holdGroupId" = hg."id"
         JOIN "booking" b ON b."holdGroupId" = hg."id"
         JOIN "trip" t ON b."tripId" = t."id"
-        JOIN "schedule" s ON t."scheduleId" = s."id"
-        JOIN "route" r ON s."routeId" = r."id"
-        JOIN "company_location" ocl ON r."originTerminalId" = ocl."id"
-        JOIN "company_location" dcl ON r."destTerminalId" = dcl."id"
+        LEFT JOIN "trip_stop" ots ON b."originTripStopId" = ots."id"
+        LEFT JOIN "trip_stop" dts ON b."destinationTripStopId" = dts."id"
+        LEFT JOIN "company_location" ocl ON ots."terminalId" = ocl."id"
+        LEFT JOIN "company_location" dcl ON dts."terminalId" = dcl."id"
         LEFT JOIN "city" oc ON ocl."cityId" = oc."id"
         LEFT JOIN "city" dc ON dcl."cityId" = dc."id"
         WHERE b."companyId" = ${companyId}
@@ -1409,53 +1409,13 @@ export const operatorRouter = createTRPCRouter({
         GROUP BY hg."id", oc."name", dc."name"
       `;
 
-      let grossRevenueXOF = 0;
-      let netRevenueXOF = 0;
-      let totalConfirmedBookings = 0;
-
-      const timeSeriesMap = new Map<string, { date: string; netXOF: number }>();
-      const routeMap = new Map<
-        string,
-        {
-          routeLabel: string;
-          totalNetXOF: number;
-          bookingsCount: number;
-          tripsCount: number;
-          refundsCount: number;
-        }
-      >();
-
-      for (const row of rows) {
-        const net = toSafeDisplayNumber(row.net);
-        const gross = toSafeDisplayNumber(row.gross);
-        const bookings = toSafeDisplayNumber(row.bookingsCount);
-        const trips = toSafeDisplayNumber(row.tripsCount);
-        const routeLabel = `${row.originCity ?? "Unknown"} → ${row.destCity ?? "Unknown"}`;
-
-        grossRevenueXOF += gross;
-        netRevenueXOF += net;
-        totalConfirmedBookings += bookings;
-
-        const dateStr = getCalendarDateKey(new Date(row.day));
-        const tsEntry =
-          timeSeriesMap.get(dateStr) ?? { date: dateStr, netXOF: 0 };
-        tsEntry.netXOF += net;
-        timeSeriesMap.set(dateStr, tsEntry);
-
-        const routeEntry =
-          routeMap.get(routeLabel) ??
-          {
-            routeLabel,
-            totalNetXOF: 0,
-            bookingsCount: 0,
-            tripsCount: 0,
-            refundsCount: 0,
-          };
-        routeEntry.totalNetXOF += net;
-        routeEntry.bookingsCount += bookings;
-        routeEntry.tripsCount += trips;
-        routeMap.set(routeLabel, routeEntry);
-      }
+      const {
+        grossRevenueXOF,
+        netRevenueXOF,
+        totalConfirmedBookings,
+        timeSeriesMap,
+        routeMap,
+      } = aggregateRevenueRows(rows);
 
       // Refunds issued to this operator in the window (all refund DEBIT entries).
       const refundAgg = await ctx.prisma.$queryRaw<Array<{
@@ -1633,6 +1593,7 @@ export const operatorRouter = createTRPCRouter({
         ctx.prisma.trip.findMany({
           where: {
             companyId,
+            archivedAt: null,
             departureDate: {
               gte: startOfDay,
               lte: endOfDay,

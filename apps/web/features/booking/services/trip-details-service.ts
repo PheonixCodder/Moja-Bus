@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import type { Amenity, TripDetails } from "@moja/types";
 import { buildOfferId, parseOfferId } from "@moja/types";
 import { TripSearchReadRepository } from "@/features/search/repositories/search-read-repository";
+import { matchSegmentFare } from "@/features/search/lib/segment-fare-match";
 import { isActiveBookingStatus, segmentsOverlap } from "../lib/segment-overlap";
 
 const BOOKABLE_TRIP_STATUSES = ["SCHEDULED", "DELAYED", "BOARDING"] as const;
@@ -48,7 +49,7 @@ export class TripDetailsService {
       throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
     }
 
-    if (!trip.schedule.isActive) {
+    if (!trip.schedule?.isActive) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "This schedule is no longer available for booking",
@@ -91,14 +92,22 @@ export class TripDetailsService {
     const boardingStopOrder = originStop.stopOrder;
     const dropoffStopOrder = destStop.stopOrder;
 
-    const segmentFare = trip.schedule.fares.find(
-      (f) =>
-        f.fromStopOrder <= boardingStopOrder &&
-        f.toStopOrder >= dropoffStopOrder &&
-        f.isActive,
+    const fares = trip.schedule?.fares ?? [];
+    const segmentFare = matchSegmentFare(
+      fares,
+      boardingStopOrder,
+      dropoffStopOrder,
+      trip.departureDate,
     );
-    const fallbackFare = trip.schedule.fares.find((f) => f.isActive);
-    const priceXOF = segmentFare?.priceXOF ?? fallbackFare?.priceXOF ?? 5000;
+
+    if (!segmentFare) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "No active fare matches this journey segment",
+      });
+    }
+
+    const priceXOF = segmentFare.priceXOF;
 
     const searchRepo = new TripSearchReadRepository(this.prisma);
     const occupancy = await searchRepo.getSegmentOccupancy([

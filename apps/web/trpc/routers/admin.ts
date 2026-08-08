@@ -62,7 +62,7 @@ export const adminRouter = createTRPCRouter({
         where: { status: "PENDING_VERIFICATION" },
       }),
       ctx.prisma.trip.count({
-        where: { status: { in: ["BOARDING", "DEPARTED"] } },
+        where: { status: { in: ["BOARDING", "DEPARTED"] }, archivedAt: null },
       }),
     ]);
 
@@ -884,6 +884,7 @@ export const adminRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "platform:trips:read");
       const where: any = {};
+      where.archivedAt = null;
       if (input.companyId) {
         where.companyId = input.companyId;
       }
@@ -920,8 +921,8 @@ export const adminRouter = createTRPCRouter({
         id: trip.id,
         companyName: trip.company.name,
         routeLabel:
-          trip.schedule.route.name ||
-          `${trip.schedule.route.originTerminal.city || trip.schedule.route.originTerminal.name} → ${trip.schedule.route.destTerminal.city || trip.schedule.route.destTerminal.name}`,
+          trip.schedule?.route.name ||
+          `${trip.schedule?.route.originTerminal.city || trip.schedule?.route.originTerminal.name} → ${trip.schedule?.route.destTerminal.city || trip.schedule?.route.destTerminal.name}`,
         departureDate: trip.departureDate,
         status: trip.status,
         delayMinutes: trip.delayMinutes ?? 0,
@@ -1911,6 +1912,7 @@ export const adminRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "platform:trips:read");
       const filters: any = {};
+      filters.archivedAt = null;
 
       if (input?.status && input.status !== "ALL") {
         if (input.status === "ACTIVE") {
@@ -1982,8 +1984,8 @@ export const adminRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "platform:trips:read");
-      const trip = await ctx.prisma.trip.findUnique({
-        where: { id: input.id },
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: input.id, archivedAt: null },
         include: {
           company: true,
           bus: {
@@ -2047,8 +2049,8 @@ export const adminRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "platform:trips:read");
-      const trip = await ctx.prisma.trip.findUnique({
-        where: { id: input.id },
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: input.id, archivedAt: null },
         include: {
           company: true,
           bus: {
@@ -2469,7 +2471,10 @@ export const adminRouter = createTRPCRouter({
         ctx.prisma.company.count(),
         ctx.prisma.company.count({ where: { status: "PENDING_VERIFICATION" } }),
         ctx.prisma.trip.count({
-          where: { status: { in: ["BOARDING", "DEPARTED", "DELAYED"] } },
+          where: {
+            status: { in: ["BOARDING", "DEPARTED", "DELAYED"] },
+            archivedAt: null,
+          },
         }),
         ctx.prisma.booking.count({
           where: { status: "CONFIRMED", createdAt: { gte: from, lte: to } },

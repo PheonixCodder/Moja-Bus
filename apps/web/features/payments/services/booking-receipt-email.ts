@@ -12,27 +12,23 @@ export async function sendBookingConfirmedEmails(
     where: { id: confirmed.holdId },
     include: {
       bookings: {
-        select: { passengerName: true, bookingReference: true, passengerPhone: true },
+        select: {
+          passengerName: true,
+          bookingReference: true,
+          passengerPhone: true,
+          originTripStop: {
+            select: { terminal: { select: { cityRelation: { select: { name: true } } } } },
+          },
+          destinationTripStop: {
+            select: { terminal: { select: { cityRelation: { select: { name: true } } } } },
+          },
+        },
       },
       pricingSnapshot: true,
       trip: {
         select: {
           departureDate: true,
           company: { select: { name: true } },
-          schedule: {
-            select: {
-              route: {
-                select: {
-                  originTerminal: {
-                    select: { cityRelation: { select: { name: true } } },
-                  },
-                  destTerminal: {
-                    select: { cityRelation: { select: { name: true } } },
-                  },
-                },
-              },
-            },
-          },
         },
       },
     },
@@ -55,9 +51,11 @@ export async function sendBookingConfirmedEmails(
 
   if (!email) return;
 
-  const route = holdGroup.trip.schedule.route;
-  const originCityName = route.originTerminal.cityRelation?.name ?? "Côte d'Ivoire";
-  const destinationCityName = route.destTerminal.cityRelation?.name ?? "Côte d'Ivoire";
+  const booking = holdGroup.bookings[0];
+  const originCityName =
+    booking?.originTripStop?.terminal?.cityRelation?.name ?? "Côte d'Ivoire";
+  const destinationCityName =
+    booking?.destinationTripStop?.terminal?.cityRelation?.name ?? "Côte d'Ivoire";
   const passengerName = holdGroup.bookings[0]?.passengerName ?? "Traveler";
   const companyName = holdGroup.trip.company.name;
   const departureTime = holdGroup.trip.departureDate;

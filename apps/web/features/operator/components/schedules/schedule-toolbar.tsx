@@ -11,6 +11,8 @@ export function ScheduleToolbar({
   onQChange,
   status,
   onStatusChange,
+  serviceType,
+  onServiceTypeChange,
   canCreate,
   onNew,
   routes,
@@ -22,6 +24,8 @@ export function ScheduleToolbar({
   onQChange: (v: string) => void;
   status: "all" | "active" | "inactive";
   onStatusChange: (v: "all" | "active" | "inactive") => void;
+  serviceType: "all" | "INTERCITY" | "URBAN";
+  onServiceTypeChange: (v: "all" | "INTERCITY" | "URBAN") => void;
   canCreate: boolean;
   onNew: () => void;
   routes?: Array<{ id: string; label: string }>;
@@ -51,20 +55,32 @@ export function ScheduleToolbar({
             onStatusChange(e.target.value as "all" | "active" | "inactive")
           }
           className="h-8 rounded-md border border-border bg-background px-2 text-xs"
-          aria-label="Filter by status"
+          aria-label={t("filters.statusAria")}
         >
-          <option value="all">All</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="all">{t("filters.statusAll")}</option>
+          <option value="active">{t("filters.statusActive")}</option>
+          <option value="inactive">{t("filters.statusInactive")}</option>
+        </select>
+        <select
+          value={serviceType}
+          onChange={(e) =>
+            onServiceTypeChange(e.target.value as "all" | "INTERCITY" | "URBAN")
+          }
+          className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+          aria-label={t("filters.serviceTypeAria")}
+        >
+          <option value="all">{t("filters.serviceTypeAll")}</option>
+          <option value="INTERCITY">{t("filters.serviceTypeIntercity")}</option>
+          <option value="URBAN">{t("filters.serviceTypeUrban")}</option>
         </select>
         {onRouteChange && routes && routes.length > 0 ? (
           <select
             value={routeId ?? ""}
             onChange={(e) => onRouteChange(e.target.value)}
             className="h-8 rounded-md border border-border bg-background px-2 text-xs max-w-[200px]"
-            aria-label="Filter by route"
+            aria-label={t("filters.routeAria")}
           >
-            <option value="">All routes</option>
+            <option value="">{t("filters.allRoutes")}</option>
             {routes.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.label}

@@ -5,11 +5,12 @@ import {
   createScheduleSchema,
   updateScheduleBasicSchema,
   updateCalendarSchema,
-  updateFareSchema,
-  addFareSchema,
-  exceptionSchema,
-  listSchedulesSchema,
-} from "@moja/schemas";
+   updateFareSchema,
+   addFareSchema,
+   exceptionSchema,
+   listSchedulesSchema,
+   type FareType,
+ } from "@moja/schemas";
 import { generateTripsForSchedule } from "@/lib/trip-generator";
 import {
   buildAppDepartureTimestamp,
@@ -323,6 +324,59 @@ async function checkScheduleOverlap(
         });
       }
     }
+   }
+ }
+
+interface FareWindowInput {
+  type: FareType;
+  fromStopOrder: number;
+  toStopOrder: number;
+  validFrom?: Date | null;
+  validUntil?: Date | null;
+}
+
+/**
+ * Shared fare overlap guard used by both addFare and updateFare: ensures no
+ * other *active* fare on the same schedule/segment/type window overlaps in
+ * time with the proposed fare. `excludeFareId` is set on update so the fare
+ * being updated is not compared against itself.
+ */
+async function assertNoFareOverlap(
+  prisma: PrismaClient,
+  scheduleId: string,
+  excludeFareId: string | null,
+  f: FareWindowInput,
+) {
+  const existingFares = await prisma.fare.findMany({
+    where: {
+      scheduleId,
+      isActive: true,
+      ...(excludeFareId ? { id: { not: excludeFareId } } : {}),
+      type: f.type,
+      fromStopOrder: f.fromStopOrder,
+      toStopOrder: f.toStopOrder,
+    },
+  });
+
+  const newFrom = f.validFrom?.getTime() ?? 0;
+  const newUntil = f.validUntil?.getTime() ?? Infinity;
+
+  for (const ef of existingFares) {
+    if (!f.validFrom && !f.validUntil && !ef.validFrom && !ef.validUntil) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "An always-valid fare already exists for this segment.",
+      });
+    }
+
+    const efFrom = ef.validFrom?.getTime() ?? 0;
+    const efUntil = ef.validUntil?.getTime() ?? Infinity;
+    if (newFrom <= efUntil && newUntil >= efFrom) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Fare dates overlap with an existing fare (valid from ${ef.validFrom?.toISOString().split("T")[0] ?? "forever"} to ${ef.validUntil?.toISOString().split("T")[0] ?? "forever"}).`,
+      });
+    }
   }
 }
 
@@ -338,6 +392,9 @@ export const schedulesRouter = createTRPCRouter({
       const where = {
         companyId: ctx.companyId,
         ...(input?.routeId ? { routeId: input.routeId } : {}),
+        ...(input?.serviceType
+          ? { route: { serviceType: input.serviceType } }
+          : {}),
         ...(input?.isActive !== undefined ? { isActive: input.isActive } : {}),
         ...(q
           ? {
@@ -732,9 +789,35 @@ fares: {
       }
 
       await ctx.prisma.$transaction(async (tx) => {
-        await tx.trip.deleteMany({
+        // Trips with NO booking rows at all can be removed outright.
+        const trips = await tx.trip.findMany({
           where: { scheduleId: schedule.id },
+          select: {
+            id: true,
+            _count: { select: { bookings: true } },
+          },
         });
+        const emptyIds = trips
+          .filter((t) => t._count.bookings === 0)
+          .map((t) => t.id);
+        const keptIds = trips
+          .filter((t) => t._count.bookings > 0)
+          .map((t) => t.id);
+
+        if (emptyIds.length > 0) {
+          await tx.trip.deleteMany({ where: { id: { in: emptyIds } } });
+        }
+
+        // Trips that still carry historical booking rows are detached from the
+        // schedule (scheduleId -> null via SetNull) and soft-archived so the
+        // booking history and financial records survive.
+        if (keptIds.length > 0) {
+          await tx.trip.updateMany({
+            where: { id: { in: keptIds } },
+            data: { archivedAt: new Date(), scheduleId: null },
+          });
+        }
+
         await tx.schedule.delete({
           where: { id: schedule.id },
         });
@@ -1070,6 +1153,19 @@ reconcileFutureTrips: operatorCompanyProcedure
         });
       }
 
+      await assertNoFareOverlap(
+        ctx.prisma,
+        schedule.id,
+        input.fareId,
+        {
+          type: input.data.type ?? fare.type,
+          fromStopOrder: fare.fromStopOrder,
+          toStopOrder: fare.toStopOrder,
+          validFrom: fare.validFrom,
+          validUntil: fare.validUntil,
+        },
+      );
+
       const updateData = Object.fromEntries(
         Object.entries(input.data).filter(([, v]) => v !== undefined),
       );
@@ -1109,35 +1205,13 @@ reconcileFutureTrips: operatorCompanyProcedure
       const newValidFrom = f.validFrom ? new Date(f.validFrom) : null;
       const newValidUntil = f.validUntil ? new Date(f.validUntil) : null;
 
-      // Overlap check
-      const existingFares = await ctx.prisma.fare.findMany({
-        where: {
-          scheduleId: schedule.id,
-          isActive: true,
-          type: f.type,
-          fromStopOrder: f.fromStopOrder,
-          toStopOrder: f.toStopOrder,
-        }
+      await assertNoFareOverlap(ctx.prisma, schedule.id, null, {
+        type: f.type,
+        fromStopOrder: f.fromStopOrder,
+        toStopOrder: f.toStopOrder,
+        validFrom: newValidFrom,
+        validUntil: newValidUntil,
       });
-
-      for (const ef of existingFares) {
-        if (!newValidFrom && !newValidUntil && !ef.validFrom && !ef.validUntil) {
-           throw new TRPCError({ code: "BAD_REQUEST", message: "An always-valid fare already exists for this segment."});
-        }
-        
-        // Date overlap logic
-        const efFrom = ef.validFrom?.getTime() ?? 0;
-        const efUntil = ef.validUntil?.getTime() ?? Infinity;
-        const newFrom = newValidFrom?.getTime() ?? 0;
-        const newUntil = newValidUntil?.getTime() ?? Infinity;
-
-        if (newFrom <= efUntil && newUntil >= efFrom) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Fare dates overlap with an existing fare (valid from ${ef.validFrom?.toISOString().split('T')[0] ?? 'forever'} to ${ef.validUntil?.toISOString().split('T')[0] ?? 'forever'}).`,
-          });
-        }
-      }
 
       return await ctx.prisma.fare.create({
         data: {

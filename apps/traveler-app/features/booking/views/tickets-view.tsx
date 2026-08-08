@@ -1,25 +1,27 @@
-import { Colors, Spacing } from "@moja/theme/tokens";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-	ActivityIndicator,
-	FlatList,
-	Pressable,
-	RefreshControl,
-	View,
-} from "react-native";
+import { FlatList, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
 import { CancelDialog } from "@/features/booking/components/cancel-dialog";
 import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-card";
+import { TicketEmptyState } from "@/features/booking/components/ticket-empty-state";
+import { TicketListSkeleton } from "@/features/booking/components/ticket-list-skeleton";
 import { TicketSheet } from "@/features/booking/components/ticket-sheet";
-import { useListMyBookings } from "@/features/booking/hooks/use-bookings";
-import type { Booking } from "@/features/booking/hooks/use-bookings";
+import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
+import {
+	type Booking,
+	useListMyBookings,
+} from "@/features/booking/hooks/use-bookings";
 
 export function TicketsView() {
 	const insets = useSafeAreaInsets();
 	const { t } = useTranslation("booking");
+	const queryClient = useQueryClient();
+	const { prefetchBookings, prefetchTicket } = useBookingPrefetch();
+
 	const [activeTicket, setActiveTicket] = useState<{
 		bookingReference: string;
 		ticketToken: string;
@@ -33,100 +35,65 @@ export function TicketsView() {
 		refetch,
 	} = useListMyBookings("confirmed", 50, 0, true);
 
+	useFocusEffect(
+		useCallback(() => {
+			prefetchBookings("confirmed");
+		}, []),
+	);
+
 	const bookings = (bookingsData?.items ?? []) as Booking[];
 	const confirmed = bookings.filter((b) => b.status === "CONFIRMED");
 
-	if (isLoading) {
-		return (
-			<View
-				style={{
-					flex: 1,
-					alignItems: "center",
-					justifyContent: "center",
-					backgroundColor: Colors.light.background,
-				}}
-			>
-				<ActivityIndicator size="large" color={Colors.light.primary} />
-			</View>
-		);
-	}
+	const handleCardPressIn = (bookingReference: string) => {
+		prefetchTicket(bookingReference);
+	};
+
+	const handleCardPress = (booking: Booking) => {
+		setActiveTicket({
+			bookingReference: booking.bookingReference,
+			ticketToken: booking.ticketToken ?? "",
+		});
+	};
 
 	return (
-		<View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-			<FlatList
-				data={confirmed}
-				keyExtractor={(item: Booking) => item.bookingReference}
-				numColumns={2}
-				contentContainerStyle={{
-					paddingHorizontal: Spacing.four,
-					paddingTop: Spacing.two,
-					paddingBottom: BottomTabInset + insets.bottom + 24,
-					gap: Spacing.three,
-				}}
-				refreshControl={
-					<RefreshControl
-						refreshing={isFetching}
-						onRefresh={refetch}
-						tintColor={Colors.light.primary}
-					/>
-				}
-				renderItem={({ item }: { item: Booking }) => (
-					<Pressable
-						key={item.bookingReference}
-						onPress={() =>
-							setActiveTicket({
-								bookingReference: item.bookingReference,
-								ticketToken: item.ticketToken ?? "",
-							})
-						}
-						style={({ pressed }) => ({
-							flex: 1,
-							minWidth: "48%",
-							opacity: pressed ? 0.7 : 1,
-						})}
-					>
+		<View className="flex-1 bg-background">
+			{isLoading ? (
+				<TicketListSkeleton />
+			) : (
+				<FlatList
+					data={confirmed}
+					keyExtractor={(item: Booking) => item.bookingReference}
+					contentContainerStyle={{
+						paddingHorizontal: 16,
+						paddingTop: 8,
+						paddingBottom: BottomTabInset + insets.bottom + 24,
+					}}
+					refreshControl={
+						<RefreshControl
+							refreshing={isFetching}
+							onRefresh={refetch}
+							tintColor="#ee237c"
+							colors={["#ee237c"]}
+						/>
+					}
+					renderItem={({ item }: { item: Booking }) => (
 						<DigitalTicketCard
 							bookingReference={item.bookingReference}
-							companyName={item.companyName ?? ""}
+							companyName={item.companyName ?? "Moja Express"}
 							origin={item.origin ?? ""}
 							destination={item.destination ?? ""}
 							departureTime={item.departureTime ?? ""}
 							arrivalTime={item.arrivalTime ?? ""}
-							seatLabel={item.seatLabel ?? ""}
-							passengerName={item.passengerName ?? ""}
+							seatLabel={item.seatLabel ?? "1"}
+							passengerName={item.passengerName ?? "Passenger"}
 							status={item.status}
-							compact
-							onPress={() =>
-								setActiveTicket({
-									bookingReference: item.bookingReference,
-									ticketToken: item.ticketToken ?? "",
-								})
-							}
+							onPressIn={() => handleCardPressIn(item.bookingReference)}
+							onPress={() => handleCardPress(item)}
 						/>
-					</Pressable>
-				)}
-				ListEmptyComponent={() => (
-					<View
-						style={{
-							flex: 1,
-							alignItems: "center",
-							justifyContent: "center",
-							paddingVertical: 80,
-							gap: Spacing.four,
-						}}
-					>
-						<Text
-							style={{
-								fontSize: 15,
-								fontWeight: "500",
-								color: Colors.light.textSecondary,
-							}}
-						>
-							{t("noTickets")}
-						</Text>
-					</View>
-				)}
-			/>
+					)}
+					ListEmptyComponent={() => <TicketEmptyState />}
+				/>
+			)}
 
 			<TicketSheet
 				bookingReference={activeTicket?.bookingReference ?? ""}

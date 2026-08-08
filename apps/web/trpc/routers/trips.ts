@@ -12,6 +12,7 @@ import {
 } from "@moja/schemas";
 import { cancelTripWithRefunds } from "@/lib/cancel-trip-with-refunds";
 import { assertTripTransition } from "@/lib/trip-status";
+import { computeDestinationArrivalOffset } from "@/lib/trip-destination";
 import {
   getAppRollingTripWindow,
   getCalendarDateKey,
@@ -51,8 +52,23 @@ export const tripsRouter = createTRPCRouter({
       );
 
       const lastRw = schedule.route.waypoints[schedule.route.waypoints.length - 1];
-      const lastSw = lastRw ? timingMap.get(lastRw.id) : undefined;
-      const destDepartureOffset = lastSw?.departureOffsetMinutes ?? 0;
+      const destStopOrder = (lastRw?.stopOrder ?? 0) + 1;
+      const fullRouteFare = await ctx.prisma.fare.findFirst({
+        where: {
+          scheduleId: schedule.id,
+          fromStopOrder: 0,
+          toStopOrder: destStopOrder,
+          isActive: true,
+        },
+        select: { durationMinutes: true },
+      });
+      const fullRouteDurationMin = fullRouteFare?.durationMinutes ?? null;
+
+      const destDepartureOffset = computeDestinationArrivalOffset({
+        waypoints: schedule.route.waypoints,
+        timings: timingMap,
+        fullRouteDurationMin,
+      });
 
       return ctx.prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({
@@ -174,6 +190,7 @@ export const tripsRouter = createTRPCRouter({
 
       const filters: Record<string, unknown> = {
         companyId: ctx.companyId,
+        archivedAt: null,
         departureDate: {
           gte: startDate,
           lte: endDate,
@@ -312,7 +329,10 @@ export const tripsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:read");
-      const where: Prisma.TripWhereInput = { companyId: ctx.companyId };
+      const where: Prisma.TripWhereInput = {
+        companyId: ctx.companyId,
+        archivedAt: null,
+      };
       if (input?.scheduleId) where.scheduleId = input.scheduleId;
       if (input?.routeId) where.schedule = { routeId: input.routeId };
 
@@ -337,6 +357,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
         include: {
           bus: {
@@ -415,6 +436,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
         include: {
           bus: {
@@ -482,6 +504,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
         select: {
           id: true,
@@ -525,6 +548,7 @@ export const tripsRouter = createTRPCRouter({
           where: {
             id: input.id,
             companyId: ctx.companyId,
+            archivedAt: null,
           },
           include: {
             seats: true,
@@ -722,6 +746,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
         include: { tripStops: true },
       });
@@ -821,13 +846,13 @@ export const tripsRouter = createTRPCRouter({
                   : null);
               if (email) {
                 const originCity =
-                  booking.trip.schedule.route.originTerminal.cityRelation
+                  booking.trip.schedule?.route.originTerminal.cityRelation
                     ?.name ?? "Unknown";
                 const destCity =
-                  booking.trip.schedule.route.destTerminal.cityRelation?.name ??
+                  booking.trip.schedule?.route.destTerminal.cityRelation?.name ??
                   "Unknown";
-                const originMunicipality = booking.trip.schedule.route.originTerminal.municipality?.name ?? null;
-                const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
+                const originMunicipality = booking.trip.schedule?.route.originTerminal.municipality?.name ?? null;
+                const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
 
                 await novu
                   .trigger({
@@ -882,6 +907,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
       });
 
@@ -941,6 +967,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.id,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
       });
 
@@ -1020,10 +1047,10 @@ export const tripsRouter = createTRPCRouter({
               for (const booking of bookings) {
                 const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
                 if (email) {
-                  const originCity = booking.trip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown";
-                  const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
-                  const originMunicipality = booking.trip.schedule.route.originTerminal.municipality?.name ?? null;
-                  const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
+                  const originCity = booking.trip.schedule?.route.originTerminal.cityRelation?.name ?? "Unknown";
+                  const destCity = booking.trip.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
+                  const originMunicipality = booking.trip.schedule?.route.originTerminal.municipality?.name ?? null;
+                  const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
 
                   if (status === "BOARDING") {
                     await novu.trigger({
@@ -1081,7 +1108,7 @@ export const tripsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:update");
       const trip = await ctx.prisma.trip.findFirst({
-        where: { id: input.id, companyId: ctx.companyId },
+        where: { id: input.id, companyId: ctx.companyId, archivedAt: null },
       });
       if (!trip) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
@@ -1097,7 +1124,7 @@ export const tripsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:update");
       const trip = await ctx.prisma.trip.findFirst({
-        where: { id: input.id, companyId: ctx.companyId },
+        where: { id: input.id, companyId: ctx.companyId, archivedAt: null },
       });
       if (!trip) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
@@ -1139,8 +1166,8 @@ export const tripsRouter = createTRPCRouter({
               for (const booking of bookings) {
                 const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
                 if (email) {
-                  const destCity = booking.trip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown";
-                  const destMunicipality = booking.trip.schedule.route.destTerminal.municipality?.name ?? null;
+                  const destCity = booking.trip.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
+                  const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
                   await novu.trigger({
                     workflowId: "passenger-trip-gate-updated",
                     to: {
@@ -1186,6 +1213,7 @@ export const tripsRouter = createTRPCRouter({
         where: {
           id: input.tripId,
           companyId: ctx.companyId,
+          archivedAt: null,
         },
       });
 

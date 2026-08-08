@@ -1,240 +1,189 @@
 import {
-	Calendar01Icon,
-	ClockIcon,
-	Location01Icon,
-	Ticket01Icon,
-	UserIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Colors, Spacing } from "@moja/theme/tokens";
-import { View } from "react-native";
-import { Badge } from "@/components/ui/badge";
-import { Text } from "@/components/ui/text";
+  Bus01Icon,
+  Calendar01Icon,
+  Clock01Icon,
+  Location01Icon,
+  Ticket01Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Colors } from '@moja/theme/tokens';
+import * as Haptics from 'expo-haptics';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/text';
+import { useHoldCountdown } from '../hooks/use-hold-countdown';
+import { formatDate, formatTimeOnly } from '../lib/format-time';
 
-type BookingStatus =
-	| "CONFIRMED"
-	| "PENDING_PAYMENT"
-	| "COMPLETED"
-	| "CANCELLED"
-	| "EXPIRED";
+export type BookingStatus = 'CONFIRMED' | 'PENDING_PAYMENT' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
+
+export type BookingCardData = {
+  bookingReference: string;
+  status: BookingStatus;
+  companyName: string;
+  origin: string;
+  destination: string;
+  departureTime: string;
+  arrivalTime: string;
+  seatLabel?: string;
+  farePaidXOF?: number;
+  holdExpiresAt?: string;
+};
 
 type BookingCardProps = {
-	bookingReference: string;
-	status: BookingStatus;
-	origin: string;
-	destination: string;
-	departureTime: string;
-	arrivalTime: string;
-	seatLabel?: string;
-	farePaidXOF?: number;
-	_holdExpiresAt?: string;
-	_onPress: () => void;
+  booking: BookingCardData;
+  onPress: () => void;
+  onPressIn?: () => void;
 };
 
-const STATUS_COLORS: Record<BookingStatus, string> = {
-	CONFIRMED: "#10b981",
-	PENDING_PAYMENT: "#f59e0b",
-	COMPLETED: "#3b82f6",
-	CANCELLED: "#ef4444",
-	EXPIRED: "#9ca3af",
+const STATUS_CONFIG: Record<
+  BookingStatus,
+  { label: string; bg: string; text: string; border: string }
+> = {
+  CONFIRMED: {
+    label: 'Confirmed',
+    bg: 'bg-emerald-500/10',
+    text: 'text-emerald-600',
+    border: 'border-emerald-500/20',
+  },
+  PENDING_PAYMENT: {
+    label: 'Awaiting Payment',
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-600',
+    border: 'border-amber-500/20',
+  },
+  COMPLETED: {
+    label: 'Completed',
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-600',
+    border: 'border-blue-500/20',
+  },
+  CANCELLED: {
+    label: 'Cancelled',
+    bg: 'bg-rose-500/10',
+    text: 'text-rose-600',
+    border: 'border-rose-500/20',
+  },
+  EXPIRED: {
+    label: 'Expired',
+    bg: 'bg-neutral-500/10',
+    text: 'text-neutral-500',
+    border: 'border-neutral-500/20',
+  },
 };
 
-function formatDate(dateStr: string): string {
-	const date = new Date(dateStr);
-	return date.toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
+export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
+  const statusInfo = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG.EXPIRED;
+  const isPending = booking.status === 'PENDING_PAYMENT';
+  const countdown = useHoldCountdown(
+    isPending && booking.holdExpiresAt ? booking.holdExpiresAt : ''
+  );
 
-export function BookingCard({
-	bookingReference,
-	status,
-	origin,
-	destination,
-	departureTime,
-	arrivalTime,
-seatLabel,
-  farePaidXOF,
-}: BookingCardProps) {
-	const statusColor = STATUS_COLORS[status] ?? "#9ca3af";
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
+  };
 
-	return (
-		<View
-			style={{
-				backgroundColor: Colors.light.background,
-				borderRadius: 16,
-				padding: Spacing.four,
-				borderWidth: 1,
-				borderColor: Colors.light.backgroundSelected,
-				marginBottom: Spacing.three,
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 2 },
-				shadowOpacity: 0.04,
-				shadowRadius: 8,
-				elevation: 2,
-			}}
-		>
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					justifyContent: "space-between",
-					marginBottom: Spacing.three,
-				}}
-			>
-				<View
-					style={{
-						flexDirection: "row",
-						alignItems: "center",
-						gap: Spacing.two,
-					}}
-				>
-					<View
-						style={{
-							width: 10,
-							height: 10,
-							borderRadius: 5,
-							backgroundColor: statusColor,
-						}}
-					/>
-					<Text
-						style={{
-							fontSize: 12,
-							fontWeight: "700",
-							color: statusColor,
-							textTransform: "uppercase",
-							letterSpacing: 0.5,
-						}}
-					>
-						{status.replace("_", " ")}
-					</Text>
-				</View>
-				<Text
-					style={{
-						fontSize: 11,
-						fontWeight: "500",
-						color: Colors.light.textSecondary,
-						fontFamily: "monospace",
-					}}
-				>
-					{bookingReference}
-				</Text>
-			</View>
+  const initials = (booking.companyName || 'MB').slice(0, 2).toUpperCase();
 
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					gap: Spacing.two,
-					marginBottom: Spacing.three,
-				}}
-			>
-				<View style={{ flex: 1 }}>
-					<Text
-						style={{
-							fontSize: 16,
-							fontWeight: "700",
-							color: Colors.light.text,
-						}}
-					>
-						{origin}
-					</Text>
-					<Text
-						style={{
-							fontSize: 12,
-							color: Colors.light.textSecondary,
-							marginTop: 2,
-						}}
-					>
-						{formatDate(departureTime)}
-					</Text>
-				</View>
+  return (
+    <Pressable
+      onPress={handlePress}
+      onPressIn={onPressIn}
+      accessibilityRole="button"
+      accessibilityLabel={`${booking.origin} to ${booking.destination}, ${statusInfo.label}, ${booking.bookingReference}`}
+      style={({ pressed }) => ({
+        transform: [{ scale: pressed ? 0.98 : 1 }],
+        opacity: pressed ? 0.9 : 1,
+      })}
+      className="bg-card border-border mb-3 overflow-hidden rounded-2xl border p-4 shadow-sm">
+      {/* Top Header: Company Avatar + Name + BookingRef + Status Badge */}
+      <View className="mb-3.5 flex-row items-center justify-between">
+        <View className="mr-2 min-w-0 flex-1 flex-row items-center gap-2.5">
+          <View className="bg-primary/10 border-primary/20 h-10 w-10 shrink-0 items-center justify-center rounded-full border">
+            <Text className="text-primary text-xs font-black">{initials}</Text>
+          </View>
+          <View className="min-w-0 flex-1">
+            <Text className="text-foreground truncate text-sm font-bold" numberOfLines={1}>
+              {booking.companyName || 'Moja Bus'}
+            </Text>
+            <Text className="text-muted-foreground font-mono text-[11px]">
+              {booking.bookingReference}
+            </Text>
+          </View>
+        </View>
 
-				<View
-					style={{
-						alignItems: "center",
-						paddingHorizontal: Spacing.two,
-					}}
-				>
-					<HugeiconsIcon
-						icon={Location01Icon}
-						size={16}
-						color={Colors.light.primary}
-					/>
-				</View>
+        <View className={`rounded-full border px-2.5 py-1 ${statusInfo.bg} ${statusInfo.border}`}>
+          <Text
+            className={`text-[10px] font-extrabold tracking-wider uppercase ${statusInfo.text}`}>
+            {statusInfo.label}
+          </Text>
+        </View>
+      </View>
 
-				<View style={{ flex: 1, alignItems: "flex-end" }}>
-					<Text
-						style={{
-							fontSize: 16,
-							fontWeight: "700",
-							color: Colors.light.text,
-						}}
-					>
-						{destination}
-					</Text>
-					<Text
-						style={{
-							fontSize: 12,
-							color: Colors.light.textSecondary,
-							marginTop: 2,
-						}}
-					>
-						{formatDate(arrivalTime)}
-					</Text>
-				</View>
-			</View>
+      {/* Hold Countdown Warning Banner if Pending */}
+      {isPending && countdown && countdown !== 'Expired' ? (
+        <View className="mb-3 flex-row items-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-1.5">
+          <HugeiconsIcon icon={Clock01Icon} size={14} color="#d97706" />
+          <Text className="text-xs font-semibold text-amber-700">Hold expires in {countdown}</Text>
+        </View>
+      ) : null}
 
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					justifyContent: "space-between",
-					paddingTop: Spacing.three,
-					borderTopWidth: 1,
-					borderTopColor: Colors.light.backgroundSelected,
-				}}
-			>
-				<View
-					style={{
-						flexDirection: "row",
-						alignItems: "center",
-						gap: Spacing.two,
-					}}
-				>
-					<HugeiconsIcon
-						icon={Ticket01Icon}
-						size={14}
-						color={Colors.light.textSecondary}
-					/>
-					{seatLabel ? (
-						<Text
-							style={{
-								fontSize: 12,
-								fontWeight: "600",
-								color: Colors.light.textSecondary,
-							}}
-						>
-							Seat {seatLabel}
-						</Text>
-					) : null}
-				</View>
+      {/* Route Visual Track */}
+      <View className="my-2 flex-row items-center justify-between px-1">
+        {/* Origin */}
+        <View className="flex-1">
+          <Text className="text-foreground text-base font-extrabold">
+            {formatTimeOnly(booking.departureTime)}
+          </Text>
+          <Text className="text-muted-foreground mt-0.5 text-xs font-semibold" numberOfLines={1}>
+            {booking.origin}
+          </Text>
+          <Text className="text-muted-foreground/70 text-[10px]">
+            {formatDate(booking.departureTime)}
+          </Text>
+        </View>
 
-				{farePaidXOF ? (
-					<Text
-						style={{
-							fontSize: 14,
-							fontWeight: "700",
-							color: Colors.light.primary,
-						}}
-					>
-						{farePaidXOF.toLocaleString()} XOF
-					</Text>
-				) : null}
-			</View>
-		</View>
-	);
+        {/* Middle Track Line + Bus Icon */}
+        <View className="flex-1 items-center px-2">
+          <View className="bg-border relative h-[2px] w-full items-center justify-center">
+            <View className="bg-muted-foreground/40 absolute left-0 h-2 w-2 rounded-full" />
+            <View className="bg-card z-10 px-1.5">
+              <HugeiconsIcon icon={Bus01Icon} size={16} color={Colors.light.primary} />
+            </View>
+            <View className="bg-primary absolute right-0 h-2 w-2 rounded-full" />
+          </View>
+        </View>
+
+        {/* Destination */}
+        <View className="flex-1 items-end">
+          <Text className="text-foreground text-base font-extrabold">
+            {formatTimeOnly(booking.arrivalTime)}
+          </Text>
+          <Text
+            className="text-muted-foreground mt-0.5 text-right text-xs font-semibold"
+            numberOfLines={1}>
+            {booking.destination}
+          </Text>
+          <Text className="text-muted-foreground/70 text-right text-[10px]">
+            {formatDate(booking.arrivalTime)}
+          </Text>
+        </View>
+      </View>
+
+      {/* Footer: Seat + Fare */}
+      <View className="border-border/60 mt-2 flex-row items-center justify-between border-t pt-3">
+        <View className="flex-row items-center gap-1.5">
+          <HugeiconsIcon icon={Ticket01Icon} size={14} color={Colors.light.textSecondary} />
+          <Text className="text-muted-foreground text-xs font-medium">
+            {booking.seatLabel ? `Seat ${booking.seatLabel}` : 'Reserved'}
+          </Text>
+        </View>
+
+        {booking.farePaidXOF ? (
+          <Text className="text-primary text-sm font-black">
+            {booking.farePaidXOF.toLocaleString()} XOF
+          </Text>
+        ) : null}
+      </View>
+    </Pressable>
+  );
 }

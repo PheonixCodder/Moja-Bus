@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { toast } from "sonner";
 
 const CADENCE_FREQUENCIES = [15, 30, 45, 60, 90] as const;
 
@@ -46,6 +47,24 @@ function normalizeTimes(times: string[]): string[] {
  * that generate the full list at a fixed frequency between a start and end
  * time (e.g. every 30 min from 06:00 to 22:00).
  */
+
+/**
+ * Pure helper: attempt to add `draft` to `current` (an already-normalized
+ * list). Returns the new sorted/deduplicated list plus an `added` flag so the
+ * caller can surface feedback when the time is a duplicate or invalid.
+ */
+export function addDepartureTime(
+  current: string[],
+  draft: string,
+): { times: string[]; added: boolean } {
+  const withDraft = normalizeTimes([...current, draft]);
+  const base = normalizeTimes(current);
+  return {
+    times: withDraft,
+    added: withDraft.length !== base.length,
+  };
+}
+
 export function DepartureTimesEditor({
   times,
   onChange,
@@ -61,12 +80,15 @@ export function DepartureTimesEditor({
 
   const normalized = useMemo(() => normalizeTimes(times), [times]);
 
-  function addDraft() {
-    const next = normalizeTimes([...normalized, draft]);
-    if (next.length !== normalized.length) return; // duplicate
-    onChange(next);
-    setDraft("");
-  }
+   function addDraft() {
+     const { times, added } = addDepartureTime(normalized, draft);
+     if (!added) {
+       toast.error(t("wizard.duplicateTime", { time: draft }));
+       return;
+     }
+     onChange(times);
+     setDraft("");
+   }
 
   function removeTime(hhmm: string) {
     onChange(normalized.filter((x) => x !== hhmm));

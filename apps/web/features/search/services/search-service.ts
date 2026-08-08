@@ -85,7 +85,7 @@ export class SearchService {
       const { trip, originStop, destStop } = item;
 
       const segmentFare = matchSegmentFare(
-        trip.schedule.fares,
+        trip.schedule?.fares ?? [],
         item.searchOriginOrder,
         item.searchDestinationOrder,
         trip.departureDate,

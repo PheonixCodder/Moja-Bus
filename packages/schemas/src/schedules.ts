@@ -371,6 +371,7 @@ export type AddFareInput = z.infer<typeof addFareSchema>;
 export const listSchedulesSchema = z.object({
   q: z.string().optional(),
   routeId: z.string().optional(),
+  serviceType: z.enum(["INTERCITY", "URBAN"]).optional(),
   isActive: z.boolean().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(24),
