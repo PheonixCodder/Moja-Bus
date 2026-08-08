@@ -1,5 +1,10 @@
 # B1 — Calendar Step: Manual "Add time" Doesn't Add
 
+> **STATUS: FIXED** — `time-picker.tsx` no longer nests Base UI `Select`s inside the `Popover`;
+> hour/minute pickers are now non-portaled button grids (same pattern as the working preset chips).
+> `addDraft` now gives feedback on duplicates via `addDepartureTime` (pure helper + test) and a
+> `sonner` toast. See implementation plan: `docs/plans/2026-08-07-schedule-search-audit-fixes.md` (Task 4 & 5).
+
 ## Reported Bug
 In the schedule wizard's **Calendar Step**, the Cadence Preset ("Apply Cadence") works, but the
 manual **Add time** path doesn't add the selected time.

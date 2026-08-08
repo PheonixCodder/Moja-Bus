@@ -1,80 +1,92 @@
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-	ActivityIndicator,
-	FlatList,
-	Pressable,
-	RefreshControl,
-	View,
-} from "react-native";
+import { FlatList, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SubpageHeader } from "@/components/subpage-header";
-import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
 import { BookingCard } from "@/features/booking/components/booking-card";
+import { BookingEmptyState } from "@/features/booking/components/booking-empty-state";
+import {
+	BookingFilterTab,
+	BookingFilterTabs,
+} from "@/features/booking/components/booking-filter-tabs";
 import { BookingKpiStrip } from "@/features/booking/components/booking-kpi-strip";
-import { useListMyBookings } from "@/features/booking/hooks/use-bookings";
+import { BookingListSkeleton } from "@/features/booking/components/booking-list-skeleton";
+import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
+import {
+	type Booking,
+	useListMyBookings,
+} from "@/features/booking/hooks/use-bookings";
 import { useDashboardStats } from "@/features/booking/hooks/use-dashboard-stats";
-
-type FilterTab = "upcoming" | "pending" | "past";
+import { useTRPC } from "@/lib/trpc";
 
 export function BookingsView() {
 	const insets = useSafeAreaInsets();
 	const { t } = useTranslation("booking");
 	const queryClient = useQueryClient();
-	const [filter, setFilter] = useState<FilterTab>("upcoming");
+	const trpc = useTRPC() as any;
+	const { prefetchBookings, prefetchStats, prefetchBookingDetail } =
+		useBookingPrefetch();
+
+	const [filter, setFilter] = useState<BookingFilterTab>("upcoming");
 	const [refreshing, setRefreshing] = useState(false);
 
-	const { data: stats, isLoading: statsLoading } = useDashboardStats(true);
-
+	const { data: stats } = useDashboardStats(true);
 	const {
 		data: bookingsData,
 		isLoading,
-		isFetching,
 		refetch,
 	} = useListMyBookings(filter, 20, 0, true);
 
+	// Prefetch on screen focus
+	useFocusEffect(
+		useCallback(() => {
+			prefetchBookings(filter);
+			prefetchStats();
+		}, [filter]),
+	);
+
 	const handleRefresh = async () => {
 		setRefreshing(true);
-		await refetch();
+		await Promise.all([refetch(), queryClient.invalidateQueries()]);
 		setRefreshing(false);
 	};
 
-	type BookingItem = {
-		bookingReference: string;
-		status: string;
-		origin: string;
-		destination: string;
-		departureTime: string;
-		arrivalTime: string;
-		seatLabel?: string;
-		farePaidXOF?: number;
-		holdExpiresAt?: string;
+	const handleCardPressIn = (bookingReference: string) => {
+		// Cache seeding pattern: seed detail cache with existing item data for instant load
+		const listQueryKey = trpc?.booking?.listMyBookings?.queryOptions?.({
+			filter,
+			limit: 20,
+			offset: 0,
+		})?.queryKey;
+		if (listQueryKey) {
+			const cachedList = queryClient.getQueryData<{ items: Booking[] }>(
+				listQueryKey,
+			);
+			const item = cachedList?.items?.find(
+				(b) => b.bookingReference === bookingReference,
+			);
+			if (item && trpc?.booking?.getBooking?.queryOptions) {
+				const detailKey = trpc.booking.getBooking.queryOptions({
+					bookingReference,
+				}).queryKey;
+				queryClient.setQueryData(detailKey, item);
+			}
+		}
+		// Background prefetch full details
+		prefetchBookingDetail(bookingReference);
 	};
 
-	const bookings = (bookingsData?.items ?? []) as BookingItem[];
+	const handleCardPress = (bookingReference: string) => {
+		router.push(`/booking/${encodeURIComponent(bookingReference)}` as any);
+	};
 
-	if (statsLoading) {
-		return (
-			<View
-				style={{
-					flex: 1,
-					alignItems: "center",
-					justifyContent: "center",
-					backgroundColor: Colors.light.background,
-				}}
-			>
-				<ActivityIndicator size="large" color={Colors.light.primary} />
-			</View>
-		);
-	}
+	const bookings = (bookingsData?.items ?? []) as Booking[];
 
 	return (
-		<View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-			<SubpageHeader title={t("bookings")} />
-
+		<View className="flex-1 bg-background">
+			{/* KPI Stats Strip */}
 			{stats ? (
 				<BookingKpiStrip
 					upcomingCount={stats.upcomingTripsCount}
@@ -84,117 +96,42 @@ export function BookingsView() {
 				/>
 			) : null}
 
-			<View
-				style={{
-					flexDirection: "row",
-					gap: Spacing.two,
-					paddingHorizontal: Spacing.four,
-					paddingVertical: Spacing.two,
-				}}
-			>
-				{(["upcoming", "pending", "past"] as FilterTab[]).map((tab) => (
-					<Pressable
-						key={tab}
-						onPress={() => setFilter(tab)}
-						style={({ pressed }) => ({
-							paddingHorizontal: Spacing.four,
-							paddingVertical: Spacing.two,
-							borderRadius: 100,
-							backgroundColor:
-								filter === tab ? Colors.light.primary : Colors.light.background,
-							borderWidth: 1,
-							borderColor:
-								filter === tab
-									? Colors.light.primary
-									: Colors.light.backgroundSelected,
-							opacity: pressed ? 0.7 : 1,
-						})}
-					>
-						<Text
-							style={{
-								fontSize: 12,
-								fontWeight: "700",
-								color:
-									filter === tab
-										? Colors.light.primaryForeground
-										: Colors.light.text,
-								textTransform: "capitalize",
-							}}
-						>
-							{t(tab)}
-						</Text>
-					</Pressable>
-				))}
-			</View>
+			{/* Filter Tabs */}
+			<BookingFilterTabs
+				activeTab={filter}
+				onTabChange={setFilter}
+				upcomingCount={stats?.upcomingTripsCount}
+				pendingCount={stats?.pendingPaymentsCount}
+			/>
 
+			{/* Main Bookings List */}
 			{isLoading ? (
-				<View style={{ flex: 1, alignItems: "center", paddingTop: 40 }}>
-					<ActivityIndicator size="large" color={Colors.light.primary} />
-				</View>
+				<BookingListSkeleton />
 			) : (
 				<FlatList
 					data={bookings}
-					keyExtractor={(item: BookingItem) => item.bookingReference}
+					keyExtractor={(item) => item.bookingReference}
 					contentContainerStyle={{
-						paddingHorizontal: Spacing.four,
-						paddingTop: Spacing.two,
+						paddingHorizontal: 16,
+						paddingTop: 8,
 						paddingBottom: BottomTabInset + insets.bottom + 24,
-						gap: Spacing.three,
 					}}
 					refreshControl={
 						<RefreshControl
 							refreshing={refreshing}
 							onRefresh={handleRefresh}
-							tintColor={Colors.light.primary}
+							tintColor="#ee237c"
+							colors={["#ee237c"]}
 						/>
 					}
-					renderItem={({ item }: { item: BookingItem }) => (
+					renderItem={({ item }) => (
 						<BookingCard
-							bookingReference={item.bookingReference}
-							status={item.status as any}
-							origin={item.origin ?? ""}
-							destination={item.destination ?? ""}
-							departureTime={item.departureTime ?? ""}
-							arrivalTime={item.arrivalTime ?? ""}
-							seatLabel={item.seatLabel}
-							farePaidXOF={item.farePaidXOF}
-							_holdExpiresAt={item.holdExpiresAt}
-							_onPress={() => {}}
+							booking={item as any}
+							onPressIn={() => handleCardPressIn(item.bookingReference)}
+							onPress={() => handleCardPress(item.bookingReference)}
 						/>
 					)}
-					ListEmptyComponent={() => (
-						<View
-							style={{
-								flex: 1,
-								alignItems: "center",
-								justifyContent: "center",
-								paddingVertical: 80,
-								gap: Spacing.four,
-							}}
-						>
-							<Text
-								style={{
-									fontSize: 15,
-									fontWeight: "500",
-									color: Colors.light.textSecondary,
-								}}
-							>
-								{t("noBookings")}
-							</Text>
-							<Text
-								style={{
-									fontSize: 13,
-									fontWeight: "400",
-									color: Colors.light.textSecondary,
-									textAlign: "center",
-									maxWidth: 280,
-									lineHeight: 18,
-								}}
-							>
-								{t("bookYourFirstTrip")}
-							</Text>
-						</View>
-					)}
+					ListEmptyComponent={() => <BookingEmptyState />}
 				/>
 			)}
 		</View>

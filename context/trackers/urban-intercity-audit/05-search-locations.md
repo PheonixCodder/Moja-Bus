@@ -49,9 +49,11 @@ Duplicated across locations.ts AND search.ts (`resolveCityId`). Recommend extrac
 Verify `loadGeoDataset` + `geocodePoint` return types; if null possible, schema/UI must handle it.
 
 ## S8 — `searchMunicipalities` orders `isPassThrough: "asc"` (false first) — matches UI expectation? verify
-## S9 — `suggestQuarter` (mutation) is a publicProcedure
-`locations.ts:185-209`: any anonymous user can create a Quarter. Not permission-gated. Low/medium:
-public data-modification surface; recommend rate-limit or auth.
+## S9 — `suggestQuarter` (mutation) is a publicProcedure (FIXED)
+`locations.ts:185-209`: any anonymous user can create a Quarter. **FIXED:** wired through the existing
+in-memory `createRateLimiter` (`@/lib/rate-limit`), mirroring `captures.ts` — 10 requests / 1 hour
+per IP extracted from `x-forwarded-for` / `x-real-ip`; excess returns `TOO_MANY_REQUESTS`.
+
 
 ## Open Questions
 - `apps/web/features/search/lib/places.ts` `placeMatchesTerminal`, `GeoPlace`; `segment-fare-match.ts`;

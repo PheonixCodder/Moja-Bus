@@ -10,6 +10,9 @@ export const scheduleListParsers = {
   q: parseAsString.withDefault(""),
   routeId: parseAsString.withDefault(""),
   status: parseAsStringEnum(["all", "active", "inactive"]).withDefault("all"),
+  serviceType: parseAsStringEnum(["all", "INTERCITY", "URBAN"]).withDefault(
+    "all",
+  ),
   page: parseAsInteger.withDefault(1),
   sort: parseAsStringEnum([
     "departureTime_asc",

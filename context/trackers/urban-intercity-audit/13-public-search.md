@@ -63,20 +63,18 @@ for the route-level nuqs parsing, but the client reads filters exclusively from 
 - No urban-chip rendering exists on this page (consistent with S5 — discriminator is invisible
   to the public UI; offer/serviceType is surfaced per-offer in offer-card.tsx:63).
 
-## S10 — `isExpress` filter is a NO-OP (BUG, NEW)
+## S10 — `isExpress` filter is a NO-OP (BUG, NEW — FIXED)
 `handleToggleExpress` (262-269) flips `localFilters.isExpress`, the sidebar checkbox renders it
 (search-filters-sidebar.tsx:196), the badge count includes it (179), and criteriaKey includes it
-(143) — but the `search.search` query input (102-119) NEVER passes `isExpress`. Server fully
+(143) — but the `search.search` query input (102-119) NEVER passed `isExpress`. Server fully
 supports it: `searchInputSchema.isExpress = z.array(z.enum(["true"]))` (search.ts:33) →
 `isExpress: input.isExpress?.includes("true") ?? false` (search.ts:125) →
 `offers = offers.filter((o) => o.isExpress)` (search-service.ts:179-180).
-- **Effect:** toggling "Express only" changes no query → the UI filters nothing. Users get the
-  full list including non-express trips while the checkbox shows checked.
-- **Fix:** add `isExpress: localFilters.isExpress ? ["true"] : undefined` to the query input
-  (line ~116). Also note `maxPrice` (116) is wired in the query but no UI control sets
-  `localFilters.maxPrice` — dead today, harmless (sidebar has no price input; low).
-- Severity: Medium (public search filter silently broken). Also the filter is session-only, so a
-  fresh visit has `isExpress:false` regardless of URL — consistent with S9.
+- **Effect:** toggling "Express only" changed no query → the UI filtered nothing.
+- **Fix (DONE):** `search-page-client.tsx` now sends
+  `isExpress: localFilters.isExpress ? ["true"] : undefined` in the query input. The server-side path
+  was already wired; only the client was omitting the field. (`maxPrice` still has no UI control —
+  dead today, harmless; sidebar has no price input — low, left as-is.)
 
 ## Files cross-checked (done)
 - `features/search/components/search-page-client.tsx` (413, full) — S9 resolved, S10 found.

@@ -83,7 +83,13 @@ works but manual "Add time" doesn't add), and other problems.
 ## FINAL REPORT
 Audit complete. Consolidated prioritized report written to `14-final-report.md` (confirmed bugs:
 B1 manual add, R7b delete FK crash, S10 isExpress no-op; medium: R1, R5, D1, N4, G2, S9; verified-good
-list; decision items for team). Zero code changes made — audit-only.
+list; decision items for team). **Fixes for R7b, B1, R1, R5, and S9 have been implemented** per
+`docs/plans/2026-08-07-schedule-search-audit-fixes.md` (Tasks 1–8): schedule delete now detaches +
+soft-archives trips instead of FK-crashing (R7b); `TimePicker` pickers are button grids and `addDraft`
+gives duplicate feedback (B1); `schedules.list` filters by `serviceType` (R1); `updateFare` re-runs
+the shared overlap guard (R5); `suggestQuarter` is per-IP rate-limited (S9). S10 remains open
+(out of scope for this plan). No browser/test infra exists; S9 reuses existing `createRateLimiter`
+tests, B1's UI path is structurally verified, and the pure-logic additions are unit-tested.
 
 ## POST-AUDIT (reporter-confirmed)
 - **OT1 CONFIRMED (High)** — searched trips show "0h 0m everywhere": destination `scheduledArrival` /

@@ -1,11 +1,18 @@
 import {
+	ArrowRight01Icon,
 	QrCodeIcon,
 	Shield01Icon,
 	Ticket01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Colors, Spacing } from "@moja/theme/tokens";
+import { Colors } from "@moja/theme/tokens";
+import * as Haptics from "expo-haptics";
 import { Pressable, View } from "react-native";
+import Animated, {
+	useAnimatedStyle,
+	useSharedValue,
+	withSpring,
+} from "react-native-reanimated";
 import { Text } from "@/components/ui/text";
 
 type DigitalTicketCardProps = {
@@ -20,7 +27,23 @@ type DigitalTicketCardProps = {
 	status?: string;
 	compact?: boolean;
 	onPress?: () => void;
+	onPressIn?: () => void;
 };
+
+function formatTimeOnly(dateStr: string): string {
+	if (!dateStr) return "--:--";
+	try {
+		const date = new Date(dateStr);
+		if (Number.isNaN(date.getTime())) return dateStr;
+		return date.toLocaleTimeString("en-US", {
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+		});
+	} catch {
+		return dateStr;
+	}
+}
 
 export function DigitalTicketCard({
 	bookingReference,
@@ -31,323 +54,140 @@ export function DigitalTicketCard({
 	arrivalTime,
 	seatLabel,
 	passengerName,
-	status,
+	status = "CONFIRMED",
 	compact = false,
 	onPress,
+	onPressIn,
 }: DigitalTicketCardProps) {
-	if (compact) {
-		const content = (
-			<View
-				style={{
-					backgroundColor: Colors.light.background,
-					borderRadius: 12,
-					padding: Spacing.three,
-					borderWidth: 1,
-					borderColor: Colors.light.backgroundSelected,
-					flexDirection: "row",
-					alignItems: "center",
-					gap: Spacing.three,
-				}}
-			>
-				<View
-					style={{
-						width: 40,
-						height: 40,
-						borderRadius: 10,
-						backgroundColor: "rgba(238, 35, 124, 0.1)",
-						alignItems: "center",
-						justifyContent: "center",
-					}}
-				>
-					<HugeiconsIcon
-						icon={Ticket01Icon}
-						size={20}
-						color={Colors.light.primary}
-					/>
-				</View>
-				<View style={{ flex: 1 }}>
-					<Text
-						style={{
-							fontSize: 13,
-							fontWeight: "700",
-							color: Colors.light.text,
-						}}
-					>
-						{origin} → {destination}
-					</Text>
-					<Text
-						style={{
-							fontSize: 11,
-							color: Colors.light.textSecondary,
-							marginTop: 2,
-						}}
-					>
-						{departureTime} · Seat {seatLabel}
-					</Text>
-				</View>
-				{status ? (
-					<Text
-						style={{
-							fontSize: 10,
-							fontWeight: "700",
-							color:
-								status === "CONFIRMED"
-									? "#10b981"
-									: status === "CANCELLED"
-										? "#ef4444"
-										: "#9ca3af",
-							textTransform: "uppercase",
-						}}
-					>
-						{status}
-					</Text>
-				) : null}
-			</View>
-		);
-		return onPress ? (
-			<Pressable onPress={onPress}>{content}</Pressable>
-		) : (
-			content
-		);
-	}
+	const scale = useSharedValue(1);
+
+	const handlePress = () => {
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+		onPress?.();
+	};
+
+	const animatedStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: scale.value }],
+	}));
+
+	const handlePressIn = () => {
+		scale.value = withSpring(0.97);
+		onPressIn?.();
+	};
+
+	const handlePressOut = () => {
+		scale.value = withSpring(1);
+	};
 
 	return (
-		<View
-			style={{
-				backgroundColor: Colors.light.background,
-				borderRadius: 20,
-				padding: Spacing.four,
-				borderWidth: 2,
-				borderColor: Colors.light.primary,
-				gap: Spacing.three,
-			}}
-		>
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					justifyContent: "space-between",
-				}}
+		<Animated.View style={animatedStyle} className="mb-4">
+			<Pressable
+				onPress={handlePress}
+				onPressIn={handlePressIn}
+				onPressOut={handlePressOut}
+				className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm relative"
 			>
-				<View
-					style={{
-						flexDirection: "row",
-						alignItems: "center",
-						gap: Spacing.two,
-					}}
-				>
-					<View
-						style={{
-							width: 36,
-							height: 36,
-							borderRadius: 10,
-							backgroundColor: "rgba(238, 35, 124, 0.1)",
-							alignItems: "center",
-							justifyContent: "center",
-						}}
-					>
+				{/* Top Section: Header */}
+				<View className="p-4 bg-primary/5 border-b border-border/40 flex-row items-center justify-between">
+					<View className="flex-row items-center gap-2 flex-1 min-w-0 mr-2">
+						<View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center border border-primary/20 shrink-0">
+							<HugeiconsIcon icon={Ticket01Icon} size={16} color="#ee237c" />
+						</View>
+						<View className="flex-1 min-w-0">
+							<Text
+								className="text-xs font-black text-foreground uppercase tracking-wide truncate"
+								numberOfLines={1}
+							>
+								{companyName || "Moja Express"}
+							</Text>
+							<Text className="text-[10px] font-mono text-muted-foreground">
+								REF: {bookingReference}
+							</Text>
+						</View>
+					</View>
+
+					<View className="flex-row items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+						<HugeiconsIcon icon={Shield01Icon} size={10} color="#10b981" />
+						<Text className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest">
+							VALID
+						</Text>
+					</View>
+				</View>
+
+				{/* Route Body Section */}
+				<View className="p-4 flex-row items-center justify-between">
+					<View className="flex-1">
+						<Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+							FROM
+						</Text>
+						<Text
+							className="text-base font-extrabold text-foreground"
+							numberOfLines={1}
+						>
+							{origin}
+						</Text>
+						<Text className="text-xs font-semibold text-primary mt-0.5">
+							{formatTimeOnly(departureTime)}
+						</Text>
+					</View>
+
+					<View className="px-3 items-center">
 						<HugeiconsIcon
-							icon={Ticket01Icon}
+							icon={ArrowRight01Icon}
 							size={18}
 							color={Colors.light.primary}
 						/>
 					</View>
-					<View>
-						<Text
-							style={{
-								fontSize: 14,
-								fontWeight: "800",
-								color: Colors.light.text,
-							}}
-						>
-							{companyName}
+
+					<View className="flex-1 items-end">
+						<Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-right">
+							TO
 						</Text>
 						<Text
-							style={{
-								fontSize: 11,
-								color: Colors.light.textSecondary,
-								marginTop: 1,
-							}}
+							className="text-base font-extrabold text-foreground text-right"
+							numberOfLines={1}
 						>
-							{bookingReference}
+							{destination}
+						</Text>
+						<Text className="text-xs font-semibold text-primary mt-0.5 text-right">
+							{formatTimeOnly(arrivalTime)}
 						</Text>
 					</View>
 				</View>
 
-				<View
-					style={{
-						flexDirection: "row",
-						alignItems: "center",
-						gap: 4,
-						paddingHorizontal: 8,
-						paddingVertical: 4,
-						borderRadius: 100,
-						backgroundColor: "rgba(16, 185, 129, 0.1)",
-					}}
-				>
-					<HugeiconsIcon icon={Shield01Icon} size={12} color="#10b981" />
-					<Text
-						style={{
-							fontSize: 9,
-							fontWeight: "800",
-							letterSpacing: 1,
-							color: "#10b981",
-							textTransform: "uppercase",
-						}}
-					>
-						Valid
-					</Text>
-				</View>
-			</View>
-
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					justifyContent: "space-between",
-				}}
-			>
-				<View>
-					<Text
-						style={{
-							fontSize: 11,
-							fontWeight: "700",
-							color: Colors.light.textSecondary,
-							letterSpacing: 0.5,
-							textTransform: "uppercase",
-						}}
-					>
-						From
-					</Text>
-					<Text
-						style={{
-							fontSize: 16,
-							fontWeight: "800",
-							color: Colors.light.text,
-						}}
-					>
-						{origin}
-					</Text>
-					<Text
-						style={{
-							fontSize: 12,
-							color: Colors.light.textSecondary,
-							marginTop: 2,
-						}}
-					>
-						{departureTime}
-					</Text>
+				{/* Dashed Tear-Line with Side Notch Circles */}
+				<View className="relative my-1 justify-center">
+					{/* Left Notch */}
+					<View className="absolute -left-3.5 w-6 h-6 rounded-full bg-background border border-border z-20" />
+					{/* Dashed Separator */}
+					<View className="w-full border-t border-dashed border-border/80" />
+					{/* Right Notch */}
+					<View className="absolute -right-3.5 w-6 h-6 rounded-full bg-background border border-border z-20" />
 				</View>
 
-				<View style={{ alignItems: "center" }}>
-					<HugeiconsIcon
-						icon={QrCodeIcon}
-						size={40}
-						color={Colors.light.primary}
-					/>
-					<Text
-						style={{
-							fontSize: 8,
-							fontWeight: "600",
-							color: Colors.light.textSecondary,
-							marginTop: 4,
-						}}
-					>
-						TICKET
-					</Text>
-				</View>
+				{/* Footer: Passenger + Seat + QR Code Action */}
+				<View className="p-4 flex-row items-center justify-between bg-card">
+					<View className="flex-1 mr-2">
+						<Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+							PASSENGER
+						</Text>
+						<Text
+							className="text-xs font-bold text-foreground"
+							numberOfLines={1}
+						>
+							{passengerName || "Valued Traveler"}
+						</Text>
+						<Text className="text-[11px] font-extrabold text-primary mt-0.5">
+							Seat {seatLabel || "Gen"}
+						</Text>
+					</View>
 
-				<View style={{ alignItems: "flex-end" }}>
-					<Text
-						style={{
-							fontSize: 11,
-							fontWeight: "700",
-							color: Colors.light.textSecondary,
-							letterSpacing: 0.5,
-							textTransform: "uppercase",
-						}}
-					>
-						To
-					</Text>
-					<Text
-						style={{
-							fontSize: 16,
-							fontWeight: "800",
-							color: Colors.light.text,
-						}}
-					>
-						{destination}
-					</Text>
-					<Text
-						style={{
-							fontSize: 12,
-							color: Colors.light.textSecondary,
-							marginTop: 2,
-						}}
-					>
-						{arrivalTime}
-					</Text>
+					{/* QR Code Icon Button */}
+					<View className="w-11 h-11 rounded-full bg-primary/10 border border-primary/20 items-center justify-center shadow-xs">
+						<HugeiconsIcon icon={QrCodeIcon} size={22} color="#ee237c" />
+					</View>
 				</View>
-			</View>
-
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					justifyContent: "space-between",
-					paddingTop: Spacing.three,
-					borderTopWidth: 1,
-					borderTopColor: Colors.light.backgroundSelected,
-				}}
-			>
-				<View>
-					<Text
-						style={{
-							fontSize: 10,
-							fontWeight: "600",
-							color: Colors.light.textSecondary,
-							letterSpacing: 0.5,
-							textTransform: "uppercase",
-						}}
-					>
-						Passenger
-					</Text>
-					<Text
-						style={{
-							fontSize: 13,
-							fontWeight: "600",
-							color: Colors.light.text,
-							marginTop: 2,
-						}}
-					>
-						{passengerName}
-					</Text>
-				</View>
-
-				<View>
-					<Text
-						style={{
-							fontSize: 10,
-							fontWeight: "600",
-							color: Colors.light.textSecondary,
-							letterSpacing: 0.5,
-							textTransform: "uppercase",
-						}}
-					>
-						Seat
-					</Text>
-					<Text
-						style={{
-							fontSize: 13,
-							fontWeight: "700",
-							color: Colors.light.primary,
-							marginTop: 2,
-						}}
-					>
-						{seatLabel}
-					</Text>
-				</View>
-			</View>
-		</View>
+			</Pressable>
+		</Animated.View>
 	);
 }

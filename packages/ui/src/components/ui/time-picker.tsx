@@ -10,13 +10,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "#components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "#components/ui/select";
 
 export interface TimePickerProps {
   value?: string; // Expects "HH:mm" e.g. "08:30" or "14:15"
@@ -100,37 +93,57 @@ export function TimePicker({
             Select Time
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <span className="text-[11px] text-muted-foreground">Hours</span>
-              <Select value={hour} onValueChange={(val) => handleHourChange(val ?? "08")}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="HH" />
-                </SelectTrigger>
-                <SelectContent className="max-h-48">
-                  {hoursList.map((h) => (
-                    <SelectItem key={h} value={h}>
-                      {h} :
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <span className="text-[11px] text-muted-foreground">Minutes</span>
-              <Select value={minute} onValueChange={(val) => handleMinuteChange(val ?? "00")}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="MM" />
-                </SelectTrigger>
-                <SelectContent className="max-h-48">
-                  {minutesList.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      :{m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+             <div className="space-y-1">
+               <span className="text-[11px] text-muted-foreground">Hours</span>
+               <div className="max-h-48 overflow-y-auto">
+                 {hoursList.map((h) => {
+                   const selected = h === hour;
+                   return (
+                     <button
+                       key={h}
+                       type="button"
+                       role="option"
+                       aria-selected={selected}
+                       onClick={() => handleHourChange(h)}
+                       className={cn(
+                         "w-full h-9 px-2 text-left text-sm font-mono rounded-md border transition-colors",
+                         selected
+                           ? "bg-primary text-primary-foreground border-primary"
+                           : "bg-background hover:bg-muted border-input",
+                       )}
+                     >
+                       {h}
+                     </button>
+                   );
+                 })}
+               </div>
+             </div>
+             <div className="space-y-1">
+               <span className="text-[11px] text-muted-foreground">Minutes</span>
+               <div className="max-h-48 overflow-y-auto">
+                 {minutesList.map((m) => {
+                   const selected = m === minute;
+                   return (
+                     <button
+                       key={m}
+                       type="button"
+                       role="option"
+                       aria-selected={selected}
+                       onClick={() => handleMinuteChange(m)}
+                       className={cn(
+                         "w-full h-9 px-2 text-left text-sm font-mono rounded-md border transition-colors",
+                         selected
+                           ? "bg-primary text-primary-foreground border-primary"
+                           : "bg-background hover:bg-muted border-input",
+                       )}
+                     >
+                       {m}
+                     </button>
+                   );
+                 })}
+               </div>
+             </div>
+           </div>
 
           <div className="pt-2 border-t">
             <span className="text-[11px] font-medium text-muted-foreground block mb-1.5">

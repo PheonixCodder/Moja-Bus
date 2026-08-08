@@ -10,8 +10,9 @@
 ## Open verification items
 1. [B1] Runtime confirmation of TimePicker Select-in-Popover behavior in browser (does
    `onValueChange` fire? popover dismiss pre-commit? duplicate silent return?).
-2. [S10] Confirm `isExpress` is genuinely never sent to `search.search` (static read confirms: query
-   input 102-119 omits it; only fix is client-side — no server change needed).
+2. [S10] Confirm `isExpress` is genuinely never sent to `search.search` (verified — query
+   input 102-119 omitted it; only fix is client-side — no server change needed). **FIXED** in
+   `search-page-client.tsx` (now sends the field).
 3. [D4] Server-side guard for empty `departureTimes` array in `updateBasic`.
 4. [T10] totalSeats definition parity (seatType filter) across create/assignBus/toggle.
 5. [G2] `ScheduleWaypoint.routeWaypoint` FK onDelete behavior on routes.update waypoint replace.

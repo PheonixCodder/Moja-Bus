@@ -66,6 +66,7 @@ export function OperatorSchedulesView() {
   const {
     q,
     status,
+    serviceType,
     page,
     sort,
     routeId,
@@ -78,6 +79,7 @@ export function OperatorSchedulesView() {
   const listInput = {
     q: q || undefined,
     routeId: routeId || undefined,
+    serviceType: serviceType === "all" ? undefined : serviceType,
     isActive:
       status === "active" ? true : status === "inactive" ? false : undefined,
     page,
@@ -446,6 +448,10 @@ export function OperatorSchedulesView() {
         onQChange={(v) => setParams({ q: v || null, page: 1 })}
         status={status}
         onStatusChange={(v) => setParams({ status: v, page: 1 })}
+        serviceType={serviceType}
+        onServiceTypeChange={(v) =>
+          setParams({ serviceType: v, page: 1 })
+        }
         canCreate={canCreate}
         onNew={() => setParams({ new: true, step: "Route" })}
         routeId={routeId}

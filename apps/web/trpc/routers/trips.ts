@@ -12,6 +12,7 @@ import {
 } from "@moja/schemas";
 import { cancelTripWithRefunds } from "@/lib/cancel-trip-with-refunds";
 import { assertTripTransition } from "@/lib/trip-status";
+import { computeDestinationArrivalOffset } from "@/lib/trip-destination";
 import {
   getAppRollingTripWindow,
   getCalendarDateKey,
@@ -51,8 +52,23 @@ export const tripsRouter = createTRPCRouter({
       );
 
       const lastRw = schedule.route.waypoints[schedule.route.waypoints.length - 1];
-      const lastSw = lastRw ? timingMap.get(lastRw.id) : undefined;
-      const destDepartureOffset = lastSw?.departureOffsetMinutes ?? 0;
+      const destStopOrder = (lastRw?.stopOrder ?? 0) + 1;
+      const fullRouteFare = await ctx.prisma.fare.findFirst({
+        where: {
+          scheduleId: schedule.id,
+          fromStopOrder: 0,
+          toStopOrder: destStopOrder,
+          isActive: true,
+        },
+        select: { durationMinutes: true },
+      });
+      const fullRouteDurationMin = fullRouteFare?.durationMinutes ?? null;
+
+      const destDepartureOffset = computeDestinationArrivalOffset({
+        waypoints: schedule.route.waypoints,
+        timings: timingMap,
+        fullRouteDurationMin,
+      });
 
       return ctx.prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({

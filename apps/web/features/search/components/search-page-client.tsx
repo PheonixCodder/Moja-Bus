@@ -114,6 +114,7 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
       departureTime: localFilters.departureTime.length > 0 ? localFilters.departureTime : undefined,
       seatClass: localFilters.seatClass.length > 0 ? localFilters.seatClass as ("ECONOMY" | "STANDARD" | "VIP")[] : undefined,
       maxPrice: localFilters.maxPrice ?? undefined,
+      isExpress: localFilters.isExpress ? ["true"] : undefined,
       sort: params.sort,
       page: params.page,
     }),

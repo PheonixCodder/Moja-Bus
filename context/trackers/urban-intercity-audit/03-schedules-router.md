@@ -1,8 +1,12 @@
 # R — schedules.ts Router Findings
 
+> **STATUS: FIXED** — R1 (serviceType filter), R5 (updateFare overlap guard), and R7b
+> (safe trip archive-on-delete) are resolved. See `docs/plans/2026-08-07-schedule-search-audit-fixes.md`
+> (Tasks 3, 6, 7).
+
 File: `apps/web/trpc/routers/schedules.ts` (1505 lines, fully read line-by-line).
 
-## R1 — No serviceType / urban filter on `schedules.list` (CONFIRMED)
+## R1 — No serviceType / urban filter on `schedules.list` (CONFIRMED — FIXED)
 `list` (schedules.ts:330-428) reads `routeId`, `isActive`, `q`, `page/pageSize`, `sort` from
 `listSchedulesSchema` (`packages/schemas/src/schedules.ts:371-380`). There is **no `serviceType` /
 `isUrban` filter** in the schema or the query. `trips.list` DOES support `serviceType` — inconsistent.
@@ -36,12 +40,13 @@ Not a runtime bug; likely an editor/formatting artifact. Biome/prettier would fl
   `generateTripsForSchedule` wrapped, warning M12 on failure (partial trip generation still saves
   schedule — by design but worth an audit note).
 
-## R5 — `addFare`/`updateFare` overlap logic (verified)
+## R5 — `addFare`/`updateFare` overlap logic (verified — FIXED)
 - `addFare` (1083-1155): overlap check covers always-valid AND date-ranged combos (line 1124-1140).
   Always-valid duplicate throws; date-window overlap throws.
-- `updateFare` (1037-1081): same `Object.fromEntries` undefined-filter (null survives); validates
-  `fromStopOrder < toStopOrder`. Note: does NOT re-run overlap check vs other fares — an update can
-  create a conflict that `addFare` would have blocked. **Flag for review.**
+- **FIXED:** overlap logic extracted into a shared `assertNoFareOverlap` helper and now re-run in
+  `updateFare` whenever the fare `type` changes (the only field that can introduce a new conflict).
+  `addFare` calls the same helper. `updateFare` (1037-1081): same `Object.fromEntries`
+  undefined-filter (null survives); validates `fromStopOrder < toStopOrder`.
 - `deactivateFare` (1157-1211): blocks deactivating the last active full-route fare. Good.
 
 ## R6 — `addException` bounds/day checks (verified; UTC-only caveat)
@@ -55,17 +60,13 @@ Not a runtime bug; likely an editor/formatting artifact. Biome/prettier would fl
   reconciliation. Minor.
 - `removeException` (1462-1504) reconciles on same condition.
 
-## R7 — `delete` blocks on CONFIRMED / PENDING_PAYMENT bookings (OK)
+## R7 — `delete` blocks on CONFIRMED / PENDING_PAYMENT bookings (OK — FIXED R7b)
 - `delete` (699-744) counts bookings via `trip: { scheduleId }` + active statuses; throws if >0.
-- **New finding R7b (CONFIRMED BUG):** `delete` then `tx.trip.deleteMany({ scheduleId })` removes ALL
-  trips. `Booking.trip` relation (schema.prisma:1814) has **no `onDelete`** → Prisma default
-  `Restrict`. So deleting a Trip with ANY booking row (even COMPLETED/CANCELLED) throws an FK
-  constraint error, contradicting the code comment/message at 717-718 ("completed, cancelled, or
-  expired historical bookings should not prevent cleanup"). The guard only blocks
-  CONFIRMED/PENDING_PAYMENT, so the happy path for schedules with only historical bookings is a
-  runtime INTERNAL_SERVER_ERROR instead of a clean delete. Fix options: (a) set
-  `onDelete: Cascade` on Booking.trip (audit impact on booking lifecycle), or (b) in `delete`,
-  archive trips (soft-delete) instead of deleteMany. **Flag for decision.**
+- **FIXED (R7b):** `delete` no longer `deleteMany`s trips. It partitions trips by booking count:
+  trips with **no** bookings are hard-deleted; trips that still carry historical booking rows are
+  detached (`scheduleId → null` via `onDelete: SetNull`, added `Trip.archivedAt`) and soft-archived,
+  so `Booking.trip` `Restrict` (schema.prisma:1814) never fires. The schedule itself is then deleted.
+  `Booking.trip` FK is left as `Restrict` (no cascade) per the team's booking-lifecycle concern.
 
 ## R8 — `retire` (verified)
 - `retire` (666-697) sets `isActive=false`, then `pruneUnbookedFutureTrips`.

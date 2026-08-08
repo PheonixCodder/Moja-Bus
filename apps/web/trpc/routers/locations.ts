@@ -3,7 +3,13 @@ import { z } from "zod";
 import { buildSearchEntries } from "@/features/search/lib/build-search-entries";
 import { geocodePoint } from "@/lib/geo/geocode-point";
 import { loadGeoDataset } from "@/lib/geo/load-geo-dataset";
+import { createRateLimiter } from "@/lib/rate-limit";
 import { createTRPCRouter, publicProcedure } from "../init";
+
+const suggestQuarterLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+});
 
 const citySearchResultSchema = z.object({
   id: z.string(),
@@ -190,6 +196,19 @@ export const locationsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const forwarded = ctx.headers.get("x-forwarded-for");
+      const ip =
+        forwarded?.split(",")[0]?.trim() ||
+        ctx.headers.get("x-real-ip") ||
+        "unknown";
+      const gate = suggestQuarterLimiter(`suggestQuarter:${ip}`);
+      if (!gate.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: `Too many quarter suggestions. Try again in ${Math.ceil(gate.retryAfterMs / 1000)}s.`,
+        });
+      }
+
       const municipality = await ctx.prisma.municipality.findUnique({
         where: { id: input.municipalityId },
       });

@@ -11,6 +11,8 @@ export function ScheduleToolbar({
   onQChange,
   status,
   onStatusChange,
+  serviceType,
+  onServiceTypeChange,
   canCreate,
   onNew,
   routes,
@@ -22,6 +24,8 @@ export function ScheduleToolbar({
   onQChange: (v: string) => void;
   status: "all" | "active" | "inactive";
   onStatusChange: (v: "all" | "active" | "inactive") => void;
+  serviceType: "all" | "INTERCITY" | "URBAN";
+  onServiceTypeChange: (v: "all" | "INTERCITY" | "URBAN") => void;
   canCreate: boolean;
   onNew: () => void;
   routes?: Array<{ id: string; label: string }>;
@@ -56,6 +60,18 @@ export function ScheduleToolbar({
           <option value="all">All</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
+        </select>
+        <select
+          value={serviceType}
+          onChange={(e) =>
+            onServiceTypeChange(e.target.value as "all" | "INTERCITY" | "URBAN")
+          }
+          className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+          aria-label="Filter by service type"
+        >
+          <option value="all">All service types</option>
+          <option value="INTERCITY">Intercity</option>
+          <option value="URBAN">Urban</option>
         </select>
         {onRouteChange && routes && routes.length > 0 ? (
           <select

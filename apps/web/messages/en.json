@@ -1461,6 +1461,7 @@
         "addTime": "Add time",
         "add": "Add",
         "removeTime": "Remove {time}",
+        "duplicateTime": "Duplicate time — {time} is already in the schedule.",
         "cadencePreset": "Cadence preset",
         "cadenceStart": "From",
         "cadenceEvery": "Every",

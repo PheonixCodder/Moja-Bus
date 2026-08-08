@@ -64,10 +64,12 @@ function TabItem({
   config,
   isFocused,
   onPress,
+  onPressIn,
 }: {
   config: { icon: typeof Home01Icon; label: string };
   isFocused: boolean;
   onPress: () => void;
+  onPressIn?: () => void;
 }) {
   const labelOpacity = useSharedValue(isFocused ? 1 : 0);
   const labelTranslateY = useSharedValue(isFocused ? 0 : 8);
@@ -85,6 +87,7 @@ function TabItem({
   return (
     <Pressable
       onPress={onPress}
+      onPressIn={onPressIn}
       style={({ pressed }) => ({
         flex: 1,
         alignItems: "center",
@@ -142,9 +145,12 @@ function SearchButton({ onPress }: { onPress: () => void }) {
   );
 }
 
+import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
+
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const { width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const { prefetchBookings, prefetchStats } = useBookingPrefetch();
   const centerIndex = Math.floor(state.routes.length / 2);
   const margin = 16;
   const barWidth = screenWidth - margin * 2;
@@ -226,6 +232,15 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
               }
             };
 
+            const handlePressIn = () => {
+              if (route.name === "bookings") {
+                prefetchBookings("upcoming");
+                prefetchStats();
+              } else if (route.name === "tickets") {
+                prefetchBookings("confirmed");
+              }
+            };
+
             if (isSearch) {
               return <SearchButton key={route.key} onPress={onPress} />;
             }
@@ -239,6 +254,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 config={config}
                 isFocused={isFocused}
                 onPress={onPress}
+                onPressIn={handlePressIn}
               />
             );
           })}

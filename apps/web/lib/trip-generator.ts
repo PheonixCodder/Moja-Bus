@@ -1,6 +1,7 @@
 import { getPrismaClient } from "@moja/db";
 import { addAppCalendarDays, startOfAppCalendarDay } from "./timezone";
 import { getCandidateDepartureDates } from "./schedule-trip-window";
+import { computeDestinationArrivalOffset } from "./trip-destination";
 
 const prisma = getPrismaClient();
 
@@ -77,8 +78,23 @@ export async function generateTripsForSchedule(
 
   // Build map for schedule-specific waypoint timing
   const timingMap = new Map(
-    scheduleWaypoints?.map((sw) => [sw.routeWaypointId, sw])
+    scheduleWaypoints?.map((sw) => [sw.routeWaypointId, sw]),
   );
+
+  // Full-route fare duration (origin -> destination) is the travel-time budget
+  // used to derive the destination arrival offset. Fetch once per schedule.
+  const lastRouteWp = route.waypoints[route.waypoints.length - 1];
+  const destStopOrder = (lastRouteWp?.stopOrder ?? 0) + 1;
+  const fullRouteFare = await prisma.fare.findFirst({
+    where: {
+      scheduleId,
+      fromStopOrder: 0,
+      toStopOrder: destStopOrder,
+      isActive: true,
+    },
+    select: { durationMinutes: true },
+  });
+  const fullRouteDurationMin = fullRouteFare?.durationMinutes ?? null;
 
   const candidates = getCandidateDepartureDates({
     departureTimes:
@@ -135,9 +151,11 @@ export async function generateTripsForSchedule(
     const departureTimestamp = candidate.departureTimestamp;
 
     try {
-      const lastWp = route.waypoints[route.waypoints.length - 1];
-      const lastTiming = lastWp ? timingMap.get(lastWp.id) : undefined;
-      const destDepartureOffset = lastTiming?.departureOffsetMinutes ?? 0;
+      const destDepartureOffset = computeDestinationArrivalOffset({
+        waypoints: route.waypoints,
+        timings: timingMap,
+        fullRouteDurationMin,
+      });
 
       const trip = await prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({
