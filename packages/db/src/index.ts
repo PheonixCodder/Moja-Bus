@@ -47,7 +47,7 @@ export type {
   PlatformSettings,
   HoldGroup,
 } from "@prisma/client";
-export * from "./services/AccountingEngine.js";
-export * from "./services/FinancialAccountService.js";
-export * from "./services/SnapshotService.js";
+export * from './services/AccountingEngine';
+export * from "./services/FinancialAccountService";
+export * from "./services/SnapshotService";
 
