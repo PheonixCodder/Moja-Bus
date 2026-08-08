@@ -48,10 +48,11 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@moja/ui/components/ui/sidebar";
-import type { User } from "@/lib/auth-client";
-import { useTRPC } from "@/trpc/client";
+import { DashboardSwitcher } from "@/components/dashboard-switcher";
 import { getCompanyStatusPresentation } from "@/features/operator/lib/company-status";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import { useTRPC } from "@/trpc/client";
+import type { User } from "@/lib/auth-client";
 import type { PermissionKey } from "@moja/schemas";
 
 type NavItem = {
@@ -335,6 +336,11 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
       </SidebarContent>
 
       <div className="mx-3 my-2 border-b border-sidebar-border" />
+
+      {/* Cross-dashboard navigation */}
+      <div className="px-3">
+        <DashboardSwitcher userRole={user?.role} />
+      </div>
 
       <SidebarFooter className="px-3 py-3">
         <SidebarMenu>

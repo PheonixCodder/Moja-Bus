@@ -1,9 +1,9 @@
 import type { TripStatus } from "@moja/schemas";
 
 const TRANSITIONS: Record<TripStatus, readonly TripStatus[]> = {
-  SCHEDULED: ["BOARDING", "DELAYED"], // CANCELLED is a terminal state reachable only via trips.cancel
-  BOARDING: ["DEPARTED", "DELAYED"],
-  DELAYED: ["BOARDING", "DEPARTED", "DELAYED"],
+  SCHEDULED: ["BOARDING", "DELAYED", "CANCELLED"],
+  BOARDING: ["DEPARTED", "DELAYED", "CANCELLED"],
+  DELAYED: ["BOARDING", "DEPARTED", "DELAYED", "CANCELLED"],
   DEPARTED: ["ARRIVED"],
   ARRIVED: [],
   CANCELLED: [],

@@ -417,6 +417,7 @@ export function BookingCheckoutForm({
                         })
                       }
                       required
+                      className="h-10 w-full border-slate-200 bg-white text-sm focus-visible:ring-primary"
                     />
                   </div>
                 </div>

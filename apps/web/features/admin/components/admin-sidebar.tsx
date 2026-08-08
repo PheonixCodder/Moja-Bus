@@ -50,6 +50,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { DashboardSwitcher } from "@/components/dashboard-switcher";
 import { useAdminPermissions } from "@/features/admin/hooks/use-admin-permissions";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import type { User as AuthUser } from "@/lib/auth-client";
@@ -346,6 +347,11 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       </SidebarContent>
 
       <div className="mx-3 my-2 border-b border-sidebar-border" />
+
+      {/* Cross-dashboard navigation */}
+      <div className="px-3">
+        <DashboardSwitcher userRole={user?.role} />
+      </div>
 
       <SidebarFooter className="px-3 py-3">
         <SidebarMenu>
