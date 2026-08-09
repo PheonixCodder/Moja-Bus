@@ -6,7 +6,7 @@ const serviceLinks = [
   { key: "bookBus", href: "/search" },
   { key: "vipDestinations", href: "/search" },
   { key: "corporateOffers", href: "/contact" },
-  { key: "becomePartner", href: "/operator/login" },
+  { key: "becomePartner", href: "/become-a-partner" },
 ] as const;
 
 const supportLinks = [

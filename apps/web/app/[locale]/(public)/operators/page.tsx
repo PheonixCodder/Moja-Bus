@@ -41,7 +41,7 @@ export default async function OperatorsPage() {
               </p>
             </div>
             <Link
-              href="/dashboard/operator/onboarding"
+              href="/become-a-partner"
               className="shrink-0 flex items-center gap-2 bg-[#ee237c] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#d01867] transition-all hover:gap-4"
             >
               <span>{t("ctaButton")}</span>

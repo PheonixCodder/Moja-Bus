@@ -132,7 +132,7 @@ export default async function AboutPage() {
               {t("cta2Desc")}
             </p>
             <Link
-              href="/dashboard/operator/onboarding"
+              href="/become-a-partner"
               className="inline-flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all"
             >
               {t("cta2Button")} <ArrowRight className="h-4 w-4" />
