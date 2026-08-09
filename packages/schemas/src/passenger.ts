@@ -37,6 +37,17 @@ export type SeatPassengerInput = z.infer<typeof seatPassengerInputSchema>;
 export type CreateSavedPassengerInput = z.infer<typeof createSavedPassengerSchema>;
 export type UpdateSavedPassengerInput = z.infer<typeof updateSavedPassengerSchema>;
 
+export const getTravelInsightsSchema = z.object({
+  from: z.string().datetime(),
+  to: z.string().datetime(),
+});
+export type GetTravelInsightsInput = z.infer<typeof getTravelInsightsSchema>;
+
+export const getRecentBookingsSchema = z.object({
+  limit: z.number().int().min(1).max(10).default(3),
+});
+export type GetRecentBookingsInput = z.infer<typeof getRecentBookingsSchema>;
+
 export const submitReviewSchema = z.object({
   companyId: z.string().min(1, "Company ID is required"),
   bookingId: z.string().min(1, "Booking ID is required"),

@@ -21,3 +21,14 @@ export interface EnsurePassengerProfileResult {
   profileId: string;
   selfPassenger: SavedPassengerDTO | null;
 }
+
+export type TravelInsightsBucket = "MONTHLY" | "DAILY";
+export interface TravelInsightsPoint {
+  key: string; // "YYYY-MM" (MONTHLY) or "YYYY-MM-DD" (DAILY), Abidjan calendar
+  trips: number;
+  spentXOF: number;
+}
+export interface TravelInsightsResult {
+  bucket: TravelInsightsBucket;
+  items: TravelInsightsPoint[];
+}
