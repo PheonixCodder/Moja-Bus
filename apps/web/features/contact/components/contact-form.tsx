@@ -7,7 +7,7 @@ import { CheckCircle, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 import { useTRPC } from "@/trpc/client";
 
 const subjectKeys = [
@@ -52,10 +52,11 @@ export function ContactForm() {
   const message = watch("message");
 
   // Clear the server-side error as soon as the user edits any field.
+  // `error` is intentionally omitted — adding it would clear the error immediately.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see comment above
   useEffect(() => {
     if (!error) return;
     setError(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, email, phone, subject, message]);
 
   const submitMutation = useMutation(
