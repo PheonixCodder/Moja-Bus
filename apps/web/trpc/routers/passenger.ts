@@ -1,10 +1,13 @@
 import {
   createSavedPassengerSchema,
   deleteSavedPassengerSchema,
+  getRecentBookingsSchema,
+  getTravelInsightsSchema,
   updateSavedPassengerSchema,
   submitReviewSchema,
   updatePreferencesSchema,
 } from "@moja/schemas";
+import type { TravelInsightsBucket } from "@moja/types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../init";
@@ -12,6 +15,7 @@ import { SavedPassengerService } from "@/features/passenger/services/saved-passe
 import { FinancialAccountService, Prisma } from "@moja/db";
 import { paystackInitialize } from "@/features/payments/providers/paystack-client";
 import { toSafeDisplayNumber } from "@/lib/money";
+import { getCalendarDateKey, getZonedDateParts } from "@/lib/timezone";
 import { getNovuClient } from "@/lib/novu";
 import { getPhoneValidationError, toE164 } from "@/lib/phone/phone-number";
 
@@ -97,6 +101,104 @@ export const passengerRouter = createTRPCRouter({
       digitalTicketsCount: digitalTickets,
       savedContactsCount: savedContacts,
     };
+  }),
+
+  getTravelInsights: protectedProcedure
+    .input(getTravelInsightsSchema)
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const fromDate = new Date(input.from);
+      const toDate = new Date(input.to);
+
+      const bookings = await ctx.prisma.booking.findMany({
+        where: {
+          userId,
+          status: "CONFIRMED",
+          createdAt: { gte: fromDate, lte: toDate },
+        },
+        select: { createdAt: true, farePaid: true },
+      });
+
+      const spanDays = Math.max(
+        1,
+        Math.round((toDate.getTime() - fromDate.getTime()) / 86_400_000),
+      );
+      const bucket: TravelInsightsBucket = spanDays > 62 ? "MONTHLY" : "DAILY";
+
+      const totals = new Map<string, { trips: number; spent: bigint }>();
+      for (const booking of bookings) {
+        const parts = getZonedDateParts(booking.createdAt);
+        const key =
+          bucket === "MONTHLY"
+            ? `${parts.year}-${String(parts.month).padStart(2, "0")}`
+            : getCalendarDateKey(booking.createdAt);
+        const current = totals.get(key) ?? { trips: 0, spent: 0n };
+        current.trips += 1;
+        current.spent += BigInt(booking.farePaid);
+        totals.set(key, current);
+      }
+
+      const items = Array.from(totals.entries())
+        .map(([key, value]) => ({
+          key,
+          trips: value.trips,
+          spentXOF: toSafeDisplayNumber(value.spent),
+        }))
+        .sort((a, b) => a.key.localeCompare(b.key));
+
+      return { bucket, items };
+    }),
+
+  getRecentBookings: protectedProcedure
+    .input(getRecentBookingsSchema)
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.booking.findMany({
+        where: { userId: ctx.user.id },
+        orderBy: { createdAt: "desc" },
+        take: input.limit,
+        include: {
+          trip: {
+            include: {
+              schedule: {
+                include: {
+                  route: {
+                    include: { originTerminal: true, destTerminal: true },
+                  },
+                },
+              },
+            },
+          },
+          originTripStop: { include: { terminal: true } },
+          destinationTripStop: { include: { terminal: true } },
+          company: true,
+        },
+      });
+    }),
+
+  getNextDeparture: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.booking.findFirst({
+      where: {
+        userId: ctx.user.id,
+        status: "CONFIRMED",
+        trip: { departureDate: { gte: new Date() } },
+      },
+      orderBy: { trip: { departureDate: "asc" } },
+      include: {
+        trip: {
+          include: {
+            schedule: {
+              include: {
+                route: {
+                  include: { originTerminal: true, destTerminal: true },
+                },
+              },
+            },
+          },
+        },
+        originTripStop: { include: { terminal: true } },
+        destinationTripStop: { include: { terminal: true } },
+      },
+    });
   }),
 
   getPreferences: protectedProcedure.query(async ({ ctx }) => {
