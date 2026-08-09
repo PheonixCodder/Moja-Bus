@@ -37,3 +37,7 @@ traveler-app-2
 # Migration artifacts
 packages/db/migrate-out.txt
 scratch-escape.cjs
+
+# Dev geodata (large binaries — not committed)
+ivory_coast_data/ivory-coast.gpkg
+ivory_coast_data/osm-2020-02-10-v3.11_africa_ivory-coast.mbtiles
