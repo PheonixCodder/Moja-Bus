@@ -2,13 +2,15 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
   typecheck:
     name: Typecheck & Quality Gate
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL_BUILD }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
