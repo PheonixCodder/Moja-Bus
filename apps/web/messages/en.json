@@ -835,6 +835,14 @@
       "chartTitle": "Travel Insights",
       "chartDescription": "Monthly summary of your journeys and spending.",
       "chartTooltipTrips": "{value} Trips",
+      "chartPickRange": "Pick a range",
+      "chartEmpty": "No trips in this period yet.",
+      "chartPresets": {
+        "last6Months": "Last 6 months",
+        "last30Days": "Last 30 days",
+        "thisMonth": "This month",
+        "thisYear": "This year"
+      },
       "emptyTitle": "No Active Tickets",
       "emptyDescription": "Complete a booking to get your digital boarding passes here.",
       "bookTrip": "Book a Trip",
@@ -1034,7 +1042,9 @@
       "viewAll": "View all",
       "noTripsYet": "No trips booked yet",
       "noTripsDesc": "Search routes and reserve your first seat to get started.",
-      "searchTrips": "Search trips"
+      "searchTrips": "Search trips",
+      "seat": "Seat {id}",
+      "viewTicket": "View ticket"
     },
     "boardingPass": {
       "livePass": "Live Boarding Pass",

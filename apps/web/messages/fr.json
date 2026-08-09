@@ -835,6 +835,14 @@
       "chartTitle": "Aperçu des voyages",
       "chartDescription": "Récapitulatif mensuel de vos trajets et dépenses.",
       "chartTooltipTrips": "{value} trajets",
+      "chartPickRange": "Choisir une période",
+      "chartEmpty": "Aucun trajet sur cette période pour l'instant.",
+      "chartPresets": {
+        "last6Months": "6 derniers mois",
+        "last30Days": "30 derniers jours",
+        "thisMonth": "Ce mois-ci",
+        "thisYear": "Cette année"
+      },
       "emptyTitle": "Aucun billet actif",
       "emptyDescription": "Effectuez une réservation pour obtenir vos cartes d'embarquement numériques ici.",
       "bookTrip": "Réserver un voyage",
@@ -1034,7 +1042,9 @@
       "viewAll": "Voir tout",
       "noTripsYet": "Aucun trajet réservé",
       "noTripsDesc": "Recherchez des lignes et réservez votre premier siège pour commencer.",
-      "searchTrips": "Rechercher des trajets"
+      "searchTrips": "Rechercher des trajets",
+      "seat": "Siège {id}",
+      "viewTicket": "Voir le billet"
     },
     "boardingPass": {
       "livePass": "Carte d'embarquement en direct",
