@@ -14,7 +14,15 @@ async function main() {
   // Single source of truth; no hand-written city list.
   // ============================================================
   console.log("🌍 Importing Côte d'Ivoire geography...");
-  await runIvoryCoastGeoImport(prisma);
+  try {
+    await runIvoryCoastGeoImport(prisma);
+  } catch (e: any) {
+    if (e?.code === "ENOENT") {
+      console.log("   ℹ️  Raw GeoJSON files omitted from container — populate geography via `geo-seed.sql`.");
+    } else {
+      throw e;
+    }
+  }
   console.log("\n");
 
   // ============================================================
