@@ -59,6 +59,7 @@
 		"expo-device": "latest",
 		"expo-file-system": "latest",
 		"expo-font": "latest",
+		"expo-haptics": "~14.0.1",
 		"expo-image-manipulator": "latest",
 		"expo-image-picker": "latest",
 		"expo-linking": "latest",

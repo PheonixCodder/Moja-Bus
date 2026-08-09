@@ -66,7 +66,7 @@ export function ContactForm() {
     }),
   );
 
-  function onSubmit(values: z.output<typeof submitInquirySchema>) {
+  function onSubmit(values: ContactFormValues) {
     submitMutation.mutate({
       name: values.name,
       email: values.email,
