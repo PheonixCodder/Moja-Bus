@@ -2,6 +2,8 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
+> **Status:** Tasks 1-9 complete. Task 10: typecheck + biome clean on changed files (pre-existing repo-wide biome diagnostics remain, unrelated to this plan); manual QA not yet run.
+
 **Goal:** Bring the passenger dashboard page (`apps/web/app/[locale]/dashboard/(passenger)/page.tsx`) in line with every other passenger page: server-rendered tRPC `prefetch` + `HydrateClient` wrapping a client view. In the process, eliminate the three hardcoded/fake-data spots, make the Travel Insights chart dynamic (URL-driven date range via nuqs, real spend from `Booking.farePaid`, adaptive MONTHLY/DAILY buckets), and make the "Upcoming trips" panel fetch real bookings instead of an empty `[]`. Everything stays under `features/dashboard/`.
 
 **Architecture:** The page becomes a thin server wrapper (parse nuqs search params → `prefetch` all queries → `HydrateClient` + `Suspense` skeleton). A new client view `features/dashboard/views/passenger-dashboard-view.tsx` owns the layout and reads URL state + data with `useQueryStates` and `useSuspenseQuery`, exactly like `features/operator/views/operator-revenue-view.tsx`. Data comes from tRPC procedures on the existing `passengerRouter` (3 new, the rest reused), so the dashboard gains client-side cacheability/refetch and loses raw Prisma in the render path.

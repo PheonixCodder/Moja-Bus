@@ -7,10 +7,9 @@ export const seatPassengerInputSchema = z
     savedPassengerId: z.string().min(1).optional(),
     passenger: passengerDraftSchema.optional(),
   })
-  .refine(
-    (data) => data.savedPassengerId || data.passenger,
-    { message: "Provide savedPassengerId or passenger details for each seat" },
-  );
+  .refine((data) => data.savedPassengerId || data.passenger, {
+    message: "Provide savedPassengerId or passenger details for each seat",
+  });
 
 export const createSavedPassengerSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -34,8 +33,12 @@ export const deleteSavedPassengerSchema = z.object({
 
 export type PassengerDraft = z.infer<typeof passengerDraftSchema>;
 export type SeatPassengerInput = z.infer<typeof seatPassengerInputSchema>;
-export type CreateSavedPassengerInput = z.infer<typeof createSavedPassengerSchema>;
-export type UpdateSavedPassengerInput = z.infer<typeof updateSavedPassengerSchema>;
+export type CreateSavedPassengerInput = z.infer<
+  typeof createSavedPassengerSchema
+>;
+export type UpdateSavedPassengerInput = z.infer<
+  typeof updateSavedPassengerSchema
+>;
 
 export const getTravelInsightsSchema = z.object({
   from: z.string().datetime(),
@@ -57,7 +60,10 @@ export const submitReviewSchema = z.object({
 export type SubmitReviewInput = z.infer<typeof submitReviewSchema>;
 
 export const updatePreferencesSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters").optional(),
+  fullName: z
+    .string()
+    .min(2, "Full name must be at least 2 characters")
+    .optional(),
   phone: z
     .string()
     .regex(/^\+[1-9]\d{7,14}$/, "Enter a valid international phone number")

@@ -1,23 +1,23 @@
+import { FinancialAccountService, Prisma } from "@moja/db";
 import {
   createSavedPassengerSchema,
   deleteSavedPassengerSchema,
   getRecentBookingsSchema,
   getTravelInsightsSchema,
-  updateSavedPassengerSchema,
   submitReviewSchema,
   updatePreferencesSchema,
+  updateSavedPassengerSchema,
 } from "@moja/schemas";
 import type { TravelInsightsBucket } from "@moja/types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../init";
 import { SavedPassengerService } from "@/features/passenger/services/saved-passenger-service";
-import { FinancialAccountService, Prisma } from "@moja/db";
 import { paystackInitialize } from "@/features/payments/providers/paystack-client";
 import { toSafeDisplayNumber } from "@/lib/money";
-import { getCalendarDateKey, getZonedDateParts } from "@/lib/timezone";
 import { getNovuClient } from "@/lib/novu";
 import { getPhoneValidationError, toE164 } from "@/lib/phone/phone-number";
+import { getCalendarDateKey, getZonedDateParts } from "@/lib/timezone";
+import { createTRPCRouter, protectedProcedure } from "../init";
 
 export const passengerRouter = createTRPCRouter({
   ensureProfile: protectedProcedure.query(async ({ ctx }) => {
@@ -55,45 +55,46 @@ export const passengerRouter = createTRPCRouter({
     const userId = ctx.user.id;
     const now = new Date();
 
-    const [upcomingTrips, pendingPayments, digitalTickets, savedContacts] = await Promise.all([
-      // 1. Upcoming trips (CONFIRMED bookings where trip departure is in the future)
-      ctx.prisma.booking.count({
-        where: {
-          userId,
-          status: "CONFIRMED",
-          trip: {
-            departureDate: {
+    const [upcomingTrips, pendingPayments, digitalTickets, savedContacts] =
+      await Promise.all([
+        // 1. Upcoming trips (CONFIRMED bookings where trip departure is in the future)
+        ctx.prisma.booking.count({
+          where: {
+            userId,
+            status: "CONFIRMED",
+            trip: {
+              departureDate: {
+                gt: now,
+              },
+            },
+          },
+        }),
+        // 2. Pending payments (PENDING_PAYMENT bookings that haven't expired)
+        ctx.prisma.booking.count({
+          where: {
+            userId,
+            status: "PENDING_PAYMENT",
+            holdExpiresAt: {
               gt: now,
             },
           },
-        },
-      }),
-      // 2. Pending payments (PENDING_PAYMENT bookings that haven't expired)
-      ctx.prisma.booking.count({
-        where: {
-          userId,
-          status: "PENDING_PAYMENT",
-          holdExpiresAt: {
-            gt: now,
-          },
-        },
-      }),
-      // 3. Digital tickets (CONFIRMED bookings)
-      ctx.prisma.booking.count({
-        where: {
-          userId,
-          status: "CONFIRMED",
-        },
-      }),
-      // 4. Saved passengers
-      ctx.prisma.savedPassenger.count({
-        where: {
-          profile: {
+        }),
+        // 3. Digital tickets (CONFIRMED bookings)
+        ctx.prisma.booking.count({
+          where: {
             userId,
+            status: "CONFIRMED",
           },
-        },
-      }),
-    ]);
+        }),
+        // 4. Saved passengers
+        ctx.prisma.savedPassenger.count({
+          where: {
+            profile: {
+              userId,
+            },
+          },
+        }),
+      ]);
 
     return {
       upcomingTripsCount: upcomingTrips,
@@ -204,7 +205,16 @@ export const passengerRouter = createTRPCRouter({
   getPreferences: protectedProcedure.query(async ({ ctx }) => {
     const profile = await ctx.prisma.passengerProfile.findUnique({
       where: { userId: ctx.user.id },
-      include: { user: { select: { fullName: true, email: true, phoneNumber: true, image: true } } },
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            email: true,
+            phoneNumber: true,
+            image: true,
+          },
+        },
+      },
     });
 
     if (!profile) {
@@ -212,7 +222,16 @@ export const passengerRouter = createTRPCRouter({
       await service.ensureProfile(ctx.user.id);
       return ctx.prisma.passengerProfile.findUnique({
         where: { userId: ctx.user.id },
-      include: { user: { select: { fullName: true, email: true, phoneNumber: true, image: true } } },
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              email: true,
+              phoneNumber: true,
+              image: true,
+            },
+          },
+        },
       });
     }
 
@@ -285,21 +304,30 @@ export const passengerRouter = createTRPCRouter({
       if (input.preferredSeat) changedFields.push("Preferred Seat");
       if (input.preferredClass) changedFields.push("Preferred Seat Class");
       if (input.dateOfBirth) changedFields.push("Date of Birth");
-      if (input.marketingOptIn !== undefined) changedFields.push("Marketing Preferences");
+      if (input.marketingOptIn !== undefined)
+        changedFields.push("Marketing Preferences");
 
       const existingPrefs = (profile.preferencesJson as any) || {};
       const newPrefs = {
         ...existingPrefs,
-        ...(input.preferredSeat !== undefined ? { preferredSeat: input.preferredSeat } : {}),
-        ...(input.preferredClass !== undefined ? { preferredClass: input.preferredClass } : {}),
-        ...(input.dateOfBirth !== undefined ? { dateOfBirth: input.dateOfBirth } : {}),
+        ...(input.preferredSeat !== undefined
+          ? { preferredSeat: input.preferredSeat }
+          : {}),
+        ...(input.preferredClass !== undefined
+          ? { preferredClass: input.preferredClass }
+          : {}),
+        ...(input.dateOfBirth !== undefined
+          ? { dateOfBirth: input.dateOfBirth }
+          : {}),
       };
 
       const updatedProfile = await ctx.prisma.passengerProfile.update({
         where: { id: profile.id },
         data: {
           preferencesJson: newPrefs,
-          ...(input.marketingOptIn !== undefined ? { marketingOptIn: input.marketingOptIn } : {}),
+          ...(input.marketingOptIn !== undefined
+            ? { marketingOptIn: input.marketingOptIn }
+            : {}),
         },
       });
 
@@ -308,22 +336,27 @@ export const passengerRouter = createTRPCRouter({
         const novu = getNovuClient();
         if (novu) {
           try {
-            await novu.trigger({
-              workflowId: "passenger-profile-updated",
-              to: {
-                subscriberId: ctx.user.email,
-                email: ctx.user.email,
-              },
-              payload: {
-                email: ctx.user.email,
-                passengerName: input.fullName || ctx.user.name || "Passenger",
-                changedFields,
-                phone: normalizedPhone || ctx.user.phoneNumber || undefined,
-              },
-              transactionId: `passenger-profile-updated-${ctx.user.id}-${Date.now()}`,
-            }).catch(() => {});
+            await novu
+              .trigger({
+                workflowId: "passenger-profile-updated",
+                to: {
+                  subscriberId: ctx.user.email,
+                  email: ctx.user.email,
+                },
+                payload: {
+                  email: ctx.user.email,
+                  passengerName: input.fullName || ctx.user.name || "Passenger",
+                  changedFields,
+                  phone: normalizedPhone || ctx.user.phoneNumber || undefined,
+                },
+                transactionId: `passenger-profile-updated-${ctx.user.id}-${Date.now()}`,
+              })
+              .catch(() => {});
           } catch (err) {
-            console.error("Failed to trigger passenger-profile-updated via Novu:", err);
+            console.error(
+              "Failed to trigger passenger-profile-updated via Novu:",
+              err,
+            );
           }
         }
       }
@@ -385,23 +418,28 @@ export const passengerRouter = createTRPCRouter({
       const novu = getNovuClient();
       if (novu && ctx.user.email) {
         try {
-          await novu.trigger({
-            workflowId: "passenger-review-submitted",
-            to: {
-              subscriberId: ctx.user.email,
-              email: ctx.user.email,
-            },
-            payload: {
-              email: ctx.user.email,
-              passengerName: ctx.user.name ?? "Passenger",
-              companyName: company?.name ?? "Transport Operator",
-              rating: input.rating,
-              content: input.content ?? undefined,
-            },
-            transactionId: `passenger-review-submitted-${review.id}`,
-          }).catch(() => {});
+          await novu
+            .trigger({
+              workflowId: "passenger-review-submitted",
+              to: {
+                subscriberId: ctx.user.email,
+                email: ctx.user.email,
+              },
+              payload: {
+                email: ctx.user.email,
+                passengerName: ctx.user.name ?? "Passenger",
+                companyName: company?.name ?? "Transport Operator",
+                rating: input.rating,
+                content: input.content ?? undefined,
+              },
+              transactionId: `passenger-review-submitted-${review.id}`,
+            })
+            .catch(() => {});
         } catch (err) {
-          console.error("Failed to trigger passenger-review-submitted via Novu:", err);
+          console.error(
+            "Failed to trigger passenger-review-submitted via Novu:",
+            err,
+          );
         }
       }
 
@@ -430,7 +468,7 @@ export const passengerRouter = createTRPCRouter({
       z.object({
         limit: z.number().int().min(1).max(100).default(20),
         offset: z.number().int().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const accountService = new FinancialAccountService(ctx.prisma);
@@ -448,9 +486,12 @@ export const passengerRouter = createTRPCRouter({
         }),
       ]);
 
-      return { 
-        items: items.map(i => ({ ...i, amount: toSafeDisplayNumber(i.amount) })),
-        total 
+      return {
+        items: items.map((i) => ({
+          ...i,
+          amount: toSafeDisplayNumber(i.amount),
+        })),
+        total,
       };
     }),
 
@@ -459,14 +500,16 @@ export const passengerRouter = createTRPCRouter({
       z.object({
         amountXOF: z.number().int().positive().min(100),
         callbackUrl: z.string().url().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const accountService = new FinancialAccountService(ctx.prisma);
       const wallet = await accountService.getUserWallet(ctx.user.id);
-      
+
       const reference = `ref_topup_${wallet.id.slice(-6)}_${Date.now()}`;
-      const phone = ctx.user.phoneNumber ? ctx.user.phoneNumber.replace(/\s+/g, "") : "guest";
+      const phone = ctx.user.phoneNumber
+        ? ctx.user.phoneNumber.replace(/\s+/g, "")
+        : "guest";
       const email = ctx.user.email || `${phone}@guest.mojaride.ci`;
 
       const payment = await ctx.prisma.externalPayment.create({
@@ -539,7 +582,9 @@ export const passengerRouter = createTRPCRouter({
   verifyWalletTopUp: protectedProcedure
     .input(z.object({ reference: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { PaymentService } = await import("@/features/payments/payment-service");
+      const { PaymentService } = await import(
+        "@/features/payments/payment-service"
+      );
       const service = new PaymentService(ctx.prisma);
       return service.verifyTopUp(input.reference);
     }),
