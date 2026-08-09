@@ -187,7 +187,7 @@ export const SearchForm = memo(function SearchForm({
   }
 
   return (
-    <Card className="bg-white/95 backdrop-blur-md shadow-2xl border border-slate-100 rounded-2xl overflow-hidden transition-all duration-300">
+    <Card className="bg-white/95 backdrop-blur-md shadow-2xl border border-slate-100 rounded-2xl overflow-visible transition-all duration-300">
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">

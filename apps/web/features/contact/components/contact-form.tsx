@@ -1,9 +1,13 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { submitInquirySchema } from "@moja/schemas";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { useTRPC } from "@/trpc/client";
 
 const subjectKeys = [
@@ -16,18 +20,43 @@ const subjectKeys = [
   "subjectOther",
 ] as const;
 
+type ContactFormValues = z.input<typeof submitInquirySchema>;
+
 export function ContactForm() {
   const t = useTranslations("contact");
   const trpc = useTRPC();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: subjectKeys[0],
-    message: "",
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<ContactFormValues>({
+    resolver: zodResolver(submitInquirySchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      subject: subjectKeys[0],
+      message: "",
+    },
   });
+
+  const name = watch("name");
+  const email = watch("email");
+  const phone = watch("phone");
+  const subject = watch("subject");
+  const message = watch("message");
+
+  // Clear the server-side error as soon as the user edits any field.
+  useEffect(() => {
+    if (!error) return;
+    setError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, email, phone, subject, message]);
 
   const submitMutation = useMutation(
     trpc.contact.submitInquiry.mutationOptions({
@@ -36,25 +65,18 @@ export function ContactForm() {
     }),
   );
 
-  function handleChange(
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    if (error) setError(null);
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function onSubmit(values: z.output<typeof submitInquirySchema>) {
     submitMutation.mutate({
-      name: form.name,
-      email: form.email,
-      phone: form.phone || undefined,
-      subject: t(form.subject),
-      message: form.message,
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      subject: t(values.subject as (typeof subjectKeys)[number]),
+      message: values.message,
     });
   }
+
+  const inputClasses =
+    "w-full px-4 py-3.5 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/30 focus:border-[#ee237c] transition-all text-sm";
 
   if (submitted) {
     return (
@@ -65,8 +87,8 @@ export function ContactForm() {
         </h3>
         <p className="text-slate-500">
           {t.rich("successBody", {
-            name: form.name,
-            email: form.email,
+            name: name ?? "",
+            email: email ?? "",
             b: (chunks) => <span className="font-semibold">{chunks}</span>,
           })}
         </p>
@@ -74,7 +96,7 @@ export function ContactForm() {
           type="button"
           onClick={() => {
             setSubmitted(false);
-            setForm({
+            reset({
               name: "",
               email: "",
               phone: "",
@@ -91,7 +113,7 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
       <div>
         <label
           htmlFor="name"
@@ -101,14 +123,17 @@ export function ContactForm() {
         </label>
         <input
           id="name"
-          name="name"
           type="text"
-          required
-          value={form.name}
-          onChange={handleChange}
           placeholder={t("placeholderName")}
-          className="w-full px-4 py-3.5 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/30 focus:border-[#ee237c] transition-all text-sm"
+          className={inputClasses}
+          aria-invalid={errors.name ? "true" : undefined}
+          {...register("name")}
         />
+        {errors.name && (
+          <p className="mt-2 text-sm font-semibold text-red-600">
+            {errors.name.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -120,14 +145,17 @@ export function ContactForm() {
         </label>
         <input
           id="email"
-          name="email"
           type="email"
-          required
-          value={form.email}
-          onChange={handleChange}
           placeholder={t("placeholderEmail")}
-          className="w-full px-4 py-3.5 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/30 focus:border-[#ee237c] transition-all text-sm"
+          className={inputClasses}
+          aria-invalid={errors.email ? "true" : undefined}
+          {...register("email")}
         />
+        {errors.email && (
+          <p className="mt-2 text-sm font-semibold text-red-600">
+            {errors.email.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -139,13 +167,17 @@ export function ContactForm() {
         </label>
         <input
           id="phone"
-          name="phone"
           type="tel"
-          value={form.phone}
-          onChange={handleChange}
           placeholder={t("placeholderPhone")}
-          className="w-full px-4 py-3.5 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/30 focus:border-[#ee237c] transition-all text-sm"
+          className={inputClasses}
+          aria-invalid={errors.phone ? "true" : undefined}
+          {...register("phone")}
         />
+        {errors.phone && (
+          <p className="mt-2 text-sm font-semibold text-red-600">
+            {errors.phone.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -157,10 +189,8 @@ export function ContactForm() {
         </label>
         <select
           id="subject"
-          name="subject"
-          value={form.subject}
-          onChange={handleChange}
           className="w-full px-4 py-3.5 border border-slate-200 rounded-2xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/30 focus:border-[#ee237c] transition-all text-sm appearance-none bg-white"
+          {...register("subject")}
         >
           {subjectKeys.map((key) => (
             <option key={key} value={key}>
@@ -168,6 +198,11 @@ export function ContactForm() {
             </option>
           ))}
         </select>
+        {errors.subject && (
+          <p className="mt-2 text-sm font-semibold text-red-600">
+            {errors.subject.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -179,14 +214,17 @@ export function ContactForm() {
         </label>
         <textarea
           id="message"
-          name="message"
-          required
           rows={5}
-          value={form.message}
-          onChange={handleChange}
           placeholder={t("placeholderMessage")}
-          className="w-full px-4 py-3.5 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/30 focus:border-[#ee237c] transition-all text-sm resize-none"
+          className={`${inputClasses} resize-none`}
+          aria-invalid={errors.message ? "true" : undefined}
+          {...register("message")}
         />
+        {errors.message && (
+          <p className="mt-2 text-sm font-semibold text-red-600">
+            {errors.message.message}
+          </p>
+        )}
       </div>
 
       {error && (
