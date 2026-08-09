@@ -19,6 +19,59 @@ import {
 } from "@/lib/timezone";
 import { getNovuClient } from "@/lib/novu";
 
+/**
+ * Guard against assigning a bus to overlapping active trips across any route.
+ * Conflict occurs when the bus is assigned to another non-cancelled trip whose
+ * [departureDate, estimatedArrival + 30m buffer] window overlaps with the target window.
+ */
+async function checkBusTripConflict(
+  prisma: any,
+  companyId: string,
+  busId: string,
+  departureTimestamp: Date,
+  estimatedArrivalTimestamp: Date,
+  excludeTripId?: string,
+) {
+  const turnaroundBufferMs = 30 * 60 * 1000;
+  const targetStart = departureTimestamp.getTime();
+  const targetEnd = estimatedArrivalTimestamp.getTime() + turnaroundBufferMs;
+
+  const activeTrips = await prisma.trip.findMany({
+    where: {
+      companyId,
+      busId,
+      status: { in: ["SCHEDULED", "BOARDING", "DEPARTED", "DELAYED"] },
+      archivedAt: null,
+      ...(excludeTripId ? { id: { not: excludeTripId } } : {}),
+    },
+    select: {
+      id: true,
+      departureDate: true,
+      estimatedArrival: true,
+      bus: { select: { registrationPlate: true, internalName: true } },
+    },
+  });
+
+  for (const existing of activeTrips) {
+    const existingStart = new Date(existing.departureDate).getTime();
+    const existingArrival = existing.estimatedArrival
+      ? new Date(existing.estimatedArrival).getTime()
+      : existingStart + 120 * 60 * 1000;
+    const existingEnd = existingArrival + turnaroundBufferMs;
+
+    const overlaps = targetStart < existingEnd && targetEnd > existingStart;
+    if (overlaps) {
+      const busName =
+        existing.bus?.registrationPlate || existing.bus?.internalName || busId;
+      const depStr = existing.departureDate.toISOString().replace("T", " ").substring(0, 16);
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: `Bus "${busName}" is already assigned to another active trip at ${depStr} (busy until ${new Date(existingEnd).toISOString().substring(11, 16)} UTC including turnaround buffer).`,
+      });
+    }
+  }
+}
+
 export const tripsRouter = createTRPCRouter({
   create: operatorCompanyProcedure
     .input(z.object({ scheduleId: z.string(), busId: z.string(), departureDate: z.string() }))
@@ -69,6 +122,18 @@ export const tripsRouter = createTRPCRouter({
         timings: timingMap,
         fullRouteDurationMin,
       });
+
+      const estimatedArrivalTimestamp = new Date(
+        departureTimestamp.getTime() + destDepartureOffset * 60000,
+      );
+
+      await checkBusTripConflict(
+        ctx.prisma,
+        ctx.companyId,
+        input.busId,
+        departureTimestamp,
+        estimatedArrivalTimestamp,
+      );
 
       return ctx.prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({
@@ -582,6 +647,16 @@ export const tripsRouter = createTRPCRouter({
             message: "Selected bus is invalid or inactive",
           });
         }
+
+        const estArrival = trip.estimatedArrival ?? new Date(trip.departureDate.getTime() + 120 * 60000);
+        await checkBusTripConflict(
+          tx,
+          ctx.companyId,
+          busId,
+          trip.departureDate,
+          estArrival,
+          trip.id,
+        );
 
         if (trip.busId !== busId) {
           const bookings = await tx.booking.findMany({

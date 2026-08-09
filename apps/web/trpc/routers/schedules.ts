@@ -245,15 +245,20 @@ async function reconcileScheduleTrips(
   };
 }
 
+function parseHHMMToMinutes(timeStr: string): number {
+  const [h, m] = timeStr.split(":").map(Number);
+  return (h ?? 0) * 60 + (m ?? 0);
+}
+
 /**
- * Guard against overlapping active schedules for the exact same route.
- * Conflict occurs when any shared departure time runs on the same weekday
- * within overlapping date windows (cadence-aware).
+ * Guard against assigning a preferred bus to overlapping active schedules.
+ * Conflict occurs when the bus is assigned to another active schedule on the same weekday,
+ * within overlapping calendar date windows, and overlapping time windows (including 30-min turnaround buffer).
  */
-async function checkScheduleOverlap(
+async function checkBusScheduleConflict(
   prisma: any,
   companyId: string,
-  routeId: string,
+  busId: string | null | undefined,
   departureTimes: string[],
   calendar: {
     monday?: boolean | undefined;
@@ -266,23 +271,32 @@ async function checkScheduleOverlap(
     validFrom: string | Date;
     validUntil?: string | Date | null | undefined;
   },
+  routeDurationMinutes: number = 120,
   excludeScheduleId?: string | undefined,
 ) {
+  if (!busId) return;
+
   const existingSchedules = await prisma.schedule.findMany({
     where: {
       companyId,
-      routeId,
+      preferredBusId: busId,
       isActive: true,
       ...(excludeScheduleId ? { id: { not: excludeScheduleId } } : {}),
     },
     include: {
       calendar: true,
+      preferredBus: {
+        select: { registrationPlate: true, internalName: true },
+      },
+      fares: {
+        where: { fromStopOrder: 0, isActive: true },
+        select: { durationMinutes: true },
+      },
     },
   });
 
   if (existingSchedules.length === 0) return;
 
-  const newTimes = new Set(departureTimes);
   const newFrom = new Date(calendar.validFrom).getTime();
   const newUntil = calendar.validUntil ? new Date(calendar.validUntil).getTime() : Infinity;
 
@@ -296,6 +310,8 @@ async function checkScheduleOverlap(
     "sunday",
   ] as const;
 
+  const turnaroundBuffer = 30; // 30 mins buffer
+
   for (const existing of existingSchedules) {
     if (!existing.calendar) continue;
 
@@ -307,25 +323,49 @@ async function checkScheduleOverlap(
     const datesOverlap = newFrom <= existingUntil && newUntil >= existingFrom;
     if (!datesOverlap) continue;
 
-    const existingTimes = new Set(
+    const sharedDays = days.filter(
+      (day) => Boolean(calendar[day]) && Boolean(existing.calendar[day]),
+    );
+    if (sharedDays.length === 0) continue;
+
+    const existingTimes =
       existing.departureTimes.length > 0
         ? existing.departureTimes
-        : [existing.departureTime],
-    );
-    const sharedTimes = [...newTimes].filter((t) => existingTimes.has(t));
+        : [existing.departureTime];
 
-    if (sharedTimes.length === 0) continue;
+    const existingDuration =
+      existing.estimatedMinutes ??
+      existing.fares[0]?.durationMinutes ??
+      routeDurationMinutes;
 
-    for (const day of days) {
-      if (Boolean(calendar[day]) && Boolean(existing.calendar[day])) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `An active schedule ("${existing.name || existing.id}") already operates on ${day.toUpperCase()}s at ${sharedTimes.join(", ")} during this date window.`,
-        });
+    for (const newTimeStr of departureTimes) {
+      const newStart = parseHHMMToMinutes(newTimeStr);
+      const newEnd = newStart + routeDurationMinutes + turnaroundBuffer;
+
+      for (const existingTimeStr of existingTimes) {
+        const existingStart = parseHHMMToMinutes(existingTimeStr);
+        const existingEnd = existingStart + existingDuration + turnaroundBuffer;
+
+        const timeOverlaps = newStart < existingEnd && newEnd > existingStart;
+        if (timeOverlaps) {
+          const busName =
+            existing.preferredBus?.registrationPlate ||
+            existing.preferredBus?.internalName ||
+            busId;
+          const dayName = sharedDays[0]!.toUpperCase();
+          const endHH = Math.floor(existingEnd / 60) % 24;
+          const endMM = existingEnd % 60;
+          const formattedEnd = `${endHH.toString().padStart(2, "0")}:${endMM.toString().padStart(2, "0")}`;
+
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `Bus "${busName}" is already assigned to active schedule "${existing.name || existing.id}" operating on ${dayName}s at ${existingTimeStr} (busy window: ${existingTimeStr} - ${formattedEnd} including turnaround buffer) during this date window.`,
+          });
+        }
       }
     }
-   }
- }
+  }
+}
 
 interface FareWindowInput {
   type: FareType;
@@ -595,14 +635,19 @@ fares: {
         });
       }
 
-      // Guard: Overlapping active schedule check
-      await checkScheduleOverlap(
-        ctx.prisma,
-        ctx.companyId,
-        routeId,
-        departureTimes,
-        calendar,
-      );
+      // Guard: Overlapping active bus schedule check
+      if (preferredBusId) {
+        const fullFare = fares.find((f) => f.fromStopOrder === 0);
+        const duration = fullFare?.durationMinutes ?? 120;
+        await checkBusScheduleConflict(
+          ctx.prisma,
+          ctx.companyId,
+          preferredBusId,
+          departureTimes,
+          calendar,
+          duration,
+        );
+      }
 
       // Guard: no duplicate fares in the submitted batch (same segment + type)
       const fareKeysSeen = new Set<string>();
@@ -919,17 +964,22 @@ updateBasic: operatorCompanyProcedure
       const timesChanged =
         input.data.departureTimes !== undefined ||
         input.data.departureTime !== undefined;
-      if (willBeActive && (timesChanged || input.data.isActive === true)) {
+      const effectiveBusId =
+        input.data.preferredBusId !== undefined
+          ? input.data.preferredBusId
+          : schedule.preferredBusId;
+      if (willBeActive && effectiveBusId && (timesChanged || input.data.isActive === true || input.data.preferredBusId !== undefined)) {
         const calendar = await ctx.prisma.serviceCalendar.findUnique({
           where: { scheduleId: schedule.id },
         });
         if (calendar) {
-          await checkScheduleOverlap(
+          await checkBusScheduleConflict(
             ctx.prisma,
             ctx.companyId,
-            schedule.routeId,
+            effectiveBusId,
             newDepartureTimes,
             calendar,
+            120,
             schedule.id,
           );
         }
@@ -1026,7 +1076,7 @@ updateCalendar: operatorCompanyProcedure
         });
       }
 
-      if (schedule.isActive) {
+      if (schedule.isActive && schedule.preferredBusId) {
         const mergedCalendar = {
           monday: updateData["monday"] !== undefined ? Boolean(updateData["monday"]) : existingCalendar.monday,
           tuesday: updateData["tuesday"] !== undefined ? Boolean(updateData["tuesday"]) : existingCalendar.tuesday,
@@ -1038,14 +1088,15 @@ updateCalendar: operatorCompanyProcedure
           validFrom: updateData["validFrom"] !== undefined ? (updateData["validFrom"] as Date) : existingCalendar.validFrom,
           validUntil: updateData["validUntil"] !== undefined ? (updateData["validUntil"] as Date | null) : existingCalendar.validUntil,
         };
-        await checkScheduleOverlap(
+        await checkBusScheduleConflict(
           ctx.prisma,
           ctx.companyId,
-          schedule.routeId,
+          schedule.preferredBusId,
           schedule.departureTimes.length > 0
             ? schedule.departureTimes
             : [schedule.departureTime],
           mergedCalendar,
+          120,
           schedule.id,
         );
       }

@@ -157,6 +157,35 @@ export async function generateTripsForSchedule(
         fullRouteDurationMin,
       });
 
+      const estArrivalTimestamp = new Date(
+        departureTimestamp.getTime() + destDepartureOffset * 60000,
+      );
+
+      // Check if preferred bus is committed to another trip on this time window
+      const turnaroundBufferMs = 30 * 60 * 1000;
+      const targetStart = departureTimestamp.getTime();
+      const targetEnd = estArrivalTimestamp.getTime() + turnaroundBufferMs;
+
+      const busConflict = await prisma.trip.findFirst({
+        where: {
+          companyId: schedule.companyId,
+          busId,
+          status: { in: ["SCHEDULED", "BOARDING", "DEPARTED", "DELAYED"] },
+          archivedAt: null,
+          scheduleId: { not: scheduleId },
+          departureDate: { lt: new Date(targetEnd) },
+          estimatedArrival: { gte: new Date(targetStart - turnaroundBufferMs) },
+        },
+        select: { id: true },
+      });
+
+      if (busConflict) {
+        console.warn(
+          `Skipping trip creation for schedule ${scheduleId} on ${departureTimestamp.toISOString()}: Bus ${busId} is committed to trip ${busConflict.id}`,
+        );
+        continue;
+      }
+
       const trip = await prisma.$transaction(async (tx) => {
         const createdTrip = await tx.trip.create({
           data: {
