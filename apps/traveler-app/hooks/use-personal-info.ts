@@ -8,12 +8,14 @@ export interface PersonalInfoData {
 	phoneNumber: string | null;
 	image: string | null;
 	dateOfBirth: string | null;
+	preferredSeat: "WINDOW" | "AISLE" | "NONE" | null;
+	preferredClass: "ECONOMY" | "STANDARD" | "VIP" | null;
 	marketingOptIn: boolean;
 }
 
 export interface PreferencesData {
-	preferredSeat?: string;
-	preferredClass?: string;
+	preferredSeat?: "WINDOW" | "AISLE" | "NONE";
+	preferredClass?: "ECONOMY" | "STANDARD" | "VIP";
 	dateOfBirth?: string;
 }
 
@@ -52,6 +54,8 @@ type PassengerRouter = {
 			fullName?: string;
 			phone?: string;
 			dateOfBirth?: string;
+			preferredSeat?: "WINDOW" | "AISLE" | "NONE";
+			preferredClass?: "ECONOMY" | "STANDARD" | "VIP";
 			marketingOptIn?: boolean;
 		},
 		ProfileResponse
@@ -71,6 +75,8 @@ function mapProfileToPersonalInfo(profile: ProfileResponse): PersonalInfoData {
 		phoneNumber: profile.user.phoneNumber,
 		image: profile.user.image,
 		dateOfBirth: profile.preferencesJson?.dateOfBirth ?? null,
+		preferredSeat: profile.preferencesJson?.preferredSeat ?? null,
+		preferredClass: profile.preferencesJson?.preferredClass ?? null,
 		marketingOptIn: profile.marketingOptIn,
 	};
 }
@@ -94,3 +100,4 @@ export function useUpdateAvatar() {
 	const trpc = useTRPC() as unknown as TypedTRPC;
 	return useMutation(trpc.passenger.updateAvatar.mutationOptions());
 }
+

@@ -4,7 +4,6 @@ import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { Text } from "@/components/ui/text";
-import { Colors, Spacing } from "@moja/theme/tokens";
 
 type PaystackWebViewProps = {
   authorizationUrl: string;
@@ -56,7 +55,6 @@ export function PaystackWebView({
     if (handledRef.current) return true;
     const lower = url.toLowerCase();
 
-    // Mobile callback URL (clean minimal page, no web dashboard loading)
     if (lower.includes(MOBILE_CALLBACK_PATH)) {
       if (lower.includes("cancel=1")) {
         handledRef.current = true;
@@ -68,7 +66,6 @@ export function PaystackWebView({
       return true;
     }
 
-    // Web dashboard fallback (existing detection for backward compat)
     const isWebDashboardSuccess = SUCCESS_HOSTS.some((host) => lower.includes(host)) &&
       SUCCESS_PATHS.some((path) => lower.includes(path));
 
@@ -97,26 +94,22 @@ export function PaystackWebView({
         presentationStyle="pageSheet"
         onRequestClose={onCancel}
       >
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.four, backgroundColor: Colors.light.background }}>
-          <Text style={{ fontSize: 14, color: Colors.light.textSecondary, textAlign: "center", marginBottom: Spacing.two }}>
+        <View className="flex-1 items-center justify-center p-4 bg-white">
+          <Text className="text-sm text-slate-500 text-center mb-2">
             Failed to load payment page.
           </Text>
-          <View style={{ flexDirection: "row", gap: Spacing.two }}>
+          <View className="flex-row gap-2">
             <Pressable
               onPress={() => { setLoadError(false); setRetryCount((c) => c + 1); }}
-              style={{ paddingVertical: Spacing.two, paddingHorizontal: Spacing.four, borderRadius: 8, backgroundColor: Colors.light.primary }}
+              className="py-2 px-4 rounded-lg bg-pink-600"
             >
-              <Text style={{ fontSize: 13, fontWeight: "600", color: Colors.light.primaryForeground }}>
-                Retry
-              </Text>
+              <Text className="text-sm font-semibold text-white">Retry</Text>
             </Pressable>
             <Pressable
               onPress={onCancel}
-              style={{ paddingVertical: Spacing.two, paddingHorizontal: Spacing.four, borderRadius: 8, borderWidth: 1, borderColor: Colors.light.backgroundSelected }}
+              className="py-2 px-4 rounded-lg border border-slate-200"
             >
-              <Text style={{ fontSize: 13, fontWeight: "600", color: Colors.light.textSecondary }}>
-                Cancel
-              </Text>
+              <Text className="text-sm font-semibold text-slate-500">Cancel</Text>
             </Pressable>
           </View>
         </View>
@@ -131,29 +124,21 @@ export function PaystackWebView({
       presentationStyle="pageSheet"
       onRequestClose={onCancel}
     >
-      <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-        <View style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingTop: insets.top + 12,
-          paddingBottom: 12,
-          paddingHorizontal: Spacing.four,
-          borderBottomWidth: 1,
-          borderBottomColor: Colors.light.backgroundSelected,
-        }}>
+      <View className="flex-1 bg-white">
+        <View
+          className="flex-row items-center justify-between pb-3 px-4 border-b border-slate-100"
+          style={{ paddingTop: insets.top + 12 }}
+        >
           <Pressable onPress={onCancel} hitSlop={12}>
-            <X size={20} color={Colors.light.text} />
+            <X size={20} color="#0f172a" />
           </Pressable>
-          <Text style={{ fontSize: 15, fontWeight: "600", color: Colors.light.text }}>
-            Pay with Paystack
-          </Text>
-          <View style={{ width: 20 }} />
+          <Text className="text-[15px] font-semibold text-slate-900">Pay with Paystack</Text>
+          <View className="w-5" />
         </View>
 
         {loading ? (
-          <View style={{ position: "absolute", top: 60, left: 0, right: 0, alignItems: "center", zIndex: 10 }}>
-            <ActivityIndicator size="small" color={Colors.light.primary} />
+          <View className="absolute top-[60px] left-0 right-0 items-center z-10">
+            <ActivityIndicator size="small" color="#ee237c" />
           </View>
         ) : null}
 

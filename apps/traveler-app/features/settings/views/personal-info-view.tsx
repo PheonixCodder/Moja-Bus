@@ -2,14 +2,11 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
 import { SubpageHeader } from "@/components/subpage-header";
 import { CustomAlert } from "@/components/custom-alert";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { authClient } from "@/lib/auth-client";
 import {
 	usePersonalInfo,
@@ -48,6 +45,9 @@ export function PersonalInfoView() {
 		fullName: info?.fullName ?? "",
 		phone: info?.phoneNumber ?? "",
 		dateOfBirth: info?.dateOfBirth ?? "",
+		preferredSeat: info?.preferredSeat ?? "NONE",
+		preferredClass: info?.preferredClass ?? "STANDARD",
+		marketingOptIn: info?.marketingOptIn ?? false,
 	};
 
 	const currentAvatar = avatarUrl ?? info?.image ?? null;
@@ -64,28 +64,37 @@ export function PersonalInfoView() {
 		if (!form.fullName.trim()) {
 			setAlertState({
 				visible: true,
-				title: t("validationError"),
-				description: t("fullNameRequired"),
+				title: t("validationError") ?? "Validation Error",
+				description: t("fullNameRequired") ?? "Full name is required",
 				variant: "destructive",
-					confirmLabel: t("ok"),
+				confirmLabel: "OK",
 				onConfirm: () => setAlertState((s) => ({ ...s, visible: false })),
 			});
 			return;
 		}
 
+		// Ensure international E.164 phone formatting if phone is entered
+		let normalizedPhone: string | undefined = form.phone.trim() || undefined;
+		if (normalizedPhone && !normalizedPhone.startsWith("+")) {
+			normalizedPhone = `+${normalizedPhone.replace(/\D/g, "")}`;
+		}
+
 		updateMutation.mutate(
 			{
 				fullName: form.fullName.trim(),
-				phone: form.phone.trim() || undefined,
+				phone: normalizedPhone,
 				dateOfBirth: form.dateOfBirth || undefined,
+				preferredSeat: form.preferredSeat,
+				preferredClass: form.preferredClass,
+				marketingOptIn: form.marketingOptIn,
 			},
 			{
 				onSuccess: () => {
 					setAlertState({
 						visible: true,
-						title: t("changesSaved"),
-						description: t("changesSuccess"),
-						confirmLabel: t("done"),
+						title: t("changesSaved") ?? "Changes Saved",
+						description: t("changesSuccess") ?? "Your personal preferences have been updated successfully.",
+						confirmLabel: "Done",
 						onConfirm: () => {
 							setAlertState((s) => ({ ...s, visible: false }));
 							queryClient.invalidateQueries();
@@ -95,10 +104,10 @@ export function PersonalInfoView() {
 				onError: (err: any) => {
 					setAlertState({
 						visible: true,
-						title: t("saveFailed"),
-						description: err?.message ?? t("couldNotSave"),
+						title: t("saveFailed") ?? "Save Failed",
+						description: err?.message ?? "Could not save your preferences. Please try again.",
 						variant: "destructive",
-				confirmLabel: t("ok"),
+						confirmLabel: "OK",
 						onConfirm: () => setAlertState((s) => ({ ...s, visible: false })),
 					});
 				},
@@ -108,18 +117,18 @@ export function PersonalInfoView() {
 
 	if (sessionPending || isLoading) {
 		return (
-			<View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.light.background }}>
-				<ActivityIndicator size="large" color={Colors.light.primary} />
+			<View className="flex-1 items-center justify-center bg-white">
+				<ActivityIndicator size="large" color="#ee237c" />
 			</View>
 		);
 	}
 
 	if (!isAuth) {
 		return (
-			<View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.light.background }}>
-					<Text style={{ color: Colors.light.textSecondary, fontSize: 15 }}>
-						{t("signInToManage")}
-					</Text>
+			<View className="flex-1 items-center justify-center bg-white">
+				<Text className="text-slate-500 text-base">
+					{t("signInToManage") ?? "Please sign in to manage your account."}
+				</Text>
 			</View>
 		);
 	}
@@ -127,43 +136,33 @@ export function PersonalInfoView() {
 	const hasChanges =
 		form.fullName !== (info?.fullName ?? "") ||
 		form.phone !== (info?.phoneNumber ?? "") ||
-		form.dateOfBirth !== (info?.dateOfBirth ?? "");
+		form.dateOfBirth !== (info?.dateOfBirth ?? "") ||
+		form.preferredSeat !== (info?.preferredSeat ?? "NONE") ||
+		form.preferredClass !== (info?.preferredClass ?? "STANDARD") ||
+		form.marketingOptIn !== (info?.marketingOptIn ?? false);
 
 	return (
-		<View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-			<SubpageHeader title={t("personalInformation")} />
+		<View className="flex-1 bg-white">
+			<SubpageHeader title={t("personalInformation") ?? "Personal Information"} />
 
 			<ScrollView
-				style={{ flex: 1 }}
+				className="flex-1"
 				contentContainerStyle={{
-					paddingHorizontal: Spacing.four,
-					paddingTop: Spacing.two,
+					paddingHorizontal: 16,
+					paddingTop: 8,
 					paddingBottom: BottomTabInset + insets.bottom + 24,
-					gap: Spacing.three,
+					gap: 12,
 				}}
 				keyboardShouldPersistTaps="handled"
 			>
-				<View
-					style={{
-						backgroundColor: Colors.light.background,
-						borderRadius: 20,
-						borderWidth: 1,
-						borderColor: Colors.light.backgroundSelected,
-						padding: Spacing.four,
-						shadowColor: "#000",
-						shadowOffset: { width: 0, height: 2 },
-						shadowOpacity: 0.04,
-						shadowRadius: 8,
-						elevation: 2,
-					}}
-				>
+				<View className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
 					<PersonalInfoAvatar
 						image={currentAvatar}
 						name={info?.fullName ?? "User"}
 						onAvatarUpdated={handleAvatarUpdated}
 					/>
 
-					<View style={{ height: 1, backgroundColor: Colors.light.backgroundSelected, marginVertical: Spacing.four }} />
+					<View className="h-[1px] bg-slate-100 my-4" />
 
 					<PersonalInfoForm
 						initialData={form}
@@ -175,24 +174,13 @@ export function PersonalInfoView() {
 				<Pressable
 					onPress={handleSave}
 					disabled={updateMutation.isPending || !hasChanges}
-					style={({ pressed }) => ({
-						paddingVertical: Spacing.two,
-						borderRadius: 14,
-						backgroundColor: Colors.light.primary,
-						alignItems: "center",
-						opacity: updateMutation.isPending || !hasChanges ? 0.6 : pressed ? 0.85 : 1,
-						shadowColor: Colors.light.primary,
-						shadowOffset: { width: 0, height: 4 },
-						shadowOpacity: 0.3,
-						shadowRadius: 12,
-						elevation: 8,
-					})}
+					className="py-3.5 rounded-2xl bg-pink-600 items-center shadow-lg shadow-pink-500/30 active:opacity-85 disabled:opacity-50"
 				>
 					{updateMutation.isPending ? (
-						<ActivityIndicator size="small" color={Colors.light.primaryForeground} />
+						<ActivityIndicator size="small" color="#ffffff" />
 					) : (
-						<Text style={{ fontSize: 14, fontWeight: "700", color: Colors.light.primaryForeground }}>
-							Save Changes
+						<Text className="text-sm font-bold text-white">
+							Save Profile & Preferences
 						</Text>
 					)}
 				</Pressable>

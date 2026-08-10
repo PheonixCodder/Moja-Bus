@@ -7,8 +7,6 @@ import * as ImagePicker from "expo-image-picker";
 import { File } from "expo-file-system";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Text } from "@/components/ui/text";
-import { primaryRGB } from "@/constants/theme";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { useTRPC } from "@/lib/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { useUpdateAvatar } from "@/hooks/use-personal-info";
@@ -66,7 +64,6 @@ export function PersonalInfoAvatar({ image, name, onAvatarUpdated }: PersonalInf
 		});
 
 		if (result.canceled || !result.assets[0]) return;
-
 		await uploadImage(result.assets[0].uri);
 	};
 
@@ -84,7 +81,6 @@ export function PersonalInfoAvatar({ image, name, onAvatarUpdated }: PersonalInf
 		});
 
 		if (result.canceled || !result.assets[0]) return;
-
 		await uploadImage(result.assets[0].uri);
 	};
 
@@ -145,50 +141,31 @@ export function PersonalInfoAvatar({ image, name, onAvatarUpdated }: PersonalInf
 	const initials = getInitials(name);
 
 	return (
-		<Pressable onPress={handlePress} disabled={uploading} style={{ alignItems: "center", gap: Spacing.two, paddingVertical: Spacing.three }}>
-			<View style={{ position: "relative" }}>
+		<Pressable
+			onPress={handlePress}
+			disabled={uploading}
+			className="items-center gap-2 py-3"
+		>
+			<View className="relative">
 				<Avatar className="size-20" alt={name}>
 					{image ? <AvatarImage source={{ uri: image }} /> : null}
-					<AvatarFallback style={{ backgroundColor: `rgba(${primaryRGB}, 0.2)` }}>
-						<Text style={{ fontSize: 22, fontWeight: "700", color: Colors.light.primary }}>
-							{initials}
-						</Text>
+					<AvatarFallback className="bg-pink-100">
+						<Text className="text-[22px] font-bold text-pink-600">{initials}</Text>
 					</AvatarFallback>
 				</Avatar>
+
 				{uploading ? (
-					<View
-						style={{
-							position: "absolute",
-							inset: 0,
-							borderRadius: 40,
-							backgroundColor: "rgba(0,0,0,0.4)",
-							alignItems: "center",
-							justifyContent: "center",
-						}}
-					>
+					<View className="absolute inset-0 rounded-full bg-black/40 items-center justify-center">
 						<ActivityIndicator size="small" color="#fff" />
 					</View>
 				) : (
-					<View
-						style={{
-							position: "absolute",
-							bottom: -2,
-							right: -2,
-							width: 26,
-							height: 26,
-							borderRadius: 13,
-							backgroundColor: Colors.light.primary,
-							alignItems: "center",
-							justifyContent: "center",
-							borderWidth: 3,
-							borderColor: Colors.light.background,
-						}}
-					>
-						<HugeiconsIcon icon={Camera03Icon} size={12} color={Colors.light.primaryForeground} />
+					<View className="absolute -bottom-0.5 -right-0.5 w-[26px] h-[26px] rounded-full bg-pink-600 items-center justify-center border-[3px] border-white">
+						<HugeiconsIcon icon={Camera03Icon} size={12} color="#ffffff" />
 					</View>
 				)}
 			</View>
-			<Text style={{ fontSize: 12, fontWeight: "500", color: Colors.light.textSecondary }}>
+
+			<Text className="text-xs font-medium text-slate-500">
 				{uploading ? "Uploading..." : "Tap to change photo"}
 			</Text>
 		</Pressable>

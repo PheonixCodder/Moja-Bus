@@ -5,6 +5,7 @@ import enAuth from '../locales/en/auth.json';
 import enWallet from '../locales/en/wallet.json';
 import enNotifications from '../locales/en/notifications.json';
 import enBooking from '../locales/en/booking.json';
+import enSearch from '../locales/en/search.json';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -16,6 +17,7 @@ declare module 'i18next' {
       wallet: typeof enWallet;
       notifications: typeof enNotifications;
       booking: typeof enBooking;
+      search: typeof enSearch;
     };
   }
 }

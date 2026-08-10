@@ -1,21 +1,18 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
+import type { BookingFilterType } from "./use-bookings";
 
 export function useBookingPrefetch() {
 	const queryClient = useQueryClient();
-	const trpc = useTRPC() as any;
+	const trpc = useTRPC();
 
-	const prefetchBookings = (
-		filter: "upcoming" | "pending" | "past" | "confirmed" = "upcoming",
-	) => {
-		if (!trpc?.booking?.listMyBookings?.queryOptions) return;
+	const prefetchBookings = (filter: BookingFilterType = "upcoming") => {
 		queryClient.prefetchQuery(
 			trpc.booking.listMyBookings.queryOptions({ filter, limit: 20, offset: 0 }),
 		);
 	};
 
 	const prefetchStats = () => {
-		if (!trpc?.passenger?.getDashboardStats?.queryOptions) return;
 		queryClient.prefetchQuery(
 			trpc.passenger.getDashboardStats.queryOptions(undefined, {
 				staleTime: 60_000,
@@ -24,16 +21,19 @@ export function useBookingPrefetch() {
 	};
 
 	const prefetchBookingDetail = (bookingReference: string) => {
-		if (!trpc?.booking?.getBooking?.queryOptions || !bookingReference) return;
+		if (!bookingReference) return;
 		queryClient.prefetchQuery(
 			trpc.booking.getBooking.queryOptions({ bookingReference }),
 		);
 	};
 
 	const prefetchTicket = (bookingReference: string) => {
-		if (!trpc?.booking?.getTicket?.queryOptions || !bookingReference) return;
+		if (!bookingReference) return;
 		queryClient.prefetchQuery(
-			trpc.booking.getTicket.queryOptions({ bookingReference }),
+			trpc.booking.getTicket.queryOptions({
+				bookingReference,
+				ticketToken: "",
+			}),
 		);
 	};
 

@@ -1,62 +1,39 @@
 import { TrendingUp } from "lucide-react-native";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Colors, Spacing } from "@moja/theme/tokens";
 
 export function TravelBenefits() {
   return (
-    <View style={{
-      backgroundColor: Colors.light.background,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: Colors.light.backgroundSelected,
-      padding: Spacing.four,
-    }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.one, marginBottom: Spacing.three }}>
-        <TrendingUp size={16} color={Colors.light.primary} />
-        <Text style={{ fontSize: 11, fontWeight: "700", color: Colors.light.textSecondary, letterSpacing: 1, textTransform: "uppercase" }}>
+    <View className="bg-white rounded-2xl border border-slate-100 p-4">
+      <View className="flex-row items-center gap-1 mb-3">
+        <TrendingUp size={16} color="#ee237c" />
+        <Text className="text-[11px] font-bold text-slate-400 tracking-widest uppercase">
           Travel Benefits
         </Text>
       </View>
 
-      <View style={{ gap: Spacing.three }}>
-        <View style={{ flexDirection: "row", gap: Spacing.two }}>
-          <View style={{
-            width: 20,
-            height: 20,
-            borderRadius: 10,
-            backgroundColor: "rgba(238, 35, 124, 0.1)",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            <Text style={{ fontSize: 10, fontWeight: "900", color: Colors.light.primary }}>1</Text>
+      <View className="gap-3">
+        {/* Benefit 1 */}
+        <View className="flex-row gap-2">
+          <View className="w-5 h-5 rounded-full bg-pink-50 items-center justify-center">
+            <Text className="text-[10px] font-black text-pink-600">1</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: "600", color: Colors.light.text }}>
-              Instant Booking
-            </Text>
-            <Text style={{ fontSize: 11, color: Colors.light.textSecondary, marginTop: 2, lineHeight: 16 }}>
+          <View className="flex-1">
+            <Text className="text-sm font-semibold text-slate-800">Instant Booking</Text>
+            <Text className="text-[11px] text-slate-500 mt-0.5 leading-4">
               Book trips instantly without needing to pay each time — the fare is deducted from your wallet.
             </Text>
           </View>
         </View>
 
-        <View style={{ flexDirection: "row", gap: Spacing.two }}>
-          <View style={{
-            width: 20,
-            height: 20,
-            borderRadius: 10,
-            backgroundColor: "rgba(238, 35, 124, 0.1)",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            <Text style={{ fontSize: 10, fontWeight: "900", color: Colors.light.primary }}>2</Text>
+        {/* Benefit 2 */}
+        <View className="flex-row gap-2">
+          <View className="w-5 h-5 rounded-full bg-pink-50 items-center justify-center">
+            <Text className="text-[10px] font-black text-pink-600">2</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: "600", color: Colors.light.text }}>
-              One-Click Refunds
-            </Text>
-            <Text style={{ fontSize: 11, color: Colors.light.textSecondary, marginTop: 2, lineHeight: 16 }}>
+          <View className="flex-1">
+            <Text className="text-sm font-semibold text-slate-800">One-Click Refunds</Text>
+            <Text className="text-[11px] text-slate-500 mt-0.5 leading-4">
               Cancelled trips are refunded directly to your wallet — no waiting, no paperwork.
             </Text>
           </View>

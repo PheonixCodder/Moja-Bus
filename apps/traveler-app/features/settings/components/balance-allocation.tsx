@@ -1,7 +1,6 @@
 import { AlertCircle } from "lucide-react-native";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Colors, Spacing } from "@moja/theme/tokens";
 
 type BalanceAllocationProps = {
   availableBalance: number;
@@ -10,50 +9,29 @@ type BalanceAllocationProps = {
 
 export function BalanceAllocation({ availableBalance, reservedBalance }: BalanceAllocationProps) {
   return (
-    <View style={{
-      backgroundColor: Colors.light.background,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: Colors.light.backgroundSelected,
-      paddingHorizontal: Spacing.four,
-      paddingVertical: Spacing.four,
-    }}>
-      <Text style={{ fontSize: 11, fontWeight: "700", color: Colors.light.textSecondary, letterSpacing: 1, textTransform: "uppercase", marginBottom: Spacing.three }}>
+    <View className="bg-white rounded-2xl border border-slate-100 px-4 py-4">
+      <Text className="text-[11px] font-bold text-slate-400 tracking-widest uppercase mb-3">
         Allocation
       </Text>
 
-      <View style={{ height: 12, backgroundColor: "#f1f5f9", borderRadius: 100, overflow: "hidden" }}>
-        <View style={{
-          flex: 1,
-          backgroundColor: Colors.light.primary,
-          borderRadius: 100,
-        }} />
+      <View className="h-3 bg-slate-100 rounded-full overflow-hidden">
+        <View className="flex-1 bg-pink-600 rounded-full" />
       </View>
 
-      <View style={{ marginTop: Spacing.three }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.one }}>
-          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.light.primary }} />
-          <Text style={{ fontSize: 13, fontWeight: "600", color: Colors.light.text }}>Balance</Text>
+      <View className="mt-3">
+        <View className="flex-row items-center gap-1">
+          <View className="w-2.5 h-2.5 rounded-full bg-pink-600" />
+          <Text className="text-sm font-semibold text-slate-800">Balance</Text>
         </View>
-        <Text style={{ fontSize: 11, color: Colors.light.textSecondary, marginTop: 2, marginLeft: 18 }}>
+        <Text className="text-[11px] text-slate-500 mt-0.5 ml-[18px]">
           {availableBalance.toLocaleString()} XOF — available for bookings
         </Text>
       </View>
 
       {reservedBalance > 0 ? (
-        <View style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-          gap: Spacing.one,
-          backgroundColor: "#f8fafc",
-          padding: Spacing.two,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: "#f1f5f9",
-          marginTop: Spacing.two,
-        }}>
+        <View className="flex-row items-start gap-1 bg-slate-50 p-2 rounded-xl border border-slate-100 mt-2">
           <AlertCircle size={14} color="#6366f1" style={{ marginTop: 2 }} />
-          <Text style={{ fontSize: 11, color: Colors.light.textSecondary, flex: 1, lineHeight: 16 }}>
+          <Text className="text-[11px] text-slate-500 flex-1 leading-4">
             XOF {reservedBalance.toLocaleString()} is reserved for pending trips and won't be available until those trips are completed or cancelled.
           </Text>
         </View>

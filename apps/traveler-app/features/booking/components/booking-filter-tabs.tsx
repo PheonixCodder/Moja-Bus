@@ -1,9 +1,8 @@
-import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Colors } from '@moja/theme/tokens';
+import type { BookingFilterType } from '../hooks/use-bookings';
 
-export type BookingFilterTab = 'upcoming' | 'pending' | 'past';
+export type BookingFilterTab = BookingFilterType;
 
 type BookingFilterTabsProps = {
   activeTab: BookingFilterTab;
@@ -12,10 +11,10 @@ type BookingFilterTabsProps = {
   pendingCount?: number;
 };
 
-const TABS: { id: BookingFilterTab; labelKey: 'upcoming' | 'pending' | 'past' }[] = [
-  { id: 'upcoming', labelKey: 'upcoming' },
-  { id: 'pending', labelKey: 'pending' },
-  { id: 'past', labelKey: 'past' },
+const TABS: { id: BookingFilterTab; label: string }[] = [
+  { id: 'upcoming', label: 'Upcoming' },
+  { id: 'pending', label: 'Pending' },
+  { id: 'past', label: 'Past' },
 ];
 
 export function BookingFilterTabs({
@@ -24,8 +23,6 @@ export function BookingFilterTabs({
   upcomingCount,
   pendingCount,
 }: BookingFilterTabsProps) {
-  const { t } = useTranslation('booking');
-
   const getBadgeCount = (tab: BookingFilterTab) => {
     if (tab === 'upcoming') return upcomingCount;
     if (tab === 'pending') return pendingCount;
@@ -33,7 +30,7 @@ export function BookingFilterTabs({
   };
 
   return (
-    <View className="bg-muted/50 border-border mx-4 my-2 flex-row rounded-full border p-1">
+    <View className="bg-muted/40 border-border mx-4 my-2 flex-row rounded-full border p-1">
       {TABS.map((tab) => {
         const isActive = activeTab === tab.id;
         const count = getBadgeCount(tab.id);
@@ -44,21 +41,20 @@ export function BookingFilterTabs({
             onPress={() => onTabChange(tab.id)}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
-            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-full py-2"
-            style={({ pressed }) => ({
-              backgroundColor: isActive ? Colors.light.primary : 'transparent',
-              opacity: pressed ? 0.8 : 1,
-            })}>
+            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-full py-2.5 shadow-2xs ${
+              isActive ? 'bg-primary' : 'bg-transparent'
+            }`}
+          >
             <Text
-              className={`text-xs font-bold capitalize ${
+              className={`text-xs font-black capitalize ${
                 isActive ? 'text-white' : 'text-muted-foreground'
               }`}>
-              {t(tab.labelKey)}
+              {tab.label}
             </Text>
             {count !== undefined && count > 0 ? (
               <View
                 className={`rounded-full px-1.5 py-0.5 ${
-                  isActive ? 'bg-white/20' : 'bg-primary/10'
+                  isActive ? 'bg-white/25' : 'bg-primary/10'
                 }`}>
                 <Text
                   className={`text-[10px] font-extrabold ${

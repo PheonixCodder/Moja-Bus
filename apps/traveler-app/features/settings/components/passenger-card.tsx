@@ -4,9 +4,9 @@ import {
 	Mail01Icon,
 	PencilEdit02Icon,
 	Tag01Icon,
+	LegalDocument01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { Linking, Pressable, View } from "react-native";
 import { Badge } from "@/components/ui/badge";
 import { Text } from "@/components/ui/text";
@@ -39,6 +39,12 @@ function getAvatarPair(name: string) {
 	return AVATAR_COLORS[name.length % AVATAR_COLORS.length] as [string, string];
 }
 
+function getIdTypeLabel(type?: string | null) {
+	if (type === "passport") return "Passport";
+	if (type === "driver_license") return "Driver License";
+	return "National ID";
+}
+
 export function PassengerCard({
 	passenger,
 	onEdit,
@@ -48,65 +54,23 @@ export function PassengerCard({
 	const [bgColor, textColor] = getAvatarPair(passenger.fullName);
 
 	return (
-		<View
-			style={{
-				backgroundColor: Colors.light.background,
-				borderRadius: 20,
-				padding: Spacing.four,
-				borderWidth: 1,
-				borderColor: Colors.light.backgroundSelected,
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 2 },
-				shadowOpacity: 0.04,
-				shadowRadius: 8,
-				elevation: 2,
-				gap: Spacing.three,
-			}}
-		>
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					gap: Spacing.three,
-				}}
-			>
+		<View className="bg-white rounded-[20px] p-4 border border-slate-100 gap-3 shadow-sm shadow-black/5">
+			{/* Header row */}
+			<View className="flex-row items-center gap-3">
+				{/* Avatar */}
 				<View
-					style={{
-						width: 44,
-						height: 44,
-						borderRadius: 22,
-						backgroundColor: bgColor,
-						alignItems: "center",
-						justifyContent: "center",
-					}}
+					className="w-11 h-11 rounded-full items-center justify-center"
+					style={{ backgroundColor: bgColor }}
 				>
-					<Text
-						style={{
-							fontSize: 15,
-							fontWeight: "800",
-							color: textColor,
-						}}
-					>
+					<Text style={{ fontSize: 15, fontWeight: "800", color: textColor }}>
 						{getInitials(passenger.fullName)}
 					</Text>
 				</View>
 
-				<View style={{ flex: 1, gap: 2 }}>
-					<View
-						style={{
-							flexDirection: "row",
-							alignItems: "center",
-							gap: Spacing.one,
-						}}
-					>
-						<Text
-							style={{
-								fontSize: 15,
-								fontWeight: "700",
-								color: Colors.light.text,
-							}}
-							numberOfLines={1}
-						>
+				{/* Name & metadata */}
+				<View className="flex-1 gap-0.5">
+					<View className="flex-row items-center gap-1">
+						<Text className="text-[15px] font-bold text-slate-900 flex-shrink" numberOfLines={1}>
 							{passenger.fullName}
 						</Text>
 						{passenger.isSelf && (
@@ -121,85 +85,45 @@ export function PassengerCard({
 									backgroundColor: "rgba(251, 207, 232, 0.3)",
 								}}
 							>
-								<Text
-									style={{
-										fontSize: 8,
-										fontWeight: "900",
-										color: Colors.light.primary,
-										letterSpacing: 0.5,
-										textTransform: "uppercase",
-									}}
-								>
-									Me
-								</Text>
+								<Text className="text-[8px] font-black text-pink-600 tracking-wide uppercase">Me</Text>
 							</Badge>
 						)}
 					</View>
-					{passenger.label ? (
-						<View
-							style={{
-								flexDirection: "row",
-								alignItems: "center",
-								alignSelf: "flex-start",
-								gap: 3,
-								paddingHorizontal: 6,
-								paddingVertical: 2,
-								borderRadius: 4,
-								backgroundColor: Colors.light.backgroundElement,
-							}}
-						>
-							<HugeiconsIcon
-								icon={Tag01Icon}
-								size={9}
-								color={Colors.light.textSecondary}
-							/>
-							<Text
-								style={{
-									fontSize: 9,
-									fontWeight: "700",
-									color: Colors.light.textSecondary,
-								}}
-							>
-								{passenger.label}
-							</Text>
-						</View>
-					) : null}
+
+					<View className="flex-row items-center gap-1.5 flex-wrap">
+						{passenger.label ? (
+							<View className="flex-row items-center self-start gap-[3px] px-1.5 py-0.5 rounded bg-slate-100">
+								<HugeiconsIcon icon={Tag01Icon} size={9} color="#94a3b8" />
+								<Text className="text-[9px] font-bold text-slate-500">{passenger.label}</Text>
+							</View>
+						) : null}
+
+						{passenger.idNumber ? (
+							<View className="flex-row items-center self-start gap-[3px] px-1.5 py-0.5 rounded bg-pink-50">
+								<HugeiconsIcon icon={LegalDocument01Icon} size={9} color="#ee237c" />
+								<Text className="text-[9px] font-bold text-pink-600">
+									{getIdTypeLabel(passenger.idType)}: {passenger.idNumber}
+								</Text>
+							</View>
+						) : null}
+					</View>
 				</View>
 
-				<View style={{ flexDirection: "row", gap: Spacing.two }}>
+				{/* Action buttons */}
+				<View className="flex-row gap-2">
 					<Pressable
 						onPress={() => onEdit(passenger)}
 						hitSlop={8}
-						style={({ pressed }) => ({
-							width: 34,
-							height: 34,
-							borderRadius: 10,
-							backgroundColor: Colors.light.backgroundElement,
-							alignItems: "center",
-							justifyContent: "center",
-							opacity: pressed ? 0.7 : 1,
-						})}
+						className="w-[34px] h-[34px] rounded-[10px] bg-slate-100 items-center justify-center active:opacity-70"
 					>
-						<HugeiconsIcon
-							icon={PencilEdit02Icon}
-							size={16}
-							color={Colors.light.textSecondary}
-						/>
+						<HugeiconsIcon icon={PencilEdit02Icon} size={16} color="#94a3b8" />
 					</Pressable>
 					{!passenger.isSelf && (
 						<Pressable
 							onPress={() => onDelete(passenger.id)}
 							disabled={isDeleting}
 							hitSlop={8}
-							style={({ pressed }) => ({
-								width: 34,
-								height: 34,
-								borderRadius: 10,
-								backgroundColor: "rgba(244, 63, 94, 0.08)",
-								alignItems: "center",
-								justifyContent: "center",
-								opacity: pressed || isDeleting ? 0.7 : 1,
-							})}
+							className={`w-[34px] h-[34px] rounded-[10px] bg-rose-50 items-center justify-center ${isDeleting ? "opacity-70" : ""} active:opacity-70`}
 						>
 							<HugeiconsIcon icon={Delete01Icon} size={16} color="#e11d48" />
 						</Pressable>
@@ -207,39 +131,15 @@ export function PassengerCard({
 				</View>
 			</View>
 
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					gap: Spacing.three,
-					paddingTop: Spacing.two,
-					borderTopWidth: 1,
-					borderTopColor: Colors.light.backgroundSelected,
-				}}
-			>
+			{/* Contact row */}
+			<View className="flex-row items-center gap-3 pt-2 border-t border-slate-100">
 				<Pressable
 					onPress={() => Linking.openURL(`tel:${passenger.phone}`)}
 					hitSlop={6}
-					style={({ pressed }) => ({
-						flexDirection: "row",
-						alignItems: "center",
-						gap: 6,
-						paddingVertical: 6,
-						paddingHorizontal: 10,
-						borderRadius: 8,
-						backgroundColor: "rgba(16, 185, 129, 0.08)",
-						opacity: pressed ? 0.7 : 1,
-					})}
+					className="flex-row items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-emerald-500/[0.08] active:opacity-70"
 				>
 					<HugeiconsIcon icon={CallIcon} size={14} color="#10b981" />
-					<Text
-						style={{
-							fontSize: 12,
-							fontWeight: "600",
-							color: "#10b981",
-						}}
-						numberOfLines={1}
-					>
+					<Text className="text-xs font-semibold text-emerald-600" numberOfLines={1}>
 						{passenger.phone}
 					</Text>
 				</Pressable>
@@ -248,26 +148,10 @@ export function PassengerCard({
 					<Pressable
 						onPress={() => Linking.openURL(`mailto:${passenger.email}`)}
 						hitSlop={6}
-						style={({ pressed }) => ({
-							flexDirection: "row",
-							alignItems: "center",
-							gap: 6,
-							paddingVertical: 6,
-							paddingHorizontal: 10,
-							borderRadius: 8,
-							backgroundColor: "rgba(99, 102, 241, 0.08)",
-							opacity: pressed ? 0.7 : 1,
-						})}
+						className="flex-row items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-indigo-500/[0.08] active:opacity-70"
 					>
 						<HugeiconsIcon icon={Mail01Icon} size={14} color="#6366f1" />
-						<Text
-							style={{
-								fontSize: 12,
-								fontWeight: "600",
-								color: "#6366f1",
-							}}
-							numberOfLines={1}
-						>
+						<Text className="text-xs font-semibold text-indigo-500" numberOfLines={1}>
 							{passenger.email}
 						</Text>
 					</Pressable>

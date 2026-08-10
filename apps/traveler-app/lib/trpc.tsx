@@ -1,13 +1,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink, type TRPCClient } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import superjson from "superjson";
 import { authClient } from "@/lib/auth-client";
 
+import type { AppRouter } from "../../web/trpc/routers/_app";
+
 const baseURL =
 	process.env["EXPO_PUBLIC_API_URL"] ?? "http://192.168.100.3:3000";
 
-export const { TRPCProvider, useTRPC } = createTRPCContext();
+export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 
 let queryClient: QueryClient | undefined;
 
@@ -24,18 +26,17 @@ function getQueryClient() {
 	return queryClient;
 }
 
-let trpcClient: ReturnType<typeof createTRPCClient> | undefined;
+let trpcClient: TRPCClient<AppRouter> | undefined;
 
 export function getTrpcClient() {
 	if (!trpcClient) {
-		trpcClient = createTRPCClient({
+		trpcClient = createTRPCClient<AppRouter>({
 			links: [
 				httpBatchLink({
 					transformer: superjson,
 					url: `${baseURL}/api/trpc`,
 					async headers() {
 						const cookie = (authClient as any).getCookie();
-						console.log("[mobile] outgoing cookie:", cookie);
 						if (cookie) {
 							return { Cookie: cookie };
 						}
@@ -51,7 +52,7 @@ export function getTrpcClient() {
 export function TRPCReactProvider({ children }: { children: React.ReactNode }) {
 	return (
 		<QueryClientProvider client={getQueryClient()}>
-			<TRPCProvider trpcClient={getTrpcClient()} queryClient={getQueryClient()}>
+			<TRPCProvider trpcClient={getTrpcClient() as any} queryClient={getQueryClient()}>
 				{children}
 			</TRPCProvider>
 		</QueryClientProvider>

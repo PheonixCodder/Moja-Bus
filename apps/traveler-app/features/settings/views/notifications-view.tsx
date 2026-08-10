@@ -14,7 +14,6 @@ import { useMutation } from "@tanstack/react-query";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
-import { Colors, Spacing } from "@moja/theme/tokens";
 
 interface TrpcQuery<TInput, TOutput> {
 	queryOptions: (
@@ -82,58 +81,21 @@ function NotificationRow({
 	return (
 		<Pressable
 			onPress={onPress}
-			style={({ pressed }) => ({
-				flexDirection: "row",
-				paddingVertical: Spacing.three,
-				paddingHorizontal: Spacing.four,
-				opacity: pressed ? 0.7 : 1,
-				backgroundColor: isRead ? "transparent" : "rgba(0, 129, 241, 0.04)",
-			})}
+			className={`flex-row py-3 px-4 active:opacity-70 ${isRead ? "" : "bg-blue-500/[0.04]"}`}
 		>
 			<View
-				style={{
-					width: 8,
-					height: 8,
-					borderRadius: 4,
-					backgroundColor: isRead ? "transparent" : Colors.light.primary,
-					marginTop: 6,
-					marginRight: Spacing.two,
-				}}
+				className={`w-2 h-2 rounded-full mt-1.5 mr-2 ${isRead ? "bg-transparent" : "bg-pink-600"}`}
 			/>
-			<View style={{ flex: 1 }}>
+			<View className="flex-1">
 				{item.subject ? (
-					<Text
-						style={{
-							fontSize: 14,
-							fontWeight: isRead ? "500" : "700",
-							color: Colors.light.text,
-							marginBottom: 2,
-						}}
-					>
+					<Text className={`text-sm mb-0.5 text-slate-900 ${isRead ? "font-medium" : "font-bold"}`}>
 						{item.subject}
 					</Text>
 				) : null}
-				<Text
-					style={{
-						fontSize: 13,
-						fontWeight: "400",
-						color: Colors.light.textSecondary,
-						lineHeight: 18,
-					}}
-					numberOfLines={2}
-				>
+				<Text className="text-sm text-slate-500 leading-[18px]" numberOfLines={2}>
 					{item.body}
 				</Text>
-				<Text
-					style={{
-						fontSize: 11,
-						fontWeight: "400",
-						color: Colors.light.textSecondary,
-						marginTop: 4,
-					}}
-				>
-					{timeAgo(item.createdAt)}
-				</Text>
+				<Text className="text-[11px] text-slate-400 mt-1">{timeAgo(item.createdAt)}</Text>
 			</View>
 		</Pressable>
 	);
@@ -189,59 +151,31 @@ export function NotificationsView() {
 
 	const renderFooter = () => {
 		if (!hasMore)
-			return (
-				<View style={{ height: BottomTabInset + insets.bottom + 24 }} />
-			);
+			return <View style={{ height: BottomTabInset + insets.bottom + 24 }} />;
 		return (
-			<View style={{ paddingVertical: Spacing.three, alignItems: "center" }}>
-				<ActivityIndicator size="small" color={Colors.light.primary} />
+			<View className="py-3 items-center">
+				<ActivityIndicator size="small" color="#ee237c" />
 			</View>
 		);
 	};
 
 	const renderEmpty = () => {
 		if (isLoading) return null;
-			return (
-			<View
-				style={{
-					flex: 1,
-					alignItems: "center",
-					justifyContent: "center",
-					paddingTop: 80,
-					paddingHorizontal: Spacing.four,
-				}}
-			>
-				<Text
-					style={{
-						fontSize: 16,
-						fontWeight: "600",
-						color: Colors.light.text,
-						marginBottom: 4,
-					}}
-				>
-					{t("noNotifications")}
-				</Text>
-				<Text
-					style={{
-						fontSize: 14,
-						fontWeight: "400",
-						color: Colors.light.textSecondary,
-						textAlign: "center",
-					}}
-				>
-					{t("allCaughtUp")}
-				</Text>
+		return (
+			<View className="flex-1 items-center justify-center pt-20 px-4">
+				<Text className="text-base font-semibold text-slate-900 mb-1">{t("noNotifications")}</Text>
+				<Text className="text-sm text-slate-500 text-center">{t("allCaughtUp")}</Text>
 			</View>
 		);
 	};
 
 	return (
-		<View style={{ flex: 1, backgroundColor: Colors.light.background }}>
+		<View className="flex-1 bg-white">
 			<SubpageHeader title={t("notifications")} />
 
 			{isLoading && !notifications?.length ? (
-				<View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-					<ActivityIndicator size="large" color={Colors.light.primary} />
+				<View className="flex-1 items-center justify-center">
+					<ActivityIndicator size="large" color="#ee237c" />
 				</View>
 			) : (
 				<FlatList
@@ -259,17 +193,11 @@ export function NotificationsView() {
 						<RefreshControl
 							refreshing={isFetching}
 							onRefresh={refetch}
-							tintColor={Colors.light.primary}
+							tintColor="#ee237c"
 						/>
 					}
 					ItemSeparatorComponent={() => (
-						<View
-							style={{
-								height: 0.5,
-								backgroundColor: Colors.light.backgroundSelected,
-								marginHorizontal: Spacing.four,
-							}}
-						/>
+						<View className="h-[0.5px] bg-slate-100 mx-4" />
 					)}
 				/>
 			)}

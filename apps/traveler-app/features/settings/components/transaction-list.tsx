@@ -1,8 +1,7 @@
 import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { View, FlatList, ActivityIndicator, Text, Pressable } from "react-native";
-import { Text as UIText } from "@/components/ui/text";
-import { Colors, Spacing } from "@moja/theme/tokens";
+import { View, FlatList, ActivityIndicator, Pressable } from "react-native";
+import { Text } from "@/components/ui/text";
 
 interface LedgerEntry {
   id: string;
@@ -48,14 +47,10 @@ export function TransactionList({ data, total, page, pageSize, isLoadingMore, on
 
   if (isEmpty) {
     return (
-      <View style={{ alignItems: "center", paddingVertical: Spacing.six }}>
-        <UIText style={{ fontSize: 15, color: Colors.light.textSecondary }}>
-          No transactions yet
-        </UIText>
-        <Pressable onPress={onRefresh} style={{ marginTop: Spacing.two }}>
-          <UIText style={{ fontSize: 14, fontWeight: "600", color: Colors.light.primary }}>
-            Top Up
-          </UIText>
+      <View className="items-center py-6">
+        <Text className="text-[15px] text-slate-500">No transactions yet</Text>
+        <Pressable onPress={onRefresh} className="mt-2">
+          <Text className="text-sm font-semibold text-pink-600">Top Up</Text>
         </Pressable>
       </View>
     );
@@ -75,30 +70,15 @@ export function TransactionList({ data, total, page, pageSize, isLoadingMore, on
       onRefresh={onRefresh}
       ListFooterComponent={
         isLoadingMore ? (
-          <ActivityIndicator size="small" color={Colors.light.primary} style={{ paddingVertical: Spacing.four }} />
+          <ActivityIndicator size="small" color="#ee237c" className="py-4" />
         ) : null
       }
       renderItem={({ item }) => (
-        <View
-          style={{
-            paddingVertical: Spacing.four,
-            paddingHorizontal: Spacing.four,
-            borderBottomWidth: 0.5,
-            borderBottomColor: Colors.light.backgroundSelected,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: Spacing.four,
-          }}
-        >
+        <View className="flex-row items-center gap-4 px-4 py-4 border-b border-slate-100">
           <View
-            style={{
-              width: Spacing.three,
-              height: Spacing.three,
-              borderRadius: Spacing.three / 2,
-              backgroundColor: item.side === "CREDIT" ? "rgba(34, 197, 94, 0.12)" : "rgba(239, 68, 68, 0.12)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            className={`w-10 h-10 rounded-full items-center justify-center ${
+              item.side === "CREDIT" ? "bg-green-500/10" : "bg-red-500/10"
+            }`}
           >
             <HugeiconsIcon
               icon={item.side === "CREDIT" ? ArrowUp01Icon : ArrowDown01Icon}
@@ -107,25 +87,21 @@ export function TransactionList({ data, total, page, pageSize, isLoadingMore, on
             />
           </View>
 
-          <View style={{ flex: 1 }}>
-            <UIText style={{ fontSize: 15, fontWeight: "500", color: Colors.light.text }}>
+          <View className="flex-1">
+            <Text className="text-[15px] font-medium text-slate-800">
               {item.description ?? "Transaction"}
-            </UIText>
-            <UIText style={{ fontSize: 12, fontWeight: "400", color: Colors.light.textSecondary, marginTop: 2 }}>
-              {formatDate(item.effectiveAt)}
-            </UIText>
+            </Text>
+            <Text className="text-xs text-slate-400 mt-0.5">{formatDate(item.effectiveAt)}</Text>
           </View>
 
-          <UIText
-            style={{
-              fontSize: 15,
-              fontWeight: "600",
-              color: item.side === "CREDIT" ? "#22c55e" : "#ef4444",
-            }}
+          <Text
+            className={`text-[15px] font-semibold ${
+              item.side === "CREDIT" ? "text-green-500" : "text-red-500"
+            }`}
           >
             {item.side === "CREDIT" ? "+" : "-"}
             {new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(item.amount)} XOF
-          </UIText>
+          </Text>
         </View>
       )}
     />

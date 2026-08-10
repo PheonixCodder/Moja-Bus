@@ -5,7 +5,6 @@ import {
   Ticket01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { Colors } from '@moja/theme/tokens';
 import * as Haptics from 'expo-haptics';
 import { Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -16,9 +15,11 @@ type DigitalTicketCardProps = {
   bookingReference: string;
   companyName: string;
   origin: string;
+  originSub?: string;
   destination: string;
-  departureTime: string;
-  arrivalTime: string;
+  destinationSub?: string;
+  departureTime: string | Date;
+  arrivalTime: string | Date;
   seatLabel: string;
   passengerName: string;
   status?: string;
@@ -30,7 +31,9 @@ export function DigitalTicketCard({
   bookingReference,
   companyName,
   origin,
+  originSub,
   destination,
+  destinationSub,
   departureTime,
   arrivalTime,
   seatLabel,
@@ -61,12 +64,12 @@ export function DigitalTicketCard({
 
   const badgeLabel =
     {
-      CONFIRMED: 'VALID',
+      CONFIRMED: 'VALID TICKET',
       PENDING_PAYMENT: 'PENDING',
       EXPIRED: 'EXPIRED',
       CANCELLED: 'CANCELLED',
       COMPLETED: 'COMPLETED',
-    }[status ?? 'CONFIRMED'] ?? 'VALID';
+    }[status ?? 'CONFIRMED'] ?? 'VALID TICKET';
 
   return (
     <Animated.View style={animatedStyle} className="mb-4">
@@ -108,18 +111,23 @@ export function DigitalTicketCard({
               FROM
             </Text>
             <Text className="text-foreground text-base font-extrabold" numberOfLines={1}>
-              {origin}
+              {origin || 'Origin'}
             </Text>
-            <Text className="text-primary mt-0.5 text-xs font-semibold">
+            {originSub ? (
+              <Text className="text-muted-foreground text-[10px]" numberOfLines={1}>
+                {originSub}
+              </Text>
+            ) : null}
+            <Text className="text-primary mt-1 text-xs font-bold">
               {formatTimeOnly(departureTime)}
             </Text>
-            <Text className="text-muted-foreground mt-0.5 text-[10px] font-semibold">
+            <Text className="text-muted-foreground/80 mt-0.5 text-[10px] font-semibold">
               {formatDateWithWeekday(departureTime)}
             </Text>
           </View>
 
           <View className="items-center px-3">
-            <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={Colors.light.primary} />
+            <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ee237c" />
           </View>
 
           <View className="flex-1 items-end">
@@ -127,12 +135,17 @@ export function DigitalTicketCard({
               TO
             </Text>
             <Text className="text-foreground text-right text-base font-extrabold" numberOfLines={1}>
-              {destination}
+              {destination || 'Destination'}
             </Text>
-            <Text className="text-primary mt-0.5 text-right text-xs font-semibold">
+            {destinationSub ? (
+              <Text className="text-muted-foreground text-right text-[10px]" numberOfLines={1}>
+                {destinationSub}
+              </Text>
+            ) : null}
+            <Text className="text-primary mt-1 text-right text-xs font-bold">
               {formatTimeOnly(arrivalTime)}
             </Text>
-            <Text className="text-muted-foreground mt-0.5 text-right text-[10px] font-semibold">
+            <Text className="text-muted-foreground/80 mt-0.5 text-right text-[10px] font-semibold">
               {formatDateWithWeekday(arrivalTime)}
             </Text>
           </View>

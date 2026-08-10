@@ -1,7 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { FlatList, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabInset } from "@/constants/theme";
@@ -12,19 +10,38 @@ import { TicketListSkeleton } from "@/features/booking/components/ticket-list-sk
 import { TicketSheet } from "@/features/booking/components/ticket-sheet";
 import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
 import {
-	type Booking,
+	type PassengerBookingSummary,
 	useListMyBookings,
 } from "@/features/booking/hooks/use-bookings";
+import { useCancelBooking } from "@/features/booking/hooks/use-booking-actions";
+import { formatLocationLabel } from "@/lib/format-location-label";
+import * as Haptics from "expo-haptics";
+
+type TicketItem = {
+	bookingReference: string;
+	ticketToken: string;
+	companyName: string;
+	origin: string;
+	originSub?: string;
+	destination: string;
+	destinationSub?: string;
+	departureTime: Date;
+	arrivalTime: Date;
+	seatLabel: string;
+	passengerName: string;
+	farePaidXOF: number;
+	status: string;
+};
 
 export function TicketsView() {
 	const insets = useSafeAreaInsets();
-	const { t } = useTranslation("booking");
-	const queryClient = useQueryClient();
 	const { prefetchBookings, prefetchTicket } = useBookingPrefetch();
+	const cancelMutation = useCancelBooking();
 
 	const [activeTicket, setActiveTicket] = useState<{
 		bookingReference: string;
 		ticketToken: string;
+		farePaidXOF?: number;
 	} | null>(null);
 	const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -33,26 +50,76 @@ export function TicketsView() {
 		isLoading,
 		isFetching,
 		refetch,
-	} = useListMyBookings("confirmed", 50, 0, true);
+	} = useListMyBookings("upcoming", 50, 0, true);
 
 	useFocusEffect(
 		useCallback(() => {
-			prefetchBookings("confirmed");
+			prefetchBookings("upcoming");
 		}, []),
 	);
 
-	const bookings = (bookingsData?.items ?? []) as Booking[];
-	const confirmed = bookings.filter((b) => b.status === "CONFIRMED");
+	const bookings = (bookingsData?.items ?? []) as PassengerBookingSummary[];
+	const confirmedBookings = bookings.filter((b) => b.status === "CONFIRMED");
+
+	// Flatten all seats across confirmed bookings into individual ticket cards
+	const ticketItems: TicketItem[] = confirmedBookings.flatMap((booking) => {
+		const isUrban = booking.serviceType === "URBAN";
+		const origin = formatLocationLabel({
+			cityName: booking.originCityName,
+			municipalityName: booking.originMunicipalityName,
+			quarterName: booking.originQuarterName,
+			isUrban,
+		});
+		const destination = formatLocationLabel({
+			cityName: booking.destinationCityName,
+			municipalityName: booking.destinationMunicipalityName,
+			quarterName: booking.destinationQuarterName,
+			isUrban,
+		});
+
+		return (booking.seats ?? []).map((seat) => ({
+			bookingReference: seat.bookingReference,
+			ticketToken: seat.ticketToken,
+			companyName: booking.companyName,
+			origin,
+			originSub: booking.originTerminalName,
+			destination,
+			destinationSub: booking.destinationTerminalName,
+			departureTime: booking.departureTime,
+			arrivalTime: booking.arrivalTime,
+			seatLabel: seat.seatLabel,
+			passengerName: seat.passengerName,
+			farePaidXOF: seat.farePaidXOF,
+			status: booking.status,
+		}));
+	});
 
 	const handleCardPressIn = (bookingReference: string) => {
 		prefetchTicket(bookingReference);
 	};
 
-	const handleCardPress = (booking: Booking) => {
+	const handleCardPress = (ticket: TicketItem) => {
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 		setActiveTicket({
-			bookingReference: booking.bookingReference,
-			ticketToken: booking.ticketToken ?? "",
+			bookingReference: ticket.bookingReference,
+			ticketToken: ticket.ticketToken,
+			farePaidXOF: ticket.farePaidXOF,
 		});
+	};
+
+	const handleConfirmCancel = async (channel: "WALLET") => {
+		if (!activeTicket) return;
+		try {
+			await cancelMutation.mutateAsync({
+				bookingReference: activeTicket.bookingReference,
+				channel,
+			});
+			setCancelOpen(false);
+			setActiveTicket(null);
+			refetch();
+		} catch (err) {
+			console.error("Failed to cancel ticket:", err);
+		}
 	};
 
 	return (
@@ -61,8 +128,8 @@ export function TicketsView() {
 				<TicketListSkeleton />
 			) : (
 				<FlatList
-					data={confirmed}
-					keyExtractor={(item: Booking) => item.bookingReference}
+					data={ticketItems}
+					keyExtractor={(item: TicketItem) => item.ticketToken || item.bookingReference}
 					contentContainerStyle={{
 						paddingHorizontal: 16,
 						paddingTop: 8,
@@ -76,16 +143,18 @@ export function TicketsView() {
 							colors={["#ee237c"]}
 						/>
 					}
-					renderItem={({ item }: { item: Booking }) => (
+					renderItem={({ item }: { item: TicketItem }) => (
 						<DigitalTicketCard
 							bookingReference={item.bookingReference}
-							companyName={item.companyName ?? "Moja Express"}
-							origin={item.origin ?? ""}
-							destination={item.destination ?? ""}
-							departureTime={item.departureTime ?? ""}
-							arrivalTime={item.arrivalTime ?? ""}
-							seatLabel={item.seatLabel ?? "1"}
-							passengerName={item.passengerName ?? "Passenger"}
+							companyName={item.companyName}
+							origin={item.origin}
+							originSub={item.originSub}
+							destination={item.destination}
+							destinationSub={item.destinationSub}
+							departureTime={item.departureTime}
+							arrivalTime={item.arrivalTime}
+							seatLabel={item.seatLabel}
+							passengerName={item.passengerName}
 							status={item.status}
 							onPressIn={() => handleCardPressIn(item.bookingReference)}
 							onPress={() => handleCardPress(item)}
@@ -105,9 +174,10 @@ export function TicketsView() {
 
 			<CancelDialog
 				isOpen={cancelOpen}
-				isPending={false}
+				farePaidXOF={activeTicket?.farePaidXOF}
+				isPending={cancelMutation.isPending}
 				onClose={() => setCancelOpen(false)}
-				onConfirm={() => setCancelOpen(false)}
+				onConfirm={handleConfirmCancel}
 			/>
 		</View>
 	);

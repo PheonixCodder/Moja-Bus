@@ -1,21 +1,21 @@
-import { Colors, Spacing } from "@moja/theme/tokens";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Alert01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
-	ActivityIndicator,
-	Modal,
-	Pressable,
-	Text,
-	View,
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "@/components/ui/text";
+import { formatPriceXOF } from "../lib/format-time";
 
 type CancelDialogProps = {
 	isOpen: boolean;
 	farePaidXOF?: number;
 	isPending: boolean;
 	onClose: () => void;
-	onConfirm: (channel: "WALLET" | "VOUCHER") => void;
+	onConfirm: (channel: "WALLET") => void;
 };
 
 export function CancelDialog({
@@ -26,198 +26,84 @@ export function CancelDialog({
 	onConfirm,
 }: CancelDialogProps) {
 	const insets = useSafeAreaInsets();
-	const { t } = useTranslation("booking");
-	const [channel, setChannel] = useState<"WALLET" | "VOUCHER">("WALLET");
+
+	if (!isOpen) return null;
 
 	return (
 		<Modal
 			visible={isOpen}
 			transparent
-			animationType="slide"
+			animationType="fade"
 			onRequestClose={onClose}
 		>
-			<Pressable
-				style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}
-				onPress={onClose}
-			>
-				<Pressable
-					style={{ flex: 1, justifyContent: "flex-end" }}
-					onPress={() => {}}
+			<View className="flex-1 justify-end bg-black/60">
+				<Pressable className="absolute inset-0" onPress={onClose} />
+
+				<View
+					className="bg-background rounded-t-3xl border-t border-border p-5 space-y-4"
+					style={{ paddingBottom: insets.bottom + 20 }}
 				>
-					<View
-						style={{
-							backgroundColor: Colors.light.background,
-							borderTopLeftRadius: 28,
-							borderTopRightRadius: 28,
-							paddingTop: Spacing.five,
-							paddingHorizontal: Spacing.four,
-							paddingBottom: insets.bottom + 24,
-						}}
-					>
-						<View
-							style={{
-								width: 40,
-								height: 4,
-								borderRadius: 2,
-								backgroundColor: Colors.light.backgroundSelected,
-								alignSelf: "center",
-								marginBottom: Spacing.five,
-							}}
-						/>
+					{/* Header Handle */}
+					<View className="w-10 h-1.5 rounded-full bg-muted-foreground/30 align-self-center self-center mb-1" />
 
-						<View style={{ alignItems: "center", gap: Spacing.three }}>
-							<View
-								style={{
-									width: 56,
-									height: 56,
-									borderRadius: 28,
-									backgroundColor: "rgba(244, 63, 94, 0.1)",
-									alignItems: "center",
-									justifyContent: "center",
-								}}
-							>
-								<Text style={{ fontSize: 28 }}>⚠️</Text>
-							</View>
-
-							<View style={{ alignItems: "center", gap: Spacing.one }}>
-								<Text
-									style={{
-										fontSize: 17,
-										fontWeight: "800",
-										color: Colors.light.text,
-									}}
-								>
-									{t("cancelBooking")}
-								</Text>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "400",
-										color: Colors.light.textSecondary,
-										textAlign: "center",
-										maxWidth: 280,
-										lineHeight: 18,
-									}}
-								>
-									{t("cancelRefund")}
-								</Text>
-							</View>
+					{/* Warning Icon & Title */}
+					<View className="items-center text-center space-y-2">
+						<View className="w-14 h-14 rounded-full bg-destructive/10 border border-destructive/20 items-center justify-center mb-1">
+							<HugeiconsIcon icon={Alert01Icon} size={28} color="#ef4444" />
 						</View>
-
-						{farePaidXOF ? (
-							<View
-								style={{
-									paddingVertical: Spacing.three,
-									marginTop: Spacing.three,
-								}}
-							>
-								<Text
-									style={{
-										fontSize: 11,
-										fontWeight: "700",
-										color: Colors.light.textSecondary,
-										letterSpacing: 0.5,
-										textTransform: "uppercase",
-										marginBottom: Spacing.two,
-									}}
-								>
-									{t("refundSummary")}
-								</Text>
-								<View
-									style={{
-										flexDirection: "row",
-										justifyContent: "space-between",
-										paddingBottom: Spacing.two,
-										borderBottomWidth: 1,
-										borderBottomColor: Colors.light.backgroundSelected,
-									}}
-								>
-									<Text style={{ fontSize: 13, color: Colors.light.textSecondary }}>
-										{t("farePaid")}
-									</Text>
-									<Text style={{ fontSize: 13, fontWeight: "600", color: Colors.light.text }}>
-										{farePaidXOF?.toLocaleString()} XOF
-									</Text>
-								</View>
-								<View
-									style={{
-										flexDirection: "row",
-										justifyContent: "space-between",
-										paddingTop: Spacing.two,
-									}}
-								>
-									<Text style={{ fontSize: 13, fontWeight: "600", color: Colors.light.text }}>
-										{t("refundAmount")}
-									</Text>
-									<Text style={{ fontSize: 13, fontWeight: "700", color: Colors.light.primary }}>
-										{farePaidXOF?.toLocaleString()} XOF
-									</Text>
-								</View>
-							</View>
-						) : null}
-
-						<View
-							style={{
-								flexDirection: "row",
-								gap: Spacing.two,
-								paddingTop: Spacing.three,
-								marginTop: Spacing.three,
-								borderTopWidth: 1,
-								borderTopColor: Colors.light.backgroundSelected,
-							}}
-						>
-							<Pressable
-								onPress={onClose}
-								disabled={isPending}
-								style={{
-									flex: 1,
-									paddingVertical: Spacing.two,
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: Colors.light.backgroundSelected,
-									alignItems: "center",
-								}}
-							>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "600",
-										color: Colors.light.textSecondary,
-									}}
-								>
-									{t("keepTicket")}
-								</Text>
-							</Pressable>
-							<Pressable
-								onPress={() => onConfirm(channel)}
-								disabled={isPending}
-								style={{
-									flex: 1,
-									paddingVertical: Spacing.two,
-									borderRadius: 12,
-									backgroundColor: "#e11d48",
-									alignItems: "center",
-									opacity: isPending ? 0.6 : 1,
-								}}
-							>
-								{isPending ? (
-									<ActivityIndicator size="small" color="#fff" />
-								) : (
-									<Text
-										style={{
-											fontSize: 13,
-											fontWeight: "700",
-											color: "#fff",
-										}}
-									>
-										{t("confirmCancel")}
-									</Text>
-								)}
-							</Pressable>
-						</View>
+						<Text className="text-foreground text-xl font-black tracking-tight">
+							Cancel Booking & Request Refund
+						</Text>
+						<Text className="text-muted-foreground text-xs text-center max-w-[280px] leading-relaxed">
+							Are you sure you want to cancel this booking? Refunded funds will be credited directly to your internal wallet.
+						</Text>
 					</View>
-				</Pressable>
-			</Pressable>
+
+					{/* Refund Breakdown */}
+					{farePaidXOF ? (
+						<View className="bg-card border-border rounded-xl border p-3.5 space-y-2 my-2">
+							<Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+								Refund Summary
+							</Text>
+							<View className="flex-row justify-between border-b border-border/40 pb-2">
+								<Text className="text-muted-foreground text-xs font-medium">Original Fare Paid</Text>
+								<Text className="text-foreground font-bold text-xs">
+									{formatPriceXOF(farePaidXOF)}
+								</Text>
+							</View>
+							<View className="flex-row justify-between pt-1">
+								<Text className="text-foreground font-bold text-xs">Wallet Refund Amount</Text>
+								<Text className="text-primary font-black text-xs">
+									{formatPriceXOF(farePaidXOF)}
+								</Text>
+							</View>
+						</View>
+					) : null}
+
+					{/* Action Buttons */}
+					<View className="flex-row gap-3 pt-2">
+						<Pressable
+							onPress={onClose}
+							disabled={isPending}
+							className="flex-1 bg-secondary border border-border py-3.5 rounded-xl items-center"
+						>
+							<Text className="text-foreground font-bold text-xs">Keep Ticket</Text>
+						</Pressable>
+
+						<Pressable
+							onPress={() => onConfirm("WALLET")}
+							disabled={isPending}
+							className="flex-1 bg-destructive py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs opacity-100 disabled:opacity-60"
+						>
+							{isPending ? (
+								<ActivityIndicator size="small" color="#ffffff" />
+							) : (
+								<Text className="text-white font-black text-xs">Confirm Cancellation</Text>
+							)}
+						</Pressable>
+					</View>
+				</View>
+			</View>
 		</Modal>
 	);
 }

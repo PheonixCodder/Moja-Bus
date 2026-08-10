@@ -1,11 +1,10 @@
 import {
 	Calendar01Icon,
-	ClockIcon,
+	Clock01Icon,
 	Ticket01Icon,
 	UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 
@@ -27,71 +26,46 @@ export function BookingKpiStrip({
 			icon: Calendar01Icon,
 			label: "Upcoming",
 			value: upcomingCount,
-			color: Colors.light.primary,
+			color: "#ee237c",
+			bg: "bg-primary/10",
 		},
 		{
-			icon: ClockIcon,
+			icon: Clock01Icon,
 			label: "Pending",
 			value: pendingCount,
-			color: "#f59e0b",
+			color: "#d97706",
+			bg: "bg-amber-500/10",
 		},
 		{
 			icon: Ticket01Icon,
 			label: "Tickets",
 			value: ticketsCount,
 			color: "#10b981",
+			bg: "bg-emerald-500/10",
 		},
 		{
 			icon: UserGroupIcon,
-			label: "Contacts",
+			label: "Saved",
 			value: contactsCount,
 			color: "#6366f1",
+			bg: "bg-indigo-500/10",
 		},
 	];
 
 	return (
-		<View
-			style={{
-				flexDirection: "row",
-				gap: Spacing.two,
-				paddingHorizontal: Spacing.four,
-				paddingVertical: Spacing.three,
-			}}
-		>
+		<View className="flex-row gap-2 px-4 py-3">
 			{items.map((item) => (
 				<View
 					key={item.label}
-					style={{
-						flex: 1,
-						backgroundColor: Colors.light.background,
-						borderRadius: 12,
-						padding: Spacing.three,
-						alignItems: "center",
-						borderWidth: 1,
-						borderColor: Colors.light.backgroundSelected,
-					}}
+					className="flex-1 bg-card border-border rounded-2xl border p-3 items-center shadow-xs"
 				>
-					<HugeiconsIcon icon={item.icon} size={18} color={item.color} />
-					<Text
-						style={{
-							fontSize: 18,
-							fontWeight: "800",
-							color: Colors.light.text,
-							marginTop: Spacing.one,
-						}}
-					>
+					<View className={`w-8 h-8 rounded-full ${item.bg} items-center justify-center mb-1`}>
+						<HugeiconsIcon icon={item.icon} size={16} color={item.color} />
+					</View>
+					<Text className="text-foreground font-black text-base">
 						{item.value}
 					</Text>
-					<Text
-						style={{
-							fontSize: 10,
-							fontWeight: "600",
-							color: Colors.light.textSecondary,
-							letterSpacing: 0.5,
-							textTransform: "uppercase",
-							marginTop: 2,
-						}}
-					>
+					<Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mt-0.5">
 						{item.label}
 					</Text>
 				</View>

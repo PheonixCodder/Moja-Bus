@@ -37,7 +37,15 @@ interface TrpcMutation<TInput, TOutput> {
 type PassengerRouter = {
 	listSaved: TrpcQuery<void, SavedPassengersListResult>;
 	createSaved: TrpcMutation<
-		{ fullName: string; phone: string; email?: string; label?: string },
+		{
+			fullName: string;
+			phone: string;
+			email?: string;
+			label?: string;
+			dateOfBirth?: Date;
+			idType?: "national_id" | "passport" | "driver_license";
+			idNumber?: string;
+		},
 		SavedPassengerDTO
 	>;
 	updateSaved: TrpcMutation<
@@ -47,6 +55,9 @@ type PassengerRouter = {
 			phone?: string;
 			email?: string;
 			label?: string;
+			dateOfBirth?: Date;
+			idType?: "national_id" | "passport" | "driver_license";
+			idNumber?: string;
 		},
 		SavedPassengerDTO
 	>;

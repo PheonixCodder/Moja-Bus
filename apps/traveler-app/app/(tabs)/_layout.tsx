@@ -237,7 +237,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 prefetchBookings("upcoming");
                 prefetchStats();
               } else if (route.name === "tickets") {
-                prefetchBookings("confirmed");
+                prefetchBookings("upcoming");
               }
             };
 

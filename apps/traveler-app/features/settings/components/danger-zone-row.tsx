@@ -1,6 +1,5 @@
 import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -42,30 +41,12 @@ export function DangerZoneRow() {
 			<Pressable
 				onPress={handleLogout}
 				disabled={isSigningOut}
-				style={({ pressed }) => ({
-					flexDirection: "row",
-					alignItems: "center",
-					paddingVertical: Spacing.four,
-					paddingHorizontal: 20,
-					opacity: pressed ? 0.6 : isSigningOut ? 0.5 : 1,
-				})}
+				className="flex-row items-center py-4 px-5 active:opacity-60 disabled:opacity-50"
 			>
-				<View
-					style={{
-						width: Spacing.three,
-						alignItems: "center",
-						marginRight: Spacing.five,
-					}}
-				>
-					<HugeiconsIcon
-						icon={Logout01Icon}
-						size={20}
-						color={Colors.light.textSecondary}
-					/>
+				<View className="w-6 items-center mr-5">
+					<HugeiconsIcon icon={Logout01Icon} size={20} color="#e11d48" />
 				</View>
-				<Text
-					style={{ fontSize: 15, fontWeight: "500", color: Colors.light.text }}
-				>
+				<Text className="text-base font-semibold text-rose-600">
 					Log Out
 				</Text>
 			</Pressable>

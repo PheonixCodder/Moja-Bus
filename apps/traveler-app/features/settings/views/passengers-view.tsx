@@ -1,7 +1,6 @@
 import { PlusSignIcon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useTranslation } from "react-i18next";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import {
@@ -57,6 +56,9 @@ export function PassengersView() {
 				phone: form.phone,
 				email: form.email || undefined,
 				label: form.label || undefined,
+				idType: form.idType,
+				idNumber: form.idNumber || undefined,
+				dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth) : undefined,
 			},
 			{
 				onSuccess: () => {
@@ -78,6 +80,9 @@ export function PassengersView() {
 				phone: form.phone,
 				email: form.email || undefined,
 				label: form.label || undefined,
+				idType: form.idType,
+				idNumber: form.idNumber || undefined,
+				dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth) : undefined,
 			},
 			{
 				onSuccess: () => {
@@ -106,7 +111,7 @@ export function PassengersView() {
 					setDeletingPassenger(null);
 					invalidate();
 				},
-				onError: (err) => {
+				onError: () => {
 					setDeletingPassenger(null);
 				},
 			},
@@ -125,32 +130,16 @@ export function PassengersView() {
 
 	if (sessionPending || isLoading) {
 		return (
-			<View
-				style={{
-					flex: 1,
-					alignItems: "center",
-					justifyContent: "center",
-					backgroundColor: Colors.light.background,
-				}}
-			>
-				<ActivityIndicator size="large" color={Colors.light.primary} />
+			<View className="flex-1 items-center justify-center bg-white">
+				<ActivityIndicator size="large" color="#ee237c" />
 			</View>
 		);
 	}
 
 	if (!isAuth) {
 		return (
-			<View
-				style={{
-					flex: 1,
-					alignItems: "center",
-					justifyContent: "center",
-					backgroundColor: Colors.light.background,
-				}}
-			>
-				<Text style={{ color: Colors.light.textSecondary, fontSize: 15 }}>
-					{t("signInToView")}
-				</Text>
+			<View className="flex-1 items-center justify-center bg-white">
+				<Text className="text-[15px] text-slate-500">{t("signInToView")}</Text>
 			</View>
 		);
 	}
@@ -160,147 +149,52 @@ export function PassengersView() {
 	const others = passengers.filter((p) => !p.isSelf);
 
 	return (
-		<View style={{ flex: 1, backgroundColor: Colors.light.background }}>
+		<View className="flex-1 bg-white">
 			<SubpageHeader title={t("passengersLabel")} />
 
 			<ScrollView
 				style={{ flex: 1 }}
 				contentContainerStyle={{
-					paddingHorizontal: Spacing.four,
-					paddingTop: Spacing.two,
+					paddingHorizontal: 16,
+					paddingTop: 8,
 					paddingBottom: 100,
-					gap: Spacing.three,
+					gap: 12,
 				}}
 			>
 				{passengers.length === 0 ? (
-					<View
-						style={{
-							flex: 1,
-							alignItems: "center",
-							justifyContent: "center",
-							paddingVertical: 80,
-							gap: Spacing.four,
-						}}
-					>
-						<View
-							style={{
-								width: 72,
-								height: 72,
-								borderRadius: 36,
-								backgroundColor: "rgba(238, 35, 124, 0.1)",
-								alignItems: "center",
-								justifyContent: "center",
-							}}
-						>
-							<View
-								style={{
-									width: 56,
-									height: 56,
-									borderRadius: 28,
-									backgroundColor: "rgba(238, 35, 124, 0.15)",
-									alignItems: "center",
-									justifyContent: "center",
-								}}
-							>
-								<HugeiconsIcon
-									icon={UserGroupIcon}
-									size={28}
-									color={Colors.light.primary}
-								/>
+					<View className="flex-1 items-center justify-center py-20 gap-4">
+						<View className="w-18 h-18 rounded-full bg-pink-50 items-center justify-center">
+							<View className="w-14 h-14 rounded-full bg-pink-100 items-center justify-center">
+								<HugeiconsIcon icon={UserGroupIcon} size={28} color="#ee237c" />
 							</View>
 						</View>
-						<View style={{ alignItems: "center", gap: Spacing.one }}>
-			<Text
-								style={{
-									fontSize: 15,
-									fontWeight: "500",
-									color: Colors.light.textSecondary,
-								}}
-							>
-								{t("signInToView")}
-							</Text>
-							<Text
-								style={{
-									fontSize: 13,
-									fontWeight: "400",
-									color: Colors.light.textSecondary,
-									textAlign: "center",
-									maxWidth: 280,
-									lineHeight: 18,
-								}}
-							>
+						<View className="items-center gap-1">
+							<Text className="text-[15px] font-medium text-slate-500">{t("signInToView")}</Text>
+							<Text className="text-sm text-slate-400 text-center max-w-[280px] leading-[18px]">
 								{t("travelCompanionDescription")}
 							</Text>
 						</View>
 						<Pressable
 							onPress={openCreate}
-							style={({ pressed }) => ({
-								flexDirection: "row",
-								alignItems: "center",
-								gap: Spacing.one,
-								paddingHorizontal: 24,
-								paddingVertical: 14,
-								borderRadius: 14,
-								backgroundColor: Colors.light.primary,
-								opacity: pressed ? 0.85 : 1,
-								marginTop: Spacing.one,
-								shadowColor: Colors.light.primary,
-								shadowOffset: { width: 0, height: 4 },
-								shadowOpacity: 0.3,
-								shadowRadius: 12,
-								elevation: 8,
-							})}
+							className="flex-row items-center gap-1 px-6 py-3.5 rounded-2xl bg-pink-600 mt-1 shadow-lg shadow-pink-500/40 active:opacity-85"
 						>
 							<HugeiconsIcon icon={PlusSignIcon} size={18} color="#fff" />
-							<Text
-								style={{
-									fontSize: 14,
-									fontWeight: "700",
-									color: "#fff",
-								}}
-							>
-								{t("addFirstTraveler")}
-							</Text>
+							<Text className="text-sm font-bold text-white">{t("addFirstTraveler")}</Text>
 						</Pressable>
 					</View>
 				) : (
 					<>
-						<View
-							style={{
-								flexDirection: "row",
-								alignItems: "center",
-								justifyContent: "space-between",
-								paddingBottom: Spacing.two,
-							}}
-						>
-							<Text
-								style={{
-									fontSize: 12,
-									fontWeight: "700",
-									color: Colors.light.textSecondary,
-									letterSpacing: 0.5,
-									textTransform: "uppercase",
-								}}
-							>
-								{passengers.length}{" "}
-								{passengers.length === 1 ? "Passenger" : "Passengers"}
+						<View className="flex-row items-center justify-between pb-2">
+							<Text className="text-xs font-bold text-slate-400 tracking-wide uppercase">
+								{passengers.length} {passengers.length === 1 ? "Passenger" : "Passengers"}
 							</Text>
 						</View>
 
 						{selfPassenger ? (
 							<>
-						<Text
-								style={{
-									fontSize: 11,
-									fontWeight: "700",
-									color: Colors.light.textSecondary,
-									letterSpacing: 0.5,
-									textTransform: "uppercase",
-									marginBottom: -Spacing.one,
-								}}
-							>
-								{t("myProfileLabel")}
-							</Text>
+								<Text className="text-[11px] font-bold text-slate-400 tracking-wide uppercase -mb-1">
+									{t("myProfileLabel")}
+								</Text>
 								<PassengerCard
 									key={selfPassenger.id}
 									passenger={selfPassenger}
@@ -314,15 +208,7 @@ export function PassengersView() {
 						{others.length > 0 ? (
 							<>
 								<Text
-									style={{
-										fontSize: 11,
-										fontWeight: "700",
-										color: Colors.light.textSecondary,
-										letterSpacing: 0.5,
-										textTransform: "uppercase",
-										marginTop: selfPassenger ? Spacing.two : 0,
-										marginBottom: -Spacing.one,
-									}}
+									className={`text-[11px] font-bold text-slate-400 tracking-wide uppercase -mb-1 ${selfPassenger ? "mt-2" : ""}`}
 								>
 									{t("travelCompanions")}
 								</Text>
@@ -341,25 +227,11 @@ export function PassengersView() {
 				)}
 			</ScrollView>
 
+			{/* FAB */}
 			<Pressable
 				onPress={openCreate}
-				style={({ pressed }) => ({
-					position: "absolute",
-					bottom: BottomTabInset + insets.bottom + 20,
-					right: 20,
-					width: 56,
-					height: 56,
-					borderRadius: 28,
-					backgroundColor: Colors.light.primary,
-					alignItems: "center",
-					justifyContent: "center",
-					opacity: pressed ? 0.85 : 1,
-					shadowColor: Colors.light.primary,
-					shadowOffset: { width: 0, height: 6 },
-					shadowOpacity: 0.35,
-					shadowRadius: 16,
-					elevation: 10,
-				})}
+				className="absolute right-5 w-14 h-14 rounded-full bg-pink-600 items-center justify-center shadow-xl shadow-pink-500/40 active:opacity-85"
+				style={{ bottom: BottomTabInset + insets.bottom + 20 }}
 			>
 				<HugeiconsIcon icon={PlusSignIcon} size={24} color="#fff" />
 			</Pressable>
@@ -379,6 +251,11 @@ export function PassengersView() {
 								phone: editingPassenger.phone,
 								email: editingPassenger.email ?? "",
 								label: editingPassenger.label ?? "",
+								idType: (editingPassenger.idType as any) ?? "national_id",
+								idNumber: editingPassenger.idNumber ?? "",
+								dateOfBirth: editingPassenger.dateOfBirth
+									? new Date(editingPassenger.dateOfBirth).toISOString()
+									: "",
 							}
 						: null
 				}

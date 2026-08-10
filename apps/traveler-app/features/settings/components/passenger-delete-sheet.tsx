@@ -1,6 +1,5 @@
 import { Delete01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { ActivityIndicator, Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
@@ -29,138 +28,49 @@ export function PassengerDeleteSheet({
 			animationType="slide"
 			onRequestClose={onClose}
 		>
-			<Pressable
-				style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}
-				onPress={onClose}
-			>
-				<Pressable
-					style={{ flex: 1, justifyContent: "flex-end" }}
-					onPress={() => {}}
-				>
+			<Pressable className="flex-1 bg-black/40" onPress={onClose}>
+				<Pressable className="flex-1 justify-end" onPress={() => {}}>
 					<View
-						style={{
-							backgroundColor: Colors.light.background,
-							borderTopLeftRadius: 28,
-							borderTopRightRadius: 28,
-							paddingTop: Spacing.five,
-							paddingHorizontal: Spacing.four,
-							paddingBottom: insets.bottom + 24,
-						}}
+						className="bg-white rounded-t-[28px] pt-5 px-4"
+						style={{ paddingBottom: insets.bottom + 24 }}
 					>
-						<View
-							style={{
-								width: 40,
-								height: 4,
-								borderRadius: 2,
-								backgroundColor: Colors.light.backgroundSelected,
-								alignSelf: "center",
-								marginBottom: Spacing.five,
-							}}
-						/>
+						{/* Drag handle */}
+						<View className="w-10 h-1 rounded-full bg-slate-200 self-center mb-5" />
 
-						<View style={{ alignItems: "center", gap: Spacing.three }}>
-							<View
-								style={{
-									width: 56,
-									height: 56,
-									borderRadius: 28,
-									backgroundColor: "rgba(244, 63, 94, 0.1)",
-									alignItems: "center",
-									justifyContent: "center",
-								}}
-							>
-								<HugeiconsIcon
-									icon={Delete01Icon}
-									size={28}
-									color="#e11d48"
-								/>
+						{/* Icon + text */}
+						<View className="items-center gap-3">
+							<View className="w-14 h-14 rounded-full bg-rose-500/10 items-center justify-center">
+								<HugeiconsIcon icon={Delete01Icon} size={28} color="#e11d48" />
 							</View>
 
-							<View style={{ alignItems: "center", gap: Spacing.one }}>
-								<Text
-									style={{
-										fontSize: 17,
-										fontWeight: "800",
-										color: Colors.light.text,
-									}}
-								>
-									Delete Passenger
-								</Text>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "400",
-										color: Colors.light.textSecondary,
-										textAlign: "center",
-										maxWidth: 280,
-										lineHeight: 18,
-									}}
-								>
+							<View className="items-center gap-1">
+								<Text className="text-[17px] font-extrabold text-slate-900">Delete Passenger</Text>
+								<Text className="text-sm text-slate-500 text-center max-w-[280px] leading-[18px]">
 									Are you sure you want to remove{" "}
-									<Text style={{ fontWeight: "700", color: Colors.light.text }}>
-										{passengerName}
-									</Text>{" "}
+									<Text className="font-bold text-slate-900">{passengerName}</Text>{" "}
 									from your saved passengers? This action cannot be undone.
 								</Text>
 							</View>
 						</View>
 
-						<View
-							style={{
-								flexDirection: "row",
-								gap: Spacing.two,
-								paddingTop: Spacing.five,
-								marginTop: Spacing.three,
-								borderTopWidth: 1,
-								borderTopColor: Colors.light.backgroundSelected,
-							}}
-						>
+						{/* Buttons */}
+						<View className="flex-row gap-2 pt-5 mt-3 border-t border-slate-100">
 							<Pressable
 								onPress={onClose}
 								disabled={isPending}
-								style={{
-									flex: 1,
-									paddingVertical: Spacing.two,
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: Colors.light.backgroundSelected,
-									alignItems: "center",
-								}}
+								className="flex-1 py-2 rounded-xl border border-slate-200 items-center"
 							>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "600",
-										color: Colors.light.textSecondary,
-									}}
-								>
-									Cancel
-								</Text>
+								<Text className="text-sm font-semibold text-slate-500">Cancel</Text>
 							</Pressable>
 							<Pressable
 								onPress={onConfirm}
 								disabled={isPending}
-								style={{
-									flex: 1,
-									paddingVertical: Spacing.two,
-									borderRadius: 12,
-									backgroundColor: "#e11d48",
-									alignItems: "center",
-									opacity: isPending ? 0.6 : 1,
-								}}
+								className={`flex-1 py-2 rounded-xl bg-rose-600 items-center ${isPending ? "opacity-60" : ""}`}
 							>
 								{isPending ? (
 									<ActivityIndicator size="small" color="#fff" />
 								) : (
-									<Text
-										style={{
-											fontSize: 13,
-											fontWeight: "700",
-											color: "#fff",
-										}}
-									>
-										Delete
-									</Text>
+									<Text className="text-sm font-bold text-white">Delete</Text>
 								)}
 							</Pressable>
 						</View>

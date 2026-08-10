@@ -1,8 +1,8 @@
-export function formatDate(dateStr: string): string {
-  if (!dateStr) return '';
+export function formatDate(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
   try {
-    const date = new Date(dateStr);
-    if (Number.isNaN(date.getTime())) return dateStr;
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    if (Number.isNaN(date.getTime())) return '';
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -10,36 +10,41 @@ export function formatDate(dateStr: string): string {
       minute: '2-digit',
     });
   } catch {
-    return dateStr;
+    return '';
   }
 }
 
-export function formatDateWithWeekday(dateStr: string): string {
-  if (!dateStr) return '';
+export function formatDateWithWeekday(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
   try {
-    const date = new Date(dateStr);
-    if (Number.isNaN(date.getTime())) return dateStr;
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    if (Number.isNaN(date.getTime())) return '';
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
     });
   } catch {
-    return dateStr;
+    return '';
   }
 }
 
-export function formatTimeOnly(dateStr: string): string {
-  if (!dateStr) return '--:--';
+export function formatTimeOnly(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '--:--';
   try {
-    const date = new Date(dateStr);
-    if (Number.isNaN(date.getTime())) return dateStr;
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    if (Number.isNaN(date.getTime())) return '--:--';
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
     });
   } catch {
-    return dateStr;
+    return '--:--';
   }
+}
+
+export function formatPriceXOF(amount: number | null | undefined): string {
+  if (amount == null) return '0 XOF';
+  return `${amount.toLocaleString('fr-FR')} XOF`;
 }

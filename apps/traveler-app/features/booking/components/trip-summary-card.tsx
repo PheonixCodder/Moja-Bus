@@ -1,32 +1,25 @@
 import {
 	AirplaneSeatIcon,
-	Calendar01Icon,
-	ClockIcon,
-	Location01Icon,
-	MapPinIcon,
+	ArrowRight01Icon,
 	MoneyIcon,
-	Shield01Icon,
-	UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { formatDateWithWeekday, formatTimeOnly } from "../lib/format-time";
+import { formatDateWithWeekday, formatPriceXOF, formatTimeOnly } from "../lib/format-time";
 
 type TripSummaryCardProps = {
 	companyName: string;
 	companyLogo?: string;
 	origin: string;
 	destination: string;
-	departureTime: string;
-	arrivalTime: string;
-	duration: string;
+	departureTime: string | Date;
+	arrivalTime: string | Date;
+	duration?: string;
 	seatLabel?: string;
 	farePaidXOF?: number;
 	amenities?: string[];
 	status?: string;
-	onPressRouteMap?: () => void;
 };
 
 export function TripSummaryCard({
@@ -42,246 +35,81 @@ export function TripSummaryCard({
 	amenities,
 	status,
 }: TripSummaryCardProps) {
-	const departureLabel = departureTime
-		? `${formatDateWithWeekday(departureTime)} · ${formatTimeOnly(departureTime)}`
-		: "";
-	const arrivalLabel = arrivalTime
-		? `${formatDateWithWeekday(arrivalTime)} · ${formatTimeOnly(arrivalTime)}`
-		: "";
-
 	return (
-		<View
-			style={{
-				backgroundColor: Colors.light.background,
-				borderRadius: 16,
-				padding: Spacing.four,
-				borderWidth: 1,
-				borderColor: Colors.light.backgroundSelected,
-				gap: Spacing.three,
-			}}
-		>
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					gap: Spacing.three,
-				}}
-			>
-				{companyLogo ? (
-					<View
-						style={{
-							width: 40,
-							height: 40,
-							borderRadius: 12,
-							backgroundColor: Colors.light.backgroundElement,
-							alignItems: "center",
-							justifyContent: "center",
-						}}
-					>
-						<Text
-							style={{
-								fontSize: 16,
-								fontWeight: "800",
-								color: Colors.light.primary,
-							}}
-						>
-							{companyName.charAt(0)}
-						</Text>
-					</View>
-				) : null}
+		<View className="bg-card border-border rounded-2xl border p-4 shadow-xs space-y-3">
+			<View className="flex-row items-center gap-3">
+				<View className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 items-center justify-center">
+					<Text className="text-primary text-xs font-black">
+						{(companyName || 'MB').slice(0, 2).toUpperCase()}
+					</Text>
+				</View>
 
-				<View style={{ flex: 1 }}>
-					<Text
-						style={{
-							fontSize: 15,
-							fontWeight: "700",
-							color: Colors.light.text,
-						}}
-					>
-						{companyName}
+				<View className="flex-1">
+					<Text className="text-foreground text-sm font-bold">
+						{companyName || 'Moja Transport'}
 					</Text>
 					{status ? (
-						<Text
-							style={{
-								fontSize: 12,
-								color: Colors.light.textSecondary,
-								marginTop: 2,
-							}}
-						>
-							{status}
+						<Text className="text-muted-foreground text-xs mt-0.5 capitalize">
+							{status.toLowerCase()}
 						</Text>
 					) : null}
 				</View>
 			</View>
 
-			<View
-				style={{
-					flexDirection: "row",
-					alignItems: "center",
-					gap: Spacing.two,
-				}}
-			>
-				<View style={{ flex: 1 }}>
-					<Text
-						style={{
-							fontSize: 18,
-							fontWeight: "800",
-							color: Colors.light.text,
-						}}
-					>
+			<View className="flex-row items-center justify-between py-1">
+				<View className="flex-1">
+					<Text className="text-foreground font-black text-lg" numberOfLines={1}>
 						{origin}
 					</Text>
-					<Text
-						style={{
-							fontSize: 13,
-							color: Colors.light.textSecondary,
-							marginTop: 2,
-						}}
-					>
-						{departureLabel}
+					<Text className="text-primary font-bold text-xs mt-0.5">
+						{formatTimeOnly(departureTime)}
+					</Text>
+					<Text className="text-muted-foreground text-[10px]">
+						{formatDateWithWeekday(departureTime)}
 					</Text>
 				</View>
 
-				<View
-					style={{
-						alignItems: "center",
-						paddingHorizontal: Spacing.two,
-					}}
-				>
-					<HugeiconsIcon
-						icon={Location01Icon}
-						size={20}
-						color={Colors.light.primary}
-					/>
+				<View className="items-center px-2">
+					<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ee237c" />
 					{duration ? (
-						<Text
-							style={{
-								fontSize: 10,
-								color: Colors.light.textSecondary,
-								marginTop: 4,
-							}}
-						>
+						<Text className="text-muted-foreground text-[10px] mt-1 font-medium">
 							{duration}
 						</Text>
 					) : null}
 				</View>
 
-				<View style={{ flex: 1, alignItems: "flex-end" }}>
-					<Text
-						style={{
-							fontSize: 18,
-							fontWeight: "800",
-							color: Colors.light.text,
-						}}
-					>
+				<View className="flex-1 items-end">
+					<Text className="text-foreground font-black text-lg text-right" numberOfLines={1}>
 						{destination}
 					</Text>
-					<Text
-						style={{
-							fontSize: 13,
-							color: Colors.light.textSecondary,
-							marginTop: 2,
-						}}
-					>
-						{arrivalLabel}
+					<Text className="text-primary font-bold text-xs mt-0.5 text-right">
+						{formatTimeOnly(arrivalTime)}
+					</Text>
+					<Text className="text-muted-foreground text-[10px] text-right">
+						{formatDateWithWeekday(arrivalTime)}
 					</Text>
 				</View>
 			</View>
 
-			{seatLabel || farePaidXOF ? (
-				<View
-					style={{
-						flexDirection: "row",
-						alignItems: "center",
-						gap: Spacing.three,
-						paddingTop: Spacing.two,
-						borderTopWidth: 1,
-						borderTopColor: Colors.light.backgroundSelected,
-					}}
-				>
+			{(seatLabel || farePaidXOF) ? (
+				<View className="flex-row items-center justify-between border-t border-border/40 pt-3">
 					{seatLabel ? (
-						<View
-							style={{
-								flexDirection: "row",
-								alignItems: "center",
-								gap: Spacing.one,
-							}}
-						>
-							<HugeiconsIcon
-								icon={AirplaneSeatIcon}
-								size={14}
-								color={Colors.light.textSecondary}
-							/>
-							<Text
-								style={{
-									fontSize: 13,
-									fontWeight: "600",
-									color: Colors.light.text,
-								}}
-							>
-								{seatLabel}
+						<View className="flex-row items-center gap-1.5">
+							<HugeiconsIcon icon={AirplaneSeatIcon} size={14} color="#64748b" />
+							<Text className="text-foreground text-xs font-semibold">
+								Seat {seatLabel}
 							</Text>
 						</View>
 					) : null}
 
 					{farePaidXOF ? (
-						<View
-							style={{
-								flexDirection: "row",
-								alignItems: "center",
-								gap: Spacing.one,
-							}}
-						>
-							<HugeiconsIcon
-								icon={MoneyIcon}
-								size={14}
-								color={Colors.light.primary}
-							/>
-							<Text
-								style={{
-									fontSize: 13,
-									fontWeight: "700",
-									color: Colors.light.primary,
-								}}
-							>
-								{farePaidXOF.toLocaleString()} XOF
+						<View className="flex-row items-center gap-1.5">
+							<HugeiconsIcon icon={MoneyIcon} size={14} color="#ee237c" />
+							<Text className="text-primary font-black text-xs">
+								{formatPriceXOF(farePaidXOF)}
 							</Text>
 						</View>
 					) : null}
-				</View>
-			) : null}
-
-			{amenities && amenities.length > 0 ? (
-				<View
-					style={{
-						flexDirection: "row",
-						flexWrap: "wrap",
-						gap: Spacing.two,
-					}}
-				>
-					{amenities.map((amenity) => (
-						<View
-							key={amenity}
-							style={{
-								paddingHorizontal: Spacing.two,
-								paddingVertical: Spacing.one,
-								borderRadius: 8,
-								backgroundColor: Colors.light.backgroundElement,
-								borderWidth: 1,
-								borderColor: Colors.light.backgroundSelected,
-							}}
-						>
-							<Text
-								style={{
-									fontSize: 11,
-									fontWeight: "600",
-									color: Colors.light.textSecondary,
-								}}
-							>
-								{amenity}
-							</Text>
-						</View>
-					))}
 				</View>
 			) : null}
 		</View>

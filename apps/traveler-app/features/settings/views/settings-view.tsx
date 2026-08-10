@@ -1,11 +1,8 @@
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { useQueryClient } from "@tanstack/react-query";
-import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { authClient } from "@/lib/auth-client";
 import { ProfileHero } from "../components/profile-hero";
 import { SettingsDetails } from "../components/settings-details";
@@ -19,15 +16,8 @@ export function SettingsView() {
 
   if (isPending) {
     return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: Colors.light.surface,
-        }}
-      >
-        <ActivityIndicator size="large" color={Colors.light.primary} />
+      <View className="flex-1 items-center justify-center bg-slate-900">
+        <ActivityIndicator size="large" color="#ee237c" />
       </View>
     );
   }
@@ -36,23 +26,23 @@ export function SettingsView() {
 
   return (
     <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor: Colors.light.surface,
-      }}
+      className="flex-1 bg-slate-900"
       contentContainerStyle={{ paddingBottom: BottomTabInset }}
     >
-      <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 35, paddingBottom: 40 }}>
+      <View
+        className="px-5 pb-10"
+        style={{ paddingTop: insets.top + 35 }}
+      >
         {user ? (
-          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+          <View className="flex-row items-start">
             <ProfileHero
               name={user.name ?? "Traveler"}
               image={user.image}
             />
           </View>
         ) : (
-          <View style={{ alignItems: "center", paddingVertical: 40 }}>
-            <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 15 }}>
+          <View className="items-center py-10">
+            <Text className="text-white/60 text-base">
               {t("signInToManage")}
             </Text>
           </View>
@@ -60,29 +50,14 @@ export function SettingsView() {
       </View>
 
       <View
-        style={{
-          backgroundColor: Colors.light.background,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
-          marginHorizontal: 12,
-          paddingHorizontal: 20,
-          paddingTop: 24,
-          paddingBottom: BottomTabInset,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 20,
-          elevation: 16,
-        }}
+        className="bg-white rounded-3xl mx-3 px-5 pt-6 shadow-xl"
+        style={{ paddingBottom: BottomTabInset }}
       >
         <SettingsDetails />
 
-
         <AccountSettingsList />
 
-        <View style={{ height: 0.5, backgroundColor: Colors.light.backgroundSelected, marginHorizontal: 20, marginTop: Spacing.two }} />
+        <View className="h-[0.5px] bg-slate-100 mx-5 mt-2" />
 
         <DangerZoneRow />
       </View>

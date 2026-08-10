@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { View, Pressable, TextInput, ActivityIndicator } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import {
   Dialog,
   DialogContent,
@@ -34,118 +33,71 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle style={{ fontSize: 18, fontWeight: "800", color: Colors.light.text }}>
+          <DialogTitle className="text-lg font-extrabold text-slate-900">
             Top Up Wallet
           </DialogTitle>
-          <DialogDescription style={{ fontSize: 13, color: Colors.light.textSecondary, lineHeight: 18 }}>
+          <DialogDescription className="text-sm text-slate-500 leading-[18px]">
             Add funds to your wallet via Paystack. Minimum top-up is 100 XOF.
           </DialogDescription>
         </DialogHeader>
 
-        <View style={{ gap: Spacing.three, paddingVertical: Spacing.two }}>
-          <View style={{ gap: Spacing.two }}>
-            <Text style={{ fontSize: 10, fontWeight: "700", color: Colors.light.textSecondary, letterSpacing: 1, textTransform: "uppercase" }}>
-              Quick Amount
-            </Text>
-            <View style={{ flexDirection: "row", gap: Spacing.one }}>
-              {PRESETS.map((amount) => (
-                <Pressable
-                  key={amount}
-                  onPress={() => setTopupAmount(amount.toString())}
-                  style={{
-                    flex: 1,
-                    paddingVertical: Spacing.two,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: topupAmount === amount.toString() ? Colors.light.primary : Colors.light.backgroundSelected,
-                    backgroundColor: topupAmount === amount.toString() ? "rgba(238, 35, 124, 0.05)" : "transparent",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text style={{
-                    fontSize: 11,
-                    fontWeight: "700",
-                    color: topupAmount === amount.toString() ? Colors.light.primary : Colors.light.text,
-                  }}>
-                    +{amount.toLocaleString()}
-                  </Text>
-                </Pressable>
-              ))}
+        <View className="gap-3 py-2">
+          {/* Quick amounts */}
+          <View className="gap-2">
+            <Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Quick Amount</Text>
+            <View className="flex-row gap-1">
+              {PRESETS.map((amount) => {
+                const isSelected = topupAmount === amount.toString();
+                return (
+                  <Pressable
+                    key={amount}
+                    onPress={() => setTopupAmount(amount.toString())}
+                    className={`flex-1 py-2 rounded-xl border items-center ${
+                      isSelected ? "border-pink-500 bg-pink-50" : "border-slate-200"
+                    }`}
+                  >
+                    <Text className={`text-[11px] font-bold ${isSelected ? "text-pink-600" : "text-slate-800"}`}>
+                      +{amount.toLocaleString()}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
 
-          <View style={{ gap: Spacing.two }}>
-            <Text style={{ fontSize: 10, fontWeight: "700", color: Colors.light.textSecondary, letterSpacing: 1, textTransform: "uppercase" }}>
-              Custom Amount
-            </Text>
-            <View style={{ position: "relative" }}>
+          {/* Custom amount */}
+          <View className="gap-2">
+            <Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Custom Amount</Text>
+            <View className="relative">
               <TextInput
                 value={topupAmount}
                 onChangeText={setTopupAmount}
                 keyboardType="numeric"
                 placeholder="Enter amount"
-                placeholderTextColor={Colors.light.textSecondary}
-                style={{
-                  backgroundColor: Colors.light.backgroundElement,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: Colors.light.backgroundSelected,
-                  paddingHorizontal: Spacing.four,
-                  paddingVertical: Spacing.two,
-                  fontSize: 14,
-                  fontWeight: "600",
-                  color: Colors.light.text,
-                  paddingRight: 50,
-                }}
+                placeholderTextColor="#94a3b8"
+                className="bg-slate-50 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-900 pr-12"
               />
-              <Text style={{
-                position: "absolute",
-                right: 12,
-                top: 10,
-                fontSize: 12,
-                fontWeight: "700",
-                color: Colors.light.textSecondary,
-              }}>
-                XOF
-              </Text>
+              <Text className="absolute right-3 top-[10px] text-xs font-bold text-slate-400">XOF</Text>
             </View>
           </View>
         </View>
 
-        <DialogFooter style={{ flexDirection: "row", gap: Spacing.two, paddingTop: Spacing.two }}>
+        <DialogFooter className="flex-row gap-2 pt-2">
           <Pressable
             onPress={onClose}
-            style={{
-              flex: 1,
-              paddingVertical: Spacing.two,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: Colors.light.backgroundSelected,
-              alignItems: "center",
-            }}
+            className="flex-1 py-2 rounded-xl border border-slate-200 items-center"
           >
-            <Text style={{ fontSize: 13, fontWeight: "600", color: Colors.light.textSecondary }}>
-              Cancel
-            </Text>
+            <Text className="text-sm font-semibold text-slate-500">Cancel</Text>
           </Pressable>
           <Pressable
             onPress={handleSubmit}
             disabled={isPending}
-            style={{
-              flex: 1,
-              paddingVertical: Spacing.two,
-              borderRadius: 12,
-              backgroundColor: Colors.light.primary,
-              alignItems: "center",
-              opacity: isPending ? 0.6 : 1,
-            }}
+            className={`flex-1 py-2 rounded-xl bg-pink-600 items-center ${isPending ? "opacity-60" : ""}`}
           >
             {isPending ? (
-              <ActivityIndicator size="small" color={Colors.light.primaryForeground} />
+              <ActivityIndicator size="small" color="#ffffff" />
             ) : (
-              <Text style={{ fontSize: 13, fontWeight: "700", color: Colors.light.primaryForeground }}>
-                Proceed
-              </Text>
+              <Text className="text-sm font-bold text-white">Proceed</Text>
             )}
           </Pressable>
         </DialogFooter>

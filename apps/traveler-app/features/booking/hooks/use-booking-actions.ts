@@ -1,58 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 
-interface TrpcMutation<TInput, TOutput> {
-	mutationOptions: () => {
-		mutationFn: (input: TInput) => Promise<TOutput>;
-	};
-}
-
-type BookingRouter = {
-	createHold: TrpcMutation<
-		{
-			offerId: string;
-			passengers: Array<{
-				seatId: string;
-				savedPassengerId?: string;
-				passenger?: { passengerName: string; passengerPhone: string };
-			}>;
-		},
-		{
-			holdId: string;
-			holdExpiresAt: string;
-			bookingReferences: string[];
-			totalAmountXOF: number;
-		}
-	>;
-	initiatePayment: TrpcMutation<
-		{ holdId: string; payerEmail?: string },
-		{ authorizationUrl: string; reference: string }
-	>;
-	verifyPayment: TrpcMutation<{ reference: string }, { success: boolean }>;
-	confirmBooking: TrpcMutation<{ holdId: string }, unknown>;
-	releaseHold: TrpcMutation<{ holdId: string }, { success: boolean }>;
-	checkoutWithWallet: TrpcMutation<{ holdId: string }, unknown>;
-	cancelBooking: TrpcMutation<
-		{ bookingReference: string },
-		{ success: boolean }
-	>;
-	shareTicket: TrpcMutation<
-		{
-			bookingReference: string;
-			recipientEmail: string;
-			recipientName: string;
-			recipientPhone?: string;
-		},
-		{ success: boolean }
-	>;
-};
-
-type TypedTRPC = {
-	booking: BookingRouter;
-};
-
 export function useCreateHold() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	return useMutation({
 		...trpc.booking.createHold.mutationOptions(),
@@ -63,17 +13,17 @@ export function useCreateHold() {
 }
 
 export function useInitiatePayment() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	return useMutation(trpc.booking.initiatePayment.mutationOptions());
 }
 
 export function useVerifyPayment() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	return useMutation(trpc.booking.verifyPayment.mutationOptions());
 }
 
 export function useConfirmBooking() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	return useMutation({
 		...trpc.booking.confirmBooking.mutationOptions(),
@@ -84,7 +34,7 @@ export function useConfirmBooking() {
 }
 
 export function useReleaseHold() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	return useMutation({
 		...trpc.booking.releaseHold.mutationOptions(),
@@ -95,7 +45,7 @@ export function useReleaseHold() {
 }
 
 export function useCheckoutWithWallet() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	return useMutation({
 		...trpc.booking.checkoutWithWallet.mutationOptions(),
@@ -106,10 +56,10 @@ export function useCheckoutWithWallet() {
 }
 
 export function useCancelBooking() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	return useMutation({
-		...trpc.booking.cancelBooking.mutationOptions(),
+		...trpc.payments.cancelBooking.mutationOptions(),
 		onSuccess: () => {
 			queryClient.invalidateQueries();
 		},
@@ -117,6 +67,17 @@ export function useCancelBooking() {
 }
 
 export function useShareTicket() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	return useMutation(trpc.booking.shareTicket.mutationOptions());
+}
+
+export function useSubmitReview() {
+	const trpc = useTRPC();
+	const queryClient = useQueryClient();
+	return useMutation({
+		...trpc.passenger.submitReview.mutationOptions(),
+		onSuccess: () => {
+			queryClient.invalidateQueries(trpc.passenger.getUserReviews.pathFilter());
+		},
+	});
 }

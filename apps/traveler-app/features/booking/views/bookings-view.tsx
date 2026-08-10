@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { FlatList, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabInset } from "@/constants/theme";
@@ -15,7 +14,7 @@ import { BookingKpiStrip } from "@/features/booking/components/booking-kpi-strip
 import { BookingListSkeleton } from "@/features/booking/components/booking-list-skeleton";
 import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
 import {
-	type Booking,
+	type PassengerBookingSummary,
 	useListMyBookings,
 } from "@/features/booking/hooks/use-bookings";
 import { useDashboardStats } from "@/features/booking/hooks/use-dashboard-stats";
@@ -23,9 +22,8 @@ import { useTRPC } from "@/lib/trpc";
 
 export function BookingsView() {
 	const insets = useSafeAreaInsets();
-	const { t } = useTranslation("booking");
 	const queryClient = useQueryClient();
-	const trpc = useTRPC() as any;
+	const trpc = useTRPC();
 	const { prefetchBookings, prefetchStats, prefetchBookingDetail } =
 		useBookingPrefetch();
 
@@ -55,19 +53,19 @@ export function BookingsView() {
 
 	const handleCardPressIn = (bookingReference: string) => {
 		// Cache seeding pattern: seed detail cache with existing item data for instant load
-		const listQueryKey = trpc?.booking?.listMyBookings?.queryOptions?.({
+		const listQueryKey = trpc.booking.listMyBookings.queryOptions({
 			filter,
 			limit: 20,
 			offset: 0,
-		})?.queryKey;
+		}).queryKey;
 		if (listQueryKey) {
-			const cachedList = queryClient.getQueryData<{ items: Booking[] }>(
+			const cachedList = queryClient.getQueryData<{ items: PassengerBookingSummary[] }>(
 				listQueryKey,
 			);
 			const item = cachedList?.items?.find(
-				(b) => b.bookingReference === bookingReference,
+				(b) => b.seats?.some((s) => s.bookingReference === bookingReference) || b.groupId === bookingReference,
 			);
-			if (item && trpc?.booking?.getBooking?.queryOptions) {
+			if (item) {
 				const detailKey = trpc.booking.getBooking.queryOptions({
 					bookingReference,
 				}).queryKey;
@@ -79,10 +77,10 @@ export function BookingsView() {
 	};
 
 	const handleCardPress = (bookingReference: string) => {
-		router.push(`/booking/${encodeURIComponent(bookingReference)}` as any);
+		router.push(`/booking/${encodeURIComponent(bookingReference)}` as const);
 	};
 
-	const bookings = (bookingsData?.items ?? []) as Booking[];
+	const bookings = (bookingsData?.items ?? []) as PassengerBookingSummary[];
 
 	return (
 		<View className="flex-1 bg-background">
@@ -110,7 +108,7 @@ export function BookingsView() {
 			) : (
 				<FlatList
 					data={bookings}
-					keyExtractor={(item) => item.bookingReference}
+					keyExtractor={(item) => item.groupId}
 					contentContainerStyle={{
 						paddingHorizontal: 16,
 						paddingTop: 8,
@@ -124,13 +122,16 @@ export function BookingsView() {
 							colors={["#ee237c"]}
 						/>
 					}
-					renderItem={({ item }) => (
-						<BookingCard
-							booking={item as any}
-							onPressIn={() => handleCardPressIn(item.bookingReference)}
-							onPress={() => handleCardPress(item.bookingReference)}
-						/>
-					)}
+					renderItem={({ item }) => {
+						const bookingRef = item.seats?.[0]?.bookingReference || item.groupId;
+						return (
+							<BookingCard
+								booking={item}
+								onPressIn={() => handleCardPressIn(bookingRef)}
+								onPress={() => handleCardPress(bookingRef)}
+							/>
+						);
+					}}
 					ListEmptyComponent={() => <BookingEmptyState />}
 				/>
 			)}

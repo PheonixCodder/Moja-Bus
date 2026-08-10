@@ -4,8 +4,6 @@ import { Pressable, View, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
-import { primaryRGB } from "@/constants/theme";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { useWalletBalance } from "@/hooks/use-wallet";
 
 export function SettingsDetails() {
@@ -13,93 +11,53 @@ export function SettingsDetails() {
   const { data: balance, isLoading } = useWalletBalance() as unknown as { data: { availableBalance: number } | undefined; isLoading: boolean };
 
   return (
-    <View style={{ gap: Spacing.two }}>
+    <View className="gap-2">
       <Pressable
         onPress={() => router.push("/wallet" as any)}
-        style={({ pressed }) => ({
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: Colors.light.background,
-          borderRadius: 16,
-          paddingHorizontal: Spacing.four,
-          paddingVertical: Spacing.four,
-          gap: Spacing.four,
-          opacity: pressed ? 0.7 : 1,
-          borderWidth: 1,
-          borderColor: Colors.light.backgroundSelected,
-        })}
+        className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
       >
-        <View
-          style={{
-            width: Spacing.three,
-            height: Spacing.three,
-            borderRadius: Spacing.three / 2,
-            backgroundColor: `rgba(${primaryRGB}, 0.12)`,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <HugeiconsIcon icon={Wallet01Icon} size={18} color={Colors.light.primary} />
+        <View className="size-10 rounded-full bg-pink-500/10 items-center justify-center">
+          <HugeiconsIcon icon={Wallet01Icon} size={18} color="#ee237c" />
         </View>
 
-        <View style={{ flex: 1 }}>
-		  <Text style={{ fontSize: 14, fontWeight: "600", color: Colors.light.text }}>
-		    {t("wallet")}
-		  </Text>
-		  <Text style={{ fontSize: 12, fontWeight: "400", color: Colors.light.textSecondary, marginTop: 2 }}>
-		    {t("balanceLabel")}
-		  </Text>
+        <View className="flex-1">
+          <Text className="text-sm font-semibold text-slate-900">
+            {t("wallet")}
+          </Text>
+          <Text className="text-xs font-normal text-slate-500 mt-0.5">
+            {t("balanceLabel")}
+          </Text>
         </View>
 
         {isLoading ? (
-          <ActivityIndicator size="small" color={Colors.light.primary} />
+          <ActivityIndicator size="small" color="#ee237c" />
         ) : (
-          <Text style={{ fontSize: 14, fontWeight: "700", color: Colors.light.primary }}>
+          <Text className="text-sm font-bold text-pink-600">
             {balance ? `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(balance.availableBalance)} XOF` : "0 XOF"}
           </Text>
         )}
 
-        <HugeiconsIcon icon={ArrowRight02Icon} size={16} color={Colors.light.textSecondary} />
+        <HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
       </Pressable>
 
       <Pressable
         onPress={() => router.push("/passengers" as any)}
-        style={({ pressed }) => ({
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: Colors.light.background,
-          borderRadius: 16,
-          paddingHorizontal: Spacing.four,
-          paddingVertical: Spacing.four,
-          gap: Spacing.four,
-          opacity: pressed ? 0.7 : 1,
-          borderWidth: 1,
-          borderColor: Colors.light.backgroundSelected,
-        })}
+        className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
       >
-        <View
-          style={{
-            width: Spacing.three,
-            height: Spacing.three,
-            borderRadius: Spacing.three / 2,
-            backgroundColor: `rgba(${primaryRGB}, 0.12)`,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <HugeiconsIcon icon={UserGroupIcon} size={18} color={Colors.light.primary} />
+        <View className="size-10 rounded-full bg-pink-500/10 items-center justify-center">
+          <HugeiconsIcon icon={UserGroupIcon} size={18} color="#ee237c" />
         </View>
 
-        <View style={{ flex: 1 }}>
-		 <Text style={{ fontSize: 14, fontWeight: "600", color: Colors.light.text }}>
-		   {t("passengersLabel")}
-		 </Text>
-		 <Text style={{ fontSize: 12, fontWeight: "400", color: Colors.light.textSecondary, marginTop: 2 }}>
-		   {t("passengers")}
-		 </Text>
+        <View className="flex-1">
+          <Text className="text-sm font-semibold text-slate-900">
+            {t("passengersLabel")}
+          </Text>
+          <Text className="text-xs font-normal text-slate-500 mt-0.5">
+            {t("passengers")}
+          </Text>
         </View>
 
-        <HugeiconsIcon icon={ArrowRight02Icon} size={16} color={Colors.light.textSecondary} />
+        <HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
       </Pressable>
     </View>
   );

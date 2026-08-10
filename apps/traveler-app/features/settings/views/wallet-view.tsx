@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { authClient } from "@/lib/auth-client";
 import {
   useWalletBalance,
@@ -53,8 +52,6 @@ export function WalletView() {
     ledgerQuery.refetch();
   }, []);
 
-  // Polling loop: calls verifyWalletTopUp until it confirms success,
-  // then refreshes balance & ledger and clears the verifying banner.
   useEffect(() => {
     if (!pendingReference) return;
 
@@ -96,8 +93,8 @@ export function WalletView() {
           setAuthorizationUrl(data.authorizationUrl);
           setTopUpReference(data.reference ?? null);
         },
-        onError: (error: any) => {
-			Alert.alert(t("topUpFailed"), t("couldNotInitiateTopUp"));
+        onError: () => {
+          Alert.alert(t("topUpFailed"), t("couldNotInitiateTopUp"));
         },
       },
     );
@@ -132,18 +129,16 @@ export function WalletView() {
 
   if (sessionPending || balanceQuery.isLoading) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.light.background }}>
-        <ActivityIndicator size="large" color={Colors.light.primary} />
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#ee237c" />
       </View>
     );
   }
 
   if (!isAuth) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.light.background }}>
-		<Text style={{ color: Colors.light.textSecondary, fontSize: 15 }}>
-		  {t("signInToViewWallet")}
-		</Text>
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-[15px] text-slate-500">{t("signInToViewWallet")}</Text>
       </View>
     );
   }
@@ -153,30 +148,23 @@ export function WalletView() {
   const walletId = balance?.postedBalance?.toString() ?? "";
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-		<SubpageHeader title={t("wallet")} />
+    <View className="flex-1 bg-white">
+      <SubpageHeader title={t("wallet")} />
 
       {isVerifying ? (
-        <View style={{
-          flexDirection: "row", alignItems: "center", gap: Spacing.two,
-          paddingHorizontal: Spacing.four, paddingVertical: Spacing.two,
-          backgroundColor: "#FFF3CD", marginHorizontal: Spacing.four, marginTop: Spacing.two,
-          borderRadius: 12,
-        }}>
-          <ActivityIndicator size="small" color={Colors.light.primary} />
-		 <Text style={{ fontSize: 13, color: "#856404" }}>
-		   {t("verifyingTopUp")}
-		 </Text>
+        <View className="flex-row items-center gap-2 px-4 py-2 bg-yellow-50 mx-4 mt-2 rounded-xl">
+          <ActivityIndicator size="small" color="#ee237c" />
+          <Text className="text-sm text-yellow-800">{t("verifyingTopUp")}</Text>
         </View>
       ) : null}
 
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingHorizontal: Spacing.four,
-          paddingTop: Spacing.two,
+          paddingHorizontal: 16,
+          paddingTop: 8,
           paddingBottom: BottomTabInset + insets.bottom + 24,
-          gap: Spacing.three,
+          gap: 12,
         }}
       >
         {balance ? (
@@ -210,7 +198,7 @@ export function WalletView() {
         <WalletProtection />
         <TravelBenefits />
 
-        <View style={{ height: 20 }} />
+        <View className="h-5" />
       </ScrollView>
 
       <TopupDialog

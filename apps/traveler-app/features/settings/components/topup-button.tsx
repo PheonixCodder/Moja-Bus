@@ -1,51 +1,24 @@
-import { Wallet01Icon } from "@hugeicons/core-free-icons";
+import { Wallet01Icon, ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Colors, Spacing } from "@moja/theme/tokens";
-import { primaryRGB } from "@/constants/theme";
-import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
 
 export function TopUpButton({ onPress }: { onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => ({
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: Colors.light.background,
-        borderRadius: 16,
-        paddingHorizontal: Spacing.four,
-        paddingVertical: Spacing.four,
-        gap: Spacing.four,
-        opacity: pressed ? 0.7 : 1,
-        borderWidth: 1,
-        borderColor: Colors.light.backgroundSelected,
-      })}
+      className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
     >
-      <View
-        style={{
-          width: Spacing.three,
-          height: Spacing.three,
-          borderRadius: Spacing.three / 2,
-          backgroundColor: `rgba(${primaryRGB}, 0.12)`,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <HugeiconsIcon icon={Wallet01Icon} size={18} color={Colors.light.primary} />
+      <View className="w-10 h-10 rounded-full bg-pink-50 items-center justify-center">
+        <HugeiconsIcon icon={Wallet01Icon} size={18} color="#ee237c" />
       </View>
 
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: "600", color: Colors.light.text }}>
-          Top Up Wallet
-        </Text>
-        <Text style={{ fontSize: 12, fontWeight: "400", color: Colors.light.textSecondary, marginTop: 2 }}>
-          Add funds via Paystack
-        </Text>
+      <View className="flex-1">
+        <Text className="text-sm font-semibold text-slate-800">Top Up Wallet</Text>
+        <Text className="text-xs text-slate-400 mt-0.5">Add funds via Paystack</Text>
       </View>
 
-        <HugeiconsIcon icon={ArrowRight02Icon} size={16} color={Colors.light.textSecondary} />
+      <HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
     </Pressable>
   );
 }
