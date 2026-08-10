@@ -6,6 +6,7 @@ import { Button, buttonVariants } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { cn } from "@moja/ui/lib/utils";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatDepartureTime } from "@/features/search/lib/format";
 import type { OperatorBookingListItem } from "@moja/types";
 import { CheckInBadge } from "./check-in-badge";
@@ -37,7 +38,7 @@ export function BookingRow({
               {booking.seatLabel}
             </p>
             <p className="text-xs text-text-muted mt-0.5">
-              {formatDepartureTime(booking.departureTime)} · {booking.passengerPhone}
+              {formatDateWithWeekday(booking.departureTime)} · {formatDepartureTime(booking.departureTime)} · {booking.passengerPhone}
             </p>
           </div>
           <CheckInBadge booking={booking} />

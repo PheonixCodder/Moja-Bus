@@ -40,6 +40,7 @@ import { useState } from "react";
 import { TicketScanner } from "@/features/operator/components/ticket-scanner";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import { getCompanyStatusPresentation } from "@/features/operator/lib/company-status";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { useTRPC } from "@/trpc/client";
 
 export function OperatorDashboardView() {
@@ -323,6 +324,9 @@ export function OperatorDashboardView() {
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-bold text-text-primary font-mono bg-bg-elevated px-2 py-0.5 rounded border border-border/60">
                               {formattedTime}
+                            </span>
+                            <span className="text-[10px] font-semibold text-text-muted font-mono">
+                              {formatDateWithWeekday(trip.departureTime)}
                             </span>
                             <Badge
                               variant="secondary"

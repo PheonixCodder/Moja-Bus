@@ -9,7 +9,7 @@ export type CancelBookingInput = {
   userId: string;
   userRole: "PASSENGER" | "OPERATOR" | "ADMIN";
   userCompanyId?: string | undefined;
-  channel: "CASH" | "VOUCHER" | "WALLET";
+  channel: "CASH" | "WALLET";
   reason?: string | undefined;
 };
 

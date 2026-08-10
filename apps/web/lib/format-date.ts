@@ -39,6 +39,22 @@ export function formatDateTime(date: Date | string | null | undefined): string {
   }).format(d);
 }
 
+/** e.g. "Mon, Aug 10" */
+export function formatDateWithWeekday(
+  date: Date | string | null | undefined,
+): string {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIMEZONE,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(d);
+}
+
 /** e.g. "Jul 16" */
 export function formatDateShort(date: Date | string | null | undefined): string {
   if (!date) return "";

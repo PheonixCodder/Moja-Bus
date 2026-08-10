@@ -1813,8 +1813,6 @@
         "refundMethod": "Mode de remboursement",
         "wallet": "Portefeuille",
         "walletHint": "Moja Wallet",
-        "voucher": "Bon",
-        "voucherHint": "Moja Voucher",
         "cash": "Espèces",
         "cashHint": "Espèces manuelles",
         "unavailable": "Indisponible",

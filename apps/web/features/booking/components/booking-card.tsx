@@ -5,6 +5,7 @@ import { BusFront } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import type { PassengerBookingSummary, PassengerBookingStatus } from "@moja/types";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatDepartureTime } from "@/features/search/lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useHoldCountdown } from "@/features/booking/lib/hold-countdown";
@@ -149,6 +150,9 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
           <div className="text-sm tabular-nums tracking-tight">
             {formatDepartureTime(booking.departureTime)}
           </div>
+          <div className="text-[10px] text-muted-foreground leading-none mt-0.5">
+            {formatDateWithWeekday(booking.departureTime)}
+          </div>
         </div>
         <div className="text-right">
           <div className="text-muted-foreground text-[10px] leading-none">
@@ -156,6 +160,9 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
           </div>
           <div className="text-sm tabular-nums tracking-tight">
             {formatDepartureTime(booking.arrivalTime)}
+          </div>
+          <div className="text-[10px] text-muted-foreground leading-none mt-0.5">
+            {formatDateWithWeekday(booking.arrivalTime)}
           </div>
         </div>
       </div>

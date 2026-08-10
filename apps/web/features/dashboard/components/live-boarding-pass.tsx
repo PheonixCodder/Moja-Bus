@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslations, useLocale } from "next-intl";
 import QRCode from "react-qr-code";
 import { ArrowRight, Calendar, Armchair } from "lucide-react";
+import { formatDateWithWeekday } from "@/lib/format-date";
 
 interface LiveBoardingProps {
   origin: string;
@@ -64,7 +65,7 @@ export function LiveBoardingPass({
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Calendar className="size-3.5 text-muted-foreground" />{" "}
-              {new Date(departureTime).toLocaleTimeString(locale, {
+              {formatDateWithWeekday(departureTime)} · {new Date(departureTime).toLocaleTimeString(locale, {
                 hour: "2-digit",
                 minute: "2-digit",
               })}

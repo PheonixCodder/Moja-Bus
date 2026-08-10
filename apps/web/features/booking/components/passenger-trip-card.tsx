@@ -12,6 +12,7 @@ import {
 } from "@/features/search/lib/format";
 import type { PassengerBookingSummary } from "@moja/types";
 import { useHoldCountdown } from "@/features/booking/lib/hold-countdown";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatLocationLabel } from "@/lib/format-location-label";
 
 function StatusBadge({ booking }: { booking: PassengerBookingSummary }) {
@@ -106,6 +107,9 @@ export function PassengerTripCard({
             <p className="text-xl font-bold font-montserrat text-slate-900">
               {formatDepartureTime(booking.departureTime)}
             </p>
+            <p className="text-[10px] font-semibold text-slate-500 mt-0.5">
+              {formatDateWithWeekday(booking.departureTime)}
+            </p>
             <p className="text-xs font-semibold text-slate-600 mt-0.5 truncate">
               {booking.originTerminalName}
             </p>
@@ -131,6 +135,9 @@ export function PassengerTripCard({
           <div className="sm:col-span-2 sm:text-right">
             <p className="text-xl font-bold font-montserrat text-slate-900">
               {formatDepartureTime(booking.arrivalTime)}
+            </p>
+            <p className="text-[10px] font-semibold text-slate-500 mt-0.5">
+              {formatDateWithWeekday(booking.arrivalTime)}
             </p>
             <p className="text-xs font-semibold text-slate-600 mt-0.5 truncate">
               {booking.destinationTerminalName}

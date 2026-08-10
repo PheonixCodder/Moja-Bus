@@ -8,6 +8,7 @@ import { cn } from "@moja/ui/lib/utils";
 import { buttonVariants } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "../lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { AmenityChips } from "@/features/booking/lib/amenities";
@@ -89,6 +90,9 @@ export const OfferCard = memo(function OfferCard({
                 <span className="text-lg md:text-xl font-bold font-montserrat text-slate-800">
                   {formatDepartureTime(offer.departureTime)}
                 </span>
+                <p className="text-[10px] font-bold text-slate-400 mt-0.5">
+                  {formatDateWithWeekday(offer.departureTime)}
+                </p>
                 <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                   {offer.originTerminalName}
                 </p>
@@ -117,6 +121,9 @@ export const OfferCard = memo(function OfferCard({
                 <span className="text-lg md:text-xl font-bold font-montserrat text-slate-800">
                   {formatDepartureTime(offer.arrivalTime)}
                 </span>
+                <p className="text-[10px] font-bold text-slate-400 mt-0.5">
+                  {formatDateWithWeekday(offer.arrivalTime)}
+                </p>
                 <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                   {offer.destinationTerminalName}
                 </p>

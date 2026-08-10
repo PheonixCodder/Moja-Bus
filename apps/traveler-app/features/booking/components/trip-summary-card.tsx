@@ -12,6 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Colors, Spacing } from "@moja/theme/tokens";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
+import { formatDateWithWeekday, formatTimeOnly } from "../lib/format-time";
 
 type TripSummaryCardProps = {
 	companyName: string;
@@ -41,6 +42,13 @@ export function TripSummaryCard({
 	amenities,
 	status,
 }: TripSummaryCardProps) {
+	const departureLabel = departureTime
+		? `${formatDateWithWeekday(departureTime)} · ${formatTimeOnly(departureTime)}`
+		: "";
+	const arrivalLabel = arrivalTime
+		? `${formatDateWithWeekday(arrivalTime)} · ${formatTimeOnly(arrivalTime)}`
+		: "";
+
 	return (
 		<View
 			style={{
@@ -130,7 +138,7 @@ export function TripSummaryCard({
 							marginTop: 2,
 						}}
 					>
-						{departureTime}
+						{departureLabel}
 					</Text>
 				</View>
 
@@ -175,7 +183,7 @@ export function TripSummaryCard({
 							marginTop: 2,
 						}}
 					>
-						{arrivalTime}
+						{arrivalLabel}
 					</Text>
 				</View>
 			</View>

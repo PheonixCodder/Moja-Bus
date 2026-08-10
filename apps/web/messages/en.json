@@ -1848,8 +1848,6 @@
         "refundMethod": "Refund Method",
         "wallet": "Wallet",
         "walletHint": "Moja Wallet",
-        "voucher": "Voucher",
-        "voucherHint": "Moja Voucher",
         "cash": "Cash",
         "cashHint": "Manual Cash",
         "unavailable": "Unavailable",

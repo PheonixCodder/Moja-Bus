@@ -53,7 +53,7 @@ export const passengerBookingRefundedWorkflow = workflow(
       passengerName: z.string(),
       bookingReference: z.string(),
       refundAmountXOF: z.number(),
-      channel: z.enum(["WALLET", "CASH", "VOUCHER"]),
+      channel: z.enum(["WALLET", "CASH"]),
       reason: z.string(),
     }),
   }

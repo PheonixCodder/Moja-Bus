@@ -10,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { Text } from '@/components/ui/text';
-import { formatTimeOnly } from '../lib/format-time';
+import { formatDateWithWeekday, formatTimeOnly } from '../lib/format-time';
 
 type DigitalTicketCardProps = {
   bookingReference: string;
@@ -113,6 +113,9 @@ export function DigitalTicketCard({
             <Text className="text-primary mt-0.5 text-xs font-semibold">
               {formatTimeOnly(departureTime)}
             </Text>
+            <Text className="text-muted-foreground mt-0.5 text-[10px] font-semibold">
+              {formatDateWithWeekday(departureTime)}
+            </Text>
           </View>
 
           <View className="items-center px-3">
@@ -128,6 +131,9 @@ export function DigitalTicketCard({
             </Text>
             <Text className="text-primary mt-0.5 text-right text-xs font-semibold">
               {formatTimeOnly(arrivalTime)}
+            </Text>
+            <Text className="text-muted-foreground mt-0.5 text-right text-[10px] font-semibold">
+              {formatDateWithWeekday(arrivalTime)}
             </Text>
           </View>
         </View>

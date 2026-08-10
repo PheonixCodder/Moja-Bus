@@ -1,21 +1,29 @@
 "use client";
 
+import type { PassengerBookingSummary } from "@moja/types";
+import { Sheet, SheetContent } from "@moja/ui/components/ui/sheet";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { parseAsStringEnum, useQueryState } from "nuqs";
 import * as React from "react";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import { useMutation, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Sheet,
-  SheetContent,
-} from "@moja/ui/components/ui/sheet";
-import { useTRPC } from "@/trpc/client";
-import { usePaystackCheckout } from "@/features/payments/hooks/use-paystack-checkout";
-import { isHoldActive } from "@/features/booking/lib/hold-countdown";
-import type { PassengerBookingSummary } from "@moja/types";
-import { BookingList } from "@/features/booking/components/booking-list";
 import { BookingDetails } from "@/features/booking/components/booking-details";
+import { BookingList } from "@/features/booking/components/booking-list";
+import { isHoldActive } from "@/features/booking/lib/hold-countdown";
+import { usePaystackCheckout } from "@/features/payments/hooks/use-paystack-checkout";
+import { useTRPC } from "@/trpc/client";
 
 type BookingFilter = "upcoming" | "pending" | "past";
+
+const bookingFilterEnum = parseAsStringEnum<BookingFilter>([
+  "upcoming",
+  "pending",
+  "past",
+]).withDefault("upcoming");
 
 export function PassengerBookingsView() {
   const t = useTranslations("passengerDashboard.bookingDetails");
@@ -23,18 +31,24 @@ export function PassengerBookingsView() {
   const queryClient = useQueryClient();
 
   // ── State ───────────────────────────────────────────
-  const [filter, setFilter] = React.useState<BookingFilter>("upcoming");
-  const [selectedGroupId, setSelectedGroupId] = React.useState<string | null>(null);
+  const [filter, setFilter] = useQueryState("tab", bookingFilterEnum);
+  const [selectedGroupId, setSelectedGroupId] = React.useState<string | null>(
+    null,
+  );
   const [detailsOpen, setDetailsOpen] = React.useState(false);
-  const [paymentMethod, setPaymentMethod] = React.useState<"PAYSTACK" | "WALLET">("PAYSTACK");
+  const [paymentMethod, setPaymentMethod] = React.useState<
+    "PAYSTACK" | "WALLET"
+  >("PAYSTACK");
   const [isPaying, setIsPaying] = React.useState(false);
 
   // Review state
-  const [reviewBooking, setReviewBooking] = React.useState<PassengerBookingSummary | null>(null);
+  const [reviewBooking, setReviewBooking] =
+    React.useState<PassengerBookingSummary | null>(null);
   const [rating, setRating] = React.useState(5);
   const [reviewContent, setReviewContent] = React.useState("");
 
-  const { completePayment, PaystackPaymentCancelledError } = usePaystackCheckout();
+  const { completePayment, PaystackPaymentCancelledError } =
+    usePaystackCheckout();
 
   // ── Queries ──────────────────────────────────────────
   const { data, refetch } = useSuspenseQuery(
@@ -119,7 +133,9 @@ export function PassengerBookingsView() {
     trpc.passenger.submitReview.mutationOptions({
       onSuccess: () => {
         toast.success(t("toastReviewSubmitted"));
-        queryClient.invalidateQueries(trpc.passenger.getUserReviews.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.passenger.getUserReviews.pathFilter(),
+        );
         setReviewBooking(null);
         setReviewContent("");
         setRating(5);
@@ -171,7 +187,9 @@ export function PassengerBookingsView() {
             total={data?.total ?? 0}
             isLoading={false}
             filter={filter}
-            selectedGroupId={selectedGroupId ?? selectedBooking?.groupId ?? null}
+            selectedGroupId={
+              selectedGroupId ?? selectedBooking?.groupId ?? null
+            }
             onFilterChange={handleFilterChange}
             onSelectBooking={handleSelectBooking}
             upcomingCount={statsData?.upcomingTripsCount}

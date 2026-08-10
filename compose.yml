@@ -21,6 +21,7 @@ services:
     networks: [app]
 
   migrate:
+    image: pheonixcodder/moja-buss-migrate:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -36,6 +37,7 @@ services:
     networks: [app]
 
   web:
+    image: pheonixcodder/moja-buss-web:latest
     build:
       context: .
       dockerfile: Dockerfile

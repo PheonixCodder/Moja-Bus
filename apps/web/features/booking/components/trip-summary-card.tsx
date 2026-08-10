@@ -8,6 +8,7 @@ import { Bus, Map as MapIcon, MapPinned } from "lucide-react";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { cn } from "@moja/ui/lib/utils";
 import type { Amenity, SearchServiceType } from "@moja/types";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import {
   formatDepartureTime,
   formatPriceXOF,
@@ -324,6 +325,9 @@ export function TripSummaryCard({
               <span className="text-lg md:text-xl font-bold font-montserrat text-slate-800">
                 {formatDepartureTime(trip.departureTime)}
               </span>
+              <p className="text-[10px] font-bold text-slate-500 mt-0.5">
+                {formatDateWithWeekday(trip.departureTime)}
+              </p>
               <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                 {trip.originTerminalName}
               </p>
@@ -352,6 +356,9 @@ export function TripSummaryCard({
               <span className="text-lg md:text-xl font-bold font-montserrat text-slate-800">
                 {formatDepartureTime(trip.arrivalTime)}
               </span>
+              <p className="text-[10px] font-bold text-slate-500 mt-0.5">
+                {formatDateWithWeekday(trip.arrivalTime)}
+              </p>
               <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                 {trip.destinationTerminalName}
               </p>
@@ -390,9 +397,14 @@ export function TripSummaryCard({
 
       {showStops && trip.stops && trip.stops.length > 2 && (
         <div className="pt-4 border-t border-slate-100">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-            {t("stopsOnSegment")}
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+              {t("stopsOnSegment")}
+            </p>
+            <span className="text-[10px] font-semibold text-slate-400">
+              {formatDateWithWeekday(trip.departureTime)}
+            </span>
+          </div>
           <StopsTimeline stops={trip.stops} serviceType={trip.serviceType} />
           <StopsMap stops={trip.stops} />
         </div>

@@ -2,6 +2,7 @@
 
 import QRCode from "react-qr-code";
 import { useTranslations } from "next-intl";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/format";
 import type { DigitalTicketDTO } from "@moja/types";
 import { Calendar, User, Armchair, Ticket } from "lucide-react";
@@ -63,6 +64,9 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
               <p className="font-semibold text-slate-900 text-sm">
                 {formatDepartureTime(ticket.departureTime)}
               </p>
+              <p className="text-[10px] font-semibold text-slate-400">
+                {formatDateWithWeekday(ticket.departureTime)}
+              </p>
             </div>
             <div className="space-y-1 border-l border-slate-100 pl-4">
               <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center gap-1 justify-center md:justify-start">
@@ -86,6 +90,9 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
               </p>
               <p className="font-semibold text-slate-900">
                 {formatDepartureTime(ticket.arrivalTime)}
+              </p>
+              <p className="text-[10px] font-semibold text-slate-400">
+                {formatDateWithWeekday(ticket.arrivalTime)}
               </p>
             </div>
           </div>

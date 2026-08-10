@@ -26,6 +26,7 @@ import {
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
+import { isHoldActive } from "@/features/booking/lib/hold-countdown";
 import { DashboardQuickSearch } from "@/features/dashboard/components/dashboard-quick-search";
 import { LiveBoardingPass } from "@/features/dashboard/components/live-boarding-pass";
 import { SavedCompanions } from "@/features/dashboard/components/saved-companions";
@@ -267,6 +268,8 @@ export function PassengerDashboardView({
                       t("destinationTerminal");
                     const isConfirmed = booking.status === "CONFIRMED";
                     const isPending = booking.status === "PENDING_PAYMENT";
+                    const canPay =
+                      isPending && isHoldActive(booking.holdExpiresAt);
 
                     return (
                       <div key={booking.id} className="relative group">
@@ -344,9 +347,9 @@ export function PassengerDashboardView({
                                 <Ticket className="size-3.5" />
                                 {t("qrCode")}
                               </Link>
-                            ) : isPending ? (
+                            ) : canPay ? (
                               <Link
-                                href={`/book/${booking.id}`}
+                                href="/dashboard/bookings?tab=pending"
                                 className={cn(
                                   buttonVariants({
                                     variant: "default",

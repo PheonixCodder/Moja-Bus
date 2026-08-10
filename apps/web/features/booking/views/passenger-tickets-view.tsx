@@ -30,6 +30,7 @@ import {
   DialogTitle,
 } from "@moja/ui/components/ui/dialog";
 import type { PassengerBookingSummary } from "@moja/types";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/format";
 import { toast } from "sonner";
 
@@ -48,7 +49,7 @@ function TicketSheet({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [refundChannel, setRefundChannel] = useState<"WALLET" | "VOUCHER">("WALLET");
+  const refundChannel: "WALLET" = "WALLET";
 
   const { data: ticket, isLoading, isError } = useQuery(
     trpc.booking.getTicket.queryOptions({ bookingReference }),
@@ -323,6 +324,9 @@ export function PassengerTicketsView() {
                       </p>
                       <p className="font-semibold text-sm text-text-primary">
                         {formatDepartureTime(booking.departureTime)}
+                      </p>
+                      <p className="text-[10px] text-text-muted">
+                        {formatDateWithWeekday(booking.departureTime)}
                       </p>
                     </div>
                     <div className="space-y-1 border-l border-border/50 pl-4">

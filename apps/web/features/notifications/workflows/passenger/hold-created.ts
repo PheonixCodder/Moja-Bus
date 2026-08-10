@@ -11,7 +11,7 @@ export const passengerHoldCreatedWorkflow = workflow(
       subject: "Seats Held",
       body: `Seats held! You have until ${escapeHtml(payload.expiresAt)} to complete checkout for ${escapeHtml(payload.destinationCity)}.`,
       avatar: "https://avatar.vercel.sh/hold",
-      redirect: { url: `/book/${escapeHtml(payload.holdId)}`, target: "_self" },
+      redirect: { url: "/dashboard/bookings?tab=pending", target: "_self" },
     }));
 
     // 2. Email Notification

@@ -10,12 +10,12 @@ import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { cn } from "@moja/ui/lib/utils";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@moja/ui/components/ui/drawer";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@moja/ui/components/ui/sheet";
 import {
   Dialog,
   DialogContent,
@@ -26,11 +26,12 @@ import {
 } from "@moja/ui/components/ui/dialog";
 import { Label } from "@moja/ui/components/ui/label";
 import { useTRPC } from "@/trpc/client";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
-type RefundChannel = "CASH" | "VOUCHER" | "WALLET";
+type RefundChannel = "CASH" | "WALLET";
 
 export function BookingDetailDrawer({
   bookingId,
@@ -99,16 +100,16 @@ export function BookingDetailDrawer({
 
   return (
     <>
-      <Drawer open={open} onOpenChange={(v) => !v && onClose()} direction="right">
-        <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-md flex flex-col">
-          <DrawerHeader className="border-b border-border px-5 py-4 shrink-0">
-            <DrawerTitle className="text-base font-bold">
+      <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+        <SheetContent side="right" className="!inset-y-0 !right-0 !left-auto !w-full !max-w-md flex flex-col">
+          <SheetHeader className="border-b border-border px-5 py-4 shrink-0">
+            <SheetTitle className="text-base font-bold">
               {t("detail.title")}
-            </DrawerTitle>
-            <DrawerDescription className="text-xs">
+            </SheetTitle>
+            <SheetDescription className="text-xs">
               {booking?.bookingReference ?? t("detail.loading")}
-            </DrawerDescription>
-          </DrawerHeader>
+            </SheetDescription>
+          </SheetHeader>
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 text-sm">
             {isLoading || !booking ? (
               <div className="flex justify-center py-12">
@@ -165,7 +166,7 @@ export function BookingDetailDrawer({
                     {t("detail.departure")}
                   </p>
                   <p className="mt-1">
-                    {formatDepartureTime(booking.departureTime)}
+                    {formatDateWithWeekday(booking.departureTime)} · {formatDepartureTime(booking.departureTime)}
                   </p>
                 </div>
                 <div>
@@ -195,8 +196,8 @@ export function BookingDetailDrawer({
               </>
             )}
           </div>
-        </DrawerContent>
-      </Drawer>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
@@ -227,7 +228,7 @@ export function BookingDetailDrawer({
                 <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {t("cancelModal.refundMethod")}
                 </Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {(
                     [
                       {
@@ -235,12 +236,6 @@ export function BookingDetailDrawer({
                         labelKey: "cancelModal.wallet",
                         hintKey: "cancelModal.walletHint",
                         disabled: isGuest,
-                      },
-                      {
-                        id: "VOUCHER" as const,
-                        labelKey: "cancelModal.voucher",
-                        hintKey: "cancelModal.voucherHint",
-                        disabled: false,
                       },
                       {
                         id: "CASH" as const,

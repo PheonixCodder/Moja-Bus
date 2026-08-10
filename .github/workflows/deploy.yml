@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, master]
+    branches: [master]
   workflow_dispatch:
 
 jobs:
@@ -56,13 +56,13 @@ jobs:
           tags: pheonixcodder/moja-buss-web:latest
           build-args: |
             DATABASE_URL=${{ secrets.DATABASE_URL_BUILD }}
-            NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_live_2f22fcefc64d211e9237229c821b9e89a4e21746
-            NEXT_PUBLIC_APP_URL=https://mojaride.net
-            NEXT_PUBLIC_APP_NAME=Moja Ride
-            NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE=inline
-            NEXT_PUBLIC_NOVU_APP_ID=9mUSmj0sjBGc
-            NEXT_PUBLIC_POSTHOG_KEY=phc_zJL24rdHaATKXTUd3jw65SxaZtTkqdd3i49N6H7jSz2q
-            NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+            NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_APP_NAME=${{ secrets.NEXT_PUBLIC_APP_NAME }}
+            NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE=${{ secrets.NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE }}
+            NEXT_PUBLIC_NOVU_APP_ID=${{ secrets.NEXT_PUBLIC_NOVU_APP_ID }}
+            NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -31,6 +31,7 @@ import {
 import { Textarea } from "@moja/ui/components/ui/textarea";
 import { useTRPC } from "@/trpc/client";
 import { useHoldCountdown, isHoldActive } from "@/features/booking/lib/hold-countdown";
+import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "@/features/search/lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import type { PassengerBookingSummary } from "@moja/types";
@@ -116,7 +117,7 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
           <div className="flex items-center gap-2 text-xs sm:text-sm">
             <StatusBadge status={booking.status} />
             <span className="text-muted-foreground">·</span>
-            <span className="text-foreground tabular-nums">{t("departsLabel", { time: formatDepartureTime(booking.departureTime) })}</span>
+            <span className="text-foreground tabular-nums">{t("departsLabel", { time: `${formatDateWithWeekday(booking.departureTime)} · ${formatDepartureTime(booking.departureTime)}` })}</span>
           </div>
         </div>
 
@@ -186,10 +187,12 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("departs")}</span>
               <span className="font-semibold tabular-nums">{formatDepartureTime(booking.departureTime)}</span>
+              <span className="text-xs text-muted-foreground">{formatDateWithWeekday(booking.departureTime)}</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("arrives")}</span>
               <span className="font-semibold tabular-nums">{formatDepartureTime(booking.arrivalTime)}</span>
+              <span className="text-xs text-muted-foreground">{formatDateWithWeekday(booking.arrivalTime)}</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("seats")}</span>
