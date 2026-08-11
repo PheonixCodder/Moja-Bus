@@ -57,7 +57,12 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
     } else if (banner.actionType === "APP_SCREEN") {
       const payload = banner.actionPayload || {};
       const targetTab = payload.targetTab || "search";
-      router.push(`/(tabs)/${targetTab}` as any);
+      const tabs = ["search", "bookings", "tickets", "settings", "index"];
+      if (tabs.includes(targetTab)) {
+        router.push(`/(tabs)/${targetTab}` as any);
+      } else {
+        router.push(`/${targetTab}` as any);
+      }
     } else if (banner.actionType === "BLOG_ARTICLE") {
       const payload = banner.actionPayload || {};
       if (payload.slug) {

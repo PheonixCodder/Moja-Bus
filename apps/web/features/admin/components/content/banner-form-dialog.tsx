@@ -379,10 +379,16 @@ export function BannerFormDialog({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="search">Search Tab</SelectItem>
-                        <SelectItem value="bookings">Bookings Tab</SelectItem>
-                        <SelectItem value="tickets">Tickets Tab</SelectItem>
-                        <SelectItem value="settings">Settings Tab</SelectItem>
+                        <SelectItem value="search">🔍 Search Tab</SelectItem>
+                        <SelectItem value="bookings">📅 Bookings Tab</SelectItem>
+                        <SelectItem value="tickets">🎫 Tickets Tab</SelectItem>
+                        <SelectItem value="settings">⚙️ Settings Tab</SelectItem>
+                        <SelectItem value="wallet">💳 Wallet & Top-up</SelectItem>
+                        <SelectItem value="notifications">🔔 Notifications</SelectItem>
+                        <SelectItem value="passengers">👥 Saved Passengers</SelectItem>
+                        <SelectItem value="personal-info">👤 Personal Info / Profile</SelectItem>
+                        <SelectItem value="reviews">⭐ Operator Reviews</SelectItem>
+                        <SelectItem value="help-support">❓ Help & Support</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
