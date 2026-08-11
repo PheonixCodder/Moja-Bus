@@ -29,6 +29,12 @@ export function useHomeData() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Verified regional bus carriers
+  const { data: operatorsData, isLoading: isOperatorsLoading } = useQuery({
+    ...trpc.public.listOperators.queryOptions(),
+    staleTime: 10 * 60 * 1000,
+  });
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -41,6 +47,7 @@ export function useHomeData() {
   const upcomingBooking = (bookingsData as any)?.items?.[0] || null;
   const banners = (bannersData as any[]) || [];
   const blogPosts = (blogPostsData as any)?.posts || [];
+  const operators = (operatorsData as any[]) || [];
 
   return {
     refreshing,
@@ -49,6 +56,12 @@ export function useHomeData() {
     upcomingBooking,
     banners,
     blogPosts,
-    isLoading: isWalletLoading || isBookingsLoading || isBannersLoading || isBlogLoading,
+    operators,
+    isLoading:
+      isWalletLoading ||
+      isBookingsLoading ||
+      isBannersLoading ||
+      isBlogLoading ||
+      isOperatorsLoading,
   };
 }

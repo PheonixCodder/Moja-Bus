@@ -27,9 +27,9 @@ export function TermsPrivacyView() {
 							<Pressable
 								key={tab}
 								onPress={() => setActiveTab(tab)}
-								className={`flex-1 py-2 items-center rounded-xl ${isActive ? "bg-white shadow shadow-black/10" : ""}`}
+								className={`will-change-variable will-change-pressable flex-1 py-2 items-center rounded-xl ${isActive ? "bg-white shadow shadow-black/10" : ""}`}
 							>
-								<Text className={`text-sm ${isActive ? "font-bold text-pink-600" : "font-medium text-slate-500"}`}>
+								<Text className={`will-change-variable text-sm ${isActive ? "font-bold text-pink-600" : "font-medium text-slate-500"}`}>
 									{label}
 								</Text>
 							</Pressable>

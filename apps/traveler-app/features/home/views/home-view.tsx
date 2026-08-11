@@ -1,11 +1,14 @@
-import { RefreshControl, ScrollView, View } from "react-native";
+import { RefreshControl, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HomeHeader } from "../components/home-header";
+import { HomeSearchWidget } from "../components/home-search-widget";
 import { ActiveTripCard } from "../components/active-trip-card";
 import { PromoBannerCarousel } from "../components/promo-banner-carousel";
 import { PopularRoutesGrid } from "../components/popular-routes-grid";
+import { FeaturedOperatorsSection } from "../components/featured-operators-section";
 import { BlogNewsSection } from "../components/blog-news-section";
 import { useHomeData } from "../hooks/use-home-data";
+import { H_PADDING } from "../constants";
 
 export function HomeView() {
   const insets = useSafeAreaInsets();
@@ -16,14 +19,17 @@ export function HomeView() {
     upcomingBooking,
     banners,
     blogPosts,
+    operators,
   } = useHomeData();
 
   return (
     <ScrollView
       className="flex-1 bg-slate-50"
       contentContainerStyle={{
-        paddingTop: insets.top + 8,
-        paddingBottom: 110, // Account for custom curved bottom tab bar
+        paddingTop: insets.top + 16,
+        paddingBottom: 130,
+        paddingHorizontal: H_PADDING,
+        gap: 24,
       }}
       showsVerticalScrollIndicator={false}
       refreshControl={
@@ -35,13 +41,19 @@ export function HomeView() {
         />
       }
     >
-      <View className="px-4 space-y-5">
-        <HomeHeader walletBalance={walletBalance} />
+      <HomeHeader walletBalance={walletBalance} />
+      
+      {/* Show Live Boarding Pass if upcoming trip exists; otherwise show Quick Search Widget */}
+      {upcomingBooking ? (
         <ActiveTripCard booking={upcomingBooking} />
-        <PromoBannerCarousel banners={banners} />
-        <PopularRoutesGrid />
-        <BlogNewsSection posts={blogPosts} />
-      </View>
+      ) : (
+        <HomeSearchWidget />
+      )}
+
+      <PromoBannerCarousel banners={banners} />
+      <PopularRoutesGrid />
+      <FeaturedOperatorsSection operators={operators} />
+      <BlogNewsSection posts={blogPosts} />
     </ScrollView>
   );
 }

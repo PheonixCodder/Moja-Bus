@@ -6,7 +6,7 @@ import { SettingsView } from "@/features/settings/views/settings-view";
 export default function SettingsScreen() {
   const animatedStyle = useScreenTransition();
   return (
-    <Animated.View style={[{ flex: 1 }]}>
+    <Animated.View style={[{ flex: 1 }, animatedStyle]}>
       <SettingsView />
     </Animated.View>
   );

@@ -165,11 +165,11 @@ export function PassengerFormSheet({
 												<Pressable
 													key={item.key}
 													onPress={() => setForm((f) => ({ ...f, idType: item.key as any }))}
-													className={`flex-1 py-2 items-center rounded-xl border ${
+													className={`will-change-variable will-change-pressable flex-1 py-2 items-center rounded-xl border ${
 														isSelected ? "border-pink-500 bg-pink-50" : "border-slate-200 bg-slate-50"
 													}`}
 												>
-													<Text className={`text-[11px] ${isSelected ? "font-bold text-pink-600" : "font-medium text-slate-700"}`}>
+													<Text className={`will-change-variable text-[11px] ${isSelected ? "font-bold text-pink-600" : "font-medium text-slate-700"}`}>
 														{item.label}
 													</Text>
 												</Pressable>

@@ -1,30 +1,30 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useIsFocused } from "expo-router";
-import Animated, {
+import {
   useSharedValue,
-  withTiming,
+  withSpring,
   useAnimatedStyle,
-  Easing,
 } from "react-native-reanimated";
 
+/**
+ * High-performance screen transition hook for traveler-app.
+ * Uses snappy spring physics (stiffness: 450, damping: 32) instead of
+ * sluggish timing delays. Opacity changes instantly to eliminate tab-switching lag.
+ */
 export function useScreenTransition() {
   const isFocused = useIsFocused();
-  const animatedValue = useSharedValue(isFocused ? 1 : 0);
-  const isFirst = useRef(true);
+  const scale = useSharedValue(isFocused ? 1 : 0.98);
 
   useEffect(() => {
-    if (isFirst.current) {
-      isFirst.current = false;
-      return;
-    }
-    animatedValue.value = withTiming(isFocused ? 1 : 0, {
-      duration: 200,
-      easing: Easing.out(Easing.cubic),
+    scale.value = withSpring(isFocused ? 1 : 0.98, {
+      stiffness: 450,
+      damping: 32,
+      mass: 0.7,
     });
   }, [isFocused]);
 
   return useAnimatedStyle(() => ({
-    opacity: animatedValue.value,
-    transform: [{ translateY: (1 - animatedValue.value) * 12 }],
+    opacity: isFocused ? 1 : 0,
+    transform: [{ scale: scale.value }],
   }));
 }
