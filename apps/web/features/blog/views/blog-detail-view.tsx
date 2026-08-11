@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { format } from "date-fns";
 import { MDXRemote } from "next-mdx-remote/rsc";
@@ -20,35 +21,15 @@ const components = {
   BookingCTA,
 };
 
-export interface SerializedPost {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string | null;
-  coverImage: string | null;
-  coverImageAlt: string | null;
-  coverImageCredit: string | null;
-  displayAuthorName: string | null;
-  displayAuthorAvatar: string | null;
-  displayAuthorBio: string | null;
-  publishedAt: Date | null;
-  readingTime: number;
-  viewCount: number;
-  author: {
-    fullName: string;
-    image: string | null;
+import type { Prisma } from "@moja/db";
+
+export type SerializedPost = Prisma.BlogPostGetPayload<{
+  include: {
+    author: { select: { fullName: true; image: true } };
+    category: { select: { name: true; slug: true } };
+    tags: { select: { id: true; name: true; slug: true } };
   };
-  category: {
-    name: string;
-    slug: string;
-  } | null;
-  tags: {
-    id: string;
-    name: string;
-    slug: string;
-  }[];
-}
+}>;
 
 interface BlogDetailViewProps {
   locale: string;
@@ -132,9 +113,11 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
                   {post.displayAuthorAvatar || post.author?.image ? (
-                    <img
+                    <Image
                       src={post.displayAuthorAvatar || post.author?.image || ""}
                       alt=""
+                      width={40}
+                      height={40}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -169,10 +152,13 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
             {post.coverImage && (
               <div className="mb-8 rounded-xl overflow-hidden border border-slate-200 shadow-3xs">
                 <div className="aspect-[21/9] w-full relative bg-slate-100">
-                  <img
+                  <Image
                     src={post.coverImage}
                     alt={post.coverImageAlt || post.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 800px"
+                    className="object-cover"
+                    priority
                   />
                 </div>
                 {post.coverImageCredit && (
@@ -216,7 +202,13 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
               <div className="mt-8 p-5 bg-slate-50/50 border border-slate-200 rounded-xl flex gap-3 text-xs leading-relaxed">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
                   {post.displayAuthorAvatar || post.author?.image ? (
-                    <img src={post.displayAuthorAvatar || post.author?.image || ""} alt="" className="w-full h-full object-cover" />
+                    <Image
+                      src={post.displayAuthorAvatar || post.author?.image || ""}
+                      alt=""
+                      width={32}
+                      height={32}
+                      className="w-full h-full object-cover"
+                    />
                   ) : null}
                 </div>
                 <div>
@@ -248,11 +240,13 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
                       className="group block space-y-1.5 text-xs transition-colors hover:text-rose-600"
                     >
                       {rp.coverImage && (
-                        <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-200 mb-2">
-                          <img
+                        <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-200 mb-2 relative">
+                          <Image
                             src={rp.coverImage}
                             alt=""
-                            className="object-cover w-full h-full group-hover:scale-[1.02] transition-transform duration-300"
+                            fill
+                            sizes="(max-width: 1024px) 50vw, 300px"
+                            className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
                           />
                         </div>
                       )}

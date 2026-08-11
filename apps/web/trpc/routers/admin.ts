@@ -1452,10 +1452,10 @@ export const adminRouter = createTRPCRouter({
       requireAdminPermission(ctx, "content:posts:update");
       const { id, tagIds, status, ...rest } = input;
 
-      // Fetch current status to determine if we need to set publishedAt
+      // Fetch current state to drive conditional logic
       const existing = await ctx.prisma.blogPost.findUniqueOrThrow({
         where: { id },
-        select: { status: true, publishedAt: true },
+        select: { status: true, publishedAt: true, slug: true },
       });
 
       const publishedAt =
@@ -1472,21 +1472,51 @@ export const adminRouter = createTRPCRouter({
       const readingTime =
         wordCount !== undefined ? Math.ceil(wordCount / 200) : undefined;
 
-      return ctx.prisma.blogPost.update({
-        where: { id },
-        data: {
-          ...rest,
-          ...(status !== undefined && { status }),
-          ...(publishedAt !== undefined && { publishedAt }),
-          ...(tagIds !== undefined && {
-            tags: { set: tagIds.map((tid) => ({ id: tid })) },
-          }),
-          ...(wordCount !== undefined && { wordCount, readingTime }),
-          // Handle optional nullable fields explicitly to satisfy exactOptionalPropertyTypes
-          ...("categoryId" in rest && { categoryId: rest.categoryId ?? null }),
-        } as any,
-        include: { category: true, tags: true },
-      });
+      // Run update + optional revision + optional slug history in one transaction
+      const [updatedPost] = await ctx.prisma.$transaction([
+        // 1. Update the post itself
+        ctx.prisma.blogPost.update({
+          where: { id },
+          data: {
+            ...rest,
+            ...(status !== undefined && { status }),
+            ...(publishedAt !== undefined && { publishedAt }),
+            ...(tagIds !== undefined && {
+              tags: { set: tagIds.map((tid) => ({ id: tid })) },
+            }),
+            ...(wordCount !== undefined && { wordCount, readingTime }),
+            // Handle optional nullable fields explicitly to satisfy exactOptionalPropertyTypes
+            ...("categoryId" in rest && { categoryId: rest.categoryId ?? null }),
+          } as any,
+          include: { category: true, tags: true },
+        }),
+
+        // 2. Snapshot revision whenever content changes
+        ...(rest.content !== undefined
+          ? [
+              ctx.prisma.blogRevision.create({
+                data: {
+                  postId: id,
+                  content: rest.content,
+                  changedById: ctx.user.id,
+                },
+              }),
+            ]
+          : []),
+
+        // 3. Record slug history whenever the slug changes
+        ...(rest.slug && rest.slug !== existing.slug
+          ? [
+              ctx.prisma.blogSlugHistory.upsert({
+                where: { oldSlug: existing.slug },
+                create: { oldSlug: existing.slug, newSlug: rest.slug },
+                update: { newSlug: rest.slug },
+              }),
+            ]
+          : []),
+      ]);
+
+      return updatedPost;
     }),
 
   listBlogPosts: adminProcedure
@@ -1670,6 +1700,7 @@ export const adminRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:tags:manage");
       const slug = slugify(input.name);
 
       return ctx.prisma.blogTag.create({
@@ -1893,6 +1924,94 @@ export const adminRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "content:redirects:manage");
       return ctx.prisma.blogRedirect.delete({ where: { id: input.id } });
+    }),
+
+  // --- PROMO BANNERS ---
+  listBanners: adminProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        page: z.number().int().min(1).default(1),
+        limit: z.number().int().min(1).max(100).default(20),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:posts:read");
+      const where: any = {};
+      if (input.search) {
+        where.OR = [
+          { title: { contains: input.search, mode: "insensitive" } },
+          { subtitle: { contains: input.search, mode: "insensitive" } },
+        ];
+      }
+      const [items, total] = await Promise.all([
+        ctx.prisma.promoBanner.findMany({
+          where,
+          orderBy: { sortOrder: "asc" },
+          take: input.limit,
+          skip: (input.page - 1) * input.limit,
+        }),
+        ctx.prisma.promoBanner.count({ where }),
+      ]);
+      return { items, total };
+    }),
+
+  createBanner: adminProcedure
+    .input(
+      z.object({
+        title: z.string().min(1).max(100),
+        subtitle: z.string().max(200).nullish(),
+        badge: z.string().max(30).nullish(),
+        imageUrl: z.string().url(),
+        actionType: z.enum(["SEARCH", "APP_SCREEN", "BLOG_ARTICLE", "EXTERNAL_URL"]).default("SEARCH"),
+        actionPayload: z.any().optional(),
+        gradientColors: z.array(z.string()).default(["#ee237c", "#9333ea"]),
+        isActive: z.boolean().default(true),
+        sortOrder: z.number().int().default(0),
+        startDate: z.date().nullish(),
+        endDate: z.date().nullish(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:posts:create");
+      return ctx.prisma.promoBanner.create({
+        data: input as any,
+      });
+    }),
+
+  updateBanner: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string().min(1).max(100).optional(),
+        subtitle: z.string().max(200).nullish(),
+        badge: z.string().max(30).nullish(),
+        imageUrl: z.string().url().optional(),
+        actionType: z.enum(["SEARCH", "APP_SCREEN", "BLOG_ARTICLE", "EXTERNAL_URL"]).optional(),
+        actionPayload: z.any().optional(),
+        gradientColors: z.array(z.string()).optional(),
+        isActive: z.boolean().optional(),
+        sortOrder: z.number().int().optional(),
+        startDate: z.date().nullish(),
+        endDate: z.date().nullish(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:posts:update");
+      const { id, ...data } = input;
+      return ctx.prisma.promoBanner.update({
+        where: { id },
+        data: data as any,
+      });
+    }),
+
+  deleteBanner: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "content:posts:update");
+      return ctx.prisma.promoBanner.delete({
+        where: { id: input.id },
+      });
     }),
 
   listDispatchTrips: adminProcedure

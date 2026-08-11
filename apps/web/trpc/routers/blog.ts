@@ -35,18 +35,21 @@ export const blogRouter = createTRPCRouter({
         ];
       }
 
-      const posts = await ctx.prisma.blogPost.findMany({
-        where,
-        take: input.limit + 1,
-        ...(input.cursor && { cursor: { id: input.cursor }, skip: 1 }),
-        ...(input.offset !== undefined && { skip: input.offset }),
-        orderBy: { publishedAt: "desc" },
-        include: {
-          author: { select: { fullName: true, image: true } },
-          category: { select: { name: true, slug: true } },
-          tags: { select: { id: true, name: true, slug: true } },
-        },
-      });
+      const [posts, total] = await Promise.all([
+        ctx.prisma.blogPost.findMany({
+          where,
+          take: input.limit + 1,
+          ...(input.cursor && { cursor: { id: input.cursor }, skip: 1 }),
+          ...(input.offset !== undefined && { skip: input.offset }),
+          orderBy: { publishedAt: "desc" },
+          include: {
+            author: { select: { fullName: true, image: true } },
+            category: { select: { name: true, slug: true } },
+            tags: { select: { id: true, name: true, slug: true } },
+          },
+        }),
+        ctx.prisma.blogPost.count({ where }),
+      ]);
 
       let nextCursor: typeof input.cursor | undefined = undefined;
       if (posts.length > input.limit) {
@@ -72,6 +75,7 @@ export const blogRouter = createTRPCRouter({
       return {
         posts: sanitizedPosts,
         nextCursor,
+        total,
       };
     }),
 
@@ -157,6 +161,40 @@ export const blogRouter = createTRPCRouter({
         });
       }
 
+      // Update completion rate when a post read reaches 100%
+      if (input.eventType === "READ_100") {
+        const [reads100, views] = await Promise.all([
+          ctx.prisma.blogEvent.count({
+            where: { postId: input.postId, eventType: "READ_100" },
+          }),
+          ctx.prisma.blogEvent.count({
+            where: { postId: input.postId, eventType: "VIEW" },
+          }),
+        ]);
+        const completionRate = views > 0 ? reads100 / views : 0;
+        await ctx.prisma.blogPost.update({
+          where: { id: input.postId },
+          data: { completionRate },
+        });
+      }
+
       return { success: true };
     }),
+
+  listActiveBanners: publicProcedure.query(async ({ ctx }) => {
+    const now = new Date();
+    return ctx.prisma.promoBanner.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { startDate: null },
+          { startDate: { lte: now } },
+        ],
+        AND: [
+          { OR: [{ endDate: null }, { endDate: { gte: now } }] },
+        ],
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+  }),
 });

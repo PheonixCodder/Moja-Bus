@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 import {
 	Image,
 	type ImageSourcePropType,
-	SafeAreaView,
 	ScrollView,
 	Text,
 	View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type AuthShellProps = {
 	badge?: string;

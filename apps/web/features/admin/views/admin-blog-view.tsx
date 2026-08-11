@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card } from "@moja/ui/components/ui/card";
 import { Input } from "@moja/ui/components/ui/input";
@@ -46,6 +47,7 @@ import { useEffect, useState } from "react";
 import { useTRPC } from "@/trpc/client";
 import { AdminCategoriesView } from "./admin-categories-view";
 import { AdminTagsView } from "./admin-tags-view";
+import { AdminBannersView } from "./admin-banners-view";
 import { NewBlogPostDialog } from "./new-blog-post-dialog";
 
 export function AdminBlogView() {
@@ -156,12 +158,25 @@ export function AdminBlogView() {
             <Hash className="size-4" />
             {t("tags")}
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("banners")}
+            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold border-b-2 -mb-px transition-all ${
+              activeTab === "banners"
+                ? "border-slate-900 text-slate-900"
+                : "border-transparent text-slate-400 hover:text-slate-600"
+            }`}
+          >
+            <Globe className="size-4" />
+            Banners
+          </button>
         </div>
       </div>
 
       {/* Conditionally render views */}
       {activeTab === "categories" && <AdminCategoriesView />}
       {activeTab === "tags" && <AdminTagsView />}
+      {activeTab === "banners" && <AdminBannersView />}
 
       {activeTab === "posts" && (
         <div className="space-y-6">
@@ -275,9 +290,11 @@ export function AdminBlogView() {
                       >
                         <TableCell className="px-4 py-3">
                           {post.coverImage ? (
-                            <img
+                            <Image
                               src={post.coverImage}
                               alt={post.title}
+                              width={64}
+                              height={40}
                               className="h-10 w-16 rounded-md object-cover border border-border"
                             />
                           ) : (

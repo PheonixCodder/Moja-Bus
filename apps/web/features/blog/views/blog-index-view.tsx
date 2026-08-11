@@ -6,6 +6,7 @@ import { useQueryStates } from "nuqs";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import Image from "next/image";
 import { format } from "date-fns";
 import {
   Search,
@@ -256,10 +257,12 @@ export function BlogIndexView() {
                     {/* Cover image banner */}
                     {post.coverImage ? (
                       <div className="aspect-[16/10] w-full bg-slate-100 relative overflow-hidden">
-                        <img
+                        <Image
                           src={post.coverImage}
                           alt={post.coverImageAlt || post.title}
-                          className="object-cover w-full h-full group-hover:scale-[1.03] transition-transform duration-500"
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
                         />
                       </div>
                     ) : (
@@ -304,8 +307,6 @@ export function BlogIndexView() {
             )}
 
             {/* Pagination Controls */}
-            {/* Since cursor-based pagination is supported in TRPC, we can simply restrict/load pages.
-                For basic simplicity synced with page, we can render simple Prev/Next controls. */}
             {posts.length > 0 && (
               <div className="flex justify-between items-center pt-4 border-t border-slate-200 text-xs">
                 <Button
@@ -318,12 +319,12 @@ export function BlogIndexView() {
                   {t("previous")}
                 </Button>
                 <span className="text-slate-500 font-semibold">
-                  {t("page", { page: params.page })}
+                  {t("page", { page: params.page })} / {Math.ceil((postsData.total || 1) / limit)}
                 </span>
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={posts.length < limit}
+                  disabled={params.page >= Math.ceil((postsData.total || 0) / limit)}
                   onClick={() => handlePageChange(params.page + 1)}
                   className="h-8 font-semibold text-xs border-slate-200"
                 >

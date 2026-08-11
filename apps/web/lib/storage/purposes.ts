@@ -24,7 +24,8 @@ export type StoragePurposeId =
   | "operator-logo"
   | "operator-profile-photo"
   | "passenger-avatar"
-  | "blog-cover";
+  | "blog-cover"
+  | "blog-content";
 
 export interface StoragePurposeConfig {
   id: StoragePurposeId;
@@ -99,6 +100,18 @@ export const STORAGE_PURPOSES: Record<StoragePurposeId, StoragePurposeConfig> = 
     cacheControl: "max-age=31536000, immutable",
     keepVersions: false,
     key: (ctx) => `assets/blog/${ctx.slug}`,
+  },
+  "blog-content": {
+    id: "blog-content",
+    visibility: "public",
+    iam: "admin",
+    limits: { maxBytes: 5 * MB, allowedMime: [/^image\//] },
+    image: { maxDim: 1600, quality: 0.85, toWebp: true },
+    cacheControl: "max-age=31536000, immutable",
+    keepVersions: true,
+    // Each inline image gets a UUID so multiple uploads per post don't collide
+    key: (ctx) =>
+      `assets/blog/${ctx.slug ?? "draft"}/content/${crypto.randomUUID()}-${ctx.fileName ? ctx.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 60) : "image"}.webp`,
   },
 };
 

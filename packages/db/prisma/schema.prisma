@@ -2163,6 +2163,33 @@ model BlogEvent {
   @@map("blog_event")
 }
 
+enum BannerActionType {
+  SEARCH          // Pre-fills search parameters (origin, destination)
+  APP_SCREEN      // Deep links to an app tab (search, bookings, tickets, settings)
+  BLOG_ARTICLE    // Opens specific blog post by slug
+  EXTERNAL_URL    // Opens external web URL
+}
+
+model PromoBanner {
+  id             String           @id @default(cuid())
+  title          String
+  subtitle       String?
+  badge          String?          // e.g. "15% OFF", "VIP", "PROMO"
+  imageUrl       String
+  actionType     BannerActionType @default(SEARCH)
+  actionPayload  Json?            // e.g. { originSlug, destinationSlug } or { targetTab: "search" } or { slug: "..." }
+  gradientColors String[]         // e.g. ["#ee237c", "#9333ea"]
+  isActive       Boolean          @default(true)
+  sortOrder      Int              @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@map("promo_banner")
+}
+
 // ============================================
 // CONTACT & SUPPORT INQUIRIES
 // ============================================

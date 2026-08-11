@@ -26,6 +26,9 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.mojaride.com" },
+      // Allow any HTTPS hostname — covers S3, external CDNs, and user-provided
+      // image URLs embedded in blog post MDX content.
+      { protocol: "https", hostname: "**" },
     ],
   },
   turbopack: {

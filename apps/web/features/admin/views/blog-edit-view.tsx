@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Badge } from "@moja/ui/components/ui/badge";
@@ -430,6 +430,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <MdxEditorWrapper
                     markdown={field.value}
                     onChange={field.onChange}
+                    postSlug={post.slug}
                   />
                 )}
               />

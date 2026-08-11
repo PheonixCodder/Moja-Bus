@@ -28,20 +28,26 @@ import {
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { useStorageUpload } from "@/lib/storage-client";
 
 interface MdxEditorWrapperProps {
   markdown: string;
   onChange: (markdown: string) => void;
   readOnly?: boolean;
+  /** Post slug — used to scope uploaded images to the right S3 key prefix */
+  postSlug?: string;
 }
 
 export function MdxEditorWrapper({
   markdown,
   onChange,
   readOnly = false,
+  postSlug,
 }: MdxEditorWrapperProps) {
   const t = useTranslations("adminDashboard.mdxEditorWrapper");
+  const { upload } = useStorageUpload("blog-content", {
+    slug: postSlug ?? "draft",
+  });
 
   return (
     <div className="w-full min-w-0 overflow-hidden">
@@ -76,9 +82,9 @@ export function MdxEditorWrapper({
             },
           }),
           imagePlugin({
-            imageUploadHandler: async () => {
-              toast.error(t("imageUploadNotConfigured"));
-              throw new Error("Image upload not configured");
+            imageUploadHandler: async (file: File) => {
+              const result = await upload(file);
+              return result.fileUrl;
             },
           }),
           toolbarPlugin({

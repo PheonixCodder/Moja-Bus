@@ -101,6 +101,6 @@ export default async function BlogPostPage({ params }: Props) {
   });
 
   return (
-    <BlogDetailView locale={locale} post={post as any} recommendedPosts={recommendedPosts} />
+    <BlogDetailView locale={locale} post={post} recommendedPosts={recommendedPosts} />
   );
 }
