@@ -26,21 +26,21 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
             </View>
             <View>
               <Text className="text-xs font-extrabold tracking-widest text-white/90 uppercase">Moja Wallet</Text>
-              <Text className="text-[10px] text-white/60 font-mono mt-0.5">•••• {accountSuffix}</Text>
+              <Text className="text-xs text-white/60 font-mono mt-0.5">•••• {accountSuffix}</Text>
             </View>
           </View>
 
           <View className="flex-row items-center gap-1 px-2.5 py-1 rounded-full bg-white/10">
             <ShieldCheck size={14} color="#6ee7b7" />
-            <Text className="text-[9px] font-extrabold tracking-widest text-white uppercase">Verified</Text>
+            <Text className="text-xs font-extrabold tracking-widest text-white uppercase">Verified</Text>
           </View>
         </View>
 
         {/* Balance */}
         <View className="mt-5">
-          <Text className="text-[10px] font-bold text-white/60 tracking-[2px] uppercase">Balance</Text>
+          <Text className="text-xs font-bold text-white/60 tracking-[2px] uppercase">Balance</Text>
           <View className="flex-row items-baseline gap-1 mt-1">
-            <Text className="text-[36px] font-black text-white tracking-tight">
+            <Text className="text-4xl font-black text-white tracking-tight">
               {availableBalance.toLocaleString()}
             </Text>
             <Text className="text-base font-bold text-white/80">XOF</Text>
@@ -49,7 +49,7 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
 
         {/* Footer */}
         <View className="flex-row items-center justify-between border-t border-white/10 pt-4 mt-2">
-          <Text className="text-[10px] font-semibold text-white/70">Pre-funded account</Text>
+          <Text className="text-xs font-semibold text-white/70">Pre-funded account</Text>
 
           <Pressable
             onPress={onOpenTopup}

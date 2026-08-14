@@ -16,7 +16,14 @@ type PaystackWebViewProps = {
 
 const MOBILE_CALLBACK_PATH = "/api/payments/mobile-callback";
 const SUCCESS_HOSTS = ["localhost", "192.168", "mojaride.ci", "moja-buss"];
-const SUCCESS_PATHS = [MOBILE_CALLBACK_PATH, "/dashboard/wallet", "/dashboard/passenger/wallet"];
+const SUCCESS_PATHS = [
+  MOBILE_CALLBACK_PATH,
+  "/dashboard/wallet",
+  "/dashboard/passenger/wallet",
+  "/api/payments/verify",
+  "/book/",
+  "/success",
+];
 const CANCEL_PATHS = [`${MOBILE_CALLBACK_PATH}?cancel=1`];
 
 const INJECTED_JS = `
@@ -66,8 +73,10 @@ export function PaystackWebView({
       return true;
     }
 
-    const isWebDashboardSuccess = SUCCESS_HOSTS.some((host) => lower.includes(host)) &&
-      SUCCESS_PATHS.some((path) => lower.includes(path));
+    const isWebDashboardSuccess =
+      SUCCESS_PATHS.some((path) => lower.includes(path.toLowerCase())) ||
+      (SUCCESS_HOSTS.some((host) => lower.includes(host)) &&
+        SUCCESS_PATHS.some((path) => lower.includes(path.toLowerCase())));
 
     if (isWebDashboardSuccess) {
       handledRef.current = true;
@@ -132,7 +141,7 @@ export function PaystackWebView({
           <Pressable onPress={onCancel} hitSlop={12}>
             <X size={20} color="#0f172a" />
           </Pressable>
-          <Text className="text-[15px] font-semibold text-slate-900">Pay with Paystack</Text>
+          <Text className="text-base font-semibold text-slate-900">Pay with Paystack</Text>
           <View className="w-5" />
         </View>
 

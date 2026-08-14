@@ -1,4 +1,3 @@
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
 
@@ -9,41 +8,23 @@ type ReviewStarsProps = {
 
 export function ReviewStars({ rating, onRatingChange }: ReviewStarsProps) {
 	return (
-		<View
-			style={{
-				flexDirection: "row",
-				gap: Spacing.two,
-				alignItems: "center",
-			}}
-		>
+		<View className="flex-row gap-2 items-center">
 			{[1, 2, 3, 4, 5].map((star) => (
 				<Pressable
 					key={star}
 					onPress={() => onRatingChange(star)}
-					style={({ pressed }) => ({
-						opacity: pressed ? 0.7 : 1,
-					})}
+					style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
 				>
 					<Text
-						style={{
-							fontSize: 28,
-							fontWeight: "800",
-							color:
-								star <= rating ? "#f59e0b" : Colors.light.backgroundSelected,
-						}}
+						className={`text-[28px] font-extrabold ${
+							star <= rating ? "text-amber-400" : "text-slate-200"
+						}`}
 					>
 						★
 					</Text>
 				</Pressable>
 			))}
-			<Text
-				style={{
-					fontSize: 14,
-					fontWeight: "600",
-					color: Colors.light.textSecondary,
-					marginLeft: Spacing.two,
-				}}
-			>
+			<Text className="text-sm font-semibold text-slate-400 ml-2">
 				{rating}/5
 			</Text>
 		</View>

@@ -46,11 +46,12 @@ export function BookingDialogFlow({ offerId, onClose }: { offerId: string; onClo
       return;
     }
     if (!session?.user) {
-      // Guest — persist state and redirect to login
+      // Guest — persist offer + selected seats in URL for login resume
       const searchParams = new URLSearchParams(
         typeof window !== "undefined" ? window.location.search : "",
       );
       searchParams.set("bookingOfferId", offerId);
+      searchParams.set("seatIds", selectedSeatIds.join(","));
       const returnPath = `/search?${searchParams.toString()}`;
       router.push(buildLoginUrl(returnPath));
       return;

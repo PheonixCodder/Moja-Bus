@@ -1,5 +1,6 @@
 import { Alert01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Modal,
@@ -26,6 +27,7 @@ export function CancelDialog({
 	onConfirm,
 }: CancelDialogProps) {
 	const insets = useSafeAreaInsets();
+	const { t } = useTranslation("booking");
 
 	if (!isOpen) return null;
 
@@ -52,27 +54,27 @@ export function CancelDialog({
 							<HugeiconsIcon icon={Alert01Icon} size={28} color="#ef4444" />
 						</View>
 						<Text className="text-foreground text-xl font-black tracking-tight">
-							Cancel Booking & Request Refund
+							{t("cancelDialogTitle")}
 						</Text>
 						<Text className="text-muted-foreground text-xs text-center max-w-[280px] leading-relaxed">
-							Are you sure you want to cancel this booking? Refunded funds will be credited directly to your internal wallet.
+							{t("cancelDialogDesc")}
 						</Text>
 					</View>
 
 					{/* Refund Breakdown */}
 					{farePaidXOF ? (
 						<View className="bg-card border-border rounded-xl border p-3.5 space-y-2 my-2">
-							<Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
-								Refund Summary
+							<Text className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+								{t("refundSummary")}
 							</Text>
 							<View className="flex-row justify-between border-b border-border/40 pb-2">
-								<Text className="text-muted-foreground text-xs font-medium">Original Fare Paid</Text>
+								<Text className="text-muted-foreground text-xs font-medium">{t("farePaid")}</Text>
 								<Text className="text-foreground font-bold text-xs">
 									{formatPriceXOF(farePaidXOF)}
 								</Text>
 							</View>
 							<View className="flex-row justify-between pt-1">
-								<Text className="text-foreground font-bold text-xs">Wallet Refund Amount</Text>
+								<Text className="text-foreground font-bold text-xs">{t("refundAmount")}</Text>
 								<Text className="text-primary font-black text-xs">
 									{formatPriceXOF(farePaidXOF)}
 								</Text>
@@ -87,7 +89,7 @@ export function CancelDialog({
 							disabled={isPending}
 							className="flex-1 bg-secondary border border-border py-3.5 rounded-xl items-center"
 						>
-							<Text className="text-foreground font-bold text-xs">Keep Ticket</Text>
+							<Text className="text-foreground font-bold text-xs">{t("keepTicket")}</Text>
 						</Pressable>
 
 						<Pressable
@@ -98,7 +100,7 @@ export function CancelDialog({
 							{isPending ? (
 								<ActivityIndicator size="small" color="#ffffff" />
 							) : (
-								<Text className="text-white font-black text-xs">Confirm Cancellation</Text>
+								<Text className="text-white font-black text-xs">{t("confirmCancel")}</Text>
 							)}
 						</Pressable>
 					</View>

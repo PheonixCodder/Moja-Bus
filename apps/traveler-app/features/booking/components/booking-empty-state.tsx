@@ -6,7 +6,7 @@ import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
 
 export function BookingEmptyState() {
-	const { t } = useTranslation("booking");
+	const { t } = useTranslation(["booking", "common"]);
 
 	return (
 		<View className="flex-1 items-center justify-center py-16 px-6">
@@ -25,7 +25,7 @@ export function BookingEmptyState() {
 				style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
 			>
 				<HugeiconsIcon icon={Search01Icon} size={16} color="#ffffff" />
-				<Text className="text-xs font-bold text-white">Search Trips</Text>
+				<Text className="text-xs font-bold text-white">{t("search", { ns: "common" })}</Text>
 			</Pressable>
 		</View>
 	);

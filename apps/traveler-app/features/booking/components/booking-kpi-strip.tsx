@@ -5,6 +5,7 @@ import {
 	UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 
@@ -21,31 +22,33 @@ export function BookingKpiStrip({
 	ticketsCount,
 	contactsCount,
 }: BookingKpiStripProps) {
+	const { t } = useTranslation("booking");
+
 	const items = [
 		{
 			icon: Calendar01Icon,
-			label: "Upcoming",
+			labelKey: "upcomingLabel",
 			value: upcomingCount,
 			color: "#ee237c",
 			bg: "bg-primary/10",
 		},
 		{
 			icon: Clock01Icon,
-			label: "Pending",
+			labelKey: "pendingLabel",
 			value: pendingCount,
 			color: "#d97706",
 			bg: "bg-amber-500/10",
 		},
 		{
 			icon: Ticket01Icon,
-			label: "Tickets",
+			labelKey: "ticketsLabel",
 			value: ticketsCount,
 			color: "#10b981",
 			bg: "bg-emerald-500/10",
 		},
 		{
 			icon: UserGroupIcon,
-			label: "Saved",
+			labelKey: "savedLabel",
 			value: contactsCount,
 			color: "#6366f1",
 			bg: "bg-indigo-500/10",
@@ -56,7 +59,7 @@ export function BookingKpiStrip({
 		<View className="flex-row gap-2 px-4 py-3">
 			{items.map((item) => (
 				<View
-					key={item.label}
+					key={item.labelKey}
 					className="flex-1 bg-card border-border rounded-2xl border p-3 items-center shadow-xs"
 				>
 					<View className={`w-8 h-8 rounded-full ${item.bg} items-center justify-center mb-1`}>
@@ -65,8 +68,8 @@ export function BookingKpiStrip({
 					<Text className="text-foreground font-black text-base">
 						{item.value}
 					</Text>
-					<Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mt-0.5">
-						{item.label}
+					<Text className="text-muted-foreground text-xs font-bold uppercase tracking-wider mt-0.5">
+						{t(item.labelKey as any)}
 					</Text>
 				</View>
 			))}

@@ -1,4 +1,4 @@
-import { Colors } from "@moja/theme/tokens";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Text } from "@/components/ui/text";
 
@@ -11,32 +11,32 @@ type BookingStatus =
 
 const STATUS_CONFIG: Record<
 	BookingStatus,
-	{ color: string; bgColor: string; label: string }
+	{ badgeClass: string; textClass: string; labelKey: string }
 > = {
 	CONFIRMED: {
-		color: "#10b981",
-		bgColor: "rgba(16, 185, 129, 0.1)",
-		label: "Confirmed",
+		badgeClass: "bg-emerald-50 border-emerald-300",
+		textClass: "text-emerald-700",
+		labelKey: "confirmed",
 	},
 	PENDING_PAYMENT: {
-		color: "#f59e0b",
-		bgColor: "rgba(245, 158, 11, 0.1)",
-		label: "Pending Payment",
+		badgeClass: "bg-amber-50 border-amber-300",
+		textClass: "text-amber-700",
+		labelKey: "pendingPayment",
 	},
 	COMPLETED: {
-		color: "#3b82f6",
-		bgColor: "rgba(59, 130, 246, 0.1)",
-		label: "Completed",
+		badgeClass: "bg-blue-50 border-blue-300",
+		textClass: "text-blue-700",
+		labelKey: "completed",
 	},
 	CANCELLED: {
-		color: "#ef4444",
-		bgColor: "rgba(239, 68, 68, 0.1)",
-		label: "Cancelled",
+		badgeClass: "bg-red-50 border-red-300",
+		textClass: "text-red-700",
+		labelKey: "cancelled",
 	},
 	EXPIRED: {
-		color: "#9ca3af",
-		bgColor: "rgba(156, 163, 175, 0.1)",
-		label: "Expired",
+		badgeClass: "bg-slate-100 border-slate-300",
+		textClass: "text-slate-500",
+		labelKey: "expired",
 	},
 };
 
@@ -45,28 +45,16 @@ type BookingStatusBadgeProps = {
 };
 
 export function BookingStatusBadge({ status }: BookingStatusBadgeProps) {
+	const { t } = useTranslation("booking");
 	const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.EXPIRED;
 
 	return (
 		<Badge
 			variant="outline"
-			style={{
-				backgroundColor: config.bgColor,
-				borderColor: config.color,
-				paddingHorizontal: 8,
-				paddingVertical: 4,
-				borderRadius: 8,
-			}}
+			className={`px-2 py-1 rounded-lg border ${config.badgeClass}`}
 		>
-			<Text
-				style={{
-					fontSize: 11,
-					fontWeight: "700",
-					color: config.color,
-					letterSpacing: 0.5,
-				}}
-			>
-				{config.label}
+			<Text className={`text-sm font-bold tracking-wide ${config.textClass}`}>
+				{t(config.labelKey as any)}
 			</Text>
 		</Badge>
 	);

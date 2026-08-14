@@ -103,11 +103,12 @@ export const auth = betterAuth({
   },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
-    updateAge: 60 * 60 * 24 * 7,  // Refresh if >7 days old
+    updateAge: 60 * 60 * 24 * 7, // Refresh if >7 days old
+    // Disabled: the 5-minute cookieCache TTL caused the Expo client to drop
+    // cached session cookies while the local session cache still showed the
+    // user as signed in, leaving tRPC calls unauthenticated.
     cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60, // 5 minutes
-      strategy: "compact",
+      enabled: false,
     },
   },
   rateLimit: {

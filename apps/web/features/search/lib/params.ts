@@ -46,6 +46,7 @@ export const searchParamsSchema = {
 
   // 5. Booking Modal State
   bookingOfferId: parseAsString,
+  seatIds: parseAsArrayOf(parseAsString),
 };
 
 export const searchParamsCache = createSearchParamsCache(searchParamsSchema);

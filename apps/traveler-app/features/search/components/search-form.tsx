@@ -89,7 +89,7 @@ export function SearchForm({
   };
 
   const handleIncrease = () => {
-    if (passengers < 10) {
+    if (passengers < 6) {
       Haptics.selectionAsync();
       setPassengers(passengers + 1);
     }
@@ -103,66 +103,27 @@ export function SearchForm({
   const formattedDate = formatFormDate(date, i18n.language || 'en');
 
   return (
-    <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+    <View className="px-4 pb-4">
       {/* ── Box 1: Route Inputs Container ── */}
-      <View
-        style={{
-          borderRadius: 20,
-          backgroundColor: '#ffffff',
-          borderWidth: 1,
-          borderColor: '#f1f5f9',
-          marginBottom: 10,
-          position: 'relative',
-        }}
-      >
+      <View className="rounded-[20px] bg-white border border-slate-100 mb-2.5 relative">
         {/* Origin */}
         <Pressable
           onPress={onOriginPress}
-          style={({ pressed }) => ({
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 16,
-            paddingVertical: 14,
-            borderBottomWidth: 1,
-            borderBottomColor: '#f8fafc',
-            backgroundColor: pressed ? '#f8fafc' : '#ffffff',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          })}
+          className="flex-row items-center px-4 py-3.5 border-b border-slate-50 rounded-t-[20px] bg-white"
+          style={({ pressed }) => ({ backgroundColor: pressed ? '#f8fafc' : '#ffffff' })}
         >
-          <View
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 17,
-              backgroundColor: '#fce7f3',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 12,
-            }}
-          >
+          <View className="w-[34px] h-[34px] rounded-full bg-pink-50 items-center justify-center mr-3">
             <HugeiconsIcon icon={Navigation01Icon} size={15} color="#ee237c" />
           </View>
-          <View style={{ flex: 1, paddingRight: 36 }}>
-            <Text
-              style={{
-                fontSize: 9,
-                fontWeight: '900',
-                color: '#94a3b8',
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                marginBottom: 2,
-              }}
-            >
+          <View className="flex-1 pr-9">
+            <Text className="text-[9px] font-black text-slate-400 tracking-[1.5px] uppercase mb-0.5">
               {t('leavingFrom')}
             </Text>
             <Text
               numberOfLines={1}
-              style={{
-                fontSize: 15,
-                fontWeight: origin ? '700' : '400',
-                color: origin ? '#0f172a' : '#94a3b8',
-              }}
+              className={`text-sm ${
+                origin ? 'font-bold text-slate-900' : 'font-normal text-slate-400'
+              }`}
             >
               {origin ? origin.text : t('fromPlaceholder')}
             </Text>
@@ -172,26 +133,8 @@ export function SearchForm({
         {/* Floating Swap Button */}
         <Pressable
           onPress={handleSwap}
-          style={({ pressed }) => ({
-            position: 'absolute',
-            right: 16,
-            top: '50%',
-            marginTop: -16,
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            backgroundColor: pressed ? '#fdf2f8' : '#ffffff',
-            borderWidth: 1,
-            borderColor: '#fce7f3',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 50,
-            elevation: 4,
-            shadowColor: '#ee237c',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-          })}
+          className="absolute right-4 top-1/2 -mt-4 w-8 h-8 rounded-full border border-pink-100 items-center justify-center z-50 elevation-2 bg-white"
+          style={({ pressed }) => ({ backgroundColor: pressed ? '#fce7f3' : '#ffffff', shadowColor: '#ee237c', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 })}
         >
           <Animated.View style={animatedSwapStyle}>
             <HugeiconsIcon icon={ArrowUpDownIcon} size={13} color="#ee237c" />
@@ -201,49 +144,21 @@ export function SearchForm({
         {/* Destination */}
         <Pressable
           onPress={onDestinationPress}
-          style={({ pressed }) => ({
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 16,
-            paddingVertical: 14,
-            backgroundColor: pressed ? '#f8fafc' : '#ffffff',
-            borderBottomLeftRadius: 20,
-            borderBottomRightRadius: 20,
-          })}
+          className="flex-row items-center px-4 py-3.5 rounded-b-[20px] bg-white"
+          style={({ pressed }) => ({ backgroundColor: pressed ? '#f8fafc' : '#ffffff' })}
         >
-          <View
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 17,
-              backgroundColor: '#f1f5f9',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 12,
-            }}
-          >
+          <View className="w-[34px] h-[34px] rounded-full bg-slate-100 items-center justify-center mr-3">
             <HugeiconsIcon icon={Location01Icon} size={15} color="#64748b" />
           </View>
-          <View style={{ flex: 1, paddingRight: 36 }}>
-            <Text
-              style={{
-                fontSize: 9,
-                fontWeight: '900',
-                color: '#94a3b8',
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                marginBottom: 2,
-              }}
-            >
+          <View className="flex-1 pr-9">
+            <Text className="text-[9px] font-black text-slate-400 tracking-[1.5px] uppercase mb-0.5">
               {t('goingTo')}
             </Text>
             <Text
               numberOfLines={1}
-              style={{
-                fontSize: 15,
-                fontWeight: destination ? '700' : '400',
-                color: destination ? '#0f172a' : '#94a3b8',
-              }}
+              className={`text-sm ${
+                destination ? 'font-bold text-slate-900' : 'font-normal text-slate-400'
+              }`}
             >
               {destination ? destination.text : t('toPlaceholder')}
             </Text>
@@ -252,83 +167,33 @@ export function SearchForm({
       </View>
 
       {/* ── Box 2 & Box 3: Date + PAX Row ── */}
-      <View style={{ flexDirection: 'row', gap: 10 }}>
+      <View className="flex-row gap-2.5">
         {/* Box 2: Calendar Box */}
         <Pressable
           onPress={() => setShowDatePicker(true)}
-          style={({ pressed }) => ({
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: pressed ? '#f8fafc' : '#ffffff',
-            borderWidth: 1,
-            borderColor: '#f1f5f9',
-            borderRadius: 20,
-            paddingHorizontal: 14,
-            paddingVertical: 12,
-          })}
+          className="flex-1 flex-row items-center border border-slate-100 rounded-[20px] px-3.5 py-3 bg-white"
+          style={({ pressed }) => ({ backgroundColor: pressed ? '#f8fafc' : '#ffffff' })}
         >
-          <View
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 10,
-              backgroundColor: '#fce7f3',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 10,
-            }}
-          >
+          <View className="w-8 h-8 rounded-xl bg-pink-50 items-center justify-center mr-2.5">
             <HugeiconsIcon icon={Calendar01Icon} size={15} color="#ee237c" />
           </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 9,
-                fontWeight: '900',
-                color: '#94a3b8',
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-              }}
-            >
-              Date
+          <View className="flex-1">
+            <Text className="text-[9px] font-black text-slate-400 tracking-[1.5px] uppercase">
+              {t('datePlaceholder')}
             </Text>
-            <Text
-              style={{ fontSize: 13, fontWeight: '700', color: '#0f172a' }}
-              numberOfLines={1}
-            >
+            <Text className="text-xs font-bold text-slate-900" numberOfLines={1}>
               {formattedDate}
             </Text>
           </View>
         </Pressable>
 
         {/* Box 3: Passenger Box */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: '#ffffff',
-            borderWidth: 1,
-            borderColor: '#f1f5f9',
-            borderRadius: 20,
-            paddingHorizontal: 10,
-            paddingVertical: 10,
-            gap: 8,
-          }}
-        >
+        <View className="flex-row items-center bg-white border border-slate-100 rounded-[20px] px-2.5 py-2.5 gap-2">
           <Pressable
             onPress={handleDecrease}
             disabled={passengers <= 1}
-            style={({ pressed }) => ({
-              width: 28,
-              height: 28,
-              borderRadius: 9,
-              backgroundColor: pressed ? '#f1f5f9' : '#f8fafc',
-              borderWidth: 1,
-              borderColor: '#f1f5f9',
-              alignItems: 'center',
-              justifyContent: 'center',
-            })}
+            className="w-7 h-7 rounded-lg border border-slate-100 items-center justify-center bg-slate-50"
+            style={({ pressed }) => ({ backgroundColor: pressed ? '#e2e8f0' : '#f8fafc' })}
           >
             <HugeiconsIcon
               icon={Remove01Icon}
@@ -337,30 +202,13 @@ export function SearchForm({
             />
           </Pressable>
 
-          <View style={{ alignItems: 'center' }}>
-            <Text
-              style={{
-                fontSize: 8,
-                fontWeight: '900',
-                color: '#94a3b8',
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                marginBottom: 1,
-              }}
-            >
-              PAX
+          <View className="items-center">
+            <Text className="text-[8px] font-black text-slate-400 tracking-widest uppercase mb-0.5">
+              {t('paxPlaceholder')}
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <View className="flex-row items-center gap-1">
               <HugeiconsIcon icon={UserGroupIcon} size={12} color="#ee237c" />
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '900',
-                  color: '#0f172a',
-                  minWidth: 14,
-                  textAlign: 'center',
-                }}
-              >
+              <Text className="text-sm font-black text-slate-900 min-w-[14px] text-center">
                 {passengers}
               </Text>
             </View>
@@ -368,22 +216,14 @@ export function SearchForm({
 
           <Pressable
             onPress={handleIncrease}
-            disabled={passengers >= 10}
-            style={({ pressed }) => ({
-              width: 28,
-              height: 28,
-              borderRadius: 9,
-              backgroundColor: pressed ? '#f1f5f9' : '#f8fafc',
-              borderWidth: 1,
-              borderColor: '#f1f5f9',
-              alignItems: 'center',
-              justifyContent: 'center',
-            })}
+            disabled={passengers >= 6}
+            className="w-7 h-7 rounded-lg border border-slate-100 items-center justify-center bg-slate-50"
+            style={({ pressed }) => ({ backgroundColor: pressed ? '#e2e8f0' : '#f8fafc' })}
           >
             <HugeiconsIcon
               icon={Add01Icon}
               size={11}
-              color={passengers < 10 ? '#0f172a' : '#cbd5e1'}
+              color={passengers < 6 ? '#0f172a' : '#cbd5e1'}
             />
           </Pressable>
         </View>

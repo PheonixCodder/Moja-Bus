@@ -31,6 +31,7 @@ export function SortSheet({
   const insets = useSafeAreaInsets();
 
   const options: { value: SortKey; label: string; icon: any }[] = [
+    { value: 'BEST', label: t('sortBest'), icon: Sorting01Icon },
     { value: 'CHEAPEST', label: t('sortCheapest'), icon: Money01Icon },
     { value: 'FASTEST', label: t('sortFastest'), icon: FastForwardIcon },
     { value: 'EARLIEST', label: t('sortEarliest'), icon: Clock01Icon },

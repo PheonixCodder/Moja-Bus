@@ -20,5 +20,42 @@ allprojects {
   }
 }
 
+subprojects {
+  // Redirect all subproject build dirs to android/build/<name>.
+  // Keeps codegen out of deep pnpm virtual-store paths (Windows MAX_PATH).
+  // NOTE: React Native autolinking still hardcodes <package>/android/build/...
+  // so Windows junctions must map those paths to the redirected buildDir
+  // (created by scripts/ensure-android-build-junctions.ps1 or manually).
+  def newBuildDir = file("${rootProject.layout.buildDirectory.get().asFile}/${project.name}")
+  project.buildDir = newBuildDir
+  layout.buildDirectory.set(newBuildDir)
+
+  afterEvaluate { subproject ->
+    if (subproject.hasProperty("android")) {
+      subproject.android {
+        defaultConfig {
+          externalNativeBuild {
+            cmake {
+              // -DBUILD_DIR overrides hardcoded set(BUILD_DIR ...) in
+              // reanimated/worklets so they find codegen at the redirected path.
+              def buildDirPath = subproject.buildDir.absolutePath.replace('\\', '/')
+              arguments "-DCMAKE_SUPPRESS_REGENERATION=ON",
+                        "-DBUILD_DIR=${buildDirPath}"
+            }
+          }
+        }
+        // Short hashed staging dir — needed because Ninja ignores
+        // CMAKE_OBJECT_PATH_MAX and deep object dirs exceed MAX_PATH.
+        def stageHash = Integer.toHexString(project.name.hashCode() & 0x7FFFFFFF).padLeft(8, '0')
+        externalNativeBuild {
+          cmake {
+            buildStagingDirectory "C:/b/${stageHash}"
+          }
+        }
+      }
+    }
+  }
+}
+
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"

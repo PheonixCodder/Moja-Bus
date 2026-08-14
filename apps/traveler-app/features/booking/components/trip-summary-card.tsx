@@ -4,6 +4,7 @@ import {
 	MoneyIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { formatDateWithWeekday, formatPriceXOF, formatTimeOnly } from "../lib/format-time";
@@ -35,6 +36,8 @@ export function TripSummaryCard({
 	amenities,
 	status,
 }: TripSummaryCardProps) {
+	const { t } = useTranslation("booking");
+
 	return (
 		<View className="bg-card border-border rounded-2xl border p-4 shadow-xs space-y-3">
 			<View className="flex-row items-center gap-3">
@@ -64,7 +67,7 @@ export function TripSummaryCard({
 					<Text className="text-primary font-bold text-xs mt-0.5">
 						{formatTimeOnly(departureTime)}
 					</Text>
-					<Text className="text-muted-foreground text-[10px]">
+					<Text className="text-muted-foreground text-xs">
 						{formatDateWithWeekday(departureTime)}
 					</Text>
 				</View>
@@ -72,7 +75,7 @@ export function TripSummaryCard({
 				<View className="items-center px-2">
 					<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ee237c" />
 					{duration ? (
-						<Text className="text-muted-foreground text-[10px] mt-1 font-medium">
+						<Text className="text-muted-foreground text-xs mt-1 font-medium">
 							{duration}
 						</Text>
 					) : null}
@@ -85,7 +88,7 @@ export function TripSummaryCard({
 					<Text className="text-primary font-bold text-xs mt-0.5 text-right">
 						{formatTimeOnly(arrivalTime)}
 					</Text>
-					<Text className="text-muted-foreground text-[10px] text-right">
+					<Text className="text-muted-foreground text-xs text-right">
 						{formatDateWithWeekday(arrivalTime)}
 					</Text>
 				</View>
@@ -97,7 +100,7 @@ export function TripSummaryCard({
 						<View className="flex-row items-center gap-1.5">
 							<HugeiconsIcon icon={AirplaneSeatIcon} size={14} color="#64748b" />
 							<Text className="text-foreground text-xs font-semibold">
-								Seat {seatLabel}
+								{t("seatSingle", { label: seatLabel })}
 							</Text>
 						</View>
 					) : null}

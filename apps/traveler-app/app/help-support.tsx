@@ -1,4 +1,4 @@
-import { HelpSupportView } from "@/features/settings/views/help-support-view";
+import { HelpSupportView } from "@/features/settings/screens/help-support";
 
 export default function HelpSupportScreen() {
 	return <HelpSupportView />;

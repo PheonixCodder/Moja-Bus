@@ -44,7 +44,7 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
         <View className="gap-3 py-2">
           {/* Quick amounts */}
           <View className="gap-2">
-            <Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Quick Amount</Text>
+            <Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Quick Amount</Text>
             <View className="flex-row gap-1">
               {PRESETS.map((amount) => {
                 const isSelected = topupAmount === amount.toString();
@@ -56,7 +56,7 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
                       isSelected ? "border-pink-500 bg-pink-50" : "border-slate-200"
                     }`}
                   >
-                    <Text className={`text-[11px] font-bold ${isSelected ? "text-pink-600" : "text-slate-800"}`}>
+                    <Text className={`text-sm font-bold ${isSelected ? "text-pink-600" : "text-slate-800"}`}>
                       +{amount.toLocaleString()}
                     </Text>
                   </Pressable>
@@ -67,7 +67,7 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
 
           {/* Custom amount */}
           <View className="gap-2">
-            <Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Custom Amount</Text>
+            <Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Custom Amount</Text>
             <View className="relative">
               <TextInput
                 value={topupAmount}

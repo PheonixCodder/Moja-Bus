@@ -11,6 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowRight01Icon, Tag01Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import type { PromoBanner } from "../types";
 import { H_PADDING } from "../constants";
 
@@ -23,46 +24,65 @@ interface PromoBannerCarouselProps {
   banners?: PromoBanner[];
 }
 
-const DEFAULT_BANNERS: PromoBanner[] = [
-  {
-    id: "default-1",
-    title: "15% OFF Weekend Getaway",
-    subtitle: "Travel from Abidjan to Yamoussoukro in luxury comfort",
-    badge: "15% OFF",
-    imageUrl: "https://cdn.mojaride.com/banners/yamoussoukro.jpg",
-    actionType: "SEARCH",
-    actionPayload: { originSlug: "abidjan", destinationSlug: "yamoussoukro" },
-    gradientColors: ["#ee237c", "#9333ea"],
-    isActive: true,
-    sortOrder: 0,
-  },
-  {
-    id: "default-2",
-    title: "VIP Express Buses Available",
-    subtitle: "Reclining seats & AC on San-Pédro routes",
-    badge: "VIP FLEET",
-    imageUrl: "https://cdn.mojaride.com/banners/sanpedro.jpg",
-    actionType: "SEARCH",
-    actionPayload: { originSlug: "abidjan", destinationSlug: "san-pedro" },
-    gradientColors: ["#0f172a", "#ee237c"],
-    isActive: true,
-    sortOrder: 1,
-  },
-];
-
 export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
+  const { t } = useTranslation("home");
+
+  const defaultBanners: PromoBanner[] = [
+    {
+      id: "default-1",
+      title: t("weekendGetaway"),
+      subtitle: t("weekendGetawayDesc"),
+      badge: "15% OFF",
+      imageUrl: "https://cdn.mojaride.com/banners/yamoussoukro.jpg",
+      actionType: "SEARCH",
+      actionPayload: {
+        from: "Abidjan",
+        fromText: "Abidjan (All Hubs)",
+        to: "Yamoussoukro",
+        toText: "Yamoussoukro",
+      },
+      gradientColors: ["#ee237c", "#9333ea"],
+      isActive: true,
+      sortOrder: 0,
+    },
+    {
+      id: "default-2",
+      title: t("vipExpressTitle"),
+      subtitle: t("vipExpressDesc"),
+      badge: "VIP FLEET",
+      imageUrl: "https://cdn.mojaride.com/banners/sanpedro.jpg",
+      actionType: "SEARCH",
+      actionPayload: {
+        from: "Abidjan",
+        fromText: "Abidjan (All Hubs)",
+        to: "San-Pédro",
+        toText: "San-Pédro",
+      },
+      gradientColors: ["#0f172a", "#ee237c"],
+      isActive: true,
+      sortOrder: 1,
+    },
+  ];
+
   const displayBanners =
-    banners && banners.length > 0 ? banners : DEFAULT_BANNERS;
+    banners && banners.length > 0 ? banners : defaultBanners;
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleBannerPress = (banner: PromoBanner) => {
     if (banner.actionType === "SEARCH") {
       const payload = banner.actionPayload || {};
+      const from = payload.from || payload.originSlug || payload.origin || "";
+      const to = payload.to || payload.destinationSlug || payload.destination || "";
+      const fromText = payload.fromText || from;
+      const toText = payload.toText || to;
+
       router.push({
         pathname: "/(tabs)/search",
         params: {
-          origin: payload.originSlug,
-          destination: payload.destinationSlug,
+          from,
+          fromText,
+          to,
+          toText,
         },
       });
     } else if (banner.actionType === "APP_SCREEN") {
@@ -89,9 +109,9 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
 
   return (
     <View className="gap-3">
-      {/* Section Label — no emoji */}
+      {/* Section Label */}
       <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-        Promotions & Offers
+        {t("homeSearch.promotionsTitle", { ns: "search" })}
       </Text>
 
       <FlatList
@@ -171,7 +191,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
       {/* Paging Dots */}
       {displayBanners.length > 1 && (
         <View className="flex-row justify-center items-center gap-1.5">
-          {displayBanners.map((_, i) => (
+          {displayBanners.map((_: any, i: number) => (
             <View
               key={i}
               className={`will-change-animation h-1.5 rounded-full ${

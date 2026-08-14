@@ -1,4 +1,3 @@
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 
@@ -21,36 +20,14 @@ export function AmenitiesList({ amenities }: AmenitiesListProps) {
 	if (amenities.length === 0) return null;
 
 	return (
-		<View
-			style={{
-				flexDirection: "row",
-				flexWrap: "wrap",
-				gap: Spacing.two,
-			}}
-		>
+		<View className="flex-row flex-wrap gap-2">
 			{amenities.map((amenity) => (
 				<View
 					key={amenity}
-					style={{
-						paddingHorizontal: Spacing.two,
-						paddingVertical: Spacing.one,
-						borderRadius: 8,
-						backgroundColor: Colors.light.backgroundElement,
-						borderWidth: 1,
-						borderColor: Colors.light.backgroundSelected,
-						flexDirection: "row",
-						alignItems: "center",
-						gap: 4,
-					}}
+					className="px-2 py-1 rounded-lg bg-slate-100 border border-slate-200 flex-row items-center gap-1"
 				>
-					<Text style={{ fontSize: 14 }}>{AMENITY_ICONS[amenity]}</Text>
-					<Text
-						style={{
-							fontSize: 11,
-							fontWeight: "600",
-							color: Colors.light.textSecondary,
-						}}
-					>
+					<Text className="text-xs">{AMENITY_ICONS[amenity]}</Text>
+					<Text className="text-sm font-semibold text-slate-500">
 						{amenity}
 					</Text>
 				</View>

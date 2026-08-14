@@ -27,26 +27,34 @@ export function SeatSelectionSheet({
   const insets = useSafeAreaInsets();
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
 
-  // Reset selection whenever a new offer is shown
   React.useEffect(() => {
     setSelectedSeatIds([]);
   }, [offer?.id]);
 
-  const { data: availability, isLoading } = useSeatAvailability(offer?.id ?? '');
+  const {
+    data: availability,
+    isLoading,
+    isError,
+    refetch,
+  } = useSeatAvailability(offer?.id ?? '');
 
   if (!offer) return null;
 
-  // Map API seats → PassengerSeatMap shape
   const seats = (availability?.seats ?? []).map((s) => ({
     id: s.seatId,
     label: s.label,
     row: s.row,
     col: s.col,
+    seatType: s.seatType,
     status: s.status as 'AVAILABLE' | 'SOLD' | 'HELD' | 'BLOCKED' | 'DRIVER' | 'EMPTY',
   }));
 
   const rows = availability?.rows ?? 5;
   const columns = availability?.columns ?? 4;
+  const availableCount = seats.filter((s) => s.status === 'AVAILABLE').length;
+  const isSoldOut =
+    offer.availability === 'SOLD_OUT' ||
+    (!isLoading && !isError && availableCount === 0);
 
   const handleToggleSeat = (seatId: string) => {
     if (selectedSeatIds.includes(seatId)) {
@@ -79,7 +87,6 @@ export function SeatSelectionSheet({
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-slate-50" style={{ paddingTop: Math.max(insets.top, 12) }}>
-        {/* Header */}
         <View className="flex-row items-center justify-between p-4 bg-white border-b border-slate-100">
           <View className="flex-row items-center gap-2">
             <View className="w-8 h-8 rounded-full bg-pink-50 border border-pink-200 items-center justify-center">
@@ -97,7 +104,6 @@ export function SeatSelectionSheet({
           className="flex-1"
           contentContainerStyle={{ padding: 16, paddingBottom: 130 }}
         >
-          {/* Journey Overview Card */}
           <View className="mb-4">
             <TripSummaryCard
               companyName={offer.operatorName}
@@ -110,7 +116,6 @@ export function SeatSelectionSheet({
             />
           </View>
 
-          {/* Seat selection counter bar */}
           <View className="flex-row items-center justify-between bg-white border border-slate-200 rounded-2xl p-4 mb-4 shadow-xs">
             <Text className="text-sm font-extrabold text-slate-900">
               Select {passengers} Seat{passengers > 1 ? 's' : ''}
@@ -122,12 +127,32 @@ export function SeatSelectionSheet({
             </View>
           </View>
 
-          {/* Interactive Bus Seat Map Container */}
           <View className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
             {isLoading ? (
               <View className="py-12 items-center justify-center gap-3">
                 <ActivityIndicator size="large" color="#ee237c" />
                 <Text className="text-slate-500 text-sm font-bold">{t('loading')}</Text>
+              </View>
+            ) : isError ? (
+              <View className="py-12 items-center justify-center gap-3">
+                <Text className="text-slate-700 text-sm font-bold text-center">
+                  {t('seatLoadError')}
+                </Text>
+                <Pressable
+                  onPress={() => refetch()}
+                  className="bg-[#ee237c] px-4 py-2.5 rounded-xl"
+                >
+                  <Text className="text-white font-bold text-xs">{t('retry', 'Retry')}</Text>
+                </Pressable>
+              </View>
+            ) : isSoldOut ? (
+              <View className="py-12 items-center justify-center gap-2">
+                <Text className="text-slate-800 text-base font-black text-center">
+                  {t('soldOutTrip')}
+                </Text>
+                <Text className="text-slate-500 text-sm font-semibold text-center">
+                  {t('soldOut')}
+                </Text>
               </View>
             ) : (
               <PassengerSeatMap
@@ -141,16 +166,21 @@ export function SeatSelectionSheet({
           </View>
         </ScrollView>
 
-        {/* Sticky Action Footer */}
         <View
           className="absolute left-4 right-4 bg-white p-3 border-t border-slate-100 rounded-t-2xl shadow-lg"
           style={{ bottom: Math.max(insets.bottom, 16) }}
         >
           <Pressable
             onPress={handleContinue}
-            disabled={selectedSeatIds.length !== passengers || isLoading}
+            disabled={
+              selectedSeatIds.length !== passengers || isLoading || isError || isSoldOut
+            }
             style={({ pressed }) => {
-              const isEnabled = selectedSeatIds.length === passengers && !isLoading;
+              const isEnabled =
+                selectedSeatIds.length === passengers &&
+                !isLoading &&
+                !isError &&
+                !isSoldOut;
               return {
                 backgroundColor: !isEnabled
                   ? '#cbd5e1'

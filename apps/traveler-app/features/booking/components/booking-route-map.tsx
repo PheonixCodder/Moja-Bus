@@ -1,4 +1,4 @@
-import { Colors, Spacing } from "@moja/theme/tokens";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 
@@ -17,125 +17,40 @@ export function BookingRouteMap({
   destination,
   stops,
 }: BookingRouteMapProps) {
+  const { t } = useTranslation("booking");
+
   return (
-    <View
-      style={{
-        backgroundColor: Colors.light.background,
-        borderRadius: 16,
-        padding: Spacing.four,
-        borderWidth: 1,
-        borderColor: Colors.light.backgroundSelected,
-        gap: Spacing.three,
-      }}
-    >
-      <Text
-        style={{
-          fontSize: 11,
-          fontWeight: "700",
-          color: Colors.light.textSecondary,
-          letterSpacing: 0.5,
-          textTransform: "uppercase",
-        }}
-      >
-        Route
+    <View className="bg-white rounded-2xl p-4 border border-slate-200 gap-3">
+      <Text className="text-sm font-bold text-muted-foreground tracking-wider uppercase">
+        {t("route")}
       </Text>
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-          gap: Spacing.three,
-        }}
-      >
-        <View
-          style={{
-            alignItems: "center",
-            width: 32,
-          }}
-        >
-          <View
-            style={{
-              width: 16,
-              height: 16,
-              borderRadius: 8,
-              backgroundColor: "#10b981",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: "#fff",
-              }}
-            />
+      <View className="flex-row items-start gap-3">
+        <View className="items-center w-8">
+          <View className="w-4 h-4 rounded-full bg-emerald-500 items-center justify-center">
+            <View className="w-1.5 h-1.5 rounded-full bg-white" />
           </View>
-          <View
-            style={{
-              width: 2,
-              flex: 1,
-              backgroundColor: Colors.light.backgroundSelected,
-              marginTop: 4,
-            }}
-          />
+          <View className="w-0.5 flex-1 bg-slate-200 mt-1" />
           {stops && stops.length > 0 ? (
             stops.slice(0, -1).map((_, i) => (
               <View
                 key={`stop-dot-${i}`}
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 3,
-                  backgroundColor: Colors.light.backgroundSelected,
-                  marginTop: 4,
-                  marginLeft: 5,
-                }}
+                className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1 ml-1"
               />
             ))
           ) : null}
-          <View
-            style={{
-              width: 16,
-              height: 16,
-              borderRadius: 8,
-              backgroundColor: "#ef4444",
-              alignItems: "center",
-              justifyContent: "center",
-              marginTop: 4,
-            }}
-          >
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: "#fff",
-              }}
-            />
+          <View className="w-4 h-4 rounded-full bg-red-500 items-center justify-center mt-1">
+            <View className="w-1.5 h-1.5 rounded-full bg-white" />
           </View>
         </View>
 
-        <View style={{ flex: 1, gap: Spacing.two }}>
+        <View className="flex-1 gap-2">
           <View>
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "700",
-                color: Colors.light.text,
-              }}
-            >
+            <Text className="text-sm font-bold text-foreground">
               {origin}
             </Text>
-            <Text
-              style={{
-                fontSize: 11,
-                color: Colors.light.textSecondary,
-                marginTop: 1,
-              }}
-            >
-              Pickup
+            <Text className="text-xs text-muted-foreground mt-0.5">
+              {t("pickup")}
             </Text>
           </View>
 
@@ -143,27 +58,12 @@ export function BookingRouteMap({
             stops.map((stop) => (
               <View
                 key={`stop-${stop.stopOrder}`}
-                style={{
-                  paddingLeft: Spacing.two,
-                  borderLeftWidth: 2,
-                  borderLeftColor: Colors.light.backgroundSelected,
-                }}
+                className="pl-2 border-l-2 border-slate-200"
               >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "500",
-                    color: Colors.light.text,
-                  }}
-                >
+                <Text className="text-xs font-medium text-foreground">
                   {stop.terminalName}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    color: Colors.light.textSecondary,
-                  }}
-                >
+                <Text className="text-xs text-muted-foreground">
                   {stop.cityName}
                 </Text>
               </View>
@@ -171,23 +71,11 @@ export function BookingRouteMap({
           ) : null}
 
           <View>
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "700",
-                color: Colors.light.text,
-              }}
-            >
+            <Text className="text-sm font-bold text-foreground">
               {destination}
             </Text>
-            <Text
-              style={{
-                fontSize: 11,
-                color: Colors.light.textSecondary,
-                marginTop: 1,
-              }}
-            >
-              Drop-off
+            <Text className="text-xs text-muted-foreground mt-0.5">
+              {t("dropOff")}
             </Text>
           </View>
         </View>

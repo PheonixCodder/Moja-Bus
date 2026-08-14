@@ -129,7 +129,7 @@ export function PassengerFormSheet({
 							>
 								{/* Full Name */}
 								<View className="gap-1">
-									<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Full Name *</Text>
+									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Full Name *</Text>
 									<TextInput
 										value={form.fullName}
 										onChangeText={(val) => setForm((f) => ({ ...f, fullName: val }))}
@@ -141,7 +141,7 @@ export function PassengerFormSheet({
 
 								{/* Phone */}
 								<View className="gap-1">
-									<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Phone Number *</Text>
+									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Phone Number *</Text>
 									<PhoneInput
 										value={form.phone}
 										onChangePhoneNumber={(val: string) => setForm((f) => ({ ...f, phone: val }))}
@@ -153,7 +153,7 @@ export function PassengerFormSheet({
 
 								{/* ID Type */}
 								<View className="gap-1">
-									<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Identity Document Type (Optional)</Text>
+									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Identity Document Type (Optional)</Text>
 									<View className="flex-row gap-2">
 										{[
 											{ key: "national_id", label: "National ID" },
@@ -169,7 +169,7 @@ export function PassengerFormSheet({
 														isSelected ? "border-pink-500 bg-pink-50" : "border-slate-200 bg-slate-50"
 													}`}
 												>
-													<Text className={`will-change-variable text-[11px] ${isSelected ? "font-bold text-pink-600" : "font-medium text-slate-700"}`}>
+													<Text className={`will-change-variable text-sm ${isSelected ? "font-bold text-pink-600" : "font-medium text-slate-700"}`}>
 														{item.label}
 													</Text>
 												</Pressable>
@@ -180,7 +180,7 @@ export function PassengerFormSheet({
 
 								{/* ID Number */}
 								<View className="gap-1">
-									<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Document / ID Number (Optional)</Text>
+									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Document / ID Number (Optional)</Text>
 									<TextInput
 										value={form.idNumber}
 										onChangeText={(val) => setForm((f) => ({ ...f, idNumber: val }))}
@@ -193,7 +193,7 @@ export function PassengerFormSheet({
 
 								{/* Email */}
 								<View className="gap-1">
-									<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Email (Optional)</Text>
+									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Email (Optional)</Text>
 									<TextInput
 										value={form.email}
 										onChangeText={(val) => setForm((f) => ({ ...f, email: val }))}
@@ -207,7 +207,7 @@ export function PassengerFormSheet({
 
 								{/* Label */}
 								<View className="gap-1">
-									<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Relationship Label (Optional)</Text>
+									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Relationship Label (Optional)</Text>
 									<TextInput
 										value={form.label}
 										onChangeText={(val) => setForm((f) => ({ ...f, label: val }))}

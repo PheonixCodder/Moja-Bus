@@ -1,5 +1,7 @@
 {
   "notifications": "Notifications",
   "noNotifications": "Aucune notification",
-  "allCaughtUp": "Tout est à jour ! Nous vous préviendrons quand quelque chose arrivera."
+  "allCaughtUp": "Tout est à jour ! Nous vous préviendrons quand quelque chose arrivera.",
+  "markAllRead": "Tout marquer lu",
+  "unreadCount": "{{count}} non lues"
 }

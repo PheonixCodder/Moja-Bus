@@ -58,7 +58,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 		<View className="gap-4">
 			{/* Full Name */}
 			<View className="gap-1">
-				<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Full Name</Text>
+				<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-1">Full Name</Text>
 				<TextInput
 					value={initialData.fullName}
 					onChangeText={(val) => onChange({ ...initialData, fullName: val })}
@@ -71,7 +71,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 
 			{/* Email (read-only) */}
 			<View className="gap-1">
-				<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Email Address</Text>
+				<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-1">Email Address</Text>
 				<View className="bg-slate-50 rounded-xl border border-slate-200 px-4 py-2.5 flex-row items-center opacity-60">
 					<TextInput
 						value={email}
@@ -79,12 +79,12 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 						className="flex-1 text-sm font-semibold text-slate-900"
 					/>
 				</View>
-				<Text className="text-[10px] text-slate-400 mt-0.5">Registered email address cannot be changed.</Text>
+				<Text className="text-xs text-slate-400 mt-0.5">Registered email address cannot be changed.</Text>
 			</View>
 
 			{/* Phone */}
 			<View className="gap-1">
-				<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Phone Number (International Format)</Text>
+				<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-1">Phone Number (International Format)</Text>
 				<TextInput
 					value={initialData.phone}
 					onChangeText={(val) => onChange({ ...initialData, phone: val })}
@@ -97,7 +97,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 
 			{/* Date of Birth */}
 			<View className="gap-1">
-				<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Date of Birth</Text>
+				<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-1">Date of Birth</Text>
 				<Pressable
 					onPress={openDatePicker}
 					className="bg-slate-50 rounded-xl border border-slate-200 px-4 py-2.5"
@@ -123,13 +123,13 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 			<View className="h-[0.5px] bg-slate-100 my-2" />
 
 			{/* Travel Preferences Section */}
-			<Text className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+			<Text className="text-sm font-bold text-slate-400 tracking-wider uppercase">
 				Travel & Seat Preferences
 			</Text>
 
 			{/* Seat Preference */}
 			<View className="gap-1">
-				<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Preferred Seat Location</Text>
+				<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-1">Preferred Seat Location</Text>
 				<View className="flex-row gap-2">
 					{(["WINDOW", "AISLE", "NONE"] as const).map((seat) => {
 						const isSelected = initialData.preferredSeat === seat;
@@ -154,7 +154,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 
 			{/* Class Preference */}
 			<View className="gap-1">
-				<Text className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Preferred Travel Class</Text>
+				<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-1">Preferred Travel Class</Text>
 				<View className="flex-row gap-2">
 					{(["ECONOMY", "STANDARD", "VIP"] as const).map((cls) => {
 						const isSelected = initialData.preferredClass === cls;
@@ -181,7 +181,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 			<View className="flex-row items-center justify-between bg-slate-50 rounded-2xl px-4 py-3 border border-slate-200 mt-1">
 				<View className="flex-1 pr-3">
 					<Text className="text-sm font-semibold text-slate-900">Promotional Updates & Deals</Text>
-					<Text className="text-[11px] text-slate-500 mt-0.5">Receive special route discounts & loyalty vouchers</Text>
+					<Text className="text-sm text-slate-500 mt-0.5">Receive special route discounts & loyalty vouchers</Text>
 				</View>
 				<Switch
 					value={initialData.marketingOptIn}

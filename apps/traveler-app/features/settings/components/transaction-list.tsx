@@ -48,7 +48,7 @@ export function TransactionList({ data, total, page, pageSize, isLoadingMore, on
   if (isEmpty) {
     return (
       <View className="items-center py-6">
-        <Text className="text-[15px] text-slate-500">No transactions yet</Text>
+        <Text className="text-base text-slate-500">No transactions yet</Text>
         <Pressable onPress={onRefresh} className="mt-2">
           <Text className="text-sm font-semibold text-pink-600">Top Up</Text>
         </Pressable>
@@ -88,14 +88,14 @@ export function TransactionList({ data, total, page, pageSize, isLoadingMore, on
           </View>
 
           <View className="flex-1">
-            <Text className="text-[15px] font-medium text-slate-800">
+            <Text className="text-base font-medium text-slate-800">
               {item.description ?? "Transaction"}
             </Text>
             <Text className="text-xs text-slate-400 mt-0.5">{formatDate(item.effectiveAt)}</Text>
           </View>
 
           <Text
-            className={`text-[15px] font-semibold ${
+            className={`text-base font-semibold ${
               item.side === "CREDIT" ? "text-green-500" : "text-red-500"
             }`}
           >

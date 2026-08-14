@@ -449,7 +449,17 @@ export const passengerRouter = createTRPCRouter({
   getUserReviews: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.review.findMany({
       where: { authorId: ctx.user.id },
-      select: { bookingId: true, rating: true, content: true },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        bookingId: true,
+        rating: true,
+        content: true,
+        response: true,
+        respondedAt: true,
+        createdAt: true,
+        company: { select: { id: true, name: true } },
+      },
     });
   }),
 

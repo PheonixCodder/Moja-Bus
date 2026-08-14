@@ -18,9 +18,26 @@ interface TrpcMutation<TInput, TOutput> {
 }
 
 type PassengerRouter = {
-	getUserReviews: TrpcQuery<void, { items: unknown[]; total: number }>;
+	getUserReviews: TrpcQuery<
+		void,
+		{
+			id: string;
+			bookingId: string | null;
+			rating: number;
+			content: string | null;
+			response: string | null;
+			respondedAt: Date | null;
+			createdAt: Date;
+			company: { id: string; name: string };
+		}[]
+	>;
 	submitReview: TrpcMutation<
-		{ bookingId: string; rating: number; content?: string },
+		{
+			companyId: string;
+			bookingId: string;
+			rating: number;
+			content?: string | null;
+		},
 		unknown
 	>;
 };

@@ -19,13 +19,17 @@ const BookingCtx = createContext<BookingContextValue | null>(null);
 
 export function BookingProvider({
   passengerCount,
+  initialSelectedSeatIds = [],
   children,
 }: {
   passengerCount: number;
+  initialSelectedSeatIds?: string[];
   children: ReactNode;
 }) {
   const [step, setStep] = useState<BookingStep>("seats");
-  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
+  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>(() =>
+    initialSelectedSeatIds.slice(0, passengerCount),
+  );
   const [priceAccepted, setPriceAccepted] = useState(false);
 
   function toggleSeat(seatId: string) {
@@ -39,10 +43,14 @@ export function BookingProvider({
   return (
     <BookingCtx.Provider
       value={{
-        step, setStep,
-        selectedSeatIds, toggleSeat, clearSeats: () => setSelectedSeatIds([]),
+        step,
+        setStep,
+        selectedSeatIds,
+        toggleSeat,
+        clearSeats: () => setSelectedSeatIds([]),
         passengerCount,
-        priceAccepted, setPriceAccepted,
+        priceAccepted,
+        setPriceAccepted,
       }}
     >
       {children}

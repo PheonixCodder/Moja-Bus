@@ -1,5 +1,6 @@
 import "@/global.css";
-// import "@/lib/i18n";
+import "@/lib/i18n";
+import Toast from "react-native-toast-message";
 
 import { NovuProvider } from "@novu/react-native";
 import { PortalHost } from "@rn-primitives/portal";
@@ -9,6 +10,7 @@ import { DefaultTheme, router, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { PostHogProvider as PHProvider } from "posthog-react-native";
 import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useLoadFonts } from "@/hooks/use-load-fonts";
 import { usePushToken } from "@/hooks/use-push-token";
 import { authClient } from "@/lib/auth-client";
@@ -63,7 +65,10 @@ function AuthenticatedNovuProvider({
 		enabled: !!session?.user,
 	});
 
-	if (isPending) return null;
+	// Never block the tree while session is loading — that leaves screens empty.
+	if (isPending) {
+		return <>{children}</>;
+	}
 
 	const isAuthed = !!session?.user && !!token?.subscriberId && !!token?.appId;
 
@@ -181,30 +186,34 @@ export default function RootLayout() {
 	}
 
 	return (
-		<PHProvider client={posthog ?? undefined}>
-			<TRPCReactProvider>
-				<AuthenticatedNovuProvider>
-					<ThemeProvider value={LightTheme}>
-						<StatusBar style="dark" />
-						<Stack
-							screenOptions={{
-								headerShown: false,
-								animation: "slide_from_right",
-							}}
-						>
-							<Stack.Screen name="(tabs)" />
-							<Stack.Screen
-								name="article/[slug]"
-								options={{
-									presentation: "modal",
-									animation: "slide_from_bottom",
+		<SafeAreaProvider>
+			<PHProvider client={posthog ?? undefined}>
+				<TRPCReactProvider>
+					<AuthenticatedNovuProvider>
+						<ThemeProvider value={LightTheme}>
+							<StatusBar style="dark" />
+							<Stack
+								screenOptions={{
+									headerShown: false,
+									animation: "slide_from_right",
+									contentStyle: { flex: 1, backgroundColor: "#ffffff" },
 								}}
-							/>
-						</Stack>
-						<PortalHost />
-					</ThemeProvider>
-				</AuthenticatedNovuProvider>
-			</TRPCReactProvider>
-		</PHProvider>
+							>
+								<Stack.Screen name="(tabs)" />
+								<Stack.Screen
+									name="article/[slug]"
+									options={{
+										presentation: "modal",
+										animation: "slide_from_bottom",
+									}}
+								/>
+							</Stack>
+							<Toast />
+							<PortalHost />
+						</ThemeProvider>
+					</AuthenticatedNovuProvider>
+				</TRPCReactProvider>
+			</PHProvider>
+		</SafeAreaProvider>
 	);
 }

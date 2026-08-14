@@ -56,35 +56,14 @@ function BellWithCount() {
 	return (
 		<Pressable
 			onPress={() => router.push("/notifications")}
-			style={({ pressed }) => ({
-				opacity: pressed ? 0.7 : 1,
-				marginTop: 4,
-			})}
+			className="mt-1"
+			style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
 		>
 			<View>
 				<HugeiconsIcon icon={Notification03Icon} size={24} color="#a3a3a3" />
 				{unread > 0 && (
-					<View
-						style={{
-							position: "absolute",
-							top: -4,
-							right: -6,
-							minWidth: 18,
-							height: 18,
-							borderRadius: 9,
-							backgroundColor: "#ef4444",
-							alignItems: "center",
-							justifyContent: "center",
-							paddingHorizontal: 4,
-						}}
-					>
-						<Text
-							style={{
-								fontSize: 10,
-								fontWeight: "700",
-								color: "#ffffff",
-							}}
-						>
+					<View className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-red-500 items-center justify-center px-1">
+						<Text className="text-xs font-bold text-white">
 							{unread > 99 ? "99+" : unread}
 						</Text>
 					</View>

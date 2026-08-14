@@ -17,7 +17,7 @@ export function TicketEmptyState() {
 				{t("noTickets")}
 			</Text>
 			<Text className="text-xs text-muted-foreground text-center max-w-[260px] leading-relaxed mb-6">
-				Confirmed trips with digital tickets will appear here for fast boarding.
+				{t("ticketEmptySubtitle")}
 			</Text>
 			<Pressable
 				onPress={() => router.push("/(tabs)/bookings" as any)}
@@ -25,7 +25,7 @@ export function TicketEmptyState() {
 				style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
 			>
 				<HugeiconsIcon icon={Calendar01Icon} size={16} color="#ffffff" />
-				<Text className="text-xs font-bold text-white">View Bookings</Text>
+				<Text className="text-xs font-bold text-white">{t("myBookings")}</Text>
 			</Pressable>
 		</View>
 	);

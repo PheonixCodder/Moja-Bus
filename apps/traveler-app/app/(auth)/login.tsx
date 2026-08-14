@@ -1,5 +1,11 @@
-import LoginView from "@/features/auth/views/login-view";
+import { View } from "react-native";
+
+import LoginView from "@/features/auth/screens/login";
 
 export default function LoginScreen() {
-	return <LoginView />;
+	return (
+		<View style={{ flex: 1 }}>
+			<LoginView />
+		</View>
+	);
 }

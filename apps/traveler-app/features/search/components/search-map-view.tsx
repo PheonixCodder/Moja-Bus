@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { useRef, useMemo, useEffect } from 'react';
+import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 interface SearchMapViewProps {
@@ -174,12 +174,12 @@ export function SearchMapView({ originName, destinationName }: SearchMapViewProp
   }, [originCoords, destCoords, originName, destinationName]);
 
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View className="absolute inset-0">
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
         source={{ html: mapHtml }}
-        style={{ flex: 1, backgroundColor: '#f8fafc' }}
+        className="flex-1 bg-slate-50"
         scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}

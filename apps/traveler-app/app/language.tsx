@@ -6,7 +6,6 @@ import i18n from '@/lib/i18n';
 import { SubpageHeader } from '@/components/subpage-header';
 import { Text } from '@/components/ui/text';
 import { BottomTabInset } from '@/constants/theme';
-import { Colors, Spacing } from '@moja/theme/tokens';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LANGUAGES = [
@@ -37,23 +36,13 @@ export default function LanguageScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: Colors.light.background }}
+      className="flex-1 bg-white"
       contentContainerStyle={{ paddingBottom: BottomTabInset + insets.bottom + 24 }}
     >
       <SubpageHeader title={t('language')} />
 
-      <View style={{ paddingHorizontal: Spacing.four, paddingTop: Spacing.two, gap: Spacing.three }}>
-        <Text
-          style={{
-            fontSize: 11,
-            fontWeight: '600',
-            color: Colors.light.textSecondary,
-            letterSpacing: 0.8,
-            textTransform: 'uppercase',
-            marginBottom: Spacing.two,
-            paddingHorizontal: Spacing.four,
-          }}
-        >
+      <View className="px-4 pt-2 gap-3">
+        <Text className="text-sm font-semibold text-slate-400 tracking-[0.8px] uppercase mb-2 px-4">
           {t('currentLanguage')}
         </Text>
 
@@ -63,32 +52,24 @@ export default function LanguageScreen() {
             <Pressable
               key={lang.code}
               onPress={() => handleSwitchLocale(lang.code)}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingVertical: Spacing.four,
-                paddingHorizontal: Spacing.four,
-                opacity: pressed ? 0.6 : 1,
-                backgroundColor: isActive ? 'rgba(238, 35, 124, 0.06)' : Colors.light.background,
-                borderRadius: 12,
-                borderWidth: isActive ? 1 : 0,
-                borderColor: isActive ? Colors.light.primary : 'transparent',
-              })}
+              className={`flex-row items-center py-4 px-4 rounded-xl border ${
+                isActive
+                  ? 'bg-pink-50 border-[#ee237c]'
+                  : 'bg-white border-transparent'
+              }`}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
               <Text
-                style={{
-                  flex: 1,
-                  fontSize: 15,
-                  fontWeight: isActive ? '700' : '500',
-                  color: isActive ? Colors.light.primary : Colors.light.text,
-                }}
+                className={`flex-1 text-base ${
+                  isActive ? 'font-bold text-[#ee237c]' : 'font-medium text-slate-900'
+                }`}
               >
                 {t(lang.labelKey as any)}
               </Text>
 
               {isActive ? (
-                <Text style={{ fontSize: 13, fontWeight: '600', color: Colors.light.primary }}>
-                  Active
+                <Text className="text-sm font-semibold text-[#ee237c]">
+                  {t('active')}
                 </Text>
               ) : null}
             </Pressable>

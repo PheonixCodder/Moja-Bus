@@ -1,10 +1,15 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 
 export interface UserReviewDTO {
-	bookingId: string;
+	id: string;
+	bookingId: string | null;
 	rating: number;
 	content: string | null;
+	response: string | null;
+	respondedAt: Date | string | null;
+	createdAt: Date | string;
+	company: { id: string; name: string };
 }
 
 export interface SubmitReviewInput {
@@ -46,5 +51,11 @@ export function useUserReviews(enabled?: boolean) {
 
 export function useSubmitReview() {
 	const trpc = useTRPC() as unknown as TypedTRPC;
-	return useMutation(trpc.passenger.submitReview.mutationOptions());
+	const queryClient = useQueryClient();
+	return useMutation({
+		...trpc.passenger.submitReview.mutationOptions(),
+		onSuccess: () => {
+			queryClient.invalidateQueries();
+		},
+	});
 }

@@ -1,4 +1,4 @@
-import { TermsPrivacyView } from "@/features/settings/views/terms-privacy-view";
+import { TermsPrivacyView } from "@/features/settings/screens/terms-privacy";
 
 export default function TermsPrivacyScreen() {
 	return <TermsPrivacyView />;

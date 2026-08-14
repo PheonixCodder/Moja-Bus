@@ -70,7 +70,7 @@ export function PassengerCard({
 				{/* Name & metadata */}
 				<View className="flex-1 gap-0.5">
 					<View className="flex-row items-center gap-1">
-						<Text className="text-[15px] font-bold text-slate-900 flex-shrink" numberOfLines={1}>
+						<Text className="text-base font-bold text-slate-900 flex-shrink" numberOfLines={1}>
 							{passenger.fullName}
 						</Text>
 						{passenger.isSelf && (
@@ -85,7 +85,7 @@ export function PassengerCard({
 									backgroundColor: "rgba(251, 207, 232, 0.3)",
 								}}
 							>
-								<Text className="text-[8px] font-black text-pink-600 tracking-wide uppercase">Me</Text>
+								<Text className="text-xs font-black text-pink-600 tracking-wide uppercase">Me</Text>
 							</Badge>
 						)}
 					</View>
@@ -94,14 +94,14 @@ export function PassengerCard({
 						{passenger.label ? (
 							<View className="flex-row items-center self-start gap-[3px] px-1.5 py-0.5 rounded bg-slate-100">
 								<HugeiconsIcon icon={Tag01Icon} size={9} color="#94a3b8" />
-								<Text className="text-[9px] font-bold text-slate-500">{passenger.label}</Text>
+								<Text className="text-xs font-bold text-slate-500">{passenger.label}</Text>
 							</View>
 						) : null}
 
 						{passenger.idNumber ? (
 							<View className="flex-row items-center self-start gap-[3px] px-1.5 py-0.5 rounded bg-pink-50">
 								<HugeiconsIcon icon={LegalDocument01Icon} size={9} color="#ee237c" />
-								<Text className="text-[9px] font-bold text-pink-600">
+								<Text className="text-xs font-bold text-pink-600">
 									{getIdTypeLabel(passenger.idType)}: {passenger.idNumber}
 								</Text>
 							</View>

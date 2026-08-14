@@ -22,12 +22,13 @@ import {
   Ticket01Icon,
   Settings01Icon,
 } from "@hugeicons/core-free-icons";
+import { useTranslation } from "react-i18next";
 
-const iconMap: Record<string, { icon: typeof Home01Icon; label: string }> = {
-  index: { icon: Home01Icon, label: "Home" },
-  bookings: { icon: Calendar01Icon, label: "Bookings" },
-  tickets: { icon: Ticket01Icon, label: "Tickets" },
-  settings: { icon: Settings01Icon, label: "Settings" },
+const iconMap: Record<string, { icon: typeof Home01Icon; labelKey: string }> = {
+  index: { icon: Home01Icon, labelKey: "home" },
+  bookings: { icon: Calendar01Icon, labelKey: "bookings" },
+  tickets: { icon: Ticket01Icon, labelKey: "tickets" },
+  settings: { icon: Settings01Icon, labelKey: "settings" },
 };
 
 const CR = 24;
@@ -66,11 +67,12 @@ function TabItem({
   onPress,
   onPressIn,
 }: {
-  config: { icon: typeof Home01Icon; label: string };
+  config: { icon: typeof Home01Icon; labelKey: string };
   isFocused: boolean;
   onPress: () => void;
   onPressIn?: () => void;
 }) {
+  const { t } = useTranslation("common");
   const labelOpacity = useSharedValue(isFocused ? 1 : 0);
   const labelTranslateY = useSharedValue(isFocused ? 0 : 8);
 
@@ -112,7 +114,7 @@ function TabItem({
           labelAnimatedStyle,
         ]}
       >
-        {config.label}
+        {t(config.labelKey as any)}
       </Animated.Text>
     </Pressable>
   );
@@ -281,16 +283,17 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 }
 
 export default function TabsLayout() {
+  const { t } = useTranslation("common");
   return (
     <Tabs
       screenOptions={{ headerShown: false }}
       tabBar={(props) => <CustomTabBar {...props} />}
     >
-      <Tabs.Screen name="index" options={{ title: "Home" }} />
-      <Tabs.Screen name="bookings" options={{ title: "Bookings" }} />
-      <Tabs.Screen name="search" options={{ title: "Search" }} />
-      <Tabs.Screen name="tickets" options={{ title: "Tickets" }} />
-      <Tabs.Screen name="settings" options={{ title: "Settings" }} />
+      <Tabs.Screen name="index" options={{ title: t("home") }} />
+      <Tabs.Screen name="bookings" options={{ title: t("bookings") }} />
+      <Tabs.Screen name="search" options={{ title: t("search") }} />
+      <Tabs.Screen name="tickets" options={{ title: t("tickets") }} />
+      <Tabs.Screen name="settings" options={{ title: t("settings") }} />
     </Tabs>
   );
 }

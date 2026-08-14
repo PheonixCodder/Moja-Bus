@@ -35,7 +35,7 @@
 
 ### Known gaps (not blocking dev/demo)
 
-- Mobile app: shell only, no passenger search/booking
+- Mobile traveler-app: search/booking audit tracker largely closed (`context/trackers/traveler-app-search-booking-audit.md`) — remaining deferred: M8 mobile-callback, L3 multi-deck; manual device QA pending
 - Deferred: dual-control CASH, OTP bank reveal, heatmaps, monolith splits — _reviews UI + bulk ops now in progress via Phase 7 low-issues (L11, L7)_
 
 ---

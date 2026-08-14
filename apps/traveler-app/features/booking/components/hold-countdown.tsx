@@ -1,4 +1,3 @@
-import { Colors, Spacing } from "@moja/theme/tokens";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { useHoldCountdown } from "@/features/booking/hooks/use-hold-countdown";
@@ -13,36 +12,17 @@ export function HoldCountdown({ holdExpiresAt }: HoldCountdownProps) {
 
 	return (
 		<View
-			style={{
-				flexDirection: "row",
-				alignItems: "center",
-				gap: Spacing.two,
-				paddingHorizontal: Spacing.four,
-				paddingVertical: Spacing.two,
-				backgroundColor: isExpired
-					? "rgba(239, 68, 68, 0.08)"
-					: "rgba(245, 158, 11, 0.08)",
-				borderRadius: 12,
-				borderWidth: 1,
-				borderColor: isExpired
-					? "rgba(239, 68, 68, 0.2)"
-					: "rgba(245, 158, 11, 0.2)",
-			}}
+			className={`flex-row items-center gap-2 px-4 py-2 rounded-xl border ${
+				isExpired
+					? "bg-red-50/80 border-red-200/60"
+					: "bg-amber-50/80 border-amber-200/60"
+			}`}
 		>
 			<View
-				style={{
-					width: 8,
-					height: 8,
-					borderRadius: 4,
-					backgroundColor: isExpired ? "#ef4444" : "#f59e0b",
-				}}
+				className={`w-2 h-2 rounded-full ${isExpired ? "bg-red-500" : "bg-amber-500"}`}
 			/>
 			<Text
-				style={{
-					fontSize: 12,
-					fontWeight: "600",
-					color: isExpired ? "#ef4444" : "#f59e0b",
-				}}
+				className={`text-xs font-semibold ${isExpired ? "text-red-500" : "text-amber-500"}`}
 			>
 				{isExpired ? "Hold expired" : `Pay within ${remaining}`}
 			</Text>

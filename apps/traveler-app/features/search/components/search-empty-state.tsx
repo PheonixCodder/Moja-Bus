@@ -31,7 +31,7 @@ export function SearchEmptyState({
   onPopularRouteSelect,
   onResetFilters,
 }: SearchEmptyStateProps) {
-  const { t } = useTranslation('search');
+  const { t } = useTranslation(['search', 'operators']);
 
   if (isPreSearch) {
     return (
@@ -159,7 +159,7 @@ export function SearchEmptyState({
                   }}
                 >
                   <Text style={{ fontSize: 10, fontWeight: '800', color: '#15803d' }}>
-                    From {route.fromXOF} XOF
+                    {t('operators:fromPrice')} {route.fromXOF} XOF
                   </Text>
                 </View>
               </View>

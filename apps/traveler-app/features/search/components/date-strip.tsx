@@ -7,13 +7,34 @@ import { parseDateStrip, formatPriceXOF } from '../lib/format';
 interface DateStripProps {
   from: string;
   to: string;
+  fromMuni?: string;
+  toMuni?: string;
+  fromQuarter?: string;
+  toQuarter?: string;
   selectedDate: string; // YYYY-MM-DD
   onSelectDate: (dateStr: string) => void;
 }
 
-export function DateStrip({ from, to, selectedDate, onSelectDate }: DateStripProps) {
+export function DateStrip({
+  from,
+  to,
+  fromMuni,
+  toMuni,
+  fromQuarter,
+  toQuarter,
+  selectedDate,
+  onSelectDate,
+}: DateStripProps) {
   const { t } = useTranslation('search');
-  const { data: cheapestData, isLoading } = useCheapestByDate(from, to, selectedDate);
+  const { data: cheapestData, isLoading } = useCheapestByDate(
+    from,
+    to,
+    selectedDate,
+    fromMuni,
+    toMuni,
+    fromQuarter,
+    toQuarter,
+  );
 
   // Generate 7 dates centered on selectedDate
   const days = useMemo(() => {
@@ -38,11 +59,11 @@ export function DateStrip({ from, to, selectedDate, onSelectDate }: DateStripPro
   const minPrice = allPrices.length > 0 ? Math.min(...allPrices) : null;
 
   return (
-    <View style={{ backgroundColor: '#ffffff', paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', overflow: 'visible' }}>
+    <View className="bg-white pt-4 pb-3 border-b border-slate-100 overflow-visible">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ overflow: 'visible' }}
+        className="overflow-visible"
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 10, gap: 10, alignItems: 'center' }}
       >
         {days.map(({ dateStr, weekday, day, month }) => {
@@ -58,111 +79,66 @@ export function DateStrip({ from, to, selectedDate, onSelectDate }: DateStripPro
               key={dateStr}
               onPress={() => isSelectable && onSelectDate(dateStr)}
               disabled={!isSelectable}
-              style={({ pressed }) => ({
-                minWidth: 74,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
-                borderRadius: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                backgroundColor: isSelected
-                  ? '#ee237c'
-                  : pressed
-                  ? '#fce7f3'
+              className={`min-w-[74px] px-3 py-2.5 rounded-2xl items-center justify-center relative border-[1.5px] ${
+                isSelected
+                  ? 'bg-[#ee237c] border-[#ee237c] shadow-md shadow-pink-500/30'
                   : isSelectable
-                  ? '#f8fafc'
-                  : '#f1f5f9',
-                borderWidth: 1.5,
-                borderColor: isSelected
-                  ? '#ee237c'
-                  : isSelectable
-                  ? '#e2e8f0'
-                  : '#f1f5f9',
-                opacity: !isSelectable ? 0.45 : 1,
-                shadowColor: isSelected ? '#ee237c' : '#000',
-                shadowOffset: { width: 0, height: isSelected ? 4 : 1 },
-                shadowOpacity: isSelected ? 0.25 : 0.03,
-                shadowRadius: isSelected ? 8 : 2,
-                elevation: isSelected ? 4 : 1,
-              })}
+                  ? 'bg-slate-50 border-slate-200'
+                  : 'bg-slate-100 border-slate-100 opacity-45'
+              }`}
+              style={({ pressed }) => ({ opacity: !isSelectable ? 0.45 : pressed ? 0.7 : 1 })}
             >
               {isCheapest && !isSelected && (
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: -11,
-                    backgroundColor: '#10b981',
-                    borderRadius: 10,
-                    paddingHorizontal: 7,
-                    paddingVertical: 2.5,
-                    zIndex: 20,
-                    shadowColor: '#10b981',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 4,
-                    elevation: 4,
-                  }}
-                >
-                  <Text style={{ color: '#ffffff', fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <View className="absolute -top-2.5 bg-emerald-500 rounded-full px-2 py-0.5 z-20 shadow-xs shadow-emerald-500/50">
+                  <Text className="text-white text-[8px] font-black uppercase tracking-wide">
                     {t('bestBadge')}
                   </Text>
                 </View>
               )}
 
               <Text
-                style={{
-                  fontSize: 10,
-                  textTransform: 'uppercase',
-                  fontWeight: '800',
-                  letterSpacing: 1,
-                  color: isSelected ? '#fbcfe8' : '#94a3b8',
-                }}
+                className={`text-[10px] uppercase font-extrabold tracking-widest ${
+                  isSelected ? 'text-pink-200' : 'text-slate-400'
+                }`}
               >
                 {weekday}
               </Text>
 
               <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '900',
-                  marginVertical: 2,
-                  color: isSelected ? '#ffffff' : '#0f172a',
-                }}
+                className={`text-xl font-black my-0.5 ${
+                  isSelected ? 'text-white' : 'text-slate-900'
+                }`}
               >
                 {day}
               </Text>
 
               <Text
-                style={{
-                  fontSize: 10,
-                  fontWeight: '700',
-                  marginBottom: 4,
-                  color: isSelected ? '#fbcfe8' : '#94a3b8',
-                }}
+                className={`text-[10px] font-bold mb-1 ${
+                  isSelected ? 'text-pink-200' : 'text-slate-400'
+                }`}
               >
                 {month}
               </Text>
 
               {isLoading && !!from && !!to ? (
-                <View style={{ height: 12, width: 32, backgroundColor: '#e2e8f0', borderRadius: 4 }} />
+                <View className="h-3 w-8 bg-slate-200 rounded" />
               ) : hasTrips ? (
                 <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '900',
-                    color: isSelected ? '#ffffff' : isCheapest ? '#059669' : '#ee237c',
-                  }}
+                  className={`text-[10px] font-black ${
+                    isSelected
+                      ? 'text-white'
+                      : isCheapest
+                      ? 'text-emerald-600'
+                      : 'text-[#ee237c]'
+                  }`}
                 >
                   {formatPriceXOF(priceXOF)}
                 </Text>
               ) : (
                 <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    color: isSelected ? '#fbcfe8' : '#cbd5e1',
-                  }}
+                  className={`text-[10px] font-bold ${
+                    isSelected ? 'text-pink-200' : 'text-slate-300'
+                  }`}
                 >
                   —
                 </Text>

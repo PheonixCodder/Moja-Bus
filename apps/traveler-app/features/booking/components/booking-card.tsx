@@ -7,6 +7,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { formatLocationLabel } from '@/lib/format-location-label';
@@ -21,34 +22,34 @@ type BookingCardProps = {
 
 const STATUS_CONFIG: Record<
   PassengerBookingSummary['status'],
-  { label: string; bg: string; text: string; border: string }
+  { labelKey: string; bg: string; text: string; border: string }
 > = {
   CONFIRMED: {
-    label: 'Confirmed',
+    labelKey: 'confirmed',
     bg: 'bg-emerald-500/10',
     text: 'text-emerald-600',
     border: 'border-emerald-500/20',
   },
   PENDING_PAYMENT: {
-    label: 'Awaiting Payment',
+    labelKey: 'awaitingPayment',
     bg: 'bg-amber-500/10',
     text: 'text-amber-600',
     border: 'border-amber-500/20',
   },
   COMPLETED: {
-    label: 'Completed',
+    labelKey: 'completed',
     bg: 'bg-blue-500/10',
     text: 'text-blue-600',
     border: 'border-blue-500/20',
   },
   CANCELLED: {
-    label: 'Cancelled',
+    labelKey: 'cancelled',
     bg: 'bg-rose-500/10',
     text: 'text-rose-600',
     border: 'border-rose-500/20',
   },
   EXPIRED: {
-    label: 'Expired',
+    labelKey: 'expired',
     bg: 'bg-neutral-500/10',
     text: 'text-neutral-500',
     border: 'border-neutral-500/20',
@@ -56,6 +57,7 @@ const STATUS_CONFIG: Record<
 };
 
 export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
+  const { t } = useTranslation('booking');
   const statusInfo = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG.EXPIRED;
   const isPending = booking.status === 'PENDING_PAYMENT';
   const countdown = useHoldCountdown(
@@ -83,7 +85,8 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
   });
 
   const seatCount = booking.seats?.length ?? 1;
-  const seatLabels = booking.seats?.map((s) => s.seatLabel).join(', ') ?? 'Reserved';
+  const seatLabels = booking.seats?.map((s) => s.seatLabel).join(', ') ?? '';
+  const statusLabel = t(statusInfo.labelKey as any) as string;
 
   const initials = (booking.companyName || 'MB').slice(0, 2).toUpperCase();
 
@@ -92,7 +95,7 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
       onPress={handlePress}
       onPressIn={onPressIn}
       accessibilityRole="button"
-      accessibilityLabel={`${originFormatted} to ${destFormatted}, ${statusInfo.label}`}
+      accessibilityLabel={`${originFormatted} to ${destFormatted}, ${statusLabel}`}
       style={({ pressed }) => ({
         transform: [{ scale: pressed ? 0.98 : 1 }],
         opacity: pressed ? 0.9 : 1,
@@ -108,7 +111,7 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
             <Text className="text-foreground truncate text-sm font-bold" numberOfLines={1}>
               {booking.companyName || 'Moja Transport'}
             </Text>
-            <Text className="text-muted-foreground font-mono text-[11px]">
+            <Text className="text-muted-foreground font-mono text-sm">
               {booking.seats?.[0]?.bookingReference || booking.groupId}
             </Text>
           </View>
@@ -116,8 +119,8 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
 
         <View className={`rounded-full border px-2.5 py-1 ${statusInfo.bg} ${statusInfo.border}`}>
           <Text
-            className={`text-[10px] font-extrabold tracking-wider uppercase ${statusInfo.text}`}>
-            {statusInfo.label}
+            className={`text-xs font-extrabold tracking-wider uppercase ${statusInfo.text}`}>
+            {statusLabel}
           </Text>
         </View>
       </View>
@@ -126,7 +129,9 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
       {isPending && countdown && countdown !== 'Expired' ? (
         <View className="mb-3 flex-row items-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2">
           <HugeiconsIcon icon={Clock01Icon} size={14} color="#d97706" />
-          <Text className="text-xs font-semibold text-amber-700">Hold expires in {countdown}</Text>
+          <Text className="text-xs font-semibold text-amber-700">
+            {t('holdExpiresIn')} {countdown}
+          </Text>
         </View>
       ) : null}
 
@@ -143,7 +148,7 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
           <Text className="text-primary mt-1 text-xs font-bold">
             {formatTimeOnly(booking.departureTime)}
           </Text>
-          <Text className="text-muted-foreground/70 text-[10px]">
+          <Text className="text-muted-foreground/70 text-xs">
             {formatDateWithWeekday(booking.departureTime)}
           </Text>
         </View>
@@ -166,7 +171,7 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
           <Text className="text-primary mt-1 text-right text-xs font-bold">
             {formatTimeOnly(booking.arrivalTime)}
           </Text>
-          <Text className="text-muted-foreground/70 text-right text-[10px]">
+          <Text className="text-muted-foreground/70 text-right text-xs">
             {formatDateWithWeekday(booking.arrivalTime)}
           </Text>
         </View>
@@ -177,7 +182,9 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
         <View className="flex-row items-center gap-1.5">
           <HugeiconsIcon icon={Ticket01Icon} size={14} color="#64748b" />
           <Text className="text-muted-foreground text-xs font-medium">
-            {seatCount === 1 ? `Seat ${seatLabels}` : `${seatCount} Seats (${seatLabels})`}
+            {seatCount === 1
+              ? t('seatSingle', { label: seatLabels })
+              : t('seatsMultiple', { count: seatCount, labels: seatLabels })}
           </Text>
         </View>
 

@@ -3,7 +3,7 @@ import { useScreenTransition } from "@/hooks/use-screen-transition";
 import { useTranslation } from "react-i18next";
 import Animated from "react-native-reanimated";
 import { View } from "react-native";
-import { BookingDetailView } from "@/features/booking/views/booking-detail-view";
+import { BookingDetailView } from "@/features/booking/screens/booking-detail";
 
 export default function BookingDetailScreen() {
   const { reference } = useLocalSearchParams<{ reference: string }>();

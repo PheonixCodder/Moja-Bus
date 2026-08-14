@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "traveler-app",
+    "name": "Moja Ride",
     "slug": "traveler-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -33,7 +33,8 @@
         {
           "image": "./assets/images/splash.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+          "imageWidth": 320
         }
       ],
       "expo-status-bar",

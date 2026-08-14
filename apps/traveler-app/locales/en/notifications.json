@@ -1,5 +1,7 @@
 {
   "notifications": "Notifications",
   "noNotifications": "No notifications yet",
-  "allCaughtUp": "You're all caught up! We'll notify you when something arrives."
+  "allCaughtUp": "You're all caught up! We'll notify you when something arrives.",
+  "markAllRead": "Mark all read",
+  "unreadCount": "{{count}} unread"
 }

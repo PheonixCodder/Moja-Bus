@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
   Cancel01Icon,
@@ -22,10 +23,10 @@ import {
   Wallet01Icon,
   CreditCardIcon,
   CheckmarkCircle01Icon,
-  UserGroupIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@moja/theme/tokens';
 import { authClient } from '@/lib/auth-client';
+import { useTRPC } from '@/lib/trpc';
 import { useSavedPassengers } from '@/hooks/use-passengers';
 import { useWalletBalance } from '@/hooks/use-wallet';
 import {
@@ -33,6 +34,7 @@ import {
   useCheckoutWithWallet,
   useInitiatePayment,
   useVerifyPayment,
+  useReleaseHold,
 } from '@/features/booking/hooks/use-booking-actions';
 import { PaystackWebView } from '@/features/settings/components/paystack-webview';
 import type { Offer } from './offer-card';
@@ -60,7 +62,7 @@ export function PassengerFormSheet({
   onClose,
   onBack,
 }: PassengerFormSheetProps) {
-  const { t } = useTranslation('search');
+  const { t } = useTranslation(['search', 'booking']);
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -72,12 +74,14 @@ export function PassengerFormSheet({
 
   const balanceQuery = useWalletBalance(isAuthenticated);
   const walletBalance = balanceQuery.data?.availableBalance ?? 0;
+  const trpc = useTRPC();
 
   // Mutations
   const createHold = useCreateHold();
   const checkoutWallet = useCheckoutWithWallet();
   const initiatePayment = useInitiatePayment();
   const verifyPayment = useVerifyPayment();
+  const releaseHold = useReleaseHold();
 
   // State
   const [passengers, setPassengers] = useState<PassengerDraft[]>(() =>
@@ -89,6 +93,19 @@ export function PassengerFormSheet({
   const [authorizationUrl, setAuthorizationUrl] = useState<string | null>(null);
   const [paystackReference, setPaystackReference] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [pendingChargeXOF, setPendingChargeXOF] = useState<number | null>(null);
+  const [activeHoldId, setActiveHoldId] = useState<string | null>(null);
+  /** Booking refs from createHold — never use Paystack `moja_…` as ticket ref */
+  const [heldBookingRefs, setHeldBookingRefs] = useState<string[]>([]);
+
+  const seatCount = Math.min(Math.max(seatIds.length, 1), 6);
+  const pricingQuery = useQuery({
+    ...trpc.payments.getCheckoutPricing.queryOptions({
+      offerId: offer?.id ?? '',
+      seatCount,
+    }),
+    enabled: visible && !!offer?.id && seatIds.length > 0,
+  });
 
   // Re-sync if seatIds change
   useEffect(() => {
@@ -145,7 +162,15 @@ export function PassengerFormSheet({
     );
   };
 
-  const totalAmountXOF = (offer?.priceXOF ?? 0) * (seatIds.length || 1);
+  const fallbackSubtotal = (offer?.priceXOF ?? 0) * (seatIds.length || 1);
+  const subtotalBaseXOF = pricingQuery.data?.subtotalBaseXOF ?? fallbackSubtotal;
+  const convenienceFeeXOF =
+    paymentMethod === 'WALLET' ? 0 : (pricingQuery.data?.convenienceFeeXOF ?? 0);
+  const totalAmountXOF =
+    paymentMethod === 'WALLET'
+      ? subtotalBaseXOF
+      : (pricingQuery.data?.chargeAmountXOF ?? subtotalBaseXOF + convenienceFeeXOF);
+
   const isValid = passengers.every(
     (p) => p.passengerName.trim().length >= 2 && p.passengerPhone.trim().length >= 6
   );
@@ -154,6 +179,7 @@ export function PassengerFormSheet({
     createHold.isPending ||
     checkoutWallet.isPending ||
     initiatePayment.isPending ||
+    releaseHold.isPending ||
     isVerifying;
 
   const handleConfirmAndPay = async () => {
@@ -163,8 +189,14 @@ export function PassengerFormSheet({
       return;
     }
 
+    if (paymentMethod === 'WALLET' && walletBalance < subtotalBaseXOF) {
+      Alert.alert(t('error'), t('booking:insufficientWallet'));
+      return;
+    }
+
+    let holdId: string | null = null;
+
     try {
-      // Step 1: Create Hold Group
       const holdResult = await createHold.mutateAsync({
         offerId: offer.id,
         passengers: passengers.map((p) =>
@@ -180,25 +212,43 @@ export function PassengerFormSheet({
         ),
       });
 
-      const holdId = holdResult.holdId;
+      holdId = holdResult.holdId;
+      setActiveHoldId(holdId);
+      setHeldBookingRefs(holdResult.bookingReferences ?? []);
+      const walletCharge = holdResult.subtotalBaseXOF ?? subtotalBaseXOF;
+      const paystackCharge = holdResult.totalAmountXOF ?? totalAmountXOF;
 
-      // Step 2: Process chosen payment method
       if (paymentMethod === 'WALLET') {
-        if (!isAuthenticated) {
-          Alert.alert(t('error'), 'Please sign in to pay with your wallet.');
-          return;
-        }
-        if (walletBalance < totalAmountXOF) {
-          Alert.alert(t('error'), 'Insufficient wallet balance. Please top-up or choose Paystack.');
+        if (walletBalance < walletCharge) {
+          await releaseHold.mutateAsync({ holdId });
+          Alert.alert(t('error'), t('booking:insufficientWallet'));
           return;
         }
 
         const walletResult = await checkoutWallet.mutateAsync({ holdId });
-        const ref = walletResult.bookingReferences?.[0] ?? holdId;
+        const ref =
+          walletResult.bookingReferences?.find((r) => !!r && !r.startsWith('moja_')) ??
+          holdResult.bookingReferences?.find((r) => !!r && !r.startsWith('moja_')) ??
+          null;
+        setActiveHoldId(null);
+        setHeldBookingRefs([]);
         onClose();
-        router.push(`/booking/${ref}`);
+        if (!ref) {
+          Alert.alert(
+            t('booking:bookingConfirmedTitle'),
+            t('booking:paymentOkCheckBookings', {
+              defaultValue:
+                'Payment received. Open My Bookings to view your ticket.',
+            }),
+          );
+          router.replace('/(tabs)/bookings' as any);
+          return;
+        }
+        router.push(
+          `/booking/success?reference=${encodeURIComponent(ref)}&total=${walletCharge}&method=WALLET`
+        );
       } else {
-        // Paystack (Card / Mobile Money)
+        setPendingChargeXOF(paystackCharge);
         const paystackResult = await initiatePayment.mutateAsync({
           holdId,
           payerEmail: session?.user?.email ?? undefined,
@@ -208,10 +258,18 @@ export function PassengerFormSheet({
           setAuthorizationUrl(paystackResult.paystack.authorizationUrl);
           setPaystackReference(paystackResult.paystack.reference ?? null);
         } else {
+          await releaseHold.mutateAsync({ holdId });
           Alert.alert(t('error'), 'Could not initiate Paystack checkout.');
         }
       }
     } catch (err: any) {
+      if (holdId) {
+        try {
+          await releaseHold.mutateAsync({ holdId });
+        } catch {
+          // Hold may already be expired or released
+        }
+      }
       const msg = err?.message ?? '';
       if (msg.includes('hold is no longer active') || msg.includes('expired')) {
         Alert.alert(
@@ -229,23 +287,77 @@ export function PassengerFormSheet({
     setAuthorizationUrl(null);
     setIsVerifying(true);
     const referenceToVerify = ref || paystackReference;
+    const chargeTotal = pendingChargeXOF ?? totalAmountXOF;
+
+    const pickBookingRef = (refs?: string[] | null) =>
+      refs?.find((r) => !!r && !r.startsWith('moja_')) ?? null;
 
     try {
+      let bookingRef =
+        pickBookingRef(heldBookingRefs) ??
+        null;
+
       if (referenceToVerify) {
-        await verifyPayment.mutateAsync({ reference: referenceToVerify });
+        const confirmed = await verifyPayment.mutateAsync({
+          reference: referenceToVerify,
+        });
+        bookingRef =
+          pickBookingRef(confirmed.bookingReferences) ?? bookingRef;
       }
+
+      if (!bookingRef) {
+        Alert.alert(
+          t('booking:bookingConfirmedTitle'),
+          t('booking:paymentOkCheckBookings', {
+            defaultValue:
+              'Payment received. Open My Bookings to view your ticket.',
+          }),
+        );
+        onClose();
+        router.replace('/(tabs)/bookings' as any);
+        return;
+      }
+
+      setActiveHoldId(null);
+      setHeldBookingRefs([]);
       onClose();
-      router.push(`/booking/${referenceToVerify ?? 'success'}`);
-    } catch (err: any) {
+      router.push(
+        `/booking/success?reference=${encodeURIComponent(bookingRef)}&total=${chargeTotal}&method=PAYSTACK`
+      );
+    } catch {
       Alert.alert(t('error'), 'Payment confirmation failed. Please check your bookings.');
     } finally {
       setIsVerifying(false);
+      setPendingChargeXOF(null);
+      setActiveHoldId(null);
     }
   };
 
-  const handlePaystackCancel = () => {
+  const handlePaystackCancel = async () => {
     setAuthorizationUrl(null);
     setPaystackReference(null);
+    setPendingChargeXOF(null);
+    setHeldBookingRefs([]);
+    if (activeHoldId) {
+      try {
+        await releaseHold.mutateAsync({ holdId: activeHoldId });
+      } catch {
+        // Hold may already be expired
+      }
+      setActiveHoldId(null);
+    }
+  };
+
+  const handleCloseSheet = async () => {
+    if (activeHoldId && !authorizationUrl) {
+      try {
+        await releaseHold.mutateAsync({ holdId: activeHoldId });
+      } catch {
+        // ignore
+      }
+      setActiveHoldId(null);
+    }
+    onClose();
   };
 
   if (!offer) return null;
@@ -255,7 +367,9 @@ export function PassengerFormSheet({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onBack}
+      onRequestClose={() => {
+        void handleCloseSheet();
+      }}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -275,7 +389,7 @@ export function PassengerFormSheet({
             <Text className="text-base font-extrabold text-slate-900">
               {t('passengerFormTitle')}
             </Text>
-            <Pressable onPress={onClose} className="p-2 bg-slate-100 rounded-full">
+            <Pressable onPress={() => { void handleCloseSheet(); }} className="p-2 bg-slate-100 rounded-full">
               <HugeiconsIcon icon={Cancel01Icon} size={18} color={Colors.light.textSecondary} />
             </Pressable>
           </View>
@@ -285,7 +399,7 @@ export function PassengerFormSheet({
             contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Route summary banner */}
+            {/* Route summary + pricing */}
             <View className="bg-white border border-slate-200 rounded-2xl p-4 mb-5 shadow-xs">
               <View className="flex-row items-center justify-between border-b border-slate-100 pb-3 mb-3">
                 <View className="flex-1">
@@ -303,13 +417,43 @@ export function PassengerFormSheet({
                 </View>
               </View>
 
-              <View className="flex-row items-center justify-between text-xs text-slate-600">
+              <View className="flex-row items-center justify-between mb-3">
                 <Text className="text-xs font-semibold text-slate-600">
-                  {offer.departureTime} departure ({seatIds.length} seat{seatIds.length > 1 ? 's' : ''})
+                  {offer.departureTime} - {t('search:seatsSelected', { count: seatIds.length })}
                 </Text>
                 <Text className="text-xs font-bold text-[#ee237c]">
-                  {offer.busClass} Class
+                  {offer.busClass} {t('booking:seatClass')}
                 </Text>
+              </View>
+
+              <View className="gap-1.5 pt-1 border-t border-slate-100">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm text-slate-600">{t('booking:baseFare')}</Text>
+                  <Text className="text-sm font-semibold text-slate-800">
+                    {formatPriceXOF(subtotalBaseXOF)}
+                  </Text>
+                </View>
+                {convenienceFeeXOF > 0 ? (
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-sm text-slate-600">{t('booking:convenienceFee')}</Text>
+                    <Text className="text-sm font-semibold text-slate-800">
+                      {formatPriceXOF(convenienceFeeXOF)}
+                    </Text>
+                  </View>
+                ) : paymentMethod === 'WALLET' ? (
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-sm text-slate-600">{t('booking:convenienceFee')}</Text>
+                    <Text className="text-sm font-semibold text-emerald-600">
+                      {t('booking:convenienceFeeWaived')}
+                    </Text>
+                  </View>
+                ) : null}
+                <View className="flex-row items-center justify-between pt-1">
+                  <Text className="text-base font-black text-slate-900">{t('booking:totalAmount')}</Text>
+                  <Text className="text-base font-black text-[#ee237c]">
+                    {formatPriceXOF(totalAmountXOF)}
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -331,7 +475,7 @@ export function PassengerFormSheet({
                   </View>
                   <View className="bg-slate-200 px-2.5 py-0.5 rounded-full">
                     <Text className="text-slate-700 text-xs font-bold">
-                      Seat {idx + 1}
+                      {t('booking:seatNumber', { number: idx + 1 })}
                     </Text>
                   </View>
                 </View>
@@ -340,8 +484,8 @@ export function PassengerFormSheet({
                   {/* Quick Select Saved Passenger Dropdown */}
                   {isAuthenticated && savedPassengers.length > 0 ? (
                     <View className="mb-2">
-                      <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        Use Saved Passenger
+                      <Text className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        {t('booking:useSavedPassenger')}
                       </Text>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
                         {savedPassengers.map((saved) => {
@@ -418,7 +562,7 @@ export function PassengerFormSheet({
             {/* Payment Method Selector */}
             <View className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs mb-4">
               <Text className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">
-                Select Payment Method
+                {t('booking:selectPaymentMethod')}
               </Text>
 
               <View className="gap-2.5">
@@ -437,13 +581,13 @@ export function PassengerFormSheet({
                     </View>
                     <View className="flex-1">
                       <View className="flex-row items-center gap-1.5">
-                        <Text className="text-sm font-black text-slate-900">Moja Wallet</Text>
+                        <Text className="text-sm font-black text-slate-900">{t('booking:mojaWallet')}</Text>
                         <View className="bg-emerald-100 px-2 py-0.5 rounded-full">
-                          <Text className="text-emerald-800 text-[10px] font-bold">0 XOF Fee</Text>
+                          <Text className="text-emerald-800 text-xs font-bold">{t('booking:zeroFee')}</Text>
                         </View>
                       </View>
                       <Text className="text-xs text-slate-500 mt-0.5">
-                        Available: {formatPriceXOF(walletBalance)}
+                        {t('booking:available')}: {formatPriceXOF(walletBalance)}
                       </Text>
                     </View>
                   </View>
@@ -466,9 +610,9 @@ export function PassengerFormSheet({
                       <HugeiconsIcon icon={CreditCardIcon} size={20} color={Colors.light.text} />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-sm font-black text-slate-900">Card / Mobile Money</Text>
+                      <Text className="text-sm font-black text-slate-900">{t('booking:cardMobileMoney')}</Text>
                       <Text className="text-xs text-slate-500 mt-0.5">
-                        Instant checkout via Paystack
+                        {t('booking:paystackCheckout')}
                       </Text>
                     </View>
                   </View>
@@ -512,7 +656,7 @@ export function PassengerFormSheet({
             >
               {isPending ? <ActivityIndicator size="small" color="white" /> : null}
               <Text className="text-white font-black text-base uppercase tracking-wider">
-                {isPending ? t('holdingSeats') : `Pay ${formatPriceXOF(totalAmountXOF)}`}
+                {isPending ? t('search:holdingSeats') : `${t('booking:confirmPayment')} (${formatPriceXOF(totalAmountXOF)})`}
               </Text>
             </Pressable>
           </View>

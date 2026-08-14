@@ -8,23 +8,32 @@ import {
   SparklesIcon,
 } from '@hugeicons/core-free-icons';
 import { formatPriceXOF } from '../lib/format';
+import { formatLocationLabel } from '@/lib/format-location-label';
 
 export interface Offer {
   id: string;
+  companyId?: string;
   operatorName: string;
   isExpress: boolean;
   busClass: 'Economy' | 'Standard' | 'VIP';
+  busTypeName?: string;
   departureTime: string;
   departureTerminal: string;
   departureCity: string;
+  departureMunicipality?: string | null;
+  departureQuarter?: string | null;
   arrivalTime: string;
   arrivalTerminal: string;
   arrivalCity: string;
+  arrivalMunicipality?: string | null;
+  arrivalQuarter?: string | null;
   duration: string;
   stopCount: number;
   priceXOF: number;
   availability: 'AVAILABLE' | 'FEW_LEFT' | 'SOLD_OUT';
+  remainingSeats?: number;
   amenities: string[];
+  serviceType?: 'INTERCITY' | 'URBAN';
 }
 
 interface OfferCardProps {
@@ -35,176 +44,150 @@ interface OfferCardProps {
 export function OfferCard({ offer, onSelect }: OfferCardProps) {
   const { t } = useTranslation('search');
   const isSoldOut = offer.availability === 'SOLD_OUT';
+  const isUrban = offer.serviceType === 'URBAN';
+
+  const originLabel = formatLocationLabel({
+    cityName: offer.departureCity,
+    municipalityName: offer.departureMunicipality,
+    quarterName: offer.departureQuarter,
+    isUrban,
+  });
+  const destLabel = formatLocationLabel({
+    cityName: offer.arrivalCity,
+    municipalityName: offer.arrivalMunicipality,
+    quarterName: offer.arrivalQuarter,
+    isUrban,
+  });
 
   const getClassBadgeStyle = (c: string) => {
     switch (c) {
       case 'VIP':
-        return { bg: '#fef3c7', border: '#fde68a', text: '#78350f' };
+        return { bgClass: 'bg-amber-100', borderClass: 'border-amber-200', textClass: 'text-amber-900' };
       case 'Standard':
-        return { bg: '#eff6ff', border: '#bfdbfe', text: '#1e40af' };
+        return { bgClass: 'bg-blue-50', borderClass: 'border-blue-200', textClass: 'text-blue-800' };
       default:
-        return { bg: '#f8fafc', border: '#e2e8f0', text: '#475569' };
+        return { bgClass: 'bg-slate-50', borderClass: 'border-slate-200', textClass: 'text-slate-600' };
     }
   };
 
   const badgeStyle = getClassBadgeStyle(offer.busClass);
+  const amenityLabels = offer.amenities.slice(0, 3).map((a) =>
+    t(`amenity${a}` as 'amenityAC', a),
+  );
 
   return (
     <View
-      style={{
-        backgroundColor: '#ffffff',
-        borderRadius: 24,
-        padding: 16,
-        marginHorizontal: 16,
-        marginBottom: 14,
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-        opacity: isSoldOut ? 0.65 : 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.04,
-        shadowRadius: 10,
-        elevation: 2,
-      }}
+      className={`bg-white rounded-3xl p-4 mx-4 mb-3.5 border border-slate-100 shadow-sm shadow-black/5 elevation-2 ${
+        isSoldOut ? 'opacity-65' : ''
+      }`}
     >
-      {/* ── Header: Operator Avatar & Bus Class Badge ── */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-          <View
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 12,
-              backgroundColor: '#fce7f3',
-              borderWidth: 1,
-              borderColor: '#fbcfe8',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: '#ee237c', fontWeight: '900', fontSize: 13 }}>
+      <View className="flex-row items-center justify-between mb-3.5">
+        <View className="flex-row items-center gap-2.5 flex-1">
+          <View className="w-9 h-9 rounded-xl bg-pink-50 border border-pink-200 items-center justify-center">
+            <Text className="text-[#ee237c] font-black text-xs">
               {(offer.operatorName || 'MB').substring(0, 2).toUpperCase()}
             </Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#0f172a' }} numberOfLines={1}>
+          <View className="flex-1">
+            <Text className="text-base font-extrabold text-slate-900" numberOfLines={1}>
               {offer.operatorName}
             </Text>
-            {offer.isExpress && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, gap: 4 }}>
-                <HugeiconsIcon icon={SparklesIcon} size={10} color="#7c3aed" />
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  Express Non-Stop
-                </Text>
-              </View>
-            )}
+            <View className="flex-row items-center mt-0.5 gap-2 flex-wrap">
+              {offer.isExpress ? (
+                <View className="flex-row items-center gap-1">
+                  <HugeiconsIcon icon={SparklesIcon} size={10} color="#7c3aed" />
+                  <Text className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wide">
+                    {t('expressNonStop')}
+                  </Text>
+                </View>
+              ) : null}
+              {offer.busTypeName ? (
+                <Text className="text-[10px] font-semibold text-slate-400">{offer.busTypeName}</Text>
+              ) : null}
+            </View>
           </View>
         </View>
 
-        {/* Bus Class Badge */}
-        <View
-          style={{
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-            borderRadius: 12,
-            backgroundColor: badgeStyle.bg,
-            borderWidth: 1,
-            borderColor: badgeStyle.border,
-          }}
-        >
-          <Text style={{ fontSize: 10, fontWeight: '900', color: badgeStyle.text, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+        <View className={`px-2.5 py-1 rounded-xl border ${badgeStyle.bgClass} ${badgeStyle.borderClass}`}>
+          <Text className={`text-[10px] font-black uppercase tracking-wider ${badgeStyle.textClass}`}>
             {offer.busClass}
           </Text>
         </View>
       </View>
 
-      {/* ── Timeline Box ── */}
-      <View
-        style={{
-          backgroundColor: '#f8fafc',
-          borderRadius: 18,
-          padding: 12,
-          flexDirection: 'row',
-          alignItems: 'center',
-          borderWidth: 1,
-          borderColor: '#f1f5f9',
-          marginBottom: 14,
-        }}
-      >
-        {/* Departure */}
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 18, fontWeight: '900', color: '#0f172a' }}>{offer.departureTime}</Text>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155', marginTop: 2 }} numberOfLines={1}>
-            {offer.departureCity}
+      <View className="bg-slate-50 rounded-2xl p-3 flex-row items-center border border-slate-100 mb-3">
+        <View className="flex-1">
+          <Text className="text-lg font-black text-slate-900">{offer.departureTime}</Text>
+          <Text className="text-xs font-bold text-slate-700 mt-0.5" numberOfLines={2}>
+            {originLabel}
           </Text>
-          <Text style={{ fontSize: 10, fontWeight: '500', color: '#94a3b8', marginTop: 1 }} numberOfLines={1}>
+          <Text className="text-[10px] font-medium text-slate-400 mt-0.5" numberOfLines={1}>
             {offer.departureTerminal}
           </Text>
         </View>
 
-        {/* Timeline Indicator */}
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', color: '#94a3b8', marginBottom: 4 }}>{offer.duration}</Text>
-          <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#cbd5e1' }} />
-            <View style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
-            <View
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: 12,
-                backgroundColor: '#ffffff',
-                borderWidth: 1.5,
-                borderColor: '#fce7f3',
-                alignItems: 'center',
-                justifyContent: 'center',
-                shadowColor: '#ee237c',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 3,
-                elevation: 1,
-              }}
-            >
+        <View className="flex-1 items-center justify-center px-1.5">
+          <Text className="text-[10px] font-bold text-slate-400 mb-1">{offer.duration}</Text>
+          <View className="w-full flex-row items-center">
+            <View className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+            <View className="flex-1 h-[1px] bg-slate-200" />
+            <View className="w-6 h-6 rounded-full bg-white border-[1.5px] border-pink-100 items-center justify-center shadow-xs">
               <HugeiconsIcon icon={Bus01Icon} size={12} color="#ee237c" />
             </View>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#ee237c' }} />
+            <View className="flex-1 h-[1px] bg-slate-200" />
+            <View className="w-1.5 h-1.5 rounded-full bg-[#ee237c]" />
           </View>
-          <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', marginTop: 4 }}>
+          <Text className="text-[10px] font-bold text-slate-600 mt-1">
             {offer.stopCount === 0 ? t('directRoute') : `${offer.stopCount} stops`}
           </Text>
         </View>
 
-        {/* Arrival */}
-        <View style={{ flex: 1, alignItems: 'flex-end' }}>
-          <Text style={{ fontSize: 18, fontWeight: '900', color: '#0f172a' }}>{offer.arrivalTime}</Text>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155', marginTop: 2, textAlign: 'right' }} numberOfLines={1}>
-            {offer.arrivalCity}
+        <View className="flex-1 items-end">
+          <Text className="text-lg font-black text-slate-900">{offer.arrivalTime}</Text>
+          <Text className="text-xs font-bold text-slate-700 mt-0.5 text-right" numberOfLines={2}>
+            {destLabel}
           </Text>
-          <Text style={{ fontSize: 10, fontWeight: '500', color: '#94a3b8', marginTop: 1, textAlign: 'right' }} numberOfLines={1}>
+          <Text className="text-[10px] font-medium text-slate-400 mt-0.5 text-right" numberOfLines={1}>
             {offer.arrivalTerminal}
           </Text>
         </View>
       </View>
 
-      {/* ── Footer: Price & Select Seats Button ── */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      {amenityLabels.length > 0 ? (
+        <View className="flex-row flex-wrap gap-1.5 mb-3">
+          {amenityLabels.map((label) => (
+            <View key={label} className="bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-lg">
+              <Text className="text-[10px] font-bold text-slate-500">{label}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      <View className="flex-row items-center justify-between">
         <View>
-          <Text style={{ fontSize: 20, fontWeight: '900', color: '#ee237c' }}>
+          <Text className="text-xl font-black text-[#ee237c]">
             {formatPriceXOF(offer.priceXOF)}
           </Text>
-          <View style={{ marginTop: 4 }}>
+          <View className="mt-1">
             {offer.availability === 'FEW_LEFT' ? (
-              <View style={{ backgroundColor: '#fef3c7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
-                <Text style={{ color: '#92400e', fontSize: 10, fontWeight: '800' }}>Few Seats Left</Text>
+              <View className="bg-amber-100 px-2 py-0.5 rounded-lg">
+                <Text className="text-amber-800 text-[10px] font-extrabold">
+                  {typeof offer.remainingSeats === 'number'
+                    ? t('onlyLeft', { count: offer.remainingSeats })
+                    : t('fewSeatsLeft')}
+                </Text>
               </View>
             ) : offer.availability === 'SOLD_OUT' ? (
-              <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
-                <Text style={{ color: '#64748b', fontSize: 10, fontWeight: '800' }}>{t('soldOut')}</Text>
+              <View className="bg-slate-100 px-2 py-0.5 rounded-lg">
+                <Text className="text-slate-500 text-[10px] font-extrabold">{t('soldOut')}</Text>
               </View>
             ) : (
-              <View style={{ backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
-                <Text style={{ color: '#166534', fontSize: 10, fontWeight: '800' }}>Seats Available</Text>
+              <View className="bg-emerald-100 px-2 py-0.5 rounded-lg">
+                <Text className="text-emerald-800 text-[10px] font-extrabold">
+                  {typeof offer.remainingSeats === 'number'
+                    ? t('seatsAvailable', { count: offer.remainingSeats })
+                    : t('seatsAvailableLabel')}
+                </Text>
               </View>
             )}
           </View>
@@ -213,22 +196,15 @@ export function OfferCard({ offer, onSelect }: OfferCardProps) {
         <Pressable
           disabled={isSoldOut}
           onPress={() => onSelect(offer)}
+          className={`flex-row items-center gap-1.5 px-4 py-3 rounded-2xl ${
+            isSoldOut ? 'bg-slate-200' : 'bg-[#ee237c]'
+          } ${isSoldOut ? '' : 'shadow-md shadow-pink-500/30'}`}
           style={({ pressed }) => ({
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingHorizontal: 18,
-            paddingVertical: 12,
-            borderRadius: 16,
-            backgroundColor: isSoldOut ? '#e2e8f0' : pressed ? '#d01867' : '#ee237c',
-            shadowColor: isSoldOut ? 'transparent' : '#ee237c',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: isSoldOut ? 0 : 0.25,
-            shadowRadius: 8,
-            elevation: isSoldOut ? 0 : 4,
+            opacity: pressed && !isSoldOut ? 0.85 : 1,
+            backgroundColor: pressed && !isSoldOut ? '#d01867' : undefined,
           })}
         >
-          <Text style={{ color: isSoldOut ? '#94a3b8' : '#ffffff', fontWeight: '900', fontSize: 13 }}>
+          <Text className={`font-black text-xs ${isSoldOut ? 'text-slate-400' : 'text-white'}`}>
             {isSoldOut ? t('soldOut') : t('selectSeats')}
           </Text>
           {!isSoldOut && <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="#ffffff" />}

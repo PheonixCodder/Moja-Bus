@@ -1,6 +1,6 @@
 import { Camera03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Text } from "@/components/ui/text";
 import { getInitials } from "@/lib/user-helpers";
@@ -8,13 +8,21 @@ import { getInitials } from "@/lib/user-helpers";
 type ProfileHeroProps = {
   name: string;
   image?: string | null;
+  onPress?: () => void;
 };
 
-export function ProfileHero({ name, image }: ProfileHeroProps) {
+export function ProfileHero({ name, image, onPress }: ProfileHeroProps) {
   const initials = getInitials(name);
 
   return (
-    <View className="flex-row items-center gap-4">
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? "button" : undefined}
+      accessibilityLabel={onPress ? `Edit profile for ${name}` : undefined}
+      style={({ pressed }) => ({ opacity: pressed && onPress ? 0.85 : 1 })}
+      className="flex-row items-center gap-4"
+    >
       <View className="relative">
         <Avatar className="size-20" alt={name}>
           {image ? <AvatarImage source={{ uri: image }} /> : null}
@@ -41,6 +49,6 @@ export function ProfileHero({ name, image }: ProfileHeroProps) {
           Manage your account & travel preferences
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }

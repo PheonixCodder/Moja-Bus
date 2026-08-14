@@ -1,6 +1,5 @@
 import { ActivityIndicator, Modal, Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Colors, Spacing } from "@moja/theme/tokens";
 
 type CustomAlertProps = {
 	visible: boolean;
@@ -27,8 +26,8 @@ export function CustomAlert({
 	isPending = false,
 	variant = "default",
 }: CustomAlertProps) {
-	const confirmBg =
-		variant === "destructive" ? "#e11d48" : Colors.light.primary;
+	const confirmBgClass =
+		variant === "destructive" ? "bg-rose-600" : "bg-[#ee237c]";
 
 	return (
 		<Modal
@@ -38,81 +37,32 @@ export function CustomAlert({
 			onRequestClose={onCancel}
 		>
 			<Pressable
-				style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center", padding: 32 }}
+				className="flex-1 bg-black/45 justify-center items-center p-8"
 				onPress={onCancel}
 			>
 				<Pressable
 					onPress={() => {}}
-					style={{
-						backgroundColor: Colors.light.background,
-						borderRadius: 24,
-						width: "100%",
-						maxWidth: 320,
-						paddingVertical: Spacing.five,
-						paddingHorizontal: Spacing.five,
-						alignItems: "center",
-						shadowColor: "#000",
-						shadowOffset: { width: 0, height: 8 },
-						shadowOpacity: 0.15,
-						shadowRadius: 24,
-						elevation: 16,
-					}}
+					className="bg-white rounded-3xl w-full max-w-[320px] py-5 px-5 items-center shadow-lg shadow-black/15"
 				>
 					{icon ? (
-						<View style={{ marginBottom: Spacing.three }}>{icon}</View>
+						<View className="mb-3">{icon}</View>
 					) : null}
 
-					<Text
-						style={{
-							fontSize: 17,
-							fontWeight: "800",
-							color: Colors.light.text,
-							textAlign: "center",
-							marginBottom: Spacing.one,
-						}}
-					>
+					<Text className="text-[17px] font-extrabold text-slate-900 text-center mb-1">
 						{title}
 					</Text>
 
-					<Text
-						style={{
-							fontSize: 13,
-							fontWeight: "400",
-							color: Colors.light.textSecondary,
-							textAlign: "center",
-							lineHeight: 18,
-							marginBottom: Spacing.four,
-						}}
-					>
+					<Text className="text-sm font-normal text-slate-500 text-center leading-[18px] mb-4">
 						{description}
 					</Text>
 
-					<View
-						style={{
-							flexDirection: "row",
-							gap: Spacing.two,
-							width: "100%",
-						}}
-					>
+					<View className="flex-row gap-2 w-full">
 						<Pressable
 							onPress={onCancel}
 							disabled={isPending}
-							style={{
-								flex: 1,
-								paddingVertical: Spacing.two,
-								borderRadius: 12,
-								borderWidth: 1,
-								borderColor: Colors.light.backgroundSelected,
-								alignItems: "center",
-							}}
+							className="flex-1 py-2 rounded-xl border border-slate-200 items-center"
 						>
-							<Text
-								style={{
-									fontSize: 13,
-									fontWeight: "600",
-									color: Colors.light.textSecondary,
-								}}
-							>
+							<Text className="text-sm font-semibold text-slate-500">
 								{cancelLabel}
 							</Text>
 						</Pressable>
@@ -120,28 +70,12 @@ export function CustomAlert({
 						<Pressable
 							onPress={onConfirm}
 							disabled={isPending}
-							style={{
-								flex: 1,
-								paddingVertical: Spacing.two,
-								borderRadius: 12,
-								backgroundColor: confirmBg,
-								alignItems: "center",
-								opacity: isPending ? 0.6 : 1,
-							}}
+							className={`flex-1 py-2 rounded-xl items-center ${confirmBgClass} ${isPending ? 'opacity-60' : 'opacity-100'}`}
 						>
 							{isPending ? (
-								<ActivityIndicator
-									size="small"
-									color={Colors.light.primaryForeground}
-								/>
+								<ActivityIndicator size="small" color="#ffffff" />
 							) : (
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "700",
-										color: Colors.light.primaryForeground,
-									}}
-								>
+								<Text className="text-sm font-bold text-white">
 									{confirmLabel}
 								</Text>
 							)}

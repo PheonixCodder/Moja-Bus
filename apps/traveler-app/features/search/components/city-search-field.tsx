@@ -70,7 +70,7 @@ export function CitySearchField({
         {query.trim().length === 0 ? (
           <View className="p-4 border-b border-slate-100 bg-slate-50/50">
             <Text className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5">
-              Popular Hubs
+              {t('popularHubs')}
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {popularCities.map((city) => (
@@ -118,14 +118,14 @@ export function CitySearchField({
                   {item.hierarchyLabel ?? item.name}
                 </Text>
                 {item.level ? (
-                  <Text className="text-[10px] font-bold text-slate-400 capitalize mt-0.5">
+                  <Text className="text-xs font-bold text-slate-400 capitalize mt-0.5">
                     {item.level}
                   </Text>
                 ) : null}
               </View>
               {item.isMajorHub && (
                 <View className="bg-pink-50 border border-pink-200 px-2.5 py-1 rounded-full">
-                  <Text className="text-[#ee237c] text-[10px] font-extrabold uppercase">
+                  <Text className="text-[#ee237c] text-xs font-extrabold uppercase">
                     {t('majorHub')}
                   </Text>
                 </View>

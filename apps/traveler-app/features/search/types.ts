@@ -22,4 +22,4 @@ export const EMPTY_FILTERS: SearchFilters = {
   isExpress: false,
 };
 
-export type SortKey = 'CHEAPEST' | 'FASTEST' | 'EARLIEST' | 'LATEST';
+export type SortKey = 'BEST' | 'CHEAPEST' | 'FASTEST' | 'EARLIEST' | 'LATEST';

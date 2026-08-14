@@ -1,4 +1,4 @@
-import { SearchView } from "@/features/search/views/search-view";
+import { SearchView } from "@/features/search/screens/search";
 import { useScreenTransition } from "@/hooks/use-screen-transition";
 import Animated from "react-native-reanimated";
 

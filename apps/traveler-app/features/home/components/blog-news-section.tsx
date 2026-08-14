@@ -6,6 +6,7 @@ import {
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 interface BlogPostItem {
   id: string;
@@ -22,13 +23,15 @@ interface BlogNewsSectionProps {
 }
 
 export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
+  const { t } = useTranslation("home");
+
   if (!posts || posts.length === 0) return null;
 
   return (
     <View className="gap-3">
       {/* Section label — no emoji */}
       <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-        Travel News & Guides
+        {t("newsBlogTitle", "Travel News & Guides")}
       </Text>
 
       <ScrollView
@@ -52,7 +55,7 @@ export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
                 />
                 {post.category && (
                   <View className="absolute top-2 left-2 bg-rose-500/90 px-2 py-0.5 rounded-full">
-                    <Text className="text-[9px] font-black text-white uppercase tracking-wider">
+                    <Text className="text-xs font-black text-white uppercase tracking-wider">
                       {post.category.name}
                     </Text>
                   </View>
@@ -76,8 +79,8 @@ export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1">
                   <HugeiconsIcon icon={Clock01Icon} size={11} color="#94a3b8" />
-                  <Text className="text-[11px] text-slate-400 font-medium">
-                    {post.readingTime || 3} min read
+                  <Text className="text-sm text-slate-400 font-medium">
+                    {post.readingTime || 3} min
                   </Text>
                 </View>
                 <HugeiconsIcon

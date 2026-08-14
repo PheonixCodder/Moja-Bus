@@ -24,7 +24,7 @@ const primaryItems = [
   { icon: UserGroupIcon, labelKey: "settings:passengersLabel", route: "/passengers" },
   { icon: Wallet01Icon, labelKey: "settings:wallet", route: "/wallet" },
   { icon: Notification03Icon, labelKey: "settings:notifications", route: "/notifications" },
-  { icon: Comment01Icon, label: "My Trip Reviews", route: "/reviews" },
+  { icon: Comment01Icon, labelKey: "settings:myTripReviews", route: "/reviews" },
   { icon: GlobeIcon, labelKey: "settings:language", route: "/language", valueKey: "settings:currentLanguage" },
 ];
 
@@ -44,8 +44,8 @@ export function AccountSettingsList() {
 
   return (
     <View>
-      <Text className="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 mt-4 px-5">
-        Account & Preferences
+      <Text className="text-sm font-bold text-slate-400 tracking-wider uppercase mb-2 mt-4 px-5">
+        {t("accountPreferences")}
       </Text>
 
       {primaryItems.map((item) => (
@@ -59,7 +59,7 @@ export function AccountSettingsList() {
             </View>
 
             <Text className="text-base font-medium text-slate-900 flex-1">
-              {item.labelKey ? t(item.labelKey as any) : item.label}
+              {t(item.labelKey as any)}
             </Text>
 
             {item.valueKey ? (
@@ -77,8 +77,8 @@ export function AccountSettingsList() {
         </View>
       ))}
 
-      <Text className="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 mt-5 px-5">
-        Support & Security
+      <Text className="text-sm font-bold text-slate-400 tracking-wider uppercase mb-2 mt-5 px-5">
+        {t("supportSecurity")}
       </Text>
 
       {securityAndSupportItems.map((item, index) => (

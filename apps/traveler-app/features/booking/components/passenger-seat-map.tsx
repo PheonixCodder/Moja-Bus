@@ -1,9 +1,21 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { HugeiconsIcon } from '@hugeicons/react-native';
-import { UserIcon } from '@hugeicons/core-free-icons';
+import React from "react";
+import { View, Text, Pressable } from "react-native";
+import { useTranslation } from "react-i18next";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { UserIcon } from "@hugeicons/core-free-icons";
+import {
+  buildSeatGrid,
+  getColumnHeaders,
+  isPassengerSeat,
+} from "@/features/booking/lib/seat-grid";
 
-type SeatStatus = 'AVAILABLE' | 'HELD' | 'SOLD' | 'BLOCKED' | 'DRIVER' | 'EMPTY';
+type SeatStatus =
+  | "AVAILABLE"
+  | "HELD"
+  | "SOLD"
+  | "BLOCKED"
+  | "DRIVER"
+  | "EMPTY";
 
 type SeatGridItem = {
   id: string;
@@ -11,6 +23,7 @@ type SeatGridItem = {
   row: number;
   col: number;
   status: SeatStatus;
+  seatType?: string;
   priceXOF?: number;
 };
 
@@ -31,32 +44,34 @@ function SeatCell({
   isSelected: boolean;
   onPress: () => void;
 }) {
-  const isAvailable = seat.status === 'AVAILABLE';
-  const isSold = seat.status === 'SOLD';
-  const isHeld = seat.status === 'HELD';
-  const isDriver = seat.status === 'DRIVER';
-  const isEmpty = seat.status === 'EMPTY' || seat.status === 'BLOCKED';
+  const isAvailable = seat.status === "AVAILABLE";
+  const isSold = seat.status === "SOLD";
+  const isHeld = seat.status === "HELD";
+  const isDriver = seat.status === "DRIVER";
+  const isBlocked = seat.status === "BLOCKED";
+  const isEmpty = seat.status === "EMPTY";
+  const showLabel = isPassengerSeat(seat.seatType);
 
   if (isEmpty) {
-    return <View style={{ flex: 1, height: 46, margin: 3 }} />;
+    return <View className="flex-1 h-[46px] m-[3px]" />;
   }
 
   if (isDriver) {
     return (
-      <View
-        style={{
-          flex: 1,
-          height: 46,
-          margin: 3,
-          borderRadius: 10,
-          backgroundColor: '#f0f0ff',
-          borderWidth: 1.5,
-          borderColor: '#c7d2fe',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <HugeiconsIcon icon={UserIcon} size={16} color="#6366f1" />
+      <View className="flex-1 h-[46px] m-[3px] rounded-xl bg-slate-800 border-[1.5px] border-slate-600 items-center justify-center">
+        <HugeiconsIcon icon={UserIcon} size={16} color="#ffffff" />
+      </View>
+    );
+  }
+
+  if (isBlocked) {
+    return (
+      <View className="flex-1 h-[46px] m-[3px] items-center justify-center rounded-t-xl rounded-b-2xl bg-slate-50 border-[1.5px] border-slate-200">
+        {showLabel ? (
+          <Text className="text-sm font-extrabold tracking-wide text-slate-300">
+            {seat.label}
+          </Text>
+        ) : null}
       </View>
     );
   }
@@ -64,66 +79,37 @@ function SeatCell({
   return (
     <Pressable
       onPress={isAvailable ? onPress : undefined}
-      disabled={!isAvailable}
-      style={({ pressed }) => ({
-        flex: 1,
-        height: 46,
-        margin: 3,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        // Selected
-        backgroundColor: isSelected
-          ? '#ee237c'
+      disabled={!isAvailable && !isSelected}
+      className={`flex-1 h-[46px] m-[3px] items-center justify-center rounded-t-xl rounded-b-2xl ${
+        isSelected
+          ? "bg-[#ee237c] shadow-md shadow-pink-500/30"
           : isAvailable
-          ? '#f0fdf4'
-          : isSold
-          ? '#fef2f2'
-          : isHeld
-          ? '#fffbeb'
-          : '#f8fafc',
-        borderWidth: isSelected ? 0 : 1.5,
-        borderColor: isSelected
-          ? 'transparent'
-          : isAvailable
-          ? '#86efac'
-          : isSold
-          ? '#fca5a5'
-          : isHeld
-          ? '#fcd34d'
-          : '#e2e8f0',
-        opacity: pressed ? 0.75 : 1,
-        // Seat shape: flat top, curved bottom (like a real chair back)
-        borderTopLeftRadius: isSelected ? 10 : 10,
-        borderTopRightRadius: isSelected ? 10 : 10,
-        borderBottomLeftRadius: 14,
-        borderBottomRightRadius: 14,
-        // Subtle elevation for available seats
-        shadowColor: isSelected ? '#ee237c' : '#000',
-        shadowOffset: { width: 0, height: isSelected ? 3 : 1 },
-        shadowOpacity: isSelected ? 0.25 : 0.06,
-        shadowRadius: isSelected ? 6 : 2,
-        elevation: isSelected ? 4 : 1,
-      })}
-    >
-      <Text
-        style={{
-          fontSize: 11,
-          fontWeight: '800',
-          color: isSelected
-            ? '#fff'
-            : isAvailable
-            ? '#15803d'
+            ? "bg-emerald-50 border-[1.5px] border-emerald-300"
             : isSold
-            ? '#dc2626'
-            : isHeld
-            ? '#d97706'
-            : '#94a3b8',
-          letterSpacing: 0.3,
-        }}
-      >
-        {seat.label}
-      </Text>
+              ? "bg-slate-100 border-[1.5px] border-slate-200"
+              : isHeld
+                ? "bg-amber-50 border-[1.5px] border-amber-300"
+                : "bg-slate-50 border-[1.5px] border-slate-200"
+      }`}
+      style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
+    >
+      {showLabel || isSelected ? (
+        <Text
+          className={`text-sm font-extrabold tracking-wide ${
+            isSelected
+              ? "text-white"
+              : isAvailable
+                ? "text-emerald-700"
+                : isSold
+                  ? "text-slate-400"
+                  : isHeld
+                    ? "text-amber-600"
+                    : "text-slate-400"
+          }`}
+        >
+          {seat.label}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
@@ -135,171 +121,88 @@ export function PassengerSeatMap({
   rows = 5,
   columns = 4,
 }: PassengerSeatMapProps) {
-  const grid: (SeatGridItem | null)[][] = [];
-  for (let r = 0; r < rows; r++) {
-    grid[r] = [];
-    for (let c = 0; c < columns; c++) {
-      const seat = seats.find((s) => s.row === r && s.col === c);
-      grid[r]?.push(seat ?? null);
-    }
-  }
-
-  // Detect aisle position (column with no seats = aisle gap)
-  // Standard bus: 2 seats | aisle | 2 seats → insert a spacer after col 1
-  const hasAisle = columns >= 4;
-  const aisleAfterCol = hasAisle ? Math.floor(columns / 2) - 1 : -1;
+  const { t } = useTranslation("booking");
+  const grid = buildSeatGrid(seats, rows, columns);
+  const colHeaders = getColumnHeaders(columns);
 
   return (
-    <View style={{ gap: 0 }}>
-      {/* Bus front indicator */}
-      <View
-        style={{
-          alignItems: 'center',
-          marginBottom: 16,
-          paddingBottom: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: '#f1f5f9',
-        }}
-      >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: '#fdf2f8',
-            borderRadius: 20,
-            paddingHorizontal: 16,
-            paddingVertical: 6,
-            borderWidth: 1,
-            borderColor: '#fbcfe8',
-            gap: 6,
-          }}
-        >
-          <View
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: '#ee237c',
-            }}
-          />
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#db2777', letterSpacing: 1 }}>
-            FRONT OF BUS
+    <View className="gap-0">
+      <View className="items-center mb-4 pb-3 border-b border-slate-100">
+        <View className="flex-row items-center bg-pink-50 rounded-full px-4 py-1.5 border border-pink-200 gap-1.5">
+          <View className="w-2 h-2 rounded-full bg-[#ee237c]" />
+          <Text className="text-sm font-bold text-pink-600 tracking-widest">
+            {t("frontOfBus", "FRONT OF BUS")}
           </Text>
-          <View
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: '#ee237c',
-            }}
-          />
+          <View className="w-2 h-2 rounded-full bg-[#ee237c]" />
         </View>
       </View>
 
-      {/* Column headers */}
-      <View
-        style={{
-          flexDirection: 'row',
-          paddingHorizontal: 4,
-          marginBottom: 4,
-        }}
-      >
-        {/* Row number placeholder */}
-        <View style={{ width: 24 }} />
-        {Array.from({ length: columns }).map((_, i) => (
-          <React.Fragment key={i}>
-            <View style={{ flex: 1, alignItems: 'center' }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#94a3b8', letterSpacing: 0.5 }}>
-                {String.fromCharCode(65 + i)}
-              </Text>
-            </View>
-            {i === aisleAfterCol && <View style={{ width: 20 }} />}
-          </React.Fragment>
+      <View className="flex-row px-1 mb-1">
+        <View className="w-6" />
+        {colHeaders.map((header) => (
+          <View key={header} className="flex-1 items-center">
+            <Text className="text-xs font-bold text-slate-400 tracking-wide">
+              {header}
+            </Text>
+          </View>
         ))}
       </View>
 
-      {/* Seat rows */}
       {grid.map((row, rowIndex) => (
-        <View
-          key={rowIndex}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 4,
-          }}
-        >
-          {/* Row number */}
-          <View style={{ width: 24, alignItems: 'center' }}>
-            <Text style={{ fontSize: 10, fontWeight: '600', color: '#cbd5e1' }}>
+        <View key={rowIndex} className="flex-row items-center px-1">
+          <View className="w-6 items-center">
+            <Text className="text-xs font-semibold text-slate-300">
               {rowIndex + 1}
             </Text>
           </View>
 
-          {row.map((seat, colIndex) => (
-            <React.Fragment key={seat?.id ?? `empty-${rowIndex}-${colIndex}`}>
-              {seat ? (
-                <SeatCell
-                  seat={seat}
-                  isSelected={selectedSeats.includes(seat.id)}
-                  onPress={() => onSelectSeat(seat.id)}
-                />
-              ) : (
-                <View style={{ flex: 1, height: 46, margin: 3 }} />
-              )}
-              {colIndex === aisleAfterCol && (
-                <View style={{ width: 20, alignItems: 'center' }}>
-                  <View style={{ width: 1, height: 30, backgroundColor: '#e2e8f0' }} />
-                </View>
-              )}
-            </React.Fragment>
-          ))}
+          {row.map((seat, colIndex) =>
+            seat ? (
+              <SeatCell
+                key={seat.id}
+                seat={seat}
+                isSelected={selectedSeats.includes(seat.id)}
+                onPress={() => onSelectSeat(seat.id)}
+              />
+            ) : (
+              <View
+                key={`empty-${rowIndex}-${colIndex}`}
+                className="flex-1 h-[46px] m-[3px]"
+              />
+            ),
+          )}
         </View>
       ))}
 
-      {/* Legend */}
-      <View
-        style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: 8,
-          marginTop: 20,
-          paddingTop: 16,
-          borderTopWidth: 1,
-          borderTopColor: '#f1f5f9',
-          justifyContent: 'center',
-        }}
-      >
+      <View className="flex-row flex-wrap gap-2 mt-5 pt-4 border-t border-slate-100 justify-center">
         {[
-          { label: 'Available', bg: '#f0fdf4', border: '#86efac', text: '#15803d' },
-          { label: 'Selected', bg: '#ee237c', border: '#ee237c', text: '#fff' },
-          { label: 'Held', bg: '#fffbeb', border: '#fcd34d', text: '#d97706' },
-          { label: 'Taken', bg: '#fef2f2', border: '#fca5a5', text: '#dc2626' },
-        ].map(({ label, bg, border, text }) => (
+          {
+            label: t("available", "Available"),
+            bgClass: "bg-emerald-50 border-emerald-300",
+          },
+          {
+            label: t("selected", "Selected"),
+            bgClass: "bg-[#ee237c] border-[#ee237c]",
+          },
+          {
+            label: t("held", "Held"),
+            bgClass: "bg-amber-50 border-amber-300",
+          },
+          {
+            label: t("taken", "Taken"),
+            bgClass: "bg-slate-100 border-slate-200",
+          },
+          {
+            label: t("blocked", "Blocked"),
+            bgClass: "bg-slate-50 border-slate-200",
+          },
+        ].map(({ label, bgClass }) => (
           <View
             key={label}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 5,
-              backgroundColor: '#fafafa',
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: '#f1f5f9',
-            }}
+            className="flex-row items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100"
           >
-            <View
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 4,
-                backgroundColor: bg,
-                borderWidth: 1.5,
-                borderColor: border,
-              }}
-            />
-            <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748b' }}>{label}</Text>
+            <View className={`w-4 h-4 rounded border-[1.5px] ${bgClass}`} />
+            <Text className="text-sm font-semibold text-slate-500">{label}</Text>
           </View>
         ))}
       </View>

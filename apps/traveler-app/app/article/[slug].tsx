@@ -3,10 +3,12 @@ import { useLocalSearchParams, router, Stack } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft01Icon, Clock01Icon, User02Icon } from "@hugeicons/core-free-icons";
 
 export default function ArticleDetailScreen() {
+  const { t } = useTranslation(["home", "common"]);
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
   const trpc = useTRPC() as any;
@@ -35,7 +37,7 @@ export default function ArticleDetailScreen() {
           </Pressable>
 
           <Text className="text-xs font-extrabold text-slate-500 uppercase tracking-widest">
-            Moja Travel News
+            {t("home:travelNewsHeader")}
           </Text>
 
           <View className="size-9" />
@@ -45,22 +47,22 @@ export default function ArticleDetailScreen() {
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#ee237c" />
             <Text className="text-xs text-slate-500 mt-2 font-medium">
-              Loading article...
+              {t("home:loadingArticle")}
             </Text>
           </View>
         ) : error || !post ? (
           <View className="flex-1 items-center justify-center p-6 text-center">
             <Text className="text-base font-bold text-slate-900 mb-1">
-              Article Not Found
+              {t("home:articleNotFound")}
             </Text>
             <Text className="text-xs text-slate-500 mb-4">
-              This article may have been un-published or removed.
+              {t("home:articleRemoved")}
             </Text>
             <Pressable
               onPress={() => router.back()}
               className="bg-slate-900 px-4 py-2 rounded-full"
             >
-              <Text className="text-xs font-bold text-white">Go Back</Text>
+              <Text className="text-xs font-bold text-white">{t("common:goBack")}</Text>
             </Pressable>
           </View>
         ) : (
@@ -93,7 +95,7 @@ export default function ArticleDetailScreen() {
                 <View className="flex-row items-center gap-1">
                   <HugeiconsIcon icon={Clock01Icon} size={12} color="#94a3b8" />
                   <Text className="text-xs text-slate-400 font-medium">
-                    {post.readingTime || 3} min read
+                    {t("home:minRead", { count: post.readingTime || 3 })}
                   </Text>
                 </View>
               </View>
@@ -120,7 +122,7 @@ export default function ArticleDetailScreen() {
                     {post.displayAuthorName || post.author?.fullName || "Moja Editorial"}
                   </Text>
                   <Text className="text-[10px] text-slate-400">
-                    Published by Moja Ride
+                    {t("home:publishedBy")}
                   </Text>
                 </View>
               </View>

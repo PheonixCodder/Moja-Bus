@@ -1,4 +1,5 @@
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Text } from '@/components/ui/text';
 import type { BookingFilterType } from '../hooks/use-bookings';
 
@@ -11,10 +12,10 @@ type BookingFilterTabsProps = {
   pendingCount?: number;
 };
 
-const TABS: { id: BookingFilterTab; label: string }[] = [
-  { id: 'upcoming', label: 'Upcoming' },
-  { id: 'pending', label: 'Pending' },
-  { id: 'past', label: 'Past' },
+const TABS: { id: BookingFilterTab; labelKey: string }[] = [
+  { id: 'upcoming', labelKey: 'upcomingLabel' },
+  { id: 'pending', labelKey: 'pendingLabel' },
+  { id: 'past', labelKey: 'pastLabel' },
 ];
 
 export function BookingFilterTabs({
@@ -23,6 +24,8 @@ export function BookingFilterTabs({
   upcomingCount,
   pendingCount,
 }: BookingFilterTabsProps) {
+  const { t } = useTranslation('booking');
+
   const getBadgeCount = (tab: BookingFilterTab) => {
     if (tab === 'upcoming') return upcomingCount;
     if (tab === 'pending') return pendingCount;
@@ -49,7 +52,7 @@ export function BookingFilterTabs({
               className={`text-xs font-black capitalize ${
                 isActive ? 'text-white' : 'text-muted-foreground'
               }`}>
-              {tab.label}
+              {t(tab.labelKey as any)}
             </Text>
             {count !== undefined && count > 0 ? (
               <View
@@ -57,7 +60,7 @@ export function BookingFilterTabs({
                   isActive ? 'bg-white/25' : 'bg-primary/10'
                 }`}>
                 <Text
-                  className={`text-[10px] font-extrabold ${
+                  className={`text-xs font-extrabold ${
                     isActive ? 'text-white' : 'text-primary'
                   }`}>
                   {count}

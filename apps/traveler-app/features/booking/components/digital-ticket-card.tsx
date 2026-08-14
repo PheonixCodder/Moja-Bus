@@ -6,6 +6,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { Text } from '@/components/ui/text';
@@ -42,6 +43,7 @@ export function DigitalTicketCard({
   onPress,
   onPressIn,
 }: DigitalTicketCardProps) {
+  const { t } = useTranslation('booking');
   const scale = useSharedValue(1);
 
   const handlePress = () => {
@@ -64,12 +66,12 @@ export function DigitalTicketCard({
 
   const badgeLabel =
     {
-      CONFIRMED: 'VALID TICKET',
-      PENDING_PAYMENT: 'PENDING',
-      EXPIRED: 'EXPIRED',
-      CANCELLED: 'CANCELLED',
-      COMPLETED: 'COMPLETED',
-    }[status ?? 'CONFIRMED'] ?? 'VALID TICKET';
+      CONFIRMED: t('confirmed'),
+      PENDING_PAYMENT: t('pendingPayment'),
+      EXPIRED: t('expired'),
+      CANCELLED: t('cancelled'),
+      COMPLETED: t('completed'),
+    }[status ?? 'CONFIRMED'] ?? t('confirmed');
 
   return (
     <Animated.View style={animatedStyle} className="mb-4">
@@ -90,15 +92,15 @@ export function DigitalTicketCard({
                 numberOfLines={1}>
                 {companyName || 'Moja Express'}
               </Text>
-              <Text className="text-muted-foreground font-mono text-[10px]">
-                REF: {bookingReference}
+              <Text className="text-muted-foreground font-mono text-xs">
+                {t('refLabel')} {bookingReference}
               </Text>
             </View>
           </View>
 
           <View className="flex-row items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5">
             <HugeiconsIcon icon={Shield01Icon} size={10} color="#10b981" />
-            <Text className="text-[9px] font-extrabold tracking-widest text-emerald-600 uppercase">
+            <Text className="text-xs font-extrabold tracking-widest text-emerald-600 uppercase">
               {badgeLabel}
             </Text>
           </View>
@@ -107,21 +109,21 @@ export function DigitalTicketCard({
         {/* Route Body Section */}
         <View className="flex-row items-center justify-between p-4">
           <View className="flex-1">
-            <Text className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
-              FROM
+            <Text className="text-muted-foreground text-xs font-bold tracking-widest uppercase">
+              {t('departure')}
             </Text>
             <Text className="text-foreground text-base font-extrabold" numberOfLines={1}>
               {origin || 'Origin'}
             </Text>
             {originSub ? (
-              <Text className="text-muted-foreground text-[10px]" numberOfLines={1}>
+              <Text className="text-muted-foreground text-xs" numberOfLines={1}>
                 {originSub}
               </Text>
             ) : null}
             <Text className="text-primary mt-1 text-xs font-bold">
               {formatTimeOnly(departureTime)}
             </Text>
-            <Text className="text-muted-foreground/80 mt-0.5 text-[10px] font-semibold">
+            <Text className="text-muted-foreground/80 mt-0.5 text-xs font-semibold">
               {formatDateWithWeekday(departureTime)}
             </Text>
           </View>
@@ -131,21 +133,21 @@ export function DigitalTicketCard({
           </View>
 
           <View className="flex-1 items-end">
-            <Text className="text-muted-foreground text-right text-[10px] font-bold tracking-widest uppercase">
-              TO
+            <Text className="text-muted-foreground text-right text-xs font-bold tracking-widest uppercase">
+              {t('destination')}
             </Text>
             <Text className="text-foreground text-right text-base font-extrabold" numberOfLines={1}>
               {destination || 'Destination'}
             </Text>
             {destinationSub ? (
-              <Text className="text-muted-foreground text-right text-[10px]" numberOfLines={1}>
+              <Text className="text-muted-foreground text-right text-xs" numberOfLines={1}>
                 {destinationSub}
               </Text>
             ) : null}
             <Text className="text-primary mt-1 text-right text-xs font-bold">
               {formatTimeOnly(arrivalTime)}
             </Text>
-            <Text className="text-muted-foreground/80 mt-0.5 text-right text-[10px] font-semibold">
+            <Text className="text-muted-foreground/80 mt-0.5 text-right text-xs font-semibold">
               {formatDateWithWeekday(arrivalTime)}
             </Text>
           </View>
@@ -164,14 +166,14 @@ export function DigitalTicketCard({
         {/* Footer: Passenger + Seat + QR Code Action */}
         <View className="bg-card flex-row items-center justify-between p-4">
           <View className="mr-2 flex-1">
-            <Text className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
-              PASSENGER
+            <Text className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
+              {t('passenger')}
             </Text>
             <Text className="text-foreground text-xs font-bold" numberOfLines={1}>
               {passengerName || 'Valued Traveler'}
             </Text>
-            <Text className="text-primary mt-0.5 text-[11px] font-extrabold">
-              Seat {seatLabel || 'Gen'}
+            <Text className="text-primary mt-0.5 text-sm font-extrabold">
+              {t('seatLabel')} {seatLabel || 'Gen'}
             </Text>
           </View>
 

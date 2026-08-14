@@ -7,9 +7,5 @@ import { authClient } from "@/lib/auth-client";
 export default function IndexScreen() {
     const { data: session } = authClient.useSession();
 
-    if (session?.user) {
-        return <Redirect href="/(tabs)" />;
-    }
-
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(tabs)" />;
 }

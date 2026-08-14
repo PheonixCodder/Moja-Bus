@@ -83,7 +83,7 @@ export function TransactionHistory({
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-slate-100">
         <Text className="text-sm font-extrabold text-slate-900">Transaction History</Text>
-        <Text className="text-[11px] text-slate-500">{total} total</Text>
+        <Text className="text-sm text-slate-500">{total} total</Text>
       </View>
 
       <FlatList
@@ -114,11 +114,11 @@ export function TransactionHistory({
                 </Text>
                 <View className="flex-row items-center gap-1 mt-0.5">
                   <View className="px-1.5 py-[1px] rounded bg-slate-100">
-                    <Text className="text-[9px] font-bold text-slate-400 tracking-wide uppercase">
+                    <Text className="text-xs font-bold text-slate-400 tracking-wide uppercase">
                       {isCredit ? "Paystack" : "Wallet"}
                     </Text>
                   </View>
-                  <Text className="text-[11px] text-slate-400">{formatDate(item.effectiveAt)}</Text>
+                  <Text className="text-sm text-slate-400">{formatDate(item.effectiveAt)}</Text>
                 </View>
               </View>
 
@@ -132,7 +132,7 @@ export function TransactionHistory({
 
       {totalPages > 1 ? (
         <View className="flex-row items-center justify-between px-4 py-3 border-t border-slate-100">
-          <Text className="text-[11px] text-slate-500">
+          <Text className="text-sm text-slate-500">
             Showing {currentPage * pageSize + 1}–{Math.min((currentPage + 1) * pageSize, total)} of {total}
           </Text>
           <View className="flex-row gap-1">
@@ -141,14 +141,14 @@ export function TransactionHistory({
               disabled={currentPage === 0}
               className={`px-2 py-1 rounded-lg border border-slate-200 ${currentPage === 0 ? "opacity-40" : ""}`}
             >
-              <Text className="text-[11px] font-semibold text-slate-700">Previous</Text>
+              <Text className="text-sm font-semibold text-slate-700">Previous</Text>
             </Pressable>
             <Pressable
               onPress={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages - 1}
               className={`px-2 py-1 rounded-lg border border-slate-200 ${currentPage >= totalPages - 1 ? "opacity-40" : ""}`}
             >
-              <Text className="text-[11px] font-semibold text-slate-700">Next</Text>
+              <Text className="text-sm font-semibold text-slate-700">Next</Text>
             </Pressable>
           </View>
         </View>

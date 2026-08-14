@@ -13,6 +13,8 @@ interface FiltersSheetProps {
   onClose: () => void;
   filters: SearchFilters;
   onApplyFilters: (f: SearchFilters) => void;
+  /** Operators derived from current search results */
+  operators?: { id: string; name: string }[];
 }
 
 export function FiltersSheet({
@@ -20,6 +22,7 @@ export function FiltersSheet({
   onClose,
   filters,
   onApplyFilters,
+  operators = [],
 }: FiltersSheetProps) {
   const { t } = useTranslation('search');
   const insets = useSafeAreaInsets();
@@ -136,7 +139,7 @@ export function FiltersSheet({
           <View className="flex-row items-center justify-between mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <View>
               <Text className="text-sm font-extrabold text-slate-900">{t('expressOnly')}</Text>
-              <Text className="text-xs text-slate-500 mt-0.5">Direct routes only with 0 intermediate stops</Text>
+              <Text className="text-xs text-slate-500 mt-0.5">{t('directRoutesOnly')}</Text>
             </View>
             <Switch
               value={localFilters.isExpress}
@@ -145,6 +148,20 @@ export function FiltersSheet({
               thumbColor={localFilters.isExpress ? '#ee237c' : '#f8fafc'}
             />
           </View>
+
+          {operators.length > 0 ? (
+            <>
+              <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-2.5">
+                {t('busOperator')}
+              </Text>
+              <FilterChipRow
+                items={operators.map((o) => o.id)}
+                selectedItems={localFilters.operators}
+                onToggle={(item) => toggleArrayItem('operators', item)}
+                getLabel={(item) => operators.find((o) => o.id === item)?.name ?? item}
+              />
+            </>
+          ) : null}
 
           {/* Bus Class */}
           <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-2.5">

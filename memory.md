@@ -92,3 +92,29 @@ Last updated: 2026-08-02
 - Fix: Changed scripts in `packages/db/package.json` and `apps/web/package.json` to use direct paths (`node ../../node_modules/<pkg>/dist/bin/<cmd>`) bypassing broken junctions.
 - Files changed: `packages/db/package.json` (postinstall + all prisma/tsx scripts), `apps/web/package.json` (build script)
 - `.npmrc` was NOT modified — kept as `node-linker=hoisted`
+
+## Traveler search audit fixes (2026-08-13)
+
+- Updated `apps/traveler-app/features/search/screens/search.tsx`: DateStrip geo props, same-city validation, default sort BEST, deep-link label resolution via getCityDetails/getGeoPlaceLabel, route param sync, richer offer mapping + activeOperators for FiltersSheet, passengers clamped 1–6.
+
+## Post-audit bugfixes still needed then fixed (2026-08-13)
+
+**Diagnosis (user report + screenshot):** Audit tracker marked H4/H5 done, but two issues remained on device:
+
+1. Guest seat → login only restored offer/seats into passenger sheet; from/to/date/`isSubmitted` were not restored and `returnTo` had no search query params → blank search on return.
+2. Paystack success still fell back to payment ref `moja_${holdId}_…` when `bookingReferences[0]` missing → success page REF wrong → boarding pass `Failed to load ticket`. Screenshot showed exactly that long `moja_…` REF.
+
+**Fixes landed:**
+- `stores/pending-checkout.ts`: persist full `search` snapshot + `buildSearchReturnTo`; hydration flag
+- `search.tsx`: save snapshot on guest continue; encoded `returnTo` with from/to/date; restore after hydrate + reopen passenger form
+- `passenger-form-sheet.tsx`: keep `heldBookingRefs` from `createHold`; success navigation prefers `MR-…` refs only; never navigate with `moja_` (fallback → My Bookings)
+
+**Next:** Rebuild/reinstall debug APK and QA both flows on device.
+## Traveler UX batch (2026-08-13)
+
+- View Ticket / success primary CTA -> Tickets tab (multi-ticket)
+- Pending detail: hide pay when hold expired; Search again CTA
+- Reviews: enriched getUserReviews (company + operator response); submit requires companyId
+- Settings profile hero -> personal-info; avatar preview modal then Edit
+- Notifications redesign + mark one/all read via Novu client
+- Login OTP: {{identifier}} i18n; AuthShell top-weighted + keyboard avoid
