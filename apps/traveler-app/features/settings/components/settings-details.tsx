@@ -5,60 +5,72 @@ import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { useWalletBalance } from "@/hooks/use-wallet";
+import { useSettingsPrefetch } from "../hooks/use-settings-prefetch";
 
-export function SettingsDetails() {
-  const { t } = useTranslation("settings");
-  const { data: balance, isLoading } = useWalletBalance() as unknown as { data: { availableBalance: number } | undefined; isLoading: boolean };
+type SettingsDetailsProps = {
+	isAuthenticated: boolean;
+};
 
-  return (
-    <View className="gap-2">
-      <Pressable
-        onPress={() => router.push("/wallet" as any)}
-        className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
-      >
-        <View className="size-10 rounded-full bg-pink-500/10 items-center justify-center">
-          <HugeiconsIcon icon={Wallet01Icon} size={18} color="#ee237c" />
-        </View>
+export function SettingsDetails({ isAuthenticated }: SettingsDetailsProps) {
+	const { t } = useTranslation("settings");
+	const { prefetchWallet } = useSettingsPrefetch();
+	const { data: balance, isLoading } = useWalletBalance(isAuthenticated);
 
-        <View className="flex-1">
-          <Text className="text-sm font-semibold text-slate-900">
-            {t("wallet")}
-          </Text>
-          <Text className="text-xs font-normal text-slate-500 mt-0.5">
-            {t("balanceLabel")}
-          </Text>
-        </View>
+	const displayBalance = isAuthenticated ? (balance?.availableBalance ?? 0) : 0;
+	const showSpinner = isAuthenticated && isLoading;
 
-        {isLoading ? (
-          <ActivityIndicator size="small" color="#ee237c" />
-        ) : (
-          <Text className="text-sm font-bold text-pink-600">
-            {balance ? `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(balance.availableBalance)} XOF` : "0 XOF"}
-          </Text>
-        )}
+	return (
+		<View className="gap-2">
+			<Pressable
+				onPressIn={() => {
+					if (isAuthenticated) prefetchWallet();
+				}}
+				onPress={() => router.push("/wallet" as any)}
+				className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
+			>
+				<View className="size-10 rounded-full bg-pink-500/10 items-center justify-center">
+					<HugeiconsIcon icon={Wallet01Icon} size={18} color="#ee237c" />
+				</View>
 
-        <HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
-      </Pressable>
+				<View className="flex-1">
+					<Text className="text-sm font-semibold text-slate-900">
+						{t("wallet")}
+					</Text>
+					<Text className="text-xs font-normal text-slate-500 mt-0.5">
+						{t("balanceLabel")}
+					</Text>
+				</View>
 
-      <Pressable
-        onPress={() => router.push("/passengers" as any)}
-        className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
-      >
-        <View className="size-10 rounded-full bg-pink-500/10 items-center justify-center">
-          <HugeiconsIcon icon={UserGroupIcon} size={18} color="#ee237c" />
-        </View>
+				{showSpinner ? (
+					<ActivityIndicator size="small" color="#ee237c" />
+				) : (
+					<Text className="text-sm font-bold text-pink-600">
+						{`${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(displayBalance)} XOF`}
+					</Text>
+				)}
 
-        <View className="flex-1">
-          <Text className="text-sm font-semibold text-slate-900">
-            {t("passengersLabel")}
-          </Text>
-          <Text className="text-xs font-normal text-slate-500 mt-0.5">
-            {t("passengers")}
-          </Text>
-        </View>
+				<HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
+			</Pressable>
 
-        <HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
-      </Pressable>
-    </View>
-  );
+			<Pressable
+				onPress={() => router.push("/passengers" as any)}
+				className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
+			>
+				<View className="size-10 rounded-full bg-pink-500/10 items-center justify-center">
+					<HugeiconsIcon icon={UserGroupIcon} size={18} color="#ee237c" />
+				</View>
+
+				<View className="flex-1">
+					<Text className="text-sm font-semibold text-slate-900">
+						{t("passengersLabel")}
+					</Text>
+					<Text className="text-xs font-normal text-slate-500 mt-0.5">
+						{t("passengers")}
+					</Text>
+				</View>
+
+				<HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
+			</Pressable>
+		</View>
+	);
 }

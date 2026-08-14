@@ -2,6 +2,7 @@ import { View, Text, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { OperatorCard, type OperatorCardItem } from '@/features/operators/components/operator-card';
+import { useOperatorsPrefetch } from '@/features/operators/hooks/use-operators-prefetch';
 
 interface FeaturedOperatorsSectionProps {
   operators?: OperatorCardItem[];
@@ -33,6 +34,7 @@ const FALLBACK_OPERATORS: OperatorCardItem[] = [
 
 export function FeaturedOperatorsSection({ operators }: FeaturedOperatorsSectionProps) {
   const { t } = useTranslation('operators');
+  const { prefetchOperatorsList } = useOperatorsPrefetch();
   const displayOperators =
     operators && operators.length > 0 ? operators : FALLBACK_OPERATORS;
 
@@ -44,6 +46,7 @@ export function FeaturedOperatorsSection({ operators }: FeaturedOperatorsSection
           {t('sectionTitle')}
         </Text>
         <Pressable
+          onPressIn={() => prefetchOperatorsList()}
           onPress={() => router.push('/operators' as any)}
           className="will-change-pressable active:opacity-70"
         >

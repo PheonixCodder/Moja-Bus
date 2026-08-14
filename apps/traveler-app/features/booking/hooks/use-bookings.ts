@@ -5,6 +5,10 @@ import type {
 } from "@moja/types";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
+import {
+	BOOKINGS_LIST_LIMIT,
+	bookingsListInput,
+} from "../constants/query-keys";
 
 export type {
 	PassengerBookingSummary,
@@ -19,17 +23,15 @@ export type BookingFilterType = "upcoming" | "pending" | "past";
 
 export function useListMyBookings(
 	filter: BookingFilterType = "upcoming",
-	limit: number = 20,
+	limit: number = BOOKINGS_LIST_LIMIT,
 	offset: number = 0,
 	enabled?: boolean,
 ) {
 	const trpc = useTRPC();
 	return useQuery({
-		...trpc.booking.listMyBookings.queryOptions({
-			filter,
-			limit,
-			offset,
-		}),
+		...trpc.booking.listMyBookings.queryOptions(
+			bookingsListInput(filter, limit, offset),
+		),
 		enabled,
 	});
 }

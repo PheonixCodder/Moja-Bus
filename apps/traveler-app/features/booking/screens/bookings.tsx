@@ -13,6 +13,7 @@ import {
 import { BookingKpiStrip } from "@/features/booking/components/booking-kpi-strip";
 import { BookingListSkeleton } from "@/features/booking/components/booking-list-skeleton";
 import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
+import { BOOKINGS_LIST_LIMIT } from "@/features/booking/constants/query-keys";
 import {
 	type PassengerBookingSummary,
 	useListMyBookings,
@@ -35,7 +36,7 @@ export function BookingsView() {
 		data: bookingsData,
 		isLoading,
 		refetch,
-	} = useListMyBookings(filter, 20, 0, true);
+	} = useListMyBookings(filter, BOOKINGS_LIST_LIMIT, 0, true);
 
 	// Prefetch on screen focus
 	useFocusEffect(
@@ -55,7 +56,7 @@ export function BookingsView() {
 		// Cache seeding pattern: seed detail cache with existing item data for instant load
 		const listQueryKey = trpc.booking.listMyBookings.queryOptions({
 			filter,
-			limit: 20,
+			limit: BOOKINGS_LIST_LIMIT,
 			offset: 0,
 		}).queryKey;
 		if (listQueryKey) {
@@ -98,6 +99,7 @@ export function BookingsView() {
 			<BookingFilterTabs
 				activeTab={filter}
 				onTabChange={setFilter}
+				onTabPressIn={(tab) => prefetchBookings(tab)}
 				upcomingCount={stats?.upcomingTripsCount}
 				pendingCount={stats?.pendingPaymentsCount}
 			/>

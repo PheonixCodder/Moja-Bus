@@ -7,6 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useHomePrefetch } from "../hooks/use-home-prefetch";
 
 interface BlogPostItem {
   id: string;
@@ -24,6 +25,7 @@ interface BlogNewsSectionProps {
 
 export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
   const { t } = useTranslation("home");
+  const { prefetchArticle } = useHomePrefetch();
 
   if (!posts || posts.length === 0) return null;
 
@@ -42,6 +44,7 @@ export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
         {posts.map((post) => (
           <Pressable
             key={post.id}
+            onPressIn={() => prefetchArticle(post.slug)}
             onPress={() => router.push(`/article/${post.slug}` as any)}
             className="will-change-pressable w-64 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm active:opacity-80"
           >

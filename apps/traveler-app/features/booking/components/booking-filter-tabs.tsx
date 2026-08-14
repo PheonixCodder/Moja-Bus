@@ -8,6 +8,7 @@ export type BookingFilterTab = BookingFilterType;
 type BookingFilterTabsProps = {
   activeTab: BookingFilterTab;
   onTabChange: (tab: BookingFilterTab) => void;
+  onTabPressIn?: (tab: BookingFilterTab) => void;
   upcomingCount?: number;
   pendingCount?: number;
 };
@@ -21,6 +22,7 @@ const TABS: { id: BookingFilterTab; labelKey: string }[] = [
 export function BookingFilterTabs({
   activeTab,
   onTabChange,
+  onTabPressIn,
   upcomingCount,
   pendingCount,
 }: BookingFilterTabsProps) {
@@ -41,6 +43,7 @@ export function BookingFilterTabs({
         return (
           <Pressable
             key={tab.id}
+            onPressIn={() => onTabPressIn?.(tab.id)}
             onPress={() => onTabChange(tab.id)}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}

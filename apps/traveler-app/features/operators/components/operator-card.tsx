@@ -32,8 +32,11 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+import { useOperatorsPrefetch } from '@/features/operators/hooks/use-operators-prefetch';
+
 export function OperatorCard({ operator, variant = 'list' }: OperatorCardProps) {
   const { t } = useTranslation('operators');
+  const { prefetchOperator } = useOperatorsPrefetch();
   const initials = getInitials(operator.name);
 
   const handlePress = () => {
@@ -43,9 +46,14 @@ export function OperatorCard({ operator, variant = 'list' }: OperatorCardProps) 
     });
   };
 
+  const handlePressIn = () => {
+    prefetchOperator(operator.slug);
+  };
+
   if (variant === 'home') {
     return (
       <Pressable
+        onPressIn={handlePressIn}
         onPress={handlePress}
         className="will-change-pressable w-60 bg-white border border-slate-200 p-3.5 rounded-2xl gap-2.5 shadow-sm active:bg-slate-50"
       >
@@ -102,6 +110,7 @@ export function OperatorCard({ operator, variant = 'list' }: OperatorCardProps) 
   // variant === 'list'
   return (
     <Pressable
+      onPressIn={handlePressIn}
       onPress={handlePress}
       className="will-change-pressable bg-white border border-slate-200 rounded-2xl p-4 gap-3 active:bg-slate-50"
       style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}

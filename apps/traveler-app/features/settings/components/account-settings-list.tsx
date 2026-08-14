@@ -18,6 +18,7 @@ import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import i18n from "@/lib/i18n";
+import { useSettingsPrefetch } from "../hooks/use-settings-prefetch";
 
 const primaryItems = [
   { icon: UserCircleIcon, labelKey: "settings:personalInformation", route: "/personal-info" },
@@ -38,9 +39,18 @@ function getLocaleLabel(locale: string) {
   return locale === "fr" ? i18n.t("settings:french") : i18n.t("settings:english");
 }
 
-export function AccountSettingsList() {
+type AccountSettingsListProps = {
+  isAuthenticated: boolean;
+};
+
+export function AccountSettingsList({ isAuthenticated }: AccountSettingsListProps) {
   const { t } = useTranslation("settings");
   const locale = i18n.language;
+  const { prefetchForRoute } = useSettingsPrefetch();
+
+  const handlePressIn = (route: string) => {
+    if (isAuthenticated) prefetchForRoute(route);
+  };
 
   return (
     <View>
@@ -51,6 +61,7 @@ export function AccountSettingsList() {
       {primaryItems.map((item) => (
         <View key={item.route}>
           <Pressable
+            onPressIn={() => handlePressIn(item.route)}
             onPress={() => router.push(item.route as any)}
             className="flex-row items-center py-4 px-5 active:opacity-60"
           >

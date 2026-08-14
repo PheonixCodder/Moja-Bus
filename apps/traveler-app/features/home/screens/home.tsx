@@ -8,52 +8,60 @@ import { PopularRoutesGrid } from "../components/popular-routes-grid";
 import { FeaturedOperatorsSection } from "../components/featured-operators-section";
 import { BlogNewsSection } from "../components/blog-news-section";
 import { useHomeData } from "../hooks/use-home-data";
+import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
 import { H_PADDING } from "../constants";
 
 export function HomeView() {
-  const insets = useSafeAreaInsets();
-  const {
-    refreshing,
-    onRefresh,
-    walletBalance,
-    upcomingBooking,
-    banners,
-    blogPosts,
-    operators,
-  } = useHomeData();
+	const insets = useSafeAreaInsets();
+	const { prefetchTicket } = useBookingPrefetch();
+	const {
+		refreshing,
+		onRefresh,
+		isAuthenticated,
+		walletBalance,
+		upcomingBooking,
+		banners,
+		blogPosts,
+		operators,
+	} = useHomeData();
 
-  return (
-    <ScrollView
-      className="flex-1 bg-slate-50"
-      contentContainerStyle={{
-        paddingTop: insets.top + 16,
-        paddingBottom: 130,
-        paddingHorizontal: H_PADDING,
-        gap: 24,
-      }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#ee237c"
-          colors={["#ee237c"]}
-        />
-      }
-    >
-      <HomeHeader walletBalance={walletBalance} />
-      
-      {/* Show Live Boarding Pass if upcoming trip exists; otherwise show Quick Search Widget */}
-      {upcomingBooking ? (
-        <ActiveTripCard booking={upcomingBooking} />
-      ) : (
-        <HomeSearchWidget />
-      )}
+	return (
+		<ScrollView
+			className="flex-1 bg-slate-50"
+			contentContainerStyle={{
+				paddingTop: insets.top + 16,
+				paddingBottom: 130,
+				paddingHorizontal: H_PADDING,
+				gap: 24,
+			}}
+			showsVerticalScrollIndicator={false}
+			refreshControl={
+				<RefreshControl
+					refreshing={refreshing}
+					onRefresh={onRefresh}
+					tintColor="#ee237c"
+					colors={["#ee237c"]}
+				/>
+			}
+		>
+			<HomeHeader
+				walletBalance={walletBalance}
+				isAuthenticated={isAuthenticated}
+			/>
 
-      <PromoBannerCarousel banners={banners} />
-      <PopularRoutesGrid />
-      <FeaturedOperatorsSection operators={operators} />
-      <BlogNewsSection posts={blogPosts} />
-    </ScrollView>
-  );
+			{upcomingBooking ? (
+				<ActiveTripCard
+					booking={upcomingBooking}
+					onPressIn={() => prefetchTicket(upcomingBooking.bookingReference)}
+				/>
+			) : (
+				<HomeSearchWidget />
+			)}
+
+			<PromoBannerCarousel banners={banners} />
+			<PopularRoutesGrid />
+			<FeaturedOperatorsSection operators={operators} />
+			<BlogNewsSection posts={blogPosts} />
+		</ScrollView>
+	);
 }

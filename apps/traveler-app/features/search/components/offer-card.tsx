@@ -39,9 +39,10 @@ export interface Offer {
 interface OfferCardProps {
   offer: Offer;
   onSelect: (offer: Offer) => void;
+  onPressIn?: (offer: Offer) => void;
 }
 
-export function OfferCard({ offer, onSelect }: OfferCardProps) {
+export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
   const { t } = useTranslation('search');
   const isSoldOut = offer.availability === 'SOLD_OUT';
   const isUrban = offer.serviceType === 'URBAN';
@@ -195,6 +196,7 @@ export function OfferCard({ offer, onSelect }: OfferCardProps) {
 
         <Pressable
           disabled={isSoldOut}
+          onPressIn={() => !isSoldOut && onPressIn?.(offer)}
           onPress={() => onSelect(offer)}
           className={`flex-row items-center gap-1.5 px-4 py-3 rounded-2xl ${
             isSoldOut ? 'bg-slate-200' : 'bg-[#ee237c]'

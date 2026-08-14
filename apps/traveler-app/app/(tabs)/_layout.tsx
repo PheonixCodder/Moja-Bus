@@ -148,11 +148,15 @@ function SearchButton({ onPress }: { onPress: () => void }) {
 }
 
 import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
+import { useHomePrefetch } from "@/features/home/hooks/use-home-prefetch";
+import { useSettingsPrefetch } from "@/features/settings/hooks/use-settings-prefetch";
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const { width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { prefetchBookings, prefetchStats } = useBookingPrefetch();
+  const { prefetchBookings, prefetchStats, prefetchTicketsList } = useBookingPrefetch();
+  const { prefetchHomeFeed } = useHomePrefetch();
+  const { prefetchWallet } = useSettingsPrefetch();
   const centerIndex = Math.floor(state.routes.length / 2);
   const margin = 16;
   const barWidth = screenWidth - margin * 2;
@@ -235,11 +239,15 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             };
 
             const handlePressIn = () => {
-              if (route.name === "bookings") {
+              if (route.name === "index") {
+                prefetchHomeFeed();
+              } else if (route.name === "bookings") {
                 prefetchBookings("upcoming");
                 prefetchStats();
               } else if (route.name === "tickets") {
-                prefetchBookings("upcoming");
+                prefetchTicketsList();
+              } else if (route.name === "settings") {
+                prefetchWallet();
               }
             };
 

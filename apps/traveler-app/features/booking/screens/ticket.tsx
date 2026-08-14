@@ -1,1 +1,1 @@
-export { TicketsView } from "./tickets";
+export { PublicTicketView } from "./public-ticket";

@@ -8,6 +8,7 @@ import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-
 import { TicketEmptyState } from "@/features/booking/components/ticket-empty-state";
 import { TicketListSkeleton } from "@/features/booking/components/ticket-list-skeleton";
 import { TicketSheet } from "@/features/booking/components/ticket-sheet";
+import { TICKETS_LIST_LIMIT } from "@/features/booking/constants/query-keys";
 import { useBookingPrefetch } from "@/features/booking/hooks/use-booking-prefetch";
 import {
 	type PassengerBookingSummary,
@@ -35,7 +36,7 @@ type TicketItem = {
 
 export function TicketsView() {
 	const insets = useSafeAreaInsets();
-	const { prefetchBookings, prefetchTicket } = useBookingPrefetch();
+	const { prefetchTicketsList, prefetchTicket } = useBookingPrefetch();
 	const cancelMutation = useCancelBooking();
 
 	const [activeTicket, setActiveTicket] = useState<{
@@ -50,12 +51,12 @@ export function TicketsView() {
 		isLoading,
 		isFetching,
 		refetch,
-	} = useListMyBookings("upcoming", 50, 0, true);
+	} = useListMyBookings("upcoming", TICKETS_LIST_LIMIT, 0, true);
 
 	useFocusEffect(
 		useCallback(() => {
-			prefetchBookings("upcoming");
-		}, []),
+			prefetchTicketsList();
+		}, [prefetchTicketsList]),
 	);
 
 	const bookings = (bookingsData?.items ?? []) as PassengerBookingSummary[];

@@ -39,6 +39,7 @@ import { FiltersSheet } from '../components/filters-sheet';
 import { SeatSelectionSheet } from '../components/seat-selection-sheet';
 import { PassengerFormSheet } from '../components/passenger-form-sheet';
 import { useSearchTrips } from '../hooks/use-search-trips';
+import { useSearchPrefetch } from '../hooks/use-search-prefetch';
 import { useSearchFilters } from '../hooks/use-search-filters';
 import type { CityValue, SortKey } from '../types';
 import { toLocalISODate } from '../lib/format';
@@ -50,6 +51,7 @@ const DRAG_HANDLE_HEIGHT = 32;
 export function SearchView() {
   const router = useRouter();
   const trpc = useTRPC();
+  const { prefetchSeatAvailability } = useSearchPrefetch();
   const { data: session } = authClient.useSession();
   const { pending, setPending, clearPending, _hasHydrated } = usePendingCheckoutStore();
 
@@ -748,7 +750,11 @@ export function SearchView() {
           data={isPreSearch ? [] : allOffers}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <OfferCard offer={item} onSelect={(o) => setSelectedOffer(o)} />
+            <OfferCard
+              offer={item}
+              onPressIn={(o) => prefetchSeatAvailability(o.id)}
+              onSelect={(o) => setSelectedOffer(o)}
+            />
           )}
           contentContainerStyle={{
             paddingTop: 8,

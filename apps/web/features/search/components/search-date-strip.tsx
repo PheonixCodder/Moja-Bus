@@ -59,7 +59,7 @@ export const SearchDateStrip = memo(function SearchDateStrip({ from, to, fromMun
   const minPrice = allPrices.length > 0 ? Math.min(...allPrices) : null;
 
   return (
-    <div className="w-full">
+    <div className="w-full z-30">
       <div className="flex items-stretch gap-1 sm:gap-2 overflow-x-auto scrollbar-hide pb-1 pt-3">
         {days.map(({ dateStr, weekday, dayNum, month }) => {
           const isSelected = dateStr === effectiveCenter;
