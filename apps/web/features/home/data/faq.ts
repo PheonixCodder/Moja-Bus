@@ -118,7 +118,11 @@ const en: FAQCategory[] = [
       },
       {
         q: "What are promo credits and referrals?",
-        a: "Promo credits are wallet-like balances (for example from referral rewards) that apply at checkout before you pay. Referral rewards may be delayed until a referee completes a paid trip, and recurring credits follow the active referral program rules. Credits and vouchers are non-transferable and cannot be cashed out.",
+        a: "Promo credits are balances from referral rewards (and similar grants) that apply at checkout before you pay. Share your invite link (/r/CODE), or enter a friend's code once on your account. Rewards may wait until the friend completes a paid trip, then follow a review delay and any recurring rules of the active program. Credits and vouchers are non-transferable and cannot be cashed out.",
+      },
+      {
+        q: "How many promotional vouchers can I hold?",
+        a: "You may hold up to 3 active promotional vouchers at a time (marketing, goodwill, admin grant, or referral welcome vouchers). Cancellation vouchers and modification-difference vouchers do not count toward that limit. Moja Ride may refuse additional promotional grants until one expires or is used.",
       },
       {
         q: "Can I sell or transfer my voucher?",
@@ -255,7 +259,11 @@ const fr: FAQCategory[] = [
       },
       {
         q: "Que sont les crédits promo et le parrainage ?",
-        a: "Les crédits promo sont des soldes utilisables au paiement (par exemple issus du parrainage). Les récompenses de parrainage peuvent être différées jusqu'à ce que le filleul termine un trajet payé ; les crédits récurrents suivent le programme actif. Crédits et avoirs sont non transférables et non remboursables en espèces.",
+        a: "Les crédits promo sont des soldes issus du parrainage (et dons similaires) utilisables au paiement. Partagez votre lien (/r/CODE) ou saisissez une seule fois le code d'un ami. Les récompenses peuvent attendre un trajet payé du filleul, puis un délai de revue et les règles récurrentes du programme actif. Crédits et avoirs sont non transférables et non remboursables en espèces.",
+      },
+      {
+        q: "Combien d'avoirs promotionnels puis-je détenir ?",
+        a: "Vous pouvez détenir jusqu'à 3 avoirs promotionnels actifs (marketing, geste commercial, don admin ou bienvenue parrainage). Les avoirs d'annulation et de différence de modification ne comptent pas. Moja Ride peut refuser d'autres dons promotionnels tant qu'un avoir n'a pas expiré ou été utilisé.",
       },
       {
         q: "Puis-je vendre ou transférer mon avoir ?",

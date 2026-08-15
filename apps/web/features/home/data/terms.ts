@@ -121,7 +121,7 @@ const en: TermsData = {
                 "A maximum of one monetary voucher may be used per booking. Vouchers can only be used online or at our partner agencies.",
                 "Monetary value vouchers may be applied to the entire cart. Discount or free-trip vouchers apply to the ticket price only \u2014 add-ons (service fees, luggage, bicycle) are excluded.",
                 "When campaign rules allow, one monetary voucher may be combined with one promo code (or an auto-applied campaign) and available promo credits on the same booking.",
-                "During promotional campaigns, voucher use may be further limited per person. Moja Ride may cancel bookings that exceed published campaign limits.",
+                "During promotional campaigns, voucher use may be further limited per person. A traveler may hold at most 3 active promotional vouchers (marketing, goodwill, admin grant, referral welcome). Cancellation and modification-difference vouchers do not count toward that limit. Moja Ride may cancel bookings that exceed published campaign limits.",
                 "Vouchers issued free of charge for marketing purposes expire after the first completed booking unless a different expiry is stated.",
                 "Commercial resale of vouchers is prohibited and will result in ticket blocking and/or claims for damages. Customers will be informed and given 15 days to submit observations.",
                 "Cash refunds of vouchers are excluded. Vouchers and promo credits are non-transferable.",
@@ -167,6 +167,7 @@ const en: TermsData = {
               variant: "bullet",
               items: [
                 "Referral rewards (promo credits) may be delayed until a referred passenger completes a paid, confirmed trip, and may be subject to a waiting period under the active program rules.",
+                "Invite links use /r/CODE. A pending invite is applied after sign-in. Sharing and applying codes require an active referral program.",
                 "Promo credits from referrals are non-transferable and cannot be cashed out. They apply at checkout toward eligible bookings.",
                 "Self-referral, device/phone abuse, and other fraudulent attribution may void rewards. Moja Ride may suspend accounts and reclaim improperly issued credits.",
               ],
@@ -377,7 +378,7 @@ const fr: TermsData = {
                 "Un maximum d\u2019un avoir mon\u00e9taire peut \u00eatre utilis\u00e9 par r\u00e9servation. Les avoirs ne peuvent \u00eatre utilis\u00e9s qu\u2019en ligne ou dans nos agences partenaires.",
                 "Les avoirs mon\u00e9taires peuvent \u00eatre appliqu\u00e9s \u00e0 l\u2019ensemble du panier. Les avoirs de r\u00e9duction ou de voyage gratuit s\u2019appliquent uniquement au prix du billet \u2014 les suppl\u00e9ments (frais de service, bagages, v\u00e9lo) sont exclus.",
                 "Lorsque les r\u00e8gles de campagne le permettent, un avoir mon\u00e9taire peut \u00eatre combin\u00e9 avec un code promo (ou une campagne auto-appliqu\u00e9e) et des cr\u00e9dits promo disponibles sur la m\u00eame r\u00e9servation.",
-                "Pendant les campagnes promotionnelles, l\u2019utilisation des avoirs peut \u00eatre limit\u00e9e par personne. Moja Ride peut annuler les r\u00e9servations d\u00e9passant les limites publi\u00e9es.",
+                "Pendant les campagnes promotionnelles, l\u2019utilisation des avoirs peut \u00eatre limit\u00e9e par personne. Un voyageur peut d\u00e9tenir au plus 3 avoirs promotionnels actifs (marketing, geste commercial, don admin, bienvenue parrainage). Les avoirs d\u2019annulation et de diff\u00e9rence de modification ne comptent pas. Moja Ride peut annuler les r\u00e9servations d\u00e9passant les limites publi\u00e9es.",
                 "Les avoirs \u00e9mis gratuitement \u00e0 des fins marketing expirent apr\u00e8s la premi\u00e8re r\u00e9servation effectu\u00e9e, sauf autre date d\u2019expiration indiqu\u00e9e.",
                 "La revente commerciale des avoirs est interdite et entra\u00eenera le blocage des billets et/ou des demandes de dommages-int\u00e9r\u00eats. Les clients seront inform\u00e9s et disposeront de 15 jours pour pr\u00e9senter leurs observations.",
                 "Le remboursement en esp\u00e8ces des avoirs est exclu. Les avoirs et cr\u00e9dits promo sont non transf\u00e9rables.",
@@ -423,6 +424,7 @@ const fr: TermsData = {
               variant: "bullet",
               items: [
                 "Les r\u00e9compenses de parrainage (cr\u00e9dits promo) peuvent \u00eatre diff\u00e9r\u00e9es jusqu\u2019\u00e0 ce qu\u2019un filleul termine un trajet pay\u00e9 et confirm\u00e9, et peuvent \u00eatre soumises \u00e0 un d\u00e9lai selon le programme actif.",
+                "Les liens d\u2019invitation utilisent /r/CODE. Une invitation en attente est appliqu\u00e9e apr\u00e8s connexion. Le partage et l\u2019application de codes exigent un programme de parrainage actif.",
                 "Les cr\u00e9dits promo issus du parrainage sont non transf\u00e9rables et non remboursables en esp\u00e8ces. Ils s\u2019appliquent au paiement des r\u00e9servations \u00e9ligibles.",
                 "L\u2019auto-parrainage, l\u2019abus d\u2019appareil/t\u00e9l\u00e9phone et toute attribution frauduleuse peuvent annuler les r\u00e9compenses. Moja Ride peut suspendre des comptes et r\u00e9cup\u00e9rer des cr\u00e9dits ind\u00fbment \u00e9mis.",
               ],

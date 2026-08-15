@@ -214,6 +214,8 @@ export function PassengerFormSheet({
     let holdId: string | null = null;
 
     try {
+      const { getDeviceHash } = await import("@/lib/device-hash");
+      const deviceHash = await getDeviceHash();
       const holdResult = await createHold.mutateAsync({
         offerId: offer.id,
         passengers: passengers.map((p) =>
@@ -233,6 +235,7 @@ export function PassengerFormSheet({
           autoApply: true,
           useCredits: true,
         },
+        ...(deviceHash ? { deviceHash } : {}),
       });
 
       holdId = holdResult.holdId;

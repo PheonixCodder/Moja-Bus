@@ -116,6 +116,7 @@ export async function freezeDiscountOnHold(
     userId: string | null;
     companyId: string;
     quote: QuoteResult;
+    deviceHash?: string | null | undefined;
     basePricing: {
       distanceKm: number | null;
       commissionBps: number;
@@ -195,6 +196,7 @@ export async function freezeDiscountOnHold(
         platformFundedXOF: inst.platformFundedXOF,
         operatorFundedXOF: inst.operatorFundedXOF,
         companyId: input.companyId,
+        deviceHash: input.deviceHash ?? null,
         snapshotJson: inst as unknown as Prisma.InputJsonValue,
       },
     });

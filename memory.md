@@ -1,6 +1,6 @@
 # Memory — Moja Ride
 
-Last updated: 2026-08-15 (Sprint C ops completeness)
+Last updated: 2026-08-15 (Sprint D polish)
 
 ## Discount / referral / voucher
 
@@ -12,24 +12,22 @@ Soft-fail quotes, coupon inventory, % create UX, `/r/[code]` invite landing, sha
 ### Sprint B (done)
 Redemption tables (admin/operator), invitee lists (web+app), welcome coupon mint, admin welcome-campaign picker, operator platform opt-in UI.
 
-### Sprint C (done this session)
-1. Device hash on all `applyReferralCode` clients (web + traveler app)
-2. Rate-limit referral apply (10 / 15 min / user)
-3. Campaign settings editor: dates, caps, budget, auto-apply, hybrid shares, require opt-in, route scopes — admin + operator
-4. Bulk coupon generate UI + operator `bulkCreateCoupons` API
-5. Engine phone cap (`maxRedemptionsPerPhone`) wired through loader + eligibility
-6. FAQ promotional voucher ceiling (max 3 active) on admin issue
-7. Abuse queue: user links, human summary (no raw JSON), pause campaign action
+### Sprint C (done)
+Device hash on `applyReferralCode`, rate-limit apply, campaign settings editor, bulk coupons, phone cap, max-3 promo vouchers on admin issue, abuse queue UX.
 
-### Still open (Sprint D+)
-- Device hash also on checkout redemption (optional deeper abuse)
-- Signup optional referral field (partially covered by pending applier)
-- Credits wallet section using `listMyCredits` UI
+### Sprint D (done this session)
+1. Passenger wallet promo panel — web `PromoIncentivesPanel` + traveler `PromoIncentives`; wallet page prefetches credits/vouchers
+2. FAQ/Terms EN+FR: max 3 promotional vouchers; `/r/CODE` + pending invite honesty
+3. `deviceHash` on `createHold` → `freezeDiscountOnHold` → `DiscountRedemption` (web checkout + traveler passenger form)
+4. QA matrix Phase 19 expanded (post A–D cases); finance recon checklist `30-finance-recon-checklist.md`
+
+### Still open (later)
 - Schedule/trip scope pickers (route scopes shipped; schedule/trip IDs still API-only)
 - PlatformSettings-backed voucher ceiling (constant for now)
-- Honest Terms/FAQ/i18n; QA matrix Phase 19; finance recon
+- Signup optional referral field (mostly covered by pending applier)
 - Points catalog — deferred until loop converts
+- Execute Phase 19 smoke + finance recon on staging before GA
 
 ### Do not
-- Commit secrets / service-account JSON
+- Commit secrets / service-account JSON / `google-services.json`
 - Edit Cursor plan file `Discount Referral Plans-*.plan.md`

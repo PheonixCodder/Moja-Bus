@@ -40,6 +40,7 @@ export class BookingHoldService {
       useCredits?: boolean | undefined;
       creditAmountXOF?: number | undefined;
     } | undefined;
+    deviceHash?: string | undefined;
   }): Promise<BookingHoldResult> {
     const details = await this.tripDetailsService.getTripDetails(input.offerId);
 
@@ -242,6 +243,7 @@ export class BookingHoldService {
         userId: input.userId ?? null,
         companyId: details.companyId,
         quote: discountQuote,
+        deviceHash: input.deviceHash ?? null,
         basePricing: {
           distanceKm: pricing.distanceKm,
           commissionBps: pricing.commissionBps,

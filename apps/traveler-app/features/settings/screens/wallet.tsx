@@ -19,6 +19,7 @@ import { TransactionHistory } from "../components/transaction-history";
 import { TopupDialog } from "../components/topup-dialog";
 import { WalletProtection } from "../components/wallet-protection";
 import { TravelBenefits } from "../components/travel-benefits";
+import { PromoIncentives } from "../components/promo-incentives";
 import { PaystackWebView } from "../components/paystack-webview";
 
 const PAGE_SIZE = 10;
@@ -195,6 +196,7 @@ export function WalletView() {
           />
         ) : null}
 
+        <PromoIncentives />
         <WalletProtection />
         <TravelBenefits />
 

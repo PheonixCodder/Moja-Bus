@@ -15,6 +15,7 @@ import { TopupDialog } from "../components/topup-dialog";
 import { TransactionHistory } from "../components/transaction-history";
 import { WalletProtection } from "../components/wallet-protection";
 import { TravelBenefits } from "../components/travel-benefits";
+import { PromoIncentivesPanel } from "../components/promo-incentives-panel";
 
 export function PassengerWalletView() {
   const t = useTranslations("passengerDashboard.wallet");
@@ -128,6 +129,7 @@ export function PassengerWalletView() {
 
         {/* Right Column (Security & Travel Perks) */}
         <div className="lg:col-span-4 space-y-6">
+          <PromoIncentivesPanel />
           <WalletProtection />
           <TravelBenefits />
         </div>

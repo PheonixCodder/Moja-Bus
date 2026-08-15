@@ -30,6 +30,7 @@ export const createHoldSchema = z.object({
       }),
   ).min(1).max(6),
   discount: checkoutDiscountInputSchema.optional(),
+  deviceHash: z.string().max(128).optional(),
 });
 
 export const confirmBookingSchema = z.object({

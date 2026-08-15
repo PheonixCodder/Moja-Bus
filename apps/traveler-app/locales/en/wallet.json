@@ -9,5 +9,12 @@
   "transactionHistory": "Transaction History",
   "noTransactions": "No transactions yet",
   "availableBalance": "Available",
-  "reservedBalance": "Reserved"
+  "reservedBalance": "Reserved",
+  "promoTitle": "Promo credits & vouchers",
+  "promoHint": "Referral rewards and vouchers apply at checkout. Separate from your prepaid wallet balance.",
+  "promoCreditsTitle": "Available promo credits",
+  "promoCreditsEmpty": "No promo credits yet. Invite friends to earn rewards.",
+  "promoVouchersTitle": "Active vouchers",
+  "promoVouchersEmpty": "No active vouchers.",
+  "promoVoucherCeiling": "Max 3 promotional vouchers at a time (cancellation vouchers excluded)."
 }

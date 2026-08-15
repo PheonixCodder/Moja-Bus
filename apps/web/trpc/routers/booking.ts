@@ -45,6 +45,9 @@ export const bookingRouter = createTRPCRouter({
         passengers: input.passengers,
         userId: ctx.user.id,
         discount: input.discount,
+        ...(input.deviceHash !== undefined
+          ? { deviceHash: input.deviceHash }
+          : {}),
       });
 
       // Trigger passenger-hold-created

@@ -9,5 +9,12 @@
   "transactionHistory": "Historique des transactions",
   "noTransactions": "Aucune transaction pour le moment",
   "availableBalance": "Disponible",
-  "reservedBalance": "Réservé"
+  "reservedBalance": "Réservé",
+  "promoTitle": "Crédits promo et avoirs",
+  "promoHint": "Les récompenses de parrainage et avoirs s'appliquent au paiement. Distincts du solde prépayé.",
+  "promoCreditsTitle": "Crédits promo disponibles",
+  "promoCreditsEmpty": "Pas encore de crédits promo. Invitez des amis pour en gagner.",
+  "promoVouchersTitle": "Avoirs actifs",
+  "promoVouchersEmpty": "Aucun avoir actif.",
+  "promoVoucherCeiling": "Maximum 3 avoirs promotionnels à la fois (avoirs d'annulation exclus)."
 }

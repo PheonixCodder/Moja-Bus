@@ -1,6 +1,6 @@
 # Phase 19 — Testing & QA Matrix (working checklist)
 
-**Status:** In progress (checklist drafted; execute before GA)  
+**Status:** Updated after Sprints A–D (2026-08-15) — execute before GA  
 **Depends on:** Feature phases intended for GA  
 **Unlocks:** Phase 20 rollout
 
@@ -23,6 +23,30 @@
 | 13 | Zero-charge booking (credits cover all) confirms without Paystack | |
 | 14 | FR locale shows discount strings (web + app) | |
 
+## Post–Sprint A–D growth loop
+
+| # | Case | Pass? |
+|---|------|-------|
+| 15 | Invalid promo on preview soft-fails; hold with `strict: true` still rejects | |
+| 16 | Admin/operator campaign coupons panel shows inventory for ACTIVE campaign | |
+| 17 | Create form: percent entered as %; activate guidance visible | |
+| 18 | `/r/CODE` invite landing; `/?ref=CODE` redirects to `/r/CODE` | |
+| 19 | Share URL is `/r/CODE` (web + traveler app) | |
+| 20 | After login, pending referral applies once (`PendingReferralApplier`) | |
+| 21 | Inactive referral program: share/apply UX disabled with clear copy | |
+| 22 | Admin redemptions table shows full PII; operator view masks passenger | |
+| 23 | Passenger invitee list (web + app) matches attributed referrals | |
+| 24 | Welcome coupon mint when `refereeCouponCampaignId` ACTIVE → code on apply | |
+| 25 | `deviceHash` sent on `applyReferralCode` and on `createHold` discount freeze | |
+| 26 | Referral apply rate limit: 11th attempt / 15 min fails | |
+| 27 | Campaign settings: dates, caps, budget, auto-apply, hybrid, route scopes | |
+| 28 | Bulk coupon create (admin + operator) | |
+| 29 | Phone cap (`maxRedemptionsPerPhone`) blocks extra redemptions | |
+| 30 | Admin issue refuses 4th active promotional voucher (max 3) | |
+| 31 | Abuse queue: summary (no raw JSON), user links, pause campaign | |
+| 32 | Wallet shows promo credits + vouchers (web + traveler app) | |
+| 33 | FAQ/Terms: max 3 promos + `/r/CODE` referral reality (EN + FR) | |
+
 ## Automated
 
 | Suite | Command | Pass? |
@@ -31,11 +55,9 @@
 | Engine | `tsx --test apps/web/features/discounts/engine/__tests__/evaluate.test.ts` | |
 | Promo ledger | `tsx --test apps/web/features/discounts/services/__tests__/promo-ledger.test.ts` | |
 
-## Finance recon (staging)
+## Finance recon
 
-1. Sum confirmed `DiscountRedemption.platformFundedXOF` ≈ promo expense ledger
-2. Sum open voucher remaining ≈ voucher liability
-3. No ACTIVE hold with reserved credits > remaining
+See `30-finance-recon-checklist.md` for the staging recon steps.
 
 ## Novu workflows to create in dashboard
 
@@ -50,9 +72,10 @@
 Update `passenger-booking-confirmed` payload to optionally show:
 `ticketDiscountXOF`, `creditAppliedXOF`, `feeDiscountXOF`, `preDiscountSubtotalXOF`, `hasDiscount`
 
-
 ## Gate for Phase 20
 
 - [ ] All smoke rows for GA scope checked
+- [ ] Post–Sprint A–D rows for shipped surfaces checked
 - [ ] Support runbook reviewed
 - [ ] Legal FAQ/Terms not contradicted
+- [ ] Finance recon checklist run on staging

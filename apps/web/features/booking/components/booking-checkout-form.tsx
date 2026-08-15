@@ -261,6 +261,10 @@ export function BookingCheckoutForm({
     }
 
     try {
+      const { getDeviceHash } = await import(
+        "@/features/discounts/lib/device-hash"
+      );
+      const deviceHash = await getDeviceHash();
       const hold = await createHoldMutation.mutateAsync({
         offerId,
         passengers: assignments.map((row) =>
@@ -280,6 +284,7 @@ export function BookingCheckoutForm({
           autoApply: true,
           useCredits: true,
         },
+        ...(deviceHash ? { deviceHash } : {}),
       });
 
       if (paymentMethod === "PAYSTACK") {
