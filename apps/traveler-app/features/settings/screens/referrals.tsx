@@ -37,6 +37,14 @@ function ProgressBar({ label, count, max }: { label: string; count: number; max:
   );
 }
 
+function formatJoinedAt(value: Date | string) {
+  try {
+    return new Date(value).toLocaleDateString();
+  } catch {
+    return "—";
+  }
+}
+
 export function ReferralsView() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation("referrals");
@@ -45,25 +53,45 @@ export function ReferralsView() {
   const [codeInput, setCodeInput] = useState("");
 
   const referralQuery = useQuery(trpc.discounts.myReferral.queryOptions());
+  const inviteesQuery = useQuery(
+    trpc.discounts.listMyInvitees.queryOptions({ limit: 50, offset: 0 }),
+  );
   const applyMutation = useMutation(
     trpc.discounts.applyReferralCode.mutationOptions({
-      onSuccess: async () => {
-        Alert.alert(t("applySuccess"));
+      onSuccess: async (result) => {
+        if (result.welcomeCouponCode) {
+          Alert.alert(
+            t("applySuccess"),
+            t("applySuccessWelcome", { code: result.welcomeCouponCode }),
+          );
+        } else {
+          Alert.alert(t("applySuccess"));
+        }
         setCodeInput("");
-        await queryClient.invalidateQueries(trpc.discounts.myReferral.pathFilter());
+        await Promise.all([
+          queryClient.invalidateQueries(trpc.discounts.myReferral.pathFilter()),
+          queryClient.invalidateQueries(trpc.discounts.listMyInvitees.pathFilter()),
+        ]);
       },
       onError: (err) => Alert.alert(t("applyFailed"), err.message),
     }),
   );
 
   const code = referralQuery.data?.code ?? "—";
+  const program = referralQuery.data?.program;
+  const programActive = program?.isActive ?? false;
   const attributed = referralQuery.data?.attributed ?? 0;
   const qualified = referralQuery.data?.qualified ?? 0;
   const rewarded = referralQuery.data?.rewarded ?? 0;
   const max = Math.max(1, attributed, qualified, rewarded);
-  const shareUrl = `${WEB_ORIGIN.replace(/\/$/, "")}/?ref=${encodeURIComponent(code)}`;
+  const shareUrl = `${WEB_ORIGIN.replace(/\/$/, "")}/r/${encodeURIComponent(code)}`;
+  const invitees = inviteesQuery.data?.items ?? [];
 
   async function copyCode() {
+    if (!programActive) {
+      Alert.alert(t("disabled"));
+      return;
+    }
     try {
       await Clipboard.setStringAsync(code);
       Alert.alert(t("copied"));
@@ -73,6 +101,10 @@ export function ReferralsView() {
   }
 
   async function shareInvite() {
+    if (!programActive) {
+      Alert.alert(t("disabled"));
+      return;
+    }
     try {
       await Share.share({ message: `${t("yourCode")}: ${code}\n${shareUrl}` });
     } catch {
@@ -94,6 +126,26 @@ export function ReferralsView() {
       >
         <Text className="text-sm text-white/70">{t("subtitle")}</Text>
 
+        {!programActive && !referralQuery.isLoading ? (
+          <View className="rounded-2xl bg-amber-50 px-4 py-3">
+            <Text className="text-sm text-amber-950">{t("disabled")}</Text>
+          </View>
+        ) : null}
+
+        {programActive && program ? (
+          <View className="rounded-2xl bg-white p-4 gap-1">
+            <Text className="text-sm font-semibold text-slate-900">{t("howItWorks")}</Text>
+            <Text className="text-xs text-slate-500">
+              {t("howItWorksBody", {
+                amount: program.referrerCreditAmountXOF.toLocaleString(),
+                delay: program.rewardDelayHours,
+                recurring: program.recurringCreditAmountXOF.toLocaleString(),
+                max: program.recurringMaxBookings,
+              })}
+            </Text>
+          </View>
+        ) : null}
+
         <View className="rounded-2xl bg-white p-4 gap-4">
           <View className="gap-1">
             <Text className="text-base font-semibold text-slate-900">{t("yourCode")}</Text>
@@ -114,13 +166,19 @@ export function ReferralsView() {
               <View className="flex-row gap-2">
                 <Pressable
                   onPress={() => void copyCode()}
-                  className="flex-1 items-center rounded-xl border border-slate-200 py-3 active:opacity-70"
+                  disabled={!programActive}
+                  className={`flex-1 items-center rounded-xl border border-slate-200 py-3 active:opacity-70 ${
+                    !programActive ? "opacity-40" : ""
+                  }`}
                 >
                   <Text className="text-sm font-semibold text-slate-800">{t("copyCode")}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => void shareInvite()}
-                  className="flex-1 items-center rounded-xl bg-[#ee237c] py-3 active:opacity-85"
+                  disabled={!programActive}
+                  className={`flex-1 items-center rounded-xl bg-[#ee237c] py-3 active:opacity-85 ${
+                    !programActive ? "opacity-40" : ""
+                  }`}
                 >
                   <Text className="text-sm font-semibold text-white">{t("shareLink")}</Text>
                 </Pressable>
@@ -137,6 +195,49 @@ export function ReferralsView() {
         </View>
 
         <View className="rounded-2xl bg-white p-4 gap-3">
+          <View className="flex-row items-center justify-between gap-2">
+            <View className="flex-1 gap-1">
+              <Text className="text-base font-semibold text-slate-900">
+                {t("inviteesTitle")}
+              </Text>
+              <Text className="text-xs text-slate-500">{t("inviteesHint")}</Text>
+            </View>
+            <Text className="text-xs text-slate-500">
+              {inviteesQuery.data?.total ?? 0}
+            </Text>
+          </View>
+
+          {inviteesQuery.isLoading ? (
+            <ActivityIndicator color="#ee237c" />
+          ) : invitees.length === 0 ? (
+            <Text className="text-sm text-slate-500">{t("inviteesEmpty")}</Text>
+          ) : (
+            <View className="gap-2">
+              {invitees.map((row) => (
+                <View
+                  key={row.id}
+                  className="flex-row items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-3"
+                >
+                  <View className="flex-1 gap-0.5">
+                    <Text className="text-sm font-medium text-slate-900">
+                      {row.refereeName}
+                    </Text>
+                    <Text className="text-xs text-slate-500">
+                      {formatJoinedAt(row.attributedAt)}
+                    </Text>
+                  </View>
+                  <View className="rounded-full bg-slate-100 px-2.5 py-1">
+                    <Text className="text-xs font-medium text-slate-700">
+                      {row.status}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View className="rounded-2xl bg-white p-4 gap-3">
           <Text className="text-base font-semibold text-slate-900">{t("haveCode")}</Text>
           <Text className="text-xs text-slate-500">{t("haveCodeHint")}</Text>
           <TextInput
@@ -146,15 +247,24 @@ export function ReferralsView() {
             autoCapitalize="characters"
             value={codeInput}
             onChangeText={(v) => setCodeInput(v.toUpperCase())}
-            editable={!applyMutation.isPending}
+            editable={!applyMutation.isPending && programActive}
           />
           <Pressable
-            disabled={!codeInput.trim() || applyMutation.isPending}
-            onPress={() =>
-              applyMutation.mutate({ code: codeInput.trim().toUpperCase() })
-            }
+            disabled={!codeInput.trim() || applyMutation.isPending || !programActive}
+            onPress={() => {
+              void (async () => {
+                const { getDeviceHash } = await import("@/lib/device-hash");
+                const deviceHash = await getDeviceHash();
+                applyMutation.mutate({
+                  code: codeInput.trim().toUpperCase(),
+                  ...(deviceHash ? { deviceHash } : {}),
+                });
+              })();
+            }}
             className={`items-center rounded-xl bg-[#ee237c] py-3 active:opacity-85 ${
-              !codeInput.trim() || applyMutation.isPending ? "opacity-40" : ""
+              !codeInput.trim() || applyMutation.isPending || !programActive
+                ? "opacity-40"
+                : ""
             }`}
           >
             {applyMutation.isPending ? (

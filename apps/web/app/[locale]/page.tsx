@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { getServerSession } from "@/lib/auth-server";
 import { HomeHeader } from "@/features/home/components/home-header";
@@ -10,6 +11,7 @@ import { HomeHowItWorks } from "@/features/home/components/home-how-it-works";
 import { HomeTestimonials } from "@/features/home/components/home-testimonials";
 import { HomeCta } from "@/features/home/components/home-cta";
 import { HomeFooter } from "@/features/home/components/home-footer";
+import { HomeReferralCapture } from "@/features/discounts/components/home-referral-capture";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -40,6 +42,9 @@ export default async function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
+      <Suspense fallback={null}>
+        <HomeReferralCapture />
+      </Suspense>
       <HomeHeader user={session?.user} />
       <main>
         <HomeHero />

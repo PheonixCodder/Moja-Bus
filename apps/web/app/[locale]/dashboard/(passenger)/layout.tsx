@@ -12,6 +12,7 @@ import { DashboardSidebar } from "@/features/dashboard/components/dashboard-side
 import { SearchDialog } from "@/features/dashboard/components/search-dialog";
 import { getUser, requireServerSession } from "@/lib/auth-server";
 import { NotificationInbox } from "@/features/notifications/components/notification-inbox";
+import { PendingReferralApplier } from "@/features/discounts/components/pending-referral-applier";
 
 export default async function DashboardLayout({
   children,
@@ -59,6 +60,7 @@ export default async function DashboardLayout({
 
           {/* Content Pane */}
           <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden bg-background">
+            <PendingReferralApplier />
             {children}
           </div>
           <Toaster />

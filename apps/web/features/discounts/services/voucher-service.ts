@@ -1,5 +1,10 @@
 import type { PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
+import {
+  isPromotionalVoucherSource,
+  MAX_PROMOTIONAL_VOUCHERS_PER_USER,
+  PROMOTIONAL_VOUCHER_SOURCES,
+} from "../lib/promo-ceilings";
 
 export async function issueCancellationVoucher(
   prisma: PrismaClient,
@@ -66,10 +71,29 @@ export async function issueAdminVoucher(
   if (input.amountXOF <= 0) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Amount must be positive" });
   }
+
+  const source = input.source ?? "ADMIN_MANUAL";
+  if (isPromotionalVoucherSource(source)) {
+    const activePromoCount = await prisma.monetaryVoucher.count({
+      where: {
+        userId: input.userId,
+        source: { in: [...PROMOTIONAL_VOUCHER_SOURCES] },
+        status: { in: ["ACTIVE", "PARTIALLY_REDEEMED"] },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    });
+    if (activePromoCount >= MAX_PROMOTIONAL_VOUCHERS_PER_USER) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Traveler already has ${MAX_PROMOTIONAL_VOUCHERS_PER_USER} active promotional vouchers`,
+      });
+    }
+  }
+
   const voucher = await prisma.monetaryVoucher.create({
     data: {
       userId: input.userId,
-      source: input.source ?? "ADMIN_MANUAL",
+      source,
       status: "ACTIVE",
       originalAmountXOF: input.amountXOF,
       remainingAmountXOF: input.amountXOF,
@@ -95,7 +119,7 @@ export async function issueAdminVoucher(
       },
       amountXOF: input.amountXOF,
       voucherId: voucher.id,
-      source: input.source ?? "ADMIN_MANUAL",
+      source,
       expiresAt: input.expiresAt ?? null,
     });
   }

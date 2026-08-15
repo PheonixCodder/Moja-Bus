@@ -6,6 +6,7 @@ import {
   issueMonetaryVoucherSchema,
   listCampaignsSchema,
   listCouponsSchema,
+  listRedemptionsSchema,
   notifyOptedInCampaignSchema,
   setCampaignStatusSchema,
   updateCampaignSchema,
@@ -19,6 +20,26 @@ import { logMarketingActivity } from "@/features/discounts/services/marketing-au
 import { omitUndefined } from "@/features/discounts/lib/omit-undefined";
 import { requireAdminPermission } from "@/lib/permissions/admin-authorize";
 import { adminProcedure, createTRPCRouter } from "../init";
+
+function summarizeAbuseEvent(
+  eventType: string,
+  meta: Record<string, unknown> | null,
+): string {
+  const code =
+    typeof meta?.["code"] === "string" ? (meta["code"] as string) : null;
+  switch (eventType) {
+    case "SELF_REFERRAL":
+      return code ? `Self-referral blocked (${code})` : "Self-referral blocked";
+    case "SAME_PHONE_REFERRAL":
+      return "Same phone as referrer";
+    case "SAME_DEVICE_REFERRAL":
+      return "Same device as referrer";
+    case "VELOCITY_CAP":
+      return "Referrer daily qualification cap hit";
+    default:
+      return eventType.replaceAll("_", " ").toLowerCase();
+  }
+}
 
 export const discountsAdminRouter = createTRPCRouter({
   listCampaigns: adminProcedure
@@ -370,7 +391,7 @@ export const discountsAdminRouter = createTRPCRouter({
       const where = {
         ...(input.eventType ? { eventType: input.eventType } : {}),
       };
-      const [items, total] = await Promise.all([
+      const [rows, total] = await Promise.all([
         ctx.prisma.promoAbuseEvent.findMany({
           where,
           orderBy: { createdAt: "desc" },
@@ -379,7 +400,72 @@ export const discountsAdminRouter = createTRPCRouter({
         }),
         ctx.prisma.promoAbuseEvent.count({ where }),
       ]);
-      return { items, total };
+
+      const userIds = [
+        ...new Set(rows.map((r) => r.userId).filter(Boolean) as string[]),
+      ];
+      const campaignIds = [
+        ...new Set(rows.map((r) => r.campaignId).filter(Boolean) as string[]),
+      ];
+      const [users, campaigns] = await Promise.all([
+        userIds.length
+          ? ctx.prisma.user.findMany({
+              where: { id: { in: userIds } },
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            })
+          : Promise.resolve([]),
+        campaignIds.length
+          ? ctx.prisma.discountCampaign.findMany({
+              where: { id: { in: campaignIds } },
+              select: { id: true, name: true, status: true },
+            })
+          : Promise.resolve([]),
+      ]);
+      const userById = new Map(users.map((u) => [u.id, u]));
+      const campaignById = new Map(campaigns.map((c) => [c.id, c]));
+
+      return {
+        total,
+        items: rows.map((row) => {
+          const meta =
+            row.metadata && typeof row.metadata === "object"
+              ? (row.metadata as Record<string, unknown>)
+              : null;
+          const user = row.userId ? userById.get(row.userId) : undefined;
+          const campaign = row.campaignId
+            ? campaignById.get(row.campaignId)
+            : undefined;
+          return {
+            id: row.id,
+            eventType: row.eventType,
+            userId: row.userId,
+            campaignId: row.campaignId,
+            createdAt: row.createdAt,
+            reviewed: Boolean(meta?.["reviewedAt"]),
+            summary: summarizeAbuseEvent(row.eventType, meta),
+            user: user
+              ? {
+                  id: user.id,
+                  fullName: user.fullName,
+                  email: user.email,
+                  role: user.role,
+                }
+              : null,
+            campaign: campaign
+              ? {
+                  id: campaign.id,
+                  name: campaign.name,
+                  status: campaign.status,
+                }
+              : null,
+          };
+        }),
+      };
     }),
 
   resolveAbuseEvent: adminProcedure
@@ -423,26 +509,20 @@ export const discountsAdminRouter = createTRPCRouter({
     }),
 
   listRedemptions: adminProcedure
-    .input(
-      z.object({
-        campaignId: z.string().optional(),
-        limit: z.number().int().min(1).max(100).default(20),
-        offset: z.number().int().min(0).default(0),
-      }),
-    )
+    .input(listRedemptionsSchema)
     .query(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "marketing:campaigns:read");
-      const where = input.campaignId ? { campaignId: input.campaignId } : {};
-      const [items, total] = await Promise.all([
-        ctx.prisma.discountRedemption.findMany({
-          where,
-          orderBy: { createdAt: "desc" },
-          take: input.limit,
-          skip: input.offset,
-        }),
-        ctx.prisma.discountRedemption.count({ where }),
-      ]);
-      return { items, total };
+      const { listDiscountRedemptions } = await import(
+        "@/features/discounts/services/redemption-list"
+      );
+      return listDiscountRedemptions(ctx.prisma, {
+        campaignId: input.campaignId,
+        couponCodeId: input.couponCodeId,
+        status: input.status,
+        limit: input.limit,
+        offset: input.offset,
+        privacy: false,
+      });
     }),
 
   marketingSummary: adminProcedure.query(async ({ ctx }) => {

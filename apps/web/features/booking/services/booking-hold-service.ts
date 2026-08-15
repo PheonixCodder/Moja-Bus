@@ -168,6 +168,7 @@ export class BookingHoldService {
       autoApply: input.discount?.autoApply,
       useCredits: input.discount?.useCredits,
       creditAmountXOF: input.discount?.creditAmountXOF,
+      strict: true,
     });
 
     const result = await this.prisma.$transaction(async (tx) => {

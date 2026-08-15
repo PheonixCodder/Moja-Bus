@@ -18,7 +18,12 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function ReferralsPage() {
   const t = await getTranslations("passengerDashboard.referrals");
-  await prefetch(trpc.discounts.myReferral.queryOptions());
+  await Promise.all([
+    prefetch(trpc.discounts.myReferral.queryOptions()),
+    prefetch(
+      trpc.discounts.listMyInvitees.queryOptions({ limit: 50, offset: 0 }),
+    ),
+  ]);
 
   return (
     <HydrateClient>

@@ -15,7 +15,10 @@ type CampaignRow = Awaited<
 
 export function mapCampaignToEval(
   row: CampaignRow,
-  redemptionCountForUser = 0,
+  counts: {
+    redemptionCountForUser?: number;
+    redemptionCountForPhone?: number;
+  } = {},
 ): EvalCampaign {
   return {
     id: row.id,
@@ -38,6 +41,7 @@ export function mapCampaignToEval(
     newUserOnly: row.newUserOnly,
     maxRedemptionsGlobal: row.maxRedemptionsGlobal,
     maxRedemptionsPerUser: row.maxRedemptionsPerUser,
+    maxRedemptionsPerPhone: row.maxRedemptionsPerPhone,
     maxDiscountPerBookingXOF: row.maxDiscountPerBookingXOF,
     budgetXOF: row.budgetXOF,
     budgetConsumedXOF: row.budgetConsumedXOF,
@@ -48,7 +52,8 @@ export function mapCampaignToEval(
     allowCombineWithCredit: row.allowCombineWithCredit,
     requireOperatorOptIn: row.requireOperatorOptIn,
     redemptionCountGlobal: row._count?.redemptions,
-    redemptionCountForUser,
+    redemptionCountForUser: counts.redemptionCountForUser ?? 0,
+    redemptionCountForPhone: counts.redemptionCountForPhone ?? 0,
     routeIds: row.routeScopes?.map((s) => s.routeId),
     scheduleIds: row.scheduleScopes?.map((s) => s.scheduleId),
     tripIds: row.tripScopes?.map((s) => s.tripId),
@@ -63,6 +68,7 @@ export async function loadActiveCampaignsForCheckout(
   input: {
     companyId: string;
     userId: string | null;
+    phone?: string | null;
     now?: Date;
   },
 ): Promise<EvalCampaign[]> {
@@ -96,9 +102,10 @@ export async function loadActiveCampaignsForCheckout(
 
   const result: EvalCampaign[] = [];
   for (const row of rows) {
-    let userCount = 0;
+    let redemptionCountForUser = 0;
+    let redemptionCountForPhone = 0;
     if (input.userId && row.maxRedemptionsPerUser != null) {
-      userCount = await prisma.discountRedemption.count({
+      redemptionCountForUser = await prisma.discountRedemption.count({
         where: {
           userId: input.userId,
           campaignId: row.id,
@@ -106,7 +113,21 @@ export async function loadActiveCampaignsForCheckout(
         },
       });
     }
-    result.push(mapCampaignToEval(row, userCount));
+    if (input.phone && row.maxRedemptionsPerPhone != null) {
+      redemptionCountForPhone = await prisma.discountRedemption.count({
+        where: {
+          campaignId: row.id,
+          status: { in: ["RESERVED", "FINALIZED"] },
+          user: { phoneNumber: input.phone },
+        },
+      });
+    }
+    result.push(
+      mapCampaignToEval(row, {
+        redemptionCountForUser,
+        redemptionCountForPhone,
+      }),
+    );
   }
   return result;
 }

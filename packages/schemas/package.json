@@ -33,6 +33,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@moja/typescript": "workspace:*"
+    "@moja/typescript": "workspace:*",
+    "tsx": "^4.22.4"
   }
 }

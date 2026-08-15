@@ -408,7 +408,32 @@ export function BookingCheckoutForm({
             )}
           </div>
           {pricing?.discountOk === false && appliedCode ? (
-            <p className="text-xs text-destructive">{t("codeRejected")}</p>
+            <p className="text-xs text-destructive">
+              {(() => {
+                const key = pricing.discountRejection?.messageKey?.replace(
+                  /^discounts\./,
+                  "",
+                );
+                if (
+                  key === "errors.invalidCode" ||
+                  key === "errors.codeExpired" ||
+                  key === "errors.codePersonal" ||
+                  key === "errors.codeExhausted" ||
+                  key === "errors.campaignMissing" ||
+                  key === "errors.zeroDiscount" ||
+                  key === "errors.inactive" ||
+                  key === "errors.wrongOperator" ||
+                  key === "errors.noOptIn" ||
+                  key === "errors.routeScope" ||
+                  key === "errors.scheduleScope" ||
+                  key === "errors.tripScope" ||
+                  key === "errors.budget"
+                ) {
+                  return t(key);
+                }
+                return t("codeRejected");
+              })()}
+            </p>
           ) : null}
           {isLoggedIn && (vouchersQuery.data?.length ?? 0) > 0 ? (
             <div className="space-y-1">

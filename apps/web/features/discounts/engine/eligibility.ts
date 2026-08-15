@@ -85,6 +85,13 @@ export function checkCampaignEligibility(
   ) {
     return { code: "USER_CAP", messageKey: "discounts.errors.userCap" };
   }
+  if (
+    campaign.maxRedemptionsPerPhone != null &&
+    ctx.phone &&
+    (campaign.redemptionCountForPhone ?? 0) >= campaign.maxRedemptionsPerPhone
+  ) {
+    return { code: "PHONE_CAP", messageKey: "discounts.errors.phoneCap" };
+  }
 
   const remainingBudget =
     campaign.budgetXOF == null

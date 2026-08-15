@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from "@moja/db";
 import { AccountingEngine, FinancialAccountService } from "@moja/db";
 import { TRPCError } from "@trpc/server";
+import { displayName } from "../lib/privacy-display";
 
 function randomCode(prefix: string, len = 6): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -9,6 +10,48 @@ function randomCode(prefix: string, len = 6): string {
     out += alphabet[Math.floor(Math.random() * alphabet.length)];
   }
   return out;
+}
+
+/**
+ * Issues a personal welcome coupon from the program's referee campaign.
+ * Best-effort: attribution still succeeds if minting fails.
+ */
+async function issueRefereeWelcomeCoupon(
+  prisma: PrismaClient,
+  input: { campaignId: string; refereeUserId: string; edgeId: string },
+): Promise<string | null> {
+  const campaign = await prisma.discountCampaign.findUnique({
+    where: { id: input.campaignId },
+    select: { id: true, status: true, ownerType: true },
+  });
+  if (!campaign || campaign.status !== "ACTIVE") return null;
+
+  const existing = await prisma.couponCode.findFirst({
+    where: {
+      campaignId: input.campaignId,
+      assignedUserId: input.refereeUserId,
+      isActive: true,
+    },
+  });
+  if (existing) return existing.code;
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const code = randomCode("WL");
+    try {
+      const created = await prisma.couponCode.create({
+        data: {
+          campaignId: input.campaignId,
+          code,
+          assignedUserId: input.refereeUserId,
+          maxRedemptions: 1,
+        },
+      });
+      return created.code;
+    } catch {
+      // unique collision — retry
+    }
+  }
+  return null;
 }
 
 export async function ensureReferralCode(
@@ -42,7 +85,7 @@ export async function applyReferralCode(
     code: string;
     deviceHash?: string | undefined;
   },
-): Promise<{ edgeId: string }> {
+): Promise<{ edgeId: string; welcomeCouponCode: string | null }> {
   const program = await prisma.referralProgram.findUnique({
     where: { id: "default" },
   });
@@ -166,6 +209,15 @@ export async function applyReferralCode(
     },
   });
 
+  let welcomeCouponCode: string | null = null;
+  if (program.refereeCouponCampaignId) {
+    welcomeCouponCode = await issueRefereeWelcomeCoupon(prisma, {
+      campaignId: program.refereeCouponCampaignId,
+      refereeUserId: input.refereeUserId,
+      edgeId: edge.id,
+    });
+  }
+
   const [referrer, referee] = await Promise.all([
     prisma.user.findUnique({
       where: { id: referralCode.userId },
@@ -189,7 +241,7 @@ export async function applyReferralCode(
     });
   }
 
-  return { edgeId: edge.id };
+  return { edgeId: edge.id, welcomeCouponCode };
 }
 
 type ProgramRow = {
@@ -463,9 +515,33 @@ export async function processDueReferralRewards(
   return { activated };
 }
 
+export type PublicReferralProgram = {
+  isActive: boolean;
+  referrerCreditAmountXOF: number;
+  recurringCreditAmountXOF: number;
+  recurringMaxBookings: number;
+  rewardDelayHours: number;
+};
+
+export async function getPublicReferralProgram(
+  prisma: PrismaClient,
+): Promise<PublicReferralProgram> {
+  const program = await prisma.referralProgram.findUnique({
+    where: { id: "default" },
+  });
+  return {
+    isActive: program?.isActive ?? false,
+    referrerCreditAmountXOF: program?.referrerCreditAmountXOF ?? 0,
+    recurringCreditAmountXOF: program?.recurringCreditAmountXOF ?? 0,
+    recurringMaxBookings: program?.recurringMaxBookings ?? 0,
+    rewardDelayHours: program?.rewardDelayHours ?? 48,
+  };
+}
+
 export async function getReferralStats(prisma: PrismaClient, userId: string) {
-  const { code } = await ensureReferralCode(prisma, userId);
-  const [attributed, qualified, rewarded] = await Promise.all([
+  const [{ code }, program, attributed, qualified, rewarded] = await Promise.all([
+    ensureReferralCode(prisma, userId),
+    getPublicReferralProgram(prisma),
     prisma.referralEdge.count({ where: { referrerUserId: userId } }),
     prisma.referralEdge.count({
       where: {
@@ -477,5 +553,37 @@ export async function getReferralStats(prisma: PrismaClient, userId: string) {
       where: { referrerUserId: userId, status: "REWARDED" },
     }),
   ]);
-  return { code, attributed, qualified, rewarded };
+  return { code, attributed, qualified, rewarded, program };
+}
+
+export async function listMyInvitees(
+  prisma: PrismaClient,
+  userId: string,
+  input: { limit: number; offset: number },
+) {
+  const where = { referrerUserId: userId };
+  const [rows, total] = await Promise.all([
+    prisma.referralEdge.findMany({
+      where,
+      orderBy: { attributedAt: "desc" },
+      take: input.limit,
+      skip: input.offset,
+      include: {
+        referee: { select: { fullName: true } },
+      },
+    }),
+    prisma.referralEdge.count({ where }),
+  ]);
+
+  return {
+    total,
+    items: rows.map((row) => ({
+      id: row.id,
+      status: row.status,
+      attributedAt: row.attributedAt,
+      qualifiedAt: row.qualifiedAt,
+      rewardedAt: row.rewardedAt,
+      refereeName: displayName(row.referee.fullName, { privacy: true }),
+    })),
+  };
 }

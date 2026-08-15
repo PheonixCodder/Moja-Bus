@@ -277,5 +277,18 @@ export const campaignOptInSchema = z.object({
   status: z.enum(["OPTED_IN", "OPTED_OUT"]),
 });
 
+export const listRedemptionsSchema = z.object({
+  campaignId: z.string().min(1).optional(),
+  couponCodeId: z.string().min(1).optional(),
+  status: z.enum(["RESERVED", "FINALIZED", "CANCELLED"]).optional(),
+  limit: z.number().int().min(1).max(100).default(50),
+  offset: z.number().int().min(0).default(0),
+});
+
+export const listMyInviteesSchema = z.object({
+  limit: z.number().int().min(1).max(100).default(50),
+  offset: z.number().int().min(0).default(0),
+});
+
 export type CheckoutDiscountInput = z.infer<typeof checkoutDiscountInputSchema>;
 export type UpsertCampaignBase = z.infer<typeof upsertCampaignBaseSchema>;

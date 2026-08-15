@@ -25,6 +25,8 @@ export type CheckoutDiscountParams = {
   autoApply?: boolean | undefined;
   useCredits?: boolean | undefined;
   creditAmountXOF?: number | undefined;
+  /** When true, invalid/ineligible codes throw (hold/pay). Preview leaves soft `ok: false`. */
+  strict?: boolean | undefined;
 };
 
 export async function quoteCheckoutDiscounts(
@@ -34,13 +36,23 @@ export async function quoteCheckoutDiscounts(
   const preDiscountSubtotalXOF = input.baseFareXOF * input.seatCount;
 
   const now = new Date();
-  const [campaigns, completedBookingCount, coupon, voucher, creditLots] =
+  const userPhonePromise = input.userId
+    ? prisma.user.findUnique({
+        where: { id: input.userId },
+        select: { phoneNumber: true },
+      })
+    : Promise.resolve(null);
+
+  const [campaigns, completedBookingCount, coupon, voucher, creditLots, userRow] =
     await Promise.all([
-      loadActiveCampaignsForCheckout(prisma, {
-        companyId: input.offerCompanyId,
-        userId: input.userId ?? null,
-        now,
-      }),
+      userPhonePromise.then((user) =>
+        loadActiveCampaignsForCheckout(prisma, {
+          companyId: input.offerCompanyId,
+          userId: input.userId ?? null,
+          phone: user?.phoneNumber ?? null,
+          now,
+        }),
+      ),
       countCompletedBookings(prisma, input.userId ?? null),
       input.code ? loadCouponByCode(prisma, input.code) : Promise.resolve(null),
       input.monetaryVoucherId && input.userId
@@ -49,6 +61,7 @@ export async function quoteCheckoutDiscounts(
       input.userId && input.useCredits !== false
         ? loadUserCreditLots(prisma, input.userId)
         : Promise.resolve([]),
+      userPhonePromise,
     ]);
 
   if (input.monetaryVoucherId && !voucher) {
@@ -63,6 +76,7 @@ export async function quoteCheckoutDiscounts(
       now,
       userId: input.userId ?? null,
       completedBookingCount,
+      phone: userRow?.phoneNumber ?? null,
       companyId: input.offerCompanyId,
       routeId: input.routeId,
       scheduleId: input.scheduleId,
@@ -83,7 +97,7 @@ export async function quoteCheckoutDiscounts(
     creditAmountXOF: input.creditAmountXOF,
   });
 
-  if (!quote.ok && input.code) {
+  if (!quote.ok && input.code && input.strict) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: quote.rejection?.messageKey ?? "Invalid discount code",

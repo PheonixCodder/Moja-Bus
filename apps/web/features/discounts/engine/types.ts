@@ -32,6 +32,7 @@ export type EvalCampaign = {
   newUserOnly: boolean;
   maxRedemptionsGlobal: number | null;
   maxRedemptionsPerUser: number | null;
+  maxRedemptionsPerPhone: number | null;
   maxDiscountPerBookingXOF: number | null;
   budgetXOF: number | null;
   budgetConsumedXOF: number;
@@ -43,6 +44,7 @@ export type EvalCampaign = {
   requireOperatorOptIn: boolean;
   redemptionCountGlobal?: number | undefined;
   redemptionCountForUser?: number | undefined;
+  redemptionCountForPhone?: number | undefined;
   routeIds?: string[] | undefined;
   scheduleIds?: string[] | undefined;
   tripIds?: string[] | undefined;

@@ -25,6 +25,9 @@ import { format } from "date-fns";
 import { Plus, Tag } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { CampaignCouponsPanel } from "@/features/discounts/components/campaign-coupons-panel";
+import { CampaignRedemptionsTable } from "@/features/discounts/components/campaign-redemptions-table";
+import { CampaignSettingsEditor } from "@/features/discounts/components/campaign-settings-editor";
 import { useTRPC } from "@/trpc/client";
 
 type BenefitType = "PERCENT_OFF" | "FIXED_AMOUNT_OFF";
@@ -35,12 +38,12 @@ export function OperatorPromotionsView() {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [benefitType, setBenefitType] = useState<BenefitType>("PERCENT_OFF");
-  const [percentBps, setPercentBps] = useState("1000");
+  const [percentOff, setPercentOff] = useState("10");
   const [amountXOF, setAmountXOF] = useState("1000");
-  const [couponCode, setCouponCode] = useState("");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
     null,
   );
+  const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null);
 
   const listQuery = useQuery(
     trpc.discountsOperator.listCampaigns.queryOptions({
@@ -49,10 +52,17 @@ export function OperatorPromotionsView() {
     }),
   );
 
+  const campaignDetailQuery = useQuery({
+    ...trpc.discountsOperator.getCampaign.queryOptions({
+      id: selectedCampaignId ?? "",
+    }),
+    enabled: Boolean(selectedCampaignId),
+  });
+
   const createMutation = useMutation(
     trpc.discountsOperator.createCampaign.mutationOptions({
       onSuccess: async (campaign) => {
-        toast.success("Promotion created");
+        toast.success("Promotion created — add codes, then Activate");
         setShowCreate(false);
         setName("");
         setSelectedCampaignId(campaign.id);
@@ -80,17 +90,118 @@ export function OperatorPromotionsView() {
     trpc.discountsOperator.createCoupon.mutationOptions({
       onSuccess: async () => {
         toast.success("Coupon created");
-        setCouponCode("");
+        await Promise.all([
+          queryClient.invalidateQueries(
+            trpc.discountsOperator.listCampaigns.pathFilter(),
+          ),
+          selectedCampaignId
+            ? queryClient.invalidateQueries(
+                trpc.discountsOperator.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
+            : Promise.resolve(),
+        ]);
       },
       onError: (err) => toast.error(err.message),
     }),
   );
+
+  const deactivateCouponMutation = useMutation(
+    trpc.discountsOperator.deactivateCoupon.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Coupon deactivated");
+        await Promise.all([
+          queryClient.invalidateQueries(
+            trpc.discountsOperator.listCampaigns.pathFilter(),
+          ),
+          selectedCampaignId
+            ? queryClient.invalidateQueries(
+                trpc.discountsOperator.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
+            : Promise.resolve(),
+        ]);
+      },
+      onError: (err) => toast.error(err.message),
+    }),
+  );
+
+  const bulkCouponMutation = useMutation(
+    trpc.discountsOperator.bulkCreateCoupons.mutationOptions({
+      onSuccess: async (result) => {
+        toast.success(`Created ${result.codes.length} codes`);
+        await Promise.all([
+          queryClient.invalidateQueries(
+            trpc.discountsOperator.listCampaigns.pathFilter(),
+          ),
+          selectedCampaignId
+            ? queryClient.invalidateQueries(
+                trpc.discountsOperator.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
+            : Promise.resolve(),
+        ]);
+      },
+      onError: (err) => toast.error(err.message),
+    }),
+  );
+
+  const updateCampaignMutation = useMutation(
+    trpc.discountsOperator.updateCampaign.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Promo settings saved");
+        await Promise.all([
+          queryClient.invalidateQueries(
+            trpc.discountsOperator.listCampaigns.pathFilter(),
+          ),
+          selectedCampaignId
+            ? queryClient.invalidateQueries(
+                trpc.discountsOperator.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
+            : Promise.resolve(),
+        ]);
+      },
+      onError: (err) => toast.error(err.message),
+    }),
+  );
+
+  const routesQuery = useQuery(trpc.routes.list.queryOptions());
 
   const items = listQuery.data?.items ?? [];
   const summaryQuery = useQuery(
     trpc.discountsOperator.promotionsSummary.queryOptions(),
   );
   const summary = summaryQuery.data;
+
+  const redemptionsQuery = useQuery({
+    ...trpc.discountsOperator.listRedemptions.queryOptions({
+      campaignId: selectedCampaignId ?? undefined,
+      couponCodeId: selectedCouponId ?? undefined,
+      limit: 50,
+      offset: 0,
+    }),
+    enabled: Boolean(selectedCampaignId),
+  });
+
+  const optInsQuery = useQuery(
+    trpc.discountsOperator.listPlatformOptIns.queryOptions(),
+  );
+  const optInMutation = useMutation(
+    trpc.discountsOperator.setPlatformOptIn.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Opt-in updated");
+        await queryClient.invalidateQueries(
+          trpc.discountsOperator.listPlatformOptIns.pathFilter(),
+        );
+      },
+      onError: (err) => toast.error(err.message),
+    }),
+  );
 
   return (
     <div className="space-y-6 p-6 md:p-8">
@@ -100,8 +211,8 @@ export function OperatorPromotionsView() {
             Promotions
           </h1>
           <p className="max-w-xl text-sm text-slate-500">
-            Create operator-funded discount codes for your routes. No admin
-            approval required; platform can still force-pause.
+            Create operator-funded discount codes. Draft → add codes → Activate
+            so passengers can redeem at checkout. Platform can still force-pause.
           </p>
         </div>
         <Button type="button" onClick={() => setShowCreate((v) => !v)}>
@@ -158,12 +269,14 @@ export function OperatorPromotionsView() {
             </div>
             {benefitType === "PERCENT_OFF" ? (
               <div className="space-y-1.5">
-                <Label htmlFor="op-percent">Percent (bps, 1000 = 10%)</Label>
+                <Label htmlFor="op-percent">Percent off ticket (%)</Label>
                 <Input
                   id="op-percent"
                   type="number"
-                  value={percentBps}
-                  onChange={(e) => setPercentBps(e.target.value)}
+                  min={1}
+                  max={100}
+                  value={percentOff}
+                  onChange={(e) => setPercentOff(e.target.value)}
                 />
               </div>
             ) : (
@@ -189,7 +302,7 @@ export function OperatorPromotionsView() {
                   benefitType,
                   percentBps:
                     benefitType === "PERCENT_OFF"
-                      ? Number(percentBps)
+                      ? Math.round(Number(percentOff) * 100)
                       : undefined,
                   amountXOF:
                     benefitType === "FIXED_AMOUNT_OFF"
@@ -272,7 +385,7 @@ export function OperatorPromotionsView() {
                         variant="outline"
                         onClick={() => setSelectedCampaignId(item.id)}
                       >
-                        Coupon
+                        Codes
                       </Button>
                       {item.status === "ACTIVE" ? (
                         <Button
@@ -314,35 +427,134 @@ export function OperatorPromotionsView() {
       </Card>
 
       {selectedCampaignId ? (
-        <Card className="space-y-3 p-4">
-          <h2 className="text-sm font-semibold text-slate-900">Add coupon</h2>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Input
-              className="uppercase"
-              placeholder="WEEKEND10"
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-            />
-            <Button
-              type="button"
-              disabled={!couponCode.trim() || couponMutation.isPending}
-              onClick={() =>
-                couponMutation.mutate({
-                  campaignId: selectedCampaignId,
-                  code: couponCode.trim(),
+        <Card className="space-y-4 p-4">
+          {campaignDetailQuery.data ? (
+            <CampaignSettingsEditor
+              campaign={campaignDetailQuery.data}
+              routeOptions={(routesQuery.data ?? []).map((r) => ({
+                id: r.id,
+                name: r.name,
+              }))}
+              pending={updateCampaignMutation.isPending}
+              onSave={(input) =>
+                updateCampaignMutation.mutate({
+                  id: selectedCampaignId,
+                  ...input,
                 })
               }
-            >
-              Create code
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setSelectedCampaignId(null)}
-            >
-              Close
-            </Button>
+            />
+          ) : null}
+          <CampaignCouponsPanel
+            coupons={campaignDetailQuery.data?.coupons ?? []}
+            isLoading={campaignDetailQuery.isLoading}
+            createPending={couponMutation.isPending}
+            bulkPending={bulkCouponMutation.isPending}
+            deactivatePending={deactivateCouponMutation.isPending}
+            selectedCouponId={selectedCouponId}
+            onSelectCoupon={setSelectedCouponId}
+            onCreate={(code) =>
+              couponMutation.mutate({
+                campaignId: selectedCampaignId,
+                code,
+              })
+            }
+            onBulkCreate={({ prefix, count }) =>
+              bulkCouponMutation.mutate({
+                campaignId: selectedCampaignId,
+                prefix,
+                count,
+              })
+            }
+            onDeactivate={(id) => deactivateCouponMutation.mutate({ id })}
+            onClose={() => {
+              setSelectedCampaignId(null);
+              setSelectedCouponId(null);
+            }}
+          />
+          <div className="space-y-2 border-t border-slate-100 pt-3">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-slate-900">
+                {selectedCouponId
+                  ? "Users who used this code"
+                  : "Recent redemptions (promo)"}
+              </h3>
+              <p className="text-xs text-slate-500">
+                {redemptionsQuery.data?.total ?? 0} total
+              </p>
+            </div>
+            <CampaignRedemptionsTable
+              items={redemptionsQuery.data?.items ?? []}
+              isLoading={redemptionsQuery.isLoading}
+            />
           </div>
+        </Card>
+      ) : null}
+
+      {(optInsQuery.data?.length ?? 0) > 0 ? (
+        <Card className="space-y-3 p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Platform campaigns (opt-in)
+            </h2>
+            <p className="text-xs text-slate-500">
+              Hybrid / platform promos that require your company to opt in before
+              they apply on your trips.
+            </p>
+          </div>
+          <ul className="space-y-2">
+            {optInsQuery.data?.map((c) => {
+              const status = c.companyOptIns[0]?.status ?? "INVITED";
+              return (
+                <li
+                  key={c.id}
+                  className="flex flex-col gap-2 rounded-lg border border-slate-100 p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{c.name}</p>
+                    <p className="text-xs text-slate-500">
+                      Status: {status} ·{" "}
+                      {c.benefitType === "PERCENT_OFF"
+                        ? `${(c.percentBps ?? 0) / 100}%`
+                        : c.benefitType}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={
+                        optInMutation.isPending || status === "OPTED_IN"
+                      }
+                      onClick={() =>
+                        optInMutation.mutate({
+                          campaignId: c.id,
+                          status: "OPTED_IN",
+                        })
+                      }
+                    >
+                      Opt in
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={
+                        optInMutation.isPending || status === "OPTED_OUT"
+                      }
+                      onClick={() =>
+                        optInMutation.mutate({
+                          campaignId: c.id,
+                          status: "OPTED_OUT",
+                        })
+                      }
+                    >
+                      Opt out
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </Card>
       ) : null}
     </div>

@@ -45,6 +45,7 @@ function campaign(overrides: Partial<EvalCampaign> = {}): EvalCampaign {
     newUserOnly: false,
     maxRedemptionsGlobal: null,
     maxRedemptionsPerUser: null,
+    maxRedemptionsPerPhone: null,
     maxDiscountPerBookingXOF: null,
     budgetXOF: null,
     budgetConsumedXOF: 0,
@@ -193,6 +194,22 @@ describe("evaluateCheckoutDiscounts", () => {
         campaign({ tripIds: ["trip_1"], isAutoApply: true }),
       ],
     });
+    assert.equal(result.ticketDiscountXOF, 0);
+    assert.equal(result.autoAppliedCampaignId, null);
+  });
+
+  it("rejects when phone redemption cap is reached", () => {
+    const result = evaluateCheckoutDiscounts({
+      ctx: baseCtx({ phone: "+22507000000" }),
+      campaigns: [
+        campaign({
+          maxRedemptionsPerPhone: 1,
+          redemptionCountForPhone: 1,
+          isAutoApply: true,
+        }),
+      ],
+    });
+    assert.equal(result.ok, true);
     assert.equal(result.ticketDiscountXOF, 0);
     assert.equal(result.autoAppliedCampaignId, null);
   });

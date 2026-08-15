@@ -25,6 +25,9 @@ import { format } from "date-fns";
 import { Megaphone, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { CampaignCouponsPanel } from "@/features/discounts/components/campaign-coupons-panel";
+import { CampaignRedemptionsTable } from "@/features/discounts/components/campaign-redemptions-table";
+import { CampaignSettingsEditor } from "@/features/discounts/components/campaign-settings-editor";
 import { ReferralFunnelBars } from "@/features/discounts/components/referral-funnel-bars";
 import { useTRPC } from "@/trpc/client";
 
@@ -37,12 +40,12 @@ export function AdminCampaignsView() {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [benefitType, setBenefitType] = useState<BenefitType>("PERCENT_OFF");
-  const [percentBps, setPercentBps] = useState("1000");
+  const [percentOff, setPercentOff] = useState("10");
   const [amountXOF, setAmountXOF] = useState("1000");
-  const [couponCode, setCouponCode] = useState("");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
     null,
   );
+  const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null);
 
   const listQuery = useQuery(
     trpc.discountsAdmin.listCampaigns.queryOptions({
@@ -55,7 +58,7 @@ export function AdminCampaignsView() {
   const createMutation = useMutation(
     trpc.discountsAdmin.createCampaign.mutationOptions({
       onSuccess: async (campaign) => {
-        toast.success("Campaign created");
+        toast.success("Campaign created — add codes, then Activate");
         setShowCreate(false);
         setName("");
         setSelectedCampaignId(campaign.id);
@@ -79,13 +82,93 @@ export function AdminCampaignsView() {
     }),
   );
 
+  const campaignDetailQuery = useQuery({
+    ...trpc.discountsAdmin.getCampaign.queryOptions({
+      id: selectedCampaignId ?? "",
+    }),
+    enabled: Boolean(selectedCampaignId),
+  });
+
   const couponMutation = useMutation(
     trpc.discountsAdmin.createCoupon.mutationOptions({
       onSuccess: async () => {
         toast.success("Coupon created");
-        setCouponCode("");
+        await Promise.all([
+          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          selectedCampaignId
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
+            : Promise.resolve(),
+        ]);
       },
       onError: (err) => toast.error(err.message),
+    }),
+  );
+
+  const deactivateCouponMutation = useMutation(
+    trpc.discountsAdmin.deactivateCoupon.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Coupon deactivated");
+        await Promise.all([
+          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          selectedCampaignId
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
+            : Promise.resolve(),
+        ]);
+      },
+      onError: (err) => toast.error(err.message),
+    }),
+  );
+
+  const bulkCouponMutation = useMutation(
+    trpc.discountsAdmin.bulkCreateCoupons.mutationOptions({
+      onSuccess: async (result) => {
+        toast.success(`Created ${result.codes.length} codes`);
+        await Promise.all([
+          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          selectedCampaignId
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
+            : Promise.resolve(),
+        ]);
+      },
+      onError: (err) => toast.error(err.message),
+    }),
+  );
+
+  const updateCampaignMutation = useMutation(
+    trpc.discountsAdmin.updateCampaign.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Campaign settings saved");
+        await Promise.all([
+          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          selectedCampaignId
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
+            : Promise.resolve(),
+        ]);
+      },
+      onError: (err) => toast.error(err.message),
+    }),
+  );
+
+  const routesQuery = useQuery(
+    trpc.admin.listRoutes.queryOptions({
+      page: 1,
+      pageSize: 100,
     }),
   );
 
@@ -136,6 +219,16 @@ export function AdminCampaignsView() {
     enabled: Boolean(selectedCampaignId),
   });
   const performance = performanceQuery.data;
+
+  const redemptionsQuery = useQuery({
+    ...trpc.discountsAdmin.listRedemptions.queryOptions({
+      campaignId: selectedCampaignId ?? undefined,
+      couponCodeId: selectedCouponId ?? undefined,
+      limit: 50,
+      offset: 0,
+    }),
+    enabled: Boolean(selectedCampaignId),
+  });
 
   return (
     <div className="space-y-6">
@@ -262,8 +355,8 @@ export function AdminCampaignsView() {
               Create platform campaign
             </h2>
             <p className="text-xs text-slate-500">
-              Drafts start paused until you activate them. Coupons can be added
-              after create.
+              Starts as Draft. Add coupon codes, then click Activate so
+              passengers can redeem at checkout.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -293,12 +386,14 @@ export function AdminCampaignsView() {
             </div>
             {benefitType === "PERCENT_OFF" ? (
               <div className="space-y-1.5">
-                <Label htmlFor="percent-bps">Percent (bps, 1000 = 10%)</Label>
+                <Label htmlFor="percent-off">Percent off ticket (%)</Label>
                 <Input
-                  id="percent-bps"
+                  id="percent-off"
                   type="number"
-                  value={percentBps}
-                  onChange={(e) => setPercentBps(e.target.value)}
+                  min={1}
+                  max={100}
+                  value={percentOff}
+                  onChange={(e) => setPercentOff(e.target.value)}
                 />
               </div>
             ) : (
@@ -324,7 +419,7 @@ export function AdminCampaignsView() {
                   benefitType,
                   percentBps:
                     benefitType === "PERCENT_OFF"
-                      ? Number(percentBps)
+                      ? Math.round(Number(percentOff) * 100)
                       : undefined,
                   amountXOF:
                     benefitType === "FIXED_AMOUNT_OFF"
@@ -408,7 +503,7 @@ export function AdminCampaignsView() {
                         variant="outline"
                         onClick={() => setSelectedCampaignId(item.id)}
                       >
-                        Coupon
+                        Codes
                       </Button>
                       {item.status === "ACTIVE" ? (
                         <>
@@ -495,46 +590,78 @@ export function AdminCampaignsView() {
             </div>
           ) : null}
           <div className="space-y-3 border-t border-slate-100 pt-3">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Add coupon code
-            </h2>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Input
-                className="uppercase"
-                placeholder="SUMMER10"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              />
-              <Button
-                type="button"
-                disabled={!couponCode.trim() || couponMutation.isPending}
-                onClick={() =>
-                  couponMutation.mutate({
-                    campaignId: selectedCampaignId,
-                    code: couponCode.trim(),
+            {campaignDetailQuery.data ? (
+              <CampaignSettingsEditor
+                campaign={campaignDetailQuery.data}
+                routeOptions={(routesQuery.data?.items ?? []).map((r) => ({
+                  id: r.id,
+                  name: `${r.name}${r.company?.name ? ` · ${r.company.name}` : ""}`,
+                }))}
+                showHybrid
+                showRequireOptIn
+                pending={updateCampaignMutation.isPending}
+                onSave={(input) =>
+                  updateCampaignMutation.mutate({
+                    id: selectedCampaignId,
+                    ...input,
                   })
                 }
-              >
-                Create code
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={exportMutation.isPending}
-                onClick={() =>
-                  exportMutation.mutate({ campaignId: selectedCampaignId })
-                }
-              >
-                Export CSV
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setSelectedCampaignId(null)}
-              >
-                Close
-              </Button>
+              />
+            ) : null}
+            <CampaignCouponsPanel
+              coupons={campaignDetailQuery.data?.coupons ?? []}
+              isLoading={campaignDetailQuery.isLoading}
+              createPending={couponMutation.isPending}
+              bulkPending={bulkCouponMutation.isPending}
+              deactivatePending={deactivateCouponMutation.isPending}
+              selectedCouponId={selectedCouponId}
+              onSelectCoupon={setSelectedCouponId}
+              onCreate={(code) =>
+                couponMutation.mutate({
+                  campaignId: selectedCampaignId,
+                  code,
+                })
+              }
+              onBulkCreate={({ prefix, count }) =>
+                bulkCouponMutation.mutate({
+                  campaignId: selectedCampaignId,
+                  prefix,
+                  count,
+                })
+              }
+              onDeactivate={(id) => deactivateCouponMutation.mutate({ id })}
+              onClose={() => {
+                setSelectedCampaignId(null);
+                setSelectedCouponId(null);
+              }}
+            />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  {selectedCouponId
+                    ? "Users who used this code"
+                    : "Recent redemptions (campaign)"}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {redemptionsQuery.data?.total ?? 0} total
+                </p>
+              </div>
+              <CampaignRedemptionsTable
+                items={redemptionsQuery.data?.items ?? []}
+                isLoading={redemptionsQuery.isLoading}
+              />
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={exportMutation.isPending}
+              onClick={() =>
+                exportMutation.mutate({ campaignId: selectedCampaignId })
+              }
+            >
+              Export redemptions CSV
+            </Button>
           </div>
         </Card>
       ) : null}

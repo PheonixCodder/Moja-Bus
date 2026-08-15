@@ -1,8 +1,10 @@
 import {
+  bulkCreateCouponsSchema,
   campaignOptInSchema,
   createCouponSchema,
   deactivateCouponSchema,
   listCampaignsSchema,
+  listRedemptionsSchema,
   operatorCreateCampaignSchema,
   setCampaignStatusSchema,
   updateCampaignSchema,
@@ -147,6 +149,34 @@ export const discountsOperatorRouter = createTRPCRouter({
       });
     }),
 
+  bulkCreateCoupons: operatorCompanyProcedure
+    .input(bulkCreateCouponsSchema)
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "promotions:create");
+      const campaign = await ctx.prisma.discountCampaign.findFirst({
+        where: { id: input.campaignId, companyId: ctx.companyId },
+        select: { id: true },
+      });
+      if (!campaign) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+      }
+      const created: string[] = [];
+      for (let i = 0; i < input.count; i++) {
+        const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+        const code = `${input.prefix}-${suffix}`;
+        await ctx.prisma.couponCode.create({
+          data: {
+            campaignId: input.campaignId,
+            code,
+            maxRedemptions: input.maxRedemptions ?? null,
+            expiresAt: input.expiresAt ?? null,
+          },
+        });
+        created.push(code);
+      }
+      return { codes: created };
+    }),
+
   deactivateCoupon: operatorCompanyProcedure
     .input(deactivateCouponSchema)
     .mutation(async ({ ctx, input }) => {
@@ -234,4 +264,46 @@ export const discountsOperatorRouter = createTRPCRouter({
       operatorFundedXOF: redemptions._sum.operatorFundedXOF ?? 0,
     };
   }),
+
+  listRedemptions: operatorCompanyProcedure
+    .input(listRedemptionsSchema)
+    .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "promotions:read");
+      if (input.campaignId) {
+        const campaign = await ctx.prisma.discountCampaign.findFirst({
+          where: { id: input.campaignId, companyId: ctx.companyId },
+          select: { id: true },
+        });
+        if (!campaign) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Campaign not found",
+          });
+        }
+      }
+      if (input.couponCodeId) {
+        const coupon = await ctx.prisma.couponCode.findUnique({
+          where: { id: input.couponCodeId },
+          include: { campaign: { select: { companyId: true } } },
+        });
+        if (!coupon || coupon.campaign.companyId !== ctx.companyId) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Coupon not found",
+          });
+        }
+      }
+      const { listDiscountRedemptions } = await import(
+        "@/features/discounts/services/redemption-list"
+      );
+      return listDiscountRedemptions(ctx.prisma, {
+        campaignId: input.campaignId,
+        couponCodeId: input.couponCodeId,
+        status: input.status,
+        limit: input.limit,
+        offset: input.offset,
+        companyId: ctx.companyId,
+        privacy: true,
+      });
+    }),
 });

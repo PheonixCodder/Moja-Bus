@@ -4,16 +4,32 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Card } from "@moja/ui/components/ui/card";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
 import { Switch } from "@moja/ui/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 
+const NONE = "__none__";
+
 export function AdminReferralProgramCard() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const programQuery = useQuery(trpc.discountsAdmin.getReferralProgram.queryOptions());
+  const campaignsQuery = useQuery(
+    trpc.discountsAdmin.listCampaigns.queryOptions({
+      status: "ACTIVE",
+      limit: 100,
+      offset: 0,
+    }),
+  );
 
   const [isActive, setIsActive] = useState(false);
   const [referrerCredit, setReferrerCredit] = useState("0");
@@ -21,6 +37,7 @@ export function AdminReferralProgramCard() {
   const [recurringMax, setRecurringMax] = useState("3");
   const [windowDays, setWindowDays] = useState("180");
   const [delayHours, setDelayHours] = useState("48");
+  const [welcomeCampaignId, setWelcomeCampaignId] = useState<string>(NONE);
 
   useEffect(() => {
     const p = programQuery.data;
@@ -31,6 +48,7 @@ export function AdminReferralProgramCard() {
     setRecurringMax(String(p.recurringMaxBookings));
     setWindowDays(String(p.recurringWindowDays));
     setDelayHours(String(p.rewardDelayHours));
+    setWelcomeCampaignId(p.refereeCouponCampaignId ?? NONE);
   }, [programQuery.data]);
 
   const saveMutation = useMutation(
@@ -50,8 +68,9 @@ export function AdminReferralProgramCard() {
       <div className="space-y-1">
         <h2 className="text-sm font-semibold text-slate-900">Referral program</h2>
         <p className="text-xs text-slate-500">
-          Recurring promo credits for referrers after paid confirms. Toggle
-          program active to start attribution and rewards.
+          Recurring promo credits for referrers after paid confirms. Optionally
+          mint a personal welcome coupon for the friend from an Active platform
+          campaign.
         </p>
       </div>
       <div className="flex items-center justify-between gap-3">
@@ -108,6 +127,25 @@ export function AdminReferralProgramCard() {
             onChange={(e) => setDelayHours(e.target.value)}
           />
         </div>
+        <div className="space-y-1.5">
+          <Label>Welcome coupon campaign</Label>
+          <Select
+            value={welcomeCampaignId}
+            onValueChange={setWelcomeCampaignId}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="None" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NONE}>None</SelectItem>
+              {(campaignsQuery.data?.items ?? []).map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <Button
         type="button"
@@ -120,6 +158,8 @@ export function AdminReferralProgramCard() {
             recurringMaxBookings: Number(recurringMax) || 0,
             recurringWindowDays: Number(windowDays) || 1,
             rewardDelayHours: Number(delayHours) || 0,
+            refereeCouponCampaignId:
+              welcomeCampaignId === NONE ? null : welcomeCampaignId,
             selfReferralBlock: true,
             samePhoneBlock: true,
             sameDeviceBlock: true,
