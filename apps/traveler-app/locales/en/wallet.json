@@ -14,7 +14,18 @@
   "promoHint": "Referral rewards and vouchers apply at checkout. Separate from your prepaid wallet balance.",
   "promoCreditsTitle": "Available promo credits",
   "promoCreditsEmpty": "No promo credits yet. Invite friends to earn rewards.",
+  "promoCreditsPending": "Pending promo credits",
+  "promoHowToEarn": "Earn by inviting friends, or claim a promo credit code below.",
+  "promoClaimLabel": "Have a promo credit code?",
+  "promoClaimPlaceholder": "Enter code",
+  "promoClaimCta": "Claim",
+  "promoClaimSuccess": "Promo credits added",
+  "promoClaimFailed": "Could not claim code",
+  "promoSourceReferral": "Referral",
+  "promoSourceAdmin": "Admin grant",
+  "promoSourcePromo": "Promo grant",
+  "promoSourceLoyalty": "Loyalty",
   "promoVouchersTitle": "Active vouchers",
   "promoVouchersEmpty": "No active vouchers.",
-  "promoVoucherCeiling": "Max 3 promotional vouchers at a time (cancellation vouchers excluded)."
+  "promoVoucherCeiling": "Max {{max}} promotional vouchers at a time (cancellation vouchers excluded)."
 }

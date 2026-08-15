@@ -2,9 +2,9 @@ import type { PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import {
   isPromotionalVoucherSource,
-  MAX_PROMOTIONAL_VOUCHERS_PER_USER,
   PROMOTIONAL_VOUCHER_SOURCES,
 } from "../lib/promo-ceilings";
+import { getPromoPolicy } from "../lib/promo-policy";
 
 export async function issueCancellationVoucher(
   prisma: PrismaClient,
@@ -74,6 +74,7 @@ export async function issueAdminVoucher(
 
   const source = input.source ?? "ADMIN_MANUAL";
   if (isPromotionalVoucherSource(source)) {
+    const policy = await getPromoPolicy(prisma);
     const activePromoCount = await prisma.monetaryVoucher.count({
       where: {
         userId: input.userId,
@@ -82,10 +83,10 @@ export async function issueAdminVoucher(
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
     });
-    if (activePromoCount >= MAX_PROMOTIONAL_VOUCHERS_PER_USER) {
+    if (activePromoCount >= policy.maxPromotionalVouchersPerUser) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: `Traveler already has ${MAX_PROMOTIONAL_VOUCHERS_PER_USER} active promotional vouchers`,
+        message: `Traveler already has ${policy.maxPromotionalVouchersPerUser} active promotional vouchers`,
       });
     }
   }

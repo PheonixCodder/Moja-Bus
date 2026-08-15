@@ -5,6 +5,8 @@ import {
   deactivateCouponSchema,
   listCampaignsSchema,
   listRedemptionsSchema,
+  listScopeSchedulesSchema,
+  listScopeTripsSchema,
   operatorCreateCampaignSchema,
   setCampaignStatusSchema,
   updateCampaignSchema,
@@ -12,6 +14,10 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createCampaign } from "@/features/discounts/services/campaign-crud";
+import {
+  listSchedulesForScope,
+  listTripsForScope,
+} from "@/features/discounts/services/scope-options-service";
 import { omitUndefined } from "@/features/discounts/lib/omit-undefined";
 import { requirePermission } from "@/lib/permissions/authorize";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
@@ -60,6 +66,30 @@ export const discountsOperatorRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
       }
       return campaign;
+    }),
+
+  listScopeSchedules: operatorCompanyProcedure
+    .input(listScopeSchedulesSchema)
+    .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "promotions:read");
+      return listSchedulesForScope(ctx.prisma, {
+        routeIds: input.routeIds,
+        companyId: ctx.companyId,
+        limit: input.limit,
+      });
+    }),
+
+  listScopeTrips: operatorCompanyProcedure
+    .input(listScopeTripsSchema)
+    .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "promotions:read");
+      return listTripsForScope(ctx.prisma, {
+        scheduleIds: input.scheduleIds,
+        routeIds: input.routeIds,
+        companyId: ctx.companyId,
+        daysAhead: input.daysAhead,
+        limit: input.limit,
+      });
     }),
 
   createCampaign: operatorCompanyProcedure

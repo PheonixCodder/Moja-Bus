@@ -49,6 +49,23 @@ describe("discounts schemas", () => {
     assert.equal(parsed.percentBps, 1000);
   });
 
+  it("requires amountXOF for WALLET_CREDIT_GRANT", () => {
+    assert.throws(() =>
+      upsertCampaignBaseSchema.parse({
+        name: "Credit grant",
+        fundingType: "PLATFORM",
+        benefitType: "WALLET_CREDIT_GRANT",
+      }),
+    );
+    const parsed = upsertCampaignBaseSchema.parse({
+      name: "Credit grant",
+      fundingType: "PLATFORM",
+      benefitType: "WALLET_CREDIT_GRANT",
+      amountXOF: 2000,
+    });
+    assert.equal(parsed.amountXOF, 2000);
+  });
+
   it("parses checkout discount input", () => {
     const parsed = checkoutDiscountInputSchema.parse({
       code: "abc-1",

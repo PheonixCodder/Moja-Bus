@@ -1,5 +1,6 @@
 import {
   applyReferralCodeSchema,
+  claimCreditGrantSchema,
   listMyInviteesSchema,
   listMyVouchersSchema,
 } from "@moja/schemas";
@@ -11,14 +12,21 @@ import {
   getReferralStats,
   listMyInvitees,
 } from "@/features/discounts/services/referral-service";
+import { claimCreditGrant } from "@/features/discounts/services/claim-credit-grant-service";
 import { listUserVouchers } from "@/features/discounts/services/voucher-service";
 import { loadUserCreditLots } from "@/features/discounts/services/campaign-loader";
+import { getPromoPolicy } from "@/features/discounts/lib/promo-policy";
 import { createRateLimiter } from "@/lib/rate-limit";
 
 /** Soft gate against code spraying: 10 attempts / 15 min / user. */
 const referralApplyLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 10,
+});
+
+const creditClaimLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
 });
 
 export const discountsRouter = createTRPCRouter({
@@ -30,6 +38,24 @@ export const discountsRouter = createTRPCRouter({
 
   listMyCredits: protectedProcedure.query(async ({ ctx }) => {
     return loadUserCreditLots(ctx.prisma, ctx.user.id);
+  }),
+
+  /** All lots for wallet UI (includes PENDING). */
+  listMyCreditLots: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.creditLot.findMany({
+      where: {
+        userId: ctx.user.id,
+        status: {
+          in: ["PENDING", "ACTIVE", "PARTIALLY_REDEEMED"],
+        },
+      },
+      orderBy: [{ status: "asc" }, { expiresAt: "asc" }, { createdAt: "desc" }],
+      take: 50,
+    });
+  }),
+
+  getPromoPolicyPublic: publicProcedure.query(async ({ ctx }) => {
+    return getPromoPolicy(ctx.prisma);
   }),
 
   myReferral: protectedProcedure.query(async ({ ctx }) => {
@@ -46,6 +72,25 @@ export const discountsRouter = createTRPCRouter({
   getReferralProgramPublic: publicProcedure.query(async ({ ctx }) => {
     return getPublicReferralProgram(ctx.prisma);
   }),
+
+  claimCreditGrant: protectedProcedure
+    .input(claimCreditGrantSchema)
+    .mutation(async ({ ctx, input }) => {
+      const limited = creditClaimLimiter(`credit-claim:${ctx.user.id}`);
+      if (!limited.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many claim attempts. Try again in a few minutes.",
+        });
+      }
+      return claimCreditGrant(ctx.prisma, {
+        userId: ctx.user.id,
+        code: input.code,
+        ...(input.deviceHash !== undefined
+          ? { deviceHash: input.deviceHash }
+          : {}),
+      });
+    }),
 
   applyReferralCode: protectedProcedure
     .input(applyReferralCodeSchema)

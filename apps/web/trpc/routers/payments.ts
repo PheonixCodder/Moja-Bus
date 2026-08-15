@@ -186,8 +186,17 @@ export const paymentsRouter = createTRPCRouter({
     .input(updatePlatformSettingsSchema)
     .mutation(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "platform:settings:update");
-      const { defaultCommissionBps, defaultConvenienceFeeBps } = input;
-      return ctx.prisma.platformSettings.upsert({
+      const {
+        defaultCommissionBps,
+        defaultConvenienceFeeBps,
+        maxPromotionalVouchersPerUser,
+      } = input;
+
+      const before = await ctx.prisma.platformSettings.findUnique({
+        where: { id: "default" },
+      });
+
+      const updated = await ctx.prisma.platformSettings.upsert({
         where: { id: "default" },
         create: {
           id: "default",
@@ -195,14 +204,43 @@ export const paymentsRouter = createTRPCRouter({
           ...(defaultConvenienceFeeBps != null
             ? { defaultConvenienceFeeBps }
             : {}),
+          ...(maxPromotionalVouchersPerUser != null
+            ? { maxPromotionalVouchersPerUser }
+            : {}),
         },
         update: {
           ...(defaultCommissionBps != null ? { defaultCommissionBps } : {}),
           ...(defaultConvenienceFeeBps != null
             ? { defaultConvenienceFeeBps }
             : {}),
+          ...(maxPromotionalVouchersPerUser != null
+            ? { maxPromotionalVouchersPerUser }
+            : {}),
         },
       });
+
+      if (
+        maxPromotionalVouchersPerUser != null &&
+        before?.maxPromotionalVouchersPerUser !== maxPromotionalVouchersPerUser
+      ) {
+        await ctx.prisma.platformSettingsAudit.create({
+          data: {
+            settingKey: "maxPromotionalVouchersPerUser",
+            ...(before
+              ? {
+                  oldValue: {
+                    value: before.maxPromotionalVouchersPerUser,
+                  },
+                }
+              : {}),
+            newValue: { value: maxPromotionalVouchersPerUser },
+            changedById: ctx.user.id,
+            changeReason: "Updated from admin settings",
+          },
+        });
+      }
+
+      return updated;
     }),
 
   listCommissionTiers: adminProcedure.query(async ({ ctx }) => {

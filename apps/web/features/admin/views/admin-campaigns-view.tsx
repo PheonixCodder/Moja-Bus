@@ -23,7 +23,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Megaphone, Plus, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CampaignCouponsPanel } from "@/features/discounts/components/campaign-coupons-panel";
 import { CampaignRedemptionsTable } from "@/features/discounts/components/campaign-redemptions-table";
@@ -31,7 +31,7 @@ import { CampaignSettingsEditor } from "@/features/discounts/components/campaign
 import { ReferralFunnelBars } from "@/features/discounts/components/referral-funnel-bars";
 import { useTRPC } from "@/trpc/client";
 
-type BenefitType = "PERCENT_OFF" | "FIXED_AMOUNT_OFF";
+type BenefitType = "PERCENT_OFF" | "FIXED_AMOUNT_OFF" | "WALLET_CREDIT_GRANT";
 
 export function AdminCampaignsView() {
   const trpc = useTRPC();
@@ -46,6 +46,8 @@ export function AdminCampaignsView() {
     null,
   );
   const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null);
+  const [scopeRouteIds, setScopeRouteIds] = useState<string[]>([]);
+  const [scopeScheduleIds, setScopeScheduleIds] = useState<string[]>([]);
 
   const listQuery = useQuery(
     trpc.discountsAdmin.listCampaigns.queryOptions({
@@ -88,6 +90,13 @@ export function AdminCampaignsView() {
     }),
     enabled: Boolean(selectedCampaignId),
   });
+
+  useEffect(() => {
+    const detail = campaignDetailQuery.data;
+    if (!detail) return;
+    setScopeRouteIds(detail.routeScopes.map((s) => s.routeId));
+    setScopeScheduleIds(detail.scheduleScopes.map((s) => s.scheduleId));
+  }, [campaignDetailQuery.data]);
 
   const couponMutation = useMutation(
     trpc.discountsAdmin.createCoupon.mutationOptions({
@@ -171,6 +180,24 @@ export function AdminCampaignsView() {
       pageSize: 100,
     }),
   );
+
+  const schedulesQuery = useQuery({
+    ...trpc.discountsAdmin.listScopeSchedules.queryOptions({
+      routeIds: scopeRouteIds,
+      limit: 100,
+    }),
+    enabled: Boolean(selectedCampaignId),
+  });
+
+  const tripsQuery = useQuery({
+    ...trpc.discountsAdmin.listScopeTrips.queryOptions({
+      scheduleIds: scopeScheduleIds,
+      routeIds: scopeRouteIds,
+      daysAhead: 60,
+      limit: 100,
+    }),
+    enabled: Boolean(selectedCampaignId) && (scopeScheduleIds.length > 0 || scopeRouteIds.length > 0),
+  });
 
   const exportMutation = useMutation({
     mutationFn: async (input: { campaignId?: string }) => {
@@ -381,6 +408,9 @@ export function AdminCampaignsView() {
                 <SelectContent>
                   <SelectItem value="PERCENT_OFF">Percent off</SelectItem>
                   <SelectItem value="FIXED_AMOUNT_OFF">Fixed amount</SelectItem>
+                  <SelectItem value="WALLET_CREDIT_GRANT">
+                    Promo credit grant
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -398,7 +428,11 @@ export function AdminCampaignsView() {
               </div>
             ) : (
               <div className="space-y-1.5">
-                <Label htmlFor="amount-xof">Amount (XOF)</Label>
+                <Label htmlFor="amount-xof">
+                  {benefitType === "WALLET_CREDIT_GRANT"
+                    ? "Credit amount (XOF)"
+                    : "Amount (XOF)"}
+                </Label>
                 <Input
                   id="amount-xof"
                   type="number"
@@ -422,12 +456,14 @@ export function AdminCampaignsView() {
                       ? Math.round(Number(percentOff) * 100)
                       : undefined,
                   amountXOF:
-                    benefitType === "FIXED_AMOUNT_OFF"
+                    benefitType === "FIXED_AMOUNT_OFF" ||
+                    benefitType === "WALLET_CREDIT_GRANT"
                       ? Number(amountXOF)
                       : undefined,
                   platformShareBps: 10_000,
                   operatorShareBps: 0,
                   status: "DRAFT",
+                  isAutoApply: benefitType !== "WALLET_CREDIT_GRANT",
                 })
               }
             >
@@ -597,9 +633,23 @@ export function AdminCampaignsView() {
                   id: r.id,
                   name: `${r.name}${r.company?.name ? ` · ${r.company.name}` : ""}`,
                 }))}
+                scheduleOptions={(schedulesQuery.data ?? []).map((s) => ({
+                  id: s.id,
+                  name: s.name,
+                  routeId: s.routeId,
+                }))}
+                tripOptions={(tripsQuery.data ?? []).map((t) => ({
+                  id: t.id,
+                  name: t.name,
+                }))}
                 showHybrid
                 showRequireOptIn
                 pending={updateCampaignMutation.isPending}
+                onRouteIdsChange={(ids) => {
+                  setScopeRouteIds(ids);
+                  setScopeScheduleIds([]);
+                }}
+                onScheduleIdsChange={setScopeScheduleIds}
                 onSave={(input) =>
                   updateCampaignMutation.mutate({
                     id: selectedCampaignId,

@@ -19,13 +19,16 @@
 2. Exclude expired and fully consumed vouchers.
 3. Compare to “voucher liability” report or wallet-adjacent liability view if present.
 4. **Pass:** open remaining ≈ reported liability.
-5. Spot-check: cancellation vouchers vs promotional (marketing / goodwill / admin / referral welcome) — ceiling of 3 applies only to promotional.
+5. Spot-check: cancellation vouchers vs promotional (marketing / goodwill / admin / referral welcome) — ceiling from `PlatformSettings.maxPromotionalVouchersPerUser` applies only to promotional.
 
-## 3. Credit lots integrity
+## 3. Credit lots integrity (promo credits liability)
 
-1. No ACTIVE hold with `reservedXOF` on a credit lot greater than `remainingXOF`.
-2. Sum of `reservedXOF` across lots ≈ sum of open holds that froze credits.
-3. PENDING referral INITIAL credits exist only for attributed referrals awaiting activation cron.
+1. Sum `CreditLot.remainingXOF` for statuses ACTIVE / PARTIALLY_REDEEMED (and PENDING amount if treating pending as liability).
+2. Compare to promo credit liability view / finance export if present.
+3. No ACTIVE hold with `reservedXOF` on a credit lot greater than `remainingXOF`.
+4. Sum of `reservedXOF` across lots ≈ sum of open holds that froze credits.
+5. PENDING referral INITIAL credits exist only for attributed referrals awaiting activation cron.
+6. `PROMO_GRANT` lots from claim codes should match coupon redemption counts for `WALLET_CREDIT_GRANT` campaigns.
 
 ## 4. Abuse / ops sanity (quick)
 

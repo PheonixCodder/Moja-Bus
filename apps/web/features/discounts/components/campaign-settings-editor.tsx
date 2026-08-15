@@ -4,7 +4,7 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Switch } from "@moja/ui/components/ui/switch";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export type CampaignSettingsValues = {
   description: string | null;
@@ -25,16 +25,23 @@ export type CampaignSettingsValues = {
   platformShareBps: number;
   operatorShareBps: number;
   routeScopes?: Array<{ routeId: string }> | undefined;
+  scheduleScopes?: Array<{ scheduleId: string }> | undefined;
+  tripScopes?: Array<{ tripId: string }> | undefined;
 };
 
 export type RouteOption = { id: string; name: string };
+export type ScopeOption = { id: string; name: string; routeId?: string };
 
 type Props = {
   campaign: CampaignSettingsValues & { name: string };
   routeOptions: RouteOption[];
+  scheduleOptions?: ScopeOption[];
+  tripOptions?: ScopeOption[];
   showHybrid?: boolean;
   showRequireOptIn?: boolean;
   pending?: boolean;
+  onRouteIdsChange?: (routeIds: string[]) => void;
+  onScheduleIdsChange?: (scheduleIds: string[]) => void;
   onSave: (input: {
     description: string | null;
     startsAt: Date | null;
@@ -53,9 +60,16 @@ type Props = {
     fundingType?: "PLATFORM" | "HYBRID";
     platformShareBps?: number;
     operatorShareBps?: number;
-    scopes: { routeIds: string[] };
+    scopes: {
+      routeIds: string[];
+      scheduleIds: string[];
+      tripIds: string[];
+    };
   }) => void;
 };
+
+const MAX_SCHEDULES = 50;
+const MAX_TRIPS = 100;
 
 function toLocalInput(value: Date | string | null | undefined): string {
   if (!value) return "";
@@ -76,9 +90,13 @@ function parseOptionalInt(raw: string): number | null {
 export function CampaignSettingsEditor({
   campaign,
   routeOptions,
+  scheduleOptions = [],
+  tripOptions = [],
   showHybrid = false,
   showRequireOptIn = false,
   pending,
+  onRouteIdsChange,
+  onScheduleIdsChange,
   onSave,
 }: Props) {
   const [description, setDescription] = useState(campaign.description ?? "");
@@ -120,6 +138,12 @@ export function CampaignSettingsEditor({
   const [routeIds, setRouteIds] = useState<string[]>(
     campaign.routeScopes?.map((s) => s.routeId) ?? [],
   );
+  const [scheduleIds, setScheduleIds] = useState<string[]>(
+    campaign.scheduleScopes?.map((s) => s.scheduleId) ?? [],
+  );
+  const [tripIds, setTripIds] = useState<string[]>(
+    campaign.tripScopes?.map((s) => s.tripId) ?? [],
+  );
 
   useEffect(() => {
     setDescription(campaign.description ?? "");
@@ -141,12 +165,52 @@ export function CampaignSettingsEditor({
       String(Math.round((campaign.platformShareBps ?? 0) / 100)),
     );
     setRouteIds(campaign.routeScopes?.map((s) => s.routeId) ?? []);
+    setScheduleIds(campaign.scheduleScopes?.map((s) => s.scheduleId) ?? []);
+    setTripIds(campaign.tripScopes?.map((s) => s.tripId) ?? []);
   }, [campaign]);
 
+  const scheduleCapWarn = scheduleIds.length > MAX_SCHEDULES;
+  const tripCapWarn = tripIds.length > MAX_TRIPS;
+
+  const filteredScheduleOptions = useMemo(() => {
+    if (routeIds.length === 0) return scheduleOptions;
+    const set = new Set(routeIds);
+    return scheduleOptions.filter((s) => !s.routeId || set.has(s.routeId));
+  }, [scheduleOptions, routeIds]);
+
+  function updateRouteIds(next: string[]) {
+    setRouteIds(next);
+    onRouteIdsChange?.(next);
+  }
+
+  function updateScheduleIds(next: string[]) {
+    const capped = next.slice(0, MAX_SCHEDULES);
+    setScheduleIds(capped);
+    onScheduleIdsChange?.(capped);
+  }
+
   function toggleRoute(id: string) {
-    setRouteIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    updateRouteIds(
+      routeIds.includes(id)
+        ? routeIds.filter((x) => x !== id)
+        : [...routeIds, id],
     );
+  }
+
+  function toggleSchedule(id: string) {
+    updateScheduleIds(
+      scheduleIds.includes(id)
+        ? scheduleIds.filter((x) => x !== id)
+        : [...scheduleIds, id],
+    );
+  }
+
+  function toggleTrip(id: string) {
+    setTripIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_TRIPS) return prev;
+      return [...prev, id];
+    });
   }
 
   return (
@@ -156,7 +220,7 @@ export function CampaignSettingsEditor({
           Campaign settings
         </h3>
         <p className="text-xs text-slate-500">
-          Dates, caps, budget, auto-apply, and route scopes for{" "}
+          Dates, caps, budget, auto-apply, and scopes for{" "}
           <span className="font-medium text-slate-700">{campaign.name}</span>.
         </p>
       </div>
@@ -338,6 +402,76 @@ export function CampaignSettingsEditor({
         )}
       </div>
 
+      <div className="space-y-2">
+        <Label>Schedule scopes (empty = all schedules)</Label>
+        {filteredScheduleOptions.length === 0 ? (
+          <p className="text-xs text-slate-500">
+            {routeIds.length > 0
+              ? "No schedules for selected routes."
+              : "Select routes to load schedules, or leave empty for no schedule restriction."}
+          </p>
+        ) : (
+          <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-white p-2">
+            {filteredScheduleOptions.map((schedule) => {
+              const checked = scheduleIds.includes(schedule.id);
+              return (
+                <label
+                  key={schedule.id}
+                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleSchedule(schedule.id)}
+                  />
+                  <span className="truncate">{schedule.name}</span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+        {scheduleCapWarn ? (
+          <p className="text-xs text-amber-700">
+            Max {MAX_SCHEDULES} schedules — selection was capped.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="space-y-2">
+        <Label>Trip scopes (empty = all trips; next 60 days)</Label>
+        {tripOptions.length === 0 ? (
+          <p className="text-xs text-slate-500">
+            {scheduleIds.length > 0 || routeIds.length > 0
+              ? "No upcoming trips for the current filters."
+              : "Select schedules (or routes) to load upcoming trips."}
+          </p>
+        ) : (
+          <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-white p-2">
+            {tripOptions.map((trip) => {
+              const checked = tripIds.includes(trip.id);
+              return (
+                <label
+                  key={trip.id}
+                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleTrip(trip.id)}
+                  />
+                  <span className="truncate">{trip.name}</span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+        {tripCapWarn ? (
+          <p className="text-xs text-amber-700">
+            Max {MAX_TRIPS} trips — selection was capped.
+          </p>
+        ) : null}
+      </div>
+
       <Button
         type="button"
         disabled={pending}
@@ -368,7 +502,11 @@ export function CampaignSettingsEditor({
                   operatorShareBps: hybrid ? 10_000 - platformBps : 0,
                 }
               : {}),
-            scopes: { routeIds },
+            scopes: {
+              routeIds,
+              scheduleIds: scheduleIds.slice(0, MAX_SCHEDULES),
+              tripIds: tripIds.slice(0, MAX_TRIPS),
+            },
           });
         }}
       >

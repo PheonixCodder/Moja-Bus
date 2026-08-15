@@ -1599,6 +1599,9 @@ model PlatformSettings {
 
   require2FAForWithdrawals Boolean @default(false)
 
+  /** Max active promotional vouchers per traveler (excl. cancel/mod). */
+  maxPromotionalVouchersPerUser Int @default(3)
+
   updatedAt DateTime @updatedAt
 
   @@map("platform_settings")

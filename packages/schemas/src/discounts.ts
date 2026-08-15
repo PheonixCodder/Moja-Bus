@@ -144,6 +144,13 @@ function refineCampaignFields(
         path: ["freeSeatCount"],
       });
     }
+    if (data.benefitType === "WALLET_CREDIT_GRANT" && !data.amountXOF) {
+      ctx.addIssue({
+        code: "custom",
+        message: "amountXOF required for WALLET_CREDIT_GRANT",
+        path: ["amountXOF"],
+      });
+    }
   }
   if (data.startsAt && data.endsAt && data.endsAt <= data.startsAt) {
     ctx.addIssue({
@@ -288,6 +295,37 @@ export const listRedemptionsSchema = z.object({
 export const listMyInviteesSchema = z.object({
   limit: z.number().int().min(1).max(100).default(50),
   offset: z.number().int().min(0).default(0),
+});
+
+export const listScopeSchedulesSchema = z.object({
+  routeIds: z.array(z.string().min(1)).max(100).default([]),
+  companyId: z.string().min(1).optional(),
+  limit: z.number().int().min(1).max(200).default(100),
+});
+
+export const listScopeTripsSchema = z.object({
+  scheduleIds: z.array(z.string().min(1)).max(100).default([]),
+  routeIds: z.array(z.string().min(1)).max(100).optional(),
+  companyId: z.string().min(1).optional(),
+  daysAhead: z.number().int().min(1).max(180).default(60),
+  limit: z.number().int().min(1).max(100).default(100),
+});
+
+export const issuePromoCreditSchema = z.object({
+  userId: z.string().min(1),
+  amountXOF: z.number().int().positive(),
+  expiresAt: z.coerce.date().optional().nullable(),
+  idempotencyKey: z.string().trim().min(8).max(128).optional(),
+});
+
+export const listUserCreditLotsSchema = z.object({
+  userId: z.string().min(1),
+  limit: z.number().int().min(1).max(100).default(50),
+});
+
+export const claimCreditGrantSchema = z.object({
+  code: couponCodeValueSchema,
+  deviceHash: z.string().max(128).optional(),
 });
 
 export type CheckoutDiscountInput = z.infer<typeof checkoutDiscountInputSchema>;

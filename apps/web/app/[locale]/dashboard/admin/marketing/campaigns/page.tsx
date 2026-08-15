@@ -1,6 +1,7 @@
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import { Suspense } from "react";
 import { AdminReferralProgramCard } from "@/features/admin/components/admin-referral-program-card";
+import { AdminPromoCreditsCard } from "@/features/admin/components/admin-promo-credits-card";
 import { DashboardHeader } from "@/features/admin/components/dashboard-header";
 import { AdminCampaignsView } from "@/features/admin/views/admin-campaigns-view";
 import { HydrateClient, prefetch, trpc } from "@/trpc/server";
@@ -51,6 +52,7 @@ export default async function AdminMarketingCampaignsPage() {
           >
             <AdminCampaignsView />
           </Suspense>
+          <AdminPromoCreditsCard />
           <AdminReferralProgramCard />
         </div>
       </div>

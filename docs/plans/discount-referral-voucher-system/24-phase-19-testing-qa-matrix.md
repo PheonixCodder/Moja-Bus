@@ -42,10 +42,21 @@
 | 27 | Campaign settings: dates, caps, budget, auto-apply, hybrid, route scopes | |
 | 28 | Bulk coupon create (admin + operator) | |
 | 29 | Phone cap (`maxRedemptionsPerPhone`) blocks extra redemptions | |
-| 30 | Admin issue refuses 4th active promotional voucher (max 3) | |
+| 30 | Admin issue refuses promotional voucher when at PlatformSettings ceiling | |
 | 31 | Abuse queue: summary (no raw JSON), user links, pause campaign | |
 | 32 | Wallet shows promo credits + vouchers (web + traveler app) | |
-| 33 | FAQ/Terms: max 3 promos + `/r/CODE` referral reality (EN + FR) | |
+| 33 | FAQ/Terms: published promo voucher limit + `/r/CODE` referral reality (EN + FR) | |
+
+## Post–Sprint E scopes / ceiling / credits catalog
+
+| # | Case | Pass? |
+|---|------|-------|
+| 34 | Campaign settings: schedule + trip scopes save; wrong schedule/trip rejects auto-apply | |
+| 35 | Admin settings: change `maxPromotionalVouchersPerUser`; issue blocked at new ceiling; audit row written | |
+| 36 | Admin grants promo credits (ADMIN lot); passenger sees and spends at checkout | |
+| 37 | Create `WALLET_CREDIT_GRANT` campaign + coupon; claim adds PROMO_GRANT lot; code does not % off ticket | |
+| 38 | Double claim same credit code is idempotent (no second lot) | |
+| 39 | Wallet shows pending vs available credits with source labels; claim entry works (web + app) | |
 
 ## Automated
 

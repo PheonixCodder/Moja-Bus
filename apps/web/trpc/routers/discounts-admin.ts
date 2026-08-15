@@ -4,9 +4,13 @@ import {
   createCouponSchema,
   deactivateCouponSchema,
   issueMonetaryVoucherSchema,
+  issuePromoCreditSchema,
   listCampaignsSchema,
   listCouponsSchema,
   listRedemptionsSchema,
+  listScopeSchedulesSchema,
+  listScopeTripsSchema,
+  listUserCreditLotsSchema,
   notifyOptedInCampaignSchema,
   setCampaignStatusSchema,
   updateCampaignSchema,
@@ -15,7 +19,15 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createCampaign } from "@/features/discounts/services/campaign-crud";
+import {
+  grantAdminCreditLot,
+  listCreditLotsForUser,
+} from "@/features/discounts/services/credit-grant-service";
 import { issueAdminVoucher } from "@/features/discounts/services/voucher-service";
+import {
+  listSchedulesForScope,
+  listTripsForScope,
+} from "@/features/discounts/services/scope-options-service";
 import { logMarketingActivity } from "@/features/discounts/services/marketing-audit";
 import { omitUndefined } from "@/features/discounts/lib/omit-undefined";
 import { requireAdminPermission } from "@/lib/permissions/admin-authorize";
@@ -86,6 +98,30 @@ export const discountsAdminRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
       }
       return campaign;
+    }),
+
+  listScopeSchedules: adminProcedure
+    .input(listScopeSchedulesSchema)
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      return listSchedulesForScope(ctx.prisma, {
+        routeIds: input.routeIds,
+        companyId: input.companyId,
+        limit: input.limit,
+      });
+    }),
+
+  listScopeTrips: adminProcedure
+    .input(listScopeTripsSchema)
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      return listTripsForScope(ctx.prisma, {
+        scheduleIds: input.scheduleIds,
+        routeIds: input.routeIds,
+        companyId: input.companyId,
+        daysAhead: input.daysAhead,
+        limit: input.limit,
+      });
     }),
 
   createCampaign: adminProcedure
@@ -343,6 +379,34 @@ export const discountsAdminRouter = createTRPCRouter({
         metadata: { voucherId: voucher.id, amountXOF: input.amountXOF },
       });
       return voucher;
+    }),
+
+  grantCredit: adminProcedure
+    .input(issuePromoCreditSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:vouchers:issue");
+      const lot = await grantAdminCreditLot(ctx.prisma, {
+        userId: input.userId,
+        amountXOF: input.amountXOF,
+        expiresAt: input.expiresAt,
+        idempotencyKey: input.idempotencyKey,
+        issuedByAdminId: ctx.user.id,
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_CREDIT_GRANT",
+        description: `Granted ${input.amountXOF} XOF promo credits to user ${input.userId}`,
+        targetUserId: input.userId,
+        metadata: { creditLotId: lot.id, amountXOF: input.amountXOF },
+      });
+      return lot;
+    }),
+
+  listUserCredits: adminProcedure
+    .input(listUserCreditLotsSchema)
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      return listCreditLotsForUser(ctx.prisma, input.userId, input.limit);
     }),
 
   getReferralProgram: adminProcedure.query(async ({ ctx }) => {

@@ -198,6 +198,17 @@ describe("evaluateCheckoutDiscounts", () => {
     assert.equal(result.autoAppliedCampaignId, null);
   });
 
+  it("respects schedule scope", () => {
+    const result = evaluateCheckoutDiscounts({
+      ctx: baseCtx({ scheduleId: "sch_other" }),
+      campaigns: [
+        campaign({ scheduleIds: ["sch_1"], isAutoApply: true }),
+      ],
+    });
+    assert.equal(result.ticketDiscountXOF, 0);
+    assert.equal(result.autoAppliedCampaignId, null);
+  });
+
   it("rejects when phone redemption cap is reached", () => {
     const result = evaluateCheckoutDiscounts({
       ctx: baseCtx({ phone: "+22507000000" }),

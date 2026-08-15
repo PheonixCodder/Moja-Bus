@@ -23,7 +23,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Plus, Tag } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CampaignCouponsPanel } from "@/features/discounts/components/campaign-coupons-panel";
 import { CampaignRedemptionsTable } from "@/features/discounts/components/campaign-redemptions-table";
@@ -44,6 +44,8 @@ export function OperatorPromotionsView() {
     null,
   );
   const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null);
+  const [scopeRouteIds, setScopeRouteIds] = useState<string[]>([]);
+  const [scopeScheduleIds, setScopeScheduleIds] = useState<string[]>([]);
 
   const listQuery = useQuery(
     trpc.discountsOperator.listCampaigns.queryOptions({
@@ -58,6 +60,13 @@ export function OperatorPromotionsView() {
     }),
     enabled: Boolean(selectedCampaignId),
   });
+
+  useEffect(() => {
+    const detail = campaignDetailQuery.data;
+    if (!detail) return;
+    setScopeRouteIds(detail.routeScopes.map((s) => s.routeId));
+    setScopeScheduleIds(detail.scheduleScopes.map((s) => s.scheduleId));
+  }, [campaignDetailQuery.data]);
 
   const createMutation = useMutation(
     trpc.discountsOperator.createCampaign.mutationOptions({
@@ -171,6 +180,26 @@ export function OperatorPromotionsView() {
   );
 
   const routesQuery = useQuery(trpc.routes.list.queryOptions());
+
+  const schedulesQuery = useQuery({
+    ...trpc.discountsOperator.listScopeSchedules.queryOptions({
+      routeIds: scopeRouteIds,
+      limit: 100,
+    }),
+    enabled: Boolean(selectedCampaignId),
+  });
+
+  const tripsQuery = useQuery({
+    ...trpc.discountsOperator.listScopeTrips.queryOptions({
+      scheduleIds: scopeScheduleIds,
+      routeIds: scopeRouteIds,
+      daysAhead: 60,
+      limit: 100,
+    }),
+    enabled:
+      Boolean(selectedCampaignId) &&
+      (scopeScheduleIds.length > 0 || scopeRouteIds.length > 0),
+  });
 
   const items = listQuery.data?.items ?? [];
   const summaryQuery = useQuery(
@@ -435,7 +464,21 @@ export function OperatorPromotionsView() {
                 id: r.id,
                 name: r.name,
               }))}
+              scheduleOptions={(schedulesQuery.data ?? []).map((s) => ({
+                id: s.id,
+                name: s.name,
+                routeId: s.routeId,
+              }))}
+              tripOptions={(tripsQuery.data ?? []).map((t) => ({
+                id: t.id,
+                name: t.name,
+              }))}
               pending={updateCampaignMutation.isPending}
+              onRouteIdsChange={(ids) => {
+                setScopeRouteIds(ids);
+                setScopeScheduleIds([]);
+              }}
+              onScheduleIdsChange={setScopeScheduleIds}
               onSave={(input) =>
                 updateCampaignMutation.mutate({
                   id: selectedCampaignId,

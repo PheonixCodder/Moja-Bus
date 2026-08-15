@@ -122,7 +122,7 @@ const en: FAQCategory[] = [
       },
       {
         q: "How many promotional vouchers can I hold?",
-        a: "You may hold up to 3 active promotional vouchers at a time (marketing, goodwill, admin grant, or referral welcome vouchers). Cancellation vouchers and modification-difference vouchers do not count toward that limit. Moja Ride may refuse additional promotional grants until one expires or is used.",
+        a: "You may hold up to the published limit of active promotional vouchers at a time (marketing, goodwill, admin grant, or referral welcome vouchers)—currently shown in your wallet. Cancellation vouchers and modification-difference vouchers do not count toward that limit. Moja Ride may refuse additional promotional grants until one expires or is used.",
       },
       {
         q: "Can I sell or transfer my voucher?",
@@ -263,7 +263,7 @@ const fr: FAQCategory[] = [
       },
       {
         q: "Combien d'avoirs promotionnels puis-je détenir ?",
-        a: "Vous pouvez détenir jusqu'à 3 avoirs promotionnels actifs (marketing, geste commercial, don admin ou bienvenue parrainage). Les avoirs d'annulation et de différence de modification ne comptent pas. Moja Ride peut refuser d'autres dons promotionnels tant qu'un avoir n'a pas expiré ou été utilisé.",
+        a: "Vous pouvez détenir jusqu'à la limite publiée d'avoirs promotionnels actifs (marketing, geste commercial, don admin ou bienvenue parrainage)—indiquée dans votre portefeuille. Les avoirs d'annulation et de différence de modification ne comptent pas. Moja Ride peut refuser d'autres dons promotionnels tant qu'un avoir n'a pas expiré ou été utilisé.",
       },
       {
         q: "Puis-je vendre ou transférer mon avoir ?",

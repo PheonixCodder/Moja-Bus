@@ -14,7 +14,18 @@
   "promoHint": "Les récompenses de parrainage et avoirs s'appliquent au paiement. Distincts du solde prépayé.",
   "promoCreditsTitle": "Crédits promo disponibles",
   "promoCreditsEmpty": "Pas encore de crédits promo. Invitez des amis pour en gagner.",
+  "promoCreditsPending": "Crédits promo en attente",
+  "promoHowToEarn": "Gagnez en invitant des amis, ou saisissez un code de crédit promo ci-dessous.",
+  "promoClaimLabel": "Vous avez un code de crédit promo ?",
+  "promoClaimPlaceholder": "Saisir le code",
+  "promoClaimCta": "Réclamer",
+  "promoClaimSuccess": "Crédits promo ajoutés",
+  "promoClaimFailed": "Impossible de réclamer le code",
+  "promoSourceReferral": "Parrainage",
+  "promoSourceAdmin": "Don admin",
+  "promoSourcePromo": "Don promo",
+  "promoSourceLoyalty": "Fidélité",
   "promoVouchersTitle": "Avoirs actifs",
   "promoVouchersEmpty": "Aucun avoir actif.",
-  "promoVoucherCeiling": "Maximum 3 avoirs promotionnels à la fois (avoirs d'annulation exclus)."
+  "promoVoucherCeiling": "Maximum {{max}} avoirs promotionnels à la fois (avoirs d'annulation exclus)."
 }

@@ -21,6 +21,7 @@ export const deleteCommissionTierSchema = z.object({
 export const updatePlatformSettingsSchema = z.object({
   defaultCommissionBps: z.number().int().min(0).max(10_000).optional(),
   defaultConvenienceFeeBps: z.number().int().min(0).max(10_000).optional(),
+  maxPromotionalVouchersPerUser: z.number().int().min(1).max(20).optional(),
 });
 
 export const listLedgerEntriesSchema = z.object({
