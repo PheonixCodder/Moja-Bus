@@ -88,6 +88,11 @@ export function PassengerFormSheet({
     seatIds.map((id) => ({ seatId: id, passengerName: '', passengerPhone: '' }))
   );
   const [paymentMethod, setPaymentMethod] = useState<'WALLET' | 'PAYSTACK'>('WALLET');
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedCode, setAppliedCode] = useState<string | undefined>(undefined);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<string | undefined>(
+    undefined,
+  );
 
   // Paystack Modal State
   const [authorizationUrl, setAuthorizationUrl] = useState<string | null>(null);
@@ -103,8 +108,16 @@ export function PassengerFormSheet({
     ...trpc.payments.getCheckoutPricing.queryOptions({
       offerId: offer?.id ?? '',
       seatCount,
+      code: appliedCode,
+      monetaryVoucherId: selectedVoucherId,
+      autoApply: true,
+      useCredits: true,
     }),
     enabled: visible && !!offer?.id && seatIds.length > 0,
+  });
+  const vouchersQuery = useQuery({
+    ...trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
+    enabled: visible && isAuthenticated,
   });
 
   // Re-sync if seatIds change
@@ -163,12 +176,16 @@ export function PassengerFormSheet({
   };
 
   const fallbackSubtotal = (offer?.priceXOF ?? 0) * (seatIds.length || 1);
+  const preDiscountSubtotalXOF =
+    pricingQuery.data?.preDiscountSubtotalXOF ?? fallbackSubtotal;
   const subtotalBaseXOF = pricingQuery.data?.subtotalBaseXOF ?? fallbackSubtotal;
+  const ticketDiscountXOF = pricingQuery.data?.ticketDiscountXOF ?? 0;
+  const creditAppliedXOF = pricingQuery.data?.creditAppliedXOF ?? 0;
   const convenienceFeeXOF =
     paymentMethod === 'WALLET' ? 0 : (pricingQuery.data?.convenienceFeeXOF ?? 0);
   const totalAmountXOF =
     paymentMethod === 'WALLET'
-      ? subtotalBaseXOF
+      ? Math.max(0, subtotalBaseXOF - creditAppliedXOF)
       : (pricingQuery.data?.chargeAmountXOF ?? subtotalBaseXOF + convenienceFeeXOF);
 
   const isValid = passengers.every(
@@ -189,7 +206,7 @@ export function PassengerFormSheet({
       return;
     }
 
-    if (paymentMethod === 'WALLET' && walletBalance < subtotalBaseXOF) {
+    if (paymentMethod === 'WALLET' && walletBalance < totalAmountXOF) {
       Alert.alert(t('error'), t('booking:insufficientWallet'));
       return;
     }
@@ -210,6 +227,12 @@ export function PassengerFormSheet({
                 },
               }
         ),
+        discount: {
+          code: appliedCode,
+          monetaryVoucherId: selectedVoucherId,
+          autoApply: true,
+          useCredits: true,
+        },
       });
 
       holdId = holdResult.holdId;
@@ -430,9 +453,25 @@ export function PassengerFormSheet({
                 <View className="flex-row items-center justify-between">
                   <Text className="text-sm text-slate-600">{t('booking:baseFare')}</Text>
                   <Text className="text-sm font-semibold text-slate-800">
-                    {formatPriceXOF(subtotalBaseXOF)}
+                    {formatPriceXOF(preDiscountSubtotalXOF)}
                   </Text>
                 </View>
+                {ticketDiscountXOF > 0 ? (
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-sm text-emerald-700">Discount</Text>
+                    <Text className="text-sm font-semibold text-emerald-700">
+                      −{formatPriceXOF(ticketDiscountXOF)}
+                    </Text>
+                  </View>
+                ) : null}
+                {creditAppliedXOF > 0 ? (
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-sm text-emerald-700">Credits</Text>
+                    <Text className="text-sm font-semibold text-emerald-700">
+                      −{formatPriceXOF(creditAppliedXOF)}
+                    </Text>
+                  </View>
+                ) : null}
                 {convenienceFeeXOF > 0 ? (
                   <View className="flex-row items-center justify-between">
                     <Text className="text-sm text-slate-600">{t('booking:convenienceFee')}</Text>
@@ -558,6 +597,120 @@ export function PassengerFormSheet({
                 </View>
               </View>
             ))}
+
+            {/* Promo / voucher */}
+            <View className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs mb-4">
+              <Text className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">
+                {t('booking:promoCode')}
+              </Text>
+              <View className="flex-row gap-2 mb-3">
+                <TextInput
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm font-semibold text-slate-900 uppercase"
+                  placeholder={t('booking:promoPlaceholder')}
+                  placeholderTextColor={Colors.light.textSecondary}
+                  value={promoCode}
+                  editable={!appliedCode && !isPending}
+                  autoCapitalize="characters"
+                  onChangeText={(v) => setPromoCode(v.toUpperCase())}
+                />
+                <Pressable
+                  disabled={(!promoCode.trim() && !appliedCode) || isPending}
+                  onPress={() => {
+                    if (appliedCode) {
+                      setAppliedCode(undefined);
+                      setPromoCode('');
+                      return;
+                    }
+                    setAppliedCode(promoCode.trim().toUpperCase());
+                  }}
+                  className="px-4 rounded-xl bg-slate-900 items-center justify-center"
+                >
+                  <Text className="text-white text-xs font-bold">
+                    {appliedCode ? t('booking:removePromo') : t('booking:applyPromo')}
+                  </Text>
+                </Pressable>
+              </View>
+              {ticketDiscountXOF > 0 ? (
+                <Text className="text-xs text-emerald-700 font-semibold mb-2">
+                  {t('booking:discountLabel')} −{formatPriceXOF(ticketDiscountXOF)}
+                </Text>
+              ) : null}
+              {pricingQuery.data?.discountOk === false && appliedCode ? (
+                <Text className="text-xs text-red-600 mb-2">
+                  {t('booking:applyFailed')}
+                </Text>
+              ) : null}
+              {(vouchersQuery.data?.length ?? 0) > 0 ? (
+                <View className="gap-1.5">
+                  <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {t('booking:voucherLabel')}
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View className="flex-row gap-2">
+                      <Pressable
+                        onPress={() => setSelectedVoucherId(undefined)}
+                        className={`px-3 py-2 rounded-full border ${
+                          !selectedVoucherId
+                            ? 'bg-pink-50 border-[#ee237c]'
+                            : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <Text className="text-xs font-semibold text-slate-800">
+                          {t('booking:noVoucher')}
+                        </Text>
+                      </Pressable>
+                      {vouchersQuery.data?.map((v) => (
+                        <Pressable
+                          key={v.id}
+                          onPress={() => setSelectedVoucherId(v.id)}
+                          className={`px-3 py-2 rounded-full border ${
+                            selectedVoucherId === v.id
+                              ? 'bg-pink-50 border-[#ee237c]'
+                              : 'bg-slate-50 border-slate-200'
+                          }`}
+                        >
+                          <Text className="text-xs font-semibold text-slate-800">
+                            {formatPriceXOF(v.remainingAmountXOF)}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </ScrollView>
+                </View>
+              ) : null}
+              <View className="mt-3 gap-1 border-t border-slate-100 pt-3">
+                <View className="flex-row justify-between">
+                  <Text className="text-xs text-slate-500">Fare</Text>
+                  <Text className="text-xs font-semibold text-slate-800">
+                    {formatPriceXOF(preDiscountSubtotalXOF)}
+                  </Text>
+                </View>
+                {ticketDiscountXOF > 0 ? (
+                  <View className="flex-row justify-between">
+                    <Text className="text-xs text-emerald-700">Discount</Text>
+                    <Text className="text-xs font-semibold text-emerald-700">
+                      −{formatPriceXOF(ticketDiscountXOF)}
+                    </Text>
+                  </View>
+                ) : null}
+                {creditAppliedXOF > 0 ? (
+                  <View className="flex-row justify-between">
+                    <Text className="text-xs text-emerald-700">Credits</Text>
+                    <Text className="text-xs font-semibold text-emerald-700">
+                      −{formatPriceXOF(creditAppliedXOF)}
+                    </Text>
+                  </View>
+                ) : null}
+                {convenienceFeeXOF > 0 ? (
+                  <View className="flex-row justify-between">
+                    <Text className="text-xs text-slate-500">Service fee</Text>
+                    <Text className="text-xs font-semibold text-slate-800">
+                      {formatPriceXOF(convenienceFeeXOF)}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
 
             {/* Payment Method Selector */}
             <View className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs mb-4">

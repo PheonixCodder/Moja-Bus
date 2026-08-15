@@ -9,7 +9,7 @@ export type CancelBookingInput = {
   userId: string;
   userRole: "PASSENGER" | "OPERATOR" | "ADMIN";
   userCompanyId?: string | undefined;
-  channel: "CASH" | "WALLET";
+  channel: "CASH" | "WALLET" | "VOUCHER";
   reason?: string | undefined;
 };
 
@@ -395,12 +395,31 @@ export class CancellationService {
       }
     }
 
+    let voucherId: string | null = null;
+    if (
+      input.channel === "VOUCHER" &&
+      booking.userId &&
+      result.amountXOF > 0
+    ) {
+      const { issueCancellationVoucher } = await import(
+        "@/features/discounts/services/voucher-service"
+      );
+      const issued = await issueCancellationVoucher(this.prisma, {
+        userId: booking.userId,
+        amountXOF: result.amountXOF,
+        sourceBookingId: booking.id,
+        sourceHoldGroupId: booking.holdGroupId ?? undefined,
+      });
+      voucherId = issued?.voucherId ?? null;
+    }
+
     return {
       success: true as const,
       refundId: result.id,
       amountXOF: result.amountXOF,
       channel: result.channel,
       status: result.status,
+      voucherId,
     };
   }
 }

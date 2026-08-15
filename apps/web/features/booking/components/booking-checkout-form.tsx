@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
@@ -66,6 +67,7 @@ export function BookingCheckoutForm({
   onBack,
   onConfirmed,
 }: BookingCheckoutFormProps) {
+  const t = useTranslations("discounts");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
@@ -76,13 +78,28 @@ export function BookingCheckoutForm({
   );
 
   const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "WALLET">("PAYSTACK");
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedCode, setAppliedCode] = useState<string | undefined>(undefined);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<string | undefined>(
+    undefined,
+  );
 
   const pricingQuery = useQuery({
     ...trpc.payments.getCheckoutPricing.queryOptions({
       offerId,
       seatCount: selectedSeatIds.length,
+      code: appliedCode,
+      monetaryVoucherId: selectedVoucherId,
+      autoApply: true,
+      useCredits: true,
     }),
     staleTime: 10 * 1000,
+  });
+
+  const vouchersQuery = useQuery({
+    ...trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
+    enabled: isLoggedIn,
+    staleTime: 30 * 1000,
   });
 
   const savedQuery = useQuery({
@@ -145,14 +162,29 @@ export function BookingCheckoutForm({
         subtotalBaseXOF: number;
         convenienceFeeXOF: number;
         chargeAmountXOF: number;
+        ticketDiscountXOF?: number;
+        feeDiscountXOF?: number;
+        creditAppliedXOF?: number;
+        preDiscountSubtotalXOF?: number;
+        autoAppliedCampaignId?: string | null;
+        discountOk?: boolean;
+        discountRejection?: { code: string; messageKey: string } | null;
       }
     | undefined;
+  const preDiscountSubtotalXOF =
+    pricing?.preDiscountSubtotalXOF ??
+    tripDetails.priceXOF * selectedSeatIds.length;
   const subtotalBaseXOF =
     pricing?.subtotalBaseXOF ?? tripDetails.priceXOF * selectedSeatIds.length;
+  const ticketDiscountXOF = pricing?.ticketDiscountXOF ?? 0;
+  const creditAppliedXOF = pricing?.creditAppliedXOF ?? 0;
   
   // Platform policy: waives convenience fee for WALLET checkouts
   const convenienceFeeXOF = paymentMethod === "WALLET" ? 0 : (pricing?.convenienceFeeXOF ?? 0);
-  const totalAmount = paymentMethod === "WALLET" ? subtotalBaseXOF : (pricing?.chargeAmountXOF ?? subtotalBaseXOF);
+  const totalAmount =
+    paymentMethod === "WALLET"
+      ? Math.max(0, subtotalBaseXOF - creditAppliedXOF)
+      : (pricing?.chargeAmountXOF ?? subtotalBaseXOF);
 
   const isSubmitting = createHoldMutation.isPending || isPaymentPending || walletCheckoutMutation.isPending;
 
@@ -242,6 +274,12 @@ export function BookingCheckoutForm({
                 },
               },
         ),
+        discount: {
+          code: appliedCode,
+          monetaryVoucherId: selectedVoucherId,
+          autoApply: true,
+          useCredits: true,
+        },
       });
 
       if (paymentMethod === "PAYSTACK") {
@@ -300,18 +338,100 @@ export function BookingCheckoutForm({
         <div className="space-y-1 pt-1 text-sm text-slate-700">
           <div className="flex justify-between">
             <span>Fare</span>
-            <span>{formatPriceXOF(subtotalBaseXOF)}</span>
+            <span>{formatPriceXOF(preDiscountSubtotalXOF)}</span>
           </div>
+          {ticketDiscountXOF > 0 ? (
+            <div className="flex justify-between text-emerald-700">
+              <span>
+                {pricing?.autoAppliedCampaignId && !appliedCode
+                  ? t("discountAuto")
+                  : appliedCode
+                    ? `${t("discount")} (${appliedCode})`
+                    : t("discount")}
+              </span>
+              <span>-{formatPriceXOF(ticketDiscountXOF)}</span>
+            </div>
+          ) : null}
           {convenienceFeeXOF > 0 ? (
             <div className="flex justify-between">
               <span>Service fee</span>
               <span>{formatPriceXOF(convenienceFeeXOF)}</span>
             </div>
           ) : null}
+          {creditAppliedXOF > 0 ? (
+            <div className="flex justify-between text-emerald-700">
+              <span>{t("credits")}</span>
+              <span>-{formatPriceXOF(creditAppliedXOF)}</span>
+            </div>
+          ) : null}
           <div className="flex justify-between text-base font-black text-[#ee237c]">
             <span>Total</span>
             <span>{formatPriceXOF(totalAmount)}</span>
           </div>
+        </div>
+        <div className="space-y-2 border-t border-slate-200 pt-3">
+          <Label htmlFor="promo-code" className="text-xs font-semibold text-slate-700">
+            {t("promoCode")}
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              id="promo-code"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+              placeholder={t("promoPlaceholder")}
+              className="h-9 bg-white uppercase"
+              disabled={Boolean(appliedCode) || isSubmitting}
+            />
+            {appliedCode ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setAppliedCode(undefined);
+                  setPromoCode("");
+                }}
+              >
+                {t("remove")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9"
+                disabled={!promoCode.trim() || isSubmitting || pricingQuery.isFetching}
+                onClick={() => setAppliedCode(promoCode.trim().toUpperCase())}
+              >
+                {t("apply")}
+              </Button>
+            )}
+          </div>
+          {pricing?.discountOk === false && appliedCode ? (
+            <p className="text-xs text-destructive">{t("codeRejected")}</p>
+          ) : null}
+          {isLoggedIn && (vouchersQuery.data?.length ?? 0) > 0 ? (
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-slate-700">
+                {t("voucher")}
+              </Label>
+              <select
+                className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 text-sm"
+                value={selectedVoucherId ?? ""}
+                onChange={(e) =>
+                  setSelectedVoucherId(e.target.value || undefined)
+                }
+                disabled={isSubmitting}
+              >
+                <option value="">{t("noVoucher")}</option>
+                {vouchersQuery.data?.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {formatPriceXOF(v.remainingAmountXOF)} · {v.source}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
         </div>
         <p className="text-[11px] text-muted-foreground">
           {paymentMethod === "WALLET" 

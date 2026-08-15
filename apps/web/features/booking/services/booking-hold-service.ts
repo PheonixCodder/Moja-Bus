@@ -33,6 +33,13 @@ export class BookingHoldService {
     offerId: string;
     passengers: SeatPassengerInput[];
     userId?: string | null;
+    discount?: {
+      code?: string | undefined;
+      monetaryVoucherId?: string | undefined;
+      autoApply?: boolean | undefined;
+      useCredits?: boolean | undefined;
+      creditAmountXOF?: number | undefined;
+    } | undefined;
   }): Promise<BookingHoldResult> {
     const details = await this.tripDetailsService.getTripDetails(input.offerId);
 
@@ -102,9 +109,11 @@ export class BookingHoldService {
       where: { id: details.tripId },
       select: {
         status: true,
+        scheduleId: true,
         schedule: {
           select: {
             isActive: true,
+            routeId: true,
             route: { select: { distanceKm: true } },
           },
         },
@@ -140,6 +149,25 @@ export class BookingHoldService {
       distanceKm,
       settings,
       tiers,
+    });
+
+    const { quoteCheckoutDiscounts, freezeDiscountOnHold } = await import(
+      "@/features/discounts/services/quote-service"
+    );
+    const discountQuote = await quoteCheckoutDiscounts(this.prisma, {
+      offerCompanyId: details.companyId,
+      routeId: trip.schedule?.routeId ?? null,
+      scheduleId: trip.scheduleId ?? null,
+      tripId: details.tripId,
+      baseFareXOF: details.priceXOF,
+      seatCount: uniqueSeatIds.length,
+      convenienceFeeBps: pricing.convenienceFeeBps,
+      userId: input.userId,
+      code: input.discount?.code,
+      monetaryVoucherId: input.discount?.monetaryVoucherId,
+      autoApply: input.discount?.autoApply,
+      useCredits: input.discount?.useCredits,
+      creditAmountXOF: input.discount?.creditAmountXOF,
     });
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -208,17 +236,17 @@ export class BookingHoldService {
         },
       });
 
-      await tx.pricingSnapshot.create({
-        data: {
-          holdGroupId: holdGroup.id,
+      await freezeDiscountOnHold(tx, {
+        holdGroupId: holdGroup.id,
+        userId: input.userId ?? null,
+        companyId: details.companyId,
+        quote: discountQuote,
+        basePricing: {
           distanceKm: pricing.distanceKm,
           commissionBps: pricing.commissionBps,
           convenienceFeeBps: pricing.convenienceFeeBps,
           baseFareXOF: pricing.baseFareXOF,
           seatCount: pricing.seatCount,
-          subtotalBaseXOF: pricing.subtotalBaseXOF,
-          convenienceFeeXOF: pricing.convenienceFeeXOF,
-          chargeAmountXOF: pricing.chargeAmountXOF,
           commissionXOF: pricing.commissionXOF,
           operatorNetXOF: pricing.operatorNetXOF,
           platformGrossXOF: pricing.platformGrossXOF,
@@ -263,7 +291,7 @@ export class BookingHoldService {
         holdId: holdGroup.id,
         bookingReferences,
         holdExpiresAt,
-        chargeAmountXOF: pricing.chargeAmountXOF,
+        chargeAmountXOF: discountQuote.chargeAmountXOF,
       };
     });
 
@@ -272,8 +300,8 @@ export class BookingHoldService {
       holdExpiresAt: result.holdExpiresAt,
       bookingReferences: result.bookingReferences,
       totalAmountXOF: result.chargeAmountXOF,
-      subtotalBaseXOF: pricing.subtotalBaseXOF,
-      convenienceFeeXOF: pricing.convenienceFeeXOF,
+      subtotalBaseXOF: discountQuote.postDiscountSubtotalXOF,
+      convenienceFeeXOF: discountQuote.convenienceFeeXOF,
     };
   }
 
@@ -295,6 +323,10 @@ export class BookingHoldService {
     const holdGroup = await resolveHoldGroup(this.prisma, holdId);
 
     await this.prisma.$transaction(async (tx) => {
+      const { releaseDiscountReservations } = await import(
+        "@/features/discounts/services/quote-service"
+      );
+      await releaseDiscountReservations(tx, holdGroup.id);
       await tx.booking.updateMany({
         where: { holdGroupId: holdGroup.id, status: "PENDING_PAYMENT" },
         data: { status: "EXPIRED", holdExpiresAt: null },

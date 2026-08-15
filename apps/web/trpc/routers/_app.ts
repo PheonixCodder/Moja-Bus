@@ -5,6 +5,9 @@ import { blogRouter } from "./blog";
 import { bookingRouter } from "./booking";
 import { capturesRouter } from "./captures";
 import { contactRouter } from "./contact";
+import { discountsRouter } from "./discounts";
+import { discountsAdminRouter } from "./discounts-admin";
+import { discountsOperatorRouter } from "./discounts-operator";
 import { fleetRouter } from "./fleet";
 import { invitationRouter } from "./invitation";
 import { locationsRouter } from "./locations";
@@ -43,6 +46,9 @@ export const appRouter = createTRPCRouter({
   wallet: walletRouter,
   blog: blogRouter,
   contact: contactRouter,
+  discounts: discountsRouter,
+  discountsAdmin: discountsAdminRouter,
+  discountsOperator: discountsOperatorRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -210,6 +210,103 @@ enum ContactInquiryStatus {
 }
 
 // ============================================
+// DISCOUNTS / COUPONS / VOUCHERS / REFERRALS
+// ============================================
+
+enum CampaignOwnerType {
+  PLATFORM
+  OPERATOR
+}
+
+enum CampaignFundingType {
+  PLATFORM
+  OPERATOR
+  HYBRID
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  EXHAUSTED
+  EXPIRED
+  ARCHIVED
+}
+
+enum BenefitType {
+  PERCENT_OFF
+  FIXED_AMOUNT_OFF
+  FREE_SEAT
+  WALLET_CREDIT_GRANT
+}
+
+enum InstrumentType {
+  COUPON_CODE
+  AUTO_PROMO
+  MONETARY_VOUCHER
+  CREDIT_LOT
+}
+
+enum VoucherSource {
+  CANCELLATION
+  MODIFICATION_DIFFERENCE
+  MARKETING_GRANT
+  GOODWILL
+  REFERRAL_REWARD
+  ADMIN_MANUAL
+}
+
+enum VoucherStatus {
+  ACTIVE
+  PARTIALLY_REDEEMED
+  REDEEMED
+  EXPIRED
+  REVOKED
+}
+
+enum CreditLotSource {
+  REFERRAL
+  LOYALTY
+  ADMIN
+  PROMO_GRANT
+}
+
+enum CreditLotStatus {
+  PENDING
+  ACTIVE
+  PARTIALLY_REDEEMED
+  REDEEMED
+  EXPIRED
+  REVOKED
+}
+
+enum ReferralEdgeStatus {
+  ATTRIBUTED
+  QUALIFIED
+  REWARDED
+  REJECTED_FRAUD
+  EXPIRED
+}
+
+enum DiscountApplyTarget {
+  TICKET_ONLY
+  ENTIRE_CHARGE
+}
+
+enum DiscountRedemptionStatus {
+  RESERVED
+  FINALIZED
+  CANCELLED
+}
+
+enum CampaignOptInStatus {
+  INVITED
+  OPTED_IN
+  OPTED_OUT
+}
+
+// ============================================
 // AUTHENTICATION MODELS (Existing)
 // ============================================
 
@@ -270,6 +367,17 @@ model User {
   // Contact inquiries submitted while logged in
   contactInquiries ContactInquiry[] @relation("ContactInquiryAuthor")
   resolvedInquiries ContactInquiry[] @relation("ContactInquiryResolvedBy")
+
+  // Discounts / vouchers / referrals
+  discountCampaignsCreated DiscountCampaign[] @relation("DiscountCampaignCreatedBy")
+  assignedCouponCodes      CouponCode[]       @relation("CouponCodeAssignedUser")
+  monetaryVouchers         MonetaryVoucher[]  @relation("MonetaryVoucherOwner")
+  vouchersIssuedAsAdmin    MonetaryVoucher[]  @relation("MonetaryVoucherIssuedBy")
+  creditLots               CreditLot[]
+  referralCode             ReferralCode?
+  referralEdgesAsReferrer  ReferralEdge[]     @relation("ReferralReferrer")
+  referralEdgesAsReferee   ReferralEdge[]     @relation("ReferralReferee")
+  discountRedemptions      DiscountRedemption[]
 
   @@index([role])
   @@map("user")
@@ -422,6 +530,9 @@ model Company {
   bookings        Booking[]
   reviews         Review[]
   holdGroups      HoldGroup[]
+  discountCampaigns DiscountCampaign[]
+  campaignOptIns    CampaignCompanyOptIn[]
+  discountRedemptions DiscountRedemption[]
 
   // Paystack transfer recipient for manual settlements
   paystackTransferRecipientCode String?
@@ -1188,6 +1299,7 @@ model Route {
 
   waypoints RouteWaypoint[]
   schedules Schedule[]
+  campaignScopes CampaignRouteScope[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1255,6 +1367,7 @@ model Schedule {
 
   // Schedule-specific timing - decouples from route level
   scheduleWaypoints ScheduleWaypoint[]
+  campaignScopes    CampaignScheduleScope[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1401,6 +1514,7 @@ model Trip {
   seats      TripSeat[]
   bookings   Booking[]
   holdGroups HoldGroup[]
+  campaignScopes CampaignTripScope[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1539,10 +1653,12 @@ model HoldGroup {
   seatCount     Int
   baseFareXOF   Int // per seat, tax-inclusive
 
-  bookings        Booking[]
-  pricingSnapshot PricingSnapshot?
-  payment         ExternalPayment?
-  refunds         Refund[]
+  bookings            Booking[]
+  pricingSnapshot     PricingSnapshot?
+  payment             ExternalPayment?
+  refunds             Refund[]
+  discountRedemptions DiscountRedemption[]
+  vouchersIssued      MonetaryVoucher[]    @relation("VoucherSourceHoldGroup")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1571,6 +1687,16 @@ model PricingSnapshot {
   operatorNetXOF    Int
   platformGrossXOF  Int
   snapshotJson      Json?
+
+  // Discount / voucher / credit freeze (null pre* = legacy pre-discount system)
+  ticketDiscountXOF       Int  @default(0)
+  feeDiscountXOF          Int  @default(0)
+  creditAppliedXOF        Int  @default(0)
+  preDiscountSubtotalXOF  Int?
+  postDiscountSubtotalXOF Int?
+  platformPromoFundedXOF  Int  @default(0)
+  operatorPromoFundedXOF  Int  @default(0)
+  discountBreakdownJson   Json?
 
   createdAt DateTime @default(now())
 
@@ -1849,6 +1975,9 @@ model Booking {
 
   // Review relation
   review Review?
+
+  // Vouchers issued from this booking (cancel / modification)
+  vouchersIssued MonetaryVoucher[] @relation("VoucherSourceBooking")
 
   // Tracking
   checkedInAt DateTime?
@@ -2227,4 +2356,343 @@ model ContactInquiry {
   @@index([email])
   @@index([userId])
   @@map("contact_inquiry")
+}
+
+// ============================================
+// DISCOUNTS / COUPONS / VOUCHERS / REFERRALS
+// ============================================
+
+model DiscountCampaign {
+  id          String             @id @default(cuid())
+  ownerType   CampaignOwnerType
+  companyId   String?
+  company     Company?           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      CampaignStatus     @default(DRAFT)
+
+  fundingType        CampaignFundingType @default(OPERATOR)
+  platformShareBps   Int                 @default(0)
+  operatorShareBps   Int                 @default(10000)
+
+  benefitType    BenefitType
+  percentBps     Int?
+  amountXOF      Int?
+  freeSeatCount  Int?
+  applyTarget    DiscountApplyTarget @default(TICKET_ONLY)
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  minSubtotalXOF   Int?
+  minSeatCount     Int?
+  maxSeatCount     Int?
+  firstBookingOnly Boolean @default(false)
+  newUserOnly      Boolean @default(false)
+
+  maxRedemptionsGlobal      Int?
+  maxRedemptionsPerUser     Int?
+  maxRedemptionsPerPhone    Int?
+  maxDiscountPerBookingXOF  Int?
+  budgetXOF                 Int?
+  budgetConsumedXOF         Int     @default(0)
+  budgetReservedXOF         Int     @default(0)
+
+  stackGroup             String  @default("PROMO")
+  priority               Int     @default(100)
+  isAutoApply            Boolean @default(false)
+  allowCombineWithCredit Boolean @default(true)
+  requireOperatorOptIn   Boolean @default(false)
+
+  createdByUserId String?
+  createdBy       User?    @relation("DiscountCampaignCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  pausedByAdminAt DateTime?
+  pauseReason     String?
+
+  coupons      CouponCode[]
+  vouchers     MonetaryVoucher[]
+  redemptions  DiscountRedemption[]
+  routeScopes  CampaignRouteScope[]
+  tripScopes   CampaignTripScope[]
+  scheduleScopes CampaignScheduleScope[]
+  companyOptIns  CampaignCompanyOptIn[]
+  referralProgramsAsWelcome ReferralProgram[] @relation("ReferralWelcomeCampaign")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, startsAt, endsAt])
+  @@index([companyId])
+  @@index([stackGroup])
+  @@index([isAutoApply, status])
+  @@index([ownerType, status])
+  @@map("discount_campaign")
+}
+
+model CouponCode {
+  id         String           @id @default(cuid())
+  campaignId String
+  campaign   DiscountCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  code       String           @unique
+  isActive   Boolean          @default(true)
+
+  maxRedemptions Int?
+  expiresAt      DateTime?
+  assignedUserId String?
+  assignedUser   User?     @relation("CouponCodeAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  redemptionCount Int      @default(0)
+
+  redemptions DiscountRedemption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([campaignId])
+  @@index([assignedUserId])
+  @@index([isActive])
+  @@map("coupon_code")
+}
+
+model MonetaryVoucher {
+  id     String        @id @default(cuid())
+  userId String
+  user   User          @relation("MonetaryVoucherOwner", fields: [userId], references: [id], onDelete: Cascade)
+  code   String?       @unique
+  source VoucherSource
+  status VoucherStatus @default(ACTIVE)
+
+  originalAmountXOF  Int
+  remainingAmountXOF Int
+  reservedAmountXOF  Int    @default(0)
+  currency           String @default("XOF")
+
+  expiresAt                      DateTime?
+  expiresOnFirstCompletedBooking Boolean @default(false)
+
+  sourceHoldGroupId String?
+  sourceHoldGroup   HoldGroup? @relation("VoucherSourceHoldGroup", fields: [sourceHoldGroupId], references: [id], onDelete: SetNull)
+  sourceBookingId   String?
+  sourceBooking     Booking?   @relation("VoucherSourceBooking", fields: [sourceBookingId], references: [id], onDelete: SetNull)
+  issuedByAdminId   String?
+  issuedByAdmin     User?      @relation("MonetaryVoucherIssuedBy", fields: [issuedByAdminId], references: [id], onDelete: SetNull)
+  campaignId        String?
+  campaign          DiscountCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  redemptions DiscountRedemption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([expiresAt])
+  @@index([campaignId])
+  @@index([sourceHoldGroupId])
+  @@index([sourceBookingId])
+  @@map("monetary_voucher")
+}
+
+model CreditLot {
+  id     String          @id @default(cuid())
+  userId String
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source CreditLotSource
+  status CreditLotStatus @default(ACTIVE)
+
+  amountXOF         Int
+  remainingXOF      Int
+  reservedXOF       Int       @default(0)
+  expiresAt         DateTime?
+  /** When set and status=PENDING, cron activates the lot after this time. */
+  availableAt       DateTime?
+  referralEdgeId    String?
+  referralEdge      ReferralEdge? @relation(fields: [referralEdgeId], references: [id], onDelete: SetNull)
+  sourceBookingId   String?
+  sourceHoldGroupId String?
+  grantIdempotencyKey String? @unique
+
+  redemptions DiscountRedemption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([expiresAt])
+  @@index([referralEdgeId])
+  @@index([status, availableAt])
+  @@map("credit_lot")
+}
+
+model ReferralProgram {
+  id       String  @id @default("default")
+  isActive Boolean @default(false)
+
+  refereeCouponCampaignId String?
+  refereeCouponCampaign   DiscountCampaign? @relation("ReferralWelcomeCampaign", fields: [refereeCouponCampaignId], references: [id], onDelete: SetNull)
+
+  referrerCreditAmountXOF  Int @default(0)
+  recurringCreditAmountXOF Int @default(0)
+  recurringMaxBookings     Int @default(3)
+  recurringWindowDays      Int @default(180)
+
+  requirePaidConfirmedBooking Boolean @default(true)
+  rewardDelayHours            Int     @default(48)
+  selfReferralBlock           Boolean @default(true)
+  sameDeviceBlock             Boolean @default(true)
+  samePhoneBlock              Boolean @default(true)
+  maxQualificationsPerReferrerPerDay Int @default(10)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("referral_program")
+}
+
+model ReferralCode {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  edges ReferralEdge[]
+
+  @@map("referral_code")
+}
+
+model ReferralEdge {
+  id              String             @id @default(cuid())
+  referrerUserId  String
+  referrer        User               @relation("ReferralReferrer", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  refereeUserId   String             @unique
+  referee         User               @relation("ReferralReferee", fields: [refereeUserId], references: [id], onDelete: Cascade)
+  referralCodeId  String
+  referralCode    ReferralCode       @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  status          ReferralEdgeStatus @default(ATTRIBUTED)
+
+  attributedAt     DateTime @default(now())
+  qualifiedAt      DateTime?
+  rewardedAt       DateTime?
+  firstHoldGroupId String?
+  deviceHash       String?
+  ipHash           String?
+  fraudFlags       Json?
+
+  creditLots CreditLot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([referrerUserId, status])
+  @@index([referralCodeId])
+  @@index([status])
+  @@map("referral_edge")
+}
+
+model DiscountRedemption {
+  id          String                  @id @default(cuid())
+  holdGroupId String
+  holdGroup   HoldGroup               @relation(fields: [holdGroupId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status      DiscountRedemptionStatus @default(RESERVED)
+
+  instrumentType InstrumentType
+  campaignId     String?
+  campaign       DiscountCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  couponCodeId   String?
+  couponCode     CouponCode?       @relation(fields: [couponCodeId], references: [id], onDelete: SetNull)
+  voucherId      String?
+  voucher        MonetaryVoucher?  @relation(fields: [voucherId], references: [id], onDelete: SetNull)
+  creditLotId    String?
+  creditLot      CreditLot?        @relation(fields: [creditLotId], references: [id], onDelete: SetNull)
+
+  ticketDiscountXOF Int @default(0)
+  feeDiscountXOF    Int @default(0)
+  creditAppliedXOF  Int @default(0)
+
+  fundingType          CampaignFundingType?
+  platformFundedXOF    Int @default(0)
+  operatorFundedXOF    Int @default(0)
+  companyId            String?
+  company              Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  deviceHash   String?
+  ipHash       String?
+  snapshotJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([holdGroupId])
+  @@index([userId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([couponCodeId])
+  @@index([voucherId])
+  @@map("discount_redemption")
+}
+
+model CampaignRouteScope {
+  id         String           @id @default(cuid())
+  campaignId String
+  campaign   DiscountCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  routeId    String
+  route      Route            @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, routeId])
+  @@index([routeId])
+  @@map("campaign_route_scope")
+}
+
+model CampaignTripScope {
+  id         String           @id @default(cuid())
+  campaignId String
+  campaign   DiscountCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tripId     String
+  trip       Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, tripId])
+  @@index([tripId])
+  @@map("campaign_trip_scope")
+}
+
+model CampaignScheduleScope {
+  id         String           @id @default(cuid())
+  campaignId String
+  campaign   DiscountCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  scheduleId String
+  schedule   Schedule         @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, scheduleId])
+  @@index([scheduleId])
+  @@map("campaign_schedule_scope")
+}
+
+model CampaignCompanyOptIn {
+  id         String              @id @default(cuid())
+  campaignId String
+  campaign   DiscountCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  companyId  String
+  company    Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status     CampaignOptInStatus @default(INVITED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campaignId, companyId])
+  @@index([companyId])
+  @@map("campaign_company_opt_in")
+}
+
+model PromoAbuseEvent {
+  id        String   @id @default(cuid())
+  eventType String
+  userId    String?
+  campaignId String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([userId])
+  @@map("promo_abuse_event")
 }

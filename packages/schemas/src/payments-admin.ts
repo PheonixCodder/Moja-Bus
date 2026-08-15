@@ -45,11 +45,23 @@ export const recordSettlementSchema = z.object({
 
 export const cancelBookingSchema = z.object({
   bookingReference: z.string().min(1),
-  channel: z.enum(["CASH", "WALLET"]),
+  channel: z.enum(["CASH", "WALLET", "VOUCHER"]),
   reason: z.string().optional(),
 });
 
 export const getCheckoutPricingSchema = z.object({
   offerId: z.string().min(1),
   seatCount: z.number().int().min(1).max(6),
+  code: z
+    .string()
+    .trim()
+    .min(3)
+    .max(32)
+    .regex(/^[A-Za-z0-9-]+$/)
+    .transform((v) => v.toUpperCase())
+    .optional(),
+  monetaryVoucherId: z.string().min(1).optional(),
+  autoApply: z.boolean().optional().default(true),
+  useCredits: z.boolean().optional().default(true),
+  creditAmountXOF: z.number().int().min(0).optional(),
 });

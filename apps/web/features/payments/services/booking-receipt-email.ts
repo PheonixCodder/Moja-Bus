@@ -63,6 +63,13 @@ export async function sendBookingConfirmedEmails(
   // to correctly reflect any post-snapshot adjustments like convenience fee waivers.
   const totalAmountXOF = confirmed.totalAmountXOF ?? holdGroup.pricingSnapshot.chargeAmountXOF;
   const passengerPhone = holdGroup.bookings[0]?.passengerPhone?.replace(/\s+/g, "");
+  const snapshot = holdGroup.pricingSnapshot;
+  const ticketDiscountXOF = snapshot.ticketDiscountXOF ?? 0;
+  const creditAppliedXOF = snapshot.creditAppliedXOF ?? 0;
+  const feeDiscountXOF = snapshot.feeDiscountXOF ?? 0;
+  const preDiscountSubtotalXOF =
+    snapshot.preDiscountSubtotalXOF ?? snapshot.subtotalBaseXOF;
+  const convenienceFeeXOF = snapshot.convenienceFeeXOF ?? 0;
 
   const novu = getNovuClient();
   
@@ -87,6 +94,12 @@ export async function sendBookingConfirmedEmails(
         departureTime: departureTime.toLocaleString("en-CI"),
         bookingReferences: confirmed.bookingReferences,
         totalAmountXOF,
+        preDiscountSubtotalXOF,
+        ticketDiscountXOF,
+        feeDiscountXOF,
+        creditAppliedXOF,
+        convenienceFeeXOF,
+        hasDiscount: ticketDiscountXOF > 0 || creditAppliedXOF > 0 || feeDiscountXOF > 0,
         ...(passengerPhone ? { phone: passengerPhone } : {}),
       },
       transactionId: `booking-receipt-${confirmed.holdId}`,

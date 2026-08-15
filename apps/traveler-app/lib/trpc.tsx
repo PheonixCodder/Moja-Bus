@@ -42,7 +42,7 @@ function buildAuthHeaders(): Record<string, string> {
 
 	const cookie = getAuthCookieHeader();
 	if (cookie) {
-		headers.cookie = cookie;
+		headers["cookie"] = cookie;
 	}
 
 	return headers;

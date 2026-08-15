@@ -18,7 +18,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.travelerapp"
+      "package": "com.mojaride.traveler",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -42,6 +43,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0f0f8ab5-ce36-409a-a3c6-c3b290fa03d9"
+      }
     }
   }
 }

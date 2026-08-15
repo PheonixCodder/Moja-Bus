@@ -11,6 +11,7 @@ import enNotifications from '../locales/en/notifications.json';
 import enSearch from '../locales/en/search.json';
 import enOperators from '../locales/en/operators.json';
 import enHome from '../locales/en/home.json';
+import enReferrals from '../locales/en/referrals.json';
 
 import frBooking from '../locales/fr/booking.json';
 import frCommon from '../locales/fr/common.json';
@@ -21,6 +22,7 @@ import frNotifications from '../locales/fr/notifications.json';
 import frSearch from '../locales/fr/search.json';
 import frOperators from '../locales/fr/operators.json';
 import frHome from '../locales/fr/home.json';
+import frReferrals from '../locales/fr/referrals.json';
 
 const deviceLanguage = getLocales()?.[0]?.languageCode ?? 'en';
 
@@ -36,6 +38,7 @@ i18n.use(initReactI18next).init({
       search: enSearch,
       operators: enOperators,
       home: enHome,
+      referrals: enReferrals,
     },
     fr: {
       common: frCommon,
@@ -47,11 +50,12 @@ i18n.use(initReactI18next).init({
       search: frSearch,
       operators: frOperators,
       home: frHome,
+      referrals: frReferrals,
     },
   },
   lng: deviceLanguage,
   fallbackLng: 'en',
-  ns: ['common', 'settings', 'auth', 'wallet', 'notifications', 'booking', 'search', 'operators', 'home'],
+  ns: ['common', 'settings', 'auth', 'wallet', 'notifications', 'booking', 'search', 'operators', 'home', 'referrals'],
   defaultNS: 'common',
   interpolation: {
     escapeValue: false,

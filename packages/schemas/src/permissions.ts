@@ -84,6 +84,12 @@ export const PERMISSION_META = {
   // Reviews
   "reviews:read": { group: "Reviews", label: "View passenger reviews" },
   "reviews:respond": { group: "Reviews", label: "Respond to reviews" },
+
+  // Promotions / discounts
+  "promotions:read": { group: "Promotions", label: "View promotions" },
+  "promotions:create": { group: "Promotions", label: "Create promotions" },
+  "promotions:update": { group: "Promotions", label: "Edit promotions" },
+  "promotions:pause": { group: "Promotions", label: "Pause promotions" },
 } as const;
 
 export type PermissionKey = keyof typeof PERMISSION_META;
@@ -159,6 +165,10 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "company:banking:update",
     "company:compliance:update",
     "company:delete",
+    "promotions:read",
+    "promotions:create",
+    "promotions:update",
+    "promotions:pause",
   ],
 
   MANAGER: [
@@ -183,6 +193,10 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "reviews:respond",
     "staff:read",
     "company:view",
+    "promotions:read",
+    "promotions:create",
+    "promotions:update",
+    "promotions:pause",
   ],
 
   OPERATIONS: [
@@ -210,6 +224,7 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "financials:view",
     "withdrawals:view",
     "company:view",
+    "promotions:read",
   ],
 
   SUPPORT: [

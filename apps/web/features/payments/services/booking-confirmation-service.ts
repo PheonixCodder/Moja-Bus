@@ -66,6 +66,7 @@ export class BookingConfirmationService {
     const processorFeeAcct = await this.accountService.getPaymentProcessorFeeAccount();
 
     let confirmed;
+    let exhaustedCampaignIds: string[] = [];
     try {
       confirmed = await this.prisma.$transaction(async (tx) => {
       // Idempotent guard: only one concurrent confirm wins
@@ -154,8 +155,21 @@ export class BookingConfirmationService {
       }
 
       const snapshot = holdGroup.pricingSnapshot;
-      if (snapshot && snapshot.operatorNetXOF > 0) {
-        // Post the double-entry transaction
+      const { finalizeDiscountRedemptions } = await import(
+        "@/features/discounts/services/quote-service"
+      );
+      const finalized = await finalizeDiscountRedemptions(tx, holdGroup.id);
+      exhaustedCampaignIds = finalized.exhaustedCampaignIds;
+
+      const hasPromoLegs =
+        (snapshot?.platformPromoFundedXOF ?? 0) > 0 ||
+        (snapshot?.creditAppliedXOF ?? 0) > 0;
+      if (
+        snapshot &&
+        (snapshot.operatorNetXOF > 0 ||
+          snapshot.chargeAmountXOF > 0 ||
+          hasPromoLegs)
+      ) {
         const engine = new AccountingEngine("BOOKING", {
           externalPaymentId: holdGroup.payment!.id,
           description: `Payment for booking hold ${holdGroup.id}`,
@@ -164,15 +178,18 @@ export class BookingConfirmationService {
 
         const feesXOF = holdGroup.payment?.feesXOF ?? 0;
         let seq = 1;
-        
-        engine.addDebit({
-          accountId: clearingAcct.id,
-          amount: snapshot.chargeAmountXOF - feesXOF,
-          sequenceNumber: seq++,
-          referenceType: "HOLD_GROUP",
-          referenceId: holdGroup.id,
-          description: "Funds received from Paystack net of fees",
-        });
+
+        const clearingNet = Math.max(0, snapshot.chargeAmountXOF - feesXOF);
+        if (clearingNet > 0) {
+          engine.addDebit({
+            accountId: clearingAcct.id,
+            amount: clearingNet,
+            sequenceNumber: seq++,
+            referenceType: "HOLD_GROUP",
+            referenceId: holdGroup.id,
+            description: "Funds received from Paystack net of fees",
+          });
+        }
 
         if (feesXOF > 0) {
           engine.addDebit({
@@ -185,15 +202,18 @@ export class BookingConfirmationService {
           });
         }
 
-        engine.addCredit({
-          accountId: operatorAcct.id,
-          amount: snapshot.operatorNetXOF,
-          sequenceNumber: seq++,
-          referenceType: "HOLD_GROUP",
-          referenceId: holdGroup.id,
-          description: "Operator ticket revenue net of commission (escrowed until departure)",
-          reserveOnCredit: true, // Fix #1: funds go into reservedBalance until trip departs
-        });
+        if (snapshot.operatorNetXOF > 0) {
+          engine.addCredit({
+            accountId: operatorAcct.id,
+            amount: snapshot.operatorNetXOF,
+            sequenceNumber: seq++,
+            referenceType: "HOLD_GROUP",
+            referenceId: holdGroup.id,
+            description:
+              "Operator ticket revenue net of commission (escrowed until departure)",
+            reserveOnCredit: true,
+          });
+        }
 
         if (snapshot.commissionXOF > 0) {
           engine.addCredit({
@@ -217,9 +237,39 @@ export class BookingConfirmationService {
           });
         }
 
-        // We pass `tx` (the Prisma transaction client) so everything commits atomically.
-        // Because `accountService` already ensured the accounts exist, locking them here is safe.
-        // If a duplicate webhook hits this, `engine.commit` will throw a P2002 error safely aborting this transaction.
+        if (hasPromoLegs) {
+          const promoExpense =
+            await this.accountService.getPlatformPromoExpenseAccount();
+          const voucherLiability =
+            await this.accountService.getPlatformVoucherLiabilityAccount();
+          const promoCreditsUser = holdGroup.userId
+            ? await this.accountService.getUserPromoCreditsAccount(
+                holdGroup.userId,
+              )
+            : null;
+          const promoContra =
+            await this.accountService.getOperatorPromoContraAccount(
+              holdGroup.companyId,
+            );
+          const { appendPromoLedgerEntries } = await import(
+            "@/features/discounts/services/promo-ledger"
+          );
+          seq = appendPromoLedgerEntries({
+            engine,
+            snapshot,
+            accounts: {
+              promoExpensePlatformId: promoExpense.id,
+              voucherLiabilityId: voucherLiability.id,
+              promoCreditsUserId: promoCreditsUser?.id ?? null,
+              promoContraOperatorId: promoContra.id,
+            },
+            operatorReceivableId: operatorAcct.id,
+            holdGroupId: holdGroup.id,
+            sequenceStart: seq,
+            postOperatorContra: false,
+          });
+        }
+
         engine.validate();
         await engine.commit(tx as any);
       }
@@ -263,6 +313,29 @@ export class BookingConfirmationService {
       }),
     );
 
+    if (exhaustedCampaignIds.length > 0) {
+      void import("@/features/discounts/services/quote-service").then(
+        ({ notifyExhaustedCampaignBudgets }) =>
+          notifyExhaustedCampaignBudgets(this.prisma, exhaustedCampaignIds).catch(
+            (error) => {
+              console.error("Failed to notify budget exhaustion:", error);
+            },
+          ),
+      );
+    }
+
+    if (userId) {
+      void import("@/features/discounts/services/referral-service").then(
+        ({ onBookingConfirmedForReferral }) =>
+          onBookingConfirmedForReferral(this.prisma, {
+            userId,
+            holdGroupId: holdGroup.id,
+          }).catch((error) => {
+            console.error("Referral qualify failed:", error);
+          }),
+      );
+    }
+
     return result;
   }
 
@@ -277,9 +350,12 @@ export class BookingConfirmationService {
         holdId: holdGroup.id,
         bookingReferences: holdGroup.bookings.map((b) => b.bookingReference),
         ticketTokens: holdGroup.bookings.map((b) => b.ticketToken),
-        totalAmountXOF:
-          holdGroup.pricingSnapshot?.subtotalBaseXOF ??
-          holdGroup.bookings.reduce((sum, b) => sum + b.farePaid, 0),
+        totalAmountXOF: Math.max(
+          0,
+          (holdGroup.pricingSnapshot?.chargeAmountXOF ??
+            holdGroup.bookings.reduce((sum, b) => sum + b.farePaid, 0)) -
+            (holdGroup.pricingSnapshot?.convenienceFeeXOF ?? 0),
+        ),
         status: "CONFIRMED",
       };
     }
@@ -294,8 +370,12 @@ export class BookingConfirmationService {
       });
     }
 
-    const totalToPay = snapshot.subtotalBaseXOF; // Zero convenience fee
+    const totalToPay = Math.max(
+      0,
+      snapshot.chargeAmountXOF - snapshot.convenienceFeeXOF,
+    ); // Wallet waives convenience fee; charge already nets credits/discounts
     let confirmed;
+    let exhaustedCampaignIds: string[] = [];
     try {
       confirmed = await this.prisma.$transaction(async (tx) => {
       const accountService = new FinancialAccountService(tx as any);
@@ -365,40 +445,45 @@ export class BookingConfirmationService {
 
       let seq = 1;
 
-      engine.addDebit({
-        accountId: walletAcct.id,
-        amount: totalToPay,
-        sequenceNumber: seq++,
-        referenceType: "HOLD_GROUP",
-        referenceId: holdGroup.id,
-        description: "Wallet balance checkout",
-      });
+      if (totalToPay > 0) {
+        engine.addDebit({
+          accountId: walletAcct.id,
+          amount: totalToPay,
+          sequenceNumber: seq++,
+          referenceType: "HOLD_GROUP",
+          referenceId: holdGroup.id,
+          description: "Wallet balance checkout",
+        });
+      }
 
-      engine.addCredit({
-        accountId: operatorAcct.id,
-        amount: snapshot.operatorNetXOF,
-        sequenceNumber: seq++,
-        referenceType: "HOLD_GROUP",
-        referenceId: holdGroup.id,
-        description:
-          "Operator ticket revenue net of commission (escrowed until departure)",
-        reserveOnCredit: true,
-      });
+      if (snapshot.operatorNetXOF > 0) {
+        engine.addCredit({
+          accountId: operatorAcct.id,
+          amount: snapshot.operatorNetXOF,
+          sequenceNumber: seq++,
+          referenceType: "HOLD_GROUP",
+          referenceId: holdGroup.id,
+          description:
+            "Operator ticket revenue net of commission (escrowed until departure)",
+          reserveOnCredit: true,
+        });
+      }
 
-      const platformCommission = totalToPay - snapshot.operatorNetXOF;
-
+      // Wallet waives convenience fee; keep commission from freeze snapshot.
+      const commissionXOF = snapshot.commissionXOF;
       await tx.pricingSnapshot.update({
         where: { holdGroupId: holdGroup.id },
         data: {
           convenienceFeeXOF: 0,
-          platformGrossXOF: platformCommission,
+          chargeAmountXOF: totalToPay,
+          platformGrossXOF: commissionXOF + (snapshot.platformPromoFundedXOF ?? 0),
         },
       });
 
-      if (platformCommission > 0) {
+      if (commissionXOF > 0) {
         engine.addCredit({
           accountId: platformCommissionAcct.id,
-          amount: platformCommission,
+          amount: commissionXOF,
           sequenceNumber: seq++,
           referenceType: "HOLD_GROUP",
           referenceId: holdGroup.id,
@@ -406,8 +491,48 @@ export class BookingConfirmationService {
         });
       }
 
-      engine.validate();
-      await engine.commit(tx as any);
+      const hasPromoLegs =
+        (snapshot.platformPromoFundedXOF ?? 0) > 0 ||
+        (snapshot.creditAppliedXOF ?? 0) > 0;
+      if (hasPromoLegs) {
+        const promoExpense =
+          await accountService.getPlatformPromoExpenseAccount();
+        const voucherLiability =
+          await accountService.getPlatformVoucherLiabilityAccount();
+        const promoCreditsUser =
+          await accountService.getUserPromoCreditsAccount(userId);
+        const promoContra = await accountService.getOperatorPromoContraAccount(
+          holdGroup.companyId,
+        );
+        const { appendPromoLedgerEntries } = await import(
+          "@/features/discounts/services/promo-ledger"
+        );
+        seq = appendPromoLedgerEntries({
+          engine,
+          snapshot,
+          accounts: {
+            promoExpensePlatformId: promoExpense.id,
+            voucherLiabilityId: voucherLiability.id,
+            promoCreditsUserId: promoCreditsUser.id,
+            promoContraOperatorId: promoContra.id,
+          },
+          operatorReceivableId: operatorAcct.id,
+          holdGroupId: holdGroup.id,
+          sequenceStart: seq,
+          postOperatorContra: false,
+        });
+      }
+
+      const { finalizeDiscountRedemptions } = await import(
+        "@/features/discounts/services/quote-service"
+      );
+      const finalized = await finalizeDiscountRedemptions(tx, holdGroup.id);
+      exhaustedCampaignIds = finalized.exhaustedCampaignIds;
+
+      if (seq > 1) {
+        engine.validate();
+        await engine.commit(tx as any);
+      }
 
       return updatedBookings;
     }, {
@@ -473,6 +598,27 @@ export class BookingConfirmationService {
       sendBookingConfirmedEmails(this.prisma, result, userId).catch((error) => {
         console.error("Failed to send booking receipt email:", error);
       }),
+    );
+
+    if (exhaustedCampaignIds.length > 0) {
+      void import("@/features/discounts/services/quote-service").then(
+        ({ notifyExhaustedCampaignBudgets }) =>
+          notifyExhaustedCampaignBudgets(this.prisma, exhaustedCampaignIds).catch(
+            (error) => {
+              console.error("Failed to notify budget exhaustion:", error);
+            },
+          ),
+      );
+    }
+
+    void import("@/features/discounts/services/referral-service").then(
+      ({ onBookingConfirmedForReferral }) =>
+        onBookingConfirmedForReferral(this.prisma, {
+          userId,
+          holdGroupId: holdGroup.id,
+        }).catch((error) => {
+          console.error("Referral qualify failed:", error);
+        }),
     );
 
     return result;

@@ -90,7 +90,19 @@ export const ADMIN_PERMISSION_META = {
   "support:inquiries:read": { group: "Support", label: "View inquiries" },
   "support:inquiries:respond": { group: "Support", label: "Respond to inquiries" },
   "support:inquiries:manage": { group: "Support", label: "Manage inquiries" },
-  
+
+  // Marketing / discounts
+  "marketing:campaigns:read": { group: "Marketing", label: "View campaigns" },
+  "marketing:campaigns:write": { group: "Marketing", label: "Manage campaigns" },
+  "marketing:coupons:write": { group: "Marketing", label: "Manage coupons" },
+  "marketing:vouchers:issue": { group: "Marketing", label: "Issue vouchers" },
+  "marketing:referrals:write": { group: "Marketing", label: "Manage referral program" },
+  "marketing:fraud:review": { group: "Marketing", label: "Review promo fraud" },
+  "platform:promo-financials:read": {
+    group: "Financials",
+    label: "View promo liability & expense",
+  },
+
   // Platform Settings
   "platform:settings:read": { group: "Settings", label: "View platform settings" },
   "platform:settings:update": { group: "Settings", label: "Update platform settings" },
@@ -155,6 +167,9 @@ export const ADMIN_ROLE_TEMPLATES: Record<AdminStaffRole, AdminPermissionKey[]> 
     "content:posts:read", "content:posts:create", "content:posts:update", "content:posts:publish",
     "content:categories:manage", "content:tags:manage", "content:redirects:manage", "content:analytics:read",
     "support:inquiries:read", "support:inquiries:respond", "support:inquiries:manage",
+    "marketing:campaigns:read", "marketing:campaigns:write", "marketing:coupons:write",
+    "marketing:vouchers:issue", "marketing:referrals:write", "marketing:fraud:review",
+    "platform:promo-financials:read",
     "platform:settings:read", "platform:settings:update",
     "admin-staff:read", "admin-staff:invite", "admin-staff:update", "admin-staff:remove",
     "system:health:read",

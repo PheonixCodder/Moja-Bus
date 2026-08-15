@@ -21,6 +21,10 @@ export type ResolvedHoldGroup = HoldGroup & {
     operatorNetXOF: number;
     platformGrossXOF: number;
     seatCount: number;
+    platformPromoFundedXOF: number;
+    operatorPromoFundedXOF: number;
+    creditAppliedXOF: number;
+    ticketDiscountXOF: number;
   } | null;
   payment: {
     id: string;
@@ -55,6 +59,10 @@ const holdGroupInclude = {
       operatorNetXOF: true,
       platformGrossXOF: true,
       seatCount: true,
+      platformPromoFundedXOF: true,
+      operatorPromoFundedXOF: true,
+      creditAppliedXOF: true,
+      ticketDiscountXOF: true,
     },
   },
   payment: {

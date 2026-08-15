@@ -1,0 +1,706 @@
+import {
+  adminCreateCampaignSchema,
+  bulkCreateCouponsSchema,
+  createCouponSchema,
+  deactivateCouponSchema,
+  issueMonetaryVoucherSchema,
+  listCampaignsSchema,
+  listCouponsSchema,
+  notifyOptedInCampaignSchema,
+  setCampaignStatusSchema,
+  updateCampaignSchema,
+  updateReferralProgramSchema,
+} from "@moja/schemas";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { createCampaign } from "@/features/discounts/services/campaign-crud";
+import { issueAdminVoucher } from "@/features/discounts/services/voucher-service";
+import { logMarketingActivity } from "@/features/discounts/services/marketing-audit";
+import { omitUndefined } from "@/features/discounts/lib/omit-undefined";
+import { requireAdminPermission } from "@/lib/permissions/admin-authorize";
+import { adminProcedure, createTRPCRouter } from "../init";
+
+export const discountsAdminRouter = createTRPCRouter({
+  listCampaigns: adminProcedure
+    .input(listCampaignsSchema)
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      const where = {
+        ownerType: "PLATFORM" as const,
+        ...(input.status ? { status: input.status } : {}),
+        ...(input.search
+          ? { name: { contains: input.search, mode: "insensitive" as const } }
+          : {}),
+      };
+      const [items, total] = await Promise.all([
+        ctx.prisma.discountCampaign.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          skip: input.offset,
+          include: {
+            _count: { select: { coupons: true, redemptions: true } },
+          },
+        }),
+        ctx.prisma.discountCampaign.count({ where }),
+      ]);
+      return { items, total };
+    }),
+
+  getCampaign: adminProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      const campaign = await ctx.prisma.discountCampaign.findUnique({
+        where: { id: input.id },
+        include: {
+          routeScopes: true,
+          scheduleScopes: true,
+          tripScopes: true,
+          coupons: { take: 50, orderBy: { createdAt: "desc" } },
+          companyOptIns: true,
+        },
+      });
+      if (!campaign) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+      }
+      return campaign;
+    }),
+
+  createCampaign: adminProcedure
+    .input(adminCreateCampaignSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:write");
+      const campaign = await createCampaign(ctx.prisma, input, {
+        ownerType: "PLATFORM",
+        companyId: null,
+        createdByUserId: ctx.user.id,
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_CAMPAIGN_CREATE",
+        description: `Created platform campaign "${campaign.name}" (${campaign.id})`,
+        metadata: { campaignId: campaign.id, status: campaign.status },
+      });
+      return campaign;
+    }),
+
+  updateCampaign: adminProcedure
+    .input(updateCampaignSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:write");
+      const { id, scopes, ...data } = input;
+      const existing = await ctx.prisma.discountCampaign.findUnique({
+        where: { id },
+      });
+      if (!existing || existing.ownerType !== "PLATFORM") {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+      }
+      return ctx.prisma.$transaction(async (tx) => {
+        await tx.discountCampaign.update({
+          where: { id },
+          data: omitUndefined(data as Record<string, unknown>),
+        });
+        if (scopes) {
+          const { replaceCampaignScopes } = await import(
+            "@/features/discounts/services/campaign-crud"
+          );
+          await replaceCampaignScopes(tx, id, scopes);
+        }
+        return tx.discountCampaign.findUniqueOrThrow({ where: { id } });
+      });
+    }),
+
+  setCampaignStatus: adminProcedure
+    .input(setCampaignStatusSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:write");
+      const before = await ctx.prisma.discountCampaign.findUnique({
+        where: { id: input.id },
+        select: {
+          id: true,
+          name: true,
+          companyId: true,
+          ownerType: true,
+          status: true,
+        },
+      });
+      const updated = await ctx.prisma.discountCampaign.update({
+        where: { id: input.id },
+        data: {
+          status: input.status,
+          ...(input.status === "PAUSED"
+            ? {
+                pausedByAdminAt: new Date(),
+                pauseReason: input.pauseReason ?? null,
+              }
+            : {}),
+        },
+      });
+
+      if (
+        input.status === "PAUSED" &&
+        before?.ownerType === "OPERATOR" &&
+        before.companyId
+      ) {
+        const owners = await ctx.prisma.operator.findMany({
+          where: {
+            companyId: before.companyId,
+            role: { in: ["OWNER", "ADMIN", "MANAGER"] },
+            isActive: true,
+            deletedAt: null,
+          },
+          include: {
+            user: { select: { id: true, email: true, fullName: true } },
+          },
+        });
+        if (owners.length > 0) {
+          const { notifyOperatorCampaignPaused } = await import(
+            "@/features/discounts/services/notify"
+          );
+          notifyOperatorCampaignPaused({
+            owners: owners.map((m) => ({
+              userId: m.user.id,
+              email: m.user.email,
+              fullName: m.user.fullName,
+            })),
+            campaignId: before.id,
+            campaignName: before.name,
+            pauseReason: input.pauseReason,
+          });
+        }
+      }
+
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_CAMPAIGN_STATUS",
+        description: `Set campaign "${before?.name ?? input.id}" status to ${input.status}`,
+        metadata: {
+          campaignId: input.id,
+          from: before?.status,
+          to: input.status,
+          pauseReason: input.pauseReason ?? null,
+        },
+      });
+
+      return updated;
+    }),
+
+  listCoupons: adminProcedure
+    .input(listCouponsSchema)
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      const where = {
+        ...(input.campaignId ? { campaignId: input.campaignId } : {}),
+        ...(input.search
+          ? { code: { contains: input.search.toUpperCase() } }
+          : {}),
+      };
+      const [items, total] = await Promise.all([
+        ctx.prisma.couponCode.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          skip: input.offset,
+          include: { campaign: { select: { name: true } } },
+        }),
+        ctx.prisma.couponCode.count({ where }),
+      ]);
+      return { items, total };
+    }),
+
+  createCoupon: adminProcedure
+    .input(createCouponSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:coupons:write");
+      const coupon = await ctx.prisma.couponCode.create({
+        data: omitUndefined(input as Record<string, unknown>) as {
+          campaignId: string;
+          code: string;
+        },
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_COUPON_CREATE",
+        description: `Created coupon ${coupon.code} for campaign ${coupon.campaignId}`,
+        metadata: { couponId: coupon.id, campaignId: coupon.campaignId },
+      });
+      return coupon;
+    }),
+
+  bulkCreateCoupons: adminProcedure
+    .input(bulkCreateCouponsSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:coupons:write");
+      const created: string[] = [];
+      for (let i = 0; i < input.count; i++) {
+        const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+        const code = `${input.prefix}-${suffix}`;
+        await ctx.prisma.couponCode.create({
+          data: {
+            campaignId: input.campaignId,
+            code,
+            maxRedemptions: input.maxRedemptions ?? null,
+            expiresAt: input.expiresAt ?? null,
+          },
+        });
+        created.push(code);
+      }
+      return { codes: created };
+    }),
+
+  deactivateCoupon: adminProcedure
+    .input(deactivateCouponSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:coupons:write");
+      return ctx.prisma.couponCode.update({
+        where: { id: input.id },
+        data: { isActive: false },
+      });
+    }),
+
+  notifyOptedInCampaign: adminProcedure
+    .input(notifyOptedInCampaignSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:write");
+      const campaign = await ctx.prisma.discountCampaign.findUnique({
+        where: { id: input.campaignId },
+      });
+      if (!campaign || campaign.ownerType !== "PLATFORM") {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Platform campaign not found",
+        });
+      }
+      const benefitSummary =
+        campaign.benefitType === "PERCENT_OFF"
+          ? `${(campaign.percentBps ?? 0) / 100}% off ticket fare`
+          : campaign.benefitType === "FIXED_AMOUNT_OFF"
+            ? `${campaign.amountXOF?.toLocaleString() ?? 0} XOF off`
+            : campaign.benefitType;
+      const { notifyOptedInCampaignStarting } = await import(
+        "@/features/discounts/services/marketing-blast"
+      );
+      const result = await notifyOptedInCampaignStarting(ctx.prisma, {
+        campaignId: campaign.id,
+        campaignName: campaign.name,
+        benefitSummary,
+        ...(input.limit !== undefined ? { limit: input.limit } : {}),
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_CAMPAIGN_NOTIFY_OPT_IN",
+        description: `Notified opted-in passengers for campaign ${campaign.name}`,
+        metadata: {
+          campaignId: campaign.id,
+          attempted: result.attempted,
+          skippedNoNovu: result.skippedNoNovu,
+        },
+      });
+      return result;
+    }),
+
+  issueVoucher: adminProcedure
+    .input(issueMonetaryVoucherSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:vouchers:issue");
+      const voucher = await issueAdminVoucher(ctx.prisma, {
+        userId: input.userId,
+        amountXOF: input.amountXOF,
+        issuedByAdminId: ctx.user.id,
+        source: input.source,
+        expiresAt: input.expiresAt,
+        expiresOnFirstCompletedBooking: input.expiresOnFirstCompletedBooking,
+        campaignId: input.campaignId,
+        code: input.code,
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_VOUCHER_ISSUE",
+        description: `Issued ${input.amountXOF} XOF voucher to user ${input.userId}`,
+        targetUserId: input.userId,
+        metadata: { voucherId: voucher.id, amountXOF: input.amountXOF },
+      });
+      return voucher;
+    }),
+
+  getReferralProgram: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "marketing:referrals:write");
+    return (
+      (await ctx.prisma.referralProgram.findUnique({ where: { id: "default" } })) ??
+      (await ctx.prisma.referralProgram.create({
+        data: { id: "default", isActive: false },
+      }))
+    );
+  }),
+
+  updateReferralProgram: adminProcedure
+    .input(updateReferralProgramSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:referrals:write");
+      await ctx.prisma.referralProgram.upsert({
+        where: { id: "default" },
+        create: {
+          id: "default",
+          ...omitUndefined(input as Record<string, unknown>),
+        },
+        update: omitUndefined(input as Record<string, unknown>),
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_REFERRAL_PROGRAM_UPDATE",
+        description: "Updated default referral program settings",
+        metadata: input as unknown as import("@moja/db").Prisma.InputJsonValue,
+      });
+      return ctx.prisma.referralProgram.findUniqueOrThrow({
+        where: { id: "default" },
+      });
+    }),
+
+  listAbuseEvents: adminProcedure
+    .input(
+      z.object({
+        eventType: z.string().optional(),
+        limit: z.number().int().min(1).max(100).default(50),
+        offset: z.number().int().min(0).default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:fraud:review");
+      const where = {
+        ...(input.eventType ? { eventType: input.eventType } : {}),
+      };
+      const [items, total] = await Promise.all([
+        ctx.prisma.promoAbuseEvent.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        ctx.prisma.promoAbuseEvent.count({ where }),
+      ]);
+      return { items, total };
+    }),
+
+  resolveAbuseEvent: adminProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+        note: z.string().max(500).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:fraud:review");
+      const existing = await ctx.prisma.promoAbuseEvent.findUnique({
+        where: { id: input.id },
+      });
+      if (!existing) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Abuse event not found" });
+      }
+      const prev =
+        existing.metadata && typeof existing.metadata === "object"
+          ? (existing.metadata as Record<string, unknown>)
+          : {};
+      const updated = await ctx.prisma.promoAbuseEvent.update({
+        where: { id: input.id },
+        data: {
+          metadata: {
+            ...prev,
+            reviewedAt: new Date().toISOString(),
+            reviewedByUserId: ctx.user.id,
+            reviewNote: input.note ?? null,
+          },
+        },
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_ABUSE_REVIEW",
+        description: `Reviewed promo abuse event ${input.id} (${existing.eventType})`,
+        targetUserId: existing.userId ?? undefined,
+        metadata: { abuseEventId: input.id, eventType: existing.eventType },
+      });
+      return updated;
+    }),
+
+  listRedemptions: adminProcedure
+    .input(
+      z.object({
+        campaignId: z.string().optional(),
+        limit: z.number().int().min(1).max(100).default(20),
+        offset: z.number().int().min(0).default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      const where = input.campaignId ? { campaignId: input.campaignId } : {};
+      const [items, total] = await Promise.all([
+        ctx.prisma.discountRedemption.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        ctx.prisma.discountRedemption.count({ where }),
+      ]);
+      return { items, total };
+    }),
+
+  marketingSummary: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "marketing:campaigns:read");
+
+    const now = new Date();
+    const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const d90 = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    const d365 = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+    const openVoucherWhere = {
+      status: { in: ["ACTIVE" as const, "PARTIALLY_REDEEMED" as const] },
+      remainingAmountXOF: { gt: 0 },
+    };
+
+    const [
+      activeCampaigns,
+      redemptionAgg,
+      voucherLiability,
+      referralEdges,
+      abuseEvents,
+      creditOutstanding,
+      aging0to30,
+      aging30to90,
+      aging90to365,
+      aging365plus,
+    ] = await Promise.all([
+      ctx.prisma.discountCampaign.count({
+        where: { status: "ACTIVE", ownerType: "PLATFORM" },
+      }),
+      ctx.prisma.discountRedemption.aggregate({
+        where: { status: "FINALIZED" },
+        _count: true,
+        _sum: {
+          ticketDiscountXOF: true,
+          platformFundedXOF: true,
+          operatorFundedXOF: true,
+          creditAppliedXOF: true,
+        },
+      }),
+      ctx.prisma.monetaryVoucher.aggregate({
+        where: openVoucherWhere,
+        _sum: { remainingAmountXOF: true },
+        _count: true,
+      }),
+      ctx.prisma.referralEdge.groupBy({
+        by: ["status"],
+        _count: true,
+      }),
+      ctx.prisma.promoAbuseEvent.count({
+        where: {
+          createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+        },
+      }),
+      ctx.prisma.creditLot.aggregate({
+        where: { status: { in: ["ACTIVE", "PARTIALLY_REDEEMED"] } },
+        _sum: { remainingXOF: true },
+      }),
+      ctx.prisma.monetaryVoucher.aggregate({
+        where: { ...openVoucherWhere, createdAt: { gte: d30 } },
+        _sum: { remainingAmountXOF: true },
+        _count: true,
+      }),
+      ctx.prisma.monetaryVoucher.aggregate({
+        where: {
+          ...openVoucherWhere,
+          createdAt: { gte: d90, lt: d30 },
+        },
+        _sum: { remainingAmountXOF: true },
+        _count: true,
+      }),
+      ctx.prisma.monetaryVoucher.aggregate({
+        where: {
+          ...openVoucherWhere,
+          createdAt: { gte: d365, lt: d90 },
+        },
+        _sum: { remainingAmountXOF: true },
+        _count: true,
+      }),
+      ctx.prisma.monetaryVoucher.aggregate({
+        where: {
+          ...openVoucherWhere,
+          createdAt: { lt: d365 },
+        },
+        _sum: { remainingAmountXOF: true },
+        _count: true,
+      }),
+    ]);
+
+    const referralFunnel = Object.fromEntries(
+      referralEdges.map((row) => [row.status, row._count]),
+    );
+
+    return {
+      activeCampaigns,
+      confirmedRedemptions: redemptionAgg._count,
+      ticketDiscountXOF: redemptionAgg._sum.ticketDiscountXOF ?? 0,
+      platformExpenseXOF: redemptionAgg._sum.platformFundedXOF ?? 0,
+      operatorFundedXOF: redemptionAgg._sum.operatorFundedXOF ?? 0,
+      creditsAppliedXOF: redemptionAgg._sum.creditAppliedXOF ?? 0,
+      voucherLiabilityXOF: voucherLiability._sum.remainingAmountXOF ?? 0,
+      openVouchers: voucherLiability._count,
+      creditOutstandingXOF: creditOutstanding._sum.remainingXOF ?? 0,
+      referralFunnel,
+      abuseEventsLast7d: abuseEvents,
+      voucherAging: {
+        d0to30: {
+          count: aging0to30._count,
+          remainingXOF: aging0to30._sum.remainingAmountXOF ?? 0,
+        },
+        d30to90: {
+          count: aging30to90._count,
+          remainingXOF: aging30to90._sum.remainingAmountXOF ?? 0,
+        },
+        d90to365: {
+          count: aging90to365._count,
+          remainingXOF: aging90to365._sum.remainingAmountXOF ?? 0,
+        },
+        d365plus: {
+          count: aging365plus._count,
+          remainingXOF: aging365plus._sum.remainingAmountXOF ?? 0,
+        },
+      },
+    };
+  }),
+
+  campaignPerformance: adminProcedure
+    .input(z.object({ campaignId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      const campaign = await ctx.prisma.discountCampaign.findUnique({
+        where: { id: input.campaignId },
+        select: {
+          id: true,
+          name: true,
+          status: true,
+          fundingType: true,
+          budgetXOF: true,
+          budgetReservedXOF: true,
+          budgetConsumedXOF: true,
+          ownerType: true,
+        },
+      });
+      if (!campaign) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+      }
+
+      const [agg, byStatus, topRoutes] = await Promise.all([
+        ctx.prisma.discountRedemption.aggregate({
+          where: { campaignId: input.campaignId, status: "FINALIZED" },
+          _count: true,
+          _sum: {
+            ticketDiscountXOF: true,
+            platformFundedXOF: true,
+            operatorFundedXOF: true,
+            creditAppliedXOF: true,
+          },
+        }),
+        ctx.prisma.discountRedemption.groupBy({
+          by: ["status"],
+          where: { campaignId: input.campaignId },
+          _count: true,
+        }),
+        ctx.prisma.discountRedemption.groupBy({
+          by: ["companyId"],
+          where: {
+            campaignId: input.campaignId,
+            status: "FINALIZED",
+            companyId: { not: null },
+          },
+          _count: true,
+          _sum: { ticketDiscountXOF: true },
+          orderBy: { _count: { companyId: "desc" } },
+          take: 10,
+        }),
+      ]);
+
+      return {
+        campaign,
+        confirmedRedemptions: agg._count,
+        ticketDiscountXOF: agg._sum.ticketDiscountXOF ?? 0,
+        platformFundedXOF: agg._sum.platformFundedXOF ?? 0,
+        operatorFundedXOF: agg._sum.operatorFundedXOF ?? 0,
+        creditAppliedXOF: agg._sum.creditAppliedXOF ?? 0,
+        byStatus: Object.fromEntries(byStatus.map((r) => [r.status, r._count])),
+        byCompany: topRoutes.map((r) => ({
+          companyId: r.companyId!,
+          redemptions: r._count,
+          ticketDiscountXOF: r._sum.ticketDiscountXOF ?? 0,
+        })),
+      };
+    }),
+
+  exportRedemptionsCsv: adminProcedure
+    .input(
+      z.object({
+        campaignId: z.string().optional(),
+        limit: z.number().int().min(1).max(5000).default(1000),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:campaigns:read");
+      const rows = await ctx.prisma.discountRedemption.findMany({
+        where: {
+          status: "FINALIZED",
+          ...(input.campaignId ? { campaignId: input.campaignId } : {}),
+        },
+        orderBy: { createdAt: "desc" },
+        take: input.limit,
+        select: {
+          id: true,
+          createdAt: true,
+          campaignId: true,
+          companyId: true,
+          ticketDiscountXOF: true,
+          platformFundedXOF: true,
+          operatorFundedXOF: true,
+          creditAppliedXOF: true,
+          fundingType: true,
+          instrumentType: true,
+          holdGroupId: true,
+        },
+      });
+
+      const header = [
+        "id",
+        "createdAt",
+        "campaignId",
+        "companyId",
+        "instrumentType",
+        "fundingType",
+        "ticketDiscountXOF",
+        "platformFundedXOF",
+        "operatorFundedXOF",
+        "creditAppliedXOF",
+        "holdGroupId",
+      ].join(",");
+
+      const lines = rows.map((r) =>
+        [
+          r.id,
+          r.createdAt.toISOString(),
+          r.campaignId ?? "",
+          r.companyId ?? "",
+          r.instrumentType,
+          r.fundingType ?? "",
+          r.ticketDiscountXOF,
+          r.platformFundedXOF,
+          r.operatorFundedXOF,
+          r.creditAppliedXOF,
+          r.holdGroupId ?? "",
+        ].join(","),
+      );
+
+      return {
+        filename: `promo-redemptions-${new Date().toISOString().slice(0, 10)}.csv`,
+        csv: [header, ...lines].join("\n"),
+        rowCount: rows.length,
+      };
+    }),
+});

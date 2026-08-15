@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { checkoutDiscountInputSchema } from "./discounts";
 
 export const offerIdSchema = z.string().min(1);
 
@@ -28,6 +29,7 @@ export const createHoldSchema = z.object({
         message: "Provide savedPassengerId or passenger details for each seat",
       }),
   ).min(1).max(6),
+  discount: checkoutDiscountInputSchema.optional(),
 });
 
 export const confirmBookingSchema = z.object({

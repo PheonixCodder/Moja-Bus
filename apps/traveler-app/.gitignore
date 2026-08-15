@@ -8,7 +8,9 @@ node_modules/
 dist/
 web-build/
 
-# Native
+# Native — use CNG / Prebuild on EAS so app.json plugins sync
+/android
+/ios
 *.orig.*
 *.jks
 *.p8

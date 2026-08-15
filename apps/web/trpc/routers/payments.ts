@@ -35,15 +35,54 @@ export const paymentsRouter = createTRPCRouter({
       const trip = await ctx.prisma.trip.findUnique({
         where: { id: details.tripId },
         select: {
-          schedule: { select: { route: { select: { distanceKm: true } } } },
+          scheduleId: true,
+          schedule: {
+            select: {
+              routeId: true,
+              route: { select: { distanceKm: true } },
+            },
+          },
         },
       });
       const paymentService = new PaymentService(ctx.prisma);
-      return paymentService.getPricingPreview({
+      const base = await paymentService.getPricingPreview({
         baseFareXOF: details.priceXOF,
         seatCount: input.seatCount,
         distanceKm: trip?.schedule?.route.distanceKm ?? null,
       });
+
+      const { quoteCheckoutDiscounts } = await import(
+        "@/features/discounts/services/quote-service"
+      );
+      const quote = await quoteCheckoutDiscounts(ctx.prisma, {
+        offerCompanyId: details.companyId,
+        routeId: trip?.schedule?.routeId ?? null,
+        scheduleId: trip?.scheduleId ?? null,
+        tripId: details.tripId,
+        baseFareXOF: details.priceXOF,
+        seatCount: input.seatCount,
+        convenienceFeeBps: base.convenienceFeeBps,
+        userId: ctx.user?.id ?? null,
+        code: input.code,
+        monetaryVoucherId: input.monetaryVoucherId,
+        autoApply: input.autoApply,
+        useCredits: input.useCredits,
+        creditAmountXOF: input.creditAmountXOF,
+      });
+
+      return {
+        ...base,
+        subtotalBaseXOF: quote.postDiscountSubtotalXOF,
+        convenienceFeeXOF: quote.convenienceFeeXOF,
+        chargeAmountXOF: quote.chargeAmountXOF,
+        ticketDiscountXOF: quote.ticketDiscountXOF,
+        feeDiscountXOF: quote.feeDiscountXOF,
+        creditAppliedXOF: quote.creditAppliedXOF,
+        preDiscountSubtotalXOF: quote.preDiscountSubtotalXOF,
+        autoAppliedCampaignId: quote.autoAppliedCampaignId,
+        discountOk: quote.ok,
+        discountRejection: quote.rejection ?? null,
+      };
     }),
 
   getHoldPricing: protectedProcedure

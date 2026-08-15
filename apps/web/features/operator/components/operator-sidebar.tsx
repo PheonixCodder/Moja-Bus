@@ -21,6 +21,7 @@ import {
   Star,
   ShieldCheck,
   Shield,
+  Tag,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -209,6 +210,16 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
     },
   ];
 
+  const growthItems: NavItem[] = [
+    {
+      id: "promotions",
+      label: "Promotions",
+      path: "/dashboard/operator/promotions",
+      icon: Tag,
+      permissions: ["promotions:read"],
+    },
+  ];
+
   const organizationItems: NavItem[] = [
     {
       id: "company",
@@ -324,6 +335,12 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
         <NavSection
           label="Financials"
           items={financialsItems}
+          pathname={pathname}
+          can={can}
+        />
+        <NavSection
+          label="Growth"
+          items={growthItems}
           pathname={pathname}
           can={can}
         />

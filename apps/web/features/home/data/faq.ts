@@ -114,7 +114,11 @@ const en: FAQCategory[] = [
       },
       {
         q: "Can I use multiple vouchers on one booking?",
-        a: "No. Only one voucher or discount code may be used per booking. During promotions, each person is limited to 3 promotional vouchers total.",
+        a: "You can combine one promo code (or an auto-applied campaign), one monetary voucher, and available promo credits on the same booking when the campaign rules allow stacking. Percentage coupons reduce ticket fare only — the service/convenience fee is not discounted by percent-off codes. Cash refunds of vouchers are not available.",
+      },
+      {
+        q: "What are promo credits and referrals?",
+        a: "Promo credits are wallet-like balances (for example from referral rewards) that apply at checkout before you pay. Referral rewards may be delayed until a referee completes a paid trip, and recurring credits follow the active referral program rules. Credits and vouchers are non-transferable and cannot be cashed out.",
       },
       {
         q: "Can I sell or transfer my voucher?",
@@ -247,7 +251,11 @@ const fr: FAQCategory[] = [
       },
       {
         q: "Puis-je utiliser plusieurs avoirs sur une seule réservation ?",
-        a: "Non. Un seul avoir ou code promotionnel peut être utilisé par réservation. Pendant les promotions, chaque personne est limitée à 3 bons promotionnels au total.",
+        a: "Vous pouvez combiner un code promo (ou une campagne auto-appliquée), un avoir monétaire et vos crédits promo disponibles sur la même réservation si les règles de la campagne le permettent. Les codes en pourcentage réduisent uniquement le prix du billet — les frais de service ne sont pas réduits par un pourcentage. Les avoirs ne sont pas remboursables en espèces.",
+      },
+      {
+        q: "Que sont les crédits promo et le parrainage ?",
+        a: "Les crédits promo sont des soldes utilisables au paiement (par exemple issus du parrainage). Les récompenses de parrainage peuvent être différées jusqu'à ce que le filleul termine un trajet payé ; les crédits récurrents suivent le programme actif. Crédits et avoirs sont non transférables et non remboursables en espèces.",
       },
       {
         q: "Puis-je vendre ou transférer mon avoir ?",

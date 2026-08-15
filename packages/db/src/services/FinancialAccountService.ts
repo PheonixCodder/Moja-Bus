@@ -91,6 +91,69 @@ export class FinancialAccountService {
     });
   }
 
+  /**
+   * Platform marketing expense recognized when a platform-funded promo confirms.
+   */
+  async getPlatformPromoExpenseAccount() {
+    return this.getOrCreateAccount({
+      ownerType: "PLATFORM",
+      ownerId: "moja_ride",
+      accountCategory: "EXPENSE",
+      accountClass: "PROMO_EXPENSE_PLATFORM",
+    });
+  }
+
+  /**
+   * Outstanding platform promo / voucher liability pool.
+   */
+  async getPlatformVoucherLiabilityAccount() {
+    return this.getOrCreateAccount({
+      ownerType: "PLATFORM",
+      ownerId: "moja_ride",
+      accountCategory: "LIABILITY",
+      accountClass: "VOUCHER_LIABILITY",
+      allowNegativeBalance: true,
+    });
+  }
+
+  /**
+   * Passenger spendable promo/referral credits (liability to user).
+   */
+  async getUserPromoCreditsAccount(userId: string) {
+    return this.getOrCreateAccount({
+      ownerType: "USER",
+      ownerId: userId,
+      accountCategory: "LIABILITY",
+      accountClass: "PROMO_CREDITS",
+    });
+  }
+
+  /**
+   * Operator contra-revenue for operator-funded discounts (reporting).
+   */
+  async getOperatorPromoContraAccount(companyId: string) {
+    return this.getOrCreateAccount({
+      ownerType: "COMPANY",
+      ownerId: companyId,
+      accountCategory: "EXPENSE",
+      accountClass: "PROMO_CONTRA_OPERATOR",
+      allowNegativeBalance: true,
+    });
+  }
+
+  /**
+   * Platform liability for granted-but-unspent marketing obligations (optional pool).
+   */
+  async getPlatformPromoLiabilityAccount() {
+    return this.getOrCreateAccount({
+      ownerType: "PLATFORM",
+      ownerId: "moja_ride",
+      accountCategory: "LIABILITY",
+      accountClass: "PROMO_LIABILITY_PLATFORM",
+      allowNegativeBalance: true,
+    });
+  }
+
   private async getOrCreateAccount(params: {
     ownerType: AccountOwnerType;
     ownerId: string;

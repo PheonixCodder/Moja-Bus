@@ -23,6 +23,14 @@
     {
       "path": "/api/cron/generate-trips",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/process-referral-rewards",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/promo-expiry-reminders",
+      "schedule": "0 9 * * *"
     }
   ]
 }

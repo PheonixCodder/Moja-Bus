@@ -9,10 +9,7 @@
     "./tokens": "./tokens.ts"
   },
   "peerDependencies": {
-    "react-native": "0.85.3"
-  },
-  "devDependencies": {
-    "react-native": "0.85.3"
+    "react-native": "*"
   },
   "files": [
     "global.css",

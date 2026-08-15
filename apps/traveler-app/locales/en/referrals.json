@@ -1,0 +1,22 @@
+{
+  "title": "Invite friends",
+  "subtitle": "Share your code. Earn promo credits after friends complete a paid trip.",
+  "yourCode": "Your referral code",
+  "yourCodeHint": "Friends enter this at signup or on this screen.",
+  "copyCode": "Copy code",
+  "shareLink": "Share invite",
+  "copied": "Code copied",
+  "shareFailed": "Could not share",
+  "attributed": "Sign-ups",
+  "qualified": "Qualified",
+  "rewarded": "Rewarded",
+  "progress": "Your progress",
+  "haveCode": "Have an invite code?",
+  "haveCodeHint": "Apply a friend's code once on your account.",
+  "codePlaceholder": "FRIEND123",
+  "apply": "Apply code",
+  "applySuccess": "Referral code applied",
+  "applyFailed": "Could not apply code",
+  "disabled": "Referrals are not available right now.",
+  "loading": "Loading…"
+}

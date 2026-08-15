@@ -20,6 +20,16 @@ export const passengerBookingConfirmedWorkflow = workflow(
             <p style="margin: 0 0 8px 0;">Departure: <strong>${escapeHtml(payload.departureTime)}</strong></p>
             <p style="margin: 0;">Reference(s): <span style="font-family: monospace; font-weight: bold; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #0f172a;">${refs}</span></p>
           </div>
+
+          ${
+            payload.hasDiscount
+              ? `<div style="background: #ecfdf5; padding: 12px 16px; border-radius: 8px; margin: 0 0 16px 0; font-size: 13px; color: #065f46; border: 1px solid #a7f3d0;">
+            ${payload.ticketDiscountXOF ? `<p style="margin: 0 0 4px 0;">Ticket discount: −${escapeHtml(payload.ticketDiscountXOF)} XOF</p>` : ""}
+            ${payload.creditAppliedXOF ? `<p style="margin: 0 0 4px 0;">Credits applied: −${escapeHtml(payload.creditAppliedXOF)} XOF</p>` : ""}
+            ${payload.feeDiscountXOF ? `<p style="margin: 0;">Fee discount: −${escapeHtml(payload.feeDiscountXOF)} XOF</p>` : ""}
+          </div>`
+              : ""
+          }
           
           <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 15px;">
             <p style="margin: 0; font-weight: bold; color: #0f172a;">Total Paid: ${escapeHtml(payload.totalAmountXOF)} XOF</p>
@@ -63,6 +73,12 @@ export const passengerBookingConfirmedWorkflow = workflow(
       bookingReferences: z.array(z.string()),
       totalAmountXOF: z.number(),
       phone: z.string().optional(),
+      preDiscountSubtotalXOF: z.number().optional(),
+      ticketDiscountXOF: z.number().optional(),
+      feeDiscountXOF: z.number().optional(),
+      creditAppliedXOF: z.number().optional(),
+      convenienceFeeXOF: z.number().optional(),
+      hasDiscount: z.boolean().optional(),
     }),
   }
 );

@@ -118,12 +118,13 @@ const en: TermsData = {
             {
               variant: "bullet",
               items: [
-                "A maximum of one voucher may be used per booking. Vouchers can only be used online or at our partner agencies.",
+                "A maximum of one monetary voucher may be used per booking. Vouchers can only be used online or at our partner agencies.",
                 "Monetary value vouchers may be applied to the entire cart. Discount or free-trip vouchers apply to the ticket price only \u2014 add-ons (service fees, luggage, bicycle) are excluded.",
-                "During promotional campaigns, voucher use is limited to 3 vouchers per person. Moja Ride may cancel all bookings beyond the first 3 if this limit is exceeded.",
-                "Vouchers issued free of charge for marketing purposes expire after the first completed booking.",
+                "When campaign rules allow, one monetary voucher may be combined with one promo code (or an auto-applied campaign) and available promo credits on the same booking.",
+                "During promotional campaigns, voucher use may be further limited per person. Moja Ride may cancel bookings that exceed published campaign limits.",
+                "Vouchers issued free of charge for marketing purposes expire after the first completed booking unless a different expiry is stated.",
                 "Commercial resale of vouchers is prohibited and will result in ticket blocking and/or claims for damages. Customers will be informed and given 15 days to submit observations.",
-                "Cash refunds of vouchers are excluded.",
+                "Cash refunds of vouchers are excluded. Vouchers and promo credits are non-transferable.",
                 "In case of fraud or illegal activity related to vouchers, Moja Ride may close accounts, require alternative payment, and/or block vouchers. No right to activation or refund of affected vouchers may be invoked.",
                 "Moja Ride may cancel tickets paid for in whole or in part with fraudulently used vouchers.",
               ],
@@ -136,14 +137,12 @@ const en: TermsData = {
             {
               variant: "bullet",
               items: [
-                "Only one discount code may be used per booking. Codes are activated within 48 hours of the booking confirmation email and can only be used online or at partner agencies.",
-                "Discount codes are valid for 3 months from date of issue.",
-                "Direct connections only (no connections), except for round trips. The departure and arrival points may not be the same.",
-                "Personal vouchers are non-transferable.",
-                "Booking changes can only be made by customer service. Cancellation is not possible.",
+                "Only one discount code (or one auto-applied campaign benefit) may be used per booking, in addition to one monetary voucher and promo credits when stacking is allowed.",
+                "Percentage discount codes reduce ticket fare only; the service/convenience fee is not discounted by percent-off codes. Fixed-amount codes follow the campaign terms.",
+                "Codes can only be used online or at partner agencies while the campaign is active and within any stated validity window.",
+                "Personal codes and promo credits are non-transferable.",
                 "Commercial resale of discount codes is prohibited and subject to sanctions.",
                 "Cash refunds of discount codes are excluded.",
-                "Each discount code must be used for a different trip.",
               ],
             },
           ],
@@ -154,14 +153,28 @@ const en: TermsData = {
             {
               variant: "bullet",
               items: [
-                "Reduced-price ticket offers are limited to 3 tickets per person per campaign. Bookings beyond 3 may be cancelled by Moja Ride.",
+                "Reduced-price ticket offers may be limited per person per campaign. Bookings beyond published limits may be cancelled by Moja Ride.",
+                "Campaign stacking, eligibility, and funding rules are those shown at checkout and in the campaign terms.",
                 "Commercial resale of tickets is prohibited and will result in ticket blocking.",
               ],
             },
           ],
         },
         {
-          heading: "4.7 Order cancellation by Moja Ride",
+          heading: "4.7 Referral program",
+          lists: [
+            {
+              variant: "bullet",
+              items: [
+                "Referral rewards (promo credits) may be delayed until a referred passenger completes a paid, confirmed trip, and may be subject to a waiting period under the active program rules.",
+                "Promo credits from referrals are non-transferable and cannot be cashed out. They apply at checkout toward eligible bookings.",
+                "Self-referral, device/phone abuse, and other fraudulent attribution may void rewards. Moja Ride may suspend accounts and reclaim improperly issued credits.",
+              ],
+            },
+          ],
+        },
+        {
+          heading: "4.8 Order cancellation by Moja Ride",
           lists: [
             {
               variant: "bullet",
@@ -361,12 +374,13 @@ const fr: TermsData = {
             {
               variant: "bullet",
               items: [
-                "Un maximum d\u2019un avoir peut \u00eatre utilis\u00e9 par r\u00e9servation. Les avoirs ne peuvent \u00eatre utilis\u00e9s qu\u2019en ligne ou dans nos agences partenaires.",
+                "Un maximum d\u2019un avoir mon\u00e9taire peut \u00eatre utilis\u00e9 par r\u00e9servation. Les avoirs ne peuvent \u00eatre utilis\u00e9s qu\u2019en ligne ou dans nos agences partenaires.",
                 "Les avoirs mon\u00e9taires peuvent \u00eatre appliqu\u00e9s \u00e0 l\u2019ensemble du panier. Les avoirs de r\u00e9duction ou de voyage gratuit s\u2019appliquent uniquement au prix du billet \u2014 les suppl\u00e9ments (frais de service, bagages, v\u00e9lo) sont exclus.",
-                "Pendant les campagnes promotionnelles, l\u2019utilisation des avoirs est limit\u00e9e \u00e0 3 avoirs par personne. Moja Ride peut annuler toutes les r\u00e9servations au-del\u00e0 des 3 premi\u00e8res si cette limite est d\u00e9pass\u00e9e.",
-                "Les avoirs \u00e9mis gratuitement \u00e0 des fins marketing expirent apr\u00e8s la premi\u00e8re r\u00e9servation effectu\u00e9e.",
+                "Lorsque les r\u00e8gles de campagne le permettent, un avoir mon\u00e9taire peut \u00eatre combin\u00e9 avec un code promo (ou une campagne auto-appliqu\u00e9e) et des cr\u00e9dits promo disponibles sur la m\u00eame r\u00e9servation.",
+                "Pendant les campagnes promotionnelles, l\u2019utilisation des avoirs peut \u00eatre limit\u00e9e par personne. Moja Ride peut annuler les r\u00e9servations d\u00e9passant les limites publi\u00e9es.",
+                "Les avoirs \u00e9mis gratuitement \u00e0 des fins marketing expirent apr\u00e8s la premi\u00e8re r\u00e9servation effectu\u00e9e, sauf autre date d\u2019expiration indiqu\u00e9e.",
                 "La revente commerciale des avoirs est interdite et entra\u00eenera le blocage des billets et/ou des demandes de dommages-int\u00e9r\u00eats. Les clients seront inform\u00e9s et disposeront de 15 jours pour pr\u00e9senter leurs observations.",
-                "Le remboursement en esp\u00e8ces des avoirs est exclu.",
+                "Le remboursement en esp\u00e8ces des avoirs est exclu. Les avoirs et cr\u00e9dits promo sont non transf\u00e9rables.",
                 "En cas de fraude ou d\u2019activit\u00e9 ill\u00e9gale li\u00e9e aux avoirs, Moja Ride peut fermer des comptes, exiger un paiement alternatif et/ou bloquer les avoirs. Aucun droit \u00e0 l\u2019activation ou au remboursement des avoirs concern\u00e9s ne peut \u00eatre invoqu\u00e9.",
                 "Moja Ride peut annuler les billets pay\u00e9s en totalit\u00e9 ou en partie avec des avoirs utilis\u00e9s frauduleusement.",
               ],
@@ -379,14 +393,12 @@ const fr: TermsData = {
             {
               variant: "bullet",
               items: [
-                "Un seul code promotionnel peut \u00eatre utilis\u00e9 par r\u00e9servation. Les codes sont activ\u00e9s dans les 48 heures suivant l\u2019email de confirmation de r\u00e9servation et ne peuvent \u00eatre utilis\u00e9s qu\u2019en ligne ou dans les agences partenaires.",
-                "Les codes promotionnels sont valables 3 mois \u00e0 compter de leur date d\u2019\u00e9mission.",
-                "Connexions directes uniquement (pas de correspondances), sauf pour les allers-retours. Les points de d\u00e9part et d\u2019arriv\u00e9e ne peuvent pas \u00eatre les m\u00eames.",
-                "Les avoirs personnels sont non transf\u00e9rables.",
-                "Les modifications de r\u00e9servation ne peuvent \u00eatre effectu\u00e9es que par le service client. L\u2019annulation n\u2019est pas possible.",
+                "Un seul code promotionnel (ou un avantage de campagne auto-appliqu\u00e9) peut \u00eatre utilis\u00e9 par r\u00e9servation, en plus d\u2019un avoir mon\u00e9taire et de cr\u00e9dits promo lorsque le cumul est autoris\u00e9.",
+                "Les codes en pourcentage r\u00e9duisent uniquement le prix du billet ; les frais de service ne sont pas r\u00e9duits par un pourcentage. Les codes \u00e0 montant fixe suivent les conditions de la campagne.",
+                "Les codes ne peuvent \u00eatre utilis\u00e9s qu\u2019en ligne ou dans les agences partenaires pendant la validit\u00e9 de la campagne.",
+                "Les codes personnels et cr\u00e9dits promo sont non transf\u00e9rables.",
                 "La revente commerciale des codes promotionnels est interdite et passible de sanctions.",
                 "Le remboursement en esp\u00e8ces des codes promotionnels est exclu.",
-                "Chaque code promotionnel doit \u00eatre utilis\u00e9 pour un voyage diff\u00e9rent.",
               ],
             },
           ],
@@ -397,14 +409,28 @@ const fr: TermsData = {
             {
               variant: "bullet",
               items: [
-                "Les offres de billets \u00e0 prix r\u00e9duit sont limit\u00e9es \u00e0 3 billets par personne et par campagne. Les r\u00e9servations au-del\u00e0 de 3 peuvent \u00eatre annul\u00e9es par Moja Ride.",
+                "Les offres de billets \u00e0 prix r\u00e9duit peuvent \u00eatre limit\u00e9es par personne et par campagne. Les r\u00e9servations au-del\u00e0 des limites publi\u00e9es peuvent \u00eatre annul\u00e9es par Moja Ride.",
+                "Les r\u00e8gles de cumul, d\u2019\u00e9ligibilit\u00e9 et de financement sont celles affich\u00e9es au paiement et dans les conditions de la campagne.",
                 "La revente commerciale des billets est interdite et entra\u00eenera le blocage des billets.",
               ],
             },
           ],
         },
         {
-          heading: "4.7 Annulation de commande par Moja Ride",
+          heading: "4.7 Programme de parrainage",
+          lists: [
+            {
+              variant: "bullet",
+              items: [
+                "Les r\u00e9compenses de parrainage (cr\u00e9dits promo) peuvent \u00eatre diff\u00e9r\u00e9es jusqu\u2019\u00e0 ce qu\u2019un filleul termine un trajet pay\u00e9 et confirm\u00e9, et peuvent \u00eatre soumises \u00e0 un d\u00e9lai selon le programme actif.",
+                "Les cr\u00e9dits promo issus du parrainage sont non transf\u00e9rables et non remboursables en esp\u00e8ces. Ils s\u2019appliquent au paiement des r\u00e9servations \u00e9ligibles.",
+                "L\u2019auto-parrainage, l\u2019abus d\u2019appareil/t\u00e9l\u00e9phone et toute attribution frauduleuse peuvent annuler les r\u00e9compenses. Moja Ride peut suspendre des comptes et r\u00e9cup\u00e9rer des cr\u00e9dits ind\u00fbment \u00e9mis.",
+              ],
+            },
+          ],
+        },
+        {
+          heading: "4.8 Annulation de commande par Moja Ride",
           lists: [
             {
               variant: "bullet",

@@ -44,6 +44,7 @@ export const bookingRouter = createTRPCRouter({
         offerId: input.offerId,
         passengers: input.passengers,
         userId: ctx.user.id,
+        discount: input.discount,
       });
 
       // Trigger passenger-hold-created

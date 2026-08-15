@@ -39,10 +39,12 @@ import {
   Link as LinkIcon,
   LogOut,
   type LucideIcon,
+  Megaphone,
   Route,
   Scale,
   Settings,
   Shield,
+  ShieldAlert,
   ShieldCheck,
   Users,
   Webhook,
@@ -191,6 +193,21 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     },
   ];
 
+  const marketingItems: MenuItem[] = [
+    {
+      title: t("campaigns"),
+      url: "/dashboard/admin/marketing/campaigns",
+      icon: Megaphone,
+      permission: "marketing:campaigns:read",
+    },
+    {
+      title: t("abuseQueue"),
+      url: "/dashboard/admin/marketing/abuse",
+      icon: ShieldAlert,
+      permission: "marketing:fraud:review",
+    },
+  ];
+
   const auditItems: MenuItem[] = [
     {
       title: t("activity"),
@@ -327,6 +344,12 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           label={tSection("content")}
           items={contentItems}
           pathname={pathname}
+        />
+        <NavSection
+          label={tSection("marketing")}
+          items={marketingItems}
+          pathname={pathname}
+          can={can}
         />
         <NavSection
           label={tSection("auditSecurity")}

@@ -1,0 +1,22 @@
+{
+  "title": "Parrainer des amis",
+  "subtitle": "Partagez votre code. Gagnez des crédits promo après qu'un ami termine un trajet payé.",
+  "yourCode": "Votre code de parrainage",
+  "yourCodeHint": "Vos amis le saisissent à l'inscription ou sur cet écran.",
+  "copyCode": "Copier le code",
+  "shareLink": "Partager l'invitation",
+  "copied": "Code copié",
+  "shareFailed": "Impossible de partager",
+  "attributed": "Inscriptions",
+  "qualified": "Qualifiés",
+  "rewarded": "Récompensés",
+  "progress": "Votre progression",
+  "haveCode": "Vous avez un code ?",
+  "haveCodeHint": "Appliquez le code d'un ami une seule fois sur votre compte.",
+  "codePlaceholder": "AMI123",
+  "apply": "Appliquer",
+  "applySuccess": "Code de parrainage appliqué",
+  "applyFailed": "Impossible d'appliquer le code",
+  "disabled": "Le parrainage n'est pas disponible pour le moment.",
+  "loading": "Chargement…"
+}

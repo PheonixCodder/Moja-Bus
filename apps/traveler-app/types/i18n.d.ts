@@ -8,6 +8,7 @@ import enBooking from '../locales/en/booking.json';
 import enSearch from '../locales/en/search.json';
 import enOperators from '../locales/en/operators.json';
 import enHome from '../locales/en/home.json';
+import enReferrals from '../locales/en/referrals.json';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -22,6 +23,7 @@ declare module 'i18next' {
       search: typeof enSearch;
       operators: typeof enOperators;
       home: typeof enHome;
+      referrals: typeof enReferrals;
     };
   }
 }

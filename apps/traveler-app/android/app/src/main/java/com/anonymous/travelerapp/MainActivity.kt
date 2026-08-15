@@ -1,4 +1,4 @@
-package com.anonymous.travelerapp
+package com.mojaride.traveler
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

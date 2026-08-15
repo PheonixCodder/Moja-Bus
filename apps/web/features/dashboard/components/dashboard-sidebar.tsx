@@ -13,6 +13,7 @@ import {
   Ticket,
   Users,
   Wallet,
+  Gift,
   EllipsisVertical,
   CircleUser,
   LifeBuoy
@@ -69,6 +70,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     { title: tNav("bookings"), url: "/dashboard/bookings", icon: CalendarDays },
     { title: tNav("tickets"), url: "/dashboard/tickets", icon: Ticket },
     { title: tNav("wallet"), url: "/dashboard/wallet", icon: Wallet },
+    { title: tNav("referrals"), url: "/dashboard/referrals", icon: Gift },
     { title: tNav("passengers"), url: "/dashboard/passengers", icon: Users },
   ];
 

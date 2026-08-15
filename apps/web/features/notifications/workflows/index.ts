@@ -38,6 +38,18 @@ import { passengerWalletLowBalanceWorkflow } from "./passenger/wallet-low-balanc
 import { passengerReviewSubmittedWorkflow } from "./passenger/review-submitted";
 import { passengerProfileUpdatedWorkflow } from "./passenger/profile-updated";
 import { passengerTicketSharedWorkflow } from "./passenger/ticket-shared";
+import {
+  passengerCreditExpiringWorkflow,
+  passengerReferralAttributedWorkflow,
+  passengerReferralRewardWorkflow,
+  passengerVoucherExpiringWorkflow,
+  passengerVoucherIssuedWorkflow,
+} from "./passenger/promo-incentives";
+import { passengerCampaignStartingWorkflow } from "./passenger/campaign-starting";
+import {
+  campaignBudgetExhaustedWorkflow,
+  operatorCampaignPausedWorkflow,
+} from "./operator/promo-campaigns";
 
 export const workflows = [
   authOtpWorkflow,
@@ -75,6 +87,14 @@ export const workflows = [
   passengerReviewSubmittedWorkflow,
   passengerProfileUpdatedWorkflow,
   passengerTicketSharedWorkflow,
+  passengerVoucherIssuedWorkflow,
+  passengerReferralAttributedWorkflow,
+  passengerReferralRewardWorkflow,
+  passengerVoucherExpiringWorkflow,
+  passengerCreditExpiringWorkflow,
+  passengerCampaignStartingWorkflow,
+  operatorCampaignPausedWorkflow,
+  campaignBudgetExhaustedWorkflow,
 ];
 
 

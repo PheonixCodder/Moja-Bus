@@ -8,24 +8,18 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | Ivory Coast geography import (M0) + geo engine (M1) + backend capture-link (M2) + public capture page (M3) + operator UI (M4) + search/consumer audit (M5) done — M6 verification next. **Geo seed document delivered (portable SQL snapshot). Resolve-capture button bug fixed (APPROVED terminal state). Reverse geocoding shipped (Nominatim → suggested address → addressLine1). Foundation SQL cleanup done.** **Schedule+Search audit fixes (2026-08-07 plan): Tasks 1-3 done (detachable/archivable Trip schema, null-safety ripples, `schedules.delete` now hard-deletes only empty trips + soft-archives trips with booking history; archived trips hidden from all operator/admin trip reads) — Task 4 (TimePicker B1) next.** |
-| **Last major milestone** | Full CI geography imported (188 cities / 200 municipalities / 3230 quarters, PostGIS geometry) via a single idempotent importer; seed delegates to it. No legacy geo records remain (Abidjan layer relabeled CURATED). Abidjan coords backfilled (13/13 communes + 81/81 quarters). Offline geo-resolution engine live. **M2 backend capture-link + M3 public capture share page + M4 operator UI shipped** (`CaptureService`, `captures` tRPC router, rate limiter, cron sweeper, `/capture/[token]` page; capture-mode terminal editor with link card, Comboboxes, capture-status badges + filter + resolve approve/reject drawer). **M5 search/consumer audit green** (guards verified: pending terminals unreachable in routes/search; +3 full-188-city regression tests). **Geo seed doc delivered**: `packages/db/seed/geo-seed.sql` (idempotent 188/200/3230 upserts w/ PostGIS geometry + coords, portable via `export:geo-seed` script), validated against the live DB. **Resolve-capture button fix**: `LocationCaptureStatus` gains `APPROVED` (migration applied on live DB), `approveCapture` marks the capture `APPROVED` so it leaves the `terminals.list` include filter, + UI guard; button now disappears after approval. **Reverse geocoding**: `captures.submit` reverse-geocodes the GPS point via OSM Nominatim (env-overridable base URL, `accept-language=fr`, 1 req/s limiter, 24 h cache, null-on-failure) into `location_capture.reverse_geocoded_address` (migration `20260805000001`, applied + recorded on live Neon); Resolve drawer shows "Suggested address"; `approveCapture` writes it to the terminal `addressLine1` (preferred over the offline hierarchy label; real addresses untouched). **Foundation SQL cleanup**: deleted stale unused `apps/web/migrations/001_foundation_constraints.sql` + `_rollback.sql` (dead code — `run-migrations.ts` not wired; Dockerfile `migrate` = `prisma migrate deploy` only). |
-| **Web unit tests** | 245/245 pass |
-| **Next priority** | M6: final verification — typecheck, unit suites, `next build`, manual E2E of the full capture flow. Then booking ownership hardening, performance (Redis for search), mobile MVP. **Schedule+Search audit (2026-08-07 plan): Task 4 next — replace nested Selects in `TimePicker` (B1 root cause).** NOTE: `web` typecheck currently reports one pre-existing unrelated error (`apps/web/lib/auth-server.ts:262 expo` — traveler-app Better Auth working-tree leftover); all reverse-geocoding files are clean. |
+| **Phase** | **Discount / referral / voucher system** — Phase 21 polish done. Ready for flag-on smoke / GA. |
+| **Last major milestone** | Phase 21: referral funnel charts, marketing opt-in blast, traveler referrals screen, Terms §4.4–4.8. |
+| **Next priority** | 1) Confirm Novu bridge sync. 2) Execute QA smoke matrix → GA. 3) Finance recon. |
 
-### Changes Made:
-- ✅ Schedule+Search audit — Task 3: `schedules.delete` archives trips with booking history instead of FK crash (R7b)
-- ✅ Removed `seatClass` field from `Fare` model in Prisma schema
-- ✅ Updated Zod schemas to remove `seatClass` from fare definitions
-- ✅ Refactored `PricingStep` to remove class column UI (fares now per-segment, not per-class)
-- ✅ Updated tRPC schedules router to remove `seatClass` from fare operations
-- ✅ Fixed schedule edit drawer to remove class column
-- ✅ Added `seatClass` and `isExpress` filters to search params
-- ✅ Added bus class and express filter UI to search filters sidebar
-- ✅ Added `handleToggleSeatClass` and `handleToggleExpress` handlers in search page client
-- ✅ Updated passenger preferences to remove "BUSINESS" option
-- ✅ Updated search service to support `isExpress` filter
-
+### Changes Made (2026-08-15 — discounts):
+- ✅ Discount Prisma models + PricingSnapshot columns; schemas; feature flags; engine + services + tRPC routers
+- ✅ Web + traveler-app checkout promo/voucher UX (i18n wired); wallet confirm nets credits correctly
+- ✅ Admin `/dashboard/admin/marketing/campaigns`; Operator `/dashboard/operator/promotions`; sidebars + en/fr nav keys
+- ✅ Promo ledger + referral cron/abuse; marketing summary + aging; campaign performance + CSV export
+- ✅ Novu triggers (voucher, referral, pause, budget, expiry, campaign-starting); FAQ + Terms stacking/credits/referrals EN/FR
+- ✅ `prisma db push` completed; Phase 21 polish (funnel bars, opt-in notify, traveler `/referrals`)
+- ⏳ Novu dashboard sync; staging smoke / GA (env kill switches removed — always-on)
 ### What works end-to-end today
 
 - **Passenger:** Search on `/` → book seats → per-seat passengers → **Paystack card/MoMo/Wallet** → digital ticket + public `/tickets/[token]` page → dashboard bookings/tickets/wallet → Redesigned Passenger Dashboard → Receives Novu Notifications
@@ -37,10 +31,19 @@
 
 - Mobile traveler-app: search/booking audit tracker largely closed (`context/trackers/traveler-app-search-booking-audit.md`) — remaining deferred: M8 mobile-callback, L3 multi-deck; manual device QA pending
 - Deferred: dual-control CASH, OTP bank reveal, heatmaps, monolith splits — _reviews UI + bulk ops now in progress via Phase 7 low-issues (L11, L7)_
+- **Discounts:** always-on (env kill switches removed); operational control via campaign status + referral program `isActive`; remaining is QA + Novu sync + GA
 
 ---
 
 ## Milestone Log (newest first)
+
+### Discount / referral / voucher foundation + surfaces (2026-08-15)
+
+- [x] Schema + Zod + flags + engine + quote/freeze/finalize + admin/operator/passenger routers
+- [x] Web + mobile checkout promo/voucher UI
+- [x] Admin marketing campaigns + operator promotions pages/sidebars
+- [ ] Live DB push + flag-on smoke test
+- [ ] Phases 15–20 (notifications, analytics, i18n polish, QA, rollout)
 
 ### Reverse Geocoding + Foundation SQL Cleanup (2026-08-06)
 

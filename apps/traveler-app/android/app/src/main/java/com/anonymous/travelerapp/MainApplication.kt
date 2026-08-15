@@ -1,4 +1,4 @@
-package com.anonymous.travelerapp
+package com.mojaride.traveler
 
 import android.app.Application
 import android.content.res.Configuration

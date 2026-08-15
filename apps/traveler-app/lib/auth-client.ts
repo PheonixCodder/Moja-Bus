@@ -29,7 +29,12 @@ export const authClient = createAuthClient({
 });
 
 export function getAuthCookieHeader(): string {
-	return authClient.getCookie();
+	// expoClient stores cookies in SecureStore; read synchronously via cache if present.
+	// Prefer plugin helper when typed; fall back to empty (fetch will refresh session).
+	const client = authClient as typeof authClient & {
+		getCookie?: () => string;
+	};
+	return client.getCookie?.() ?? "";
 }
 
 export function getExpoOriginHeader(): string {

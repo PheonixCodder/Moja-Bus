@@ -16,7 +16,8 @@
     "./sync": "./src/sync.ts",
     "./tracking": "./src/tracking.ts",
     "./operator": "./src/operator.ts",
-    "./permissions": "./src/permissions.ts"
+    "./permissions": "./src/permissions.ts",
+    "./discounts": "./src/discounts.ts"
   },
   "files": [
     "src",
@@ -26,7 +27,7 @@
     "build": "echo \"No build configured for @moja/schemas\"",
     "lint": "biome check package.json tsconfig.json src",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/__tests__/routes-service-type.test.ts src/__tests__/admin-permissions.test.ts src/__tests__/admin-staff-hierarchy.test.ts"
+    "test": "tsx --test src/__tests__/routes-service-type.test.ts src/__tests__/admin-permissions.test.ts src/__tests__/admin-staff-hierarchy.test.ts src/__tests__/discounts.test.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"

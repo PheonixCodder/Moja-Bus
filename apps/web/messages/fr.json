@@ -725,6 +725,7 @@
       "tickets": "Mes billets",
       "passengers": "Passagers enregistrés",
       "wallet": "Portefeuille",
+      "referrals": "Parrainage",
       "settings": "Paramètres",
       "search": "Chercher un trajet...",
       "dashboards": "Tableaux de bord",
@@ -738,6 +739,27 @@
       "noContactDetails": "Aucun coordonnées",
       "appName": "Moja",
       "appSuffix": "Ride"
+    },
+    "referrals": {
+      "metaTitle": "Parrainage — Moja Ride",
+      "metaDescription": "Partagez votre code et gagnez des crédits promo quand vos amis réservent.",
+      "pageTitle": "Inviter des amis",
+      "pageDescription": "Partagez votre code. Vous gagnez des crédits après leur premier trajet payé.",
+      "yourCode": "Votre code de parrainage",
+      "yourCodeHint": "Vos amis saisissent ce code à l'inscription ou sur la page parrainage.",
+      "copyCode": "Copier le code",
+      "copyLink": "Copier le lien",
+      "copied": "Code copié",
+      "linkCopied": "Lien copié",
+      "copyFailed": "Impossible de copier",
+      "attributed": "Inscriptions",
+      "qualified": "Qualifiés",
+      "rewarded": "Récompensés",
+      "haveCode": "Vous avez un code ?",
+      "haveCodeHint": "Appliquez le code d'un ami une seule fois sur votre compte.",
+      "codePlaceholder": "AMI123",
+      "apply": "Appliquer",
+      "applySuccess": "Code de parrainage appliqué"
     },
     "overview": {
       "metaTitle": "Tableau de bord — Moja Ride",
@@ -2490,13 +2512,16 @@
       "webhooks": "Webhooks",
       "settings": "Paramètres",
       "inquiries": "Inquiries",
-      "staff": "Équipe Admin"
+      "staff": "Équipe Admin",
+      "campaigns": "Campagnes",
+      "abuseQueue": "File d'abus"
     },
     "sections": {
       "financials": "Finances",
       "operations": "Opérations",
       "directory": "Annuaire",
       "content": "Contenu",
+      "marketing": "Marketing",
       "auditSecurity": "Audit et sécurité",
       "platform": "Plateforme",
       "support": "Support"
@@ -4259,5 +4284,35 @@
     ],
     "goToDashboard": "Accéder au tableau de bord",
     "footerText": "Des questions ? Contactez "
+  },
+  "discounts": {
+    "promoCode": "Code promo",
+    "promoPlaceholder": "ex. SUMMER10",
+    "apply": "Appliquer",
+    "remove": "Retirer",
+    "voucher": "Avoir",
+    "noVoucher": "Aucun avoir",
+    "discount": "Réduction",
+    "discountAuto": "Réduction (auto)",
+    "credits": "Crédits",
+    "codeRejected": "Ce code ne peut pas s'appliquer à ce trajet.",
+    "errors": {
+      "invalidCode": "Code promo invalide",
+      "codeExpired": "Ce code promo a expiré",
+      "codePersonal": "Ce code est assigné à un autre compte",
+      "codeExhausted": "Ce code promo a atteint sa limite d'utilisation",
+      "campaignMissing": "Promotion indisponible",
+      "zeroDiscount": "Cette promotion ne réduit pas ce tarif",
+      "voucherInactive": "Avoir indisponible",
+      "voucherExpired": "Avoir expiré",
+      "voucherEmpty": "Avoir sans solde restant",
+      "inactive": "Promotion inactive",
+      "wrongOperator": "Promotion non applicable à cet opérateur",
+      "noOptIn": "L'opérateur n'a pas adhéré à cette promotion",
+      "routeScope": "Promotion non applicable à cet itinéraire",
+      "scheduleScope": "Promotion non applicable à cet horaire",
+      "tripScope": "Promotion non applicable à ce trajet",
+      "budget": "Cette promotion a atteint sa limite de budget"
+    }
   }
 }
