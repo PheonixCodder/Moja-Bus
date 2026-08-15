@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@moja/ui/components/ui/badge";
-import { Button } from "@moja/ui/components/ui/button";
+import { Button, buttonVariants } from "@moja/ui/components/ui/button";
 import { Card } from "@moja/ui/components/ui/card";
 import { Input } from "@moja/ui/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { cn } from "@moja/ui/lib/utils";
 import { useTRPC } from "@/trpc/client";
 
 function sourceLabel(
@@ -91,9 +92,12 @@ export function PromoIncentivesPanel() {
             </p>
           ) : null}
         </div>
-        <Button asChild type="button" size="sm" variant="outline">
-          <Link href="/dashboard/referrals">{t("promoReferralsCta")}</Link>
-        </Button>
+        <Link
+          href="/dashboard/referrals"
+          className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
+        >
+          {t("promoReferralsCta")}
+        </Link>
       </div>
 
       <div className="space-y-2 rounded-lg border border-slate-100 bg-white p-3">

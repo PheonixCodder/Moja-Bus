@@ -69,7 +69,7 @@ export async function listTripsForScope(
   const trips = await prisma.trip.findMany({
     where: {
       archivedAt: null,
-      status: { in: ["SCHEDULED", "BOARDING", "IN_TRANSIT"] },
+      status: { in: ["SCHEDULED", "BOARDING", "DEPARTED"] },
       departureDate: { gte: now, lte: until },
       ...(input.companyId ? { companyId: input.companyId } : {}),
       ...(scheduleIds.length > 0

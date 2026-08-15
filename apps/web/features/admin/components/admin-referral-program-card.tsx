@@ -131,7 +131,7 @@ export function AdminReferralProgramCard() {
           <Label>Welcome coupon campaign</Label>
           <Select
             value={welcomeCampaignId}
-            onValueChange={setWelcomeCampaignId}
+            onValueChange={(value) => setWelcomeCampaignId(value ?? NONE)}
           >
             <SelectTrigger>
               <SelectValue placeholder="None" />
