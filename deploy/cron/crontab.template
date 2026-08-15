@@ -8,3 +8,5 @@
 15 0 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/publish-blogs
 0 1 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/release-escrow
 0 2 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/generate-trips
+*/15 * * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/process-referral-rewards
+0 9 * * * curl -fsS -m 120 -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/promo-expiry-reminders
