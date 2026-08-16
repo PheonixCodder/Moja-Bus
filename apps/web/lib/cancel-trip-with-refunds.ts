@@ -4,10 +4,13 @@ import { getNovuClient } from "@/lib/novu";
 
 type PrismaLike = PrismaClient;
 
+export type TripRefundChannel = "WALLET" | "CASH" | "VOUCHER";
+
 export async function cancelTripWithRefunds(params: {
   prisma: PrismaLike;
   tripId: string;
   cancelReason: string;
+  refundChannel?: TripRefundChannel | undefined;
   actor: {
     userId: string;
     companyId: string;
@@ -20,12 +23,20 @@ export async function cancelTripWithRefunds(params: {
     bookingReference: string;
     success: boolean;
     error?: string;
-    channel?: "WALLET" | "CASH";
+    channel?: TripRefundChannel;
     amountXOF?: number;
   }>;
   expiredHolds: number;
+  skippedCheckedIn: number;
 }> {
-  const { prisma, tripId, cancelReason, actor, forceAfterDeparture } = params;
+  const {
+    prisma,
+    tripId,
+    cancelReason,
+    actor,
+    forceAfterDeparture,
+    refundChannel = "WALLET",
+  } = params;
 
   const existing = await prisma.trip.findUnique({ where: { id: tripId } });
   if (!existing) {
@@ -42,118 +53,153 @@ export async function cancelTripWithRefunds(params: {
     );
   }
 
-  const { trip, refundResults, expiredHoldsCount, bookingsToNotify } = await prisma.$transaction(async (tx) => {
-    const expiredHolds = await tx.booking.updateMany({
-      where: { tripId, status: "PENDING_PAYMENT" },
-      data: { status: "EXPIRED", holdExpiresAt: new Date() },
-    });
+  const checkedInCount = await prisma.booking.count({
+    where: {
+      tripId,
+      status: "CONFIRMED",
+      checkedInAt: { not: null },
+    },
+  });
+  if (checkedInCount > 0) {
+    throw new Error(
+      `Cannot cancel trip while ${checkedInCount} passenger(s) are checked in. Handle checked-in bookings first, or cancel non-checked-in seats individually.`,
+    );
+  }
 
-    const affectedHoldGroups = await tx.booking.findMany({
-      where: { tripId, status: "EXPIRED" },
-      select: { holdGroupId: true },
-      distinct: ['holdGroupId']
-    });
-
-    for (const b of affectedHoldGroups) {
-      if (!b.holdGroupId) continue;
-      const remaining = await tx.booking.count({
-        where: { holdGroupId: b.holdGroupId, status: { in: ["CONFIRMED", "PENDING_PAYMENT"] } }
+  const { trip, refundResults, expiredHoldsCount, bookingsToNotify } =
+    await prisma.$transaction(async (tx) => {
+      const expiredHolds = await tx.booking.updateMany({
+        where: { tripId, status: "PENDING_PAYMENT" },
+        data: { status: "EXPIRED", holdExpiresAt: new Date() },
       });
-      if (remaining === 0) {
-        await tx.holdGroup.update({
-          where: { id: b.holdGroupId },
-          data: { status: "CANCELLED" }
+
+      const affectedHoldGroups = await tx.booking.findMany({
+        where: { tripId, status: "EXPIRED" },
+        select: { holdGroupId: true },
+        distinct: ["holdGroupId"],
+      });
+
+      for (const b of affectedHoldGroups) {
+        if (!b.holdGroupId) continue;
+        const remaining = await tx.booking.count({
+          where: {
+            holdGroupId: b.holdGroupId,
+            status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+          },
         });
+        if (remaining === 0) {
+          await tx.holdGroup.update({
+            where: { id: b.holdGroupId },
+            data: { status: "CANCELLED" },
+          });
+        }
       }
-    }
 
-    const trip = await tx.trip.update({
-      where: { id: tripId },
-      data: { status: "CANCELLED", cancelReason },
-    });
+      const trip = await tx.trip.update({
+        where: { id: tripId },
+        data: { status: "CANCELLED", cancelReason },
+      });
 
-    const bookings = await tx.booking.findMany({
-      where: { tripId: trip.id, status: "CONFIRMED" },
-      include: {
-        user: { select: { email: true, fullName: true, phoneNumber: true } },
-        trip: {
-          include: {
-            schedule: {
-              include: {
-                route: {
-                  include: {
-                    originTerminal: { include: { cityRelation: true } },
-                    destTerminal: { include: { cityRelation: true } },
+      const bookings = await tx.booking.findMany({
+        where: { tripId: trip.id, status: "CONFIRMED", checkedInAt: null },
+        include: {
+          user: { select: { email: true, fullName: true, phoneNumber: true } },
+          trip: {
+            include: {
+              schedule: {
+                include: {
+                  route: {
+                    include: {
+                      originTerminal: { include: { cityRelation: true } },
+                      destTerminal: { include: { cityRelation: true } },
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    const cancellationService = new CancellationService(tx as any);
-    const refundResults: Array<{
-      bookingReference: string;
-      success: boolean;
-      error?: string;
-      channel?: "WALLET" | "CASH";
-      amountXOF?: number;
-    }> = [];
+      const cancellationService = new CancellationService(tx as any);
+      const refundResults: Array<{
+        bookingReference: string;
+        success: boolean;
+        error?: string;
+        channel?: TripRefundChannel;
+        amountXOF?: number;
+      }> = [];
 
-    for (const booking of bookings) {
-      // All bookings are account-linked, so refunds always route to WALLET.
-      const channel = "WALLET";
-      try {
-        const refund = await cancellationService.cancelBooking({
-          bookingReference: booking.bookingReference,
-          userId: actor.userId,
-          userRole: actor.role === "ADMIN" ? "ADMIN" : "OPERATOR",
-          userCompanyId: actor.companyId,
-          channel,
-          reason: `Trip cancelled by operator: ${cancelReason}`,
-        }, tx);
-        
-        refundResults.push({
-          bookingReference: booking.bookingReference,
-          success: true,
-          channel,
-          amountXOF: refund.amountXOF,
-        });
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error(`[cancelTripWithRefunds] Failed to refund booking ${booking.bookingReference}:`, message);
-
+      for (const booking of bookings) {
+        const channel: TripRefundChannel =
+          !booking.userId && refundChannel === "WALLET"
+            ? "CASH"
+            : !booking.userId && refundChannel === "VOUCHER"
+              ? "CASH"
+              : refundChannel;
         try {
-          await tx.booking.update({
-            where: { id: booking.id },
-            data: { status: "CANCELLED" },
-          });
-
-          await tx.financialTransaction.create({
-            data: {
-              type: "CANCEL_WITHOUT_REFUND",
-              description: `Refund failed for booking ${booking.bookingReference}: ${message}`,
-              metadata: { bookingId: booking.id, error: message },
+          const refund = await cancellationService.cancelBooking(
+            {
+              bookingReference: booking.bookingReference,
+              userId: actor.userId,
+              userRole: actor.role === "ADMIN" ? "ADMIN" : "OPERATOR",
+              userCompanyId: actor.companyId,
+              channel,
+              reason: `Trip cancelled by operator: ${cancelReason}`,
             },
+            tx,
+          );
+
+          refundResults.push({
+            bookingReference: booking.bookingReference,
+            success: true,
+            channel,
+            amountXOF: refund.amountXOF,
           });
-        } catch (innerErr) {
-          console.error("Secondary failure writing CANCEL_WITHOUT_REFUND:", innerErr);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.error(
+            `[cancelTripWithRefunds] Failed to refund booking ${booking.bookingReference}:`,
+            message,
+          );
+
+          try {
+            await tx.booking.update({
+              where: { id: booking.id },
+              data: { status: "CANCELLED" },
+            });
+
+            await tx.financialTransaction.create({
+              data: {
+                type: "CANCEL_WITHOUT_REFUND",
+                description: `Refund failed for booking ${booking.bookingReference}: ${message}`,
+                metadata: { bookingId: booking.id, error: message },
+              },
+            });
+          } catch (innerErr) {
+            console.error(
+              "Secondary failure writing CANCEL_WITHOUT_REFUND:",
+              innerErr,
+            );
+          }
+
+          refundResults.push({
+            bookingReference: booking.bookingReference,
+            success: false,
+            error: message,
+            channel,
+            amountXOF: 0,
+          });
         }
-
-        refundResults.push({
-          bookingReference: booking.bookingReference,
-          success: false,
-          error: message,
-          channel,
-          amountXOF: 0,
-        });
       }
-    }
 
-    return { trip, refundResults, expiredHoldsCount: expiredHolds.count, bookingsToNotify: bookings };
-  });
+      return {
+        trip,
+        refundResults,
+        expiredHoldsCount: expiredHolds.count,
+        bookingsToNotify: bookings,
+      };
+    });
 
   if (bookingsToNotify.length > 0) {
     const novu = getNovuClient();
@@ -192,16 +238,14 @@ export async function cancelTripWithRefunds(params: {
                   timeZone: "Africa/Abidjan",
                 }),
                 cancelReason,
-                // L3: never surface a misleading "0 XOF" refund when the refund
-                // actually failed. Send a `failed` status and omit the amount so
-                // the Novu template can show "Refund processing failed, contact
-                // support" instead of "Your refund: 0 XOF".
                 refundStatus: refundSucceeded ? "success" : "failed",
                 refundAmountXOF: refundSucceeded
                   ? (refundResult?.amountXOF ?? 0)
                   : undefined,
                 phone:
-                  booking.user?.phoneNumber ?? booking.passengerPhone ?? undefined,
+                  booking.user?.phoneNumber ??
+                  booking.passengerPhone ??
+                  undefined,
               },
               transactionId: `passenger-trip-cancelled-${booking.id}`,
             })
@@ -217,5 +261,6 @@ export async function cancelTripWithRefunds(params: {
     tripId: trip.id,
     refundResults,
     expiredHolds: expiredHoldsCount,
+    skippedCheckedIn: 0,
   };
 }

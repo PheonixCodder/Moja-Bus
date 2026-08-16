@@ -1836,11 +1836,15 @@
         "notesSaveFailed": "Failed to save notes",
         "bulkCheckInResult": "Checked in {count} passenger(s) ({already} already in)",
         "bulkCheckInFailed": "Bulk check-in failed",
-        "bulkCancelResult": "Cancelled {count} booking(s); {failed} failed",
+        "bulkCancelResult": "Cancelled {count}; {failed} failed; {skipped} skipped (checked in)",
         "bulkCancelFailed": "Bulk cancel failed",
         "cancelReasonRequired": "Cancellation reason is required",
         "scannerDescription": "Scan passenger tickets for this departure. Only tickets for this trip will be accepted.",
-        "noActiveBus": "No active bus found."
+        "noActiveBus": "No active bus found.",
+        "refundWallet": "Wallet",
+        "refundCash": "Cash",
+        "refundVoucher": "Voucher",
+        "tripCancelBlockedCheckedIn": "Cannot cancel the whole trip while {count} passenger(s) are checked in. Cancel non-checked-in seats individually, or undo check-in first."
       }
     },
     "bookings": {
@@ -1891,7 +1895,8 @@
         "checkIn": "Check-in",
         "notCheckedIn": "Not checked in",
         "guestWarning": "Legacy guest booking — cash or voucher refund only.",
-        "cancelButton": "Cancel Booking & Refund"
+        "cancelButton": "Cancel Booking & Refund",
+        "cancelDisabledCheckedIn": "Cancel is disabled after check-in."
       },
       "cancelModal": {
         "title": "Cancel Booking & Request Refund",
@@ -1904,6 +1909,8 @@
         "walletHint": "Moja Wallet",
         "cash": "Cash",
         "cashHint": "Manual Cash",
+        "voucher": "Voucher",
+        "voucherHint": "Same schedule only",
         "unavailable": "Unavailable",
         "reasonLabel": "Cancellation Reason *",
         "reasonPlaceholder": "Reason for cancellation...",
@@ -4381,6 +4388,7 @@
       "voucherInactive": "Voucher is not available",
       "voucherExpired": "Voucher has expired",
       "voucherEmpty": "Voucher has no remaining balance",
+      "voucherScheduleMismatch": "This voucher is only valid on the original schedule",
       "inactive": "Promotion is inactive",
       "wrongOperator": "Promotion does not apply to this operator",
       "noOptIn": "Operator has not opted into this promotion",

@@ -31,7 +31,7 @@ import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/forma
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
-type RefundChannel = "CASH" | "WALLET";
+type RefundChannel = "CASH" | "WALLET" | "VOUCHER";
 
 export function BookingDetailDrawer({
   bookingId,
@@ -59,7 +59,7 @@ export function BookingDetailDrawer({
   const isGuest = !booking?.userId;
 
   useEffect(() => {
-    if (isGuest && refundChannel === "WALLET") {
+    if (isGuest && (refundChannel === "WALLET" || refundChannel === "VOUCHER")) {
       setRefundChannel("CASH");
     }
   }, [isGuest, refundChannel]);
@@ -87,7 +87,7 @@ export function BookingDetailDrawer({
       toast.error(t("toast.reasonRequired"));
       return;
     }
-    if (isGuest && refundChannel === "WALLET") {
+    if (isGuest && (refundChannel === "WALLET" || refundChannel === "VOUCHER")) {
       toast.error(t("toast.walletNotAvailable"));
       return;
     }
@@ -182,6 +182,7 @@ export function BookingDetailDrawer({
 
                 {canCancel &&
                 booking.status === "CONFIRMED" &&
+                !booking.checkedInAt &&
                 new Date(booking.departureTime) > new Date() ? (
                   <div className="pt-4 border-t border-border mt-6">
                     <Button
@@ -191,6 +192,15 @@ export function BookingDetailDrawer({
                     >
                       {t("detail.cancelButton")}
                     </Button>
+                  </div>
+                ) : null}
+                {canCancel &&
+                booking.status === "CONFIRMED" &&
+                booking.checkedInAt ? (
+                  <div className="pt-4 border-t border-border mt-6">
+                    <p className="text-xs text-muted-foreground text-center">
+                      {t("detail.cancelDisabledCheckedIn")}
+                    </p>
                   </div>
                 ) : null}
               </>
@@ -228,7 +238,7 @@ export function BookingDetailDrawer({
                 <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {t("cancelModal.refundMethod")}
                 </Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {(
                     [
                       {
@@ -242,6 +252,12 @@ export function BookingDetailDrawer({
                         labelKey: "cancelModal.cash",
                         hintKey: "cancelModal.cashHint",
                         disabled: false,
+                      },
+                      {
+                        id: "VOUCHER" as const,
+                        labelKey: "cancelModal.voucher",
+                        hintKey: "cancelModal.voucherHint",
+                        disabled: isGuest,
                       },
                     ] as const
                   ).map((opt) => (

@@ -1801,11 +1801,15 @@
         "notesSaveFailed": "Échec de l’enregistrement des notes",
         "bulkCheckInResult": "{count} passager(s) enregistré(s) ({already} déjà présents)",
         "bulkCheckInFailed": "Échec de l’enregistrement groupé",
-        "bulkCancelResult": "{count} réservation(s) annulée(s) ; {failed} échec(s)",
+        "bulkCancelResult": "{count} annulée(s) ; {failed} échec(s) ; {skipped} ignorée(s) (enregistrées)",
         "bulkCancelFailed": "Échec de l’annulation groupée",
         "cancelReasonRequired": "Un motif d’annulation est requis",
         "scannerDescription": "Scannez les billets des passagers pour ce départ. Seuls les billets pour ce trajet seront acceptés.",
-        "noActiveBus": "Aucun bus actif trouvé."
+        "noActiveBus": "Aucun bus actif trouvé.",
+        "refundWallet": "Portefeuille",
+        "refundCash": "Espèces",
+        "refundVoucher": "Bon",
+        "tripCancelBlockedCheckedIn": "Impossible d’annuler le trajet tant que {count} passager(s) sont enregistrés. Annulez les sièges non enregistrés individuellement, ou annulez d’abord l’enregistrement."
       }
     },
     "bookings": {
@@ -1856,7 +1860,8 @@
         "checkIn": "Enregistrement",
         "notCheckedIn": "Non enregistré",
         "guestWarning": "Réservation héritée — remboursement en espèces ou bon uniquement.",
-        "cancelButton": "Annuler la réservation et rembourser"
+        "cancelButton": "Annuler la réservation et rembourser",
+        "cancelDisabledCheckedIn": "L'annulation est désactivée après l'enregistrement."
       },
       "cancelModal": {
         "title": "Annuler la réservation et demander un remboursement",
@@ -1869,6 +1874,8 @@
         "walletHint": "Moja Wallet",
         "cash": "Espèces",
         "cashHint": "Espèces manuelles",
+        "voucher": "Bon",
+        "voucherHint": "Même horaire uniquement",
         "unavailable": "Indisponible",
         "reasonLabel": "Motif d'annulation *",
         "reasonPlaceholder": "Motif de l'annulation...",
@@ -4340,6 +4347,7 @@
       "voucherInactive": "Avoir indisponible",
       "voucherExpired": "Avoir expiré",
       "voucherEmpty": "Avoir sans solde restant",
+      "voucherScheduleMismatch": "Ce bon n'est valable que sur l'horaire d'origine",
       "inactive": "Promotion inactive",
       "wrongOperator": "Promotion non applicable à cet opérateur",
       "noOptIn": "L'opérateur n'a pas adhéré à cette promotion",

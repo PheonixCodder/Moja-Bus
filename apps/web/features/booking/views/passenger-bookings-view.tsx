@@ -95,8 +95,16 @@ export function PassengerBookingsView() {
   const walletCheckoutMutation = useMutation(
     trpc.booking.checkoutWithWallet.mutationOptions(),
   );
+  const refreezeMutation = useMutation(
+    trpc.booking.refreezeHoldDiscounts.mutationOptions(),
+  );
 
-  async function executePayment() {
+  async function executePayment(discount?: {
+    code?: string | undefined;
+    monetaryVoucherId?: string | undefined;
+    useCredits?: boolean | undefined;
+    waiveConvenienceFee?: boolean | undefined;
+  }) {
     if (!selectedBooking?.holdGroupId) return;
     const holdId = selectedBooking.holdGroupId;
 
@@ -107,6 +115,21 @@ export function PassengerBookingsView() {
 
     setIsPaying(true);
     try {
+      const { getDeviceHash } = await import(
+        "@/features/discounts/lib/device-hash"
+      );
+      const deviceHash = await getDeviceHash();
+      await refreezeMutation.mutateAsync({
+        holdId,
+        code: discount?.code,
+        monetaryVoucherId: discount?.monetaryVoucherId,
+        useCredits: discount?.useCredits ?? true,
+        autoApply: true,
+        waiveConvenienceFee:
+          discount?.waiveConvenienceFee ?? paymentMethod === "WALLET",
+        ...(deviceHash ? { deviceHash } : {}),
+      });
+
       if (paymentMethod === "PAYSTACK") {
         const confirmed = await completePayment({ holdId });
         if (!confirmed) return;

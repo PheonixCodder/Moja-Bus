@@ -533,6 +533,7 @@ model Company {
   discountCampaigns DiscountCampaign[]
   campaignOptIns    CampaignCompanyOptIn[]
   discountRedemptions DiscountRedemption[]
+  monetaryVouchers  MonetaryVoucher[]
 
   // Paystack transfer recipient for manual settlements
   paystackTransferRecipientCode String?
@@ -1368,6 +1369,7 @@ model Schedule {
   // Schedule-specific timing - decouples from route level
   scheduleWaypoints ScheduleWaypoint[]
   campaignScopes    CampaignScheduleScope[]
+  monetaryVouchers  MonetaryVoucher[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2472,6 +2474,13 @@ model MonetaryVoucher {
   expiresAt                      DateTime?
   expiresOnFirstCompletedBooking Boolean @default(false)
 
+  /** Required for CANCELLATION vouchers — redeemable only on this schedule. */
+  scheduleId String?
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  /** Issuing operator company (cancellation vouchers). */
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
   sourceHoldGroupId String?
   sourceHoldGroup   HoldGroup? @relation("VoucherSourceHoldGroup", fields: [sourceHoldGroupId], references: [id], onDelete: SetNull)
   sourceBookingId   String?
@@ -2491,6 +2500,8 @@ model MonetaryVoucher {
   @@index([campaignId])
   @@index([sourceHoldGroupId])
   @@index([sourceBookingId])
+  @@index([scheduleId])
+  @@index([companyId])
   @@map("monetary_voucher")
 }
 

@@ -149,6 +149,7 @@ export class TripDetailsService {
     return {
       offerId: buildOfferId(tripId, originTripStopId, destinationTripStopId),
       tripId: trip.id,
+      scheduleId: trip.scheduleId ?? null,
       companyId: trip.company.id,
       companyName: trip.company.name,
       companyLogoUrl: trip.company.logoUrl,

@@ -237,6 +237,54 @@ export const bookingRouter = createTRPCRouter({
       return confirmationService.confirmFromWallet(input.holdId, ctx.user.id);
     }),
 
+  refreezeHoldDiscounts: protectedProcedure
+    .input(
+      z.object({
+        holdId: z.string(),
+        code: z.string().optional(),
+        monetaryVoucherId: z.string().optional(),
+        autoApply: z.boolean().optional(),
+        useCredits: z.boolean().optional(),
+        creditAmountXOF: z.number().int().min(0).optional(),
+        waiveConvenienceFee: z.boolean().optional(),
+        deviceHash: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { resolveHoldGroup } = await import(
+        "@/features/payments/lib/resolve-hold-group"
+      );
+      const { assertHoldOwnedByUser } = await import(
+        "@/features/booking/lib/assert-hold-ownership"
+      );
+      const holdGroup = await resolveHoldGroup(ctx.prisma, input.holdId);
+      assertHoldOwnedByUser(holdGroup, ctx.user.id);
+
+      const { refreezeHoldDiscounts } = await import(
+        "@/features/discounts/services/quote-service"
+      );
+      const quote = await refreezeHoldDiscounts(ctx.prisma, {
+        holdGroupId: input.holdId,
+        userId: ctx.user.id,
+        code: input.code,
+        monetaryVoucherId: input.monetaryVoucherId,
+        autoApply: input.autoApply,
+        useCredits: input.useCredits,
+        creditAmountXOF: input.creditAmountXOF,
+        waiveConvenienceFee: input.waiveConvenienceFee,
+        deviceHash: input.deviceHash,
+      });
+      return {
+        chargeAmountXOF: quote.chargeAmountXOF,
+        creditAppliedXOF: quote.creditAppliedXOF,
+        ticketDiscountXOF: quote.ticketDiscountXOF,
+        convenienceFeeXOF: quote.convenienceFeeXOF,
+        postDiscountSubtotalXOF: quote.postDiscountSubtotalXOF,
+        preDiscountSubtotalXOF: quote.preDiscountSubtotalXOF,
+        ok: quote.ok,
+      };
+    }),
+
   shareTicket: protectedProcedure
     .input(
       z.object({

@@ -26,5 +26,6 @@ export type DelayTripInput = z.infer<typeof delayTripSchema>;
 
 export const cancelTripSchema = z.object({
   cancelReason: z.string().min(1, "Reason is required"),
+  refundChannel: z.enum(["CASH", "WALLET", "VOUCHER"]).default("WALLET"),
 });
 export type CancelTripInput = z.infer<typeof cancelTripSchema>;

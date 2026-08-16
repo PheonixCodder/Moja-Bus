@@ -279,6 +279,123 @@ export async function releaseDiscountReservations(
   });
 }
 
+/**
+ * Re-quote and re-freeze discounts on an active hold (pending pay).
+ * Releases prior RESERVED instruments, then writes a fresh snapshot + reserves.
+ */
+export async function refreezeHoldDiscounts(
+  prisma: PrismaClient,
+  input: {
+    holdGroupId: string;
+    userId: string;
+    code?: string | undefined;
+    monetaryVoucherId?: string | undefined;
+    autoApply?: boolean | undefined;
+    useCredits?: boolean | undefined;
+    creditAmountXOF?: number | undefined;
+    deviceHash?: string | null | undefined;
+    waiveConvenienceFee?: boolean | undefined;
+  },
+): Promise<QuoteResult> {
+  const hold = await prisma.holdGroup.findUnique({
+    where: { id: input.holdGroupId },
+    include: {
+      pricingSnapshot: true,
+      bookings: { select: { id: true, status: true } },
+      trip: {
+        select: {
+          id: true,
+          scheduleId: true,
+          companyId: true,
+          schedule: { select: { routeId: true, route: { select: { distanceKm: true } } } },
+        },
+      },
+    },
+  });
+
+  if (!hold || hold.status !== "ACTIVE") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Hold is not active",
+    });
+  }
+  if (hold.userId && hold.userId !== input.userId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Hold access denied" });
+  }
+  if (hold.holdExpiresAt.getTime() <= Date.now()) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Hold has expired" });
+  }
+  if (!hold.offerId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Hold is missing offer reference",
+    });
+  }
+
+  const seatCount = hold.seatCount;
+  const baseFareXOF = hold.baseFareXOF;
+  const { loadPlatformSettings, resolvePricing } = await import(
+    "@/features/payments/lib/pricing-resolver"
+  );
+  const { settings, tiers } = await loadPlatformSettings(prisma);
+  const basePricing = resolvePricing({
+    baseFareXOF,
+    seatCount,
+    distanceKm: hold.trip.schedule?.route.distanceKm ?? null,
+    settings,
+    tiers,
+  });
+
+  const quote = await quoteCheckoutDiscounts(prisma, {
+    offerCompanyId: hold.companyId,
+    routeId: hold.trip.schedule?.routeId ?? null,
+    scheduleId: hold.trip.scheduleId ?? null,
+    tripId: hold.trip.id,
+    baseFareXOF,
+    seatCount,
+    convenienceFeeBps: basePricing.convenienceFeeBps,
+    waiveConvenienceFee: input.waiveConvenienceFee,
+    userId: input.userId,
+    code: input.code,
+    monetaryVoucherId: input.monetaryVoucherId,
+    autoApply: input.autoApply ?? true,
+    useCredits: input.useCredits ?? true,
+    creditAmountXOF: input.creditAmountXOF,
+    strict: true,
+  });
+
+  await prisma.$transaction(async (tx) => {
+    await releaseDiscountReservations(tx, hold.id);
+
+    const existingSnapshot = await tx.pricingSnapshot.findUnique({
+      where: { holdGroupId: hold.id },
+    });
+    if (existingSnapshot) {
+      await tx.pricingSnapshot.delete({ where: { holdGroupId: hold.id } });
+    }
+
+    await freezeDiscountOnHold(tx, {
+      holdGroupId: hold.id,
+      userId: input.userId,
+      companyId: hold.companyId,
+      quote,
+      deviceHash: input.deviceHash ?? null,
+      basePricing: {
+        distanceKm: basePricing.distanceKm,
+        commissionBps: basePricing.commissionBps,
+        convenienceFeeBps: basePricing.convenienceFeeBps,
+        baseFareXOF: basePricing.baseFareXOF,
+        seatCount: basePricing.seatCount,
+        commissionXOF: basePricing.commissionXOF,
+        operatorNetXOF: basePricing.operatorNetXOF,
+        platformGrossXOF: basePricing.platformGrossXOF,
+      },
+    });
+  });
+
+  return quote;
+}
+
 export async function finalizeDiscountRedemptions(
   tx: Tx,
   holdGroupId: string,

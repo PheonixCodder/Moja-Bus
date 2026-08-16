@@ -139,6 +139,25 @@ export function evaluateCheckoutDiscounts(
         messageKey: "discounts.errors.voucherExpired",
       });
     }
+    if (
+      v.scheduleId &&
+      (input.ctx.scheduleId == null || v.scheduleId !== input.ctx.scheduleId)
+    ) {
+      return emptyReject(input.ctx, {
+        code: "VOUCHER_SCHEDULE_MISMATCH",
+        messageKey: "discounts.errors.voucherScheduleMismatch",
+      });
+    }
+    if (
+      v.companyId &&
+      v.scheduleId &&
+      v.companyId !== input.ctx.companyId
+    ) {
+      return emptyReject(input.ctx, {
+        code: "VOUCHER_SCHEDULE_MISMATCH",
+        messageKey: "discounts.errors.voucherScheduleMismatch",
+      });
+    }
     const available = Math.max(0, v.remainingAmountXOF - v.reservedAmountXOF);
     if (available <= 0) {
       return emptyReject(input.ctx, {

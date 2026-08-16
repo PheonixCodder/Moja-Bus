@@ -69,6 +69,9 @@ export type EvalVoucher = {
   status: string;
   expiresAt: Date | null;
   applyTarget?: DiscountApplyTarget | undefined;
+  /** When set, only redeemable on trips for this schedule. */
+  scheduleId?: string | null | undefined;
+  companyId?: string | null | undefined;
 };
 
 export type EvalCreditLot = {

@@ -13,9 +13,18 @@ export async function issueCancellationVoucher(
     amountXOF: number;
     sourceBookingId?: string;
     sourceHoldGroupId?: string;
+    scheduleId: string;
+    companyId: string;
   },
 ): Promise<{ voucherId: string } | null> {
   if (input.amountXOF <= 0) return null;
+  if (!input.scheduleId || !input.companyId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message:
+        "Cancellation vouchers require a schedule — use wallet or cash refund instead",
+    });
+  }
 
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + 12);
@@ -28,6 +37,8 @@ export async function issueCancellationVoucher(
       originalAmountXOF: input.amountXOF,
       remainingAmountXOF: input.amountXOF,
       expiresAt,
+      scheduleId: input.scheduleId,
+      companyId: input.companyId,
       sourceBookingId: input.sourceBookingId ?? null,
       sourceHoldGroupId: input.sourceHoldGroupId ?? null,
     },
@@ -141,6 +152,26 @@ export async function listUserVouchers(
             status: { in: ["ACTIVE", "PARTIALLY_REDEEMED"] },
             OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           }),
+    },
+    include: {
+      schedule: {
+        select: {
+          id: true,
+          name: true,
+          departureTime: true,
+          route: {
+            select: {
+              name: true,
+              originTerminal: {
+                select: { cityRelation: { select: { name: true } } },
+              },
+              destTerminal: {
+                select: { cityRelation: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });

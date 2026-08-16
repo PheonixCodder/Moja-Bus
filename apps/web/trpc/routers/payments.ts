@@ -70,6 +70,28 @@ export const paymentsRouter = createTRPCRouter({
         creditAmountXOF: input.creditAmountXOF,
       });
 
+      const { resolveCheckoutPayable } = await import(
+        "@/features/payments/lib/checkout-payable"
+      );
+      const walletPayable = resolveCheckoutPayable({
+        postDiscountSubtotalXOF: quote.postDiscountSubtotalXOF,
+        convenienceFeeXOF: quote.convenienceFeeXOF,
+        ticketDiscountXOF: quote.ticketDiscountXOF,
+        feeDiscountXOF: quote.feeDiscountXOF,
+        creditAppliedXOF: quote.creditAppliedXOF,
+        chargeAmountXOF: quote.chargeAmountXOF,
+        paymentMethod: "WALLET",
+      });
+      const paystackPayable = resolveCheckoutPayable({
+        postDiscountSubtotalXOF: quote.postDiscountSubtotalXOF,
+        convenienceFeeXOF: quote.convenienceFeeXOF,
+        ticketDiscountXOF: quote.ticketDiscountXOF,
+        feeDiscountXOF: quote.feeDiscountXOF,
+        creditAppliedXOF: quote.creditAppliedXOF,
+        chargeAmountXOF: quote.chargeAmountXOF,
+        paymentMethod: "PAYSTACK",
+      });
+
       return {
         ...base,
         subtotalBaseXOF: quote.postDiscountSubtotalXOF,
@@ -82,6 +104,9 @@ export const paymentsRouter = createTRPCRouter({
         autoAppliedCampaignId: quote.autoAppliedCampaignId,
         discountOk: quote.ok,
         discountRejection: quote.rejection ?? null,
+        payableWalletXOF: walletPayable.payableXOF,
+        payablePaystackXOF: paystackPayable.payableXOF,
+        canZeroCash: walletPayable.payableXOF === 0,
       };
     }),
 

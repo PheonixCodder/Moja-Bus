@@ -26,6 +26,8 @@ export class CancellationService {
           select: {
             departureDate: true,
             status: true,
+            scheduleId: true,
+            companyId: true,
           },
         },
       },
@@ -33,6 +35,28 @@ export class CancellationService {
 
     if (!booking) {
       throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+    }
+
+    if (booking.checkedInAt) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cannot cancel a booking after check-in",
+      });
+    }
+
+    if (input.channel === "VOUCHER" && !booking.userId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Voucher refunds require a passenger account — use cash instead",
+      });
+    }
+
+    if (input.channel === "VOUCHER" && !booking.trip.scheduleId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "This trip has no schedule — cannot issue a schedule voucher. Use wallet or cash.",
+      });
     }
 
     const isOwner = booking.userId === input.userId;
@@ -409,6 +433,8 @@ export class CancellationService {
         amountXOF: result.amountXOF,
         sourceBookingId: booking.id,
         sourceHoldGroupId: booking.holdGroupId ?? undefined,
+        scheduleId: booking.trip.scheduleId!,
+        companyId: booking.trip.companyId,
       });
       voucherId = issued?.voucherId ?? null;
     }

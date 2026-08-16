@@ -26,6 +26,7 @@ export interface TripDetailsStop {
 export interface TripDetails {
   offerId: string;
   tripId: string;
+  scheduleId: string | null;
   companyId: string;
   companyName: string;
   companyLogoUrl: string | null;

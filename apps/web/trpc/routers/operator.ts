@@ -1248,6 +1248,7 @@ export const operatorRouter = createTRPCRouter({
         tripId: z.string(),
         bookingIds: z.array(z.string()),
         reason: z.string().min(1),
+        channel: z.enum(["CASH", "WALLET", "VOUCHER"]).default("WALLET"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -1261,19 +1262,31 @@ export const operatorRouter = createTRPCRouter({
           companyId: ctx.companyId,
           status: "CONFIRMED",
         },
-        select: { bookingReference: true },
+        select: {
+          bookingReference: true,
+          userId: true,
+          checkedInAt: true,
+        },
       });
       let cancelled = 0;
       let failed = 0;
+      let skippedCheckedIn = 0;
       for (const b of bookings) {
+        if (b.checkedInAt) {
+          skippedCheckedIn += 1;
+          continue;
+        }
+        const channel =
+          !b.userId && (input.channel === "WALLET" || input.channel === "VOUCHER")
+            ? "CASH"
+            : input.channel;
         try {
-          // All bookings are account-linked, so refunds route to WALLET.
           await service.cancelBooking({
             bookingReference: b.bookingReference,
             userId: ctx.user.id,
             userRole: "OPERATOR",
             userCompanyId: ctx.companyId,
-            channel: "WALLET",
+            channel,
             reason: input.reason,
           });
           cancelled += 1;
@@ -1281,7 +1294,12 @@ export const operatorRouter = createTRPCRouter({
           failed += 1;
         }
       }
-      return { requested: bookings.length, cancelled, failed };
+      return {
+        requested: bookings.length,
+        cancelled,
+        failed,
+        skippedCheckedIn,
+      };
     }),
 
   // L11: list reviews for this operator's company, with author + booking

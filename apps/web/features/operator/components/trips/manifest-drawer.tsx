@@ -81,6 +81,12 @@ export function ManifestDrawer({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkCancelOpen, setBulkCancelOpen] = useState(false);
   const [bulkReason, setBulkReason] = useState("");
+  const [bulkChannel, setBulkChannel] = useState<"WALLET" | "CASH" | "VOUCHER">(
+    "WALLET",
+  );
+  const [tripRefundChannel, setTripRefundChannel] = useState<
+    "WALLET" | "CASH" | "VOUCHER"
+  >("WALLET");
 
   const {
     data: trip,
@@ -265,9 +271,14 @@ export function ManifestDrawer({
         tripId: trip.id,
         bookingIds: Array.from(selectedIds),
         reason: bulkReason.trim(),
+        channel: bulkChannel,
       });
       toast.success(
-        t("bulkCancelResult", { count: res.cancelled, failed: res.failed }),
+        t("bulkCancelResult", {
+          count: res.cancelled,
+          failed: res.failed,
+          skipped: res.skippedCheckedIn ?? 0,
+        }),
       );
       setSelectedIds(new Set());
       setBulkCancelOpen(false);
@@ -582,6 +593,28 @@ export function ManifestDrawer({
                           onChange={(e) => setBulkReason(e.target.value)}
                           className="text-sm"
                         />
+                        <div className="grid grid-cols-3 gap-1">
+                          {(
+                            [
+                              ["WALLET", t("refundWallet")],
+                              ["CASH", t("refundCash")],
+                              ["VOUCHER", t("refundVoucher")],
+                            ] as const
+                          ).map(([id, label]) => (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => setBulkChannel(id)}
+                              className={`rounded-md border px-1.5 py-1 text-[10px] font-semibold ${
+                                bulkChannel === id
+                                  ? "border-destructive bg-destructive/10 text-destructive"
+                                  : "border-border text-muted-foreground"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
@@ -604,6 +637,7 @@ export function ManifestDrawer({
                             onClick={() => {
                               setBulkCancelOpen(false);
                               setBulkReason("");
+                              setBulkChannel("WALLET");
                             }}
                           >
                             {t("back")}
@@ -831,32 +865,76 @@ export function ManifestDrawer({
                 {canCancel && actions?.canCancel ? (
                   showCancelForm ? (
                     <div className="space-y-2">
-                      <Input
-                        placeholder={t("cancelReasonPlaceholder")}
-                        aria-label={t("cancelReasonPlaceholder")}
-                        value={cancelReason}
-                        onChange={(e) => setCancelReason(e.target.value)}
-                        className="text-sm"
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            if (!cancelReason.trim()) {
-                              toast.error(t("cancelReasonRequired"));
-                              return;
-                            }
-                            cancelMutation.mutate({
-                              id: trip.id,
-                              data: { cancelReason: cancelReason.trim() },
-                            });
-                          }}
-                          disabled={actionLoading || !cancelReason.trim()}
-                          className="flex-1"
-                        >
-                          {t("confirmCancelLabel", { count: 1 })}
-                        </Button>
+                      {checkedInCount > 0 ? (
+                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md p-2">
+                          {t("tripCancelBlockedCheckedIn", {
+                            count: checkedInCount,
+                          })}
+                        </p>
+                      ) : (
+                        <>
+                          <Input
+                            placeholder={t("cancelReasonPlaceholder")}
+                            aria-label={t("cancelReasonPlaceholder")}
+                            value={cancelReason}
+                            onChange={(e) => setCancelReason(e.target.value)}
+                            className="text-sm"
+                          />
+                          <div className="grid grid-cols-3 gap-1">
+                            {(
+                              [
+                                ["WALLET", t("refundWallet")],
+                                ["CASH", t("refundCash")],
+                                ["VOUCHER", t("refundVoucher")],
+                              ] as const
+                            ).map(([id, label]) => (
+                              <button
+                                key={id}
+                                type="button"
+                                onClick={() => setTripRefundChannel(id)}
+                                className={`rounded-md border px-1.5 py-1 text-[10px] font-semibold ${
+                                  tripRefundChannel === id
+                                    ? "border-destructive bg-destructive/10 text-destructive"
+                                    : "border-border text-muted-foreground"
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                if (!cancelReason.trim()) {
+                                  toast.error(t("cancelReasonRequired"));
+                                  return;
+                                }
+                                cancelMutation.mutate({
+                                  id: trip.id,
+                                  data: {
+                                    cancelReason: cancelReason.trim(),
+                                    refundChannel: tripRefundChannel,
+                                  },
+                                });
+                              }}
+                              disabled={actionLoading || !cancelReason.trim()}
+                              className="flex-1"
+                            >
+                              {t("confirmCancelLabel", { count: 1 })}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setShowCancelForm(false)}
+                            >
+                              {t("back")}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                      {checkedInCount > 0 ? (
                         <Button
                           size="sm"
                           variant="ghost"
@@ -864,7 +942,7 @@ export function ManifestDrawer({
                         >
                           {t("back")}
                         </Button>
-                      </div>
+                      ) : null}
                     </div>
                   ) : (
                     <Button

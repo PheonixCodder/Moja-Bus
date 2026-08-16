@@ -370,10 +370,26 @@ export class BookingConfirmationService {
       });
     }
 
-    const totalToPay = Math.max(
-      0,
-      snapshot.chargeAmountXOF - snapshot.convenienceFeeXOF,
-    ); // Wallet waives convenience fee; charge already nets credits/discounts
+    const { walletPayableFromSnapshot } = await import(
+      "@/features/payments/lib/checkout-payable"
+    );
+    // Wallet / zero-cash waives convenience fee; payable nets credits + voucher
+    const totalToPay = walletPayableFromSnapshot(snapshot);
+    const promoCoverXOF =
+      (snapshot.platformPromoFundedXOF ?? 0) +
+      (snapshot.creditAppliedXOF ?? 0) +
+      (snapshot.operatorPromoFundedXOF ?? 0);
+    if (
+      totalToPay === 0 &&
+      snapshot.operatorNetXOF > 0 &&
+      promoCoverXOF <= 0 &&
+      (snapshot.ticketDiscountXOF ?? 0) <= 0
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cannot confirm a zero-cash booking without promo coverage",
+      });
+    }
     let confirmed;
     let exhaustedCampaignIds: string[] = [];
     try {
@@ -393,7 +409,8 @@ export class BookingConfirmationService {
         Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${walletAcct.id} FOR UPDATE`,
       );
       const available = BigInt(lockedWallet[0]?.available_balance ?? 0);
-      if (available < BigInt(totalToPay)) {
+      // Zero-cash (fully covered by credits/voucher): no wallet debit required
+      if (totalToPay > 0 && available < BigInt(totalToPay)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Insufficient wallet balance",
@@ -493,7 +510,9 @@ export class BookingConfirmationService {
 
       const hasPromoLegs =
         (snapshot.platformPromoFundedXOF ?? 0) > 0 ||
-        (snapshot.creditAppliedXOF ?? 0) > 0;
+        (snapshot.operatorPromoFundedXOF ?? 0) > 0 ||
+        (snapshot.creditAppliedXOF ?? 0) > 0 ||
+        (snapshot.ticketDiscountXOF ?? 0) > 0;
       if (hasPromoLegs) {
         const promoExpense =
           await accountService.getPlatformPromoExpenseAccount();

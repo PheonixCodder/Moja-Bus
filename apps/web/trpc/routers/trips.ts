@@ -1003,6 +1003,7 @@ export const tripsRouter = createTRPCRouter({
         prisma: ctx.prisma,
         tripId: trip.id,
         cancelReason: input.data.cancelReason,
+        refundChannel: input.data.refundChannel,
         actor: {
           userId: ctx.user.id,
           companyId: ctx.companyId,
@@ -1015,6 +1016,7 @@ export const tripsRouter = createTRPCRouter({
         status: "CANCELLED" as const,
         cancelReason: input.data.cancelReason,
         refundResults: result.refundResults,
+        skippedCheckedIn: result.skippedCheckedIn,
       };
     }),
 

@@ -224,4 +224,42 @@ describe("evaluateCheckoutDiscounts", () => {
     assert.equal(result.ticketDiscountXOF, 0);
     assert.equal(result.autoAppliedCampaignId, null);
   });
+
+  it("rejects schedule-scoped voucher on wrong schedule", () => {
+    const result = evaluateCheckoutDiscounts({
+      ctx: baseCtx({ scheduleId: "sch_other" }),
+      campaigns: [],
+      monetaryVoucher: {
+        id: "v1",
+        remainingAmountXOF: 5000,
+        reservedAmountXOF: 0,
+        status: "ACTIVE",
+        expiresAt: null,
+        scheduleId: "sch_1",
+        companyId: "co_1",
+      },
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.rejection?.code, "VOUCHER_SCHEDULE_MISMATCH");
+  });
+
+  it("applies schedule-scoped voucher on matching schedule", () => {
+    const result = evaluateCheckoutDiscounts({
+      ctx: baseCtx({ scheduleId: "sch_1" }),
+      campaigns: [],
+      monetaryVoucher: {
+        id: "v1",
+        remainingAmountXOF: 5000,
+        reservedAmountXOF: 0,
+        status: "ACTIVE",
+        expiresAt: null,
+        scheduleId: "sch_1",
+        companyId: "co_1",
+      },
+    });
+    assert.equal(result.ok, true);
+    assert.ok(
+      result.instruments.some((i) => i.instrumentType === "MONETARY_VOUCHER"),
+    );
+  });
 });

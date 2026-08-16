@@ -168,6 +168,8 @@ export async function loadUserVoucher(
     status: row.status,
     expiresAt: row.expiresAt,
     applyTarget: "ENTIRE_CHARGE",
+    scheduleId: row.scheduleId,
+    companyId: row.companyId,
   };
 }
 

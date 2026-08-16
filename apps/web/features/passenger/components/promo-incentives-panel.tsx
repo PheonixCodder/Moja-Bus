@@ -206,6 +206,13 @@ export function PromoIncentivesPanel() {
                 <span>
                   {v.remainingAmountXOF.toLocaleString()} XOF
                   {v.code ? ` · ${v.code}` : ""}
+                  {v.scheduleId
+                    ? ` · ${
+                        v.schedule?.route?.name ??
+                        v.schedule?.name ??
+                        "schedule"
+                      }`
+                    : ""}
                   {v.expiresAt
                     ? ` · ${t("promoExpires", {
                         date: format(new Date(v.expiresAt), "dd MMM yyyy"),

@@ -1,23 +1,29 @@
 # Memory — Moja Ride
 
-Last updated: 2026-08-15 (Sprint E scopes / ceiling / credits catalog)
+Last updated: 2026-08-16 (schedule vouchers + zero-cash + cancel channels)
 
 ## Discount / referral / voucher
 
-Audit: `docs/audits/discount-referral-voucher-system-audit-2026-08-15.md`
+Audit: `docs/audits/discount-referral-voucher-system-audit-2026-08-15.md`  
+Plan: `docs/plans/schedule-voucher-checkout-cancel-hardening.md`
 
-### Sprint A–D (done)
-Growth loop usable: soft-fail quotes, coupons, `/r/CODE`, pending applier, redemptions, invitees, welcome coupon, device hash, rate limits, campaign settings, abuse queue, wallet promo panel, hold deviceHash, Phase 19 + finance recon docs.
+### Sprint A–E (done earlier)
+Growth loop, scopes, promo ceiling, promo credits catalog.
 
-### Sprint E (done this session)
-1. **Schedule/trip scope pickers** — `listScopeSchedules` / `listScopeTrips` on admin + operator; `CampaignSettingsEditor` cascade route→schedule→trip; full `scopes` on save
-2. **PlatformSettings voucher ceiling** — `maxPromotionalVouchersPerUser`; `getPromoPolicy`; admin settings UI + audit; FAQ/Terms use published limit
-3. **Promo credits catalog (not points)** — admin `grantCredit` + lookup; `WALLET_CREDIT_GRANT` create (admin); `claimCreditGrant`; wallet claim + pending/available/source labels (web + traveler)
+### Hardening (this session — implemented)
+1. **Zero-cash / wallet payable** — `checkout-payable.ts`; wallet gate uses post-credit payable (not raw fare); `confirmFromWallet` allows payable=0 with promo legs
+2. **Schedule-scoped cancellation vouchers** — `MonetaryVoucher.scheduleId` + `companyId`; issue on cancel; evaluate rejects mismatch; wallet/checkout show schedule; migration `20260816120000_voucher_schedule_scope`
+3. **Operator cancel channels** — Wallet | Cash | Voucher on booking detail + manifest bulk/trip; shared channel; guests → cash
+4. **Checked-in** — single cancel disabled; trip cancel **blocked** if any checked-in; bulk skips checked-in
+5. **Pending pay** — `refreezeHoldDiscounts` + promo/voucher/credits UI on pending PaymentTab (parity with search)
 
-### Still open (later)
-- Signup optional referral field (mostly covered by pending applier)
-- Execute Phase 19 smoke + finance recon on staging before GA
-- Novu marketing workflows still listed in Phase 19
+### Apply before deploy
+- `prisma migrate deploy` for voucher schedule columns
+
+### Still open
+- Traveler-app UI parity for pending pay / schedule voucher labels
+- Phase 19 staging smoke + finance recon
+- Novu marketing workflows
 
 ### Do not
 - Commit secrets / service-account JSON / `google-services.json`
