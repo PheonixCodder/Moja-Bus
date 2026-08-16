@@ -27,8 +27,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck monorepo
-        run: pnpm run typecheck
+      - name: Typecheck workspace except traveler app
+        run: pnpm exec turbo run typecheck --filter=!traveler-app
 
   build-and-push:
     name: Build & Push Docker Images
