@@ -5,10 +5,10 @@
  * Usage:
  *   pnpm exec tsx apps/web/scripts/inventory-cancel-without-refund.ts
  */
-import { PrismaClient } from "@moja/db";
+import { getPrismaClient } from "@moja/db";
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = getPrismaClient();
 
   const auditRows = await prisma.financialTransaction.findMany({
     where: {

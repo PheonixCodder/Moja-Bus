@@ -6,13 +6,13 @@
  *   pnpm exec tsx apps/web/scripts/inventory-stuck-reserved-holds.ts
  *   pnpm exec tsx apps/web/scripts/inventory-stuck-reserved-holds.ts --hours=4
  */
-import { PrismaClient } from "@moja/db";
+import { getPrismaClient } from "@moja/db";
 
 const hoursArg = process.argv.find((a) => a.startsWith("--hours="));
 const hours = hoursArg ? Number(hoursArg.split("=")[1]) : 2;
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = getPrismaClient();
   const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
   const now = new Date();
 

@@ -7,7 +7,7 @@
  *
  * Idempotent: skips rows that already have an objectKey.
  */
-import { PrismaClient } from "@moja/db";
+import { getPrismaClient } from "@moja/db";
 
 function deriveObjectKey(fileUrl: string): string | null {
   let url: URL;
@@ -43,7 +43,7 @@ function deriveObjectKey(fileUrl: string): string | null {
 }
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = getPrismaClient();
   const docs = await prisma.companyDocument.findMany({
     where: { objectKey: null, NOT: { fileUrl: "" } },
     select: { id: true, fileUrl: true },

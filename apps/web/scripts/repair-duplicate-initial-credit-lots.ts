@@ -9,12 +9,12 @@
  *   pnpm exec tsx apps/web/scripts/repair-duplicate-initial-credit-lots.ts --dry-run
  *   pnpm exec tsx apps/web/scripts/repair-duplicate-initial-credit-lots.ts --apply
  */
-import { PrismaClient } from "@moja/db";
+import { getPrismaClient } from "@moja/db";
 
 const dryRun = !process.argv.includes("--apply");
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = getPrismaClient();
 
   const lots = await prisma.creditLot.findMany({
     where: {

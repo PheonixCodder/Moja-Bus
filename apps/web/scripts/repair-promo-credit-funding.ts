@@ -7,13 +7,13 @@
  *
  * Posts missing PROMO_CREDITS with idempotency REPAIR_PROMO_GRANT:{lotId}.
  */
-import { PrismaClient } from "@moja/db";
+import { getPrismaClient } from "@moja/db";
 import { postPromoCreditGrantLedger } from "../features/discounts/services/promo-credit-grant-ledger";
 
 const dryRun = !process.argv.includes("--apply");
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = getPrismaClient();
   const lots = await prisma.creditLot.findMany({
     where: {
       status: { in: ["ACTIVE", "PARTIALLY_REDEEMED"] },
