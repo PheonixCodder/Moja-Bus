@@ -12,5 +12,5 @@ unset PGPASSWORD
 
 echo "[backup] wrote $FILE ($(du -h "$FILE" | cut -f1))"
 
-KEEP="${BACKUP_RETENTION_DAYS:-14}"
+KEEP="${BACKUP_RETENTION_DAYS:-7}"
 find "$DIR" -name 'moja_*.sql.gz' -mtime +"$KEEP" -delete

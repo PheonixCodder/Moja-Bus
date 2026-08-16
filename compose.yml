@@ -1,8 +1,15 @@
 name: moja-buss
 
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     image: postgres:16-alpine
+    logging: *default-logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -22,6 +29,7 @@ services:
 
   migrate:
     image: pheonixcodder/moja-buss-migrate:latest
+    logging: *default-logging
     build:
       context: .
       dockerfile: Dockerfile
@@ -38,6 +46,7 @@ services:
 
   web:
     image: pheonixcodder/moja-buss-web:latest
+    logging: *default-logging
     build:
       context: .
       dockerfile: Dockerfile
@@ -103,6 +112,7 @@ services:
 
   cron:
     build: ./deploy/cron
+    logging: *default-logging
     environment:
       CRON_SECRET: ${CRON_SECRET}
     depends_on:
@@ -113,13 +123,14 @@ services:
 
   backup:
     build: ./deploy/backup
+    logging: *default-logging
     environment:
       POSTGRES_HOST: db
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       BACKUP_DIR: /backups
-      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
     volumes:
       - backups:/backups
     depends_on:
@@ -130,6 +141,7 @@ services:
 
   status:
     image: louislam/uptime-kuma:1
+    logging: *default-logging
     volumes:
       - kuma_data:/app/data
     healthcheck:
@@ -143,6 +155,7 @@ services:
 
   caddy:
     image: caddy:2.9-alpine
+    logging: *default-logging
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS}
       STATUS_ADDRESS: ${STATUS_ADDRESS}

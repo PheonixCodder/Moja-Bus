@@ -10,9 +10,10 @@ DIR="${BACKUP_DIR:-/backups}"
 mkdir -p "$DIR"
 
 cat > /etc/crontabs/root <<EOF
-30 1 * * * /usr/local/bin/dump.sh >> ${DIR}/backup.log 2>&1
+30 1 * * * /usr/local/bin/dump.sh
 EOF
 chmod 0644 /etc/crontabs/root
 
 echo "[backup] scheduled nightly pg_dump at 01:30 -> ${DIR}"
+echo "[backup] logs are written to container stdout and rotated by Docker"
 exec crond -f -l 6 -L /dev/stdout
