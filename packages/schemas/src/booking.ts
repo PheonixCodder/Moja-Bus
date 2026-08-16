@@ -37,6 +37,7 @@ export const createHoldSchema = z.object({
 
 export const confirmBookingSchema = z.object({
   holdId: z.string().min(1),
+  locale: z.enum(["en", "fr"]).optional(),
 });
 
 export const releaseHoldSchema = z.object({
@@ -76,6 +77,7 @@ export const initiatePaymentSchema = z.object({
 
 export const verifyPaymentSchema = z.object({
   reference: z.string().min(1),
+  locale: z.enum(["en", "fr"]).optional(),
 });
 
 export type GetTripDetailsInput = z.infer<typeof getTripDetailsSchema>;

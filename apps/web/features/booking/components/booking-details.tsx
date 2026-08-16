@@ -101,8 +101,9 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
   const durationMs = booking.arrivalTime.getTime() - booking.departureTime.getTime();
   const durationMin = Math.max(0, Math.round(durationMs / 60000));
   const ticketRef = booking.seats[0]?.bookingReference;
-  const ticketHref = ticketRef && booking.status === "CONFIRMED"
-    ? `/tickets/${encodeURIComponent(ticketRef)}`
+  const ticketToken = booking.seats[0]?.ticketToken;
+  const ticketHref = ticketToken && booking.status === "CONFIRMED"
+    ? `/tickets/${encodeURIComponent(ticketToken)}`
     : null;
 
   return (

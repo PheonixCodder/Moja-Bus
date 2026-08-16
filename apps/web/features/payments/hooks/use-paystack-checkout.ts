@@ -14,6 +14,10 @@ export type CompletePaystackPaymentInput = {
   payerEmail?: string | null;
 };
 
+type ConfirmedBookingWithSuccessUrl = ConfirmedBookingResult & {
+  successUrl?: string;
+};
+
 export function usePaystackCheckout() {
   const trpc = useTRPC();
   const locale = useLocale();
@@ -30,7 +34,7 @@ export function usePaystackCheckout() {
 
   async function completePayment(
     input: CompletePaystackPaymentInput,
-  ): Promise<ConfirmedBookingResult | null> {
+  ): Promise<ConfirmedBookingWithSuccessUrl | null> {
     const payment = await initiatePaymentMutation.mutateAsync({
       holdId: input.holdId,
       payerEmail: input.payerEmail ?? undefined,
@@ -38,7 +42,10 @@ export function usePaystackCheckout() {
     });
 
     if (payment.status === "SUCCESS") {
-      return confirmMutation.mutateAsync({ holdId: input.holdId });
+      return confirmMutation.mutateAsync({
+        holdId: input.holdId,
+        locale: locale === "fr" ? "fr" : "en",
+      });
     }
 
     if (!payment.paystack) {
@@ -58,6 +65,7 @@ export function usePaystackCheckout() {
 
     return verifyPaymentMutation.mutateAsync({
       reference: popupResult.reference,
+      locale: locale === "fr" ? "fr" : "en",
     });
   }
 

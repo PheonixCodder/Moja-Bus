@@ -18,7 +18,6 @@ import { BookingCheckoutForm } from "./booking-checkout-form";
 import { TripSummaryCard } from "./trip-summary-card";
 import { authClient } from "@/lib/auth-client";
 import { buildLoginUrl } from "@/features/auth/lib/safe-callback-url";
-import { buildBookingSuccessUrl } from "@/features/payments/lib/booking-success-url";
 import { useBooking } from "./booking-context";
 
 export function BookingDialogFlow({
@@ -149,11 +148,7 @@ export function BookingDialogFlow({
               }}
               onConfirmed={(result) => {
                 router.push(
-                  buildBookingSuccessUrl(
-                    offerId,
-                    { ...result, status: "CONFIRMED" },
-                    passengerCount,
-                  ),
+                  result.successUrl ?? "/dashboard/bookings?paid=1",
                 );
               }}
             />

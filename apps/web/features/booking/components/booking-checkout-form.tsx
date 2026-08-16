@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
@@ -45,6 +45,7 @@ interface BookingCheckoutFormProps {
     bookingReferences: string[];
     ticketTokens: string[];
     totalAmountXOF: number;
+    successUrl?: string;
   }) => void;
 }
 
@@ -73,6 +74,7 @@ export function BookingCheckoutForm({
 }: BookingCheckoutFormProps) {
   const t = useTranslations("discounts");
   const tBooking = useTranslations("booking");
+  const locale = useLocale();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
@@ -347,11 +349,15 @@ export function BookingCheckoutForm({
             bookingReferences: confirmed.bookingReferences,
             ticketTokens: confirmed.ticketTokens,
             totalAmountXOF: confirmed.totalAmountXOF,
+            ...(confirmed.successUrl
+              ? { successUrl: confirmed.successUrl }
+              : {}),
           });
         } else {
           // WALLET or zero-cash (credits/voucher covered)
           const confirmed = await walletCheckoutMutation.mutateAsync({
             holdId: hold.holdId,
+            locale: locale === "fr" ? "fr" : "en",
           });
 
           void queryClient.invalidateQueries(
@@ -363,6 +369,9 @@ export function BookingCheckoutForm({
             bookingReferences: confirmed.bookingReferences,
             ticketTokens: confirmed.ticketTokens,
             totalAmountXOF: confirmed.totalAmountXOF,
+            ...(confirmed.successUrl
+              ? { successUrl: confirmed.successUrl }
+              : {}),
           });
         }
       } catch (payErr: unknown) {

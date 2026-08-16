@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import type { ConfirmedBookingResult } from "@moja/types";
 import {
   confirmBookingSchema,
   createHoldSchema,
@@ -19,8 +20,25 @@ import { SeatAvailabilityService } from "@/features/booking/services/seat-availa
 import { BookingHoldService } from "@/features/booking/services/booking-hold-service";
 import { BookingReadService } from "@/features/booking/services/booking-read-service";
 import { PaymentService } from "@/features/payments/payment-service";
+import { buildBookingSuccessUrl } from "@/features/payments/lib/booking-success-url";
 import { enqueueHoldCreated } from "@/features/notifications/outbox/commercial";
 import { getNovuClient } from "@/lib/novu";
+
+function withSuccessUrl(
+  confirmed: ConfirmedBookingResult,
+  holdGroup: { offerId: string; seatCount: number },
+  locale?: "en" | "fr",
+): ConfirmedBookingResult & { successUrl: string } {
+  return {
+    ...confirmed,
+    successUrl: buildBookingSuccessUrl(
+      holdGroup.offerId,
+      confirmed,
+      holdGroup.seatCount,
+      locale,
+    ),
+  };
+}
 
 export const bookingRouter = createTRPCRouter({
   getTripDetails: publicProcedure
@@ -173,10 +191,17 @@ export const bookingRouter = createTRPCRouter({
     .input(verifyPaymentSchema)
     .mutation(async ({ ctx, input }) => {
       const paymentService = new PaymentService(ctx.prisma);
-      return paymentService.verifyAndConfirm(
+      const confirmed = await paymentService.verifyAndConfirm(
         input.reference,
         ctx.user.id,
       );
+      const holdGroup = await ctx.prisma.holdGroup.findUnique({
+        where: { id: confirmed.holdId },
+        select: { offerId: true, seatCount: true },
+      });
+      return holdGroup
+        ? withSuccessUrl(confirmed, holdGroup, input.locale)
+        : confirmed;
     }),
 
   confirmBooking: protectedProcedure
@@ -194,7 +219,8 @@ export const bookingRouter = createTRPCRouter({
       const paymentService = new PaymentService(ctx.prisma);
       await paymentService.assertHoldPaid(input.holdId);
       const service = new BookingHoldService(ctx.prisma);
-      return service.confirmBooking(input.holdId, ctx.user.id);
+      const confirmed = await service.confirmBooking(input.holdId, ctx.user.id);
+      return withSuccessUrl(confirmed, holdGroup, input.locale);
     }),
 
   releaseHold: protectedProcedure
@@ -268,6 +294,7 @@ export const bookingRouter = createTRPCRouter({
     .input(
       z.object({
         holdId: z.string(),
+        locale: z.enum(["en", "fr"]).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -284,7 +311,11 @@ export const bookingRouter = createTRPCRouter({
         "@/features/payments/services/booking-confirmation-service"
       );
       const confirmationService = new BookingConfirmationService(ctx.prisma);
-      return confirmationService.confirmFromWallet(input.holdId, ctx.user.id);
+      const confirmed = await confirmationService.confirmFromWallet(
+        input.holdId,
+        ctx.user.id,
+      );
+      return withSuccessUrl(confirmed, holdGroup, input.locale);
     }),
 
   refreezeHoldDiscounts: protectedProcedure
