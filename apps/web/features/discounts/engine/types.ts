@@ -86,6 +86,8 @@ export type EvalContext = {
   now: Date;
   userId: string | null;
   completedBookingCount: number;
+  /** Days since user.createdAt; null when anonymous / unknown. */
+  userAccountAgeDays?: number | null | undefined;
   phone?: string | null | undefined;
   companyId: string;
   routeId: string | null;
@@ -113,6 +115,8 @@ export type SelectedInstrument = {
   ticketDiscountXOF: number;
   feeDiscountXOF: number;
   creditAppliedXOF: number;
+  /** Monetary voucher burn (payment instrument; not platform expense). */
+  voucherAppliedXOF?: number | undefined;
   fundingType?: CampaignFundingType | undefined;
   platformFundedXOF: number;
   operatorFundedXOF: number;
@@ -124,10 +128,13 @@ export type SelectedInstrument = {
 export type QuoteResult = {
   ok: boolean;
   rejection?: RejectionReason | undefined;
+  /** Soft-fail voucher error while coupon/auto may still apply. */
+  voucherRejection?: RejectionReason | undefined;
   instruments: SelectedInstrument[];
   ticketDiscountXOF: number;
   feeDiscountXOF: number;
   creditAppliedXOF: number;
+  voucherAppliedXOF: number;
   preDiscountSubtotalXOF: number;
   postDiscountSubtotalXOF: number;
   convenienceFeeXOF: number;

@@ -1,7 +1,9 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Gauge } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import type { PassengerSeatStatus, SeatAvailabilityItem } from "@moja/types";
 import { buildSeatGrid, getColumnHeaders } from "../lib/seat-grid";
 
@@ -9,6 +11,8 @@ interface PassengerSeatMapProps {
   rows: number;
   columns: number;
   seats: SeatAvailabilityItem[];
+  /** Max deck number present (1 = single deck). */
+  deck?: number;
   selectedSeatIds: string[];
   onToggleSeat: (seatId: string) => void;
   maxSelection?: number;
@@ -58,11 +62,24 @@ export function PassengerSeatMap({
   rows,
   columns,
   seats,
+  deck = 1,
   selectedSeatIds,
   onToggleSeat,
   maxSelection = 6,
 }: PassengerSeatMapProps) {
-  const grid = buildSeatGrid(seats, rows, columns);
+  const t = useTranslations("booking.seatMap");
+  const decks = useMemo(() => {
+    const set = new Set(seats.map((s) => s.deck || 1));
+    const list = Array.from(set).sort((a, b) => a - b);
+    return list.length > 0 ? list : [1];
+  }, [seats]);
+  const [activeDeck, setActiveDeck] = useState(() => decks[0] ?? 1);
+
+  const deckSeats = useMemo(
+    () => seats.filter((s) => (s.deck || 1) === activeDeck),
+    [seats, activeDeck],
+  );
+  const grid = buildSeatGrid(deckSeats, rows, columns);
   const colHeaders = getColumnHeaders(columns);
   const seatById = new Map(seats.map((s) => [s.seatId, s]));
 
@@ -79,12 +96,32 @@ export function PassengerSeatMap({
   return (
     <div className="overflow-x-auto">
       <div className="w-max mx-auto">
+        {decks.length > 1 || deck > 1 ? (
+          <div className="flex justify-center gap-2 mb-3">
+            {decks.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setActiveDeck(d)}
+                className={cn(
+                  "px-3 py-1 rounded-lg text-xs font-semibold border transition-colors",
+                  activeDeck === d
+                    ? "border-[#ee237c] bg-[#ee237c]/10 text-[#ee237c]"
+                    : "border-slate-200 text-slate-600 hover:border-slate-300",
+                )}
+              >
+                {t("deck", { n: d })}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap justify-center gap-3 mb-4 text-[11px] text-muted-foreground">
-          <LegendDot className="border-emerald-200 bg-emerald-50" label="Available" />
-          <LegendDot className="border-pink-300 bg-pink-100" label="Selected" />
-          <LegendDot className="border-slate-200 bg-slate-100" label="Sold" />
-          <LegendDot className="border-amber-200 bg-amber-50" label="Held" />
-          <LegendDot className="border-slate-200 bg-slate-50" label="Blocked" />
+          <LegendDot className="border-emerald-200 bg-emerald-50" label={t("available")} />
+          <LegendDot className="border-pink-300 bg-pink-100" label={t("selected")} />
+          <LegendDot className="border-slate-200 bg-slate-100" label={t("sold")} />
+          <LegendDot className="border-amber-200 bg-amber-50" label={t("held")} />
+          <LegendDot className="border-slate-200 bg-slate-50" label={t("blocked")} />
         </div>
 
         <div className="inline-block rounded-xl border border-border bg-muted/30 p-4">
@@ -139,8 +176,11 @@ export function PassengerSeatMap({
                     onClick={() => handleClick(seat.seatId)}
                     title={
                       seat.status === "DRIVER"
-                        ? "Driver area"
-                        : `Seat ${seat.label} — ${seat.status.toLowerCase()}`
+                        ? t("driver")
+                        : t("seatStatus", {
+                            seat: seat.label,
+                            status: seat.status.toLowerCase(),
+                          })
                     }
                     className={cn(
                       "h-9 w-10 rounded-md border text-[10px] font-semibold flex items-center justify-center transition-all duration-150",
@@ -163,7 +203,7 @@ export function PassengerSeatMap({
 
           <div className="mt-3 text-center text-[10px] text-muted-foreground tracking-widest uppercase flex items-center justify-center gap-2">
             <div className="flex-1 border-t border-dashed border-border" />
-            <span>Entrance door</span>
+            <span>{t("entrance")}</span>
             <div className="flex-1 border-t border-dashed border-border" />
           </div>
         </div>

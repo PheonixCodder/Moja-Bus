@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@moja/db";
 import { CancellationService } from "@/features/payments/services/cancellation-service";
-import { getNovuClient } from "@/lib/novu";
+import { enqueueTripCancelled } from "@/features/notifications/outbox/commercial";
 
 type PrismaLike = PrismaClient;
 
@@ -163,22 +163,42 @@ export async function cancelTripWithRefunds(params: {
             message,
           );
 
+          // D3: do not cancel the ticket without a durable refund obligation.
           try {
             await tx.booking.update({
               where: { id: booking.id },
-              data: { status: "CANCELLED" },
+              data: { status: "REFUND_PENDING" },
             });
+
+            if (booking.holdGroupId) {
+              await tx.refund.create({
+                data: {
+                  holdGroupId: booking.holdGroupId,
+                  bookingId: booking.id,
+                  amountXOF: booking.farePaid,
+                  channel,
+                  status: "FAILED",
+                  reason: `Trip cancel refund failed: ${message}`,
+                  requestIdempotencyKey: `TRIP_CANCEL_FAIL_${booking.id}`,
+                },
+              });
+            }
 
             await tx.financialTransaction.create({
               data: {
-                type: "CANCEL_WITHOUT_REFUND",
-                description: `Refund failed for booking ${booking.bookingReference}: ${message}`,
-                metadata: { bookingId: booking.id, error: message },
+                type: "REFUND_PENDING",
+                businessIdempotencyKey: `REFUND_PENDING_${booking.id}`,
+                description: `Refund pending for booking ${booking.bookingReference}: ${message}`,
+                metadata: {
+                  bookingId: booking.id,
+                  error: message,
+                  channel,
+                },
               },
             });
           } catch (innerErr) {
             console.error(
-              "Secondary failure writing CANCEL_WITHOUT_REFUND:",
+              "Secondary failure writing REFUND_PENDING obligation:",
               innerErr,
             );
           }
@@ -202,58 +222,63 @@ export async function cancelTripWithRefunds(params: {
     });
 
   if (bookingsToNotify.length > 0) {
-    const novu = getNovuClient();
-    if (novu) {
-      try {
-        for (const booking of bookingsToNotify) {
-          const email =
-            booking.user?.email ??
-            (booking.passengerPhone
-              ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
-              : null);
-          if (!email) continue;
+    try {
+      for (const booking of bookingsToNotify) {
+        const email = booking.user?.email ?? null;
+        if (!email) continue;
 
-          const originCity =
-            booking.trip.schedule?.route.originTerminal.cityRelation?.name ??
-            "Unknown";
-          const destCity =
-            booking.trip.schedule?.route.destTerminal.cityRelation?.name ??
-            "Unknown";
-          const refundResult = refundResults.find(
-            (r) => r.bookingReference === booking.bookingReference,
-          );
-          const refundSucceeded = refundResult?.success === true;
-
-          await novu
-            .trigger({
-              workflowId: "passenger-trip-cancelled",
-              to: { subscriberId: email, email },
-              payload: {
-                email,
-                passengerName:
-                  booking.user?.fullName ?? booking.passengerName,
-                originCity,
-                destinationCity: destCity,
-                departureTime: trip.departureDate.toLocaleString("en-US", {
-                  timeZone: "Africa/Abidjan",
-                }),
-                cancelReason,
-                refundStatus: refundSucceeded ? "success" : "failed",
-                refundAmountXOF: refundSucceeded
-                  ? (refundResult?.amountXOF ?? 0)
-                  : undefined,
-                phone:
-                  booking.user?.phoneNumber ??
-                  booking.passengerPhone ??
-                  undefined,
-              },
-              transactionId: `passenger-trip-cancelled-${booking.id}`,
-            })
-            .catch(() => {});
+        const originCity =
+          booking.trip.schedule?.route.originTerminal.cityRelation?.name ??
+          "Unknown";
+        const destCity =
+          booking.trip.schedule?.route.destTerminal.cityRelation?.name ??
+          "Unknown";
+        const refundResult = refundResults.find(
+          (r) => r.bookingReference === booking.bookingReference,
+        );
+        const refundSucceeded = refundResult?.success === true;
+        const firstName =
+          (booking.user?.fullName ?? booking.passengerName).split(" ")[0] ??
+          "Passenger";
+        const data: {
+          email: string;
+          passengerName: string;
+          originCity: string;
+          destinationCity: string;
+          departureTime: string;
+          cancelReason: string;
+          refundStatus: string;
+          refundAmountXOF?: number;
+          phone?: string;
+        } = {
+          email,
+          passengerName: booking.user?.fullName ?? booking.passengerName,
+          originCity,
+          destinationCity: destCity,
+          departureTime: trip.departureDate.toLocaleString("en-US", {
+            timeZone: "Africa/Abidjan",
+          }),
+          cancelReason,
+          refundStatus: refundSucceeded ? "success" : "failed",
+        };
+        if (refundSucceeded) {
+          data.refundAmountXOF = refundResult?.amountXOF ?? 0;
         }
-      } catch (err) {
-        console.error("Failed to trigger passenger-trip-cancelled via Novu:", err);
+        const phone = booking.user?.phoneNumber ?? booking.passengerPhone;
+        if (phone) {
+          data.phone = phone;
+        }
+
+        await enqueueTripCancelled(prisma, {
+          bookingId: booking.id,
+          email,
+          subscriberId: booking.userId ?? email,
+          firstName,
+          data,
+        });
       }
+    } catch (err) {
+      console.error("Failed to enqueue passenger-trip-cancelled outbox:", err);
     }
   }
 
@@ -261,6 +286,6 @@ export async function cancelTripWithRefunds(params: {
     tripId: trip.id,
     refundResults,
     expiredHolds: expiredHoldsCount,
-    skippedCheckedIn: 0,
+    skippedCheckedIn: checkedInCount,
   };
 }

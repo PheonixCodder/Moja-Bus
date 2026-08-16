@@ -4,8 +4,8 @@ import { buttonVariants } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CheckCircle2, HelpCircle } from "lucide-react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-card";
 import { TripSummaryCard } from "@/features/booking/components/trip-summary-card";
 import { formatPriceXOF } from "@/features/search/lib/format";
@@ -14,7 +14,8 @@ import { useTRPC } from "@/trpc/client";
 interface BookingSuccessViewProps {
   offerId: string;
   references: string[];
-  tokens: string[];
+  /** Presentation or legacy durable access tokens from the success URL. */
+  accessTokens: string[];
   total: number;
 }
 
@@ -29,7 +30,7 @@ function TicketFromToken({ token }: { token: string }) {
 export function BookingSuccessView({
   offerId,
   references,
-  tokens,
+  accessTokens,
   total,
 }: BookingSuccessViewProps) {
   const t = useTranslations("booking.success");
@@ -69,9 +70,9 @@ export function BookingSuccessView({
           </div>
         )}
 
-        {tokens.length > 0 && (
+        {accessTokens.length > 0 && (
           <div className="space-y-4">
-            {tokens.map((token) => (
+            {accessTokens.map((token) => (
               <TicketFromToken key={token} token={token} />
             ))}
           </div>

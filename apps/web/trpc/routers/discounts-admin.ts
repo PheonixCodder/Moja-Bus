@@ -182,6 +182,13 @@ export const discountsAdminRouter = createTRPCRouter({
           status: true,
         },
       });
+      if (!before) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
+      }
+      // P1-15: platform admin may manage any campaign; existence + audit is the guard.
       const updated = await ctx.prisma.discountCampaign.update({
         where: { id: input.id },
         data: {
@@ -289,21 +296,28 @@ export const discountsAdminRouter = createTRPCRouter({
     .input(bulkCreateCouponsSchema)
     .mutation(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "marketing:coupons:write");
-      const created: string[] = [];
-      for (let i = 0; i < input.count; i++) {
-        const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
-        const code = `${input.prefix}-${suffix}`;
-        await ctx.prisma.couponCode.create({
-          data: {
-            campaignId: input.campaignId,
-            code,
-            maxRedemptions: input.maxRedemptions ?? null,
-            expiresAt: input.expiresAt ?? null,
-          },
-        });
-        created.push(code);
-      }
-      return { codes: created };
+      const { bulkCreateCouponCodes } = await import(
+        "@/features/discounts/services/bulk-coupon-create"
+      );
+      const result = await bulkCreateCouponCodes(ctx.prisma, {
+        campaignId: input.campaignId,
+        prefix: input.prefix,
+        count: input.count,
+        maxRedemptions: input.maxRedemptions,
+        expiresAt: input.expiresAt,
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_COUPON_BULK",
+        description: `Bulk created ${result.codes.length} coupons (batch ${result.batchId})`,
+        metadata: {
+          campaignId: input.campaignId,
+          batchId: result.batchId,
+          created: result.codes.length,
+          failed: result.failed.length,
+        },
+      });
+      return result;
     }),
 
   deactivateCoupon: adminProcedure
@@ -537,6 +551,11 @@ export const discountsAdminRouter = createTRPCRouter({
       z.object({
         id: z.string().min(1),
         note: z.string().max(500).optional(),
+        reviewStatus: z
+          .enum(["OPEN", "IN_REVIEW", "RESOLVED", "DISMISSED"])
+          .optional()
+          .default("RESOLVED"),
+        assigneeUserId: z.string().min(1).optional().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -551,9 +570,22 @@ export const discountsAdminRouter = createTRPCRouter({
         existing.metadata && typeof existing.metadata === "object"
           ? (existing.metadata as Record<string, unknown>)
           : {};
+      const terminal =
+        input.reviewStatus === "RESOLVED" || input.reviewStatus === "DISMISSED";
       const updated = await ctx.prisma.promoAbuseEvent.update({
         where: { id: input.id },
         data: {
+          reviewStatus: input.reviewStatus,
+          ...(input.assigneeUserId !== undefined
+            ? { assigneeUserId: input.assigneeUserId }
+            : {}),
+          resolutionNote: input.note ?? existing.resolutionNote,
+          ...(terminal
+            ? {
+                resolvedAt: new Date(),
+                resolvedByUserId: ctx.user.id,
+              }
+            : {}),
           metadata: {
             ...prev,
             reviewedAt: new Date().toISOString(),
@@ -565,9 +597,13 @@ export const discountsAdminRouter = createTRPCRouter({
       await logMarketingActivity(ctx.prisma, {
         userId: ctx.user.id,
         action: "MARKETING_ABUSE_REVIEW",
-        description: `Reviewed promo abuse event ${input.id} (${existing.eventType})`,
+        description: `Reviewed promo abuse event ${input.id} (${existing.eventType}) → ${input.reviewStatus}`,
         targetUserId: existing.userId ?? undefined,
-        metadata: { abuseEventId: input.id, eventType: existing.eventType },
+        metadata: {
+          abuseEventId: input.id,
+          eventType: existing.eventType,
+          reviewStatus: input.reviewStatus,
+        },
       });
       return updated;
     }),

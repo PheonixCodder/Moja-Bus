@@ -108,6 +108,7 @@ export function PassengerFormSheet({
     ...trpc.payments.getCheckoutPricing.queryOptions({
       offerId: offer?.id ?? '',
       seatCount,
+      paymentMethod,
       code: appliedCode,
       monetaryVoucherId: selectedVoucherId,
       autoApply: true,
@@ -182,11 +183,13 @@ export function PassengerFormSheet({
   const ticketDiscountXOF = pricingQuery.data?.ticketDiscountXOF ?? 0;
   const creditAppliedXOF = pricingQuery.data?.creditAppliedXOF ?? 0;
   const convenienceFeeXOF =
-    paymentMethod === 'WALLET' ? 0 : (pricingQuery.data?.convenienceFeeXOF ?? 0);
+    pricingQuery.data?.displayFeeXOF ??
+    (paymentMethod === 'WALLET' ? 0 : (pricingQuery.data?.convenienceFeeXOF ?? 0));
   const totalAmountXOF =
-    paymentMethod === 'WALLET'
+    pricingQuery.data?.payableXOF ??
+    (paymentMethod === 'WALLET'
       ? Math.max(0, subtotalBaseXOF - creditAppliedXOF)
-      : (pricingQuery.data?.chargeAmountXOF ?? subtotalBaseXOF + convenienceFeeXOF);
+      : (pricingQuery.data?.chargeAmountXOF ?? subtotalBaseXOF + convenienceFeeXOF));
 
   const isValid = passengers.every(
     (p) => p.passengerName.trim().length >= 2 && p.passengerPhone.trim().length >= 6
@@ -214,10 +217,15 @@ export function PassengerFormSheet({
     let holdId: string | null = null;
 
     try {
+      if (!pricingQuery.data?.quoteId) {
+        Alert.alert(t('error'), t('passengerFormValidation'));
+        return;
+      }
       const { getDeviceHash } = await import("@/lib/device-hash");
       const deviceHash = await getDeviceHash();
       const holdResult = await createHold.mutateAsync({
         offerId: offer.id,
+        quoteId: pricingQuery.data.quoteId,
         passengers: passengers.map((p) =>
           p.savedId
             ? { seatId: p.seatId, savedPassengerId: p.savedId }

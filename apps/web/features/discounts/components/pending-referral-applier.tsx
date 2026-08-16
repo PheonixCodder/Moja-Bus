@@ -37,9 +37,16 @@ export function PendingReferralApplier() {
         ]);
       },
       onError: (err) => {
-        // Already attributed / inactive / self — clear so we don't retry forever
-        clearPendingReferralCode();
         const msg = err.message ?? "";
+        // P3-10: only clear on success or definitive invalid/self; keep for retry on transient.
+        const definitive =
+          msg.includes("Self-referral") ||
+          msg.includes("inactive") ||
+          msg.includes("Invalid") ||
+          msg.includes("not found");
+        if (definitive) {
+          clearPendingReferralCode();
+        }
         if (
           !msg.includes("already attributed") &&
           !msg.includes("Self-referral") &&

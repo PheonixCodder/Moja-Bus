@@ -51,6 +51,8 @@ export const paymentsRouter = createTRPCRouter({
         distanceKm: trip?.schedule?.route.distanceKm ?? null,
       });
 
+      const paymentMethod = input.paymentMethod;
+      const waiveConvenienceFee = paymentMethod === "WALLET";
       const { quoteCheckoutDiscounts } = await import(
         "@/features/discounts/services/quote-service"
       );
@@ -62,51 +64,73 @@ export const paymentsRouter = createTRPCRouter({
         baseFareXOF: details.priceXOF,
         seatCount: input.seatCount,
         convenienceFeeBps: base.convenienceFeeBps,
+        waiveConvenienceFee,
         userId: ctx.user?.id ?? null,
         code: input.code,
         monetaryVoucherId: input.monetaryVoucherId,
         autoApply: input.autoApply,
         useCredits: input.useCredits,
         creditAmountXOF: input.creditAmountXOF,
+        excludeHoldGroupId: input.excludeHoldGroupId,
       });
 
       const { resolveCheckoutPayable } = await import(
         "@/features/payments/lib/checkout-payable"
       );
-      const walletPayable = resolveCheckoutPayable({
+      const payable = resolveCheckoutPayable({
         postDiscountSubtotalXOF: quote.postDiscountSubtotalXOF,
         convenienceFeeXOF: quote.convenienceFeeXOF,
         ticketDiscountXOF: quote.ticketDiscountXOF,
         feeDiscountXOF: quote.feeDiscountXOF,
-        creditAppliedXOF: quote.creditAppliedXOF,
+        creditAppliedXOF: quote.creditAppliedXOF + quote.voucherAppliedXOF,
         chargeAmountXOF: quote.chargeAmountXOF,
-        paymentMethod: "WALLET",
+        paymentMethod,
       });
-      const paystackPayable = resolveCheckoutPayable({
+
+      const { signCheckoutQuote } = await import(
+        "@/features/payments/lib/checkout-quote"
+      );
+      const quoteId = signCheckoutQuote({
+        offerId: input.offerId,
+        seatCount: input.seatCount,
+        paymentMethod,
+        code: input.code ?? null,
+        monetaryVoucherId: input.monetaryVoucherId ?? null,
+        autoApply: input.autoApply,
+        useCredits: input.useCredits,
+        waiveConvenienceFee,
+        chargeAmountXOF: quote.chargeAmountXOF,
         postDiscountSubtotalXOF: quote.postDiscountSubtotalXOF,
         convenienceFeeXOF: quote.convenienceFeeXOF,
         ticketDiscountXOF: quote.ticketDiscountXOF,
         feeDiscountXOF: quote.feeDiscountXOF,
         creditAppliedXOF: quote.creditAppliedXOF,
-        chargeAmountXOF: quote.chargeAmountXOF,
-        paymentMethod: "PAYSTACK",
+        voucherAppliedXOF: quote.voucherAppliedXOF,
       });
 
       return {
         ...base,
+        quoteId,
+        paymentMethod,
+        waiveConvenienceFee,
         subtotalBaseXOF: quote.postDiscountSubtotalXOF,
         convenienceFeeXOF: quote.convenienceFeeXOF,
         chargeAmountXOF: quote.chargeAmountXOF,
         ticketDiscountXOF: quote.ticketDiscountXOF,
         feeDiscountXOF: quote.feeDiscountXOF,
-        creditAppliedXOF: quote.creditAppliedXOF,
+        creditAppliedXOF: quote.creditAppliedXOF + quote.voucherAppliedXOF,
+        voucherAppliedXOF: quote.voucherAppliedXOF,
         preDiscountSubtotalXOF: quote.preDiscountSubtotalXOF,
         autoAppliedCampaignId: quote.autoAppliedCampaignId,
         discountOk: quote.ok,
         discountRejection: quote.rejection ?? null,
-        payableWalletXOF: walletPayable.payableXOF,
-        payablePaystackXOF: paystackPayable.payableXOF,
-        canZeroCash: walletPayable.payableXOF === 0,
+        voucherRejection: quote.voucherRejection ?? null,
+        /** Canonical payable for selected paymentMethod (prefer over client recompute). */
+        payableXOF: payable.payableXOF,
+        displayFeeXOF: payable.displayFeeXOF,
+        payableWalletXOF: payable.payableXOF,
+        payablePaystackXOF: payable.payableXOF,
+        canZeroCash: payable.payableXOF === 0,
       };
     }),
 
@@ -617,6 +641,95 @@ export const paymentsRouter = createTRPCRouter({
       });
 
       return { items, total };
+    }),
+
+  listOfflineRefundsOwed: adminProcedure
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(100).optional().default(50),
+        offset: z.number().int().min(0).optional().default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:settlements:read");
+      const { listOfflineRefundsOwed } = await import(
+        "@/features/payments/services/offline-refund-fulfilment"
+      );
+      return listOfflineRefundsOwed(ctx.prisma, input);
+    }),
+
+  markOfflineRefundPaid: adminProcedure
+    .input(
+      z.object({
+        refundId: z.string().min(1),
+        note: z.string().max(500).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:settlements:manage");
+      const { markOfflineRefundPaid } = await import(
+        "@/features/payments/services/offline-refund-fulfilment"
+      );
+      return markOfflineRefundPaid(ctx.prisma, {
+        refundId: input.refundId,
+        actorUserId: ctx.user.id,
+        note: input.note,
+      });
+    }),
+
+  markOfflineRefundVoid: adminProcedure
+    .input(
+      z.object({
+        refundId: z.string().min(1),
+        note: z.string().max(500).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:settlements:manage");
+      const { markOfflineRefundVoid } = await import(
+        "@/features/payments/services/offline-refund-fulfilment"
+      );
+      return markOfflineRefundVoid(ctx.prisma, {
+        refundId: input.refundId,
+        actorUserId: ctx.user.id,
+        note: input.note,
+      });
+    }),
+
+  listOutboxMessages: adminProcedure
+    .input(
+      z.object({
+        status: z
+          .enum([
+            "PENDING",
+            "PROCESSING",
+            "SENT",
+            "FAILED",
+            "DEAD",
+            "NEEDS_ATTENTION",
+          ])
+          .optional()
+          .default("NEEDS_ATTENTION"),
+        limit: z.number().int().min(1).max(100).optional().default(50),
+        offset: z.number().int().min(0).optional().default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:settlements:read");
+      const { listOutboxMessages } = await import(
+        "@/features/notifications/outbox/admin"
+      );
+      return listOutboxMessages(ctx.prisma, input);
+    }),
+
+  retryOutboxMessage: adminProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "platform:settlements:manage");
+      const { retryOutboxMessageAdmin } = await import(
+        "@/features/notifications/outbox/admin"
+      );
+      return retryOutboxMessageAdmin(ctx.prisma, input.id);
     }),
 
   listBanks: publicProcedure

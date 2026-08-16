@@ -39,6 +39,28 @@ export function computeTicketDiscount(
   return Math.max(0, raw);
 }
 
+/** Fee portion when campaign.applyTarget is ENTIRE_CHARGE (P1-14 / P3-2). */
+export function feeDiscountForCampaign(
+  campaign: EvalCampaign,
+  ticketDiscountXOF: number,
+  convenienceFeeXOF: number,
+): number {
+  if (campaign.applyTarget !== "ENTIRE_CHARGE" || convenienceFeeXOF <= 0) {
+    return 0;
+  }
+  if (campaign.benefitType === "PERCENT_OFF") {
+    return Math.min(
+      convenienceFeeXOF,
+      roundXOF((convenienceFeeXOF * (campaign.percentBps ?? 0)) / 10_000),
+    );
+  }
+  if (campaign.benefitType === "FIXED_AMOUNT_OFF") {
+    const remaining = Math.max(0, (campaign.amountXOF ?? 0) - ticketDiscountXOF);
+    return Math.min(convenienceFeeXOF, remaining);
+  }
+  return 0;
+}
+
 export function splitFunding(
   campaign: EvalCampaign,
   ticketDiscountXOF: number,

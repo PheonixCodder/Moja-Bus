@@ -29,6 +29,7 @@ import {
   Activity,
   BarChart2,
   Briefcase,
+  Banknote,
   ChevronsUpDown,
   Coins,
   FileText,
@@ -39,6 +40,7 @@ import {
   Link as LinkIcon,
   LogOut,
   type LucideIcon,
+  MailWarning,
   Megaphone,
   Route,
   Scale,
@@ -154,6 +156,16 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       title: t("settlements"),
       url: "/dashboard/admin/financials/settlements",
       icon: Landmark,
+    },
+    {
+      title: t("offlineRefunds"),
+      url: "/dashboard/admin/financials/offline-refunds",
+      icon: Banknote,
+    },
+    {
+      title: t("outbox"),
+      url: "/dashboard/admin/financials/outbox",
+      icon: MailWarning,
     },
     {
       title: t("withdrawals"),

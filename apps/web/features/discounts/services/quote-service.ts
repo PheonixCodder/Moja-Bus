@@ -2,6 +2,12 @@ import type { Prisma, PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import { evaluateCheckoutDiscounts } from "../engine";
 import type { QuoteResult } from "../engine/types";
+import type {
+  EvalCampaign,
+  EvalCoupon,
+  EvalCreditLot,
+  EvalVoucher,
+} from "../engine/types";
 import {
   countCompletedBookings,
   loadActiveCampaignsForCheckout,
@@ -9,6 +15,72 @@ import {
   loadUserCreditLots,
   loadUserVoucher,
 } from "./campaign-loader";
+
+/**
+ * Credit back this hold's RESERVED amounts so availability ignores self-reservation.
+ */
+async function creditHoldSelfReservations(
+  prisma: PrismaClient,
+  holdGroupId: string,
+  state: {
+    campaigns: EvalCampaign[];
+    coupon: EvalCoupon | null;
+    voucher: EvalVoucher | null;
+    creditLots: EvalCreditLot[];
+  },
+): Promise<void> {
+  const redemptions = await prisma.discountRedemption.findMany({
+    where: { holdGroupId, status: "RESERVED" },
+  });
+
+  for (const r of redemptions) {
+    if (r.campaignId) {
+      const camp = state.campaigns.find((c) => c.id === r.campaignId);
+      if (camp) {
+        const amount = r.ticketDiscountXOF + r.feeDiscountXOF;
+        camp.budgetReservedXOF = Math.max(0, camp.budgetReservedXOF - amount);
+        if (camp.redemptionCountGlobal != null) {
+          camp.redemptionCountGlobal = Math.max(0, camp.redemptionCountGlobal - 1);
+        }
+        if (camp.redemptionCountForUser != null) {
+          camp.redemptionCountForUser = Math.max(
+            0,
+            camp.redemptionCountForUser - 1,
+          );
+        }
+        if (camp.redemptionCountForPhone != null) {
+          camp.redemptionCountForPhone = Math.max(
+            0,
+            camp.redemptionCountForPhone - 1,
+          );
+        }
+      }
+    }
+    if (r.couponCodeId && state.coupon?.id === r.couponCodeId) {
+      state.coupon.redemptionCount = Math.max(
+        0,
+        state.coupon.redemptionCount - 1,
+      );
+    }
+    if (r.voucherId && state.voucher?.id === r.voucherId) {
+      const snap = r.snapshotJson as { voucherAppliedXOF?: number } | null;
+      const amount =
+        (snap?.voucherAppliedXOF ?? 0) +
+        r.ticketDiscountXOF +
+        r.feeDiscountXOF;
+      state.voucher.reservedAmountXOF = Math.max(
+        0,
+        state.voucher.reservedAmountXOF - amount,
+      );
+    }
+    if (r.creditLotId && r.creditAppliedXOF > 0) {
+      const lot = state.creditLots.find((l) => l.id === r.creditLotId);
+      if (lot) {
+        lot.reservedXOF = Math.max(0, lot.reservedXOF - r.creditAppliedXOF);
+      }
+    }
+  }
+}
 
 export type CheckoutDiscountParams = {
   offerCompanyId: string;
@@ -27,6 +99,11 @@ export type CheckoutDiscountParams = {
   creditAmountXOF?: number | undefined;
   /** When true, invalid/ineligible codes throw (hold/pay). Preview leaves soft `ok: false`. */
   strict?: boolean | undefined;
+  /**
+   * Pending-pay / refreeze: treat this hold's own RESERVED instruments as available
+   * so self-reservation does not zero out credits/vouchers/budget (P1-17 / Trace C).
+   */
+  excludeHoldGroupId?: string | null | undefined;
 };
 
 export async function quoteCheckoutDiscounts(
@@ -36,16 +113,16 @@ export async function quoteCheckoutDiscounts(
   const preDiscountSubtotalXOF = input.baseFareXOF * input.seatCount;
 
   const now = new Date();
-  const userPhonePromise = input.userId
+  const userRowPromise = input.userId
     ? prisma.user.findUnique({
         where: { id: input.userId },
-        select: { phoneNumber: true },
+        select: { phoneNumber: true, createdAt: true },
       })
     : Promise.resolve(null);
 
   const [campaigns, completedBookingCount, coupon, voucher, creditLots, userRow] =
     await Promise.all([
-      userPhonePromise.then((user) =>
+      userRowPromise.then((user) =>
         loadActiveCampaignsForCheckout(prisma, {
           companyId: input.offerCompanyId,
           userId: input.userId ?? null,
@@ -61,8 +138,15 @@ export async function quoteCheckoutDiscounts(
       input.userId && input.useCredits !== false
         ? loadUserCreditLots(prisma, input.userId)
         : Promise.resolve([]),
-      userPhonePromise,
+      userRowPromise,
     ]);
+
+  const userAccountAgeDays =
+    userRow?.createdAt != null
+      ? Math.floor(
+          (now.getTime() - userRow.createdAt.getTime()) / (24 * 60 * 60 * 1000),
+        )
+      : null;
 
   if (input.monetaryVoucherId && !voucher) {
     throw new TRPCError({
@@ -71,11 +155,27 @@ export async function quoteCheckoutDiscounts(
     });
   }
 
+  // Mutable copies so we can credit back this hold's own reservations for quoting.
+  const campaignsForEval = campaigns.map((c) => ({ ...c }));
+  const couponForEval = coupon ? { ...coupon } : null;
+  const voucherForEval = voucher ? { ...voucher } : null;
+  const creditLotsForEval = creditLots.map((l) => ({ ...l }));
+
+  if (input.excludeHoldGroupId) {
+    await creditHoldSelfReservations(prisma, input.excludeHoldGroupId, {
+      campaigns: campaignsForEval,
+      coupon: couponForEval,
+      voucher: voucherForEval,
+      creditLots: creditLotsForEval,
+    });
+  }
+
   const quote = evaluateCheckoutDiscounts({
     ctx: {
       now,
       userId: input.userId ?? null,
       completedBookingCount,
+      userAccountAgeDays,
       phone: userRow?.phoneNumber ?? null,
       companyId: input.offerCompanyId,
       routeId: input.routeId,
@@ -87,12 +187,12 @@ export async function quoteCheckoutDiscounts(
       convenienceFeeBps: input.convenienceFeeBps,
       waiveConvenienceFee: input.waiveConvenienceFee,
     },
-    campaigns,
+    campaigns: campaignsForEval,
     code: input.code,
-    coupon,
+    coupon: couponForEval,
     autoApply: input.autoApply ?? true,
-    monetaryVoucher: voucher,
-    creditLots,
+    monetaryVoucher: voucherForEval,
+    creditLots: creditLotsForEval,
     useCredits: input.useCredits,
     creditAmountXOF: input.creditAmountXOF,
   });
@@ -169,7 +269,7 @@ export async function freezeDiscountOnHold(
       platformGrossXOF,
       ticketDiscountXOF: q.ticketDiscountXOF,
       feeDiscountXOF: q.feeDiscountXOF,
-      creditAppliedXOF: q.creditAppliedXOF,
+      creditAppliedXOF: q.creditAppliedXOF + q.voucherAppliedXOF,
       preDiscountSubtotalXOF: q.preDiscountSubtotalXOF,
       postDiscountSubtotalXOF: postSub,
       platformPromoFundedXOF: q.platformFundedXOF,
@@ -204,24 +304,55 @@ export async function freezeDiscountOnHold(
     if (inst.campaignId) {
       const discountTotal = inst.ticketDiscountXOF + inst.feeDiscountXOF;
       if (discountTotal > 0) {
-        await tx.discountCampaign.update({
-          where: { id: inst.campaignId },
-          data: { budgetReservedXOF: { increment: discountTotal } },
-        });
+        // Serialize campaign row then conditionally reserve budget (P1-19 / P2-7).
+        await tx.$queryRaw`
+          SELECT id FROM "discount_campaign" WHERE id = ${inst.campaignId} FOR UPDATE
+        `;
+        const reserved = await tx.$executeRaw`
+          UPDATE "discount_campaign"
+          SET "budgetReservedXOF" = "budgetReservedXOF" + ${discountTotal}
+          WHERE id = ${inst.campaignId}
+            AND (
+              "budgetXOF" IS NULL
+              OR ("budgetConsumedXOF" + "budgetReservedXOF" + ${discountTotal}) <= "budgetXOF"
+            )
+        `;
+        if (reserved === 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Campaign budget exhausted. Try a different offer.",
+          });
+        }
       }
     }
     if (inst.couponCodeId) {
-      await tx.couponCode.update({
-        where: { id: inst.couponCodeId },
-        data: { redemptionCount: { increment: 1 } },
-      });
+      const couponReserved = await tx.$executeRaw`
+        UPDATE "coupon_code"
+        SET "redemptionCount" = "redemptionCount" + 1
+        WHERE id = ${inst.couponCodeId}
+          AND (
+            "maxRedemptions" IS NULL
+            OR "redemptionCount" < "maxRedemptions"
+          )
+      `;
+      if (couponReserved === 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Promo code has no redemptions left.",
+        });
+      }
     }
     if (inst.voucherId) {
-      const amount = inst.ticketDiscountXOF + inst.feeDiscountXOF;
-      await tx.monetaryVoucher.update({
-        where: { id: inst.voucherId },
-        data: { reservedAmountXOF: { increment: amount } },
-      });
+      const amount =
+        (inst.voucherAppliedXOF ?? 0) +
+        inst.ticketDiscountXOF +
+        inst.feeDiscountXOF;
+      if (amount > 0) {
+        await tx.monetaryVoucher.update({
+          where: { id: inst.voucherId },
+          data: { reservedAmountXOF: { increment: amount } },
+        });
+      }
     }
     if (inst.creditLotId && inst.creditAppliedXOF > 0) {
       await tx.creditLot.update({
@@ -259,11 +390,17 @@ export async function releaseDiscountReservations(
       });
     }
     if (r.voucherId) {
-      const amount = r.ticketDiscountXOF + r.feeDiscountXOF;
-      await tx.monetaryVoucher.update({
-        where: { id: r.voucherId },
-        data: { reservedAmountXOF: { decrement: amount } },
-      });
+      const snap = r.snapshotJson as { voucherAppliedXOF?: number } | null;
+      const amount =
+        (snap?.voucherAppliedXOF ?? 0) +
+        r.ticketDiscountXOF +
+        r.feeDiscountXOF;
+      if (amount > 0) {
+        await tx.monetaryVoucher.update({
+          where: { id: r.voucherId },
+          data: { reservedAmountXOF: { decrement: amount } },
+        });
+      }
     }
     if (r.creditLotId && r.creditAppliedXOF > 0) {
       await tx.creditLot.update({
@@ -346,6 +483,7 @@ export async function refreezeHoldDiscounts(
     tiers,
   });
 
+  // Quote while treating this hold's reservations as available (Trace C / P1-17).
   const quote = await quoteCheckoutDiscounts(prisma, {
     offerCompanyId: hold.companyId,
     routeId: hold.trip.schedule?.routeId ?? null,
@@ -362,6 +500,7 @@ export async function refreezeHoldDiscounts(
     useCredits: input.useCredits ?? true,
     creditAmountXOF: input.creditAmountXOF,
     strict: true,
+    excludeHoldGroupId: hold.id,
   });
 
   await prisma.$transaction(async (tx) => {
@@ -431,14 +570,15 @@ export async function finalizeDiscountRedemptions(
       }
     }
     if (r.voucherId) {
-      const amount = discountTotal;
+      const snap = r.snapshotJson as { voucherAppliedXOF?: number } | null;
+      const amount =
+        (snap?.voucherAppliedXOF ?? 0) +
+        r.ticketDiscountXOF +
+        r.feeDiscountXOF;
       const voucher = await tx.monetaryVoucher.findUniqueOrThrow({
         where: { id: r.voucherId },
       });
-      const remaining = Math.max(
-        0,
-        voucher.remainingAmountXOF - amount,
-      );
+      const remaining = Math.max(0, voucher.remainingAmountXOF - amount);
       await tx.monetaryVoucher.update({
         where: { id: r.voucherId },
         data: {
@@ -478,6 +618,22 @@ export async function finalizeDiscountRedemptions(
     where: { holdGroupId, status: "RESERVED" },
     data: { status: "FINALIZED" },
   });
+
+  // P1-6: vouchers flagged expiresOnFirstCompletedBooking expire on first confirm.
+  const hold = await tx.holdGroup.findUnique({
+    where: { id: holdGroupId },
+    select: { userId: true },
+  });
+  if (hold?.userId) {
+    await tx.monetaryVoucher.updateMany({
+      where: {
+        userId: hold.userId,
+        expiresOnFirstCompletedBooking: true,
+        status: { in: ["ACTIVE", "PARTIALLY_REDEEMED"] },
+      },
+      data: { status: "EXPIRED" },
+    });
+  }
 
   return { exhaustedCampaignIds: [...new Set(exhaustedCampaignIds)] };
 }

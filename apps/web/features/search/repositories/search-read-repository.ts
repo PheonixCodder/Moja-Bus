@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from "@moja/db";
 import type { GeoPlace } from "../lib/places";
 import type { SearchFilters } from "../services/search-service";
+import { abidjanDayBounds } from "../lib/abidjan-time";
 
 export type TripWhereFilters = Pick<
   SearchFilters,
@@ -23,9 +24,8 @@ function terminalWhere(place: GeoPlace): Prisma.CompanyLocationWhereInput {
 }
 
 /**
- * Maps a departure window to concrete UTC hour ranges relative to the given
- * start-of-day. Mirrors the JS predicate in search-service (uses UTC hours,
- * upper bound exclusive so `lt` matches `hour < X` semantics).
+ * Maps a departure window to hour ranges relative to Abidjan start-of-day
+ * (UTC+0, no DST — civil hours == UTC for that date). Upper bound exclusive.
  */
 function departureHourRanges(
   window: string,
@@ -66,7 +66,9 @@ export function buildTripWhere(
   filters: TripWhereFilters,
 ): Prisma.TripWhereInput {
   const where: Prisma.TripWhereInput = {
-    status: { in: ["SCHEDULED", "DELAYED"] },
+    // BOARDING matches trip-details bookable set (P2-11): seats may remain
+    // for later segments while the bus has already started boarding.
+    status: { in: ["SCHEDULED", "DELAYED", "BOARDING"] },
     schedule: { isActive: true },
   };
 
@@ -157,12 +159,9 @@ export class TripSearchReadRepository {
     },
   } as const;
 
+  /** P2-12: civil day in Africa/Abidjan (not browser/UTC local). */
   private dayBounds(date: Date) {
-    const startOfDay = new Date(date);
-    startOfDay.setUTCHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setUTCHours(23, 59, 59, 999);
-    return { startOfDay, endOfDay };
+    return abidjanDayBounds(date);
   }
 
   /**
@@ -240,8 +239,8 @@ export class TripSearchReadRepository {
   }
 
   /**
-   * Computes the number of occupied seats per trip for their specific segment stop ranges.
-   * An active lock (PENDING_PAYMENT) is counted if it hasn't expired yet.
+   * Occupied seats for a search segment = max concurrent load across stop
+   * intervals (distinct seatIds), not overlapping booking row count (P1-3).
    */
   async getSegmentOccupancy(
     candidateTrips: {
@@ -254,37 +253,69 @@ export class TripSearchReadRepository {
       return new Map<string, number>();
     }
 
-    const activeHoldsThreshold = new Date();
+    const { maxPathOccupancy } = await import(
+      "@/features/booking/lib/max-path-occupancy"
+    );
 
+    const activeHoldsThreshold = new Date();
     const tripConditions = candidateTrips.map((trip) => ({
       tripId: trip.id,
       boardingStopOrder: { lt: trip.searchDestinationOrder },
       dropoffStopOrder: { gt: trip.searchOriginOrder },
     }));
 
-    const [confirmedCounts, pendingCounts] = await Promise.all([
-      this.prisma.booking.groupBy({
-        by: ["tripId"],
-        where: { OR: tripConditions, status: "CONFIRMED" },
-        _count: { seatId: true },
-      }),
-      this.prisma.booking.groupBy({
-        by: ["tripId"],
-        where: {
-          OR: tripConditions,
-          status: "PENDING_PAYMENT",
-          holdExpiresAt: { gt: activeHoldsThreshold },
-        },
-        _count: { seatId: true },
-      }),
-    ]);
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        AND: [
+          { OR: tripConditions },
+          {
+            OR: [
+              { status: "CONFIRMED" },
+              {
+                status: "PENDING_PAYMENT",
+                holdExpiresAt: { gt: activeHoldsThreshold },
+              },
+            ],
+          },
+        ],
+      },
+      select: {
+        tripId: true,
+        seatId: true,
+        boardingStopOrder: true,
+        dropoffStopOrder: true,
+      },
+    });
+
+    const byTrip = new Map<
+      string,
+      {
+        seatId: string;
+        boardingStopOrder: number;
+        dropoffStopOrder: number;
+      }[]
+    >();
+    for (const b of bookings) {
+      const list = byTrip.get(b.tripId) ?? [];
+      list.push({
+        seatId: b.seatId,
+        boardingStopOrder: b.boardingStopOrder,
+        dropoffStopOrder: b.dropoffStopOrder,
+      });
+      byTrip.set(b.tripId, list);
+    }
 
     const occupancy = new Map<string, number>();
-    for (const c of confirmedCounts) {
-      occupancy.set(c.tripId, (occupancy.get(c.tripId) ?? 0) + c._count.seatId);
-    }
-    for (const c of pendingCounts) {
-      occupancy.set(c.tripId, (occupancy.get(c.tripId) ?? 0) + c._count.seatId);
+    for (const trip of candidateTrips) {
+      const seats = byTrip.get(trip.id) ?? [];
+      occupancy.set(
+        trip.id,
+        maxPathOccupancy(
+          seats,
+          trip.searchOriginOrder,
+          trip.searchDestinationOrder,
+        ),
+      );
     }
 
     return occupancy;

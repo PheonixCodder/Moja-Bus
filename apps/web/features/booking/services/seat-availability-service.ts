@@ -91,11 +91,14 @@ export class SeatAvailabilityService {
       };
     });
 
+    // P2-23: top-level deck is max deck present (not hard-coded 1).
+    const maxDeck = seats.reduce((max, s) => Math.max(max, s.deck ?? 1), 1);
+
     return {
       offerId,
       rows: layout.rows,
       columns: layout.columns,
-      deck: 1,
+      deck: maxDeck,
       priceXOF: details.priceXOF,
       seats,
     };

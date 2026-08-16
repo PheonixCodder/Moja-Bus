@@ -1,6 +1,9 @@
 import type { PrismaClient } from "@moja/db";
 import type { EvalCampaign, EvalCoupon, EvalCreditLot, EvalVoucher } from "../engine/types";
 
+/** Caps: FINALIZED only (used). Budget still tracks reserved separately (P1-19 / Phase 04). */
+const FINALIZED_ONLY = { status: "FINALIZED" as const };
+
 type CampaignRow = Awaited<
   ReturnType<
     PrismaClient["discountCampaign"]["findMany"]
@@ -94,7 +97,7 @@ export async function loadActiveCampaignsForCheckout(
       },
       _count: {
         select: {
-          redemptions: { where: { status: { in: ["RESERVED", "FINALIZED"] } } },
+          redemptions: { where: FINALIZED_ONLY },
         },
       },
     },
@@ -109,7 +112,7 @@ export async function loadActiveCampaignsForCheckout(
         where: {
           userId: input.userId,
           campaignId: row.id,
-          status: { in: ["RESERVED", "FINALIZED"] },
+          ...FINALIZED_ONLY,
         },
       });
     }
@@ -117,7 +120,7 @@ export async function loadActiveCampaignsForCheckout(
       redemptionCountForPhone = await prisma.discountRedemption.count({
         where: {
           campaignId: row.id,
-          status: { in: ["RESERVED", "FINALIZED"] },
+          ...FINALIZED_ONLY,
           user: { phoneNumber: input.phone },
         },
       });

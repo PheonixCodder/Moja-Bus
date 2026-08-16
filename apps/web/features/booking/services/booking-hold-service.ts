@@ -33,6 +33,7 @@ export class BookingHoldService {
     offerId: string;
     passengers: SeatPassengerInput[];
     userId?: string | null;
+    quoteId: string;
     discount?: {
       code?: string | undefined;
       monetaryVoucherId?: string | undefined;
@@ -42,6 +43,27 @@ export class BookingHoldService {
     } | undefined;
     deviceHash?: string | undefined;
   }): Promise<BookingHoldResult> {
+    const {
+      verifyCheckoutQuote,
+      quoteMatchesHoldInput,
+    } = await import("@/features/payments/lib/checkout-quote");
+    const signedQuote = verifyCheckoutQuote(input.quoteId);
+    if (
+      !quoteMatchesHoldInput(signedQuote, {
+        offerId: input.offerId,
+        seatCount: [...new Set(input.passengers.map((p) => p.seatId))].length,
+        code: input.discount?.code,
+        monetaryVoucherId: input.discount?.monetaryVoucherId,
+        autoApply: input.discount?.autoApply,
+        useCredits: input.discount?.useCredits,
+      })
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Checkout quote does not match this hold. Refresh pricing and try again.",
+      });
+    }
+
     const details = await this.tripDetailsService.getTripDetails(input.offerId);
 
     if (details.availability.status === "SOLD_OUT") {
@@ -163,6 +185,7 @@ export class BookingHoldService {
       baseFareXOF: details.priceXOF,
       seatCount: uniqueSeatIds.length,
       convenienceFeeBps: pricing.convenienceFeeBps,
+      waiveConvenienceFee: signedQuote.waiveConvenienceFee,
       userId: input.userId,
       code: input.discount?.code,
       monetaryVoucherId: input.discount?.monetaryVoucherId,
@@ -171,6 +194,13 @@ export class BookingHoldService {
       creditAmountXOF: input.discount?.creditAmountXOF,
       strict: true,
     });
+
+    if (discountQuote.chargeAmountXOF !== signedQuote.chargeAmountXOF) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Price changed since quote. Refresh pricing and try again.",
+      });
+    }
 
     const result = await this.prisma.$transaction(async (tx) => {
       // Serialize hold creation per trip so the seat-conflict check + booking
@@ -325,19 +355,13 @@ export class BookingHoldService {
     );
     const holdGroup = await resolveHoldGroup(this.prisma, holdId);
 
-    await this.prisma.$transaction(async (tx) => {
-      const { releaseDiscountReservations } = await import(
-        "@/features/discounts/services/quote-service"
-      );
-      await releaseDiscountReservations(tx, holdGroup.id);
-      await tx.booking.updateMany({
-        where: { holdGroupId: holdGroup.id, status: "PENDING_PAYMENT" },
-        data: { status: "EXPIRED", holdExpiresAt: null },
-      });
-      await tx.holdGroup.update({
-        where: { id: holdGroup.id },
-        data: { status: "EXPIRED" },
-      });
+    const { expireOrReleaseHold } = await import(
+      "@/features/payments/services/expire-or-release-hold"
+    );
+    await expireOrReleaseHold(this.prisma, {
+      holdGroupId: holdGroup.id,
+      reason: "RELEASED",
+      force: true,
     });
 
     return { success: true };

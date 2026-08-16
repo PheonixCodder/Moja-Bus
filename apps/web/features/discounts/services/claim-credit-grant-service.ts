@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
+import { postPromoCreditGrantLedger } from "./promo-credit-grant-ledger";
 
 /**
  * Claim a WALLET_CREDIT_GRANT coupon: mint a PROMO_GRANT CreditLot.
@@ -29,6 +30,26 @@ export async function claimCreditGrant(
       code: "BAD_REQUEST",
       message: "Invalid or inactive credit code",
     });
+  }
+
+  // P1-13: when deviceHash provided, block second claim on same campaign from same device.
+  if (input.deviceHash) {
+    const prior = await prisma.promoAbuseEvent.findFirst({
+      where: {
+        eventType: "CREDIT_GRANT_CLAIM",
+        campaignId: coupon.campaignId,
+        metadata: {
+          path: ["deviceHash"],
+          equals: input.deviceHash,
+        },
+      },
+    });
+    if (prior) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This device already claimed a credit grant for this campaign",
+      });
+    }
   }
 
   const campaign = coupon.campaign;
@@ -176,6 +197,33 @@ export async function claimCreditGrant(
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Code has no redemptions left",
+        });
+      }
+
+      await postPromoCreditGrantLedger(tx, {
+        userId: input.userId,
+        amountXOF,
+        idempotencyKey: `${grantIdempotencyKey}:ledger`,
+        description: `Claimed promo credit grant ${code}`,
+        referenceType: "CREDIT_LOT",
+        referenceId: created.id,
+      });
+
+      if (input.deviceHash) {
+        await tx.promoAbuseEvent.create({
+          data: {
+            eventType: "CREDIT_GRANT_CLAIM",
+            userId: input.userId,
+            campaignId: campaign.id,
+            reviewStatus: "RESOLVED",
+            resolvedAt: new Date(),
+            metadata: {
+              deviceHash: input.deviceHash,
+              couponId: coupon.id,
+              creditLotId: created.id,
+              kind: "claim_audit",
+            },
+          },
         });
       }
 

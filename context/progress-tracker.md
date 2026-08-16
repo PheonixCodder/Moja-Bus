@@ -8,9 +8,9 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | **Discount / referral / voucher system** — Phase 21 polish done. Ready for flag-on smoke / GA. |
-| **Last major milestone** | Phase 21: referral funnel charts, marketing opt-in blast, traveler referrals screen, Terms §4.4–4.8. |
-| **Next priority** | 1) Confirm Novu bridge sync. 2) Execute QA smoke matrix → GA. 3) Finance recon. |
+| **Phase** | **Commercial lifecycle hardening** — Phase 00–07 code done; **staging smoke / go-no-go open**. D7=OUT. |
+| **Last major milestone** | Phase 07: OutboxMessage + process-outbox cron + admin DLQ; staging checklist filed. |
+| **Next priority** | 1) Staging migrate through `20260816200000` + smoke [20]. 2) Eng/ops go-no-go. |
 
 ### Changes Made (2026-08-15 — discounts):
 - ✅ Discount Prisma models + PricingSnapshot columns; schemas; feature flags; engine + services + tRPC routers
@@ -36,6 +36,58 @@
 ---
 
 ## Milestone Log (newest first)
+
+### Commercial lifecycle Phase 07 — outbox / gate (2026-08-16)
+- ✅ OutboxMessage + enqueue on commercial Novu events; process-outbox cron; admin retry UI
+- ✅ Staging smoke checklist + test matrix docs; D7 confirmed OUT
+- ⏳ Staging migrate + smoke sign-off / recon
+
+### Commercial lifecycle Phase 06 — UX/i18n/privacy (2026-08-16)
+- ✅ Presentation ticket tokens (`pt`) on success URL; verify checkout session cookie
+- ✅ Abidjan day bounds; multi-deck seat map; CONFLICT refresh; wallet CreditLots prefetch
+- ✅ Booking dialog / hold countdown / seat legend i18n EN+FR; privacy notes doc
+
+### Commercial lifecycle Phase 05 — product/ops/abuse (2026-08-16)
+- ✅ Flag decisions + wiring (combine credit, applyTarget fee, newUser age, expiresOnFirstBooking, requirePaid)
+- ✅ Offline refund fulfilment FSM + admin UI; abuse reviewStatus; incentive-status-sweep cron
+- ✅ Crypto bulk coupons; company-only voucher; referral fraud toggles persist
+
+### Commercial lifecycle Phase 04 — search/quote concurrency (2026-08-16)
+- ✅ maxPathOccupancy (P1-3); BOARDING in search (P2-11)
+- ✅ Conditional campaign budget + coupon freeze (P1-19 / P2-7); FINALIZED-only cap eligibility
+- ✅ Signed quoteId on getCheckoutPricing; createHold requires quote; UI uses payableXOF
+
+### Commercial lifecycle Phase 03 — hold & payment lifecycle (2026-08-16)
+- ✅ `expireOrReleaseHold` + expire-holds cron; reconcile uses same path on fail
+- ✅ Trace C: excludeHoldGroupId on quote/preview/refreeze; PaymentTab passes hold id
+- ✅ Checkout releaseHold on hard failure; Paystack cancel keeps hold
+- ✅ amountXOF sync on Paystack re-init; wallet clash re-check; ExternalPayment.purpose
+- ✅ Honest mobile-callback; WalletReservation documented no-writers; sweep-captures scheduled
+- ⏳ Staging Trace C + expire + amount-sync demos
+
+### Commercial lifecycle Phase 02 — schema migrations & data repair (2026-08-16)
+- ✅ Baseline IF NOT EXISTS migration for discount/referral/voucher/credit/scopes + pricing discount columns (P0-8 / D4)
+- ✅ Constraints migration: voucher schedule/company Restrict; payment/refund→hold Restrict; CHECKs NOT VALID
+- ✅ Env cutover runbook + state transition matrix; offerId intentional non-unique (P3-16)
+- ✅ Repair/inventory scripts: duplicate INITIAL, CANCEL_WITHOUT_REFUND, stuck holds
+- ⏳ Staging `migrate deploy` + CHECK VALIDATE + finance-gated --apply
+
+### Commercial lifecycle Phase 01 — incentive ledger & referrals (2026-08-16)
+- ✅ Admin/claim grants post PROMO_CREDITS ledger with lot
+- ✅ Referral INITIAL edge-scoped idempotency (`referral:{edgeId}:INITIAL`)
+- ✅ Voucher redeem burns VOUCHER_LIABILITY (not platform expense)
+- ✅ Soft-fail invalid voucher; coupon/auto retained; checkout surfaces error
+- ✅ Repair script for underfunded lots (dry-run / apply)
+- ⏳ Staging Trace B/E + finance voucher journal spot-check
+
+### Commercial lifecycle Phase 00 — cancel/refund money safety (2026-08-16)
+- ✅ D7 locked OUT (no Paystack splits)
+- ✅ Settlement provenance for wallet/zero-cash/Paystack; CancellationService no longer requires ExternalPayment SUCCESS
+- ✅ Multi-seat: dropped FT unique(externalPaymentId, type); businessIdempotencyKey + per-booking REFUND_* keys
+- ✅ Trip cancel failure → REFUND_PENDING + durable Refund FAILED (not CANCEL_WITHOUT_REFUND)
+- ✅ Honest statuses: WALLET→COMPLETED, CASH/VOUCHER→PENDING_FULFILMENT; never fake Paystack refund id
+- ✅ Passenger cancel channel picker + fee non-refundable copy; ACCOUNT_CLASS.OFFLINE_REFUND_PAYABLE
+- ⏳ Staging migration + recon before Phase 01
 
 ### Discount / referral / voucher foundation + surfaces (2026-08-15)
 

@@ -13,6 +13,7 @@ import { useHoldCountdown } from "@/features/booking/lib/hold-countdown";
 const STATUS_PROGRESS: Record<PassengerBookingStatus, number> = {
   CONFIRMED: 100,
   PENDING_PAYMENT: 30,
+  REFUND_PENDING: 75,
   COMPLETED: 100,
   CANCELLED: 0,
   EXPIRED: 0,
@@ -21,6 +22,7 @@ const STATUS_PROGRESS: Record<PassengerBookingStatus, number> = {
 const STATUS_RING_CLASS: Record<PassengerBookingStatus, string> = {
   CONFIRMED: "text-primary",
   PENDING_PAYMENT: "text-amber-500",
+  REFUND_PENDING: "text-amber-600",
   COMPLETED: "text-muted-foreground",
   CANCELLED: "text-destructive",
   EXPIRED: "text-muted-foreground",
@@ -29,6 +31,7 @@ const STATUS_RING_CLASS: Record<PassengerBookingStatus, string> = {
 const STATUS_LABEL_KEY: Record<PassengerBookingStatus, string> = {
   CONFIRMED: "cardConfirmed",
   PENDING_PAYMENT: "cardPending",
+  REFUND_PENDING: "cardRefundPending",
   COMPLETED: "cardCompleted",
   CANCELLED: "cardCancelled",
   EXPIRED: "cardExpired",

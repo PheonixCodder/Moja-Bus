@@ -2,11 +2,19 @@
   "crons": [
     {
       "path": "/api/cron/reconcile-payments",
-      "schedule": "0 0 * * *"
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/expire-holds",
+      "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/cron/release-reservations",
-      "schedule": "0 0 * * *"
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/sweep-captures",
+      "schedule": "0 */6 * * *"
     },
     {
       "path": "/api/cron/snapshot-accounts",
@@ -31,6 +39,14 @@
     {
       "path": "/api/cron/promo-expiry-reminders",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/incentive-status-sweep",
+      "schedule": "15 * * * *"
+    },
+    {
+      "path": "/api/cron/process-outbox",
+      "schedule": "* * * * *"
     }
   ]
 }

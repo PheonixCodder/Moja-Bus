@@ -44,7 +44,7 @@ describe("buildTripWhere", () => {
   test("no extra filters -> only geo/date constraints", () => {
     const w = buildTripWhere(origin, destination, start, end, noFilters);
     assert.deepEqual(strip(w), {
-      status: { in: ["SCHEDULED", "DELAYED"] },
+      status: { in: ["SCHEDULED", "DELAYED", "BOARDING"] },
       schedule: { isActive: true },
       companyId: undefined,
       bus: undefined,

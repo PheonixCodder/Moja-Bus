@@ -129,6 +129,9 @@ export class AccountingEngine {
           type: this.type,
           status: TransactionStatus.POSTED,
           ...(this.externalPaymentId != null ? { externalPaymentId: this.externalPaymentId } : {}),
+          ...(this.idempotencyKey != null
+            ? { businessIdempotencyKey: this.idempotencyKey }
+            : {}),
           currency: this.currency,
           ...(this.description != null ? { description: this.description } : {}),
           ...(this.metadata != null ? { metadata: this.metadata as Prisma.InputJsonValue } : {}),

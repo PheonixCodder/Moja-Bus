@@ -49,7 +49,7 @@ function TicketSheet({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const refundChannel: "WALLET" = "WALLET";
+  const [refundChannel, setRefundChannel] = useState<"WALLET" | "CASH">("WALLET");
 
   const { data: ticket, isLoading, isError } = useQuery(
     trpc.booking.getTicket.queryOptions({ bookingReference }),
@@ -170,8 +170,48 @@ function TicketSheet({
                   <span>{t("refundAmount")}</span>
                   <span>{formatPriceXOF(ticket.farePaidXOF)}</span>
                 </div>
+                <p className="text-[11px] text-slate-500 pt-2 leading-relaxed">{t("feeNote")}</p>
               </div>
             )}
+
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                {t("refundMethod")}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    {
+                      id: "WALLET" as const,
+                      labelKey: "channelWallet" as const,
+                      hintKey: "channelWalletHint" as const,
+                    },
+                    {
+                      id: "CASH" as const,
+                      labelKey: "channelCash" as const,
+                      hintKey: "channelCashHint" as const,
+                    },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setRefundChannel(opt.id)}
+                    className={cn(
+                      "p-3 rounded-xl border text-center text-xs font-semibold transition-all",
+                      refundChannel === opt.id
+                        ? "border-error bg-error/5 text-error"
+                        : "border-slate-200 text-slate-700 hover:border-slate-300",
+                    )}
+                  >
+                    {t(opt.labelKey)}
+                    <span className="block text-[10px] text-slate-400 font-normal mt-0.5">
+                      {t(opt.hintKey)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="flex gap-3 pt-2">
               <Button

@@ -190,21 +190,16 @@ export const discountsOperatorRouter = createTRPCRouter({
       if (!campaign) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
       }
-      const created: string[] = [];
-      for (let i = 0; i < input.count; i++) {
-        const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
-        const code = `${input.prefix}-${suffix}`;
-        await ctx.prisma.couponCode.create({
-          data: {
-            campaignId: input.campaignId,
-            code,
-            maxRedemptions: input.maxRedemptions ?? null,
-            expiresAt: input.expiresAt ?? null,
-          },
-        });
-        created.push(code);
-      }
-      return { codes: created };
+      const { bulkCreateCouponCodes } = await import(
+        "@/features/discounts/services/bulk-coupon-create"
+      );
+      return bulkCreateCouponCodes(ctx.prisma, {
+        campaignId: input.campaignId,
+        prefix: input.prefix,
+        count: input.count,
+        maxRedemptions: input.maxRedemptions,
+        expiresAt: input.expiresAt,
+      });
     }),
 
   deactivateCoupon: operatorCompanyProcedure

@@ -68,8 +68,14 @@ export function checkCampaignEligibility(
       messageKey: "discounts.errors.firstBookingOnly",
     };
   }
-  if (campaign.newUserOnly && ctx.completedBookingCount > 0) {
-    return { code: "NEW_USER_ONLY", messageKey: "discounts.errors.newUserOnly" };
+  // newUserOnly: account age ≤ 14 days (independent of booking count).
+  if (campaign.newUserOnly) {
+    if (ctx.userAccountAgeDays == null) {
+      return { code: "NEW_USER_ONLY", messageKey: "discounts.errors.newUserOnly" };
+    }
+    if (ctx.userAccountAgeDays > 14) {
+      return { code: "NEW_USER_ONLY", messageKey: "discounts.errors.newUserOnly" };
+    }
   }
 
   if (

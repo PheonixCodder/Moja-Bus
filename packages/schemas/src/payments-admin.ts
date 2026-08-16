@@ -53,6 +53,8 @@ export const cancelBookingSchema = z.object({
 export const getCheckoutPricingSchema = z.object({
   offerId: z.string().min(1),
   seatCount: z.number().int().min(1).max(6),
+  /** Drives fee waive + signed quoteId (Phase 04 / D5 surgical). */
+  paymentMethod: z.enum(["WALLET", "PAYSTACK"]).optional().default("PAYSTACK"),
   code: z
     .string()
     .trim()
@@ -65,4 +67,6 @@ export const getCheckoutPricingSchema = z.object({
   autoApply: z.boolean().optional().default(true),
   useCredits: z.boolean().optional().default(true),
   creditAmountXOF: z.number().int().min(0).optional(),
+  /** Pending-pay: exclude this hold's own incentive reservations from availability. */
+  excludeHoldGroupId: z.string().min(1).optional(),
 });

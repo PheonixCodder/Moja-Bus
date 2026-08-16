@@ -2,7 +2,10 @@ import type { PrismaClient } from "@moja/db";
 import { AccountingEngine, FinancialAccountService, Prisma } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import { resolveHoldGroup } from "../lib/resolve-hold-group";
-import { getNovuClient } from "@/lib/novu";
+import {
+  assertSettlementCancellable,
+  resolveBookingSettlement,
+} from "../lib/settlement-provenance";
 
 export type CancelBookingInput = {
   bookingReference: string;
@@ -59,8 +62,17 @@ export class CancellationService {
       });
     }
 
+    if (input.channel === "WALLET" && !booking.userId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Cannot refund to wallet for a guest booking. Use cash instead, or have the passenger claim their booking first.",
+      });
+    }
+
     const isOwner = booking.userId === input.userId;
-    const isCompanyStaff = input.userCompanyId && booking.companyId === input.userCompanyId;
+    const isCompanyStaff =
+      input.userCompanyId && booking.companyId === input.userCompanyId;
     const isAdmin = input.userRole === "ADMIN";
 
     if (!isOwner && !isCompanyStaff && !isAdmin) {
@@ -77,7 +89,11 @@ export class CancellationService {
       });
     }
 
-    if (booking.trip.departureDate <= new Date()) {
+    // Trip-cancel path sets trip CANCELLED first, then refunds seats after departure.
+    if (
+      booking.trip.departureDate <= new Date() &&
+      booking.trip.status !== "CANCELLED"
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Cannot cancel after departure",
@@ -91,29 +107,22 @@ export class CancellationService {
       });
     }
 
-    const holdGroup = await resolveHoldGroup(this.prisma, booking.holdGroupId);
-    const payment = holdGroup.payment;
+    const holdGroup = await resolveHoldGroup(db, booking.holdGroupId);
+    const settlement = await resolveBookingSettlement(db, holdGroup);
+    assertSettlementCancellable(settlement);
 
-    if (!payment || payment.status !== "SUCCESS") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "No successful payment found for this booking",
-      });
-    }
-
-    // F-24: when a pricing snapshot is missing we still need the platform
-    // default commission rate so commission can be clawed back on cancellation.
     const platformCommissionBps =
       (await this.prisma.platformSettings.findUnique({ where: { id: "default" } }))
         ?.defaultCommissionBps ?? 500;
 
-    const run = async (tx: any) => {
-        // Serialize remainder math across concurrent seat cancels in the same hold
-        await tx.$queryRaw(
+    const requestIdempotencyKey = `CANCEL_${booking.id}_${input.channel}`;
+
+    const run = async (txClient: any) => {
+      await txClient.$queryRaw(
         Prisma.sql`SELECT id FROM "hold_group" WHERE id = ${holdGroup.id} FOR UPDATE`,
       );
 
-      const lockedBooking = await tx.booking.findUnique({
+      const lockedBooking = await txClient.booking.findUnique({
         where: { id: booking.id },
         select: {
           id: true,
@@ -134,12 +143,19 @@ export class CancellationService {
         });
       }
 
+      const existingRefund = await txClient.refund.findUnique({
+        where: { requestIdempotencyKey },
+      });
+      if (existingRefund) {
+        return existingRefund;
+      }
+
       const snapshot = holdGroup.pricingSnapshot;
       let proportionalBase = lockedBooking.farePaid;
       let proportionalOperatorNet = lockedBooking.farePaid;
 
       if (snapshot) {
-        const cancelledSoFar = await tx.booking.count({
+        const cancelledSoFar = await txClient.booking.count({
           where: { holdGroupId: holdGroup.id, status: "CANCELLED" },
         });
         const isLastSeat = cancelledSoFar + 1 === snapshot.seatCount;
@@ -154,18 +170,22 @@ export class CancellationService {
           ? snapshot.operatorNetXOF - cancelledSoFar * standardNet
           : standardNet;
       } else {
-        // F-24: no pricing snapshot — derive the platform commission from the
-        // default rate so it is still clawed back instead of being skipped.
-        // proportionalOperatorNet is reduced by the commission, keeping the
-        // ledger balanced (debits = proportionalBase = refundAmountXOF).
-        const commission = Math.round((proportionalBase * platformCommissionBps) / 10_000);
+        const commission = Math.round(
+          (proportionalBase * platformCommissionBps) / 10_000,
+        );
         proportionalOperatorNet = Math.max(0, proportionalBase - commission);
       }
 
+      // D2: ticket subtotal share only — convenience fee is never refunded.
       const refundAmountXOF = Math.max(0, proportionalBase);
-      const paystackRefundStatus = "COMPLETED" as const;
 
-      await tx.booking.update({
+      // D1: WALLET → COMPLETED; CASH/VOUCHER → PENDING_FULFILMENT (not a card return).
+      const refundStatus =
+        input.channel === "WALLET"
+          ? ("COMPLETED" as const)
+          : ("PENDING_FULFILMENT" as const);
+
+      await txClient.booking.update({
         where: { id: lockedBooking.id },
         data: {
           status: "CANCELLED",
@@ -173,45 +193,52 @@ export class CancellationService {
         },
       });
 
-      const refund = await tx.refund.create({
+      const refund = await txClient.refund.create({
         data: {
           holdGroupId: holdGroup.id,
-          paymentId: payment.id,
+          bookingId: lockedBooking.id,
+          ...(settlement.externalPaymentId
+            ? { paymentId: settlement.externalPaymentId }
+            : {}),
           amountXOF: refundAmountXOF,
           channel: input.channel,
-          status: paystackRefundStatus,
+          status: refundStatus,
           paystackRefundId: null,
+          requestIdempotencyKey,
           reason: input.reason ?? "Passenger cancellation before departure",
         },
       });
 
       if (refundAmountXOF > 0 || proportionalOperatorNet > 0) {
-        const accountService = new FinancialAccountService(tx as any);
+        const accountService = new FinancialAccountService(txClient as any);
         const opAcct = await accountService.getOperatorReceivableAccount(
           lockedBooking.companyId,
         );
         const releaseFromReserve = lockedBooking.clearedAt === null;
-        const commissionAmount = Math.max(0, refundAmountXOF - proportionalOperatorNet);
+        const commissionAmount = Math.max(
+          0,
+          refundAmountXOF - proportionalOperatorNet,
+        );
 
         if (input.channel === "WALLET") {
-          if (!lockedBooking.userId) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message:
-                "Cannot refund to wallet for a guest booking. The passenger must register and claim their booking first.",
-            });
-          }
           const platformCommissionAcct =
             await accountService.getPlatformCommissionRevenueAccount();
           const passengerWalletAcct = await accountService.getUserWallet(
-            lockedBooking.userId,
+            lockedBooking.userId!,
           );
 
           const engine = new AccountingEngine("REFUND", {
-            externalPaymentId: payment.id,
+            ...(settlement.externalPaymentId
+              ? { externalPaymentId: settlement.externalPaymentId }
+              : {}),
             description: `Wallet refund for cancelled booking ${lockedBooking.bookingReference}`,
             idempotencyKey: `REFUND_WALLET_${lockedBooking.id}`,
-            metadata: { refundId: refund.id, proportionalBase, proportionalOperatorNet },
+            metadata: {
+              refundId: refund.id,
+              proportionalBase,
+              proportionalOperatorNet,
+              settlementKind: settlement.kind,
+            },
           });
 
           let seq = 1;
@@ -250,12 +277,14 @@ export class CancellationService {
           }
 
           engine.validate();
-          await engine.commit(tx as any);
+          await engine.commit(txClient as any);
         } else {
-          // CASH / VOUCHER: always claw back operator net into offline reimbursement payable
-          const offlinePayable = await accountService.getOfflineRefundPayableAccount();
+          const offlinePayable =
+            await accountService.getOfflineRefundPayableAccount();
           const engine = new AccountingEngine("REFUND", {
-            externalPaymentId: payment.id,
+            ...(settlement.externalPaymentId
+              ? { externalPaymentId: settlement.externalPaymentId }
+              : {}),
             description: `Offline/Voucher reimbursement for booking ${lockedBooking.bookingReference}`,
             idempotencyKey: `REFUND_OFFLINE_${lockedBooking.id}`,
             metadata: {
@@ -263,6 +292,7 @@ export class CancellationService {
               proportionalBase,
               proportionalOperatorNet,
               channel: input.channel,
+              settlementKind: settlement.kind,
             },
           });
 
@@ -304,11 +334,11 @@ export class CancellationService {
           }
 
           engine.validate();
-          await engine.commit(tx as any);
+          await engine.commit(txClient as any);
         }
       }
 
-      const remainingConfirmed = await tx.booking.count({
+      const remainingConfirmed = await txClient.booking.count({
         where: {
           holdGroupId: holdGroup.id,
           status: "CONFIRMED",
@@ -316,29 +346,19 @@ export class CancellationService {
       });
 
       if (remainingConfirmed === 0) {
-        await tx.holdGroup.update({
+        await txClient.holdGroup.update({
           where: { id: holdGroup.id },
           data: { status: "CANCELLED" },
         });
       }
 
-      // M8 / M18: invariant guard. The hold_group `FOR UPDATE` lock taken at the
-      // top of `run` serializes concurrent seat cancels, so the proportional
-      // remainder math is exact. Still, assert that the sum of all issued
-      // refunds plus the fare still on confirmed seats equals the original
-      // charge — if it ever drifts (remainder mis-assigned), alert ops rather
-      // than silently under/over-refunding.
-      // The invariant only makes sense when a pricing snapshot exists (the
-      // proportional remainder math keys off it). When `snapshot` is null the
-      // service falls back to `lockedBooking.farePaid`, so there is no shared
-      // base to reconcile against — skip the check rather than dereferencing null.
       if (snapshot) {
         const [issuedRefunds, remainingBookings] = await Promise.all([
-          tx.refund.findMany({
+          txClient.refund.findMany({
             where: { holdGroupId: holdGroup.id },
             select: { amountXOF: true },
           }),
-          tx.booking.findMany({
+          txClient.booking.findMany({
             where: { holdGroupId: holdGroup.id, status: "CONFIRMED" },
             select: { farePaid: true },
           }),
@@ -355,7 +375,7 @@ export class CancellationService {
           console.error(
             `[REFUND-INVARIANT] holdGroup ${holdGroup.id}: refunded=${refundedSum} remaining=${remainingSum} charge=${snapshot.subtotalBaseXOF}`,
           );
-          await tx.activityLog.create({
+          await txClient.activityLog.create({
             data: {
               companyId: lockedBooking.companyId,
               userId: input.userId,
@@ -382,49 +402,39 @@ export class CancellationService {
       if (err.message && err.message.includes("Insufficient funds")) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Insufficient operator balance to process this refund — please contact support",
+          message:
+            "Insufficient operator balance to process this refund — please contact support",
         });
       }
       throw err;
     }
 
-    const email =
-      booking.user?.email ??
-      (booking.passengerPhone
-        ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
-        : null);
+    // P2-18 / P2-2: durable outbox — only when we have a real email.
+    const email = booking.user?.email ?? null;
     if (email) {
-      const novu = getNovuClient();
-      if (novu) {
-        void novu
-          .trigger({
-            workflowId: "passenger-booking-refunded",
-            to: {
-              subscriberId: email,
-              email: email,
-            },
-            payload: {
-              email,
-              passengerName: booking.user?.fullName ?? booking.passengerName,
-              bookingReference: booking.bookingReference,
-              refundAmountXOF: result.amountXOF,
-              channel: result.channel as any,
-              reason: result.reason ?? "Passenger cancellation before departure",
-            },
-            transactionId: `booking-refunded-${result.id}`,
-          })
-          .catch((err) =>
-            console.error("Failed to trigger passenger-booking-refunded via Novu:", err),
-          );
-      }
+      const { enqueueBookingRefunded } = await import(
+        "@/features/notifications/outbox/commercial"
+      );
+      await enqueueBookingRefunded(this.prisma, {
+        refundId: result.id,
+        email,
+        subscriberId: booking.userId ?? email,
+        firstName: (booking.user?.fullName ?? booking.passengerName).split(
+          " ",
+        )[0],
+        data: {
+          email,
+          passengerName: booking.user?.fullName ?? booking.passengerName,
+          bookingReference: booking.bookingReference,
+          refundAmountXOF: result.amountXOF,
+          channel: result.channel as string,
+          reason: result.reason ?? "Passenger cancellation before departure",
+        },
+      });
     }
 
     let voucherId: string | null = null;
-    if (
-      input.channel === "VOUCHER" &&
-      booking.userId &&
-      result.amountXOF > 0
-    ) {
+    if (input.channel === "VOUCHER" && booking.userId && result.amountXOF > 0) {
       const { issueCancellationVoucher } = await import(
         "@/features/discounts/services/voucher-service"
       );

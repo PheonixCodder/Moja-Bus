@@ -37,6 +37,8 @@ export async function createContextFromHeaders(
     prisma: getPrismaClient(),
     user: response?.user,
     headers,
+    /** Fetch adapter response headers — use to append Set-Cookie. */
+    resHeaders,
     _cache: new Map<string, unknown>(),
   };
 }

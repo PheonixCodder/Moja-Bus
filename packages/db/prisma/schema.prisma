@@ -22,6 +22,8 @@ enum UserRole {
 enum BookingStatus {
   PENDING_PAYMENT
   CONFIRMED
+  /// Trip/ops disruption: refund owed but not completed; not boardable.
+  REFUND_PENDING
   CANCELLED
   EXPIRED
   COMPLETED
@@ -51,6 +53,11 @@ enum PaymentRecordStatus {
   REFUNDED
 }
 
+enum PaymentPurpose {
+  CHECKOUT
+  TOP_UP
+}
+
 enum RefundChannel {
   CASH
   VOUCHER
@@ -63,6 +70,10 @@ enum RefundRecordStatus {
   PROCESSING
   COMPLETED
   FAILED
+  /// Cash/voucher owed offline — not a Paystack card return.
+  PENDING_FULFILMENT
+  /// Ops voided the offline obligation (P1-11).
+  VOIDED
 }
 
 enum AccountOwnerType {
@@ -304,6 +315,21 @@ enum CampaignOptInStatus {
   INVITED
   OPTED_IN
   OPTED_OUT
+}
+
+enum PromoAbuseReviewStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum OutboxMessageStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  DEAD
 }
 
 // ============================================
@@ -1711,11 +1737,14 @@ model PricingSnapshot {
 model ExternalPayment {
   id          String     @id @default(cuid())
   holdGroupId String?    @unique
-  holdGroup   HoldGroup? @relation(fields: [holdGroupId], references: [id], onDelete: Cascade)
+  /// Restrict: do not hard-delete hold after payment money moved (P2-15).
+  holdGroup   HoldGroup? @relation(fields: [holdGroupId], references: [id], onDelete: Restrict)
 
   provider          String
   amountXOF         Int
   status            PaymentRecordStatus @default(INITIALIZED)
+  /// Discriminates checkout vs wallet top-up (replaces metadata.isTopUp for new rows).
+  purpose           PaymentPurpose      @default(CHECKOUT)
   paystackReference String?             @unique
   channel           String?
   feesXOF           Int?
@@ -1732,6 +1761,7 @@ model ExternalPayment {
 
   @@index([status])
   @@index([paystackReference])
+  @@index([purpose])
   @@map("payment")
 }
 
@@ -1782,23 +1812,40 @@ model WebhookEvent {
 }
 
 model Refund {
-  id          String          @id @default(cuid())
+  id          String    @id @default(cuid())
   holdGroupId String
-  holdGroup   HoldGroup       @relation(fields: [holdGroupId], references: [id], onDelete: Cascade)
-  paymentId   String
-  payment     ExternalPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  /// Restrict: do not hard-delete hold after refund rows exist (P2-15).
+  holdGroup   HoldGroup @relation(fields: [holdGroupId], references: [id], onDelete: Restrict)
 
-  amountXOF        Int
-  channel          RefundChannel
-  status           RefundRecordStatus @default(PENDING)
-  paystackRefundId String?
-  reason           String?
+  /// Seat-level cancel target (required for new refunds).
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  /// Null for wallet / zero-cash confirms that never created ExternalPayment.
+  paymentId String?
+  payment   ExternalPayment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  amountXOF             Int
+  channel               RefundChannel
+  status                RefundRecordStatus @default(PENDING)
+  paystackRefundId      String?            @unique
+  requestIdempotencyKey String?            @unique
+  reason                String?
+
+  /// Offline fulfilment (CASH/VOUCHER PENDING_FULFILMENT → COMPLETED/VOIDED).
+  fulfilledAt       DateTime?
+  fulfilledByUserId String?
+  voidedAt          DateTime?
+  voidedByUserId   String?
+  fulfilmentNote    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([holdGroupId])
   @@index([paymentId])
+  @@index([bookingId])
+  @@index([status, createdAt])
   @@map("refund")
 }
 
@@ -1862,6 +1909,10 @@ model FinancialTransaction {
   externalPaymentId String?
   externalPayment   ExternalPayment? @relation(fields: [externalPaymentId], references: [id])
 
+  /// App-level idempotency (e.g. REFUND_WALLET_{bookingId}). Replaces unique(externalPaymentId, type)
+  /// so multi-seat refunds against one Paystack payment are allowed.
+  businessIdempotencyKey String? @unique
+
   currency    String  @default("XOF")
   description String?
   metadata    Json?
@@ -1871,7 +1922,7 @@ model FinancialTransaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([externalPaymentId, type])
+  @@index([externalPaymentId, type])
   @@map("financial_transaction")
 }
 
@@ -1983,6 +2034,7 @@ model Booking {
 
   // Vouchers issued from this booking (cancel / modification)
   vouchersIssued MonetaryVoucher[] @relation("VoucherSourceBooking")
+  refunds        Refund[]
 
   // Tracking
   checkedInAt DateTime?
@@ -2476,10 +2528,10 @@ model MonetaryVoucher {
 
   /** Required for CANCELLATION vouchers — redeemable only on this schedule. */
   scheduleId String?
-  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: Restrict)
   /** Issuing operator company (cancellation vouchers). */
   companyId String?
-  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
 
   sourceHoldGroupId String?
   sourceHoldGroup   HoldGroup? @relation("VoucherSourceHoldGroup", fields: [sourceHoldGroupId], references: [id], onDelete: SetNull)
@@ -2704,9 +2756,36 @@ model PromoAbuseEvent {
   userId    String?
   campaignId String?
   metadata  Json?
+  reviewStatus     PromoAbuseReviewStatus @default(OPEN)
+  assigneeUserId   String?
+  resolutionNote   String?
+  resolvedAt       DateTime?
+  resolvedByUserId String?
   createdAt DateTime @default(now())
 
   @@index([eventType, createdAt])
   @@index([userId])
+  @@index([reviewStatus, createdAt])
   @@map("promo_abuse_event")
+}
+
+/// Durable Novu delivery queue (Phase 07 / D8 / P2-2).
+model OutboxMessage {
+  id             String             @id @default(cuid())
+  /// Stable event type (e.g. BOOKING_CONFIRMED); workflowId lives in payload.
+  type           String
+  payload        Json
+  status         OutboxMessageStatus @default(PENDING)
+  attempts       Int                 @default(0)
+  maxAttempts    Int                 @default(8)
+  nextAttemptAt  DateTime            @default(now())
+  lastError      String?
+  idempotencyKey String              @unique
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  sentAt         DateTime?
+
+  @@index([status, nextAttemptAt])
+  @@index([type, createdAt])
+  @@map("outbox_message")
 }

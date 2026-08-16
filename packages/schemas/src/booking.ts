@@ -29,6 +29,8 @@ export const createHoldSchema = z.object({
         message: "Provide savedPassengerId or passenger details for each seat",
       }),
   ).min(1).max(6),
+  /** Signed quote from getCheckoutPricing; required so hold charge matches UI (P2-1). */
+  quoteId: z.string().min(1),
   discount: checkoutDiscountInputSchema.optional(),
   deviceHash: z.string().max(128).optional(),
 });
@@ -68,6 +70,8 @@ export const getTicketByTokenSchema = z.object({
 export const initiatePaymentSchema = z.object({
   holdId: z.string().min(1),
   payerEmail: z.string().email().optional(),
+  /** Locale for Paystack return redirects (en | fr). */
+  locale: z.enum(["en", "fr"]).optional(),
 });
 
 export const verifyPaymentSchema = z.object({

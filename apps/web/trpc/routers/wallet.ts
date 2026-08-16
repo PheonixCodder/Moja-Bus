@@ -36,6 +36,7 @@ export const walletRouter = createTRPCRouter({
           provider: "PAYSTACK",
           amountXOF: input.amountXOF,
           status: "INITIALIZED",
+          purpose: "TOP_UP",
           metadata: {
             isTopUp: true,
             accountId: wallet.id,
@@ -56,7 +57,14 @@ export const walletRouter = createTRPCRouter({
         select: { email: true, phoneNumber: true },
       });
 
-      const email = user?.email || (user?.phoneNumber?.replace(/\s+/g, "") + "@guest.mojaride.ci");
+      const email = user?.email;
+      if (!email) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "A verified email is required to top up with card/mobile money.",
+        });
+      }
 
       let initialized;
       try {
@@ -101,6 +109,14 @@ export const walletRouter = createTRPCRouter({
               authorizationUrl: initialized.authorizationUrl,
               accessCode: initialized.accessCode,
             },
+          },
+        });
+
+        await tx.paymentEvent.create({
+          data: {
+            paymentId: payment.id,
+            eventType: "INITIALIZED",
+            payload: { reference, amountXOF: input.amountXOF, purpose: "TOP_UP" },
           },
         });
       });

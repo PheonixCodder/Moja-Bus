@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
@@ -38,6 +38,8 @@ interface BookingCheckoutFormProps {
   selectedSeatIds: string[];
   selectedLabels: string[];
   onBack: () => void;
+  /** P2-24: called when hold fails with CONFLICT so UI can refresh seats. */
+  onSeatConflict?: () => void | Promise<void>;
   onConfirmed: (result: {
     holdId: string;
     bookingReferences: string[];
@@ -66,9 +68,11 @@ export function BookingCheckoutForm({
   selectedSeatIds,
   selectedLabels,
   onBack,
+  onSeatConflict,
   onConfirmed,
 }: BookingCheckoutFormProps) {
   const t = useTranslations("discounts");
+  const tBooking = useTranslations("booking");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
@@ -89,6 +93,7 @@ export function BookingCheckoutForm({
     ...trpc.payments.getCheckoutPricing.queryOptions({
       offerId,
       seatCount: selectedSeatIds.length,
+      paymentMethod,
       code: appliedCode,
       monetaryVoucherId: selectedVoucherId,
       autoApply: true,
@@ -151,6 +156,7 @@ export function BookingCheckoutForm({
   }, [isLoggedIn, defaultSavedId, savedPassengers]);
 
   const createHoldMutation = useMutation(trpc.booking.createHold.mutationOptions());
+  const releaseHoldMutation = useMutation(trpc.booking.releaseHold.mutationOptions());
   const walletCheckoutMutation = useMutation(trpc.booking.checkoutWithWallet.mutationOptions());
   const {
     completePayment,
@@ -163,13 +169,18 @@ export function BookingCheckoutForm({
         subtotalBaseXOF: number;
         convenienceFeeXOF: number;
         chargeAmountXOF: number;
+        payableXOF?: number;
+        displayFeeXOF?: number;
+        quoteId?: string;
         ticketDiscountXOF?: number;
         feeDiscountXOF?: number;
         creditAppliedXOF?: number;
+        voucherAppliedXOF?: number;
         preDiscountSubtotalXOF?: number;
         autoAppliedCampaignId?: string | null;
         discountOk?: boolean;
         discountRejection?: { code: string; messageKey: string } | null;
+        voucherRejection?: { code: string; messageKey: string } | null;
       }
     | undefined;
   const preDiscountSubtotalXOF =
@@ -180,17 +191,34 @@ export function BookingCheckoutForm({
   const ticketDiscountXOF = pricing?.ticketDiscountXOF ?? 0;
   const creditAppliedXOF = pricing?.creditAppliedXOF ?? 0;
 
-  const payableResolved = resolveCheckoutPayable({
-    postDiscountSubtotalXOF: subtotalBaseXOF,
-    convenienceFeeXOF: pricing?.convenienceFeeXOF ?? 0,
-    ticketDiscountXOF,
-    feeDiscountXOF: pricing?.feeDiscountXOF ?? 0,
-    creditAppliedXOF,
-    chargeAmountXOF:
-      pricing?.chargeAmountXOF ??
-      tripDetails.priceXOF * selectedSeatIds.length,
-    paymentMethod,
-  });
+  const payableResolved = {
+    payableXOF:
+      pricing?.payableXOF ??
+      resolveCheckoutPayable({
+        postDiscountSubtotalXOF: subtotalBaseXOF,
+        convenienceFeeXOF: pricing?.convenienceFeeXOF ?? 0,
+        ticketDiscountXOF,
+        feeDiscountXOF: pricing?.feeDiscountXOF ?? 0,
+        creditAppliedXOF,
+        chargeAmountXOF:
+          pricing?.chargeAmountXOF ??
+          tripDetails.priceXOF * selectedSeatIds.length,
+        paymentMethod,
+      }).payableXOF,
+    displayFeeXOF:
+      pricing?.displayFeeXOF ??
+      resolveCheckoutPayable({
+        postDiscountSubtotalXOF: subtotalBaseXOF,
+        convenienceFeeXOF: pricing?.convenienceFeeXOF ?? 0,
+        ticketDiscountXOF,
+        feeDiscountXOF: pricing?.feeDiscountXOF ?? 0,
+        creditAppliedXOF,
+        chargeAmountXOF:
+          pricing?.chargeAmountXOF ??
+          tripDetails.priceXOF * selectedSeatIds.length,
+        paymentMethod,
+      }).displayFeeXOF,
+  };
   const convenienceFeeXOF = payableResolved.displayFeeXOF;
   const totalAmount = payableResolved.payableXOF;
   const isZeroCash = totalAmount === 0;
@@ -272,12 +300,17 @@ export function BookingCheckoutForm({
     }
 
     try {
+      if (!pricing?.quoteId) {
+        toast.error("Pricing is still loading. Please wait a moment.");
+        return;
+      }
       const { getDeviceHash } = await import(
         "@/features/discounts/lib/device-hash"
       );
       const deviceHash = await getDeviceHash();
       const hold = await createHoldMutation.mutateAsync({
         offerId,
+        quoteId: pricing.quoteId,
         passengers: assignments.map((row) =>
           row.mode === "saved" && row.savedPassengerId
             ? { seatId: row.seatId, savedPassengerId: row.savedPassengerId }
@@ -298,44 +331,70 @@ export function BookingCheckoutForm({
         ...(deviceHash ? { deviceHash } : {}),
       });
 
-      if (paymentMethod === "PAYSTACK" && totalAmount > 0) {
-        const confirmed = await completePayment({
-          holdId: hold.holdId,
-          payerEmail: session?.user?.email ?? null,
-        });
+      try {
+        if (paymentMethod === "PAYSTACK" && totalAmount > 0) {
+          const confirmed = await completePayment({
+            holdId: hold.holdId,
+            payerEmail: session?.user?.email ?? null,
+          });
 
-        if (!confirmed) {
-          return;
+          if (!confirmed) {
+            return;
+          }
+
+          onConfirmed({
+            holdId: confirmed.holdId,
+            bookingReferences: confirmed.bookingReferences,
+            ticketTokens: confirmed.ticketTokens,
+            totalAmountXOF: confirmed.totalAmountXOF,
+          });
+        } else {
+          // WALLET or zero-cash (credits/voucher covered)
+          const confirmed = await walletCheckoutMutation.mutateAsync({
+            holdId: hold.holdId,
+          });
+
+          void queryClient.invalidateQueries(
+            trpc.passenger.getWalletBalance.queryFilter(),
+          );
+
+          onConfirmed({
+            holdId: confirmed.holdId,
+            bookingReferences: confirmed.bookingReferences,
+            ticketTokens: confirmed.ticketTokens,
+            totalAmountXOF: confirmed.totalAmountXOF,
+          });
         }
-
-        onConfirmed({
-          holdId: confirmed.holdId,
-          bookingReferences: confirmed.bookingReferences,
-          ticketTokens: confirmed.ticketTokens,
-          totalAmountXOF: confirmed.totalAmountXOF,
-        });
-      } else {
-        // WALLET or zero-cash (credits/voucher covered)
-        const confirmed = await walletCheckoutMutation.mutateAsync({
-          holdId: hold.holdId,
-        });
-
-        void queryClient.invalidateQueries(trpc.passenger.getWalletBalance.queryFilter());
-
-        onConfirmed({
-          holdId: confirmed.holdId,
-          bookingReferences: confirmed.bookingReferences,
-          ticketTokens: confirmed.ticketTokens,
-          totalAmountXOF: confirmed.totalAmountXOF,
-        });
+      } catch (payErr: unknown) {
+        // P1-18: keep hold on Paystack popup cancel (user may return via pending-pay);
+        // release on hard confirm failures so seats + incentives are not stranded.
+        if (!(payErr instanceof PaystackPaymentCancelledError)) {
+          try {
+            await releaseHoldMutation.mutateAsync({ holdId: hold.holdId });
+          } catch (releaseErr) {
+            console.error("Failed to release hold after confirm error:", releaseErr);
+          }
+        }
+        throw payErr;
       }
     } catch (err: unknown) {
       if (err instanceof PaystackPaymentCancelledError) {
-        toast.error("Payment was cancelled");
+        toast.error(tBooking("checkout.paymentCancelled"));
+        return;
+      }
+      const trpcErr = err as {
+        data?: { code?: string };
+        message?: string;
+      };
+      if (trpcErr?.data?.code === "CONFLICT") {
+        toast.error(tBooking("checkout.seatConflict"));
+        await onSeatConflict?.();
         return;
       }
       const message =
-        err instanceof Error ? err.message : "Booking failed. Please try again.";
+        err instanceof Error
+          ? err.message
+          : tBooking("checkout.bookingFailed");
       toast.error(message);
     }
   }
@@ -480,6 +539,25 @@ export function BookingCheckoutForm({
                   </option>
                 ))}
               </select>
+              {pricing?.voucherRejection && selectedVoucherId ? (
+                <p className="text-xs text-destructive">
+                  {(() => {
+                    const key = pricing.voucherRejection.messageKey?.replace(
+                      /^discounts\./,
+                      "",
+                    );
+                    if (
+                      key === "errors.voucherInactive" ||
+                      key === "errors.voucherExpired" ||
+                      key === "errors.voucherEmpty" ||
+                      key === "errors.voucherScheduleMismatch"
+                    ) {
+                      return t(key);
+                    }
+                    return t("errors.voucherInactive");
+                  })()}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </div>

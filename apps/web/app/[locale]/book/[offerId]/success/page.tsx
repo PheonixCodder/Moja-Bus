@@ -8,6 +8,9 @@ type Props = {
   params: Promise<{ locale: string; offerId: string }>;
   searchParams: Promise<{
     refs?: string;
+    /** Short-lived presentation tokens (preferred). */
+    pt?: string;
+    /** Legacy durable tokens — still accepted during grace. */
     tokens?: string;
     total?: string;
   }>;
@@ -26,6 +29,7 @@ interface BookingSuccessPageProps {
   params: Promise<{ offerId: string }>;
   searchParams: Promise<{
     refs?: string;
+    pt?: string;
     tokens?: string;
     total?: string;
   }>;
@@ -40,11 +44,15 @@ export default async function BookingSuccessPage({
   const query = await searchParams;
 
   const references = query.refs?.split(",").filter(Boolean) ?? [];
-  const tokens = query.tokens?.split(",").filter(Boolean) ?? [];
+  const rawAccess =
+    query.pt?.split(",").filter(Boolean) ??
+    query.tokens?.split(",").filter(Boolean) ??
+    [];
   const total = query.total ? Number(query.total) : 0;
 
   await prefetch(trpc.booking.getTripDetails.queryOptions({ offerId }));
-  for (const token of tokens) {
+  for (const token of rawAccess) {
+    // Query key must match client (presentation or raw); router resolves pt.*
     await prefetch(
       trpc.booking.getTicketByToken.queryOptions({ ticketToken: token }),
     );
@@ -62,7 +70,7 @@ export default async function BookingSuccessPage({
         <BookingSuccessView
           offerId={offerId}
           references={references}
-          tokens={tokens}
+          accessTokens={rawAccess}
           total={total}
         />
       </Suspense>

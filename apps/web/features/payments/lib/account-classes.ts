@@ -12,6 +12,8 @@ export const ACCOUNT_CLASS = {
   PROMO_EXPENSE_PLATFORM: "PROMO_EXPENSE_PLATFORM",
   PROMO_CONTRA_OPERATOR: "PROMO_CONTRA_OPERATOR",
   VOUCHER_LIABILITY: "VOUCHER_LIABILITY",
+  /** Liability: cash/voucher passenger reimbursement owed offline (not card return). */
+  OFFLINE_REFUND_PAYABLE: "OFFLINE_REFUND_PAYABLE",
 } as const;
 
 export type AccountClass = (typeof ACCOUNT_CLASS)[keyof typeof ACCOUNT_CLASS];

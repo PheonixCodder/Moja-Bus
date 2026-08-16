@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPrismaClient } from "@moja/db";
 import { PaymentService } from "@/features/payments/payment-service";
+import { expireOrReleaseHold } from "@/features/payments/services/expire-or-release-hold";
 import {
   paystackVerifyTransfer,
   paystackVerify,
@@ -8,6 +9,22 @@ import {
 import { assertCronAuthorized } from "@/lib/cron-auth";
 
 export const runtime = "nodejs";
+
+const MAX_PARALLEL = 5;
+
+async function mapPool<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>,
+): Promise<PromiseSettledResult<R>[]> {
+  const results: PromiseSettledResult<R>[] = [];
+  for (let i = 0; i < items.length; i += concurrency) {
+    const chunk = items.slice(i, i + concurrency);
+    const settled = await Promise.allSettled(chunk.map(fn));
+    results.push(...settled);
+  }
+  return results;
+}
 
 export async function GET(request: Request) {
   const denied = assertCronAuthorized(request);
@@ -21,18 +38,20 @@ export async function GET(request: Request) {
   try {
     let reconciledCount = 0;
 
-    // 1. Operator Payouts Reconciler (Parallelized)
     const pendingWithdrawals = await prisma.financialTransaction.findMany({
       where: {
         type: "OPERATOR_PAYOUT",
         status: { in: ["CREATED", "POSTED"] },
         createdAt: { lt: fiveMinutesAgo },
       },
+      take: 40,
     });
 
     if (pendingWithdrawals.length > 0) {
-      const withdrawalResults = await Promise.allSettled(
-        pendingWithdrawals.map(async (tx) => {
+      const withdrawalResults = await mapPool(
+        pendingWithdrawals,
+        MAX_PARALLEL,
+        async (tx) => {
           const result = await paystackVerifyTransfer(tx.id);
           if (result.status !== "pending") {
             const eventMap = {
@@ -41,50 +60,52 @@ export async function GET(request: Request) {
               reversed: "transfer.reversed",
             } as const;
 
-            const payloadData: any = {
+            const payloadData: Record<string, unknown> = {
               reference: tx.id,
             };
             if (result.transferCode) {
-              payloadData.transfer_code = result.transferCode;
+              payloadData["transfer_code"] = result.transferCode;
             }
             if (result.id != null) {
-              payloadData.id = result.id;
+              payloadData["id"] = result.id;
             }
-            payloadData.reason = result.reason || "Reconciled via Cron";
+            payloadData["reason"] = result.reason || "Reconciled via Cron";
 
-            const payload = {
+            await paymentService.handleWebhookEvent({
               event: eventMap[result.status as keyof typeof eventMap],
-              data: payloadData,
-            };
-
-            await paymentService.handleWebhookEvent(payload as any);
+              data: payloadData as {
+                reference?: string;
+                id?: number;
+                status?: string;
+              },
+            });
             return true;
           }
           return false;
-        })
+        },
       );
 
       reconciledCount += withdrawalResults.filter(
-        (r) => r.status === "fulfilled" && r.value
+        (r) => r.status === "fulfilled" && r.value,
       ).length;
     }
 
-    // 2. Passenger Charge / Wallet Top-up Reconciler (Parallelized)
     const pendingCharges = await prisma.externalPayment.findMany({
       where: {
         status: "PENDING",
         createdAt: { lt: fiveMinutesAgo },
       },
+      take: 40,
     });
 
     if (pendingCharges.length > 0) {
-      const chargeResults = await Promise.allSettled(
-        pendingCharges.map(async (payment) => {
+      const chargeResults = await mapPool(
+        pendingCharges,
+        MAX_PARALLEL,
+        async (payment) => {
           if (!payment.paystackReference) return false;
 
           const verified = await paystackVerify(payment.paystackReference);
-          // Audit trail: record every reference we verified and its status
-          // so a reconciliation run is fully reconstructable.
           console.error(
             `[reconcile-payments] verified ${payment.paystackReference}: ${verified.status}`,
           );
@@ -100,33 +121,36 @@ export async function GET(request: Request) {
             return result.handled;
           }
           if (verified.status === "failed") {
-            // M16: a definitively failed charge must not leave a dangling hold.
-            // Mark the payment failed and expire the associated hold so the
-            // seats are released (the passenger can re-book). We do NOT confirm
-            // the booking, and we never invent a `charge.success` event.
-            await prisma.$transaction(async (tx) => {
-              await tx.externalPayment.update({
-                where: { id: payment.id },
-                data: { status: "FAILED" },
-              });
-              if (payment.holdGroupId) {
-                await tx.booking.updateMany({
-                  where: {
-                    holdGroupId: payment.holdGroupId,
-                    status: "PENDING_PAYMENT",
-                  },
-                  data: { status: "EXPIRED", holdExpiresAt: new Date() },
-                });
-              }
+            await prisma.externalPayment.update({
+              where: { id: payment.id },
+              data: { status: "FAILED" },
             });
+            await prisma.paymentEvent.create({
+              data: {
+                paymentId: payment.id,
+                eventType: "RECONCILE_FAILED",
+                payload: {
+                  reference: payment.paystackReference,
+                  purpose: payment.purpose,
+                  holdGroupId: payment.holdGroupId,
+                },
+              },
+            });
+            if (payment.holdGroupId) {
+              await expireOrReleaseHold(prisma, {
+                holdGroupId: payment.holdGroupId,
+                reason: "RECONCILE_FAILED",
+                force: true,
+              });
+            }
             return true;
           }
           return false;
-        })
+        },
       );
 
       reconciledCount += chargeResults.filter(
-        (r) => r.status === "fulfilled" && r.value
+        (r) => r.status === "fulfilled" && r.value,
       ).length;
     }
 

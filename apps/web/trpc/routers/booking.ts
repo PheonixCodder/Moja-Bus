@@ -19,6 +19,7 @@ import { SeatAvailabilityService } from "@/features/booking/services/seat-availa
 import { BookingHoldService } from "@/features/booking/services/booking-hold-service";
 import { BookingReadService } from "@/features/booking/services/booking-read-service";
 import { PaymentService } from "@/features/payments/payment-service";
+import { enqueueHoldCreated } from "@/features/notifications/outbox/commercial";
 import { getNovuClient } from "@/lib/novu";
 
 export const bookingRouter = createTRPCRouter({
@@ -44,67 +45,87 @@ export const bookingRouter = createTRPCRouter({
         offerId: input.offerId,
         passengers: input.passengers,
         userId: ctx.user.id,
+        quoteId: input.quoteId,
         discount: input.discount,
         ...(input.deviceHash !== undefined
           ? { deviceHash: input.deviceHash }
           : {}),
       });
 
-      // Trigger passenger-hold-created
+      // Durable outbox: passenger-hold-created (optional Phase 07 cover)
       const email = ctx.user.email;
       const passengerName = ctx.user.name ?? "Passenger";
       const phone = ctx.user.phoneNumber ?? null;
 
       if (email) {
-        const novu = getNovuClient();
-        if (novu) {
-          try {
-            const details = await ctx.prisma.trip.findFirst({
-              where: { bookings: { some: { holdGroupId: result.holdId } } },
-              include: {
-                schedule: {
-                  include: {
-                    route: {
-                      include: {
-                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+        try {
+          const details = await ctx.prisma.trip.findFirst({
+            where: { bookings: { some: { holdGroupId: result.holdId } } },
+            include: {
+              schedule: {
+                include: {
+                  route: {
+                    include: {
+                      originTerminal: {
+                        include: {
+                          cityRelation: true,
+                          municipality: true,
+                          quarter: true,
+                        },
+                      },
+                      destTerminal: {
+                        include: {
+                          cityRelation: true,
+                          municipality: true,
+                          quarter: true,
+                        },
                       },
                     },
                   },
                 },
               },
-            });
+            },
+          });
 
-            if (details) {
-              const originCity = details.schedule?.route.originTerminal.cityRelation?.name ?? "Unknown";
-              const destCity = details.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
-              const originMunicipality = details.schedule?.route.originTerminal.municipality?.name ?? null;
-              const destMunicipality = details.schedule?.route.destTerminal.municipality?.name ?? null;
-              await novu.trigger({
-                workflowId: "passenger-hold-created",
-                to: {
-                  subscriberId: email,
-                  email: email,
-                },
-                payload: {
-                  email,
-                  passengerName,
-                  originCity,
-                  destinationCity: destCity,
-                  originMunicipality,
-                  destinationMunicipality: destMunicipality,
-                  departureTime: details.departureDate.toLocaleString("en-US", { timeZone: "Africa/Abidjan" }),
-                  holdId: result.holdId,
-                  expiresAt: result.holdExpiresAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "Africa/Abidjan" }),
-                  totalAmountXOF: result.totalAmountXOF,
-                  phone: phone ?? undefined,
-                },
-                transactionId: `passenger-hold-created-${result.holdId}`,
-              }).catch(() => {});
-            }
-          } catch (err) {
-            console.error("Failed to trigger passenger-hold-created via Novu:", err);
+          if (details) {
+            const originCity =
+              details.schedule?.route.originTerminal.cityRelation?.name ??
+              "Unknown";
+            const destCity =
+              details.schedule?.route.destTerminal.cityRelation?.name ??
+              "Unknown";
+            const originMunicipality =
+              details.schedule?.route.originTerminal.municipality?.name ?? null;
+            const destMunicipality =
+              details.schedule?.route.destTerminal.municipality?.name ?? null;
+            await enqueueHoldCreated(ctx.prisma, {
+              holdId: result.holdId,
+              email,
+              subscriberId: ctx.user.id,
+              firstName: passengerName.split(" ")[0],
+              data: {
+                email,
+                passengerName,
+                originCity,
+                destinationCity: destCity,
+                originMunicipality,
+                destinationMunicipality: destMunicipality,
+                departureTime: details.departureDate.toLocaleString("en-US", {
+                  timeZone: "Africa/Abidjan",
+                }),
+                holdId: result.holdId,
+                expiresAt: result.holdExpiresAt.toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  timeZone: "Africa/Abidjan",
+                }),
+                totalAmountXOF: result.totalAmountXOF,
+                phone: phone ?? undefined,
+              },
+            });
           }
+        } catch (err) {
+          console.error("Failed to enqueue passenger-hold-created:", err);
         }
       }
 
@@ -120,14 +141,32 @@ export const bookingRouter = createTRPCRouter({
       const { assertHoldOwnedByUser } = await import(
         "@/features/booking/lib/assert-hold-ownership"
       );
+      const {
+        checkoutSessionCookieValue,
+        signCheckoutSession,
+      } = await import("@/features/payments/lib/signed-access-tokens");
       const holdGroup = await resolveHoldGroup(ctx.prisma, input.holdId);
       assertHoldOwnedByUser(holdGroup, ctx.user.id);
 
       const service = new PaymentService(ctx.prisma);
-      return service.initiateForHold(
+      const result = await service.initiateForHold(
         input.holdId,
         input.payerEmail ?? ctx.user.email ?? null,
+        input.locale ? { locale: input.locale } : {},
       );
+
+      // P1-20: bind verify callback to this user + hold via HttpOnly cookie.
+      const sessionToken = signCheckoutSession({
+        holdGroupId: result.holdGroupId,
+        userId: ctx.user.id,
+        ...(input.locale ? { locale: input.locale } : {}),
+      });
+      ctx.resHeaders?.append(
+        "Set-Cookie",
+        checkoutSessionCookieValue(sessionToken),
+      );
+
+      return result;
     }),
 
   verifyPayment: protectedProcedure
@@ -210,8 +249,19 @@ export const bookingRouter = createTRPCRouter({
   getTicketByToken: publicProcedure
     .input(getTicketByTokenSchema)
     .query(async ({ ctx, input }) => {
+      const { resolveTicketAccessToken } = await import(
+        "@/features/payments/lib/signed-access-tokens"
+      );
+      const resolved = resolveTicketAccessToken(input.ticketToken);
+      if (!resolved) {
+        const { TRPCError } = await import("@trpc/server");
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Ticket not found",
+        });
+      }
       const service = new BookingReadService(ctx.prisma);
-      return service.getTicketByToken(input.ticketToken);
+      return service.getTicketByToken(resolved.ticketToken);
     }),
 
   checkoutWithWallet: protectedProcedure

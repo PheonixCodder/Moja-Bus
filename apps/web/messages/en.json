@@ -456,7 +456,27 @@
       "selected": "Selected",
       "driver": "Driver",
       "window": "Window",
-      "aisle": "Aisle"
+      "aisle": "Aisle",
+      "deck": "Deck {n}",
+      "entrance": "Entrance door",
+      "seatStatus": "Seat {seat} — {status}"
+    },
+    "dialog": {
+      "passengerCount": "{count, plural, one {# passenger} other {# passengers}}",
+      "soldOut": "This segment is sold out.",
+      "searchOther": "Search other trips",
+      "selectSeats": "Select {count, plural, one {# seat} other {# seats}}",
+      "selectedOf": "{selected} / {total} selected",
+      "continueCheckout": "Continue to checkout"
+    },
+    "hold": {
+      "expired": "Hold expired",
+      "payWithin": "Pay within {time}"
+    },
+    "checkout": {
+      "paymentCancelled": "Payment was cancelled",
+      "seatConflict": "Those seats are no longer available. Please pick again.",
+      "bookingFailed": "Booking failed. Please try again."
     },
     "passengerDetails": {
       "title": "Passenger Details",
@@ -956,10 +976,16 @@
       "cancelDialogDesc": "Are you sure you want to cancel your seat? This action permanently deactivates your ticket.",
       "refundSummary": "Refund Summary",
       "farePaid": "Fare Paid",
-      "refundAmount": "Refund Amount (Wallet)",
+      "refundAmount": "Refund to wallet (ticket fare)",
+      "feeNote": "Convenience fees are non-refundable. Refunds go to your Moja wallet — not back to your card.",
+      "refundMethod": "Refund method",
+      "channelWallet": "Wallet",
+      "channelWalletHint": "Credit Moja wallet",
+      "channelCash": "Cash at counter",
+      "channelCashHint": "Operator pays offline",
       "keepTicket": "Keep Ticket",
       "confirmCancel": "Confirm Cancel",
-      "cancelSuccess": "Booking cancelled and refund initiated.",
+      "cancelSuccess": "Booking cancelled. Wallet credit applied when status is completed.",
       "cancelFailed": "Failed to cancel booking"
     },
     "wallet": {
@@ -2575,6 +2601,8 @@
       "financials": "Financials",
       "ledger": "Ledger",
       "settlements": "Settlements",
+      "offlineRefunds": "Offline refunds",
+      "outbox": "Notification outbox",
       "withdrawals": "Withdrawals",
       "content": "Content",
       "posts": "Posts",
@@ -4389,6 +4417,7 @@
       "voucherExpired": "Voucher has expired",
       "voucherEmpty": "Voucher has no remaining balance",
       "voucherScheduleMismatch": "This voucher is only valid on the original schedule",
+      "voucherCompanyMismatch": "This voucher is only valid with the issuing operator",
       "inactive": "Promotion is inactive",
       "wrongOperator": "Promotion does not apply to this operator",
       "noOptIn": "Operator has not opted into this promotion",

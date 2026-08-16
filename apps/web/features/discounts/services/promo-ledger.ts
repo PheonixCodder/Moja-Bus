@@ -4,6 +4,8 @@ type SnapshotPromoFields = {
   platformPromoFundedXOF: number;
   operatorPromoFundedXOF: number;
   creditAppliedXOF: number;
+  /** Monetary voucher liability burn (not platform expense). */
+  voucherAppliedXOF?: number;
   ticketDiscountXOF: number;
 };
 
@@ -18,14 +20,11 @@ type PromoAccounts = {
  * Appends discount/credit balancing legs so BOOKING ledger stays balanced when
  * platform funds a promo, passenger spends promo credits, or operator absorbs discount.
  *
- * Economic rules (plan 05):
+ * Economic rules (plan 05 / Phase 01):
  * - Platform-funded D: Debit PROMO_EXPENSE (subsidy filling passenger shortfall)
- * - Credits/vouchers applied: Debit passenger PROMO_CREDITS or VOUCHER_LIABILITY
+ * - Credits applied: Debit passenger PROMO_CREDITS
+ * - Voucher applied: Debit VOUCHER_LIABILITY (burn), never PROMO_EXPENSE
  * - Operator-funded D: Debit PROMO_CONTRA_OPERATOR + Credit OPERATOR_RECEIVABLE
- *   (memo/contra when freeze already used post-discount operatorNet — skip if
- *   operatorNet already reflects post; only post contra when we need reporting
- *   symmetry without changing net). For balance with post-discount operatorNet,
- *   operator-funded needs no extra cash legs.
  */
 export function appendPromoLedgerEntries(input: {
   engine: AccountingEngine;
@@ -41,6 +40,7 @@ export function appendPromoLedgerEntries(input: {
   const platformFunded = Math.max(0, input.snapshot.platformPromoFundedXOF);
   const operatorFunded = Math.max(0, input.snapshot.operatorPromoFundedXOF);
   const creditApplied = Math.max(0, input.snapshot.creditAppliedXOF);
+  const voucherApplied = Math.max(0, input.snapshot.voucherAppliedXOF ?? 0);
 
   if (platformFunded > 0) {
     input.engine.addDebit({
@@ -54,19 +54,27 @@ export function appendPromoLedgerEntries(input: {
   }
 
   if (creditApplied > 0) {
-    // Prefer user promo-credits account when available; else platform voucher liability.
-    const debitAccountId =
-      input.accounts.promoCreditsUserId ?? input.accounts.voucherLiabilityId;
+    if (!input.accounts.promoCreditsUserId) {
+      throw new Error("Promo credits applied but passenger promo account missing");
+    }
     input.engine.addDebit({
-      accountId: debitAccountId,
+      accountId: input.accounts.promoCreditsUserId,
       amount: creditApplied,
       sequenceNumber: seq++,
       referenceType: "HOLD_GROUP",
       referenceId: input.holdGroupId,
-      description:
-        debitAccountId === input.accounts.voucherLiabilityId
-          ? "Monetary voucher / credit applied to charge"
-          : "Promo credits applied to charge",
+      description: "Promo credits applied to charge",
+    });
+  }
+
+  if (voucherApplied > 0) {
+    input.engine.addDebit({
+      accountId: input.accounts.voucherLiabilityId,
+      amount: voucherApplied,
+      sequenceNumber: seq++,
+      referenceType: "HOLD_GROUP",
+      referenceId: input.holdGroupId,
+      description: "Monetary voucher liability burn",
     });
   }
 

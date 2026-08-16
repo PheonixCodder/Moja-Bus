@@ -5,6 +5,7 @@ import {
 } from "@/features/search/lib/places";
 import { matchSegmentFare } from "@/features/search/lib/segment-fare-match";
 import { TripSearchReadRepository } from "@/features/search/repositories/search-read-repository";
+import { abidjanDateKey } from "@/features/search/lib/abidjan-time";
 import {
   type SearchFilters,
   SearchService,
@@ -222,9 +223,7 @@ export const searchRouter = createTRPCRouter({
         );
         if (!matchedFare) continue;
 
-        const dateStr = originStop.scheduledDeparture
-          .toISOString()
-          .split("T")[0]!;
+        const dateStr = abidjanDateKey(originStop.scheduledDeparture);
         const price = toSafeDisplayNumber(matchedFare.priceXOF);
         const existing = priceByDate.get(dateStr);
         if (existing === undefined || price < existing) {
@@ -234,7 +233,7 @@ export const searchRouter = createTRPCRouter({
 
       // Return 7-day result array (null = no service that day)
       return dates.map((dt) => {
-        const dateStr = dt.toISOString().split("T")[0]!;
+        const dateStr = abidjanDateKey(dt);
         return {
           date: dateStr,
           priceXOF: priceByDate.get(dateStr) ?? null,

@@ -18,6 +18,15 @@ import { AccountingEngine, FinancialAccountService } from "@moja/db";
 import { toSafeDisplayNumber } from "@/lib/money";
 import { getNovuClient } from "@/lib/novu";
 
+function isTopUpPayment(payment: {
+  purpose?: string | null;
+  metadata?: unknown;
+}): boolean {
+  if (payment.purpose === "TOP_UP") return true;
+  const meta = payment.metadata as { isTopUp?: boolean } | null;
+  return meta?.isTopUp === true;
+}
+
 export type InitiatePaymentResult = {
   holdGroupId: string;
   paymentId: string;
@@ -44,6 +53,7 @@ export class PaymentService {
   async initiateForHold(
     holdId: string,
     payerEmail?: string | null,
+    opts?: { locale?: string },
   ): Promise<InitiatePaymentResult> {
     const holdGroup = await resolveHoldGroup(this.prisma, holdId);
     assertHoldGroupActive(holdGroup);
@@ -64,7 +74,7 @@ export class PaymentService {
       });
     }
 
-    return this.initiatePaystack(holdGroup, snapshot, payerEmail);
+    return this.initiatePaystack(holdGroup, snapshot, payerEmail, opts);
   }
 
   private async initiatePaystack(
@@ -73,10 +83,17 @@ export class PaymentService {
       Awaited<ReturnType<typeof resolveHoldGroup>>["pricingSnapshot"]
     >,
     payerEmail?: string | null,
+    opts?: { locale?: string },
   ): Promise<InitiatePaymentResult> {
-    const email =
-      payerEmail?.trim() ||
-      holdGroup.bookings[0]?.passengerPhone.replace(/\s+/g, "") + "@guest.mojaride.ci";
+    // P2-18: never invent @guest.mojaride.ci — Paystack requires a real email.
+    const email = payerEmail?.trim();
+    if (!email) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "A verified email is required to start card/mobile money checkout.",
+      });
+    }
 
     const payment = await this.prisma.externalPayment.findUnique({
       where: { holdGroupId: holdGroup.id },
@@ -106,15 +123,19 @@ export class PaymentService {
           provider: "PAYSTACK",
           amountXOF: snapshot.chargeAmountXOF,
           status: "INITIALIZED",
+          purpose: "CHECKOUT",
         },
         include: { attempts: true },
       });
     }
 
     const reference = buildPaystackReference(holdGroup.id, attemptNumber);
+    const appUrl = getOptionalEnv("NEXT_PUBLIC_APP_URL");
+    const localeQs =
+      opts?.locale && opts.locale !== "en" ? `&locale=${opts.locale}` : "";
     const callbackUrl =
-      getOptionalEnv("NEXT_PUBLIC_APP_URL") != null
-        ? `${getOptionalEnv("NEXT_PUBLIC_APP_URL")}/api/payments/verify?holdGroupId=${holdGroup.id}`
+      appUrl != null
+        ? `${appUrl}/api/payments/verify?holdGroupId=${holdGroup.id}${localeQs}`
         : undefined;
 
     const initialized = await paystackInitialize({
@@ -143,10 +164,12 @@ export class PaymentService {
         where: { id: paymentRecord!.id },
         data: {
           status: "PENDING",
+          amountXOF: snapshot.chargeAmountXOF,
           paystackReference: reference,
           metadata: {
             authorizationUrl: initialized.authorizationUrl,
             accessCode: initialized.accessCode,
+            purpose: "CHECKOUT",
           },
         },
       });
@@ -254,7 +277,7 @@ export class PaymentService {
     const verified = await paystackVerify(reference);
     if (verified.status === "success") {
       await this.markPaymentSuccess(payment.id, verified);
-      if ((payment.metadata as any)?.isTopUp) {
+      if (isTopUpPayment(payment)) {
         await this.processTopUp(payment);
       }
       return { success: true };
@@ -340,14 +363,14 @@ export class PaymentService {
         await this.markPaymentSuccess(payment.id, verified);
         if (payment.holdGroupId) {
           await this.confirmationService.confirmFromPayment(payment.holdGroupId);
-        } else if ((payment.metadata as any)?.isTopUp) {
+        } else if (isTopUpPayment(payment)) {
           await this.processTopUp(payment);
         }
       }
     } else {
       if (payment.holdGroupId) {
         await this.confirmationService.confirmFromPayment(payment.holdGroupId);
-      } else if ((payment.metadata as any)?.isTopUp) {
+      } else if (isTopUpPayment(payment)) {
         // already processed if success, but we can make processTopUp idempotent
         await this.processTopUp(payment);
       }

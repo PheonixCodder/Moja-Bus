@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import type { ConfirmedBookingResult } from "@moja/types";
+import { useLocale } from "next-intl";
 import { useTRPC } from "@/trpc/client";
 import {
   openPaystackCheckout,
@@ -15,6 +16,7 @@ export type CompletePaystackPaymentInput = {
 
 export function usePaystackCheckout() {
   const trpc = useTRPC();
+  const locale = useLocale();
 
   const initiatePaymentMutation = useMutation(
     trpc.booking.initiatePayment.mutationOptions(),
@@ -32,6 +34,7 @@ export function usePaystackCheckout() {
     const payment = await initiatePaymentMutation.mutateAsync({
       holdId: input.holdId,
       payerEmail: input.payerEmail ?? undefined,
+      locale: locale === "fr" ? "fr" : "en",
     });
 
     if (payment.status === "SUCCESS") {

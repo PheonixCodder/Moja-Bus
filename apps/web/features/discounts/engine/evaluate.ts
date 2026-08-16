@@ -3,7 +3,7 @@ import {
   instrumentFromCampaign,
   selectAutoApplyCampaign,
 } from "./auto-apply";
-import { computeTicketDiscount } from "./benefits";
+import { computeTicketDiscount, feeDiscountForCampaign, splitFunding } from "./benefits";
 import { checkCampaignEligibility } from "./eligibility";
 import type {
   EvalCampaign,
@@ -124,110 +124,151 @@ export function evaluateCheckoutDiscounts(
     }
   }
 
-  // Monetary voucher — applies to remaining charge (entire cart by default)
+  // ENTIRE_CHARGE: fee discount before voucher/credits so payable is correct.
+  {
+    const interim = buildChargeQuote({ ctx: input.ctx, instruments });
+    for (const inst of instruments) {
+      if (
+        (inst.instrumentType !== "COUPON_CODE" &&
+          inst.instrumentType !== "AUTO_PROMO") ||
+        !inst.campaignId
+      ) {
+        continue;
+      }
+      const camp = input.campaigns.find((c) => c.id === inst.campaignId);
+      if (!camp) continue;
+      const feePart = feeDiscountForCampaign(
+        camp,
+        inst.ticketDiscountXOF,
+        interim.convenienceFeeXOF,
+      );
+      if (feePart > 0) {
+        inst.feeDiscountXOF = feePart;
+        const funding = splitFunding(camp, feePart);
+        inst.platformFundedXOF += funding.platformFundedXOF;
+        inst.operatorFundedXOF += funding.operatorFundedXOF;
+      }
+    }
+  }
+
+  // Monetary voucher — payment instrument (liability burn), not platform expense.
+  // Soft-fail: invalid voucher does not wipe coupon/auto already selected.
+  let voucherRejection: QuoteResult["voucherRejection"];
   if (input.monetaryVoucher) {
     const v = input.monetaryVoucher;
+    let reason: QuoteResult["rejection"] | null = null;
     if (v.status !== "ACTIVE" && v.status !== "PARTIALLY_REDEEMED") {
-      return emptyReject(input.ctx, {
+      reason = {
         code: "VOUCHER_INACTIVE",
         messageKey: "discounts.errors.voucherInactive",
-      });
-    }
-    if (v.expiresAt && v.expiresAt.getTime() < input.ctx.now.getTime()) {
-      return emptyReject(input.ctx, {
+      };
+    } else if (v.expiresAt && v.expiresAt.getTime() < input.ctx.now.getTime()) {
+      reason = {
         code: "VOUCHER_EXPIRED",
         messageKey: "discounts.errors.voucherExpired",
-      });
-    }
-    if (
+      };
+    } else if (
       v.scheduleId &&
       (input.ctx.scheduleId == null || v.scheduleId !== input.ctx.scheduleId)
     ) {
-      return emptyReject(input.ctx, {
+      reason = {
         code: "VOUCHER_SCHEDULE_MISMATCH",
         messageKey: "discounts.errors.voucherScheduleMismatch",
-      });
-    }
-    if (
+      };
+    } else if (
       v.companyId &&
-      v.scheduleId &&
       v.companyId !== input.ctx.companyId
     ) {
-      return emptyReject(input.ctx, {
-        code: "VOUCHER_SCHEDULE_MISMATCH",
-        messageKey: "discounts.errors.voucherScheduleMismatch",
-      });
-    }
-    const available = Math.max(0, v.remainingAmountXOF - v.reservedAmountXOF);
-    if (available <= 0) {
-      return emptyReject(input.ctx, {
-        code: "VOUCHER_EMPTY",
-        messageKey: "discounts.errors.voucherEmpty",
-      });
-    }
-
-    const interim = buildChargeQuote({ ctx: input.ctx, instruments });
-    const applyToFees = (v.applyTarget ?? "ENTIRE_CHARGE") === "ENTIRE_CHARGE";
-    let feeDiscountXOF = 0;
-    let ticketDiscountXOF = 0;
-    let remaining = available;
-
-    if (applyToFees) {
-      // Prefer covering ticket remainder first, then fees
-      const ticketNeed = interim.postDiscountSubtotalXOF;
-      ticketDiscountXOF = Math.min(remaining, ticketNeed);
-      remaining -= ticketDiscountXOF;
-      feeDiscountXOF = Math.min(remaining, interim.convenienceFeeXOF);
+      reason = {
+        code: "VOUCHER_COMPANY_MISMATCH",
+        messageKey: "discounts.errors.voucherCompanyMismatch",
+      };
     } else {
-      ticketDiscountXOF = Math.min(remaining, interim.postDiscountSubtotalXOF);
+      const available = Math.max(0, v.remainingAmountXOF - v.reservedAmountXOF);
+      if (available <= 0) {
+        reason = {
+          code: "VOUCHER_EMPTY",
+          messageKey: "discounts.errors.voucherEmpty",
+        };
+      } else {
+        const interim = buildChargeQuote({ ctx: input.ctx, instruments });
+        const applyToFees = (v.applyTarget ?? "ENTIRE_CHARGE") === "ENTIRE_CHARGE";
+        let applyXOF = 0;
+        if (applyToFees) {
+          applyXOF = Math.min(available, interim.provisionalChargeXOF);
+        } else {
+          applyXOF = Math.min(available, interim.postDiscountSubtotalXOF);
+        }
+        if (applyXOF > 0) {
+          instruments.push({
+            instrumentType: "MONETARY_VOUCHER",
+            voucherId: v.id,
+            ticketDiscountXOF: 0,
+            feeDiscountXOF: 0,
+            creditAppliedXOF: 0,
+            voucherAppliedXOF: applyXOF,
+            platformFundedXOF: 0,
+            operatorFundedXOF: 0,
+            stackGroup: "VOUCHER_PAY",
+          });
+        }
+      }
     }
-
-    instruments.push({
-      instrumentType: "MONETARY_VOUCHER",
-      voucherId: v.id,
-      ticketDiscountXOF,
-      feeDiscountXOF,
-      creditAppliedXOF: 0,
-      fundingType: "PLATFORM",
-      platformFundedXOF: ticketDiscountXOF + feeDiscountXOF,
-      operatorFundedXOF: 0,
-      stackGroup: "VOUCHER_PAY",
-    });
+    if (reason) {
+      voucherRejection = reason;
+    }
   }
 
   if (input.useCredits !== false && input.creditLots?.length) {
-    const interim = buildChargeQuote({ ctx: input.ctx, instruments });
-    let need = interim.provisionalChargeXOF;
-    if (input.creditAmountXOF != null) {
-      need = Math.min(need, input.creditAmountXOF);
-    }
-    const lots = input.creditLots
-      .filter((l) => l.status === "ACTIVE" || l.status === "PARTIALLY_REDEEMED")
-      .filter(
-        (l) => !l.expiresAt || l.expiresAt.getTime() >= input.ctx.now.getTime(),
-      )
-      .toSorted((a, b) => {
-        const ae = a.expiresAt?.getTime() ?? Number.POSITIVE_INFINITY;
-        const be = b.expiresAt?.getTime() ?? Number.POSITIVE_INFINITY;
-        return ae - be;
-      });
+    const ticketPromoBlocksCredit = instruments.some((inst) => {
+      if (
+        inst.instrumentType !== "COUPON_CODE" &&
+        inst.instrumentType !== "AUTO_PROMO"
+      ) {
+        return false;
+      }
+      const camp = input.campaigns.find((c) => c.id === inst.campaignId);
+      return camp != null && camp.allowCombineWithCredit === false;
+    });
 
-    for (const lot of lots) {
-      if (need <= 0) break;
-      const available = Math.max(0, lot.remainingXOF - lot.reservedXOF);
-      const use = Math.min(available, need);
-      if (use <= 0) continue;
-      instruments.push({
-        instrumentType: "CREDIT_LOT",
-        creditLotId: lot.id,
-        ticketDiscountXOF: 0,
-        feeDiscountXOF: 0,
-        creditAppliedXOF: use,
-        platformFundedXOF: 0,
-        operatorFundedXOF: 0,
-        stackGroup: "CREDIT",
-      });
-      need -= use;
+    if (!ticketPromoBlocksCredit) {
+      const interim = buildChargeQuote({ ctx: input.ctx, instruments });
+      let need = Math.max(
+        0,
+        interim.provisionalChargeXOF - (interim.voucherAppliedXOF ?? 0),
+      );
+      if (input.creditAmountXOF != null) {
+        need = Math.min(need, input.creditAmountXOF);
+      }
+      const lots = input.creditLots
+        .filter((l) => l.status === "ACTIVE" || l.status === "PARTIALLY_REDEEMED")
+        .filter(
+          (l) =>
+            !l.expiresAt || l.expiresAt.getTime() >= input.ctx.now.getTime(),
+        )
+        .toSorted((a, b) => {
+          const ae = a.expiresAt?.getTime() ?? Number.POSITIVE_INFINITY;
+          const be = b.expiresAt?.getTime() ?? Number.POSITIVE_INFINITY;
+          return ae - be;
+        });
+
+      for (const lot of lots) {
+        if (need <= 0) break;
+        const available = Math.max(0, lot.remainingXOF - lot.reservedXOF);
+        const use = Math.min(available, need);
+        if (use <= 0) continue;
+        instruments.push({
+          instrumentType: "CREDIT_LOT",
+          creditLotId: lot.id,
+          ticketDiscountXOF: 0,
+          feeDiscountXOF: 0,
+          creditAppliedXOF: use,
+          platformFundedXOF: 0,
+          operatorFundedXOF: 0,
+          stackGroup: "CREDIT",
+        });
+        need -= use;
+      }
     }
   }
 
@@ -237,6 +278,7 @@ export function evaluateCheckoutDiscounts(
     ...quote,
     autoAppliedCampaignId,
     rejectedAlternatives,
+    ...(voucherRejection ? { voucherRejection } : {}),
   };
 }
 

@@ -26,7 +26,7 @@ export default async function WalletPage() {
   await prefetch(
     trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
   );
-  await prefetch(trpc.discounts.listMyCredits.queryOptions());
+  await prefetch(trpc.discounts.listMyCreditLots.queryOptions());
 
   return (
     <HydrateClient>

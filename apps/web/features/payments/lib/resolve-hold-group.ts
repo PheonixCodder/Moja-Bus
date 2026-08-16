@@ -1,4 +1,4 @@
-import type { HoldGroup, PrismaClient } from "@moja/db";
+import type { HoldGroup, Prisma, PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 
 export type ResolvedHoldGroup = HoldGroup & {
@@ -8,6 +8,9 @@ export type ResolvedHoldGroup = HoldGroup & {
     holdExpiresAt: Date | null;
     bookingReference: string;
     farePaid: number;
+    seatId: string;
+    boardingStopOrder: number;
+    dropoffStopOrder: number;
     passengerName: string;
     passengerPhone: string;
     ticketToken: string;
@@ -36,6 +39,8 @@ export type ResolvedHoldGroup = HoldGroup & {
   } | null;
 };
 
+type DbClient = PrismaClient | Prisma.TransactionClient;
+
 const holdGroupInclude = {
   bookings: {
     select: {
@@ -44,6 +49,9 @@ const holdGroupInclude = {
       holdExpiresAt: true,
       bookingReference: true,
       farePaid: true,
+      seatId: true,
+      boardingStopOrder: true,
+      dropoffStopOrder: true,
       passengerName: true,
       passengerPhone: true,
       ticketToken: true,
@@ -79,7 +87,7 @@ const holdGroupInclude = {
 
 /** Accept hold group id or legacy first booking id. */
 export async function resolveHoldGroup(
-  prisma: PrismaClient,
+  prisma: DbClient,
   holdId: string,
 ): Promise<ResolvedHoldGroup> {
   const byGroup = await prisma.holdGroup.findUnique({

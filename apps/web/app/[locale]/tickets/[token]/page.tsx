@@ -28,9 +28,17 @@ interface PublicTicketPageProps {
 
 async function assertTicketExists(token: string) {
   const decoded = decodeURIComponent(token);
+  const { resolveTicketAccessToken } = await import(
+    "@/features/payments/lib/signed-access-tokens"
+  );
+  const resolved = resolveTicketAccessToken(decoded);
+  if (!resolved) {
+    notFound();
+  }
   const service = new BookingReadService(getPrismaClient());
   try {
-    await service.getTicketByToken(decoded);
+    await service.getTicketByToken(resolved.ticketToken);
+    // Return the raw URL token so client query keys match (router resolves pt.).
     return decoded;
   } catch {
     notFound();

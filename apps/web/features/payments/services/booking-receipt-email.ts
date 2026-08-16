@@ -1,7 +1,11 @@
 import type { PrismaClient } from "@moja/db";
 import type { ConfirmedBookingResult } from "@moja/types";
-import { getNovuClient } from "@/lib/novu";
+import { enqueueBookingConfirmed } from "@/features/notifications/outbox/commercial";
 
+/**
+ * Build booking-confirmed outbox row (durable Novu delivery via process-outbox cron).
+ * Prefer calling from the same transaction as confirm when a tx client is available.
+ */
 export async function sendBookingConfirmedEmails(
   prisma: PrismaClient,
   confirmed: ConfirmedBookingResult,
@@ -43,13 +47,17 @@ export async function sendBookingConfirmedEmails(
           where: { id: userId },
           select: { email: true },
         }))?.email
-      : null) ??
-    // Fall back to guest phone-derived email for SMS/phone-only bookings
-    (holdGroup.bookings[0]?.passengerPhone
-      ? `${holdGroup.bookings[0].passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
       : null);
 
+  // P2-18: do not invent @guest.mojaride.ci — undeliverable for Novu/email.
   if (!email) return;
+
+  const user = userId
+    ? await prisma.user.findUnique({
+        where: { id: userId },
+        select: { fullName: true },
+      })
+    : null;
 
   const booking = holdGroup.bookings[0];
   const originCityName =
@@ -59,9 +67,8 @@ export async function sendBookingConfirmedEmails(
   const passengerName = holdGroup.bookings[0]?.passengerName ?? "Traveler";
   const companyName = holdGroup.trip.company.name;
   const departureTime = holdGroup.trip.departureDate;
-  // Use confirmed.totalAmountXOF (actual amount paid) rather than the snapshot charge
-  // to correctly reflect any post-snapshot adjustments like convenience fee waivers.
-  const totalAmountXOF = confirmed.totalAmountXOF ?? holdGroup.pricingSnapshot.chargeAmountXOF;
+  const totalAmountXOF =
+    confirmed.totalAmountXOF ?? holdGroup.pricingSnapshot.chargeAmountXOF;
   const passengerPhone = holdGroup.bookings[0]?.passengerPhone?.replace(/\s+/g, "");
   const snapshot = holdGroup.pricingSnapshot;
   const ticketDiscountXOF = snapshot.ticketDiscountXOF ?? 0;
@@ -70,41 +77,31 @@ export async function sendBookingConfirmedEmails(
   const preDiscountSubtotalXOF =
     snapshot.preDiscountSubtotalXOF ?? snapshot.subtotalBaseXOF;
   const convenienceFeeXOF = snapshot.convenienceFeeXOF ?? 0;
+  const firstName =
+    user?.fullName?.split(" ")[0] ?? passengerName.split(" ")[0] ?? "Traveler";
 
-  const novu = getNovuClient();
-  
-  if (!novu) {
-    console.warn("[NOVU] NOVU_SECRET_KEY not configured — passenger booking receipt not sent.");
-    return;
-  }
-
-  try {
-    await novu.trigger({
-      workflowId: "passenger-booking-confirmed",
-      to: {
-        subscriberId: email,
-        email: email,
-      },
-      payload: {
-        email,
-        passengerName,
-        companyName,
-        originCityName,
-        destinationCityName,
-        departureTime: departureTime.toLocaleString("en-CI"),
-        bookingReferences: confirmed.bookingReferences,
-        totalAmountXOF,
-        preDiscountSubtotalXOF,
-        ticketDiscountXOF,
-        feeDiscountXOF,
-        creditAppliedXOF,
-        convenienceFeeXOF,
-        hasDiscount: ticketDiscountXOF > 0 || creditAppliedXOF > 0 || feeDiscountXOF > 0,
-        ...(passengerPhone ? { phone: passengerPhone } : {}),
-      },
-      transactionId: `booking-receipt-${confirmed.holdId}`,
-    });
-  } catch (error) {
-    console.error("[NOVU] Failed to trigger passenger-booking-confirmed via Novu:", error);
-  }
+  await enqueueBookingConfirmed(prisma, {
+    holdGroupId: confirmed.holdId,
+    email,
+    subscriberId: userId ?? email,
+    firstName,
+    data: {
+      email,
+      passengerName,
+      companyName,
+      originCityName,
+      destinationCityName,
+      departureTime: departureTime.toLocaleString("en-CI"),
+      bookingReferences: confirmed.bookingReferences,
+      totalAmountXOF,
+      preDiscountSubtotalXOF,
+      ticketDiscountXOF,
+      feeDiscountXOF,
+      creditAppliedXOF,
+      convenienceFeeXOF,
+      hasDiscount:
+        ticketDiscountXOF > 0 || creditAppliedXOF > 0 || feeDiscountXOF > 0,
+      ...(passengerPhone ? { phone: passengerPhone } : {}),
+    },
+  });
 }

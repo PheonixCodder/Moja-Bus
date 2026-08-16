@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "node:crypto";
+import { postPromoCreditGrantLedger } from "./promo-credit-grant-ledger";
 
 export async function grantAdminCreditLot(
   prisma: PrismaClient,
@@ -36,17 +37,38 @@ export async function grantAdminCreditLot(
   });
   if (existing) return existing;
 
-  return prisma.creditLot.create({
-    data: {
-      userId: input.userId,
-      source: "ADMIN",
-      status: "ACTIVE",
-      amountXOF: input.amountXOF,
-      remainingXOF: input.amountXOF,
-      expiresAt: input.expiresAt ?? null,
-      grantIdempotencyKey,
-    },
-  });
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const lot = await tx.creditLot.create({
+        data: {
+          userId: input.userId,
+          source: "ADMIN",
+          status: "ACTIVE",
+          amountXOF: input.amountXOF,
+          remainingXOF: input.amountXOF,
+          expiresAt: input.expiresAt ?? null,
+          grantIdempotencyKey,
+        },
+      });
+
+      await postPromoCreditGrantLedger(tx, {
+        userId: input.userId,
+        amountXOF: input.amountXOF,
+        idempotencyKey: `${grantIdempotencyKey}:ledger`,
+        description: `Admin promo credit grant`,
+        referenceType: "CREDIT_LOT",
+        referenceId: lot.id,
+      });
+
+      return lot;
+    });
+  } catch (err) {
+    const raced = await prisma.creditLot.findUnique({
+      where: { grantIdempotencyKey },
+    });
+    if (raced) return raced;
+    throw err;
+  }
 }
 
 export async function listCreditLotsForUser(

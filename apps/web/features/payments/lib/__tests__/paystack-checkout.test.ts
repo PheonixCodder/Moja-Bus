@@ -64,10 +64,16 @@ describe("paystack-checkout helpers", () => {
 });
 
 describe("hold countdown", () => {
+  const labels = {
+    expired: "Hold expired",
+    payWithin: (mmss: string) => `Pay within ${mmss}`,
+  };
+
   it("marks expired holds", () => {
     const countdown = getHoldCountdown(
       new Date("2026-01-01T10:00:00Z"),
       Date.parse("2026-01-01T10:05:00Z"),
+      labels,
     );
     assert.equal(countdown?.expired, true);
     assert.match(countdown?.label ?? "", /expired/i);
@@ -77,6 +83,7 @@ describe("hold countdown", () => {
     const countdown = getHoldCountdown(
       new Date("2026-01-01T10:05:00Z"),
       Date.parse("2026-01-01T10:03:10Z"),
+      labels,
     );
     assert.equal(countdown?.expired, false);
     assert.equal(countdown?.label, "Pay within 1:50");

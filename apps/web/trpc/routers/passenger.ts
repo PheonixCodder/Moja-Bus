@@ -517,16 +517,21 @@ export const passengerRouter = createTRPCRouter({
       const wallet = await accountService.getUserWallet(ctx.user.id);
 
       const reference = `ref_topup_${wallet.id.slice(-6)}_${Date.now()}`;
-      const phone = ctx.user.phoneNumber
-        ? ctx.user.phoneNumber.replace(/\s+/g, "")
-        : "guest";
-      const email = ctx.user.email || `${phone}@guest.mojaride.ci`;
+      const email = ctx.user.email;
+      if (!email) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "A verified email is required to top up with card/mobile money.",
+        });
+      }
 
       const payment = await ctx.prisma.externalPayment.create({
         data: {
           provider: "PAYSTACK",
           amountXOF: input.amountXOF,
           status: "INITIALIZED",
+          purpose: "TOP_UP",
           paystackReference: reference,
           metadata: {
             isTopUp: true,

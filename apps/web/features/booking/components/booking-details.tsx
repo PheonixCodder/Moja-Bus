@@ -314,10 +314,14 @@ function PaymentTab({
     ...trpc.payments.getCheckoutPricing.queryOptions({
       offerId: booking.offerId,
       seatCount: Math.max(1, booking.seats.length),
+      paymentMethod,
       code: appliedCode,
       monetaryVoucherId: selectedVoucherId,
       autoApply: true,
       useCredits: true,
+      ...(booking.holdGroupId
+        ? { excludeHoldGroupId: booking.holdGroupId }
+        : {}),
     }),
     staleTime: 10 * 1000,
   });
@@ -337,17 +341,28 @@ function PaymentTab({
   const ticketDiscountXOF = pricing?.ticketDiscountXOF ?? 0;
   const postSub =
     pricing?.subtotalBaseXOF ?? booking.totalAmountXOF;
-  const payable = resolveCheckoutPayable({
-    postDiscountSubtotalXOF: postSub,
-    convenienceFeeXOF: pricing?.convenienceFeeXOF ?? 0,
-    ticketDiscountXOF,
-    feeDiscountXOF: pricing?.feeDiscountXOF ?? 0,
-    creditAppliedXOF,
-    chargeAmountXOF: pricing?.chargeAmountXOF ?? booking.totalAmountXOF,
-    paymentMethod,
-  });
-  const totalAmount = payable.payableXOF;
-  const convenienceFeeXOF = payable.displayFeeXOF;
+  const totalAmount =
+    pricing?.payableXOF ??
+    resolveCheckoutPayable({
+      postDiscountSubtotalXOF: postSub,
+      convenienceFeeXOF: pricing?.convenienceFeeXOF ?? 0,
+      ticketDiscountXOF,
+      feeDiscountXOF: pricing?.feeDiscountXOF ?? 0,
+      creditAppliedXOF,
+      chargeAmountXOF: pricing?.chargeAmountXOF ?? booking.totalAmountXOF,
+      paymentMethod,
+    }).payableXOF;
+  const convenienceFeeXOF =
+    pricing?.displayFeeXOF ??
+    resolveCheckoutPayable({
+      postDiscountSubtotalXOF: postSub,
+      convenienceFeeXOF: pricing?.convenienceFeeXOF ?? 0,
+      ticketDiscountXOF,
+      feeDiscountXOF: pricing?.feeDiscountXOF ?? 0,
+      creditAppliedXOF,
+      chargeAmountXOF: pricing?.chargeAmountXOF ?? booking.totalAmountXOF,
+      paymentMethod,
+    }).displayFeeXOF;
   const isZeroCash = totalAmount === 0;
   const walletBalance = walletQuery.data?.availableBalance ?? 0;
   const canPayWithWallet = isZeroCash || walletBalance >= totalAmount;

@@ -83,21 +83,22 @@ export function countSegmentOccupancy(
   now: Date = new Date(),
 ): { occupied: number; confirmed: number; held: number } {
   const overlapping = getBookingsForSegment(bookings, segment, now);
-  let confirmed = 0;
-  let held = 0;
+  const confirmedSeats = new Set<string>();
+  const heldSeats = new Set<string>();
 
   for (const booking of overlapping) {
     if (booking.status === "CONFIRMED") {
-      confirmed++;
+      confirmedSeats.add(booking.seatId);
     } else if (booking.status === "PENDING_PAYMENT") {
-      held++;
+      heldSeats.add(booking.seatId);
     }
   }
 
+  const occupiedSeats = new Set([...confirmedSeats, ...heldSeats]);
   return {
-    occupied: overlapping.length,
-    confirmed,
-    held,
+    occupied: occupiedSeats.size,
+    confirmed: confirmedSeats.size,
+    held: heldSeats.size,
   };
 }
 

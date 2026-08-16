@@ -38,6 +38,10 @@ export function AdminReferralProgramCard() {
   const [windowDays, setWindowDays] = useState("180");
   const [delayHours, setDelayHours] = useState("48");
   const [welcomeCampaignId, setWelcomeCampaignId] = useState<string>(NONE);
+  const [selfReferralBlock, setSelfReferralBlock] = useState(true);
+  const [samePhoneBlock, setSamePhoneBlock] = useState(true);
+  const [sameDeviceBlock, setSameDeviceBlock] = useState(true);
+  const [requirePaid, setRequirePaid] = useState(true);
 
   useEffect(() => {
     const p = programQuery.data;
@@ -49,6 +53,10 @@ export function AdminReferralProgramCard() {
     setWindowDays(String(p.recurringWindowDays));
     setDelayHours(String(p.rewardDelayHours));
     setWelcomeCampaignId(p.refereeCouponCampaignId ?? NONE);
+    setSelfReferralBlock(p.selfReferralBlock);
+    setSamePhoneBlock(p.samePhoneBlock);
+    setSameDeviceBlock(p.sameDeviceBlock);
+    setRequirePaid(p.requirePaidConfirmedBooking);
   }, [programQuery.data]);
 
   const saveMutation = useMutation(
@@ -147,6 +155,40 @@ export function AdminReferralProgramCard() {
           </Select>
         </div>
       </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="ref-self">Block self-referral</Label>
+          <Switch
+            id="ref-self"
+            checked={selfReferralBlock}
+            onCheckedChange={setSelfReferralBlock}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="ref-phone">Block same phone</Label>
+          <Switch
+            id="ref-phone"
+            checked={samePhoneBlock}
+            onCheckedChange={setSamePhoneBlock}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="ref-device">Block same device</Label>
+          <Switch
+            id="ref-device"
+            checked={sameDeviceBlock}
+            onCheckedChange={setSameDeviceBlock}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="ref-paid">Require paid booking</Label>
+          <Switch
+            id="ref-paid"
+            checked={requirePaid}
+            onCheckedChange={setRequirePaid}
+          />
+        </div>
+      </div>
       <Button
         type="button"
         disabled={saveMutation.isPending || programQuery.isLoading}
@@ -160,9 +202,10 @@ export function AdminReferralProgramCard() {
             rewardDelayHours: Number(delayHours) || 0,
             refereeCouponCampaignId:
               welcomeCampaignId === NONE ? null : welcomeCampaignId,
-            selfReferralBlock: true,
-            samePhoneBlock: true,
-            sameDeviceBlock: true,
+            selfReferralBlock,
+            samePhoneBlock,
+            sameDeviceBlock,
+            requirePaidConfirmedBooking: requirePaid,
           })
         }
       >

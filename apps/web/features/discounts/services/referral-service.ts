@@ -1,5 +1,4 @@
 import type { Prisma, PrismaClient } from "@moja/db";
-import { AccountingEngine, FinancialAccountService } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import { displayName } from "../lib/privacy-display";
 
@@ -230,7 +229,7 @@ export async function applyReferralCode(
   ]);
   if (referrer) {
     const { notifyReferralAttributed } = await import("./notify");
-    notifyReferralAttributed({
+    await notifyReferralAttributed({
       referrer: {
         userId: referrer.id,
         email: referrer.email,
@@ -238,6 +237,7 @@ export async function applyReferralCode(
       },
       refereeName: referee?.fullName,
       edgeId: edge.id,
+      prisma,
     });
   }
 
@@ -258,12 +258,24 @@ type ProgramRow = {
  */
 export async function onBookingConfirmedForReferral(
   prisma: PrismaClient,
-  input: { userId: string; holdGroupId: string },
+  input: {
+    userId: string;
+    holdGroupId: string;
+    /** Cash charged after instruments; used when requirePaidConfirmedBooking. */
+    chargeAmountXOF?: number | undefined;
+  },
 ): Promise<void> {
   const program = await prisma.referralProgram.findUnique({
     where: { id: "default" },
   });
   if (!program?.isActive) return;
+
+  if (
+    program.requirePaidConfirmedBooking &&
+    (input.chargeAmountXOF == null || input.chargeAmountXOF <= 0)
+  ) {
+    return;
+  }
 
   const edge = await prisma.referralEdge.findUnique({
     where: { refereeUserId: input.userId },
@@ -283,7 +295,15 @@ export async function onBookingConfirmedForReferral(
     });
     kind = "INITIAL";
   } else if (edge.status === "QUALIFIED" || edge.status === "REWARDED") {
-    kind = edge.status === "REWARDED" || edge.rewardedAt ? "RECURRING" : "INITIAL";
+    if (edge.status === "REWARDED" || edge.rewardedAt) {
+      kind = "RECURRING";
+    } else {
+      // Delayed INITIAL may already be PENDING/ACTIVE — never double-enqueue.
+      const existingInitial = await prisma.creditLot.findUnique({
+        where: { grantIdempotencyKey: `referral:${edge.id}:INITIAL` },
+      });
+      kind = existingInitial ? "RECURRING" : "INITIAL";
+    }
   }
 
   await enqueueReferrerCredit(prisma, {
@@ -313,7 +333,11 @@ async function enqueueReferrerCredit(
       : input.program.recurringCreditAmountXOF;
   if (amount <= 0) return;
 
-  const idempotencyKey = `referral:${input.edgeId}:${input.holdGroupId}:${input.kind}`;
+  // P0-6: INITIAL is edge-scoped (one per edge). RECURRING stays hold-scoped.
+  const idempotencyKey =
+    input.kind === "INITIAL"
+      ? `referral:${input.edgeId}:INITIAL`
+      : `referral:${input.edgeId}:${input.holdGroupId}:RECURRING`;
   const existing = await prisma.creditLot.findUnique({
     where: { grantIdempotencyKey: idempotencyKey },
   });
@@ -376,7 +400,7 @@ async function enqueueReferrerCredit(
       });
       if (lot) {
         const { notifyReferralRewardPosted } = await import("./notify");
-        notifyReferralRewardPosted({
+        await notifyReferralRewardPosted({
           referrer: {
             userId: referrer.id,
             email: referrer.email,
@@ -384,6 +408,7 @@ async function enqueueReferrerCredit(
           },
           amountXOF: amount,
           creditLotId: lot.id,
+          prisma,
         });
       }
     }
@@ -399,32 +424,17 @@ async function postReferralCreditLedger(
     holdGroupId: string;
   },
 ): Promise<void> {
-  const accountService = new FinancialAccountService(prisma as PrismaClient);
-  const expense = await accountService.getPlatformPromoExpenseAccount();
-  const credits = await accountService.getUserPromoCreditsAccount(input.userId);
-
-  const engine = new AccountingEngine("REFERRAL_CREDIT", {
-    description: `Referral credit grant`,
+  const { postPromoCreditGrantLedger } = await import(
+    "./promo-credit-grant-ledger"
+  );
+  await postPromoCreditGrantLedger(prisma, {
+    userId: input.userId,
+    amountXOF: input.amountXOF,
     idempotencyKey: input.idempotencyKey,
-  });
-  engine.addDebit({
-    accountId: expense.id,
-    amount: input.amountXOF,
-    sequenceNumber: 1,
+    description: "Referral credit grant",
     referenceType: "HOLD_GROUP",
     referenceId: input.holdGroupId,
-    description: "Referral marketing expense",
   });
-  engine.addCredit({
-    accountId: credits.id,
-    amount: input.amountXOF,
-    sequenceNumber: 2,
-    referenceType: "HOLD_GROUP",
-    referenceId: input.holdGroupId,
-    description: "Referrer promo credits liability",
-  });
-  engine.validate();
-  await engine.commit(prisma as any);
 }
 
 /**
@@ -499,7 +509,7 @@ export async function processDueReferralRewards(
     });
     if (referrer) {
       const { notifyReferralRewardPosted } = await import("./notify");
-      notifyReferralRewardPosted({
+      await notifyReferralRewardPosted({
         referrer: {
           userId: referrer.id,
           email: referrer.email,
@@ -507,6 +517,7 @@ export async function processDueReferralRewards(
         },
         amountXOF: lot.amountXOF,
         creditLotId: lot.id,
+        prisma,
       });
     }
     activated++;

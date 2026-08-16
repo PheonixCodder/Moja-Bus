@@ -104,6 +104,7 @@ export interface ConfirmedBookingResult {
 export type PassengerBookingStatus =
   | "PENDING_PAYMENT"
   | "CONFIRMED"
+  | "REFUND_PENDING"
   | "CANCELLED"
   | "EXPIRED"
   | "COMPLETED";

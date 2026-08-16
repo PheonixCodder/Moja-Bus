@@ -254,9 +254,19 @@ export class BookingConfirmationService {
           const { appendPromoLedgerEntries } = await import(
             "@/features/discounts/services/promo-ledger"
           );
+          const { splitPromoPaymentInstruments } = await import(
+            "@/features/discounts/services/promo-payment-split"
+          );
+          const split = splitPromoPaymentInstruments(snapshot);
           seq = appendPromoLedgerEntries({
             engine,
-            snapshot,
+            snapshot: {
+              platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
+              operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
+              creditAppliedXOF: split.creditAppliedXOF,
+              voucherAppliedXOF: split.voucherAppliedXOF,
+              ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
+            },
             accounts: {
               promoExpensePlatformId: promoExpense.id,
               voucherLiabilityId: voucherLiability.id,
@@ -330,6 +340,7 @@ export class BookingConfirmationService {
           onBookingConfirmedForReferral(this.prisma, {
             userId,
             holdGroupId: holdGroup.id,
+            chargeAmountXOF: result.totalAmountXOF,
           }).catch((error) => {
             console.error("Referral qualify failed:", error);
           }),
@@ -431,6 +442,27 @@ export class BookingConfirmationService {
 
       const updatedBookings = [];
       for (const booking of holdGroup.bookings) {
+        const clash = await tx.booking.findFirst({
+          where: {
+            tripId: holdGroup.tripId,
+            seatId: booking.seatId,
+            id: { not: booking.id },
+            holdGroupId: { not: holdGroup.id },
+            OR: [
+              { status: "CONFIRMED" },
+              { status: "PENDING_PAYMENT", holdExpiresAt: { gt: new Date() } },
+            ],
+            boardingStopOrder: { lt: booking.dropoffStopOrder },
+            dropoffStopOrder: { gt: booking.boardingStopOrder },
+          },
+        });
+        if (clash) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Seat no longer available for this segment",
+          });
+        }
+
         const claim = await tx.booking.updateMany({
           where: {
             id: booking.id,
@@ -526,9 +558,19 @@ export class BookingConfirmationService {
         const { appendPromoLedgerEntries } = await import(
           "@/features/discounts/services/promo-ledger"
         );
+        const { splitPromoPaymentInstruments } = await import(
+          "@/features/discounts/services/promo-payment-split"
+        );
+        const split = splitPromoPaymentInstruments(snapshot);
         seq = appendPromoLedgerEntries({
           engine,
-          snapshot,
+          snapshot: {
+            platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
+            operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
+            creditAppliedXOF: split.creditAppliedXOF,
+            voucherAppliedXOF: split.voucherAppliedXOF,
+            ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
+          },
           accounts: {
             promoExpensePlatformId: promoExpense.id,
             voucherLiabilityId: voucherLiability.id,
@@ -570,6 +612,18 @@ export class BookingConfirmationService {
           throw error;
         }
       } else if (error.message && error.message.includes("Insufficient funds")) {
+        // Wallet cash was already checked; ledger failure is usually underfunded promo credits.
+        const { splitPromoPaymentInstruments } = await import(
+          "@/features/discounts/services/promo-payment-split"
+        );
+        const split = splitPromoPaymentInstruments(snapshot);
+        if (split.creditAppliedXOF > 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Promo credits unavailable — contact support if this persists",
+          });
+        }
         // C7: Send the Novu alert if the row-level solvency check failed
         const user = await this.prisma.user.findUnique({
           where: { id: userId },
@@ -635,6 +689,7 @@ export class BookingConfirmationService {
         onBookingConfirmedForReferral(this.prisma, {
           userId,
           holdGroupId: holdGroup.id,
+          chargeAmountXOF: result.totalAmountXOF,
         }).catch((error) => {
           console.error("Referral qualify failed:", error);
         }),
