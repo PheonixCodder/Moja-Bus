@@ -14,6 +14,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { TripDetailsService } from "@/features/booking/services/trip-details-service";
+import { canPassengerSelfCancelWithChannel } from "@/features/payments/lib/cancellation-policy";
 import { PaymentService } from "@/features/payments/payment-service";
 import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { toSafeDisplayNumber } from "@/lib/money";
@@ -183,6 +184,14 @@ export const paymentsRouter = createTRPCRouter({
   cancelBooking: protectedProcedure
     .input(cancelBookingSchema)
     .mutation(async ({ ctx, input }) => {
+      if (!canPassengerSelfCancelWithChannel(input.channel)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Voucher refunds are only available when an operator cancels a booking",
+        });
+      }
+
       let userCompanyId: string | undefined;
       if (ctx.user.role === "OPERATOR") {
         const operatorProfile = await ctx.prisma.operator.findFirst({

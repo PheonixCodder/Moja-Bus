@@ -15,6 +15,7 @@ import { BookingDetails } from "@/features/booking/components/booking-details";
 import { BookingList } from "@/features/booking/components/booking-list";
 import { isHoldActive } from "@/features/booking/lib/hold-countdown";
 import { usePaystackCheckout } from "@/features/payments/hooks/use-paystack-checkout";
+import { shouldOpenPaystackForPendingPay } from "@/features/payments/lib/cancellation-policy";
 import { useTRPC } from "@/trpc/client";
 
 type BookingFilter = "upcoming" | "pending" | "past";
@@ -119,7 +120,7 @@ export function PassengerBookingsView() {
         "@/features/discounts/lib/device-hash"
       );
       const deviceHash = await getDeviceHash();
-      await refreezeMutation.mutateAsync({
+      const refrozen = await refreezeMutation.mutateAsync({
         holdId,
         code: discount?.code,
         monetaryVoucherId: discount?.monetaryVoucherId,
@@ -130,7 +131,12 @@ export function PassengerBookingsView() {
         ...(deviceHash ? { deviceHash } : {}),
       });
 
-      if (paymentMethod === "PAYSTACK") {
+      if (
+        shouldOpenPaystackForPendingPay({
+          paymentMethod,
+          chargeAmountXOF: refrozen.chargeAmountXOF,
+        })
+      ) {
         const confirmed = await completePayment({ holdId });
         if (!confirmed) return;
         toast.success(t("toastPaymentConfirmed"));

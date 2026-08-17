@@ -361,9 +361,16 @@ async function enqueueReferrerCredit(
     }
   }
 
+  const sampleBooking = await prisma.booking.findFirst({
+    where: { holdGroupId: input.holdGroupId },
+    select: { trip: { select: { departureDate: true } } },
+  });
+  const tripDepartureDate = sampleBooking?.trip?.departureDate ?? new Date();
+
   const delayMs = Math.max(0, input.program.rewardDelayHours) * 60 * 60 * 1000;
-  const availableAt = new Date(Date.now() + delayMs);
-  const immediate = delayMs === 0;
+  const baseTime = Math.max(Date.now(), tripDepartureDate.getTime());
+  const availableAt = new Date(baseTime + delayMs);
+  const immediate = availableAt.getTime() <= Date.now();
 
   await prisma.creditLot.create({
     data: {
@@ -456,6 +463,22 @@ export async function processDueReferralRewards(
 
   let activated = 0;
   for (const lot of due) {
+    if (lot.sourceHoldGroupId) {
+      const confirmedBooking = await prisma.booking.findFirst({
+        where: {
+          holdGroupId: lot.sourceHoldGroupId,
+          status: "CONFIRMED",
+        },
+      });
+      if (!confirmedBooking) {
+        await prisma.creditLot.update({
+          where: { id: lot.id },
+          data: { status: "EXPIRED" },
+        });
+        continue;
+      }
+    }
+
     const claimed = await prisma.creditLot.updateMany({
       where: { id: lot.id, status: "PENDING" },
       data: {

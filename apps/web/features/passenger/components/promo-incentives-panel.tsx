@@ -4,6 +4,7 @@ import { Badge } from "@moja/ui/components/ui/badge";
 import { Button, buttonVariants } from "@moja/ui/components/ui/button";
 import { Card } from "@moja/ui/components/ui/card";
 import { Input } from "@moja/ui/components/ui/input";
+import { cn } from "@moja/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Gift, Ticket } from "lucide-react";
@@ -11,7 +12,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@moja/ui/lib/utils";
 import { useTRPC } from "@/trpc/client";
 
 function sourceLabel(
@@ -42,7 +42,9 @@ export function PromoIncentivesPanel() {
     trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
   );
   const lotsQuery = useQuery(trpc.discounts.listMyCreditLots.queryOptions());
-  const policyQuery = useQuery(trpc.discounts.getPromoPolicyPublic.queryOptions());
+  const policyQuery = useQuery(
+    trpc.discounts.getPromoPolicyPublic.queryOptions(),
+  );
   const programQuery = useQuery(
     trpc.discounts.getReferralProgramPublic.queryOptions(),
   );
@@ -53,7 +55,9 @@ export function PromoIncentivesPanel() {
         toast.success(t("promoClaimSuccess"));
         setClaimCode("");
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discounts.listMyCredits.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discounts.listMyCredits.pathFilter(),
+          ),
           queryClient.invalidateQueries(
             trpc.discounts.listMyCreditLots.pathFilter(),
           ),
@@ -138,7 +142,9 @@ export function PromoIncentivesPanel() {
           {creditTotal.toLocaleString()} XOF
         </p>
         {available.length === 0 ? (
-          <p className="mt-1 text-xs text-slate-500">{t("promoCreditsEmpty")}</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {t("promoCreditsEmpty")}
+          </p>
         ) : (
           <ul className="mt-2 space-y-1.5">
             {available.slice(0, 5).map((lot) => (
@@ -147,7 +153,10 @@ export function PromoIncentivesPanel() {
                 className="flex items-center justify-between gap-2 text-xs text-slate-600"
               >
                 <span>
-                  {Math.max(0, lot.remainingXOF - lot.reservedXOF).toLocaleString()}{" "}
+                  {Math.max(
+                    0,
+                    lot.remainingXOF - lot.reservedXOF,
+                  ).toLocaleString()}{" "}
                   XOF · {sourceLabel(lot.source, t)}
                   {lot.expiresAt
                     ? ` · ${t("promoExpires", {
@@ -195,7 +204,9 @@ export function PromoIncentivesPanel() {
           {t("promoVouchersTitle")}
         </div>
         {vouchers.length === 0 ? (
-          <p className="mt-1 text-xs text-slate-500">{t("promoVouchersEmpty")}</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {t("promoVouchersEmpty")}
+          </p>
         ) : (
           <ul className="mt-2 space-y-1.5">
             {vouchers.slice(0, 8).map((v) => (
@@ -219,6 +230,16 @@ export function PromoIncentivesPanel() {
                       })}`
                     : ""}
                 </span>
+                {v.scheduleId ? (
+                  <span className="text-[10px] text-slate-500">
+                    {t("promoVoucherScheduleOnly", {
+                      schedule:
+                        v.schedule?.route?.name ??
+                        v.schedule?.name ??
+                        "schedule",
+                    })}
+                  </span>
+                ) : null}
                 <Badge variant="secondary">{v.source}</Badge>
               </li>
             ))}

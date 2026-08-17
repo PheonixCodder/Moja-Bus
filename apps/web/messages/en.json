@@ -1032,6 +1032,7 @@
       "promoSourceLoyalty": "Loyalty",
       "promoVouchersTitle": "Active vouchers",
       "promoVouchersEmpty": "No active vouchers.",
+      "promoVoucherScheduleOnly": "Valid only on: {schedule}",
       "promoExpires": "expires {date}",
       "promoAvailableAt": "available {date}",
       "promoVoucherCeiling": "You can hold up to {max} active promotional vouchers (marketing / goodwill / referral). Cancellation vouchers do not count toward that limit.",

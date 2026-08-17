@@ -1032,6 +1032,7 @@
       "promoSourceLoyalty": "Fidélité",
       "promoVouchersTitle": "Avoirs actifs",
       "promoVouchersEmpty": "Aucun avoir actif.",
+      "promoVoucherScheduleOnly": "Valable uniquement sur : {schedule}",
       "promoExpires": "expire le {date}",
       "promoAvailableAt": "disponible le {date}",
       "promoVoucherCeiling": "Vous pouvez détenir jusqu'à {max} avoirs promotionnels actifs (marketing / geste commercial / parrainage). Les avoirs d'annulation ne comptent pas dans cette limite.",

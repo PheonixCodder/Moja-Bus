@@ -1,6 +1,6 @@
 # Implementation Plan — Schedule vouchers, zero-cash checkout, operator cancel channels, pending pay
 
-**Status:** Awaiting confirmation before implementation  
+**Status:** Implementation in progress
 **Date:** 2026-08-16  
 **Surfaces:** `apps/web` (search checkout, passenger pending pay, operator bookings + trips/manifest, discounts engine, cancellation + ledger)
 

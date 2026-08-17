@@ -47,6 +47,18 @@ export async function listDiscountRedemptions(
         },
         couponCode: { select: { id: true, code: true } },
         campaign: { select: { id: true, name: true } },
+        holdGroup: {
+          select: {
+            bookings: {
+              select: {
+                passengerName: true,
+                passengerPhone: true,
+                user: { select: { email: true } },
+              },
+              take: 1,
+            },
+          },
+        },
       },
     }),
     prisma.discountRedemption.count({ where }),
@@ -54,30 +66,41 @@ export async function listDiscountRedemptions(
 
   return {
     total,
-    items: rows.map((r) => ({
-      id: r.id,
-      status: r.status,
-      instrumentType: r.instrumentType,
-      ticketDiscountXOF: r.ticketDiscountXOF,
-      feeDiscountXOF: r.feeDiscountXOF,
-      creditAppliedXOF: r.creditAppliedXOF,
-      createdAt: r.createdAt,
-      campaignId: r.campaignId,
-      campaignName: r.campaign?.name ?? null,
-      couponCodeId: r.couponCodeId,
-      couponCode: r.couponCode?.code ?? null,
-      user: r.user
-        ? {
-            id: r.user.id,
-            name: displayName(r.user.fullName, { privacy: input.privacy }),
-            email: input.privacy
-              ? maskEmail(r.user.email)
-              : (r.user.email ?? "—"),
-            phone: input.privacy
-              ? maskPhone(r.user.phoneNumber)
-              : (r.user.phoneNumber ?? "—"),
-          }
-        : null,
-    })),
+    items: rows.map((r) => {
+      const fallbackBooking = r.holdGroup?.bookings?.[0];
+      const rawName = r.user?.fullName ?? fallbackBooking?.passengerName ?? null;
+      const rawEmail = r.user?.email ?? fallbackBooking?.user?.email ?? null;
+      const rawPhone = r.user?.phoneNumber ?? fallbackBooking?.passengerPhone ?? null;
+
+      const hasUserInfo = Boolean(rawName || rawEmail || rawPhone);
+
+      return {
+        id: r.id,
+        status: r.status,
+        instrumentType: r.instrumentType,
+        ticketDiscountXOF: r.ticketDiscountXOF,
+        feeDiscountXOF: r.feeDiscountXOF,
+        creditAppliedXOF: r.creditAppliedXOF,
+        createdAt: r.createdAt,
+        campaignId: r.campaignId,
+        campaignName: r.campaign?.name ?? null,
+        couponCodeId: r.couponCodeId,
+        couponCode: r.couponCode?.code ?? null,
+        user: hasUserInfo
+          ? {
+              id: r.user?.id ?? "guest",
+              name: displayName(rawName ?? "Guest Passenger", {
+                privacy: input.privacy,
+              }),
+              email: input.privacy
+                ? maskEmail(rawEmail)
+                : (rawEmail ?? "—"),
+              phone: input.privacy
+                ? maskPhone(rawPhone)
+                : (rawPhone ?? "—"),
+            }
+          : null,
+      };
+    }),
   };
 }

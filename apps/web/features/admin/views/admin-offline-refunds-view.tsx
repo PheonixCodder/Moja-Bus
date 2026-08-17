@@ -47,7 +47,7 @@ export function AdminOfflineRefundsView() {
           Offline refunds owed
         </h1>
         <p className="text-sm text-slate-500">
-          Cash and voucher cancellations awaiting fulfilment (PENDING_FULFILMENT).
+          Cash cancellations awaiting fulfilment (PENDING_FULFILMENT).
         </p>
       </div>
       <Card className="divide-y overflow-hidden">

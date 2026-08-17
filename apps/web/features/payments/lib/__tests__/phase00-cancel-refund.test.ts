@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { ACCOUNT_CLASS } from "../account-classes";
+import {
+  canPassengerSelfCancelWithChannel,
+  refundStatusForCancellationChannel,
+  shouldOpenPaystackForPendingPay,
+} from "../cancellation-policy";
 
 /**
  * Pure settlement classifier (mirrors resolveBookingSettlement branches).
@@ -28,10 +33,6 @@ function classifySettlement(input: {
     };
   }
   return { kind: "PAYSTACK", cancellable: false };
-}
-
-function refundRecordStatus(channel: "WALLET" | "CASH" | "VOUCHER") {
-  return channel === "WALLET" ? "COMPLETED" : "PENDING_FULFILMENT";
 }
 
 function tripRefundFailureBookingStatus() {
@@ -86,12 +87,45 @@ describe("Phase 00 settlement provenance", () => {
 
 describe("Phase 00 honest refund statuses (D1)", () => {
   it("wallet credit is COMPLETED without implying Paystack refund", () => {
-    assert.equal(refundRecordStatus("WALLET"), "COMPLETED");
+    assert.equal(refundStatusForCancellationChannel("WALLET"), "COMPLETED");
   });
 
-  it("cash/voucher are PENDING_FULFILMENT", () => {
-    assert.equal(refundRecordStatus("CASH"), "PENDING_FULFILMENT");
-    assert.equal(refundRecordStatus("VOUCHER"), "PENDING_FULFILMENT");
+  it("cash remains PENDING_FULFILMENT while voucher is completed on issue", () => {
+    assert.equal(
+      refundStatusForCancellationChannel("CASH"),
+      "PENDING_FULFILMENT",
+    );
+    assert.equal(refundStatusForCancellationChannel("VOUCHER"), "COMPLETED");
+  });
+});
+
+describe("Phase 00 cancellation voucher channel policy", () => {
+  it("blocks passenger self-cancel voucher channel", () => {
+    assert.equal(canPassengerSelfCancelWithChannel("WALLET"), true);
+    assert.equal(canPassengerSelfCancelWithChannel("CASH"), true);
+    assert.equal(canPassengerSelfCancelWithChannel("VOUCHER"), false);
+  });
+});
+
+describe("Phase 00 pending-pay zero cash routing", () => {
+  it("does not initiate Paystack when refrozen payable is zero", () => {
+    assert.equal(
+      shouldOpenPaystackForPendingPay({
+        paymentMethod: "PAYSTACK",
+        chargeAmountXOF: 0,
+      }),
+      false,
+    );
+  });
+
+  it("keeps Paystack for positive card/mobile-money remainder", () => {
+    assert.equal(
+      shouldOpenPaystackForPendingPay({
+        paymentMethod: "PAYSTACK",
+        chargeAmountXOF: 1000,
+      }),
+      true,
+    );
   });
 });
 
@@ -103,7 +137,10 @@ describe("Phase 00 trip cancel failure (D3)", () => {
 
 describe("Phase 00 ACCOUNT_CLASS", () => {
   it("includes OFFLINE_REFUND_PAYABLE", () => {
-    assert.equal(ACCOUNT_CLASS.OFFLINE_REFUND_PAYABLE, "OFFLINE_REFUND_PAYABLE");
+    assert.equal(
+      ACCOUNT_CLASS.OFFLINE_REFUND_PAYABLE,
+      "OFFLINE_REFUND_PAYABLE",
+    );
   });
 });
 

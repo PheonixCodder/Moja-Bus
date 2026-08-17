@@ -1,19 +1,6 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import {
-  Check,
-  Copy,
-  CreditCard,
-  ExternalLink,
-  Star,
-  Ticket,
-  Wallet,
-} from "lucide-react";
-import { cn } from "@moja/ui/lib/utils";
+import type { PassengerBookingSummary } from "@moja/types";
 import { Alert, AlertDescription } from "@moja/ui/components/ui/alert";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
@@ -29,15 +16,34 @@ import {
   TabsTrigger,
 } from "@moja/ui/components/ui/tabs";
 import { Textarea } from "@moja/ui/components/ui/textarea";
-import { useTRPC } from "@/trpc/client";
-import { useHoldCountdown, isHoldActive } from "@/features/booking/lib/hold-countdown";
-import { formatDateWithWeekday } from "@/lib/format-date";
-import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "@/features/search/lib/format";
-import { formatLocationLabel } from "@/lib/format-location-label";
-import { resolveCheckoutPayable } from "@/features/payments/lib/checkout-payable";
-import type { PassengerBookingSummary } from "@moja/types";
+import { cn } from "@moja/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Check,
+  Copy,
+  CreditCard,
+  ExternalLink,
+  Star,
+  Ticket,
+  Wallet,
+} from "lucide-react";
 import dynamic from "next/dynamic";
-import { Map as MapIcon } from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import * as React from "react";
+import {
+  isHoldActive,
+  useHoldCountdown,
+} from "@/features/booking/lib/hold-countdown";
+import { resolveCheckoutPayable } from "@/features/payments/lib/checkout-payable";
+import {
+  formatDepartureTime,
+  formatPriceXOF,
+  formatTripDuration,
+} from "@/features/search/lib/format";
+import { formatDateWithWeekday } from "@/lib/format-date";
+import { formatLocationLabel } from "@/lib/format-location-label";
+import { useTRPC } from "@/trpc/client";
 
 const BookingRouteMap = dynamic(() => import("./booking-route-map"), {
   ssr: false,
@@ -56,7 +62,11 @@ const BADGE_LABEL_KEY: Record<string, string> = {
   EXPIRED: "badgeExpired",
 };
 
-function StatusBadge({ status }: { status: PassengerBookingSummary["status"] }) {
+function StatusBadge({
+  status,
+}: {
+  status: PassengerBookingSummary["status"];
+}) {
   const t = useTranslations("passengerDashboard.bookingDetails");
   const map: Record<string, string> = {
     CONFIRMED: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
@@ -88,7 +98,11 @@ function CopyButton({ text }: { text: string }) {
       onClick={handleCopy}
       className="rounded-md p-1 transition-colors hover:bg-muted"
     >
-      {copied ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5 text-muted-foreground" />}
+      {copied ? (
+        <Check className="size-3.5 text-emerald-600" />
+      ) : (
+        <Copy className="size-3.5 text-muted-foreground" />
+      )}
     </button>
   );
 }
@@ -98,13 +112,15 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
   const countdown = useHoldCountdown(
     booking.status === "PENDING_PAYMENT" ? booking.holdExpiresAt : null,
   );
-  const durationMs = booking.arrivalTime.getTime() - booking.departureTime.getTime();
+  const durationMs =
+    booking.arrivalTime.getTime() - booking.departureTime.getTime();
   const durationMin = Math.max(0, Math.round(durationMs / 60000));
   const ticketRef = booking.seats[0]?.bookingReference;
   const ticketToken = booking.seats[0]?.ticketToken;
-  const ticketHref = ticketToken && booking.status === "CONFIRMED"
-    ? `/tickets/${encodeURIComponent(ticketToken)}`
-    : null;
+  const ticketHref =
+    ticketToken && booking.status === "CONFIRMED"
+      ? `/tickets/${encodeURIComponent(ticketToken)}`
+      : null;
 
   return (
     <ScrollArea className="h-full">
@@ -119,7 +135,11 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
           <div className="flex items-center gap-2 text-xs sm:text-sm">
             <StatusBadge status={booking.status} />
             <span className="text-muted-foreground">·</span>
-            <span className="text-foreground tabular-nums">{t("departsLabel", { time: `${formatDateWithWeekday(booking.departureTime)} · ${formatDepartureTime(booking.departureTime)}` })}</span>
+            <span className="text-foreground tabular-nums">
+              {t("departsLabel", {
+                time: `${formatDateWithWeekday(booking.departureTime)} · ${formatDepartureTime(booking.departureTime)}`,
+              })}
+            </span>
           </div>
         </div>
 
@@ -145,15 +165,23 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1">
-              <div className="font-medium text-sm leading-none">{booking.companyName}</div>
-              <div className="text-muted-foreground text-xs leading-none">{t("busOperator")}</div>
+              <div className="font-medium text-sm leading-none">
+                {booking.companyName}
+              </div>
+              <div className="text-muted-foreground text-xs leading-none">
+                {t("busOperator")}
+              </div>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
             <Badge variant="secondary">
-              {durationMin > 0 ? formatTripDuration(durationMin) : t("directDuration")}
+              {durationMin > 0
+                ? formatTripDuration(durationMin)
+                : t("directDuration")}
             </Badge>
-            <div className="text-muted-foreground text-xs leading-none">{t("duration")}</div>
+            <div className="text-muted-foreground text-xs leading-none">
+              {t("duration")}
+            </div>
           </div>
         </div>
 
@@ -165,7 +193,9 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
           </Label>
           <div className="flex flex-col gap-1">
             <p className="font-semibold text-sm">{booking.passengerName}</p>
-            <p className="text-muted-foreground text-xs">{booking.passengerPhone}</p>
+            <p className="text-muted-foreground text-xs">
+              {booking.passengerPhone}
+            </p>
           </div>
         </div>
 
@@ -178,27 +208,67 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl border bg-muted/30 p-3 text-sm">
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("from")}</span>
-              <span className="font-semibold">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
-              <span className="text-xs text-muted-foreground">{booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}</span>
+              <span className="font-semibold">
+                {formatLocationLabel({
+                  cityName: booking.originCityName,
+                  municipalityName: booking.originMunicipalityName,
+                  quarterName: booking.originQuarterName,
+                  isUrban: booking.serviceType === "URBAN",
+                })}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {booking.originTerminalName}
+                {booking.originQuarterName
+                  ? ` · ${booking.originQuarterName}`
+                  : ""}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">{t("to")}</span>
-              <span className="font-semibold">{formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
-              <span className="text-xs text-muted-foreground">{booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}</span>
+              <span className="font-semibold">
+                {formatLocationLabel({
+                  cityName: booking.destinationCityName,
+                  municipalityName: booking.destinationMunicipalityName,
+                  quarterName: booking.destinationQuarterName,
+                  isUrban: booking.serviceType === "URBAN",
+                })}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {booking.destinationTerminalName}
+                {booking.destinationQuarterName
+                  ? ` · ${booking.destinationQuarterName}`
+                  : ""}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">{t("departs")}</span>
-              <span className="font-semibold tabular-nums">{formatDepartureTime(booking.departureTime)}</span>
-              <span className="text-xs text-muted-foreground">{formatDateWithWeekday(booking.departureTime)}</span>
+              <span className="text-xs text-muted-foreground">
+                {t("departs")}
+              </span>
+              <span className="font-semibold tabular-nums">
+                {formatDepartureTime(booking.departureTime)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {formatDateWithWeekday(booking.departureTime)}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">{t("arrives")}</span>
-              <span className="font-semibold tabular-nums">{formatDepartureTime(booking.arrivalTime)}</span>
-              <span className="text-xs text-muted-foreground">{formatDateWithWeekday(booking.arrivalTime)}</span>
+              <span className="text-xs text-muted-foreground">
+                {t("arrives")}
+              </span>
+              <span className="font-semibold tabular-nums">
+                {formatDepartureTime(booking.arrivalTime)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {formatDateWithWeekday(booking.arrivalTime)}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">{t("seats")}</span>
-              <span className="font-semibold">{booking.seats.map((s) => s.seatLabel).join(", ")}</span>
+              <span className="text-xs text-muted-foreground">
+                {t("seats")}
+              </span>
+              <span className="font-semibold">
+                {booking.seats.map((s) => s.seatLabel).join(", ")}
+              </span>
             </div>
           </div>
         </div>
@@ -215,7 +285,7 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
             href={ticketHref}
             className={cn(
               buttonVariants(),
-              "w-full gap-2 bg-primary hover:bg-primary/90 text-white font-bold"
+              "w-full gap-2 bg-primary hover:bg-primary/90 text-white font-bold",
             )}
           >
             <Ticket className="size-4" />
@@ -238,19 +308,34 @@ function PassengersTab({ booking }: { booking: PassengerBookingSummary }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("seatCol")}</th>
-                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("nameCol")}</th>
-                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold hidden sm:table-cell">{t("refCol")}</th>
-                <th className="px-3 py-2 text-right text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("fareCol")}</th>
+                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+                  {t("seatCol")}
+                </th>
+                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+                  {t("nameCol")}
+                </th>
+                <th className="px-3 py-2 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-semibold hidden sm:table-cell">
+                  {t("refCol")}
+                </th>
+                <th className="px-3 py-2 text-right text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+                  {t("fareCol")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {booking.seats.map((seat) => (
-                <tr key={seat.bookingId} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-3 py-3 font-mono font-bold text-primary text-sm">{seat.seatLabel}</td>
+                <tr
+                  key={seat.bookingId}
+                  className="hover:bg-muted/30 transition-colors"
+                >
+                  <td className="px-3 py-3 font-mono font-bold text-primary text-sm">
+                    {seat.seatLabel}
+                  </td>
                   <td className="px-3 py-3">
                     <p className="font-medium text-sm">{seat.passengerName}</p>
-                    <p className="text-xs text-muted-foreground">{seat.passengerPhone}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {seat.passengerPhone}
+                    </p>
                   </td>
                   <td className="px-3 py-3 font-mono text-xs text-muted-foreground hidden sm:table-cell">
                     {seat.bookingReference}
@@ -263,7 +348,10 @@ function PassengersTab({ booking }: { booking: PassengerBookingSummary }) {
             </tbody>
             <tfoot>
               <tr className="border-t bg-muted/30">
-                <td colSpan={3} className="px-3 py-2 text-xs font-bold text-muted-foreground">
+                <td
+                  colSpan={3}
+                  className="px-3 py-2 text-xs font-bold text-muted-foreground"
+                >
                   {t("totalSeats", { count: booking.seats.length })}
                 </td>
                 <td className="px-3 py-2 text-right font-black text-primary tabular-nums">
@@ -340,8 +428,7 @@ function PaymentTab({
   const pricing = pricingQuery.data;
   const creditAppliedXOF = pricing?.creditAppliedXOF ?? 0;
   const ticketDiscountXOF = pricing?.ticketDiscountXOF ?? 0;
-  const postSub =
-    pricing?.subtotalBaseXOF ?? booking.totalAmountXOF;
+  const postSub = pricing?.subtotalBaseXOF ?? booking.totalAmountXOF;
   const totalAmount =
     pricing?.payableXOF ??
     resolveCheckoutPayable({
@@ -379,7 +466,10 @@ function PaymentTab({
       <div className="grid h-full min-h-40 place-items-center p-4">
         <div className="text-center space-y-2">
           <p className="text-muted-foreground text-sm">{t("holdExpired")}</p>
-          <Link href="/" className={buttonVariants({ variant: "outline", size: "sm" })}>
+          <Link
+            href="/"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
             {t("searchAgain")} →
           </Link>
         </div>
@@ -391,29 +481,39 @@ function PaymentTab({
     <ScrollArea className="h-full">
       <div className="space-y-4 p-4">
         <div className="rounded-xl border bg-muted/30 p-3 space-y-1.5">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">{t("summary")}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+            {t("summary")}
+          </p>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{t("fare")}</span>
             <span className="tabular-nums">
-              {formatPriceXOF(pricing?.preDiscountSubtotalXOF ?? booking.totalAmountXOF)}
+              {formatPriceXOF(
+                pricing?.preDiscountSubtotalXOF ?? booking.totalAmountXOF,
+              )}
             </span>
           </div>
           {ticketDiscountXOF > 0 ? (
             <div className="flex justify-between text-sm text-emerald-700">
               <span>{td("discount")}</span>
-              <span className="tabular-nums">-{formatPriceXOF(ticketDiscountXOF)}</span>
+              <span className="tabular-nums">
+                -{formatPriceXOF(ticketDiscountXOF)}
+              </span>
             </div>
           ) : null}
           {convenienceFeeXOF > 0 ? (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t("serviceFee")}</span>
-              <span className="tabular-nums">{formatPriceXOF(convenienceFeeXOF)}</span>
+              <span className="tabular-nums">
+                {formatPriceXOF(convenienceFeeXOF)}
+              </span>
             </div>
           ) : null}
           {creditAppliedXOF > 0 ? (
             <div className="flex justify-between text-sm text-emerald-700">
               <span>{td("credits")}</span>
-              <span className="tabular-nums">-{formatPriceXOF(creditAppliedXOF)}</span>
+              <span className="tabular-nums">
+                -{formatPriceXOF(creditAppliedXOF)}
+              </span>
             </div>
           ) : null}
           <Separator className="my-1.5" />
@@ -451,7 +551,9 @@ function PaymentTab({
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={!promoCode.trim() || isPaying || pricingQuery.isFetching}
+                disabled={
+                  !promoCode.trim() || isPaying || pricingQuery.isFetching
+                }
                 onClick={() => setAppliedCode(promoCode.trim().toUpperCase())}
               >
                 {td("apply")}
@@ -482,7 +584,9 @@ function PaymentTab({
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("paymentMethod")}</Label>
+          <Label className="text-xs uppercase tracking-widest text-muted-foreground">
+            {t("paymentMethod")}
+          </Label>
           <div className="grid grid-cols-1 gap-2">
             <button
               type="button"
@@ -497,7 +601,9 @@ function PaymentTab({
               <CreditCard className="size-4 shrink-0" />
               <div>
                 <p className="text-xs font-bold">{t("cardMobileMoney")}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{t("payViaPaystack")}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {t("payViaPaystack")}
+                </p>
               </div>
             </button>
 
@@ -519,7 +625,9 @@ function PaymentTab({
                 <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
                   {isZeroCash
                     ? "Covered by promo"
-                    : t("available", { balance: formatPriceXOF(Number(walletBalance)) })}
+                    : t("available", {
+                        balance: formatPriceXOF(Number(walletBalance)),
+                      })}
                 </p>
               </div>
             </button>
@@ -539,7 +647,11 @@ function PaymentTab({
         {!canPayWithWallet && !isZeroCash ? (
           <div className="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700">
             <span>{t("walletInsufficient")}</span>
-            <Link href="/dashboard/wallet" className="font-bold text-primary hover:underline" target="_blank">
+            <Link
+              href="/dashboard/wallet"
+              className="font-bold text-primary hover:underline"
+              target="_blank"
+            >
               {t("topUp")} →
             </Link>
           </div>
@@ -547,7 +659,9 @@ function PaymentTab({
 
         <Button
           className="w-full gap-2 bg-primary hover:bg-primary/90 text-white font-bold"
-          disabled={isPaying || (paymentMethod === "WALLET" && !canPayWithWallet)}
+          disabled={
+            isPaying || (paymentMethod === "WALLET" && !canPayWithWallet)
+          }
           onClick={() =>
             onExecutePayment({
               code: appliedCode,
@@ -558,11 +672,11 @@ function PaymentTab({
           }
         >
           {isPaying && <Spinner className="size-4 text-white" />}
-          {paymentMethod === "WALLET"
-            ? isZeroCash
-              ? "Confirm (promo covers fare)"
-              : t("completeWithWallet")
-            : t("completePayment")}
+          {isZeroCash
+            ? "Confirm (promo covers fare)"
+            : paymentMethod === "WALLET"
+              ? t("completeWithWallet")
+              : t("completePayment")}
         </Button>
       </div>
     </ScrollArea>
@@ -624,16 +738,20 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
       <div className="space-y-0 p-4">
         <TimelineNode
           label={t("bookingRequested")}
-          time={booking.issuedAt
-            ? null
-            : formatDepartureTime(booking.departureTime)}
+          time={
+            booking.issuedAt ? null : formatDepartureTime(booking.departureTime)
+          }
           done={true}
         />
         <TimelineNode
           label={t("seatsReserved")}
-          time={booking.holdExpiresAt
-            ? t("holdUntil", { time: formatDepartureTime(booking.holdExpiresAt) })
-            : null}
+          time={
+            booking.holdExpiresAt
+              ? t("holdUntil", {
+                  time: formatDepartureTime(booking.holdExpiresAt),
+                })
+              : null
+          }
           done={true}
         />
         <TimelineNode
@@ -644,7 +762,9 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
         <TimelineNode
           label={t("ticketIssued")}
           time={booking.issuedAt ? formatDepartureTime(booking.issuedAt) : null}
-          done={booking.status === "CONFIRMED" || booking.status === "COMPLETED"}
+          done={
+            booking.status === "CONFIRMED" || booking.status === "COMPLETED"
+          }
         />
 
         {isPastOrCompleted && (
@@ -678,7 +798,9 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
                           <Star
                             className={cn(
                               "size-6 transition-colors",
-                              filled ? "fill-amber-500 text-amber-500" : "text-muted-foreground",
+                              filled
+                                ? "fill-amber-500 text-amber-500"
+                                : "text-muted-foreground",
                             )}
                           />
                         </button>
@@ -751,11 +873,6 @@ export function BookingDetails({
   if (!booking) return <EmptyDetailsState />;
 
   const isPendingPayment = booking.status === "PENDING_PAYMENT";
-  const isPast =
-    booking.status === "COMPLETED" ||
-    booking.status === "CANCELLED" ||
-    (booking.status === "CONFIRMED" &&
-      booking.departureTime.getTime() < Date.now());
 
   return (
     <div className="grid h-full min-h-0 grid-rows-[280px_1fr] overflow-hidden lg:grid-rows-[320px_1fr]">
@@ -769,24 +886,41 @@ export function BookingDetails({
             className="w-full justify-start gap-2 border-b px-4 **:data-[slot=tabs-trigger]:text-xs sm:gap-4 sm:**:data-[slot=tabs-trigger]:text-sm"
             variant="line"
           >
-            <TabsTrigger className="flex-none" value="overview">{t("tabOverview")}</TabsTrigger>
-            <TabsTrigger className="flex-none" value="passengers">{t("tabPassengers")}</TabsTrigger>
+            <TabsTrigger className="flex-none" value="overview">
+              {t("tabOverview")}
+            </TabsTrigger>
+            <TabsTrigger className="flex-none" value="passengers">
+              {t("tabPassengers")}
+            </TabsTrigger>
             {isPendingPayment && (
-              <TabsTrigger className="flex-none" value="payment">{t("tabPayment")}</TabsTrigger>
+              <TabsTrigger className="flex-none" value="payment">
+                {t("tabPayment")}
+              </TabsTrigger>
             )}
-            <TabsTrigger className="flex-none" value="activity">{t("tabActivity")}</TabsTrigger>
+            <TabsTrigger className="flex-none" value="activity">
+              {t("tabActivity")}
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="mt-0 h-0 flex-1 overflow-hidden">
+          <TabsContent
+            value="overview"
+            className="mt-0 h-0 flex-1 overflow-hidden"
+          >
             <OverviewTab booking={booking} />
           </TabsContent>
 
-          <TabsContent value="passengers" className="mt-0 h-0 flex-1 overflow-hidden">
+          <TabsContent
+            value="passengers"
+            className="mt-0 h-0 flex-1 overflow-hidden"
+          >
             <PassengersTab booking={booking} />
           </TabsContent>
 
           {isPendingPayment && (
-            <TabsContent value="payment" className="mt-0 h-0 flex-1 overflow-hidden">
+            <TabsContent
+              value="payment"
+              className="mt-0 h-0 flex-1 overflow-hidden"
+            >
               <PaymentTab
                 booking={booking}
                 paymentMethod={paymentMethod}
@@ -797,7 +931,10 @@ export function BookingDetails({
             </TabsContent>
           )}
 
-          <TabsContent value="activity" className="mt-0 h-0 flex-1 overflow-hidden">
+          <TabsContent
+            value="activity"
+            className="mt-0 h-0 flex-1 overflow-hidden"
+          >
             <ActivityTab
               booking={booking}
               onOpenReview={() => onOpenReview(booking)}

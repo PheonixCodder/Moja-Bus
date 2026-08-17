@@ -1,10 +1,18 @@
 "use client";
 
 import { Button } from "@moja/ui/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@moja/ui/components/ui/collapsible";
+import { DateTimePicker } from "@moja/ui/components/ui/date-time-picker";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Switch } from "@moja/ui/components/ui/switch";
+import { ChevronDown, Settings2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { InfoTooltip } from "@/features/discounts/components/info-tooltip";
 
 export type CampaignSettingsValues = {
   description: string | null;
@@ -71,12 +79,10 @@ type Props = {
 const MAX_SCHEDULES = 50;
 const MAX_TRIPS = 100;
 
-function toLocalInput(value: Date | string | null | undefined): string {
-  if (!value) return "";
+function toDate(value: Date | string | null | undefined): Date | undefined {
+  if (!value) return undefined;
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return isNaN(d.getTime()) ? undefined : d;
 }
 
 function parseOptionalInt(raw: string): number | null {
@@ -100,37 +106,19 @@ export function CampaignSettingsEditor({
   onSave,
 }: Props) {
   const [description, setDescription] = useState(campaign.description ?? "");
-  const [startsAt, setStartsAt] = useState(toLocalInput(campaign.startsAt));
-  const [endsAt, setEndsAt] = useState(toLocalInput(campaign.endsAt));
-  const [budgetXOF, setBudgetXOF] = useState(
-    campaign.budgetXOF?.toString() ?? "",
-  );
-  const [maxGlobal, setMaxGlobal] = useState(
-    campaign.maxRedemptionsGlobal?.toString() ?? "",
-  );
-  const [maxUser, setMaxUser] = useState(
-    campaign.maxRedemptionsPerUser?.toString() ?? "",
-  );
-  const [maxPhone, setMaxPhone] = useState(
-    campaign.maxRedemptionsPerPhone?.toString() ?? "",
-  );
-  const [maxDiscount, setMaxDiscount] = useState(
-    campaign.maxDiscountPerBookingXOF?.toString() ?? "",
-  );
-  const [minSpend, setMinSpend] = useState(
-    campaign.minSubtotalXOF?.toString() ?? "",
-  );
-  const [firstBookingOnly, setFirstBookingOnly] = useState(
-    campaign.firstBookingOnly,
-  );
+  const [startsAt, setStartsAt] = useState<Date | undefined>(toDate(campaign.startsAt));
+  const [endsAt, setEndsAt] = useState<Date | undefined>(toDate(campaign.endsAt));
+  const [budgetXOF, setBudgetXOF] = useState(campaign.budgetXOF?.toString() ?? "");
+  const [maxGlobal, setMaxGlobal] = useState(campaign.maxRedemptionsGlobal?.toString() ?? "");
+  const [maxUser, setMaxUser] = useState(campaign.maxRedemptionsPerUser?.toString() ?? "");
+  const [maxPhone, setMaxPhone] = useState(campaign.maxRedemptionsPerPhone?.toString() ?? "");
+  const [maxDiscount, setMaxDiscount] = useState(campaign.maxDiscountPerBookingXOF?.toString() ?? "");
+  const [minSpend, setMinSpend] = useState(campaign.minSubtotalXOF?.toString() ?? "");
+  const [firstBookingOnly, setFirstBookingOnly] = useState(campaign.firstBookingOnly);
   const [newUserOnly, setNewUserOnly] = useState(campaign.newUserOnly);
   const [isAutoApply, setIsAutoApply] = useState(campaign.isAutoApply);
-  const [allowCombineWithCredit, setAllowCombineWithCredit] = useState(
-    campaign.allowCombineWithCredit,
-  );
-  const [requireOperatorOptIn, setRequireOperatorOptIn] = useState(
-    campaign.requireOperatorOptIn,
-  );
+  const [allowCombineWithCredit, setAllowCombineWithCredit] = useState(campaign.allowCombineWithCredit);
+  const [requireOperatorOptIn, setRequireOperatorOptIn] = useState(campaign.requireOperatorOptIn);
   const [hybrid, setHybrid] = useState(campaign.fundingType === "HYBRID");
   const [platformSharePct, setPlatformSharePct] = useState(
     String(Math.round((campaign.platformShareBps ?? 0) / 100)),
@@ -144,11 +132,12 @@ export function CampaignSettingsEditor({
   const [tripIds, setTripIds] = useState<string[]>(
     campaign.tripScopes?.map((s) => s.tripId) ?? [],
   );
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   useEffect(() => {
     setDescription(campaign.description ?? "");
-    setStartsAt(toLocalInput(campaign.startsAt));
-    setEndsAt(toLocalInput(campaign.endsAt));
+    setStartsAt(toDate(campaign.startsAt));
+    setEndsAt(toDate(campaign.endsAt));
     setBudgetXOF(campaign.budgetXOF?.toString() ?? "");
     setMaxGlobal(campaign.maxRedemptionsGlobal?.toString() ?? "");
     setMaxUser(campaign.maxRedemptionsPerUser?.toString() ?? "");
@@ -161,9 +150,7 @@ export function CampaignSettingsEditor({
     setAllowCombineWithCredit(campaign.allowCombineWithCredit);
     setRequireOperatorOptIn(campaign.requireOperatorOptIn);
     setHybrid(campaign.fundingType === "HYBRID");
-    setPlatformSharePct(
-      String(Math.round((campaign.platformShareBps ?? 0) / 100)),
-    );
+    setPlatformSharePct(String(Math.round((campaign.platformShareBps ?? 0) / 100)));
     setRouteIds(campaign.routeScopes?.map((s) => s.routeId) ?? []);
     setScheduleIds(campaign.scheduleScopes?.map((s) => s.scheduleId) ?? []);
     setTripIds(campaign.tripScopes?.map((s) => s.tripId) ?? []);
@@ -190,18 +177,12 @@ export function CampaignSettingsEditor({
   }
 
   function toggleRoute(id: string) {
-    updateRouteIds(
-      routeIds.includes(id)
-        ? routeIds.filter((x) => x !== id)
-        : [...routeIds, id],
-    );
+    updateRouteIds(routeIds.includes(id) ? routeIds.filter((x) => x !== id) : [...routeIds, id]);
   }
 
   function toggleSchedule(id: string) {
     updateScheduleIds(
-      scheduleIds.includes(id)
-        ? scheduleIds.filter((x) => x !== id)
-        : [...scheduleIds, id],
+      scheduleIds.includes(id) ? scheduleIds.filter((x) => x !== id) : [...scheduleIds, id],
     );
   }
 
@@ -214,267 +195,421 @@ export function CampaignSettingsEditor({
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
-      <div>
-        <h3 className="text-sm font-semibold text-slate-900">
-          Campaign settings
-        </h3>
-        <p className="text-xs text-slate-500">
-          Dates, caps, budget, auto-apply, and scopes for{" "}
-          <span className="font-medium text-slate-700">{campaign.name}</span>.
-        </p>
-      </div>
-
+    <div className="space-y-5">
+      {/* Description */}
       <div className="space-y-1.5">
-        <Label htmlFor="camp-desc">Description</Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor="camp-desc" className="text-sm font-medium text-slate-700">
+            Description{" "}
+            <span className="font-normal text-slate-400">(internal)</span>
+          </Label>
+          <InfoTooltip content="Internal notes and campaign purpose. Only visible to operators and administrators." />
+        </div>
         <Input
           id="camp-desc"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Shown internally for ops"
+          placeholder="e.g. Back-to-school flash sale for Dakar routes"
         />
       </div>
 
+      {/* Date range — calendar popovers */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="camp-starts">Starts</Label>
-          <Input
-            id="camp-starts"
-            type="datetime-local"
+          <div className="flex items-center gap-1.5">
+            <Label className="text-sm font-medium text-slate-700">Starts</Label>
+            <InfoTooltip content="The exact date and time when passengers can start applying this promotion at checkout." />
+          </div>
+          <DateTimePicker
             value={startsAt}
-            onChange={(e) => setStartsAt(e.target.value)}
+            onChange={setStartsAt}
+            placeholder="Pick start date & time"
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="camp-ends">Ends</Label>
-          <Input
-            id="camp-ends"
-            type="datetime-local"
+          <div className="flex items-center gap-1.5">
+            <Label className="text-sm font-medium text-slate-700">Ends</Label>
+            <InfoTooltip content="Optional expiration cutoff. After this time, codes will be rejected at checkout." />
+          </div>
+          <DateTimePicker
             value={endsAt}
-            onChange={(e) => setEndsAt(e.target.value)}
+            onChange={setEndsAt}
+            placeholder="Pick end date & time (optional)"
           />
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="camp-budget">Budget (XOF)</Label>
-          <Input
-            id="camp-budget"
-            inputMode="numeric"
-            value={budgetXOF}
-            onChange={(e) => setBudgetXOF(e.target.value)}
-            placeholder="Unlimited"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="camp-max-global">Max redemptions (global)</Label>
-          <Input
-            id="camp-max-global"
-            inputMode="numeric"
-            value={maxGlobal}
-            onChange={(e) => setMaxGlobal(e.target.value)}
-            placeholder="Unlimited"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="camp-max-user">Max per user</Label>
-          <Input
-            id="camp-max-user"
-            inputMode="numeric"
-            value={maxUser}
-            onChange={(e) => setMaxUser(e.target.value)}
-            placeholder="Unlimited"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="camp-max-phone">Max per phone</Label>
-          <Input
-            id="camp-max-phone"
-            inputMode="numeric"
-            value={maxPhone}
-            onChange={(e) => setMaxPhone(e.target.value)}
-            placeholder="Unlimited"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="camp-max-disc">Max discount / booking (XOF)</Label>
-          <Input
-            id="camp-max-disc"
-            inputMode="numeric"
-            value={maxDiscount}
-            onChange={(e) => setMaxDiscount(e.target.value)}
-            placeholder="Unlimited"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="camp-min-spend">Min spend (XOF)</Label>
-          <Input
-            id="camp-min-spend"
-            inputMode="numeric"
-            value={minSpend}
-            onChange={(e) => setMinSpend(e.target.value)}
-            placeholder="0"
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm">
-          First booking only
-          <Switch
-            checked={firstBookingOnly}
-            onCheckedChange={setFirstBookingOnly}
-          />
+      {/* Behaviour toggles */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
+          <span className="flex items-center gap-1.5">
+            First booking only
+            <InfoTooltip content="Restricts redemption strictly to travelers making their very first ticket purchase on Moja Ride." />
+          </span>
+          <Switch checked={firstBookingOnly} onCheckedChange={setFirstBookingOnly} />
         </label>
-        <label className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm">
-          New users only
+
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
+          <span className="flex items-center gap-1.5">
+            New users only
+            <InfoTooltip content="Restricts redemption to newly registered accounts created within the introductory onboarding window." />
+          </span>
           <Switch checked={newUserOnly} onCheckedChange={setNewUserOnly} />
         </label>
-        <label className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm">
-          Auto-apply at checkout
+
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
+          <span className="flex items-center gap-1.5">
+            Auto-apply at checkout
+            <InfoTooltip content="Automatically applies the best matching discount to the passenger's cart without requiring them to enter a coupon code." />
+          </span>
           <Switch checked={isAutoApply} onCheckedChange={setIsAutoApply} />
         </label>
-        <label className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm">
-          Combine with credits
-          <Switch
-            checked={allowCombineWithCredit}
-            onCheckedChange={setAllowCombineWithCredit}
-          />
+
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
+          <span className="flex items-center gap-1.5">
+            Stack with promo credits
+            <InfoTooltip content="When enabled, passengers can use both this discount code and their earned referral promo credits on the same booking." />
+          </span>
+          <Switch checked={allowCombineWithCredit} onCheckedChange={setAllowCombineWithCredit} />
         </label>
-        {showRequireOptIn ? (
-          <label className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm sm:col-span-2">
-            Require operator opt-in
-            <Switch
-              checked={requireOperatorOptIn}
-              onCheckedChange={setRequireOperatorOptIn}
-            />
-          </label>
-        ) : null}
       </div>
 
-      {showHybrid ? (
-        <div className="space-y-2 rounded-md border border-slate-200 bg-white p-3">
-          <label className="flex items-center justify-between gap-3 text-sm">
-            Hybrid funding (split platform / operator)
-            <Switch checked={hybrid} onCheckedChange={setHybrid} />
-          </label>
-          {hybrid ? (
-            <div className="space-y-1.5">
-              <Label htmlFor="camp-plat-share">Platform share (%)</Label>
-              <Input
-                id="camp-plat-share"
-                inputMode="numeric"
-                value={platformSharePct}
-                onChange={(e) => setPlatformSharePct(e.target.value)}
-              />
-              <p className="text-xs text-slate-500">
-                Operator share = {100 - (Number(platformSharePct) || 0)}%
-              </p>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+      {/* Advanced settings — collapsed by default */}
+      <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+        <CollapsibleTrigger
+          className="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
+        >
+          <Settings2 className="size-4 text-slate-400" />
+          Advanced limits &amp; funding
+          <ChevronDown
+            className={`ml-auto size-4 text-slate-400 transition-transform duration-200 ${
+              advancedOpen ? "rotate-180" : ""
+            }`}
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="mt-3 space-y-4 rounded-lg border border-slate-200 bg-white p-4">
+            {/* Caps grid */}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label
+                    htmlFor="camp-budget"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  >
+                    Budget (XOF)
+                  </Label>
+                  <InfoTooltip content="Total maximum monetary discount value permitted across this entire campaign. Once reached, no further redemptions are allowed." />
+                </div>
+                <Input
+                  id="camp-budget"
+                  inputMode="numeric"
+                  value={budgetXOF}
+                  onChange={(e) => setBudgetXOF(e.target.value)}
+                  placeholder="Unlimited"
+                />
+              </div>
 
-      <div className="space-y-2">
-        <Label>Route scopes (empty = all routes)</Label>
-        {routeOptions.length === 0 ? (
-          <p className="text-xs text-slate-500">No routes available to pick.</p>
-        ) : (
-          <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-white p-2">
-            {routeOptions.map((route) => {
-              const checked = routeIds.includes(route.id);
-              return (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label
+                    htmlFor="camp-max-global"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  >
+                    Max redemptions
+                  </Label>
+                  <InfoTooltip content="The total overall number of successful ticket bookings that can use this campaign across all passengers." />
+                </div>
+                <Input
+                  id="camp-max-global"
+                  inputMode="numeric"
+                  value={maxGlobal}
+                  onChange={(e) => setMaxGlobal(e.target.value)}
+                  placeholder="Unlimited"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label
+                    htmlFor="camp-max-user"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  >
+                    Max per user
+                  </Label>
+                  <InfoTooltip content="The maximum number of times any single authenticated traveler account can redeem this promotion." />
+                </div>
+                <Input
+                  id="camp-max-user"
+                  inputMode="numeric"
+                  value={maxUser}
+                  onChange={(e) => setMaxUser(e.target.value)}
+                  placeholder="Unlimited"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label
+                    htmlFor="camp-max-phone"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  >
+                    Max per phone
+                  </Label>
+                  <InfoTooltip content="The maximum number of redemptions tied to the same passenger telephone number, preventing multi-account circumvention." />
+                </div>
+                <Input
+                  id="camp-max-phone"
+                  inputMode="numeric"
+                  value={maxPhone}
+                  onChange={(e) => setMaxPhone(e.target.value)}
+                  placeholder="Unlimited"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label
+                    htmlFor="camp-max-disc"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  >
+                    Max discount / booking (XOF)
+                  </Label>
+                  <InfoTooltip content="Upper monetary ceiling in XOF applied to any single booking, especially useful for percentage-off discounts on large family orders." />
+                </div>
+                <Input
+                  id="camp-max-disc"
+                  inputMode="numeric"
+                  value={maxDiscount}
+                  onChange={(e) => setMaxDiscount(e.target.value)}
+                  placeholder="Unlimited"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label
+                    htmlFor="camp-min-spend"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  >
+                    Min spend (XOF)
+                  </Label>
+                  <InfoTooltip content="Minimum cart subtotal before this promotion is eligible to be applied." />
+                </div>
+                <Input
+                  id="camp-min-spend"
+                  inputMode="numeric"
+                  value={minSpend}
+                  onChange={(e) => setMinSpend(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            {/* Require operator opt-in */}
+            {showRequireOptIn && (
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p>Require operator opt-in</p>
+                    <InfoTooltip content="Forces bus operators to explicitly accept this platform promotion before it becomes active on their routes and schedules." />
+                  </div>
+                  <p className="text-xs font-normal text-slate-400">
+                    Operators must accept this campaign before it applies on their trips
+                  </p>
+                </div>
+                <Switch checked={requireOperatorOptIn} onCheckedChange={setRequireOperatorOptIn} />
+              </label>
+            )}
+
+            {/* Hybrid funding */}
+            {showHybrid && (
+              <div className="space-y-3">
+                <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p>Split cost with operator (hybrid funding)</p>
+                      <InfoTooltip content="Shared co-marketing promo where the platform absorbs a percentage of the discount and the operator covers the remainder." />
+                    </div>
+                    <p className="text-xs font-normal text-slate-400">
+                      Platform and operator share the discount expense
+                    </p>
+                  </div>
+                  <Switch checked={hybrid} onCheckedChange={setHybrid} />
+                </label>
+                {hybrid && (
+                  <div className="space-y-1.5 pl-1">
+                    <div className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="camp-plat-share"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      >
+                        Platform share (%)
+                      </Label>
+                      <InfoTooltip content="The exact percentage of the discount amount subsidized directly by the platform." />
+                    </div>
+                    <Input
+                      id="camp-plat-share"
+                      inputMode="numeric"
+                      value={platformSharePct}
+                      onChange={(e) => setPlatformSharePct(e.target.value)}
+                    />
+                    <p className="text-xs text-slate-500">
+                      Operator covers the remaining{" "}
+                      {100 - (Number(platformSharePct) || 0)}%
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Targeting scope */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-slate-100" />
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Targeting scope
+            </p>
+            <InfoTooltip content="Narrow which routes, recurring schedules, or specific upcoming departures this promotion applies to. Leave empty to apply everywhere." />
+          </div>
+          <div className="h-px flex-1 bg-slate-100" />
+        </div>
+        <p className="text-xs text-slate-500">
+          Leave all empty to apply on every route, schedule, and trip.
+        </p>
+
+        {/* Routes */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Routes{" "}
+              {routeIds.length > 0 && (
+                <span className="ml-1 rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                  {routeIds.length}
+                </span>
+              )}
+            </Label>
+            <InfoTooltip content="Restrict discount eligibility only to tickets booked on the selected corridors/routes." />
+          </div>
+          {routeOptions.length === 0 ? (
+            <p className="text-xs text-slate-500">No routes available.</p>
+          ) : (
+            <div className="max-h-36 space-y-0.5 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2">
+              {routeOptions.map((route) => (
                 <label
                   key={route.id}
-                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
                 >
                   <input
                     type="checkbox"
-                    checked={checked}
+                    className="rounded border-slate-300"
+                    checked={routeIds.includes(route.id)}
                     onChange={() => toggleRoute(route.id)}
                   />
                   <span className="truncate">{route.name}</span>
                 </label>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      <div className="space-y-2">
-        <Label>Schedule scopes (empty = all schedules)</Label>
-        {filteredScheduleOptions.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            {routeIds.length > 0
-              ? "No schedules for selected routes."
-              : "Select routes to load schedules, or leave empty for no schedule restriction."}
-          </p>
-        ) : (
-          <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-white p-2">
-            {filteredScheduleOptions.map((schedule) => {
-              const checked = scheduleIds.includes(schedule.id);
-              return (
+        {/* Schedules */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Schedules{" "}
+              {scheduleIds.length > 0 && (
+                <span className="ml-1 rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                  {scheduleIds.length}
+                </span>
+              )}
+            </Label>
+            <InfoTooltip content="Restrict discount eligibility to recurring timetable schedules (e.g. only 08:00 morning departures)." />
+          </div>
+          {filteredScheduleOptions.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              {routeIds.length > 0
+                ? "No schedules for selected routes."
+                : "Select routes to load schedules, or leave empty for no restriction."}
+            </p>
+          ) : (
+            <div className="max-h-36 space-y-0.5 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2">
+              {filteredScheduleOptions.map((schedule) => (
                 <label
                   key={schedule.id}
-                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
                 >
                   <input
                     type="checkbox"
-                    checked={checked}
+                    className="rounded border-slate-300"
+                    checked={scheduleIds.includes(schedule.id)}
                     onChange={() => toggleSchedule(schedule.id)}
                   />
                   <span className="truncate">{schedule.name}</span>
                 </label>
-              );
-            })}
-          </div>
-        )}
-        {scheduleCapWarn ? (
-          <p className="text-xs text-amber-700">
-            Max {MAX_SCHEDULES} schedules — selection was capped.
-          </p>
-        ) : null}
-      </div>
+              ))}
+            </div>
+          )}
+          {scheduleCapWarn && (
+            <p className="text-xs text-amber-700">
+              Max {MAX_SCHEDULES} schedules — selection was capped.
+            </p>
+          )}
+        </div>
 
-      <div className="space-y-2">
-        <Label>Trip scopes (empty = all trips; next 60 days)</Label>
-        {tripOptions.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            {scheduleIds.length > 0 || routeIds.length > 0
-              ? "No upcoming trips for the current filters."
-              : "Select schedules (or routes) to load upcoming trips."}
-          </p>
-        ) : (
-          <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-white p-2">
-            {tripOptions.map((trip) => {
-              const checked = tripIds.includes(trip.id);
-              return (
+        {/* Trips */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Specific trips{" "}
+              {tripIds.length > 0 && (
+                <span className="ml-1 rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                  {tripIds.length}
+                </span>
+              )}
+            </Label>
+            <InfoTooltip content="Target individual specific calendar departure instances, e.g. a specific holiday weekend departure." />
+          </div>
+          {tripOptions.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              {scheduleIds.length > 0 || routeIds.length > 0
+                ? "No upcoming trips for the current filters."
+                : "Select schedules or routes to load upcoming trips."}
+            </p>
+          ) : (
+            <div className="max-h-36 space-y-0.5 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2">
+              {tripOptions.map((trip) => (
                 <label
                   key={trip.id}
-                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
                 >
                   <input
                     type="checkbox"
-                    checked={checked}
+                    className="rounded border-slate-300"
+                    checked={tripIds.includes(trip.id)}
                     onChange={() => toggleTrip(trip.id)}
                   />
                   <span className="truncate">{trip.name}</span>
                 </label>
-              );
-            })}
-          </div>
-        )}
-        {tripCapWarn ? (
-          <p className="text-xs text-amber-700">
-            Max {MAX_TRIPS} trips — selection was capped.
-          </p>
-        ) : null}
+              ))}
+            </div>
+          )}
+          {tripCapWarn && (
+            <p className="text-xs text-amber-700">
+              Max {MAX_TRIPS} trips — selection was capped.
+            </p>
+          )}
+        </div>
       </div>
 
       <Button
         type="button"
         disabled={pending}
+        className="w-full"
         onClick={() => {
           const platformBps = Math.min(
             10_000,
@@ -482,8 +617,8 @@ export function CampaignSettingsEditor({
           );
           onSave({
             description: description.trim() || null,
-            startsAt: startsAt ? new Date(startsAt) : null,
-            endsAt: endsAt ? new Date(endsAt) : null,
+            startsAt: startsAt ?? null,
+            endsAt: endsAt ?? null,
             budgetXOF: parseOptionalInt(budgetXOF),
             maxRedemptionsGlobal: parseOptionalInt(maxGlobal),
             maxRedemptionsPerUser: parseOptionalInt(maxUser),
@@ -510,7 +645,7 @@ export function CampaignSettingsEditor({
           });
         }}
       >
-        Save settings
+        {pending ? "Saving…" : "Save settings"}
       </Button>
     </div>
   );

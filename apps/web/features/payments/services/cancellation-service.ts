@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@moja/db";
 import { AccountingEngine, FinancialAccountService, Prisma } from "@moja/db";
 import { TRPCError } from "@trpc/server";
+import { refundStatusForCancellationChannel } from "../lib/cancellation-policy";
 import { resolveHoldGroup } from "../lib/resolve-hold-group";
 import {
   assertSettlementCancellable,
@@ -50,7 +51,8 @@ export class CancellationService {
     if (input.channel === "VOUCHER" && !booking.userId) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Voucher refunds require a passenger account — use cash instead",
+        message:
+          "Voucher refunds require a passenger account — use cash instead",
       });
     }
 
@@ -112,8 +114,11 @@ export class CancellationService {
     assertSettlementCancellable(settlement);
 
     const platformCommissionBps =
-      (await this.prisma.platformSettings.findUnique({ where: { id: "default" } }))
-        ?.defaultCommissionBps ?? 500;
+      (
+        await this.prisma.platformSettings.findUnique({
+          where: { id: "default" },
+        })
+      )?.defaultCommissionBps ?? 500;
 
     const requestIdempotencyKey = `CANCEL_${booking.id}_${input.channel}`;
 
@@ -136,7 +141,7 @@ export class CancellationService {
         },
       });
 
-      if (!lockedBooking || lockedBooking.status !== "CONFIRMED") {
+      if (lockedBooking?.status !== "CONFIRMED") {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Booking is no longer confirmed",
@@ -147,7 +152,19 @@ export class CancellationService {
         where: { requestIdempotencyKey },
       });
       if (existingRefund) {
-        return existingRefund;
+        const existingVoucher = await txClient.monetaryVoucher.findFirst({
+          where: {
+            source: "CANCELLATION",
+            sourceBookingId: booking.id,
+            ...(booking.userId ? { userId: booking.userId } : {}),
+          },
+          select: { id: true, expiresAt: true },
+        });
+        return {
+          refund: existingRefund,
+          voucherId: existingVoucher?.id ?? null,
+          voucherExpiresAt: existingVoucher?.expiresAt ?? null,
+        };
       }
 
       const snapshot = holdGroup.pricingSnapshot;
@@ -159,8 +176,12 @@ export class CancellationService {
           where: { holdGroupId: holdGroup.id, status: "CANCELLED" },
         });
         const isLastSeat = cancelledSoFar + 1 === snapshot.seatCount;
-        const standardBase = Math.round(snapshot.subtotalBaseXOF / snapshot.seatCount);
-        const standardNet = Math.round(snapshot.operatorNetXOF / snapshot.seatCount);
+        const standardBase = Math.round(
+          snapshot.subtotalBaseXOF / snapshot.seatCount,
+        );
+        const standardNet = Math.round(
+          snapshot.operatorNetXOF / snapshot.seatCount,
+        );
 
         proportionalBase = isLastSeat
           ? snapshot.subtotalBaseXOF - cancelledSoFar * standardBase
@@ -179,11 +200,7 @@ export class CancellationService {
       // D2: ticket subtotal share only — convenience fee is never refunded.
       const refundAmountXOF = Math.max(0, proportionalBase);
 
-      // D1: WALLET → COMPLETED; CASH/VOUCHER → PENDING_FULFILMENT (not a card return).
-      const refundStatus =
-        input.channel === "WALLET"
-          ? ("COMPLETED" as const)
-          : ("PENDING_FULFILMENT" as const);
+      const refundStatus = refundStatusForCancellationChannel(input.channel);
 
       await txClient.booking.update({
         where: { id: lockedBooking.id },
@@ -206,8 +223,56 @@ export class CancellationService {
           paystackRefundId: null,
           requestIdempotencyKey,
           reason: input.reason ?? "Passenger cancellation before departure",
+          ...(input.channel === "VOUCHER"
+            ? {
+                fulfilledAt: new Date(),
+                fulfilledByUserId: input.userId,
+                fulfilmentNote:
+                  refundAmountXOF > 0
+                    ? "Cancellation voucher issued"
+                    : "No voucher issued: zero refund amount",
+              }
+            : {}),
         },
       });
+
+      let voucherId: string | null = null;
+      let voucherExpiresAt: Date | null = null;
+      if (
+        input.channel === "VOUCHER" &&
+        lockedBooking.userId &&
+        refundAmountXOF > 0
+      ) {
+        const scheduleId = booking.trip.scheduleId;
+        if (!scheduleId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "This trip has no schedule. Cannot issue a schedule voucher.",
+          });
+        }
+        const { createCancellationVoucherRecord } = await import(
+          "@/features/discounts/services/voucher-service"
+        );
+        const issued = await createCancellationVoucherRecord(txClient as any, {
+          userId: lockedBooking.userId,
+          amountXOF: refundAmountXOF,
+          sourceBookingId: lockedBooking.id,
+          sourceHoldGroupId: lockedBooking.holdGroupId ?? undefined,
+          scheduleId,
+          companyId: booking.trip.companyId,
+        });
+        voucherId = issued?.voucherId ?? null;
+        voucherExpiresAt = issued?.expiresAt ?? null;
+        if (voucherId) {
+          await txClient.refund.update({
+            where: { id: refund.id },
+            data: {
+              fulfilmentNote: `Cancellation voucher issued: ${voucherId}`,
+            },
+          });
+        }
+      }
 
       if (refundAmountXOF > 0 || proportionalOperatorNet > 0) {
         const accountService = new FinancialAccountService(txClient as any);
@@ -221,10 +286,16 @@ export class CancellationService {
         );
 
         if (input.channel === "WALLET") {
+          if (!lockedBooking.userId) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Cannot refund to wallet without a passenger account",
+            });
+          }
           const platformCommissionAcct =
             await accountService.getPlatformCommissionRevenueAccount();
           const passengerWalletAcct = await accountService.getUserWallet(
-            lockedBooking.userId!,
+            lockedBooking.userId,
           );
 
           const engine = new AccountingEngine("REFUND", {
@@ -279,8 +350,10 @@ export class CancellationService {
           engine.validate();
           await engine.commit(txClient as any);
         } else {
-          const offlinePayable =
-            await accountService.getOfflineRefundPayableAccount();
+          const reimbursementPayable =
+            input.channel === "VOUCHER"
+              ? await accountService.getPlatformVoucherLiabilityAccount()
+              : await accountService.getOfflineRefundPayableAccount();
           const engine = new AccountingEngine("REFUND", {
             ...(settlement.externalPaymentId
               ? { externalPaymentId: settlement.externalPaymentId }
@@ -324,12 +397,15 @@ export class CancellationService {
 
           if (refundAmountXOF > 0) {
             engine.addCredit({
-              accountId: offlinePayable.id,
+              accountId: reimbursementPayable.id,
               amount: refundAmountXOF,
               sequenceNumber: seq++,
               referenceType: "BOOKING_ID",
               referenceId: lockedBooking.id,
-              description: "Offline passenger reimbursement payable",
+              description:
+                input.channel === "VOUCHER"
+                  ? "Cancellation voucher liability issued"
+                  : "Offline passenger reimbursement payable",
             });
           }
 
@@ -392,14 +468,14 @@ export class CancellationService {
         }
       }
 
-      return refund;
+      return { refund, voucherId, voucherExpiresAt };
     };
 
-    let result;
+    let result: Awaited<ReturnType<typeof run>>;
     try {
       result = tx ? await run(tx) : await this.prisma.$transaction(run);
-    } catch (err: any) {
-      if (err.message && err.message.includes("Insufficient funds")) {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes("Insufficient funds")) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
@@ -416,7 +492,7 @@ export class CancellationService {
         "@/features/notifications/outbox/commercial"
       );
       await enqueueBookingRefunded(this.prisma, {
-        refundId: result.id,
+        refundId: result.refund.id,
         email,
         subscriberId: booking.userId ?? email,
         firstName: (booking.user?.fullName ?? booking.passengerName).split(
@@ -426,36 +502,38 @@ export class CancellationService {
           email,
           passengerName: booking.user?.fullName ?? booking.passengerName,
           bookingReference: booking.bookingReference,
-          refundAmountXOF: result.amountXOF,
-          channel: result.channel as string,
-          reason: result.reason ?? "Passenger cancellation before departure",
+          refundAmountXOF: result.refund.amountXOF,
+          channel: result.refund.channel as string,
+          reason:
+            result.refund.reason ?? "Passenger cancellation before departure",
         },
       });
     }
 
-    let voucherId: string | null = null;
-    if (input.channel === "VOUCHER" && booking.userId && result.amountXOF > 0) {
-      const { issueCancellationVoucher } = await import(
-        "@/features/discounts/services/voucher-service"
+    if (input.channel === "VOUCHER" && booking.userId && result.voucherId) {
+      const { notifyVoucherIssued } = await import(
+        "@/features/discounts/services/notify"
       );
-      const issued = await issueCancellationVoucher(this.prisma, {
-        userId: booking.userId,
-        amountXOF: result.amountXOF,
-        sourceBookingId: booking.id,
-        sourceHoldGroupId: booking.holdGroupId ?? undefined,
-        scheduleId: booking.trip.scheduleId!,
-        companyId: booking.trip.companyId,
+      notifyVoucherIssued({
+        user: {
+          userId: booking.userId,
+          email: booking.user?.email ?? null,
+          fullName: booking.user?.fullName ?? booking.passengerName,
+        },
+        amountXOF: result.refund.amountXOF,
+        voucherId: result.voucherId,
+        source: "CANCELLATION",
+        expiresAt: result.voucherExpiresAt,
       });
-      voucherId = issued?.voucherId ?? null;
     }
 
     return {
       success: true as const,
-      refundId: result.id,
-      amountXOF: result.amountXOF,
-      channel: result.channel,
-      status: result.status,
-      voucherId,
+      refundId: result.refund.id,
+      amountXOF: result.refund.amountXOF,
+      channel: result.refund.channel,
+      status: result.refund.status,
+      voucherId: result.voucherId,
     };
   }
 }

@@ -5,9 +5,13 @@ import { escapeHtml } from "@/features/notifications/utils/escape-html";
 export const passengerVoucherIssuedWorkflow = workflow(
   "passenger-voucher-issued",
   async ({ step, payload }) => {
+    const scheduleRestriction =
+      payload.source === "CANCELLATION"
+        ? " Valid only on the original schedule."
+        : "";
     await step.inApp("send-in-app", async () => ({
       subject: "Voucher added",
-      body: `You received a ${escapeHtml(payload.amountXOF)} XOF voucher (${escapeHtml(payload.source)}).`,
+      body: `You received a ${escapeHtml(payload.amountXOF)} XOF voucher (${escapeHtml(payload.source)}).${scheduleRestriction}`,
       redirect: { url: "/dashboard/wallet", target: "_self" },
     }));
 
@@ -17,6 +21,7 @@ export const passengerVoucherIssuedWorkflow = workflow(
         <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto;">
           <h2 style="color: #ee237c;">Voucher issued</h2>
           <p>A ${escapeHtml(payload.amountXOF)} XOF voucher was added to your account (source: ${escapeHtml(payload.source)}).</p>
+          ${scheduleRestriction ? `<p>${scheduleRestriction.trim()}</p>` : ""}
           ${payload.expiresAt ? `<p>Expires: ${escapeHtml(payload.expiresAt)}</p>` : ""}
         </div>
       `,
@@ -24,7 +29,7 @@ export const passengerVoucherIssuedWorkflow = workflow(
 
     await step.push("send-push", async () => ({
       subject: "Voucher added",
-      body: `${payload.amountXOF} XOF voucher ready to use on Moja Ride.`,
+      body: `${payload.amountXOF} XOF voucher ready to use on Moja Ride.${scheduleRestriction}`,
     }));
   },
   {

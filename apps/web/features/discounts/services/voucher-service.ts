@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@moja/db";
+import type { Prisma, PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
 import {
   isPromotionalVoucherSource,
@@ -6,8 +6,10 @@ import {
 } from "../lib/promo-ceilings";
 import { getPromoPolicy } from "../lib/promo-policy";
 
-export async function issueCancellationVoucher(
-  prisma: PrismaClient,
+type VoucherDb = PrismaClient | Prisma.TransactionClient;
+
+export async function createCancellationVoucherRecord(
+  prisma: VoucherDb,
   input: {
     userId: string;
     amountXOF: number;
@@ -16,7 +18,7 @@ export async function issueCancellationVoucher(
     scheduleId: string;
     companyId: string;
   },
-): Promise<{ voucherId: string } | null> {
+): Promise<{ voucherId: string; expiresAt: Date } | null> {
   if (input.amountXOF <= 0) return null;
   if (!input.scheduleId || !input.companyId) {
     throw new TRPCError({
@@ -28,6 +30,20 @@ export async function issueCancellationVoucher(
 
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + 12);
+
+  if (input.sourceBookingId) {
+    const existing = await prisma.monetaryVoucher.findFirst({
+      where: {
+        source: "CANCELLATION",
+        sourceBookingId: input.sourceBookingId,
+        userId: input.userId,
+      },
+      select: { id: true, expiresAt: true },
+    });
+    if (existing) {
+      return { voucherId: existing.id, expiresAt: existing.expiresAt ?? expiresAt };
+    }
+  }
 
   const voucher = await prisma.monetaryVoucher.create({
     data: {
@@ -44,6 +60,23 @@ export async function issueCancellationVoucher(
     },
   });
 
+  return { voucherId: voucher.id, expiresAt };
+}
+
+export async function issueCancellationVoucher(
+  prisma: PrismaClient,
+  input: {
+    userId: string;
+    amountXOF: number;
+    sourceBookingId?: string;
+    sourceHoldGroupId?: string;
+    scheduleId: string;
+    companyId: string;
+  },
+): Promise<{ voucherId: string } | null> {
+  const issued = await createCancellationVoucherRecord(prisma, input);
+  if (!issued) return null;
+
   const user = await prisma.user.findUnique({
     where: { id: input.userId },
     select: { id: true, email: true, fullName: true },
@@ -57,13 +90,13 @@ export async function issueCancellationVoucher(
         fullName: user.fullName,
       },
       amountXOF: input.amountXOF,
-      voucherId: voucher.id,
+      voucherId: issued.voucherId,
       source: "CANCELLATION",
-      expiresAt,
+      expiresAt: issued.expiresAt,
     });
   }
 
-  return { voucherId: voucher.id };
+  return { voucherId: issued.voucherId };
 }
 
 export async function issueAdminVoucher(

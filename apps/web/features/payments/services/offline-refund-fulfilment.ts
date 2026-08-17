@@ -17,7 +17,7 @@ export async function listOfflineRefundsOwed(
     prisma.refund.findMany({
       where: {
         status: "PENDING_FULFILMENT",
-        channel: { in: ["CASH", "VOUCHER"] },
+        channel: "CASH",
       },
       orderBy: { createdAt: "asc" },
       take: limit,
@@ -36,7 +36,7 @@ export async function listOfflineRefundsOwed(
     prisma.refund.count({
       where: {
         status: "PENDING_FULFILMENT",
-        channel: { in: ["CASH", "VOUCHER"] },
+        channel: "CASH",
       },
     }),
   ]);
@@ -63,10 +63,10 @@ export async function markOfflineRefundPaid(
       message: `Refund is ${refund.status}, expected PENDING_FULFILMENT`,
     });
   }
-  if (refund.channel !== "CASH" && refund.channel !== "VOUCHER") {
+  if (refund.channel !== "CASH") {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Only CASH/VOUCHER offline refunds can be marked paid here",
+      message: "Only CASH offline refunds can be marked paid here",
     });
   }
 
