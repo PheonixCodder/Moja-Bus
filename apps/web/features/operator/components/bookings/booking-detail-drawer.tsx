@@ -216,7 +216,7 @@ export function BookingDetailDrawer({
                       booking.status === "CANCELLED" &&
                         "bg-red-500/10 text-red-600 border border-red-500/20",
                       booking.status === "COMPLETED" &&
-                        "bg-blue-500/10 text-blue-600 border border-blue-500/20",
+                        "bg-pink-500/10 text-[#ee237c] border border-pink-500/20",
                     )}
                   >
                     {booking.status}

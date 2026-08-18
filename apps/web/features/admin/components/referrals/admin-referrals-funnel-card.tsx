@@ -28,7 +28,7 @@ export function AdminReferralsFunnelCard({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-pink-100 text-[#ee237c]">
               <UserPlus className="size-4" />
             </div>
             <span className="text-[11px] font-medium text-slate-400">Step 1</span>

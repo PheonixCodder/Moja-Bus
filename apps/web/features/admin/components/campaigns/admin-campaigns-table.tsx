@@ -115,12 +115,12 @@ export function AdminCampaignsTable({
                     <div className="font-medium text-slate-900">{item.name}</div>
                     <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
                       {item.isAutoApply && (
-                        <span className="inline-flex items-center rounded-sm bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                        <span className="inline-flex items-center rounded-sm bg-pink-50 px-1.5 py-0.5 text-[10px] font-medium text-[#ee237c] ring-1 ring-inset ring-pink-700/10">
                           Auto-apply
                         </span>
                       )}
                       {item.firstBookingOnly && (
-                        <span className="inline-flex items-center rounded-sm bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 ring-1 ring-purple-700/10">
+                        <span className="inline-flex items-center rounded-sm bg-pink-50 px-1.5 py-0.5 text-[10px] font-medium text-[#ee237c] ring-1 ring-pink-700/10">
                           1st booking
                         </span>
                       )}

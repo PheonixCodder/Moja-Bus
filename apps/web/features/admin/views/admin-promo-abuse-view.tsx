@@ -32,7 +32,7 @@ const EVENT_LABELS: Record<
 > = {
   SELF_REFERRAL: {
     label: "Self-referral",
-    color: "bg-orange-100 text-orange-700",
+    color: "bg-pink-100 text-[#ee237c]",
     desc: "A traveler attempted to use their own referral link or code to claim a reward.",
   },
   SAME_PHONE_REFERRAL: {
@@ -42,7 +42,7 @@ const EVENT_LABELS: Record<
   },
   SAME_DEVICE_REFERRAL: {
     label: "Same device",
-    color: "bg-purple-100 text-purple-700",
+    color: "bg-rose-100 text-rose-700",
     desc: "Browser fingerprint collision detected on the same hardware/device.",
   },
   VELOCITY_CAP: {
@@ -258,7 +258,7 @@ export function AdminPromoAbuseView() {
                                 pauseReason: `Paused from abuse queue (${item.eventType})`,
                               })
                             }
-                            className="border-orange-200 text-orange-700 hover:bg-orange-50"
+                            className="border-slate-200 text-slate-700 hover:bg-slate-50"
                           >
                             <ShieldOff className="size-3.5" />
                             Pause campaign
