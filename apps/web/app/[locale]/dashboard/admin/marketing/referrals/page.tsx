@@ -1,24 +1,26 @@
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import { Suspense } from "react";
 import { DashboardHeader } from "@/features/admin/components/dashboard-header";
-import { AdminCampaignsView } from "@/features/admin/views/admin-campaigns-view";
+import { AdminReferralsView } from "@/features/admin/views/admin-referrals-view";
 import { HydrateClient, prefetch, trpc } from "@/trpc/server";
 
 export const metadata = {
-  title: "Marketing Campaigns — Moja Ride Admin",
+  title: "Referral Program — Moja Ride Admin",
   description:
-    "Create and manage platform discount campaigns, coupon codes, and promo lifecycle.",
+    "Configure passenger referral incentives, recurring booking rewards, anti-fraud rules, and issue promo credits.",
 };
 
-export default async function AdminMarketingCampaignsPage() {
+export default async function AdminMarketingReferralsPage() {
   await Promise.all([
+    prefetch(trpc.discountsAdmin.getReferralProgram.queryOptions()),
+    prefetch(trpc.discountsAdmin.marketingSummary.queryOptions()),
     prefetch(
       trpc.discountsAdmin.listCampaigns.queryOptions({
-        limit: 50,
+        status: "ACTIVE",
+        limit: 100,
         offset: 0,
       }),
     ),
-    prefetch(trpc.discountsAdmin.marketingSummary.queryOptions()),
   ]);
 
   return (
@@ -27,30 +29,30 @@ export default async function AdminMarketingCampaignsPage() {
         breadcrumbs={[
           { label: "Admin", tKey: "overview.breadcrumb.admin" },
           { label: "Marketing", tKey: "nav.sections.marketing" },
-          { label: "Campaigns", tKey: "nav.campaigns" },
+          { label: "Referrals", tKey: "nav.referrals" },
         ]}
       />
       <div className="flex-1 overflow-y-auto p-6 md:p-8">
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="space-y-1">
             <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
-              Marketing campaigns
+              Referral Program & Credits
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-slate-500">
-              Platform-funded promos, coupon codes, and campaign status. Operator
-              growth codes live in the operator dashboard.
+              Set viral acquisition rewards, referee welcome campaigns, anti-fraud rules,
+              and grant promo wallet credits directly to riders.
             </p>
           </div>
           <Suspense
             fallback={
               <div className="space-y-4">
-                <Skeleton className="h-28 w-full" />
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-44 w-full" />
+                <Skeleton className="h-72 w-full" />
                 <Skeleton className="h-64 w-full" />
               </div>
             }
           >
-            <AdminCampaignsView />
+            <AdminReferralsView />
           </Suspense>
         </div>
       </div>

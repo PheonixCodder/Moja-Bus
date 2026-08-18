@@ -34,6 +34,7 @@ import {
   Coins,
   FileText,
   Gauge,
+  Gift,
   History,
   Landmark,
   LifeBuoy,
@@ -211,6 +212,12 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       url: "/dashboard/admin/marketing/campaigns",
       icon: Megaphone,
       permission: "marketing:campaigns:read",
+    },
+    {
+      title: t("referrals"),
+      url: "/dashboard/admin/marketing/referrals",
+      icon: Gift,
+      permission: "marketing:referrals:write",
     },
     {
       title: t("abuseQueue"),

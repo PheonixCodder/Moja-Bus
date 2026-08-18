@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowRightLeft, Calendar, Check, Clock, UserCheck } from "lucide-react";
+import { AlertTriangle, ArrowRightLeft, Calendar, Check, Clock, Sparkles, UserCheck } from "lucide-react";
+import { PassengerSeatMap } from "@/features/booking/components/passenger-seat-map";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
@@ -350,7 +351,7 @@ export function BookingDetailDrawer({
 
       {/* Rebooking Modal Dialog */}
       <Dialog open={isRebookModalOpen} onOpenChange={setIsRebookModalOpen}>
-        <DialogContent className="max-w-lg border border-border bg-white rounded-xl p-6">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto border border-border bg-white rounded-xl p-6">
           <DialogHeader className="space-y-1">
             <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <ArrowRightLeft className="size-5 text-[#00875A]" />
@@ -416,30 +417,52 @@ export function BookingDetailDrawer({
                 )}
               </div>
 
-              {/* Seat Selection */}
+              {/* Interactive Seat Selection Map */}
               {selectedTrip && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Seat Assignment
-                  </Label>
-                  <Select
-                    value={selectedSeatId || "__auto__"}
-                    onValueChange={(val) => setSelectedSeatId(val === "__auto__" ? "" : (val ?? ""))}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Auto-assign next available seat" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__auto__">Auto-assign next available seat</SelectItem>
-                      {selectedTrip.seats
-                        .filter((s: { id: string; seatNumber: string | number; isOccupied: boolean }) => !s.isOccupied)
-                        .map((s: { id: string; seatNumber: string | number; isOccupied: boolean }) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            Seat #{s.seatNumber} (Available)
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Seat Assignment ({selectedTrip.availableSeats} Available)
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSeatId("")}
+                      className={cn(
+                        "text-xs px-2.5 py-1 rounded-md border transition-all",
+                        !selectedSeatId
+                          ? "bg-[#00875A]/10 text-[#00875A] border-[#00875A]/30 font-bold shadow-xs"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 font-medium",
+                      )}
+                    >
+                      ⚡ Auto-Assign Next Available
+                    </button>
+                  </div>
+
+                  {selectedSeatId ? (
+                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium">
+                      <Sparkles className="size-4 text-emerald-600 shrink-0" />
+                      <span>
+                        Selected Seat: <strong className="font-mono text-emerald-900">#{selectedTrip.seats.find((s) => s.seatId === selectedSeatId)?.label ?? selectedSeatId}</strong>
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-500 italic">
+                      Click any available seat below, or keep auto-assign enabled.
+                    </p>
+                  )}
+
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 max-h-[320px] overflow-y-auto">
+                    <PassengerSeatMap
+                      rows={selectedTrip.rows}
+                      columns={selectedTrip.columns}
+                      seats={selectedTrip.seats as any}
+                      selectedSeatIds={selectedSeatId ? [selectedSeatId] : []}
+                      maxSelection={1}
+                      onToggleSeat={(seatId) => {
+                        setSelectedSeatId(seatId === selectedSeatId ? "" : seatId);
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 

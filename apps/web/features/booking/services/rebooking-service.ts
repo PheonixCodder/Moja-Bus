@@ -317,6 +317,7 @@ export async function listUpcomingScheduleTrips(params: {
       bus: {
         include: {
           seats: true,
+          layoutTemplate: true,
         },
       },
       bookings: {
@@ -335,7 +336,8 @@ export async function listUpcomingScheduleTrips(params: {
   });
 
   return trips.map((trip) => {
-    const seats = trip.bus?.seats.filter((s) => s.isBookable && s.isActive) ?? [];
+    const allSeats = trip.bus?.seats ?? [];
+    const seats = allSeats.filter((s) => s.isBookable && s.isActive);
     const totalSeats = trip.totalSeats ?? seats.length;
     const occupiedSeats = trip.bookings.filter((b: { status: string; holdExpiresAt: Date | null }) => {
       if (b.status === "CONFIRMED") return true;
@@ -344,6 +346,12 @@ export async function listUpcomingScheduleTrips(params: {
     }).length;
 
     const availableSeats = Math.max(0, totalSeats - occupiedSeats);
+
+    // Derive rows/cols from layout template or seats
+    const maxRow = allSeats.reduce((max, s) => Math.max(max, s.row), 1);
+    const maxCol = allSeats.reduce((max, s) => Math.max(max, s.col), 1);
+    const rows = trip.bus?.layoutTemplate?.rows ?? maxRow;
+    const columns = trip.bus?.layoutTemplate?.columns ?? maxCol;
 
     return {
       id: trip.id,
@@ -357,16 +365,34 @@ export async function listUpcomingScheduleTrips(params: {
       plateNumber: trip.bus?.registrationPlate ?? "",
       totalSeats,
       availableSeats,
-      seats: seats.map((s) => ({
-        id: s.id,
-        seatNumber: s.label,
-        isOccupied: trip.bookings.some(
+      rows,
+      columns,
+      seats: allSeats.map((s) => {
+        const isOccupied = trip.bookings.some(
           (b: { seatId: string; status: string; holdExpiresAt: Date | null }) =>
             b.seatId === s.id &&
             (b.status === "CONFIRMED" ||
               (b.status === "PENDING_PAYMENT" && b.holdExpiresAt && b.holdExpiresAt > now)),
-        ),
-      })),
+        );
+        return {
+          id: s.id,
+          seatId: s.id,
+          seatNumber: s.label,
+          label: s.label,
+          row: s.row,
+          col: s.col,
+          deck: s.deck ?? 1,
+          seatType: s.seatType,
+          isBookable: s.isBookable,
+          isActive: s.isActive,
+          isOccupied,
+          status: !s.isBookable || !s.isActive
+            ? "BLOCKED"
+            : isOccupied
+              ? "SOLD"
+              : ("AVAILABLE" as const),
+        };
+      }),
     };
   });
 }
