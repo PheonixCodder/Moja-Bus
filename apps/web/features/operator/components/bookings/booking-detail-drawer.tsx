@@ -451,17 +451,19 @@ export function BookingDetailDrawer({
                     </p>
                   )}
 
-                  <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 max-h-[320px] overflow-y-auto">
-                    <PassengerSeatMap
-                      rows={selectedTrip.rows}
-                      columns={selectedTrip.columns}
-                      seats={selectedTrip.seats as any}
-                      selectedSeatIds={selectedSeatId ? [selectedSeatId] : []}
-                      maxSelection={1}
-                      onToggleSeat={(seatId) => {
-                        setSelectedSeatId(seatId === selectedSeatId ? "" : seatId);
-                      }}
-                    />
+                  <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50/50 p-4 max-h-[320px] overflow-y-auto overflow-x-auto">
+                    <div className="w-max min-w-full">
+                      <PassengerSeatMap
+                        rows={selectedTrip.rows}
+                        columns={selectedTrip.columns}
+                        seats={selectedTrip.seats as any}
+                        selectedSeatIds={selectedSeatId ? [selectedSeatId] : []}
+                        maxSelection={1}
+                        onToggleSeat={(seatId) => {
+                          setSelectedSeatId(seatId === selectedSeatId ? "" : seatId);
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
