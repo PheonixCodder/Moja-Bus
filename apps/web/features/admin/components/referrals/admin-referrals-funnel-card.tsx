@@ -24,27 +24,6 @@ export function AdminReferralsFunnelCard({
 
   return (
     <Card className="p-6 border-slate-200/80 shadow-xs bg-white space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <h2 className="font-display text-lg font-bold tracking-tight text-slate-900">
-              Referral Conversion Funnel
-            </h2>
-            <InfoTooltip content="Progression of invited referees through attribution, paid booking qualification, fraud inspection, and reward payout." />
-          </div>
-          <p className="text-xs text-slate-500">
-            Real-time viral growth pipeline across all registered passenger referral links.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-pink-50 px-2.5 py-1 text-xs font-semibold text-pink-700 ring-1 ring-inset ring-pink-700/10">
-            <Sparkles className="size-3.5" />
-            {total.toLocaleString()} Total Invites
-          </span>
-        </div>
-      </div>
-
       {/* Visual Pipeline Steps */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
