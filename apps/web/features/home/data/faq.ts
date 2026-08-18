@@ -49,7 +49,7 @@ const en: FAQCategory[] = [
       },
       {
         q: "What currency are prices shown in?",
-        a: "All prices are displayed in West African CFA Franc (FCFA / XOF), the official currency of C\u00f4te d'Ivoire.",
+        a: "All prices are displayed in West African CFA Franc (FCFA / XOF), the official currency of Côte d'Ivoire.",
       },
       {
         q: "Is there a booking fee?",
@@ -72,7 +72,7 @@ const en: FAQCategory[] = [
       },
       {
         q: "Can I access my ticket offline?",
-        a: "On the web app, you need an internet connection to access your ticket page. We recommend screenshotting your QR code before traveling to areas with poor connectivity. Offline access is coming to our mobile app.",
+        a: "On the web app, you need an internet connection to access your ticket page. We recommend screenshotting your QR code before traveling to areas with poor connectivity. Offline access is available on our mobile app.",
       },
     ],
   },
@@ -83,50 +83,46 @@ const en: FAQCategory[] = [
     items: [
       {
         q: "What is the cancellation policy?",
-        a: "You can cancel your ticket up to 15 minutes before departure on the website, app, by phone, or at a partner agency. Cancellations cannot be processed with the driver. Upon cancellation, you receive a non-refundable voucher valid for 12 months, calculated as the ticket price minus the applicable cancellation fee.",
+        a: "You can cancel your ticket up to 15 minutes before departure on the website, app, by phone, or at a partner agency. Cancellations cannot be processed with the driver. Upon cancellation, eligible refunds are credited immediately to your Moja Wallet or refunded via your original payment channel, calculated as the ticket price minus the applicable cancellation fee.",
       },
       {
         q: "How much will I get back if I cancel?",
-        a: "The refund percentage depends on how early you cancel: 30+ days before departure \u2192 100%; 7\u201329 days \u2192 75%; 2\u20136 days \u2192 50%; less than 2 days \u2192 25%. Extras like seat reservations and additional luggage are refunded at 100%. The 500 FCFA service fee is non-refundable.",
+        a: "The refund percentage depends on how early you cancel: 30+ days before departure → 100%; 7–29 days → 75%; 2–6 days → 50%; less than 2 days → 25%. Extras like seat reservations and additional luggage are refunded at 100%. The 500 FCFA service fee is non-refundable.",
       },
       {
         q: "How long do refunds take?",
-        a: "Cancellation vouchers are issued immediately to your account and can be used for future bookings. If you are entitled to a monetary refund (e.g., due to a Moja Ride fault), processing takes 3\u20137 business days.",
+        a: "Moja Wallet refunds are available immediately and can be used for new bookings right away. Cash refunds through payment providers take 3–7 business days.",
       },
       {
-        q: "Can I modify my ticket instead of cancelling?",
-        a: "Yes. You can modify the traveler name, date, or time of your trip up to 15 minutes before departure via the website, app, phone, or partner agency. If the new journey costs more, you pay the difference. If it costs less, you receive a non-refundable 12-month voucher for the difference. A modification fee applies per trip per passenger (except phone number changes, which are free).",
+        q: "Can I be rebooked instead of cancelling?",
+        a: "Yes! If a trip is rescheduled or if you need to travel on an upcoming departure on the same route, the operator can directly rebook your seat onto an upcoming scheduled trip at no penalty.",
       },
     ],
   },
   {
-    id: "vouchers",
-    category: "Vouchers & Promotions",
+    id: "promotions",
+    category: "Promotions & Credits",
     color: "bg-pink-50 text-pink-700",
     items: [
       {
-        q: "How do I use a voucher?",
-        a: "You can apply a maximum of one voucher per booking, online or at a partner agency. Monetary vouchers can be applied to the entire cart. Discount or free-trip vouchers apply to the ticket price only \u2014 service fees and add-ons (luggage, bicycle) are not discounted.",
-      },
-      {
-        q: "Do vouchers expire?",
-        a: "Discount codes are valid for 3 months from issue. Cancellation vouchers are valid for 12 months. Vouchers issued free of charge for marketing purposes expire after the first completed booking.",
-      },
-      {
-        q: "Can I use multiple vouchers on one booking?",
-        a: "You can combine one promo code (or an auto-applied campaign), one monetary voucher, and available promo credits on the same booking when the campaign rules allow stacking. Percentage coupons reduce ticket fare only — the service/convenience fee is not discounted by percent-off codes. Cash refunds of vouchers are not available.",
+        q: "How do I use a promo code or coupon?",
+        a: "You can apply one promo code per booking during checkout. Valid codes will automatically discount your ticket fare. Percentage coupons reduce the base ticket price — service fees are not discounted.",
       },
       {
         q: "What are promo credits and referrals?",
-        a: "Promo credits are balances from referral rewards (and similar grants) that apply at checkout before you pay. Share your invite link (/r/CODE), or enter a friend's code once on your account. Rewards may wait until the friend completes a paid trip, then follow a review delay and any recurring rules of the active program. Credits and vouchers are non-transferable and cannot be cashed out.",
+        a: "Promo credits are balances earned from referral rewards, marketing grants, or customer goodwill that apply automatically at checkout. Share your invite link (/r/CODE) with friends to earn credits when they complete their first trip.",
       },
       {
-        q: "How many promotional vouchers can I hold?",
-        a: "You may hold up to the published limit of active promotional vouchers at a time (marketing, goodwill, admin grant, or referral welcome vouchers)—currently shown in your wallet. Cancellation vouchers and modification-difference vouchers do not count toward that limit. Moja Ride may refuse additional promotional grants until one expires or is used.",
+        q: "Do promo credits expire?",
+        a: "Promo credits have individual expiration dates depending on the campaign or grant (typically 30–180 days). You can review all active lots and upcoming expiration dates in your Wallet dashboard.",
       },
       {
-        q: "Can I sell or transfer my voucher?",
-        a: "No. Commercial resale of vouchers is strictly prohibited and may result in ticket blocking and/or legal action. Personal vouchers are non-transferable. Cash refunds of vouchers are not possible.",
+        q: "Can I combine promo credits with a discount code?",
+        a: "Yes! When campaign terms permit stacking, you can combine one promo code with your available promo credits on the same booking.",
+      },
+      {
+        q: "Can I transfer or cash out my promo credits?",
+        a: "No. Promo credits are tied to your personal account, non-transferable, and cannot be redeemed for physical cash.",
       },
     ],
   },
@@ -137,7 +133,7 @@ const en: FAQCategory[] = [
     items: [
       {
         q: "How do I become a bus operator on Moja Ride?",
-        a: "Visit our operator onboarding page and complete the registration form. You'll need to provide your company details, business registration documents, and bank information. Our team reviews all applications and typically responds within 2\u20135 business days.",
+        a: "Visit our operator onboarding page and complete the registration form. You'll need to provide your company details, business registration documents, and bank information. Our team reviews all applications and typically responds within 2–5 business days.",
       },
       {
         q: "How does the commission work for operators?",
@@ -213,7 +209,7 @@ const fr: FAQCategory[] = [
       },
       {
         q: "Puis-je accéder à mon billet hors ligne ?",
-        a: "Sur l'application web, vous avez besoin d'une connexion internet pour accéder à la page de votre billet. Nous vous recommandons de faire une capture d'écran de votre code QR avant de voyager dans les zones à faible connectivité. L'accès hors ligne sera bientôt disponible sur notre application mobile.",
+        a: "Sur l'application web, vous avez besoin d'une connexion internet pour accéder à la page de votre billet. Nous vous recommandons de faire une capture d'écran de votre code QR avant de voyager dans les zones à faible connectivité. L'accès hors ligne est disponible sur notre application mobile.",
       },
     ],
   },
@@ -224,7 +220,7 @@ const fr: FAQCategory[] = [
     items: [
       {
         q: "Quelle est la politique d'annulation ?",
-        a: "Vous pouvez annuler votre billet jusqu'à 15 minutes avant le départ sur le site web, l'application, par téléphone ou dans une agence partenaire. Les annulations ne peuvent pas être traitées avec le conducteur. Lors de l'annulation, vous recevez un avoir non remboursable valable 12 mois, calculé sur le prix du billet moins les frais d'annulation applicables.",
+        a: "Vous pouvez annuler votre billet jusqu'à 15 minutes avant le départ sur le site web, l'application, par téléphone ou dans une agence partenaire. Les annulations ne peuvent pas être traitées avec le conducteur. Lors de l'annulation, les remboursements éligibles sont crédités directement sur votre Portefeuille Moja ou remboursés selon votre mode de paiement initial, déduction faite des frais d'annulation applicables.",
       },
       {
         q: "Combien vais-je récupérer si j'annule ?",
@@ -232,42 +228,38 @@ const fr: FAQCategory[] = [
       },
       {
         q: "Combien de temps prend un remboursement ?",
-        a: "Les avoirs d'annulation sont émis immédiatement sur votre compte et peuvent être utilisés pour de futures réservations. Si vous avez droit à un remboursement monétaire (par exemple en raison d'une erreur de Moja Ride), le traitement prend 3 à 7 jours ouvrés.",
+        a: "Les remboursements sur le Portefeuille Moja sont immédiats et utilisables pour de nouvelles réservations. Les remboursements en espèces ou virement prennent 3 à 7 jours ouvrés.",
       },
       {
-        q: "Puis-je modifier mon billet au lieu d'annuler ?",
-        a: "Oui. Vous pouvez modifier le nom du voyageur, la date ou l'heure de votre voyage jusqu'à 15 minutes avant le départ via le site web, l'application, par téléphone ou dans une agence partenaire. Si le nouveau trajet coûte plus cher, vous payez la différence. S'il coûte moins cher, vous recevez un avoir non remboursable de 12 mois pour la différence. Des frais de modification s'appliquent par trajet et par passager (à l'exception des changements de numéro de téléphone, qui sont gratuits).",
+        q: "Puis-je être replacé sur un autre trajet plutôt qu'annuler ?",
+        a: "Oui ! Si un trajet est reprogrammé ou si vous souhaitez partir sur un horaire ultérieur de la même ligne, l'opérateur peut directement vous réassigner un siège sur un prochain départ sans pénalité.",
       },
     ],
   },
   {
-    id: "vouchers",
-    category: "Avoirs & Promotions",
+    id: "promotions",
+    category: "Promotions & Crédits",
     color: "bg-pink-50 text-pink-700",
     items: [
       {
-        q: "Comment utiliser un avoir ?",
-        a: "Vous pouvez appliquer un maximum d'un avoir par réservation, en ligne ou dans une agence partenaire. Les avoirs monétaires peuvent être appliqués à l'ensemble du panier. Les avoirs de réduction ou de voyage gratuit s'appliquent uniquement au prix du billet — les frais de service et les suppléments (bagages, vélo) ne sont pas réduits.",
-      },
-      {
-        q: "Les avoirs expirent-ils ?",
-        a: "Les codes de réduction sont valables 3 mois à compter de leur émission. Les avoirs d'annulation sont valables 12 mois. Les avoirs émis gratuitement à des fins marketing expirent après la première réservation effectuée.",
-      },
-      {
-        q: "Puis-je utiliser plusieurs avoirs sur une seule réservation ?",
-        a: "Vous pouvez combiner un code promo (ou une campagne auto-appliquée), un avoir monétaire et vos crédits promo disponibles sur la même réservation si les règles de la campagne le permettent. Les codes en pourcentage réduisent uniquement le prix du billet — les frais de service ne sont pas réduits par un pourcentage. Les avoirs ne sont pas remboursables en espèces.",
+        q: "Comment utiliser un code promo ou coupon ?",
+        a: "Vous pouvez appliquer un code promotionnel par réservation au moment du paiement. Les codes valides réduisent immédiatement le prix du billet. Les codes en pourcentage s'appliquent au tarif de base du trajet — les frais de service ne sont pas réduits.",
       },
       {
         q: "Que sont les crédits promo et le parrainage ?",
-        a: "Les crédits promo sont des soldes issus du parrainage (et dons similaires) utilisables au paiement. Partagez votre lien (/r/CODE) ou saisissez une seule fois le code d'un ami. Les récompenses peuvent attendre un trajet payé du filleul, puis un délai de revue et les règles récurrentes du programme actif. Crédits et avoirs sont non transférables et non remboursables en espèces.",
+        a: "Les crédits promo sont des soldes promotionnels issus du parrainage, de gestes commerciaux ou d'offres marketing, utilisables directement au paiement. Partagez votre lien (/r/CODE) pour cumuler des crédits dès que vos amis effectuent leur premier voyage.",
       },
       {
-        q: "Combien d'avoirs promotionnels puis-je détenir ?",
-        a: "Vous pouvez détenir jusqu'à la limite publiée d'avoirs promotionnels actifs (marketing, geste commercial, don admin ou bienvenue parrainage)—indiquée dans votre portefeuille. Les avoirs d'annulation et de différence de modification ne comptent pas. Moja Ride peut refuser d'autres dons promotionnels tant qu'un avoir n'a pas expiré ou été utilisé.",
+        q: "Les crédits promo expirent-ils ?",
+        a: "Les crédits promo ont une date de validité selon la campagne ou le motif d'attribution (généralement 30 à 180 jours). Vous pouvez consulter le détail de vos crédits dans votre tableau de bord Portefeuille.",
       },
       {
-        q: "Puis-je vendre ou transférer mon avoir ?",
-        a: "Non. La revente commerciale des avoirs est strictement interdite et peut entraîner le blocage du billet et/ou des poursuites judiciaires. Les avoirs personnels sont non transférables. Le remboursement en espèces des avoirs n'est pas possible.",
+        q: "Puis-je combiner des crédits promo avec un code promo ?",
+        a: "Oui ! Lorsque les règles de la campagne l'autorisent, vous pouvez cumuler un code promo et vos crédits promo disponibles sur la même réservation.",
+      },
+      {
+        q: "Puis-je transférer ou retirer mes crédits promo ?",
+        a: "Non. Les crédits promo sont strictement personnels, non transférables et ne peuvent faire l'objet d'un retrait en espèces.",
       },
     ],
   },

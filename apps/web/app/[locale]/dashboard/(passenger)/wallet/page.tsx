@@ -23,9 +23,6 @@ export default async function WalletPage() {
       offset: 0,
     })
   );
-  await prefetch(
-    trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
-  );
   await prefetch(trpc.discounts.listMyCreditLots.queryOptions());
 
   return (

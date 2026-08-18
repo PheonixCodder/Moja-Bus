@@ -294,32 +294,32 @@ export function AdminCampaignsView() {
           </Card>
           <Card className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Open voucher liability</p>
-              <InfoTooltip content="Total outstanding monetary value of unused cancellation vouchers issued to passengers." />
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Open promo credits liability</p>
+              <InfoTooltip content="Total outstanding monetary value of active promo credit lots issued to passengers." />
             </div>
-            <p className="mt-1.5 text-2xl font-bold tabular-nums text-slate-900">{summary.voucherLiabilityXOF.toLocaleString()} <span className="text-sm font-medium text-slate-400">XOF</span></p>
+            <p className="mt-1.5 text-2xl font-bold tabular-nums text-slate-900">{summary.creditLiabilityXOF.toLocaleString()} <span className="text-sm font-medium text-slate-400">XOF</span></p>
             <p className="mt-1 text-[11px] text-slate-400">
-              {summary.abuseEventsLast7d} abuse events (7d) · {summary.creditOutstandingXOF.toLocaleString()} XOF credits outstanding
+              {summary.abuseEventsLast7d} abuse events (7d) · {summary.openCreditLots} active credit lots
             </p>
           </Card>
         </div>
       )}
 
-      {/* Voucher aging & referral funnel */}
-      {summary?.voucherAging && (
+      {/* Credit lot aging & referral funnel */}
+      {summary?.creditAging && (
         <div className="grid gap-3 lg:grid-cols-2">
           <Card className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Voucher liability aging</p>
-              <InfoTooltip content="Breakdown of unredeemed cancellation voucher liabilities segmented by issue age." />
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Promo credits liability aging</p>
+              <InfoTooltip content="Breakdown of unredeemed promo credit liabilities segmented by issue age." />
             </div>
             <div className="mt-3 grid grid-cols-4 gap-3">
               {(
                 [
-                  ["0–30d", summary.voucherAging.d0to30],
-                  ["30–90d", summary.voucherAging.d30to90],
-                  ["90–365d", summary.voucherAging.d90to365],
-                  ["365d+", summary.voucherAging.d365plus],
+                  ["0–30d", summary.creditAging.d0to30],
+                  ["30–90d", summary.creditAging.d30to90],
+                  ["90–365d", summary.creditAging.d90to365],
+                  ["365d+", summary.creditAging.d365plus],
                 ] as const
               ).map(([label, bucket]) => (
                 <div key={label}>
@@ -327,7 +327,7 @@ export function AdminCampaignsView() {
                   <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900">
                     {bucket.remainingXOF.toLocaleString()}
                   </p>
-                  <p className="text-[11px] text-slate-400">{bucket.count} vouchers</p>
+                  <p className="text-[11px] text-slate-400">{bucket.count} lots</p>
                 </div>
               ))}
             </div>

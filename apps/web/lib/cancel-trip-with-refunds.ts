@@ -4,7 +4,7 @@ import { enqueueTripCancelled } from "@/features/notifications/outbox/commercial
 
 type PrismaLike = PrismaClient;
 
-export type TripRefundChannel = "WALLET" | "CASH" | "VOUCHER";
+export type TripRefundChannel = "WALLET" | "CASH";
 
 export async function cancelTripWithRefunds(params: {
   prisma: PrismaLike;
@@ -134,9 +134,7 @@ export async function cancelTripWithRefunds(params: {
         const channel: TripRefundChannel =
           !booking.userId && refundChannel === "WALLET"
             ? "CASH"
-            : !booking.userId && refundChannel === "VOUCHER"
-              ? "CASH"
-              : refundChannel;
+            : refundChannel;
         try {
           const refund = await cancellationService.cancelBooking(
             {

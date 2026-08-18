@@ -7,7 +7,8 @@ type BookingStatus =
 	| "PENDING_PAYMENT"
 	| "COMPLETED"
 	| "CANCELLED"
-	| "EXPIRED";
+	| "EXPIRED"
+	| "REFUND_PENDING";
 
 const STATUS_CONFIG: Record<
 	BookingStatus,
@@ -37,6 +38,11 @@ const STATUS_CONFIG: Record<
 		badgeClass: "bg-slate-100 border-slate-300",
 		textClass: "text-slate-500",
 		labelKey: "expired",
+	},
+	REFUND_PENDING: {
+		badgeClass: "bg-amber-50 border-amber-300",
+		textClass: "text-amber-700",
+		labelKey: "refundPending",
 	},
 };
 

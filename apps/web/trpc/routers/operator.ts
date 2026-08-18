@@ -14,7 +14,13 @@ import {
   logOnboardingEventSchema,
   initSignupSchema,
   cancelBookingSchema,
+  rebookBookingSchema,
+  listUpcomingScheduleTripsSchema,
 } from "@moja/schemas";
+import {
+  rebookPassenger,
+  listUpcomingScheduleTrips,
+} from "@/features/booking/services/rebooking-service";
 import { TERMS_VERSION, PRIVACY_VERSION, COMMISSION_VERSION } from "@/lib/constants/legal";
 import crypto from "crypto";
 import { getNovuClient } from "@/lib/novu";
@@ -1210,6 +1216,34 @@ export const operatorRouter = createTRPCRouter({
       });
     }),
 
+  listUpcomingScheduleTrips: operatorCompanyProcedure
+    .input(listUpcomingScheduleTripsSchema)
+    .query(async ({ ctx, input }) => {
+      requirePermission(ctx, "bookings:read");
+      return listUpcomingScheduleTrips({
+        prisma: ctx.prisma,
+        companyId: ctx.companyId,
+        scheduleId: input.scheduleId,
+        routeId: input.routeId,
+        limit: input.limit,
+      });
+    }),
+
+  rebookBooking: operatorCompanyProcedure
+    .input(rebookBookingSchema)
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "bookings:update");
+      return rebookPassenger({
+        prisma: ctx.prisma,
+        companyId: ctx.companyId,
+        staffId: ctx.user.id,
+        bookingReference: input.bookingReference,
+        targetTripId: input.targetTripId,
+        targetSeatId: input.targetSeatId,
+        reason: input.reason,
+      });
+    }),
+
   // L7: bulk check-in — marks all CONFIRMED, not-yet-boarded bookings on a
   // trip as boarded in one call. Reuses the per-booking check-in rules
   // (trip must be boarding; idempotent when already checked in).
@@ -1248,7 +1282,7 @@ export const operatorRouter = createTRPCRouter({
         tripId: z.string(),
         bookingIds: z.array(z.string()),
         reason: z.string().min(1),
-        channel: z.enum(["CASH", "WALLET", "VOUCHER"]).default("WALLET"),
+        channel: z.enum(["CASH", "WALLET"]).default("WALLET"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -1277,7 +1311,7 @@ export const operatorRouter = createTRPCRouter({
           continue;
         }
         const channel =
-          !b.userId && (input.channel === "WALLET" || input.channel === "VOUCHER")
+          !b.userId && input.channel === "WALLET"
             ? "CASH"
             : input.channel;
         try {

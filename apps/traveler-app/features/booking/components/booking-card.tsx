@@ -54,6 +54,12 @@ const STATUS_CONFIG: Record<
     text: 'text-neutral-500',
     border: 'border-neutral-500/20',
   },
+  REFUND_PENDING: {
+    labelKey: 'refundPending',
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-600',
+    border: 'border-amber-500/20',
+  },
 };
 
 export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {

@@ -240,8 +240,6 @@ export class BookingConfirmationService {
         if (hasPromoLegs) {
           const promoExpense =
             await this.accountService.getPlatformPromoExpenseAccount();
-          const voucherLiability =
-            await this.accountService.getPlatformVoucherLiabilityAccount();
           const promoCreditsUser = holdGroup.userId
             ? await this.accountService.getUserPromoCreditsAccount(
                 holdGroup.userId,
@@ -264,12 +262,10 @@ export class BookingConfirmationService {
               platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
               operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
               creditAppliedXOF: split.creditAppliedXOF,
-              voucherAppliedXOF: split.voucherAppliedXOF,
               ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
             },
             accounts: {
               promoExpensePlatformId: promoExpense.id,
-              voucherLiabilityId: voucherLiability.id,
               promoCreditsUserId: promoCreditsUser?.id ?? null,
               promoContraOperatorId: promoContra.id,
             },
@@ -384,7 +380,7 @@ export class BookingConfirmationService {
     const { walletPayableFromSnapshot } = await import(
       "@/features/payments/lib/checkout-payable"
     );
-    // Wallet / zero-cash waives convenience fee; payable nets credits + voucher
+    // Wallet / zero-cash waives convenience fee; payable nets promo credits
     const totalToPay = walletPayableFromSnapshot(snapshot);
     const promoCoverXOF =
       (snapshot.platformPromoFundedXOF ?? 0) +
@@ -420,7 +416,7 @@ export class BookingConfirmationService {
         Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${walletAcct.id} FOR UPDATE`,
       );
       const available = BigInt(lockedWallet[0]?.available_balance ?? 0);
-      // Zero-cash (fully covered by credits/voucher): no wallet debit required
+      // Zero-cash (fully covered by promo credits/discounts): no wallet debit required
       if (totalToPay > 0 && available < BigInt(totalToPay)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -548,8 +544,6 @@ export class BookingConfirmationService {
       if (hasPromoLegs) {
         const promoExpense =
           await accountService.getPlatformPromoExpenseAccount();
-        const voucherLiability =
-          await accountService.getPlatformVoucherLiabilityAccount();
         const promoCreditsUser =
           await accountService.getUserPromoCreditsAccount(userId);
         const promoContra = await accountService.getOperatorPromoContraAccount(
@@ -568,12 +562,10 @@ export class BookingConfirmationService {
             platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
             operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
             creditAppliedXOF: split.creditAppliedXOF,
-            voucherAppliedXOF: split.voucherAppliedXOF,
             ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
           },
           accounts: {
             promoExpensePlatformId: promoExpense.id,
-            voucherLiabilityId: voucherLiability.id,
             promoCreditsUserId: promoCreditsUser.id,
             promoContraOperatorId: promoContra.id,
           },

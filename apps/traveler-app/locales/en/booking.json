@@ -154,7 +154,5 @@
     "removePromo":  "Remove",
     "promoApplied":  "Promo applied",
     "discountLabel":  "Discount",
-    "voucherLabel":  "Voucher",
-    "applyFailed":  "Could not apply code",
-    "noVoucher":  "None"
+    "applyFailed":  "Could not apply code"
 }

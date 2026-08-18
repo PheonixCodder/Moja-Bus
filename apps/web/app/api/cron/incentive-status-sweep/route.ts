@@ -5,7 +5,7 @@ import { assertCronAuthorized } from "@/lib/cron-auth";
 
 export const runtime = "nodejs";
 
-/** Expire lots/vouchers and advance campaign SCHEDULED/ACTIVE/EXPIRED windows. */
+/** Expire credit lots and advance campaign SCHEDULED/ACTIVE/EXPIRED windows. */
 export async function GET(request: Request) {
   const denied = assertCronAuthorized(request);
   if (denied) return denied;

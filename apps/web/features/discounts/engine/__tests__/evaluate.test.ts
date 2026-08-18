@@ -147,32 +147,6 @@ describe("evaluateCheckoutDiscounts", () => {
     assert.equal(result.operatorFundedXOF, 1000);
   });
 
-  it("applies monetary voucher to remaining charge without platform expense", () => {
-    const result = evaluateCheckoutDiscounts({
-      ctx: baseCtx(),
-      campaigns: [campaign({ percentBps: 1000 })],
-      monetaryVoucher: {
-        id: "v_1",
-        remainingAmountXOF: 5000,
-        reservedAmountXOF: 0,
-        status: "ACTIVE",
-        expiresAt: null,
-        applyTarget: "ENTIRE_CHARGE",
-      },
-    });
-    assert.equal(result.ok, true);
-    assert.ok(result.chargeAmountXOF < result.preDiscountSubtotalXOF);
-    assert.ok(
-      result.instruments.some((i) => i.instrumentType === "MONETARY_VOUCHER"),
-    );
-    assert.equal(result.platformFundedXOF, 1000); // campaign only
-    assert.ok((result.voucherAppliedXOF ?? 0) > 0);
-    const voucher = result.instruments.find(
-      (i) => i.instrumentType === "MONETARY_VOUCHER",
-    );
-    assert.equal(voucher?.platformFundedXOF, 0);
-    assert.ok((voucher?.voucherAppliedXOF ?? 0) > 0);
-  });
 
   it("applies promo credits after discounts", () => {
     const result = evaluateCheckoutDiscounts({
@@ -230,82 +204,5 @@ describe("evaluateCheckoutDiscounts", () => {
     assert.equal(result.ok, true);
     assert.equal(result.ticketDiscountXOF, 0);
     assert.equal(result.autoAppliedCampaignId, null);
-  });
-
-  it("soft-fails invalid voucher and keeps coupon", () => {
-    const result = evaluateCheckoutDiscounts({
-      ctx: baseCtx(),
-      campaigns: [
-        campaign({
-          id: "coded",
-          percentBps: 1000,
-          isAutoApply: false,
-        }),
-      ],
-      code: "SAVE10",
-      coupon: {
-        id: "cp_1",
-        campaignId: "coded",
-        code: "SAVE10",
-        isActive: true,
-        maxRedemptions: null,
-        redemptionCount: 0,
-        expiresAt: null,
-        assignedUserId: null,
-      },
-      monetaryVoucher: {
-        id: "v_bad",
-        remainingAmountXOF: 0,
-        reservedAmountXOF: 0,
-        status: "ACTIVE",
-        expiresAt: null,
-      },
-    });
-    assert.equal(result.ok, true);
-    assert.equal(result.ticketDiscountXOF, 1000);
-    assert.equal(result.voucherRejection?.code, "VOUCHER_EMPTY");
-    assert.equal(
-      result.instruments.some((i) => i.instrumentType === "MONETARY_VOUCHER"),
-      false,
-    );
-  });
-
-  it("rejects schedule-scoped voucher on wrong schedule without wiping quote", () => {
-    const result = evaluateCheckoutDiscounts({
-      ctx: baseCtx({ scheduleId: "sch_other" }),
-      campaigns: [campaign({ percentBps: 1000 })],
-      monetaryVoucher: {
-        id: "v1",
-        remainingAmountXOF: 5000,
-        reservedAmountXOF: 0,
-        status: "ACTIVE",
-        expiresAt: null,
-        scheduleId: "sch_1",
-        companyId: "co_1",
-      },
-    });
-    assert.equal(result.ok, true);
-    assert.equal(result.ticketDiscountXOF, 1000);
-    assert.equal(result.voucherRejection?.code, "VOUCHER_SCHEDULE_MISMATCH");
-  });
-
-  it("applies schedule-scoped voucher on matching schedule", () => {
-    const result = evaluateCheckoutDiscounts({
-      ctx: baseCtx({ scheduleId: "sch_1" }),
-      campaigns: [],
-      monetaryVoucher: {
-        id: "v1",
-        remainingAmountXOF: 5000,
-        reservedAmountXOF: 0,
-        status: "ACTIVE",
-        expiresAt: null,
-        scheduleId: "sch_1",
-        companyId: "co_1",
-      },
-    });
-    assert.equal(result.ok, true);
-    assert.ok(
-      result.instruments.some((i) => i.instrumentType === "MONETARY_VOUCHER"),
-    );
   });
 });

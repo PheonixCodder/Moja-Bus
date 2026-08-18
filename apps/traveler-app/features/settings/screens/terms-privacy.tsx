@@ -94,7 +94,7 @@ export function TermsPrivacyView() {
 							</Text>
 							<Text className="text-sm font-bold text-slate-900">2. Refunds & Cancellation Ledger</Text>
 							<Text className="text-sm text-slate-500 leading-5">
-								Cancellations are credited directly back to your Moja Wallet or issued as an operator trip voucher per standard fare rules.
+								Cancellations are credited directly back to your Moja Wallet or rebooked onto an upcoming trip by the operator per standard fare rules.
 							</Text>
 						</View>
 					)}

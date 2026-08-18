@@ -3,7 +3,6 @@ import {
   bulkCreateCouponsSchema,
   createCouponSchema,
   deactivateCouponSchema,
-  issueMonetaryVoucherSchema,
   issuePromoCreditSchema,
   listCampaignsSchema,
   listCouponsSchema,
@@ -23,7 +22,6 @@ import {
   grantAdminCreditLot,
   listCreditLotsForUser,
 } from "@/features/discounts/services/credit-grant-service";
-import { issueAdminVoucher } from "@/features/discounts/services/voucher-service";
 import {
   listSchedulesForScope,
   listTripsForScope,
@@ -223,14 +221,14 @@ export const discountsAdminRouter = createTRPCRouter({
             "@/features/discounts/services/notify"
           );
           notifyOperatorCampaignPaused({
-            owners: owners.map((m) => ({
+            operatorUsers: owners.map((m) => ({
               userId: m.user.id,
               email: m.user.email,
               fullName: m.user.fullName,
             })),
             campaignId: before.id,
             campaignName: before.name,
-            pauseReason: input.pauseReason,
+            reason: input.pauseReason ?? "Campaign paused by administrator",
           });
         }
       }
@@ -371,37 +369,17 @@ export const discountsAdminRouter = createTRPCRouter({
       return result;
     }),
 
-  issueVoucher: adminProcedure
-    .input(issueMonetaryVoucherSchema)
-    .mutation(async ({ ctx, input }) => {
-      requireAdminPermission(ctx, "marketing:vouchers:issue");
-      const voucher = await issueAdminVoucher(ctx.prisma, {
-        userId: input.userId,
-        amountXOF: input.amountXOF,
-        issuedByAdminId: ctx.user.id,
-        source: input.source,
-        expiresAt: input.expiresAt,
-        expiresOnFirstCompletedBooking: input.expiresOnFirstCompletedBooking,
-        campaignId: input.campaignId,
-        code: input.code,
-      });
-      await logMarketingActivity(ctx.prisma, {
-        userId: ctx.user.id,
-        action: "MARKETING_VOUCHER_ISSUE",
-        description: `Issued ${input.amountXOF} XOF voucher to user ${input.userId}`,
-        targetUserId: input.userId,
-        metadata: { voucherId: voucher.id, amountXOF: input.amountXOF },
-      });
-      return voucher;
-    }),
+
 
   grantCredit: adminProcedure
     .input(issuePromoCreditSchema)
     .mutation(async ({ ctx, input }) => {
-      requireAdminPermission(ctx, "marketing:vouchers:issue");
+      requireAdminPermission(ctx, "marketing:credits:issue");
       const lot = await grantAdminCreditLot(ctx.prisma, {
         userId: input.userId,
         amountXOF: input.amountXOF,
+        source: input.source,
+        reason: input.reason,
         expiresAt: input.expiresAt,
         idempotencyKey: input.idempotencyKey,
         issuedByAdminId: ctx.user.id,
@@ -409,9 +387,32 @@ export const discountsAdminRouter = createTRPCRouter({
       await logMarketingActivity(ctx.prisma, {
         userId: ctx.user.id,
         action: "MARKETING_CREDIT_GRANT",
-        description: `Granted ${input.amountXOF} XOF promo credits to user ${input.userId}`,
+        description: `Granted ${input.amountXOF} XOF promo credits (${input.source}) to user ${input.userId}`,
         targetUserId: input.userId,
-        metadata: { creditLotId: lot.id, amountXOF: input.amountXOF },
+        metadata: { creditLotId: lot.id, amountXOF: input.amountXOF, source: input.source },
+      });
+      return lot;
+    }),
+
+  grantPromoCredits: adminProcedure
+    .input(issuePromoCreditSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketing:credits:issue");
+      const lot = await grantAdminCreditLot(ctx.prisma, {
+        userId: input.userId,
+        amountXOF: input.amountXOF,
+        source: input.source,
+        reason: input.reason,
+        expiresAt: input.expiresAt,
+        idempotencyKey: input.idempotencyKey,
+        issuedByAdminId: ctx.user.id,
+      });
+      await logMarketingActivity(ctx.prisma, {
+        userId: ctx.user.id,
+        action: "MARKETING_CREDIT_GRANT",
+        description: `Granted ${input.amountXOF} XOF promo credits (${input.source}) to user ${input.userId}`,
+        targetUserId: input.userId,
+        metadata: { creditLotId: lot.id, amountXOF: input.amountXOF, source: input.source },
       });
       return lot;
     }),
@@ -633,15 +634,14 @@ export const discountsAdminRouter = createTRPCRouter({
     const d90 = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     const d365 = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
-    const openVoucherWhere = {
+    const openCreditWhere = {
       status: { in: ["ACTIVE" as const, "PARTIALLY_REDEEMED" as const] },
-      remainingAmountXOF: { gt: 0 },
+      remainingXOF: { gt: 0 },
     };
 
     const [
       activeCampaigns,
       redemptionAgg,
-      voucherLiability,
       referralEdges,
       abuseEvents,
       creditOutstanding,
@@ -663,11 +663,6 @@ export const discountsAdminRouter = createTRPCRouter({
           creditAppliedXOF: true,
         },
       }),
-      ctx.prisma.monetaryVoucher.aggregate({
-        where: openVoucherWhere,
-        _sum: { remainingAmountXOF: true },
-        _count: true,
-      }),
       ctx.prisma.referralEdge.groupBy({
         by: ["status"],
         _count: true,
@@ -678,36 +673,37 @@ export const discountsAdminRouter = createTRPCRouter({
         },
       }),
       ctx.prisma.creditLot.aggregate({
-        where: { status: { in: ["ACTIVE", "PARTIALLY_REDEEMED"] } },
+        where: openCreditWhere,
         _sum: { remainingXOF: true },
-      }),
-      ctx.prisma.monetaryVoucher.aggregate({
-        where: { ...openVoucherWhere, createdAt: { gte: d30 } },
-        _sum: { remainingAmountXOF: true },
         _count: true,
       }),
-      ctx.prisma.monetaryVoucher.aggregate({
+      ctx.prisma.creditLot.aggregate({
+        where: { ...openCreditWhere, createdAt: { gte: d30 } },
+        _sum: { remainingXOF: true },
+        _count: true,
+      }),
+      ctx.prisma.creditLot.aggregate({
         where: {
-          ...openVoucherWhere,
+          ...openCreditWhere,
           createdAt: { gte: d90, lt: d30 },
         },
-        _sum: { remainingAmountXOF: true },
+        _sum: { remainingXOF: true },
         _count: true,
       }),
-      ctx.prisma.monetaryVoucher.aggregate({
+      ctx.prisma.creditLot.aggregate({
         where: {
-          ...openVoucherWhere,
+          ...openCreditWhere,
           createdAt: { gte: d365, lt: d90 },
         },
-        _sum: { remainingAmountXOF: true },
+        _sum: { remainingXOF: true },
         _count: true,
       }),
-      ctx.prisma.monetaryVoucher.aggregate({
+      ctx.prisma.creditLot.aggregate({
         where: {
-          ...openVoucherWhere,
+          ...openCreditWhere,
           createdAt: { lt: d365 },
         },
-        _sum: { remainingAmountXOF: true },
+        _sum: { remainingXOF: true },
         _count: true,
       }),
     ]);
@@ -723,27 +719,27 @@ export const discountsAdminRouter = createTRPCRouter({
       platformExpenseXOF: redemptionAgg._sum.platformFundedXOF ?? 0,
       operatorFundedXOF: redemptionAgg._sum.operatorFundedXOF ?? 0,
       creditsAppliedXOF: redemptionAgg._sum.creditAppliedXOF ?? 0,
-      voucherLiabilityXOF: voucherLiability._sum.remainingAmountXOF ?? 0,
-      openVouchers: voucherLiability._count,
+      creditLiabilityXOF: creditOutstanding._sum.remainingXOF ?? 0,
+      openCreditLots: creditOutstanding._count,
       creditOutstandingXOF: creditOutstanding._sum.remainingXOF ?? 0,
       referralFunnel,
       abuseEventsLast7d: abuseEvents,
-      voucherAging: {
+      creditAging: {
         d0to30: {
           count: aging0to30._count,
-          remainingXOF: aging0to30._sum.remainingAmountXOF ?? 0,
+          remainingXOF: aging0to30._sum.remainingXOF ?? 0,
         },
         d30to90: {
           count: aging30to90._count,
-          remainingXOF: aging30to90._sum.remainingAmountXOF ?? 0,
+          remainingXOF: aging30to90._sum.remainingXOF ?? 0,
         },
         d90to365: {
           count: aging90to365._count,
-          remainingXOF: aging90to365._sum.remainingAmountXOF ?? 0,
+          remainingXOF: aging90to365._sum.remainingXOF ?? 0,
         },
         d365plus: {
           count: aging365plus._count,
-          remainingXOF: aging365plus._sum.remainingAmountXOF ?? 0,
+          remainingXOF: aging365plus._sum.remainingXOF ?? 0,
         },
       },
     };

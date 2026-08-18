@@ -10,8 +10,8 @@
   "noTransactions": "No transactions yet",
   "availableBalance": "Available",
   "reservedBalance": "Reserved",
-  "promoTitle": "Promo credits & vouchers",
-  "promoHint": "Referral rewards and vouchers apply at checkout. Separate from your prepaid wallet balance.",
+  "promoTitle": "Promo Credits & Rewards",
+  "promoHint": "Referral rewards and promo credits apply at checkout. Separate from your prepaid wallet balance.",
   "promoCreditsTitle": "Available promo credits",
   "promoCreditsEmpty": "No promo credits yet. Invite friends to earn rewards.",
   "promoCreditsPending": "Pending promo credits",
@@ -24,8 +24,6 @@
   "promoSourceReferral": "Referral",
   "promoSourceAdmin": "Admin grant",
   "promoSourcePromo": "Promo grant",
-  "promoSourceLoyalty": "Loyalty",
-  "promoVouchersTitle": "Active vouchers",
-  "promoVouchersEmpty": "No active vouchers.",
-  "promoVoucherCeiling": "Max {{max}} promotional vouchers at a time (cancellation vouchers excluded)."
+  "promoSourceGoodwill": "Customer goodwill",
+  "promoSourceLoyalty": "Loyalty"
 }

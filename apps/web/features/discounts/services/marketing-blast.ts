@@ -6,7 +6,7 @@ const BATCH = 50;
 
 /**
  * Marketing blast: only passengers with marketingOptIn=true.
- * Transactional promo/referral/voucher workflows must NOT use this path.
+ * Transactional promo/referral workflows must NOT use this path.
  */
 export async function notifyOptedInCampaignStarting(
   prisma: PrismaClient,

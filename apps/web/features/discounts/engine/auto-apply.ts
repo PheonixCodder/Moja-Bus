@@ -98,30 +98,22 @@ export function buildChargeQuote(input: {
   const provisionalChargeXOF =
     postDiscountSubtotalXOF + convenienceFeeXOF - feeDiscountXOF;
 
-  let voucherAppliedXOF = input.instruments.reduce(
-    (sum, i) => sum + (i.voucherAppliedXOF ?? 0),
-    0,
-  );
-  voucherAppliedXOF = Math.min(voucherAppliedXOF, provisionalChargeXOF);
-
   let creditAppliedXOF = input.instruments.reduce(
     (sum, i) => sum + i.creditAppliedXOF,
     0,
   );
-  const afterVoucher = Math.max(0, provisionalChargeXOF - voucherAppliedXOF);
-  creditAppliedXOF = Math.min(creditAppliedXOF, afterVoucher);
+  creditAppliedXOF = Math.min(creditAppliedXOF, provisionalChargeXOF);
 
   return {
     instruments: input.instruments,
     ticketDiscountXOF,
     feeDiscountXOF,
     creditAppliedXOF,
-    voucherAppliedXOF,
     preDiscountSubtotalXOF: input.ctx.preDiscountSubtotalXOF,
     postDiscountSubtotalXOF,
     convenienceFeeXOF,
     provisionalChargeXOF,
-    chargeAmountXOF: provisionalChargeXOF - creditAppliedXOF - voucherAppliedXOF,
+    chargeAmountXOF: Math.max(0, provisionalChargeXOF - creditAppliedXOF),
     platformFundedXOF: input.instruments.reduce(
       (s, i) => s + i.platformFundedXOF,
       0,

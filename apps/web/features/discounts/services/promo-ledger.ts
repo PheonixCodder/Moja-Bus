@@ -4,14 +4,11 @@ type SnapshotPromoFields = {
   platformPromoFundedXOF: number;
   operatorPromoFundedXOF: number;
   creditAppliedXOF: number;
-  /** Monetary voucher liability burn (not platform expense). */
-  voucherAppliedXOF?: number;
   ticketDiscountXOF: number;
 };
 
 type PromoAccounts = {
   promoExpensePlatformId: string;
-  voucherLiabilityId: string;
   promoCreditsUserId: string | null;
   promoContraOperatorId: string;
 };
@@ -20,10 +17,9 @@ type PromoAccounts = {
  * Appends discount/credit balancing legs so BOOKING ledger stays balanced when
  * platform funds a promo, passenger spends promo credits, or operator absorbs discount.
  *
- * Economic rules (plan 05 / Phase 01):
+ * Economic rules:
  * - Platform-funded D: Debit PROMO_EXPENSE (subsidy filling passenger shortfall)
  * - Credits applied: Debit passenger PROMO_CREDITS
- * - Voucher applied: Debit VOUCHER_LIABILITY (burn), never PROMO_EXPENSE
  * - Operator-funded D: Debit PROMO_CONTRA_OPERATOR + Credit OPERATOR_RECEIVABLE
  */
 export function appendPromoLedgerEntries(input: {
@@ -40,7 +36,6 @@ export function appendPromoLedgerEntries(input: {
   const platformFunded = Math.max(0, input.snapshot.platformPromoFundedXOF);
   const operatorFunded = Math.max(0, input.snapshot.operatorPromoFundedXOF);
   const creditApplied = Math.max(0, input.snapshot.creditAppliedXOF);
-  const voucherApplied = Math.max(0, input.snapshot.voucherAppliedXOF ?? 0);
 
   if (platformFunded > 0) {
     input.engine.addDebit({
@@ -64,17 +59,6 @@ export function appendPromoLedgerEntries(input: {
       referenceType: "HOLD_GROUP",
       referenceId: input.holdGroupId,
       description: "Promo credits applied to charge",
-    });
-  }
-
-  if (voucherApplied > 0) {
-    input.engine.addDebit({
-      accountId: input.accounts.voucherLiabilityId,
-      amount: voucherApplied,
-      sequenceNumber: seq++,
-      referenceType: "HOLD_GROUP",
-      referenceId: input.holdGroupId,
-      description: "Monetary voucher liability burn",
     });
   }
 

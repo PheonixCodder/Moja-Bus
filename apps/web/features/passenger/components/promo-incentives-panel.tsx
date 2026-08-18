@@ -7,7 +7,7 @@ import { Input } from "@moja/ui/components/ui/input";
 import { cn } from "@moja/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Gift, Ticket } from "lucide-react";
+import { Gift } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -22,9 +22,13 @@ function sourceLabel(
     case "REFERRAL":
       return t("promoSourceReferral");
     case "ADMIN":
+    case "ADMIN_MANUAL":
       return t("promoSourceAdmin");
     case "PROMO_GRANT":
+    case "MARKETING_GRANT":
       return t("promoSourcePromo");
+    case "GOODWILL":
+      return "Customer Support Goodwill";
     case "LOYALTY":
       return t("promoSourceLoyalty");
     default:
@@ -38,13 +42,7 @@ export function PromoIncentivesPanel() {
   const queryClient = useQueryClient();
   const [claimCode, setClaimCode] = useState("");
 
-  const vouchersQuery = useQuery(
-    trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
-  );
   const lotsQuery = useQuery(trpc.discounts.listMyCreditLots.queryOptions());
-  const policyQuery = useQuery(
-    trpc.discounts.getPromoPolicyPublic.queryOptions(),
-  );
   const programQuery = useQuery(
     trpc.discounts.getReferralProgramPublic.queryOptions(),
   );
@@ -76,8 +74,6 @@ export function PromoIncentivesPanel() {
     (sum, lot) => sum + Math.max(0, lot.remainingXOF - lot.reservedXOF),
     0,
   );
-  const vouchers = vouchersQuery.data ?? [];
-  const maxVouchers = policyQuery.data?.maxPromotionalVouchersPerUser ?? 3;
 
   return (
     <Card className="space-y-4 p-4">
@@ -135,7 +131,7 @@ export function PromoIncentivesPanel() {
 
       <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3">
         <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
-          <Gift className="size-4 text-[#ee237c]" />
+          <Gift className="size-4 text-[#00875A]" />
           {t("promoCreditsTitle")}
         </div>
         <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">
@@ -197,58 +193,6 @@ export function PromoIncentivesPanel() {
           </ul>
         </div>
       ) : null}
-
-      <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
-          <Ticket className="size-4 text-[#ee237c]" />
-          {t("promoVouchersTitle")}
-        </div>
-        {vouchers.length === 0 ? (
-          <p className="mt-1 text-xs text-slate-500">
-            {t("promoVouchersEmpty")}
-          </p>
-        ) : (
-          <ul className="mt-2 space-y-1.5">
-            {vouchers.slice(0, 8).map((v) => (
-              <li
-                key={v.id}
-                className="flex items-center justify-between gap-2 text-xs text-slate-600"
-              >
-                <span>
-                  {v.remainingAmountXOF.toLocaleString()} XOF
-                  {v.code ? ` · ${v.code}` : ""}
-                  {v.scheduleId
-                    ? ` · ${
-                        v.schedule?.route?.name ??
-                        v.schedule?.name ??
-                        "schedule"
-                      }`
-                    : ""}
-                  {v.expiresAt
-                    ? ` · ${t("promoExpires", {
-                        date: format(new Date(v.expiresAt), "dd MMM yyyy"),
-                      })}`
-                    : ""}
-                </span>
-                {v.scheduleId ? (
-                  <span className="text-[10px] text-slate-500">
-                    {t("promoVoucherScheduleOnly", {
-                      schedule:
-                        v.schedule?.route?.name ??
-                        v.schedule?.name ??
-                        "schedule",
-                    })}
-                  </span>
-                ) : null}
-                <Badge variant="secondary">{v.source}</Badge>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-2 text-[11px] text-slate-500">
-          {t("promoVoucherCeiling", { max: maxVouchers })}
-        </p>
-      </div>
     </Card>
   );
 }

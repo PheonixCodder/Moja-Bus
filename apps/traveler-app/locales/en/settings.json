@@ -99,7 +99,7 @@
   "faq2Question": "How do wallet deposits work?",
   "faq2Answer": "You can deposit funds into your Moja Wallet using Mobile Money (Paystack). Go to Settings → Wallet → Top Up, select an amount, and complete the instant verification.",
   "faq3Question": "What is the cancellation and refund policy?",
-  "faq3Answer": "Cancellations made more than 2 hours before trip departure qualify for a full wallet refund or voucher refund, according to the operator's settlement policy.",
+  "faq3Answer": "Cancellations made more than 2 hours before trip departure qualify for a full wallet refund or direct operator rebooking, according to the operator's settlement policy.",
   "faq4Question": "Can I book a seat for a companion?",
   "faq4Answer": "Yes! You can add travel companions under Settings → Saved Passengers. When booking a trip, select their profile from your saved passengers list."
 }

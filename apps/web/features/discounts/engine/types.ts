@@ -8,7 +8,6 @@ export type DiscountApplyTarget = "TICKET_ONLY" | "ENTIRE_CHARGE";
 export type InstrumentType =
   | "COUPON_CODE"
   | "AUTO_PROMO"
-  | "MONETARY_VOUCHER"
   | "CREDIT_LOT";
 
 export type EvalCampaign = {
@@ -62,18 +61,6 @@ export type EvalCoupon = {
   assignedUserId: string | null;
 };
 
-export type EvalVoucher = {
-  id: string;
-  remainingAmountXOF: number;
-  reservedAmountXOF: number;
-  status: string;
-  expiresAt: Date | null;
-  applyTarget?: DiscountApplyTarget | undefined;
-  /** When set, only redeemable on trips for this schedule. */
-  scheduleId?: string | null | undefined;
-  companyId?: string | null | undefined;
-};
-
 export type EvalCreditLot = {
   id: string;
   remainingXOF: number;
@@ -110,13 +97,10 @@ export type SelectedInstrument = {
   instrumentType: InstrumentType;
   campaignId?: string | undefined;
   couponCodeId?: string | undefined;
-  voucherId?: string | undefined;
   creditLotId?: string | undefined;
   ticketDiscountXOF: number;
   feeDiscountXOF: number;
   creditAppliedXOF: number;
-  /** Monetary voucher burn (payment instrument; not platform expense). */
-  voucherAppliedXOF?: number | undefined;
   fundingType?: CampaignFundingType | undefined;
   platformFundedXOF: number;
   operatorFundedXOF: number;
@@ -128,13 +112,10 @@ export type SelectedInstrument = {
 export type QuoteResult = {
   ok: boolean;
   rejection?: RejectionReason | undefined;
-  /** Soft-fail voucher error while coupon/auto may still apply. */
-  voucherRejection?: RejectionReason | undefined;
   instruments: SelectedInstrument[];
   ticketDiscountXOF: number;
   feeDiscountXOF: number;
   creditAppliedXOF: number;
-  voucherAppliedXOF: number;
   preDiscountSubtotalXOF: number;
   postDiscountSubtotalXOF: number;
   convenienceFeeXOF: number;

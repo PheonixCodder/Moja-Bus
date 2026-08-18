@@ -154,7 +154,5 @@
     "removePromo":  "Retirer",
     "promoApplied":  "Promo appliquée",
     "discountLabel":  "Réduction",
-    "voucherLabel":  "Bon",
-    "applyFailed":  "Impossible d\u0027appliquer le code",
-    "noVoucher":  "Aucun"
+    "applyFailed":  "Impossible d\u0027appliquer le code"
 }

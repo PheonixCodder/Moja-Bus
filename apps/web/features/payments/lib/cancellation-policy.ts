@@ -1,4 +1,4 @@
-export type CancellationRefundChannel = "CASH" | "WALLET" | "VOUCHER";
+export type CancellationRefundChannel = "CASH" | "WALLET" | "PAYSTACK";
 
 export function refundStatusForCancellationChannel(
   channel: CancellationRefundChannel,
@@ -9,7 +9,7 @@ export function refundStatusForCancellationChannel(
 export function canPassengerSelfCancelWithChannel(
   channel: CancellationRefundChannel,
 ) {
-  return channel !== "VOUCHER";
+  return channel === "WALLET" || channel === "PAYSTACK";
 }
 
 export function shouldOpenPaystackForPendingPay(input: {

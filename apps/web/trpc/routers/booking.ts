@@ -70,7 +70,7 @@ export const bookingRouter = createTRPCRouter({
           : {}),
       });
 
-      // Durable outbox: passenger-hold-created (optional Phase 07 cover)
+      // Durable outbox: passenger-hold-created
       const email = ctx.user.email;
       const passengerName = ctx.user.name ?? "Passenger";
       const phone = ctx.user.phoneNumber ?? null;
@@ -323,7 +323,6 @@ export const bookingRouter = createTRPCRouter({
       z.object({
         holdId: z.string(),
         code: z.string().optional(),
-        monetaryVoucherId: z.string().optional(),
         autoApply: z.boolean().optional(),
         useCredits: z.boolean().optional(),
         creditAmountXOF: z.number().int().min(0).optional(),
@@ -348,7 +347,6 @@ export const bookingRouter = createTRPCRouter({
         holdGroupId: input.holdId,
         userId: ctx.user.id,
         code: input.code,
-        monetaryVoucherId: input.monetaryVoucherId,
         autoApply: input.autoApply,
         useCredits: input.useCredits,
         creditAmountXOF: input.creditAmountXOF,

@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@moja/db";
-import type { EvalCampaign, EvalCoupon, EvalCreditLot, EvalVoucher } from "../engine/types";
+import type { EvalCampaign, EvalCoupon, EvalCreditLot } from "../engine/types";
 
 /** Caps: FINALIZED only (used). Budget still tracks reserved separately (P1-19 / Phase 04). */
 const FINALIZED_ONLY = { status: "FINALIZED" as const };
@@ -152,27 +152,6 @@ export async function loadCouponByCode(
     redemptionCount: row.redemptionCount,
     expiresAt: row.expiresAt,
     assignedUserId: row.assignedUserId,
-  };
-}
-
-export async function loadUserVoucher(
-  prisma: PrismaClient,
-  userId: string,
-  voucherId: string,
-): Promise<EvalVoucher | null> {
-  const row = await prisma.monetaryVoucher.findFirst({
-    where: { id: voucherId, userId },
-  });
-  if (!row) return null;
-  return {
-    id: row.id,
-    remainingAmountXOF: row.remainingAmountXOF,
-    reservedAmountXOF: row.reservedAmountXOF,
-    status: row.status,
-    expiresAt: row.expiresAt,
-    applyTarget: "ENTIRE_CHARGE",
-    scheduleId: row.scheduleId,
-    companyId: row.companyId,
   };
 }
 

@@ -36,6 +36,7 @@ const bookingInclude = {
   trip: {
     select: {
       id: true,
+      scheduleId: true,
       departureDate: true,
       serviceType: true,
     },
@@ -312,7 +313,7 @@ export class OperatorBookingService {
       paymentStatus: string;
       checkedInAt: Date | null;
       seat: { label: string };
-      trip: { serviceType: string };
+      trip: { serviceType: string; scheduleId?: string | null };
       originTripStop: {
         scheduledDeparture: Date | null;
         terminal: {
@@ -337,6 +338,7 @@ export class OperatorBookingService {
       id: booking.id,
       bookingReference: booking.bookingReference,
       tripId: booking.tripId,
+      scheduleId: booking.trip.scheduleId ?? null,
       passengerName: booking.passengerName,
       passengerPhone: booking.passengerPhone,
       seatLabel: booking.seat.label,
@@ -379,7 +381,7 @@ export class OperatorBookingService {
       boardingStopOrder: number;
       dropoffStopOrder: number;
       seat: { label: string };
-      trip: { departureDate: Date; serviceType: string };
+      trip: { departureDate: Date; serviceType: string; scheduleId?: string | null };
       originTripStop: {
         scheduledDeparture: Date | null;
         terminal: {

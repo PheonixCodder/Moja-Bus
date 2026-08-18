@@ -102,7 +102,6 @@ export function PassengerBookingsView() {
 
   async function executePayment(discount?: {
     code?: string | undefined;
-    monetaryVoucherId?: string | undefined;
     useCredits?: boolean | undefined;
     waiveConvenienceFee?: boolean | undefined;
   }) {
@@ -123,7 +122,6 @@ export function PassengerBookingsView() {
       const refrozen = await refreezeMutation.mutateAsync({
         holdId,
         code: discount?.code,
-        monetaryVoucherId: discount?.monetaryVoucherId,
         useCredits: discount?.useCredits ?? true,
         autoApply: true,
         waiveConvenienceFee:

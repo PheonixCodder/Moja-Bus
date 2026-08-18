@@ -43,36 +43,14 @@ async function triggerSafe(input: {
 
 /** Create these workflows in Novu dashboard (IDs must match). */
 export const DISCOUNT_NOVU_WORKFLOWS = {
-  voucherIssued: "passenger-voucher-issued",
   referralAttributed: "passenger-referral-attributed",
   referralRewardPosted: "passenger-referral-reward",
   campaignPausedOperator: "operator-campaign-paused",
   campaignBudgetExhausted: "campaign-budget-exhausted",
-  voucherExpiring: "passenger-voucher-expiring",
   creditExpiring: "passenger-credit-expiring",
 } as const;
 
-export function notifyVoucherIssued(input: {
-  user: Subscriber;
-  amountXOF: number;
-  voucherId: string;
-  source: string;
-  expiresAt?: Date | null | undefined;
-}): void {
-  void triggerSafe({
-    workflowId: DISCOUNT_NOVU_WORKFLOWS.voucherIssued,
-    to: input.user,
-    payload: {
-      amountXOF: input.amountXOF,
-      voucherId: input.voucherId,
-      source: input.source,
-      expiresAt: input.expiresAt?.toISOString() ?? null,
-    },
-    transactionId: `voucher-issued-${input.voucherId}`,
-  });
-}
-
-/** Prefer outbox when prisma is passed (Phase 07 / P2-2). */
+/** Prefer outbox when prisma is passed. */
 export async function notifyReferralAttributed(input: {
   referrer: Subscriber;
   refereeName?: string | null | undefined;
@@ -103,7 +81,7 @@ export async function notifyReferralAttributed(input: {
     workflowId: DISCOUNT_NOVU_WORKFLOWS.referralAttributed,
     to: input.referrer,
     payload: data,
-    transactionId: `referral-attributed-${input.edgeId}`,
+    transactionId: `ref-attrib-${input.edgeId}`,
   });
 }
 
@@ -142,21 +120,21 @@ export async function notifyReferralRewardPosted(input: {
 }
 
 export function notifyOperatorCampaignPaused(input: {
-  owners: Subscriber[];
+  operatorUsers: Subscriber[];
   campaignId: string;
   campaignName: string;
-  pauseReason?: string | null | undefined;
+  reason: string;
 }): void {
-  for (const owner of input.owners) {
+  for (const user of input.operatorUsers) {
     void triggerSafe({
       workflowId: DISCOUNT_NOVU_WORKFLOWS.campaignPausedOperator,
-      to: owner,
+      to: user,
       payload: {
         campaignId: input.campaignId,
         campaignName: input.campaignName,
-        pauseReason: input.pauseReason ?? null,
+        reason: input.reason,
       },
-      transactionId: `campaign-paused-${input.campaignId}-${owner.userId}`,
+      transactionId: `campaign-paused-${input.campaignId}-${user.userId}`,
     });
   }
 }
@@ -179,24 +157,6 @@ export function notifyCampaignBudgetExhausted(input: {
       transactionId: `campaign-budget-${input.campaignId}-${recipient.userId}`,
     });
   }
-}
-
-export function notifyVoucherExpiring(input: {
-  user: Subscriber;
-  voucherId: string;
-  amountXOF: number;
-  expiresAt: Date;
-}): void {
-  void triggerSafe({
-    workflowId: DISCOUNT_NOVU_WORKFLOWS.voucherExpiring,
-    to: input.user,
-    payload: {
-      voucherId: input.voucherId,
-      amountXOF: input.amountXOF,
-      expiresAt: input.expiresAt.toISOString(),
-    },
-    transactionId: `voucher-expiring-${input.voucherId}-${input.expiresAt.toISOString().slice(0, 10)}`,
-  });
 }
 
 export function notifyCreditExpiring(input: {

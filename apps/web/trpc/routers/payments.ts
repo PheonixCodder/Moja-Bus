@@ -68,7 +68,6 @@ export const paymentsRouter = createTRPCRouter({
         waiveConvenienceFee,
         userId: ctx.user?.id ?? null,
         code: input.code,
-        monetaryVoucherId: input.monetaryVoucherId,
         autoApply: input.autoApply,
         useCredits: input.useCredits,
         creditAmountXOF: input.creditAmountXOF,
@@ -83,7 +82,7 @@ export const paymentsRouter = createTRPCRouter({
         convenienceFeeXOF: quote.convenienceFeeXOF,
         ticketDiscountXOF: quote.ticketDiscountXOF,
         feeDiscountXOF: quote.feeDiscountXOF,
-        creditAppliedXOF: quote.creditAppliedXOF + quote.voucherAppliedXOF,
+        creditAppliedXOF: quote.creditAppliedXOF,
         chargeAmountXOF: quote.chargeAmountXOF,
         paymentMethod,
       });
@@ -96,7 +95,6 @@ export const paymentsRouter = createTRPCRouter({
         seatCount: input.seatCount,
         paymentMethod,
         code: input.code ?? null,
-        monetaryVoucherId: input.monetaryVoucherId ?? null,
         autoApply: input.autoApply,
         useCredits: input.useCredits,
         waiveConvenienceFee,
@@ -106,7 +104,6 @@ export const paymentsRouter = createTRPCRouter({
         ticketDiscountXOF: quote.ticketDiscountXOF,
         feeDiscountXOF: quote.feeDiscountXOF,
         creditAppliedXOF: quote.creditAppliedXOF,
-        voucherAppliedXOF: quote.voucherAppliedXOF,
       });
 
       return {
@@ -119,13 +116,11 @@ export const paymentsRouter = createTRPCRouter({
         chargeAmountXOF: quote.chargeAmountXOF,
         ticketDiscountXOF: quote.ticketDiscountXOF,
         feeDiscountXOF: quote.feeDiscountXOF,
-        creditAppliedXOF: quote.creditAppliedXOF + quote.voucherAppliedXOF,
-        voucherAppliedXOF: quote.voucherAppliedXOF,
+        creditAppliedXOF: quote.creditAppliedXOF,
         preDiscountSubtotalXOF: quote.preDiscountSubtotalXOF,
         autoAppliedCampaignId: quote.autoAppliedCampaignId,
         discountOk: quote.ok,
         discountRejection: quote.rejection ?? null,
-        voucherRejection: quote.voucherRejection ?? null,
         /** Canonical payable for selected paymentMethod (prefer over client recompute). */
         payableXOF: payable.payableXOF,
         displayFeeXOF: payable.displayFeeXOF,
@@ -188,7 +183,7 @@ export const paymentsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
-            "Voucher refunds are only available when an operator cancels a booking",
+            "This refund channel is not available for passenger cancellation",
         });
       }
 
@@ -247,7 +242,6 @@ export const paymentsRouter = createTRPCRouter({
       const {
         defaultCommissionBps,
         defaultConvenienceFeeBps,
-        maxPromotionalVouchersPerUser,
       } = input;
 
       const before = await ctx.prisma.platformSettings.findUnique({
@@ -262,41 +256,14 @@ export const paymentsRouter = createTRPCRouter({
           ...(defaultConvenienceFeeBps != null
             ? { defaultConvenienceFeeBps }
             : {}),
-          ...(maxPromotionalVouchersPerUser != null
-            ? { maxPromotionalVouchersPerUser }
-            : {}),
         },
         update: {
           ...(defaultCommissionBps != null ? { defaultCommissionBps } : {}),
           ...(defaultConvenienceFeeBps != null
             ? { defaultConvenienceFeeBps }
             : {}),
-          ...(maxPromotionalVouchersPerUser != null
-            ? { maxPromotionalVouchersPerUser }
-            : {}),
         },
       });
-
-      if (
-        maxPromotionalVouchersPerUser != null &&
-        before?.maxPromotionalVouchersPerUser !== maxPromotionalVouchersPerUser
-      ) {
-        await ctx.prisma.platformSettingsAudit.create({
-          data: {
-            settingKey: "maxPromotionalVouchersPerUser",
-            ...(before
-              ? {
-                  oldValue: {
-                    value: before.maxPromotionalVouchersPerUser,
-                  },
-                }
-              : {}),
-            newValue: { value: maxPromotionalVouchersPerUser },
-            changedById: ctx.user.id,
-            changeReason: "Updated from admin settings",
-          },
-        });
-      }
 
       return updated;
     }),

@@ -37,7 +37,7 @@ export function resolveCheckoutPayable(input: CheckoutPayableInput): CheckoutPay
   const payableWalletStyle = Math.max(0, postSub - credit);
 
   let payableXOF = waiveFee ? payableWalletStyle : payableWithFee;
-  // Prefer server charge when fee-waived path would overstate (e.g. voucher fee discounts)
+  // Prefer server charge when fee-waived path would overstate (e.g. promo fee discounts)
   if (waiveFee) {
     const chargeMinusFee = Math.max(
       0,

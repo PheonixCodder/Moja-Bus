@@ -8,12 +8,14 @@ import {
   resolveBookingSettlement,
 } from "../lib/settlement-provenance";
 
+import type { CancellationRefundChannel } from "../lib/cancellation-policy";
+
 export type CancelBookingInput = {
   bookingReference: string;
   userId: string;
   userRole: "PASSENGER" | "OPERATOR" | "ADMIN";
   userCompanyId?: string | undefined;
-  channel: "CASH" | "WALLET" | "VOUCHER";
+  channel: CancellationRefundChannel;
   reason?: string | undefined;
 };
 
@@ -45,22 +47,6 @@ export class CancellationService {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Cannot cancel a booking after check-in",
-      });
-    }
-
-    if (input.channel === "VOUCHER" && !booking.userId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message:
-          "Voucher refunds require a passenger account — use cash instead",
-      });
-    }
-
-    if (input.channel === "VOUCHER" && !booking.trip.scheduleId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message:
-          "This trip has no schedule — cannot issue a schedule voucher. Use wallet or cash.",
       });
     }
 
@@ -152,18 +138,8 @@ export class CancellationService {
         where: { requestIdempotencyKey },
       });
       if (existingRefund) {
-        const existingVoucher = await txClient.monetaryVoucher.findFirst({
-          where: {
-            source: "CANCELLATION",
-            sourceBookingId: booking.id,
-            ...(booking.userId ? { userId: booking.userId } : {}),
-          },
-          select: { id: true, expiresAt: true },
-        });
         return {
           refund: existingRefund,
-          voucherId: existingVoucher?.id ?? null,
-          voucherExpiresAt: existingVoucher?.expiresAt ?? null,
         };
       }
 
@@ -223,56 +199,10 @@ export class CancellationService {
           paystackRefundId: null,
           requestIdempotencyKey,
           reason: input.reason ?? "Passenger cancellation before departure",
-          ...(input.channel === "VOUCHER"
-            ? {
-                fulfilledAt: new Date(),
-                fulfilledByUserId: input.userId,
-                fulfilmentNote:
-                  refundAmountXOF > 0
-                    ? "Cancellation voucher issued"
-                    : "No voucher issued: zero refund amount",
-              }
-            : {}),
         },
       });
 
-      let voucherId: string | null = null;
-      let voucherExpiresAt: Date | null = null;
-      if (
-        input.channel === "VOUCHER" &&
-        lockedBooking.userId &&
-        refundAmountXOF > 0
-      ) {
-        const scheduleId = booking.trip.scheduleId;
-        if (!scheduleId) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message:
-              "This trip has no schedule. Cannot issue a schedule voucher.",
-          });
-        }
-        const { createCancellationVoucherRecord } = await import(
-          "@/features/discounts/services/voucher-service"
-        );
-        const issued = await createCancellationVoucherRecord(txClient as any, {
-          userId: lockedBooking.userId,
-          amountXOF: refundAmountXOF,
-          sourceBookingId: lockedBooking.id,
-          sourceHoldGroupId: lockedBooking.holdGroupId ?? undefined,
-          scheduleId,
-          companyId: booking.trip.companyId,
-        });
-        voucherId = issued?.voucherId ?? null;
-        voucherExpiresAt = issued?.expiresAt ?? null;
-        if (voucherId) {
-          await txClient.refund.update({
-            where: { id: refund.id },
-            data: {
-              fulfilmentNote: `Cancellation voucher issued: ${voucherId}`,
-            },
-          });
-        }
-      }
+
 
       if (refundAmountXOF > 0 || proportionalOperatorNet > 0) {
         const accountService = new FinancialAccountService(txClient as any);
@@ -351,14 +281,12 @@ export class CancellationService {
           await engine.commit(txClient as any);
         } else {
           const reimbursementPayable =
-            input.channel === "VOUCHER"
-              ? await accountService.getPlatformVoucherLiabilityAccount()
-              : await accountService.getOfflineRefundPayableAccount();
+            await accountService.getOfflineRefundPayableAccount();
           const engine = new AccountingEngine("REFUND", {
             ...(settlement.externalPaymentId
               ? { externalPaymentId: settlement.externalPaymentId }
               : {}),
-            description: `Offline/Voucher reimbursement for booking ${lockedBooking.bookingReference}`,
+            description: `Offline reimbursement for booking ${lockedBooking.bookingReference}`,
             idempotencyKey: `REFUND_OFFLINE_${lockedBooking.id}`,
             metadata: {
               refundId: refund.id,
@@ -402,10 +330,7 @@ export class CancellationService {
               sequenceNumber: seq++,
               referenceType: "BOOKING_ID",
               referenceId: lockedBooking.id,
-              description:
-                input.channel === "VOUCHER"
-                  ? "Cancellation voucher liability issued"
-                  : "Offline passenger reimbursement payable",
+              description: "Offline passenger reimbursement payable",
             });
           }
 
@@ -468,10 +393,10 @@ export class CancellationService {
         }
       }
 
-      return { refund, voucherId, voucherExpiresAt };
+      return { refund };
     };
 
-    let result: Awaited<ReturnType<typeof run>>;
+    let result: { refund: any };
     try {
       result = tx ? await run(tx) : await this.prisma.$transaction(run);
     } catch (err: unknown) {
@@ -485,45 +410,22 @@ export class CancellationService {
       throw err;
     }
 
-    // P2-18 / P2-2: durable outbox — only when we have a real email.
-    const email = booking.user?.email ?? null;
-    if (email) {
-      const { enqueueBookingRefunded } = await import(
-        "@/features/notifications/outbox/commercial"
-      );
-      await enqueueBookingRefunded(this.prisma, {
-        refundId: result.refund.id,
-        email,
-        subscriberId: booking.userId ?? email,
-        firstName: (booking.user?.fullName ?? booking.passengerName).split(
-          " ",
-        )[0],
+    if (result.refund.status === "PENDING_FULFILMENT") {
+      await this.prisma.activityLog.create({
         data: {
-          email,
-          passengerName: booking.user?.fullName ?? booking.passengerName,
-          bookingReference: booking.bookingReference,
-          refundAmountXOF: result.refund.amountXOF,
-          channel: result.refund.channel as string,
-          reason:
-            result.refund.reason ?? "Passenger cancellation before departure",
+          companyId: booking.companyId,
+          userId: input.userId,
+          action: "OFFLINE_REFUND_PENDING",
+          description: `Offline cash refund of ${result.refund.amountXOF} XOF pending manual fulfillment by operator`,
+          metadata: {
+            refundId: result.refund.id,
+            bookingReference: booking.bookingReference,
+            refundAmountXOF: result.refund.amountXOF,
+            channel: result.refund.channel as string,
+            reason:
+              result.refund.reason ?? "Passenger cancellation before departure",
+          },
         },
-      });
-    }
-
-    if (input.channel === "VOUCHER" && booking.userId && result.voucherId) {
-      const { notifyVoucherIssued } = await import(
-        "@/features/discounts/services/notify"
-      );
-      notifyVoucherIssued({
-        user: {
-          userId: booking.userId,
-          email: booking.user?.email ?? null,
-          fullName: booking.user?.fullName ?? booking.passengerName,
-        },
-        amountXOF: result.refund.amountXOF,
-        voucherId: result.voucherId,
-        source: "CANCELLATION",
-        expiresAt: result.voucherExpiresAt,
       });
     }
 
@@ -533,7 +435,6 @@ export class CancellationService {
       amountXOF: result.refund.amountXOF,
       channel: result.refund.channel,
       status: result.refund.status,
-      voucherId: result.voucherId,
     };
   }
 }

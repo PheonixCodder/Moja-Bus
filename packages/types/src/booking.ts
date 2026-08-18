@@ -169,6 +169,7 @@ export interface OperatorBookingListItem {
   id: string;
   bookingReference: string;
   tripId: string;
+  scheduleId?: string | null;
   passengerName: string;
   passengerPhone: string;
   seatLabel: string;

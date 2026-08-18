@@ -366,14 +366,13 @@ function PassengersTab({ booking }: { booking: PassengerBookingSummary }) {
   );
 }
 
-type PaymentTabProps = {
+export type PaymentTabProps = {
   booking: PassengerBookingSummary;
   paymentMethod: "PAYSTACK" | "WALLET";
   setPaymentMethod: (m: "PAYSTACK" | "WALLET") => void;
   isPaying: boolean;
   onExecutePayment: (discount?: {
     code?: string | undefined;
-    monetaryVoucherId?: string | undefined;
     useCredits?: boolean | undefined;
     waiveConvenienceFee?: boolean | undefined;
   }) => void;
@@ -391,9 +390,6 @@ function PaymentTab({
   const trpc = useTRPC();
   const [promoCode, setPromoCode] = React.useState("");
   const [appliedCode, setAppliedCode] = React.useState<string | undefined>();
-  const [selectedVoucherId, setSelectedVoucherId] = React.useState<
-    string | undefined
-  >();
 
   const walletQuery = useQuery({
     ...trpc.passenger.getWalletBalance.queryOptions(),
@@ -405,7 +401,6 @@ function PaymentTab({
       seatCount: Math.max(1, booking.seats.length),
       paymentMethod,
       code: appliedCode,
-      monetaryVoucherId: selectedVoucherId,
       autoApply: true,
       useCredits: true,
       ...(booking.holdGroupId
@@ -415,10 +410,6 @@ function PaymentTab({
     staleTime: 10 * 1000,
   });
 
-  const vouchersQuery = useQuery({
-    ...trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
-    staleTime: 30 * 1000,
-  });
 
   const tripScheduleQuery = useQuery({
     ...trpc.booking.getTripDetails.queryOptions({ offerId: booking.offerId }),
@@ -455,11 +446,6 @@ function PaymentTab({
   const walletBalance = walletQuery.data?.availableBalance ?? 0;
   const canPayWithWallet = isZeroCash || walletBalance >= totalAmount;
   const holdActive = isHoldActive(booking.holdExpiresAt);
-  const scheduleId = tripScheduleQuery.data?.scheduleId ?? null;
-  const eligibleVouchers =
-    vouchersQuery.data?.filter(
-      (v) => !v.scheduleId || v.scheduleId === scheduleId,
-    ) ?? [];
 
   if (!holdActive) {
     return (
@@ -560,27 +546,6 @@ function PaymentTab({
               </Button>
             )}
           </div>
-          {eligibleVouchers.length > 0 ? (
-            <div className="space-y-1 pt-1">
-              <Label className="text-xs font-semibold">{td("voucher")}</Label>
-              <select
-                className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
-                value={selectedVoucherId ?? ""}
-                onChange={(e) =>
-                  setSelectedVoucherId(e.target.value || undefined)
-                }
-                disabled={isPaying}
-              >
-                <option value="">{td("noVoucher")}</option>
-                {eligibleVouchers.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {formatPriceXOF(v.remainingAmountXOF)}
-                    {v.scheduleId ? " · schedule" : ` · ${v.source}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -636,7 +601,7 @@ function PaymentTab({
 
         {paymentMethod === "WALLET" && isZeroCash ? (
           <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-700">
-            Fully covered by credits/voucher — no wallet debit.
+            Fully covered by promo credits — no wallet debit.
           </div>
         ) : null}
         {paymentMethod === "WALLET" && !isZeroCash ? (
@@ -665,7 +630,6 @@ function PaymentTab({
           onClick={() =>
             onExecutePayment({
               code: appliedCode,
-              monetaryVoucherId: selectedVoucherId,
               useCredits: true,
               waiveConvenienceFee: paymentMethod === "WALLET" || isZeroCash,
             })
@@ -852,7 +816,6 @@ export type BookingDetailsProps = {
   setPaymentMethod: (m: "PAYSTACK" | "WALLET") => void;
   onExecutePayment: (discount?: {
     code?: string | undefined;
-    monetaryVoucherId?: string | undefined;
     useCredits?: boolean | undefined;
     waiveConvenienceFee?: boolean | undefined;
   }) => void;

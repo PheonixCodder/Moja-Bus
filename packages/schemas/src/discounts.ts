@@ -24,27 +24,11 @@ export const benefitTypeSchema = z.enum([
 export const instrumentTypeSchema = z.enum([
   "COUPON_CODE",
   "AUTO_PROMO",
-  "MONETARY_VOUCHER",
   "CREDIT_LOT",
 ]);
 export const discountApplyTargetSchema = z.enum([
   "TICKET_ONLY",
   "ENTIRE_CHARGE",
-]);
-export const voucherSourceSchema = z.enum([
-  "CANCELLATION",
-  "MODIFICATION_DIFFERENCE",
-  "MARKETING_GRANT",
-  "GOODWILL",
-  "REFERRAL_REWARD",
-  "ADMIN_MANUAL",
-]);
-export const voucherStatusSchema = z.enum([
-  "ACTIVE",
-  "PARTIALLY_REDEEMED",
-  "REDEEMED",
-  "EXPIRED",
-  "REVOKED",
 ]);
 
 export const couponCodeValueSchema = z
@@ -230,22 +214,6 @@ export const listCouponsSchema = z.object({
   offset: z.number().int().min(0).default(0),
 });
 
-export const issueMonetaryVoucherSchema = z.object({
-  userId: z.string().min(1),
-  amountXOF: z.number().int().positive(),
-  source: z
-    .enum(["ADMIN_MANUAL", "GOODWILL", "MARKETING_GRANT"])
-    .default("ADMIN_MANUAL"),
-  expiresAt: z.coerce.date().optional().nullable(),
-  expiresOnFirstCompletedBooking: z.boolean().default(false),
-  campaignId: z.string().min(1).optional().nullable(),
-  code: couponCodeValueSchema.optional(),
-});
-
-export const listMyVouchersSchema = z.object({
-  includeExpired: z.boolean().default(false),
-});
-
 export const updateReferralProgramSchema = z.object({
   isActive: z.boolean().optional(),
   refereeCouponCampaignId: z.string().min(1).optional().nullable(),
@@ -273,7 +241,6 @@ export const notifyOptedInCampaignSchema = z.object({
 
 export const checkoutDiscountInputSchema = z.object({
   code: couponCodeValueSchema.optional(),
-  monetaryVoucherId: z.string().min(1).optional(),
   autoApply: z.boolean().default(true),
   useCredits: z.boolean().default(true),
   creditAmountXOF: z.number().int().min(0).optional(),
@@ -314,6 +281,18 @@ export const listScopeTripsSchema = z.object({
 export const issuePromoCreditSchema = z.object({
   userId: z.string().min(1),
   amountXOF: z.number().int().positive(),
+  source: z
+    .enum([
+      "GOODWILL",
+      "MARKETING_GRANT",
+      "ADMIN_MANUAL",
+      "ADMIN",
+      "PROMO_GRANT",
+      "REFERRAL",
+      "LOYALTY",
+    ])
+    .default("ADMIN_MANUAL"),
+  reason: z.string().min(3).optional(),
   expiresAt: z.coerce.date().optional().nullable(),
   idempotencyKey: z.string().trim().min(8).max(128).optional(),
 });

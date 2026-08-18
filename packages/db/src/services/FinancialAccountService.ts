@@ -78,7 +78,7 @@ export class FinancialAccountService {
   }
 
   /**
-   * Platform clearing liability for offline (CASH/VOUCHER) passenger reimbursements.
+   * Platform clearing liability for offline (CASH) passenger reimbursements.
    * Operator net is clawed back here; settlement to the passenger is offline.
    */
   async getOfflineRefundPayableAccount() {
@@ -100,19 +100,6 @@ export class FinancialAccountService {
       ownerId: "moja_ride",
       accountCategory: "EXPENSE",
       accountClass: "PROMO_EXPENSE_PLATFORM",
-    });
-  }
-
-  /**
-   * Outstanding platform promo / voucher liability pool.
-   */
-  async getPlatformVoucherLiabilityAccount() {
-    return this.getOrCreateAccount({
-      ownerType: "PLATFORM",
-      ownerId: "moja_ride",
-      accountCategory: "LIABILITY",
-      accountClass: "VOUCHER_LIABILITY",
-      allowNegativeBalance: true,
     });
   }
 

@@ -181,7 +181,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 			<View className="flex-row items-center justify-between bg-slate-50 rounded-2xl px-4 py-3 border border-slate-200 mt-1">
 				<View className="flex-1 pr-3">
 					<Text className="text-sm font-semibold text-slate-900">Promotional Updates & Deals</Text>
-					<Text className="text-sm text-slate-500 mt-0.5">Receive special route discounts & loyalty vouchers</Text>
+					<Text className="text-sm text-slate-500 mt-0.5">Receive special route discounts & promo rewards</Text>
 				</View>
 				<Switch
 					value={initialData.marketingOptIn}

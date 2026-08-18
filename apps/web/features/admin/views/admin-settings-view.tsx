@@ -134,14 +134,12 @@ export function AdminSettingsView() {
   // Local Form state
   const [commissionPct, setCommissionPct] = useState<number | null>(null);
   const [conveniencePct, setConveniencePct] = useState<number | null>(null);
-  const [maxPromoVouchers, setMaxPromoVouchers] = useState<number | null>(null);
 
   // Synchronize state when settings data changes
   useEffect(() => {
     if (settings) {
       setCommissionPct(settings.defaultCommissionBps / 100);
       setConveniencePct(settings.defaultConvenienceFeeBps / 100);
-      setMaxPromoVouchers(settings.maxPromotionalVouchersPerUser ?? 3);
     }
   }, [settings]);
 
@@ -164,15 +162,13 @@ export function AdminSettingsView() {
     e.preventDefault();
     if (
       commissionPct === null ||
-      conveniencePct === null ||
-      maxPromoVouchers === null
+      conveniencePct === null
     )
       return;
 
     updateSettingsMutation.mutate({
       defaultCommissionBps: Math.round(commissionPct * 100),
       defaultConvenienceFeeBps: Math.round(conveniencePct * 100),
-      maxPromotionalVouchersPerUser: Math.round(maxPromoVouchers),
     });
   };
 
@@ -315,27 +311,6 @@ export function AdminSettingsView() {
                   </div>
                   <p className="text-[10px] text-slate-400">
                     {t("passengerServiceFee")}
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    {t("maxPromotionalVouchers")}
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={20}
-                    step={1}
-                    value={maxPromoVouchers !== null ? maxPromoVouchers : ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setMaxPromoVouchers(val === "" ? null : Number(val));
-                    }}
-                    className="h-10 max-w-xs"
-                  />
-                  <p className="text-[10px] text-slate-400">
-                    {t("maxPromotionalVouchersHint")}
                   </p>
                 </div>
               </div>

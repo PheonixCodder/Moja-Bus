@@ -10,8 +10,8 @@
   "noTransactions": "Aucune transaction pour le moment",
   "availableBalance": "Disponible",
   "reservedBalance": "Réservé",
-  "promoTitle": "Crédits promo et avoirs",
-  "promoHint": "Les récompenses de parrainage et avoirs s'appliquent au paiement. Distincts du solde prépayé.",
+  "promoTitle": "Crédits promo et récompenses",
+  "promoHint": "Les récompenses de parrainage et crédits promo s'appliquent au paiement. Distincts du solde prépayé.",
   "promoCreditsTitle": "Crédits promo disponibles",
   "promoCreditsEmpty": "Pas encore de crédits promo. Invitez des amis pour en gagner.",
   "promoCreditsPending": "Crédits promo en attente",
@@ -24,8 +24,6 @@
   "promoSourceReferral": "Parrainage",
   "promoSourceAdmin": "Don admin",
   "promoSourcePromo": "Don promo",
-  "promoSourceLoyalty": "Fidélité",
-  "promoVouchersTitle": "Avoirs actifs",
-  "promoVouchersEmpty": "Aucun avoir actif.",
-  "promoVoucherCeiling": "Maximum {{max}} avoirs promotionnels à la fois (avoirs d'annulation exclus)."
+  "promoSourceGoodwill": "Geste commercial",
+  "promoSourceLoyalty": "Fidélité"
 }

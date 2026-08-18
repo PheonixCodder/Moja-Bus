@@ -36,7 +36,6 @@ export class BookingHoldService {
     quoteId: string;
     discount?: {
       code?: string | undefined;
-      monetaryVoucherId?: string | undefined;
       autoApply?: boolean | undefined;
       useCredits?: boolean | undefined;
       creditAmountXOF?: number | undefined;
@@ -53,7 +52,6 @@ export class BookingHoldService {
         offerId: input.offerId,
         seatCount: [...new Set(input.passengers.map((p) => p.seatId))].length,
         code: input.discount?.code,
-        monetaryVoucherId: input.discount?.monetaryVoucherId,
         autoApply: input.discount?.autoApply,
         useCredits: input.discount?.useCredits,
       })
@@ -174,7 +172,7 @@ export class BookingHoldService {
       tiers,
     });
 
-    const { quoteCheckoutDiscounts, freezeDiscountOnHold } = await import(
+    const { quoteCheckoutDiscounts, reserveDiscountOnHold: freezeDiscountOnHold } = await import(
       "@/features/discounts/services/quote-service"
     );
     const discountQuote = await quoteCheckoutDiscounts(this.prisma, {
@@ -188,7 +186,6 @@ export class BookingHoldService {
       waiveConvenienceFee: signedQuote.waiveConvenienceFee,
       userId: input.userId,
       code: input.discount?.code,
-      monetaryVoucherId: input.discount?.monetaryVoucherId,
       autoApply: input.discount?.autoApply,
       useCredits: input.discount?.useCredits,
       creditAmountXOF: input.discount?.creditAmountXOF,
@@ -268,22 +265,29 @@ export class BookingHoldService {
         },
       });
 
+      await tx.pricingSnapshot.create({
+        data: {
+          holdGroupId: holdGroup.id,
+          distanceKm: pricing.distanceKm,
+          commissionBps: pricing.commissionBps,
+          convenienceFeeBps: pricing.convenienceFeeBps,
+          baseFareXOF: pricing.baseFareXOF,
+          seatCount: pricing.seatCount,
+          subtotalBaseXOF: pricing.subtotalBaseXOF,
+          convenienceFeeXOF: pricing.convenienceFeeXOF,
+          chargeAmountXOF: pricing.chargeAmountXOF,
+          commissionXOF: pricing.commissionXOF,
+          operatorNetXOF: pricing.operatorNetXOF,
+          platformGrossXOF: pricing.platformGrossXOF,
+        },
+      });
+
       await freezeDiscountOnHold(tx, {
         holdGroupId: holdGroup.id,
         userId: input.userId ?? null,
         companyId: details.companyId,
         quote: discountQuote,
         deviceHash: input.deviceHash ?? null,
-        basePricing: {
-          distanceKm: pricing.distanceKm,
-          commissionBps: pricing.commissionBps,
-          convenienceFeeBps: pricing.convenienceFeeBps,
-          baseFareXOF: pricing.baseFareXOF,
-          seatCount: pricing.seatCount,
-          commissionXOF: pricing.commissionXOF,
-          operatorNetXOF: pricing.operatorNetXOF,
-          platformGrossXOF: pricing.platformGrossXOF,
-        },
       });
 
       const bookingReferences: string[] = [];

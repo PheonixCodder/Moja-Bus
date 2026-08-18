@@ -8,6 +8,16 @@ export async function grantAdminCreditLot(
   input: {
     userId: string;
     amountXOF: number;
+    source?:
+      | "GOODWILL"
+      | "MARKETING_GRANT"
+      | "ADMIN_MANUAL"
+      | "ADMIN"
+      | "PROMO_GRANT"
+      | "REFERRAL"
+      | "LOYALTY"
+      | undefined;
+    reason?: string | undefined;
     expiresAt?: Date | null | undefined;
     idempotencyKey?: string | undefined;
     issuedByAdminId: string;
@@ -42,7 +52,7 @@ export async function grantAdminCreditLot(
       const lot = await tx.creditLot.create({
         data: {
           userId: input.userId,
-          source: "ADMIN",
+          source: (input.source ?? "ADMIN_MANUAL") as any,
           status: "ACTIVE",
           amountXOF: input.amountXOF,
           remainingXOF: input.amountXOF,
@@ -55,7 +65,7 @@ export async function grantAdminCreditLot(
         userId: input.userId,
         amountXOF: input.amountXOF,
         idempotencyKey: `${grantIdempotencyKey}:ledger`,
-        description: `Admin promo credit grant`,
+        description: input.reason?.trim() || `Admin promo credit grant (${input.source ?? "ADMIN_MANUAL"})`,
         referenceType: "CREDIT_LOT",
         referenceId: lot.id,
       });

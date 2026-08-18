@@ -21,7 +21,6 @@ export const deleteCommissionTierSchema = z.object({
 export const updatePlatformSettingsSchema = z.object({
   defaultCommissionBps: z.number().int().min(0).max(10_000).optional(),
   defaultConvenienceFeeBps: z.number().int().min(0).max(10_000).optional(),
-  maxPromotionalVouchersPerUser: z.number().int().min(1).max(20).optional(),
 });
 
 export const listLedgerEntriesSchema = z.object({
@@ -46,8 +45,21 @@ export const recordSettlementSchema = z.object({
 
 export const cancelBookingSchema = z.object({
   bookingReference: z.string().min(1),
-  channel: z.enum(["CASH", "WALLET", "VOUCHER"]),
+  channel: z.enum(["CASH", "WALLET", "PAYSTACK"]),
   reason: z.string().optional(),
+});
+
+export const rebookBookingSchema = z.object({
+  bookingReference: z.string().min(1),
+  targetTripId: z.string().min(1),
+  targetSeatId: z.string().optional(),
+  reason: z.string().min(3),
+});
+
+export const listUpcomingScheduleTripsSchema = z.object({
+  scheduleId: z.string().optional(),
+  routeId: z.string().optional(),
+  limit: z.number().int().min(1).max(50).default(20),
 });
 
 export const getCheckoutPricingSchema = z.object({
@@ -63,7 +75,6 @@ export const getCheckoutPricingSchema = z.object({
     .regex(/^[A-Za-z0-9-]+$/)
     .transform((v) => v.toUpperCase())
     .optional(),
-  monetaryVoucherId: z.string().min(1).optional(),
   autoApply: z.boolean().optional().default(true),
   useCredits: z.boolean().optional().default(true),
   creditAmountXOF: z.number().int().min(0).optional(),

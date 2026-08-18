@@ -2,49 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-export const passengerVoucherIssuedWorkflow = workflow(
-  "passenger-voucher-issued",
-  async ({ step, payload }) => {
-    const scheduleRestriction =
-      payload.source === "CANCELLATION"
-        ? " Valid only on the original schedule."
-        : "";
-    await step.inApp("send-in-app", async () => ({
-      subject: "Voucher added",
-      body: `You received a ${escapeHtml(payload.amountXOF)} XOF voucher (${escapeHtml(payload.source)}).${scheduleRestriction}`,
-      redirect: { url: "/dashboard/wallet", target: "_self" },
-    }));
-
-    await step.email("send-email", async () => ({
-      subject: `Your Moja Ride voucher — ${payload.amountXOF} XOF`,
-      body: `
-        <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto;">
-          <h2 style="color: #ee237c;">Voucher issued</h2>
-          <p>A ${escapeHtml(payload.amountXOF)} XOF voucher was added to your account (source: ${escapeHtml(payload.source)}).</p>
-          ${scheduleRestriction ? `<p>${scheduleRestriction.trim()}</p>` : ""}
-          ${payload.expiresAt ? `<p>Expires: ${escapeHtml(payload.expiresAt)}</p>` : ""}
-        </div>
-      `,
-    }));
-
-    await step.push("send-push", async () => ({
-      subject: "Voucher added",
-      body: `${payload.amountXOF} XOF voucher ready to use on Moja Ride.${scheduleRestriction}`,
-    }));
-  },
-  {
-    name: "Passenger Voucher Issued",
-    description: "Transactional notice when a monetary voucher is issued",
-    preferences: { all: { readOnly: true } },
-    payloadSchema: z.object({
-      amountXOF: z.number(),
-      voucherId: z.string(),
-      source: z.string(),
-      expiresAt: z.string().nullable().optional(),
-    }),
-  },
-);
-
 export const passengerReferralAttributedWorkflow = workflow(
   "passenger-referral-attributed",
   async ({ step, payload }) => {
@@ -95,31 +52,6 @@ export const passengerReferralRewardWorkflow = workflow(
     payloadSchema: z.object({
       amountXOF: z.number(),
       creditLotId: z.string(),
-    }),
-  },
-);
-
-export const passengerVoucherExpiringWorkflow = workflow(
-  "passenger-voucher-expiring",
-  async ({ step, payload }) => {
-    await step.inApp("send-in-app", async () => ({
-      subject: "Voucher expiring soon",
-      body: `Your ${escapeHtml(payload.amountXOF)} XOF voucher expires on ${escapeHtml(payload.expiresAt)}.`,
-      redirect: { url: "/dashboard/wallet", target: "_self" },
-    }));
-
-    await step.push("send-push", async () => ({
-      subject: "Voucher expiring",
-      body: `${payload.amountXOF} XOF voucher expires ${payload.expiresAt}.`,
-    }));
-  },
-  {
-    name: "Passenger Voucher Expiring",
-    description: "Reminder ~7 days before voucher expiry",
-    payloadSchema: z.object({
-      voucherId: z.string(),
-      amountXOF: z.number(),
-      expiresAt: z.string(),
     }),
   },
 );

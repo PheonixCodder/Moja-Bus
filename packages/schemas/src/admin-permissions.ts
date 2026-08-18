@@ -95,7 +95,7 @@ export const ADMIN_PERMISSION_META = {
   "marketing:campaigns:read": { group: "Marketing", label: "View campaigns" },
   "marketing:campaigns:write": { group: "Marketing", label: "Manage campaigns" },
   "marketing:coupons:write": { group: "Marketing", label: "Manage coupons" },
-  "marketing:vouchers:issue": { group: "Marketing", label: "Issue vouchers" },
+  "marketing:credits:issue": { group: "Marketing", label: "Issue promo credits" },
   "marketing:referrals:write": { group: "Marketing", label: "Manage referral program" },
   "marketing:fraud:review": { group: "Marketing", label: "Review promo fraud" },
   "platform:promo-financials:read": {
@@ -168,7 +168,7 @@ export const ADMIN_ROLE_TEMPLATES: Record<AdminStaffRole, AdminPermissionKey[]> 
     "content:categories:manage", "content:tags:manage", "content:redirects:manage", "content:analytics:read",
     "support:inquiries:read", "support:inquiries:respond", "support:inquiries:manage",
     "marketing:campaigns:read", "marketing:campaigns:write", "marketing:coupons:write",
-    "marketing:vouchers:issue", "marketing:referrals:write", "marketing:fraud:review",
+    "marketing:credits:issue", "marketing:referrals:write", "marketing:fraud:review",
     "platform:promo-financials:read",
     "platform:settings:read", "platform:settings:update",
     "admin-staff:read", "admin-staff:invite", "admin-staff:update", "admin-staff:remove",

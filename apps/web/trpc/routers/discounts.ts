@@ -2,7 +2,6 @@ import {
   applyReferralCodeSchema,
   claimCreditGrantSchema,
   listMyInviteesSchema,
-  listMyVouchersSchema,
 } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
@@ -13,9 +12,7 @@ import {
   listMyInvitees,
 } from "@/features/discounts/services/referral-service";
 import { claimCreditGrant } from "@/features/discounts/services/claim-credit-grant-service";
-import { listUserVouchers } from "@/features/discounts/services/voucher-service";
 import { loadUserCreditLots } from "@/features/discounts/services/campaign-loader";
-import { getPromoPolicy } from "@/features/discounts/lib/promo-policy";
 import { createRateLimiter } from "@/lib/rate-limit";
 
 /** Soft gate against code spraying: 10 attempts / 15 min / user. */
@@ -30,12 +27,6 @@ const creditClaimLimiter = createRateLimiter({
 });
 
 export const discountsRouter = createTRPCRouter({
-  listMyVouchers: protectedProcedure
-    .input(listMyVouchersSchema)
-    .query(async ({ ctx, input }) => {
-      return listUserVouchers(ctx.prisma, ctx.user.id, input.includeExpired);
-    }),
-
   listMyCredits: protectedProcedure.query(async ({ ctx }) => {
     return loadUserCreditLots(ctx.prisma, ctx.user.id);
   }),
@@ -52,10 +43,6 @@ export const discountsRouter = createTRPCRouter({
       orderBy: [{ status: "asc" }, { expiresAt: "asc" }, { createdAt: "desc" }],
       take: 50,
     });
-  }),
-
-  getPromoPolicyPublic: publicProcedure.query(async ({ ctx }) => {
-    return getPromoPolicy(ctx.prisma);
   }),
 
   myReferral: protectedProcedure.query(async ({ ctx }) => {

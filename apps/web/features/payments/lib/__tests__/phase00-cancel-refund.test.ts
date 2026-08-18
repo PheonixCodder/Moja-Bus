@@ -88,22 +88,22 @@ describe("Phase 00 settlement provenance", () => {
 describe("Phase 00 honest refund statuses (D1)", () => {
   it("wallet credit is COMPLETED without implying Paystack refund", () => {
     assert.equal(refundStatusForCancellationChannel("WALLET"), "COMPLETED");
+    assert.equal(refundStatusForCancellationChannel("PAYSTACK"), "COMPLETED");
   });
 
-  it("cash remains PENDING_FULFILMENT while voucher is completed on issue", () => {
+  it("cash remains PENDING_FULFILMENT for offline reimbursement", () => {
     assert.equal(
       refundStatusForCancellationChannel("CASH"),
       "PENDING_FULFILMENT",
     );
-    assert.equal(refundStatusForCancellationChannel("VOUCHER"), "COMPLETED");
   });
 });
 
-describe("Phase 00 cancellation voucher channel policy", () => {
-  it("blocks passenger self-cancel voucher channel", () => {
+describe("Phase 00 cancellation channel policy", () => {
+  it("allows passenger self-cancel for wallet/paystack and blocks cash", () => {
     assert.equal(canPassengerSelfCancelWithChannel("WALLET"), true);
-    assert.equal(canPassengerSelfCancelWithChannel("CASH"), true);
-    assert.equal(canPassengerSelfCancelWithChannel("VOUCHER"), false);
+    assert.equal(canPassengerSelfCancelWithChannel("PAYSTACK"), true);
+    assert.equal(canPassengerSelfCancelWithChannel("CASH"), false);
   });
 });
 

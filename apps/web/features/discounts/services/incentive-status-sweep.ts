@@ -1,14 +1,13 @@
 import type { PrismaClient } from "@moja/db";
 
 /**
- * Mark expired CreditLots / MonetaryVouchers and advance campaign windows (P2-8, P2-22).
+ * Mark expired CreditLots and advance campaign windows.
  */
 export async function sweepIncentiveStatuses(
   prisma: PrismaClient,
   input: { now?: Date; limit?: number } = {},
 ): Promise<{
   lotsExpired: number;
-  vouchersExpired: number;
   campaignsActivated: number;
   campaignsEnded: number;
 }> {
@@ -18,14 +17,6 @@ export async function sweepIncentiveStatuses(
   const lots = await prisma.creditLot.updateMany({
     where: {
       status: { in: ["ACTIVE", "PARTIALLY_REDEEMED", "PENDING"] },
-      expiresAt: { lt: now },
-    },
-    data: { status: "EXPIRED" },
-  });
-
-  const vouchers = await prisma.monetaryVoucher.updateMany({
-    where: {
-      status: { in: ["ACTIVE", "PARTIALLY_REDEEMED"] },
       expiresAt: { lt: now },
     },
     data: { status: "EXPIRED" },
@@ -53,7 +44,6 @@ export async function sweepIncentiveStatuses(
   void limit;
   return {
     lotsExpired: lots.count,
-    vouchersExpired: vouchers.count,
     campaignsActivated: activated.count,
     campaignsEnded: ended.count,
   };

@@ -42,8 +42,6 @@ import {
   passengerCreditExpiringWorkflow,
   passengerReferralAttributedWorkflow,
   passengerReferralRewardWorkflow,
-  passengerVoucherExpiringWorkflow,
-  passengerVoucherIssuedWorkflow,
 } from "./passenger/promo-incentives";
 import { passengerCampaignStartingWorkflow } from "./passenger/campaign-starting";
 import {
@@ -87,15 +85,10 @@ export const workflows = [
   passengerReviewSubmittedWorkflow,
   passengerProfileUpdatedWorkflow,
   passengerTicketSharedWorkflow,
-  passengerVoucherIssuedWorkflow,
   passengerReferralAttributedWorkflow,
   passengerReferralRewardWorkflow,
-  passengerVoucherExpiringWorkflow,
   passengerCreditExpiringWorkflow,
   passengerCampaignStartingWorkflow,
   operatorCampaignPausedWorkflow,
   campaignBudgetExhaustedWorkflow,
 ];
-
-
-

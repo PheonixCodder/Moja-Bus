@@ -1,19 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Gift, Ticket } from "lucide-react-native";
+import { Gift } from "lucide-react-native";
 import { useState } from "react";
 import { Alert, Pressable, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { useTRPC } from "@/lib/trpc";
 
-function sourceLabel(source: string, t: (k: string) => string): string {
+function sourceLabel(source: string, t: (k: any) => string): string {
   switch (source) {
     case "REFERRAL":
+    case "REFERRAL_REWARD":
       return t("promoSourceReferral");
     case "ADMIN":
+    case "ADMIN_MANUAL":
       return t("promoSourceAdmin");
     case "PROMO_GRANT":
+    case "MARKETING_GRANT":
       return t("promoSourcePromo");
+    case "GOODWILL":
+      return t("promoSourceGoodwill");
     case "LOYALTY":
       return t("promoSourceLoyalty");
     default:
@@ -27,11 +32,7 @@ export function PromoIncentives() {
   const queryClient = useQueryClient();
   const [claimCode, setClaimCode] = useState("");
 
-  const vouchersQuery = useQuery(
-    trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
-  );
   const lotsQuery = useQuery(trpc.discounts.listMyCreditLots.queryOptions());
-  const policyQuery = useQuery(trpc.discounts.getPromoPolicyPublic.queryOptions());
 
   const claimMutation = useMutation(
     trpc.discounts.claimCreditGrant.mutationOptions({
@@ -58,8 +59,6 @@ export function PromoIncentives() {
     (sum, lot) => sum + Math.max(0, lot.remainingXOF - lot.reservedXOF),
     0,
   );
-  const vouchers = vouchersQuery.data ?? [];
-  const maxVouchers = policyQuery.data?.maxPromotionalVouchersPerUser ?? 3;
 
   return (
     <View className="rounded-2xl border border-slate-100 bg-white p-4 gap-3">
@@ -136,28 +135,6 @@ export function PromoIncentives() {
           ))}
         </View>
       ) : null}
-
-      <View className="rounded-xl bg-slate-50 p-3 gap-1">
-        <View className="flex-row items-center gap-2">
-          <Ticket size={16} color="#ee237c" />
-          <Text className="text-sm font-semibold text-slate-800">
-            {t("promoVouchersTitle")}
-          </Text>
-        </View>
-        {vouchers.length === 0 ? (
-          <Text className="text-xs text-slate-500">{t("promoVouchersEmpty")}</Text>
-        ) : (
-          vouchers.slice(0, 8).map((v) => (
-            <Text key={v.id} className="text-xs text-slate-600">
-              {v.remainingAmountXOF.toLocaleString()} XOF
-              {v.code ? ` · ${v.code}` : ""} · {v.source}
-            </Text>
-          ))
-        )}
-        <Text className="text-[11px] text-slate-500 mt-1">
-          {t("promoVoucherCeiling", { max: maxVouchers })}
-        </Text>
-      </View>
     </View>
   );
 }

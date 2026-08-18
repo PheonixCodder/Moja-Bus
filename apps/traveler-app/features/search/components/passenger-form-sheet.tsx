@@ -90,9 +90,6 @@ export function PassengerFormSheet({
   const [paymentMethod, setPaymentMethod] = useState<'WALLET' | 'PAYSTACK'>('WALLET');
   const [promoCode, setPromoCode] = useState('');
   const [appliedCode, setAppliedCode] = useState<string | undefined>(undefined);
-  const [selectedVoucherId, setSelectedVoucherId] = useState<string | undefined>(
-    undefined,
-  );
 
   // Paystack Modal State
   const [authorizationUrl, setAuthorizationUrl] = useState<string | null>(null);
@@ -110,15 +107,10 @@ export function PassengerFormSheet({
       seatCount,
       paymentMethod,
       code: appliedCode,
-      monetaryVoucherId: selectedVoucherId,
       autoApply: true,
       useCredits: true,
     }),
     enabled: visible && !!offer?.id && seatIds.length > 0,
-  });
-  const vouchersQuery = useQuery({
-    ...trpc.discounts.listMyVouchers.queryOptions({ includeExpired: false }),
-    enabled: visible && isAuthenticated,
   });
 
   // Re-sync if seatIds change
@@ -239,7 +231,6 @@ export function PassengerFormSheet({
         ),
         discount: {
           code: appliedCode,
-          monetaryVoucherId: selectedVoucherId,
           autoApply: true,
           useCredits: true,
         },
@@ -609,7 +600,7 @@ export function PassengerFormSheet({
               </View>
             ))}
 
-            {/* Promo / voucher */}
+            {/* Promo code */}
             <View className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs mb-4">
               <Text className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">
                 {t('booking:promoCode')}
@@ -650,44 +641,6 @@ export function PassengerFormSheet({
                 <Text className="text-xs text-red-600 mb-2">
                   {t('booking:applyFailed')}
                 </Text>
-              ) : null}
-              {(vouchersQuery.data?.length ?? 0) > 0 ? (
-                <View className="gap-1.5">
-                  <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    {t('booking:voucherLabel')}
-                  </Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View className="flex-row gap-2">
-                      <Pressable
-                        onPress={() => setSelectedVoucherId(undefined)}
-                        className={`px-3 py-2 rounded-full border ${
-                          !selectedVoucherId
-                            ? 'bg-pink-50 border-[#ee237c]'
-                            : 'bg-slate-50 border-slate-200'
-                        }`}
-                      >
-                        <Text className="text-xs font-semibold text-slate-800">
-                          {t('booking:noVoucher')}
-                        </Text>
-                      </Pressable>
-                      {vouchersQuery.data?.map((v) => (
-                        <Pressable
-                          key={v.id}
-                          onPress={() => setSelectedVoucherId(v.id)}
-                          className={`px-3 py-2 rounded-full border ${
-                            selectedVoucherId === v.id
-                              ? 'bg-pink-50 border-[#ee237c]'
-                              : 'bg-slate-50 border-slate-200'
-                          }`}
-                        >
-                          <Text className="text-xs font-semibold text-slate-800">
-                            {formatPriceXOF(v.remainingAmountXOF)}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </ScrollView>
-                </View>
               ) : null}
               <View className="mt-3 gap-1 border-t border-slate-100 pt-3">
                 <View className="flex-row justify-between">

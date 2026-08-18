@@ -11,7 +11,6 @@ export type CheckoutQuotePayload = {
   seatCount: number;
   paymentMethod: "WALLET" | "PAYSTACK";
   code: string | null;
-  monetaryVoucherId: string | null;
   autoApply: boolean;
   useCredits: boolean;
   waiveConvenienceFee: boolean;
@@ -21,7 +20,6 @@ export type CheckoutQuotePayload = {
   ticketDiscountXOF: number;
   feeDiscountXOF: number;
   creditAppliedXOF: number;
-  voucherAppliedXOF: number;
   exp: number;
 };
 
@@ -60,7 +58,6 @@ export function signCheckoutQuote(
     seatCount: input.seatCount,
     paymentMethod: input.paymentMethod,
     code: input.code,
-    monetaryVoucherId: input.monetaryVoucherId,
     autoApply: input.autoApply,
     useCredits: input.useCredits,
     waiveConvenienceFee: input.waiveConvenienceFee,
@@ -70,7 +67,6 @@ export function signCheckoutQuote(
     ticketDiscountXOF: input.ticketDiscountXOF,
     feeDiscountXOF: input.feeDiscountXOF,
     creditAppliedXOF: input.creditAppliedXOF,
-    voucherAppliedXOF: input.voucherAppliedXOF,
     exp: input.exp ?? Date.now() + QUOTE_TTL_MS,
   };
   const body = b64url(Buffer.from(JSON.stringify(payload), "utf8"));
@@ -141,7 +137,6 @@ export function quoteMatchesHoldInput(
     offerId: string;
     seatCount: number;
     code?: string | undefined;
-    monetaryVoucherId?: string | undefined;
     autoApply?: boolean | undefined;
     useCredits?: boolean | undefined;
   },
@@ -151,7 +146,6 @@ export function quoteMatchesHoldInput(
     quote.offerId === input.offerId &&
     quote.seatCount === input.seatCount &&
     quote.code === code &&
-    quote.monetaryVoucherId === (input.monetaryVoucherId ?? null) &&
     quote.autoApply === (input.autoApply ?? true) &&
     quote.useCredits === (input.useCredits ?? true)
   );

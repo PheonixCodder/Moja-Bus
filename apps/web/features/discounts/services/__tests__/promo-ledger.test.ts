@@ -35,7 +35,6 @@ describe("appendPromoLedgerEntries", () => {
       },
       accounts: {
         promoExpensePlatformId: "promo-exp",
-        voucherLiabilityId: "voucher-liab",
         promoCreditsUserId: "user-credits",
         promoContraOperatorId: "op-contra",
       },
@@ -71,12 +70,10 @@ describe("appendPromoLedgerEntries", () => {
         platformPromoFundedXOF: 1000,
         operatorPromoFundedXOF: 0,
         creditAppliedXOF: 2000,
-        voucherAppliedXOF: 0,
         ticketDiscountXOF: 1000,
       },
       accounts: {
         promoExpensePlatformId: "promo-exp",
-        voucherLiabilityId: "voucher-liab",
         promoCreditsUserId: "user-credits",
         promoContraOperatorId: "op-contra",
       },

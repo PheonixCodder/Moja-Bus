@@ -81,12 +81,8 @@ export function ManifestDrawer({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkCancelOpen, setBulkCancelOpen] = useState(false);
   const [bulkReason, setBulkReason] = useState("");
-  const [bulkChannel, setBulkChannel] = useState<"WALLET" | "CASH" | "VOUCHER">(
-    "WALLET",
-  );
-  const [tripRefundChannel, setTripRefundChannel] = useState<
-    "WALLET" | "CASH" | "VOUCHER"
-  >("WALLET");
+  const [bulkChannel, setBulkChannel] = useState<"WALLET" | "CASH">("WALLET");
+  const [tripRefundChannel, setTripRefundChannel] = useState<"WALLET" | "CASH">("WALLET");
 
   const {
     data: trip,
@@ -593,12 +589,11 @@ export function ManifestDrawer({
                           onChange={(e) => setBulkReason(e.target.value)}
                           className="text-sm"
                         />
-                        <div className="grid grid-cols-3 gap-1">
+                        <div className="grid grid-cols-2 gap-1">
                           {(
                             [
                               ["WALLET", t("refundWallet")],
                               ["CASH", t("refundCash")],
-                              ["VOUCHER", t("refundVoucher")],
                             ] as const
                           ).map(([id, label]) => (
                             <button
@@ -880,12 +875,11 @@ export function ManifestDrawer({
                             onChange={(e) => setCancelReason(e.target.value)}
                             className="text-sm"
                           />
-                          <div className="grid grid-cols-3 gap-1">
+                          <div className="grid grid-cols-2 gap-1">
                             {(
                               [
                                 ["WALLET", t("refundWallet")],
                                 ["CASH", t("refundCash")],
-                                ["VOUCHER", t("refundVoucher")],
                               ] as const
                             ).map(([id, label]) => (
                               <button

@@ -14,7 +14,6 @@ describe("checkout-quote", () => {
       seatCount: 2,
       paymentMethod: "WALLET",
       code: "SAVE10",
-      monetaryVoucherId: null,
       autoApply: true,
       useCredits: true,
       waiveConvenienceFee: true,
@@ -24,7 +23,6 @@ describe("checkout-quote", () => {
       ticketDiscountXOF: 1000,
       feeDiscountXOF: 0,
       creditAppliedXOF: 0,
-      voucherAppliedXOF: 0,
     });
     const payload = verifyCheckoutQuote(quoteId);
     assert.equal(payload.offerId, "offer-1");
@@ -40,7 +38,6 @@ describe("checkout-quote", () => {
       seatCount: 1,
       paymentMethod: "PAYSTACK",
       code: null,
-      monetaryVoucherId: null,
       autoApply: true,
       useCredits: true,
       waiveConvenienceFee: false,
@@ -50,7 +47,6 @@ describe("checkout-quote", () => {
       ticketDiscountXOF: 0,
       feeDiscountXOF: 0,
       creditAppliedXOF: 0,
-      voucherAppliedXOF: 0,
     });
     assert.throws(() => verifyCheckoutQuote(quoteId.slice(0, -2) + "xx"));
   });
@@ -62,7 +58,6 @@ describe("checkout-quote", () => {
       seatCount: 1,
       paymentMethod: "PAYSTACK" as const,
       code: "ABC",
-      monetaryVoucherId: null,
       autoApply: true,
       useCredits: true,
       waiveConvenienceFee: false,
@@ -72,7 +67,6 @@ describe("checkout-quote", () => {
       ticketDiscountXOF: 0,
       feeDiscountXOF: 0,
       creditAppliedXOF: 0,
-      voucherAppliedXOF: 0,
       exp: Date.now() + 60_000,
     };
     assert.equal(

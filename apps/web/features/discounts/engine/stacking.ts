@@ -1,7 +1,7 @@
 import type { EvalCampaign, SelectedInstrument } from "./types";
 
-/** Payment-like instruments that may combine with a ticket promo. */
-export const CREDIT_STACK_GROUPS = new Set(["CREDIT", "VOUCHER_PAY"]);
+/** Payment-like instruments (promo credits) that may combine with a ticket promo. */
+export const CREDIT_STACK_GROUPS = new Set(["CREDIT"]);
 
 export function pickBestCampaign(
   candidates: Array<{ campaign: EvalCampaign; ticketDiscountXOF: number }>,
@@ -22,7 +22,7 @@ export function pickBestCampaign(
 
 /**
  * FAQ default: at most one ticket promo (coupon or auto).
- * Credits / monetary voucher payment portions are separate instruments.
+ * Promo credits are separate instruments that stack according to campaign settings.
  */
 export function canStackTicketPromos(
   existing: SelectedInstrument[],
