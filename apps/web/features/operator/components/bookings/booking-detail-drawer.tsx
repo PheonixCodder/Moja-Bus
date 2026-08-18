@@ -13,6 +13,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@moja/ui/components/ui/sheet";
@@ -173,31 +174,40 @@ export function BookingDetailDrawer({
   return (
     <>
       <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-        <SheetContent className="overflow-y-auto w-full sm:max-w-md">
-          <SheetHeader className="border-b border-border pb-4">
-            <SheetTitle className="text-lg font-bold">
+        <SheetContent className="flex flex-col p-0 sm:max-w-lg">
+          <SheetHeader>
+            <SheetTitle className="text-base font-semibold">
               {t("detail.title")}
             </SheetTitle>
-            <SheetDescription className="text-xs">
-              {booking?.bookingReference}
+            <SheetDescription className="text-xs text-muted-foreground">
+              {booking?.bookingReference ?? t("detail.loading")}
             </SheetDescription>
           </SheetHeader>
 
-          <div className="py-6 space-y-6">
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
             {isLoading ? (
-              <div className="flex justify-center py-8">
+              <div className="flex justify-center py-12">
                 <Spinner className="size-6 text-muted-foreground" />
               </div>
             ) : !booking ? (
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm text-muted-foreground text-center py-8">
                 {t("detail.notFound")}
               </p>
             ) : (
               <>
-                <div className="space-y-1">
+                {/* Status + Reference Hero */}
+                <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-4 py-3.5">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Booking Ref
+                    </p>
+                    <p className="font-mono text-lg font-bold text-foreground">
+                      {booking.bookingReference}
+                    </p>
+                  </div>
                   <span
                     className={cn(
-                      "inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider",
+                      "inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
                       booking.status === "CONFIRMED" &&
                         "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20",
                       booking.status === "PENDING_PAYMENT" &&
@@ -210,114 +220,131 @@ export function BookingDetailDrawer({
                   >
                     {booking.status}
                   </span>
-                  <p className="font-mono text-xl font-bold mt-2">
-                    {booking.bookingReference}
+                </div>
+
+                {/* Passenger Info */}
+                <div className="rounded-xl border border-border bg-card px-4 py-4 space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Passenger
                   </p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">
+                        {t("detail.passenger")}
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {booking.passengerName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">
+                        {t("detail.phone")}
+                      </p>
+                      <p className="text-sm font-mono text-foreground">
+                        {booking.passengerPhone}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase text-muted-foreground">
-                      {t("detail.passenger")}
-                    </p>
-                    <p className="font-semibold text-foreground mt-1">
-                      {booking.passengerName}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase text-muted-foreground">
-                      {t("detail.phone")}
-                    </p>
-                    <p className="font-mono mt-1">{booking.passengerPhone}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold uppercase text-muted-foreground">
+                {/* Route */}
+                <div className="rounded-xl border border-border bg-card px-4 py-4 space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     {t("detail.route")}
                   </p>
-                  <p className="font-semibold text-foreground mt-1">
-                    {booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""} →{" "}
-                    {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
+                  <p className="text-sm font-semibold text-foreground leading-snug">
+                    {booking.originTerminalName}
+                    {booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}{" "}
+                    →{" "}
+                    {booking.destinationTerminalName}
+                    {booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
                   </p>
-                  <p className="text-muted-foreground text-xs">
-                    {formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })} → {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
+                  <p className="text-xs text-muted-foreground">
+                    {formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}
+                    {" → "}
+                    {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
                   </p>
                 </div>
+
+                {/* Ticket Details Grid */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase text-muted-foreground">
+                  <div className="rounded-xl border border-border bg-card px-4 py-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                       {t("detail.seat")}
                     </p>
-                    <p className="font-mono font-bold mt-1">
+                    <p className="font-mono text-base font-bold text-foreground">
                       {booking.seatLabel}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase text-muted-foreground">
+                  <div className="rounded-xl border border-border bg-card px-4 py-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                       {t("detail.fare")}
                     </p>
-                    <p className="font-bold text-neon mt-1">
+                    <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">
                       {formatPriceXOF(booking.farePaidXOF)}
                     </p>
                   </div>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase text-muted-foreground">
-                    {t("detail.departure")}
-                  </p>
-                  <p className="mt-1">
-                    {formatDateWithWeekday(booking.departureTime)} · {formatDepartureTime(booking.departureTime)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase text-muted-foreground">
-                    {t("detail.checkIn")}
-                  </p>
-                  <p className="mt-1">
-                    {booking.checkedInAt
-                      ? formatDepartureTime(booking.checkedInAt)
-                      : t("detail.notCheckedIn")}
-                  </p>
-                </div>
-
-                {canUpdate &&
-                booking.status === "CONFIRMED" &&
-                !booking.checkedInAt &&
-                new Date(booking.departureTime) > new Date() ? (
-                  <div className="pt-4 border-t border-border mt-6 space-y-2">
-                    <Button
-                      type="button"
-                      className="w-full bg-[#00875A] hover:bg-[#00704A] text-white font-semibold flex items-center justify-center gap-2"
-                      onClick={() => setIsRebookModalOpen(true)}
-                    >
-                      <ArrowRightLeft className="size-4" />
-                      Rebook Passenger
-                    </Button>
-                    {canCancel && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium"
-                        onClick={() => setIsCancelModalOpen(true)}
-                      >
-                        {t("detail.cancelButton")}
-                      </Button>
-                    )}
-                  </div>
-                ) : null}
-                {canCancel &&
-                booking.status === "CONFIRMED" &&
-                booking.checkedInAt ? (
-                  <div className="pt-4 border-t border-border mt-6">
-                    <p className="text-xs text-muted-foreground text-center">
-                      {t("detail.cancelDisabledCheckedIn")}
+                  <div className="rounded-xl border border-border bg-card px-4 py-3.5 col-span-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                      {t("detail.departure")}
+                    </p>
+                    <p className="text-sm text-foreground">
+                      {formatDateWithWeekday(booking.departureTime)} · {formatDepartureTime(booking.departureTime)}
                     </p>
                   </div>
-                ) : null}
+                  <div className="rounded-xl border border-border bg-card px-4 py-3.5 col-span-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                      {t("detail.checkIn")}
+                    </p>
+                    <p className={cn(
+                      "text-sm",
+                      booking.checkedInAt ? "text-foreground" : "text-amber-600 dark:text-amber-400",
+                    )}>
+                      {booking.checkedInAt
+                        ? formatDepartureTime(booking.checkedInAt)
+                        : t("detail.notCheckedIn")}
+                    </p>
+                  </div>
+                </div>
+
+                {canCancel &&
+                  booking.status === "CONFIRMED" &&
+                  booking.checkedInAt && (
+                    <p className="text-xs text-muted-foreground text-center py-2">
+                      {t("detail.cancelDisabledCheckedIn")}
+                    </p>
+                  )}
               </>
             )}
           </div>
+
+          {/* Sticky Action Footer */}
+          {booking &&
+            canUpdate &&
+            booking.status === "CONFIRMED" &&
+            !booking.checkedInAt &&
+            new Date(booking.departureTime) > new Date() && (
+              <SheetFooter>
+                <Button
+                  type="button"
+                  className="w-full bg-[#00875A] hover:bg-[#00704A] text-white font-semibold"
+                  onClick={() => setIsRebookModalOpen(true)}
+                >
+                  <ArrowRightLeft className="size-4" />
+                  Rebook Passenger
+                </Button>
+                {canCancel && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium"
+                    onClick={() => setIsCancelModalOpen(true)}
+                  >
+                    {t("detail.cancelButton")}
+                  </Button>
+                )}
+              </SheetFooter>
+            )}
         </SheetContent>
       </Sheet>
 

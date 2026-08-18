@@ -9,6 +9,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@moja/ui/components/ui/sheet";
@@ -66,9 +67,9 @@ export function EditPermissionsSheet({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col max-w-md sm:max-w-lg border-l border-border bg-card p-6 overflow-y-auto"
+        className="flex flex-col p-0 sm:max-w-lg"
       >
-        <SheetHeader className="mb-6">
+        <SheetHeader>
           <SheetTitle>{t("editPermissionsSheet.title")}</SheetTitle>
           <SheetDescription>
             {t("editPermissionsSheet.description")}
@@ -77,41 +78,43 @@ export function EditPermissionsSheet({
 
         {member ? (
           <>
-            <div className="mb-5 flex items-center gap-3">
-              <MemberAvatar name={member.user.fullName} />
-              <div className="min-w-0">
-                <p className="truncate font-medium">
-                  {member.user.fullName ?? member.user.email}
-                </p>
-                <p className="truncate text-sm text-muted-foreground">
-                  {member.user.email}
-                </p>
-                <div className="mt-1">
-                  <RoleBadge role={member.role} />
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {ROLE_LABELS[member.role]}
-                  </span>
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/30">
+                <MemberAvatar name={member.user.fullName} />
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-foreground">
+                    {member.user.fullName ?? member.user.email}
+                  </p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {member.user.email}
+                  </p>
+                  <div className="mt-1">
+                    <RoleBadge role={member.role} />
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {ROLE_LABELS[member.role]}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("permissions")}</Label>
+                <PermissionMatrix
+                  selected={permissions}
+                  onChange={setPermissions}
+                  grantable={grantable}
+                />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>{t("permissions")}</Label>
-              <PermissionMatrix
-                selected={permissions}
-                onChange={setPermissions}
-                grantable={grantable}
-              />
-            </div>
-
-            <div className="mt-6 flex gap-2 border-t border-border pt-4">
+            <SheetFooter className="flex-row gap-2">
               <Button variant="outline" className="flex-1" onClick={onClose}>
                 {t("cancel")}
               </Button>
               <Button className="flex-1" onClick={handleSave} disabled={saving}>
                 {saving ? <Spinner className="size-4" /> : t("editPermissionsSheet.save")}
               </Button>
-            </div>
+            </SheetFooter>
           </>
         ) : null}
       </SheetContent>

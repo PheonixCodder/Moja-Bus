@@ -1909,7 +1909,9 @@
       "detail": {
         "title": "Booking details",
         "loading": "Loading…",
+        "notFound": "Booking not found.",
         "passenger": "Passenger",
+        "phone": "Phone Number",
         "route": "Route",
         "seat": "Seat",
         "fare": "Fare",

@@ -1874,7 +1874,9 @@
       "detail": {
         "title": "Détails de la réservation",
         "loading": "Chargement…",
+        "notFound": "Réservation introuvable.",
         "passenger": "Passager",
+        "phone": "Numéro de téléphone",
         "route": "Trajet",
         "seat": "Siège",
         "fare": "Tarif",

@@ -5,7 +5,7 @@
 
 DO $$
 BEGIN
-  IF to_regclass('public."monetary_voucher"') IS NOT NULL THEN
+  IF to_regclass('public."monetary_"') IS NOT NULL THEN
     ALTER TABLE "monetary_voucher" ADD COLUMN IF NOT EXISTS "scheduleId" TEXT;
     ALTER TABLE "monetary_voucher" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
 

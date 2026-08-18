@@ -48,8 +48,8 @@ export function WebhookPayloadDrawer({
 
   return (
     <Sheet open={!!event} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="sm:max-w-xl overflow-y-auto">
-        <SheetHeader className="mb-6">
+      <SheetContent className="flex flex-col p-0 sm:max-w-xl">
+        <SheetHeader>
           <div className="flex items-center gap-3">
             <SheetTitle>{t("title")}</SheetTitle>
             {statusBadge}
@@ -64,7 +64,7 @@ export function WebhookPayloadDrawer({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground block mb-1">

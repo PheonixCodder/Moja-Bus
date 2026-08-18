@@ -525,7 +525,7 @@ export function LayoutBuilderSheet({
         className="bg-background border-l border-border w-full max-w-full! flex flex-col p-0 gap-0"
       >
         {/* ── Header ── */}
-        <SheetHeader className="border-b border-border p-4 shrink-0 text-left">
+        <SheetHeader className="shrink-0 text-left !p-4 !border-b !border-border !pr-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">

@@ -18,6 +18,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@moja/ui/components/ui/sheet";
@@ -152,18 +153,18 @@ export function InviteSheet({
     >
       <SheetContent
         side="right"
-        className="flex w-full flex-col max-w-md sm:max-w-lg border-l border-border bg-card p-6 overflow-y-auto"
+        className="flex flex-col p-0 sm:max-w-lg"
       >
-        <SheetHeader className="mb-6">
-          <SheetTitle className="text-lg font-semibold">
+        <SheetHeader>
+          <SheetTitle className="text-base font-semibold">
             {t("inviteSheet.title")}
           </SheetTitle>
-          <SheetDescription className="text-[13px]">
+          <SheetDescription className="text-sm">
             {t("inviteSheet.description")}
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-5">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
           <div className="space-y-2">
             <Label htmlFor="invite-email">{t("inviteSheet.emailLabel")}</Label>
             <Input
@@ -229,7 +230,7 @@ export function InviteSheet({
           </div>
         </div>
 
-        <div className="mt-6 flex gap-2 border-t border-border pt-4">
+        <SheetFooter className="flex-row gap-2">
           <Button variant="outline" className="flex-1" onClick={onClose}>
             {t("cancel")}
           </Button>
@@ -243,7 +244,7 @@ export function InviteSheet({
               </>
             )}
           </Button>
-        </div>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

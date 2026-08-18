@@ -13,6 +13,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@moja/ui/components/ui/sheet";
@@ -90,66 +91,68 @@ export function RoleSheet({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col max-w-md border-l border-border bg-card p-6 overflow-y-auto"
+        className="flex flex-col p-0 sm:max-w-md"
       >
-        <SheetHeader className="mb-6">
+        <SheetHeader>
           <SheetTitle>{t("roleSheet.title")}</SheetTitle>
           <SheetDescription>{t("roleSheet.description")}</SheetDescription>
         </SheetHeader>
 
         {member ? (
           <>
-            <div className="mb-5 flex items-center gap-3">
-              <AdminMemberAvatar name={member.user.fullName} />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  {member.user.fullName}
-                </p>
-                <div className="mt-1 flex items-center gap-2">
-                  <AdminRoleBadge role={member.role} />
-                  <span className="truncate text-xs text-muted-foreground">
-                    {member.user.email}
-                  </span>
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/30">
+                <AdminMemberAvatar name={member.user.fullName} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {member.user.fullName}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <AdminRoleBadge role={member.role} />
+                    <span className="truncate text-xs text-muted-foreground">
+                      {member.user.email}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("roleSheet.newRoleLabel")}</Label>
+                <Select
+                  value={role}
+                  onValueChange={(v) => setRole(v as AdminStaffRole)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {ADMIN_ROLE_LABELS[r]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="rounded-lg border border-border bg-muted/30 p-3">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("roleSheet.templateIncludes")}
+                </p>
+                <ul className="space-y-1">
+                  {previewKeys.map((key) => (
+                    <li key={key} className="text-[12px] text-foreground/80">
+                      {ADMIN_PERMISSION_META[key]?.label ?? key}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  {t("roleSheet.resetNotice")}
+                </p>
               </div>
             </div>
 
-            <div className="space-y-2 mb-4">
-              <Label>{t("roleSheet.newRoleLabel")}</Label>
-              <Select
-                value={role}
-                onValueChange={(v) => setRole(v as AdminStaffRole)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {ADMIN_ROLE_LABELS[r]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="mb-6 rounded-lg border border-border bg-muted/30 p-3">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {t("roleSheet.templateIncludes")}
-              </p>
-              <ul className="space-y-1">
-                {previewKeys.map((key) => (
-                  <li key={key} className="text-[12px] text-foreground/80">
-                    {ADMIN_PERMISSION_META[key]?.label ?? key}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 text-[11px] text-muted-foreground">
-                {t("roleSheet.resetNotice")}
-              </p>
-            </div>
-
-            <div className="mt-auto flex gap-2">
+            <SheetFooter className="flex-row gap-2">
               <Button
                 variant="outline"
                 className="flex-1"
@@ -165,7 +168,7 @@ export function RoleSheet({
               >
                 {saving ? <Spinner className="size-4" /> : t("roleSheet.save")}
               </Button>
-            </div>
+            </SheetFooter>
           </>
         ) : null}
       </SheetContent>

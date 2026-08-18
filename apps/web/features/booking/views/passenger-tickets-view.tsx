@@ -85,7 +85,7 @@ function TicketSheet({
       <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <SheetContent className="w-full sm:max-w-md p-0 flex flex-col border-l border-border bg-bg-surface overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg-base">
-            <SheetHeader className="text-left space-y-0">
+            <SheetHeader className="text-left space-y-0 border-none p-0">
               <SheetTitle className="text-lg font-bold">{t("sheetTitle")}</SheetTitle>
               <SheetDescription className="text-xs">
                 {bookingReference}

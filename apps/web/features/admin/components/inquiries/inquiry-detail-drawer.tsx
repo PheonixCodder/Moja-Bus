@@ -105,12 +105,12 @@ export function InquiryDetailDrawer({
 
   return (
     <Sheet open={!!inquiry} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="sm:max-w-xl overflow-y-auto">
-        <SheetHeader className="mb-6">
-          <div className="flex items-start justify-between gap-3">
+      <SheetContent className="flex flex-col p-0 sm:max-w-xl">
+        <SheetHeader>
+          <div className="flex items-start justify-between gap-3 pr-2">
             <div className="min-w-0">
-              <SheetTitle className="text-lg">{inquiry.subject}</SheetTitle>
-              <SheetDescription className="mt-1">
+              <SheetTitle className="text-base">{inquiry.subject}</SheetTitle>
+              <SheetDescription className="mt-0.5">
                 {format(new Date(inquiry.createdAt), "MMM d, yyyy 'at' h:mm a")}
               </SheetDescription>
             </div>
@@ -118,12 +118,12 @@ export function InquiryDetailDrawer({
               variant="secondary"
               className={
                 inquiry.status === "NEW"
-                  ? "bg-blue-500/10 text-blue-600"
+                  ? "bg-blue-500/10 text-blue-600 shrink-0"
                   : inquiry.status === "IN_PROGRESS"
-                    ? "bg-amber-500/10 text-amber-600"
+                    ? "bg-amber-500/10 text-amber-600 shrink-0"
                     : inquiry.status === "RESOLVED"
-                      ? "bg-emerald-500/10 text-emerald-600"
-                      : "bg-slate-500/10 text-slate-500"
+                      ? "bg-emerald-500/10 text-emerald-600 shrink-0"
+                      : "bg-slate-500/10 text-slate-500 shrink-0"
               }
             >
               {t(
@@ -133,19 +133,19 @@ export function InquiryDetailDrawer({
           </div>
         </SheetHeader>
 
-        <div className="space-y-6">
-          <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+          <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ee237c]/10 text-[#ee237c] text-xs font-bold shrink-0">
                 {inquiry.name
                   .split(" ")
-                  .map((part) => part[0])
+                  .map((part: string) => part[0])
                   .join("")
                   .toUpperCase()
                   .slice(0, 2)}
               </div>
               <div className="min-w-0">
-                <p className="font-semibold text-slate-800 text-sm truncate">
+                <p className="font-semibold text-foreground text-sm truncate">
                   {inquiry.name}
                 </p>
                 <Badge
@@ -161,9 +161,9 @@ export function InquiryDetailDrawer({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2 text-sm text-slate-600">
+            <div className="grid grid-cols-1 gap-2 text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
-                <Mail className="size-4 text-slate-400 shrink-0" />
+                <Mail className="size-4 text-muted-foreground shrink-0" />
                 <a
                   href={`mailto:${inquiry.email}`}
                   className="hover:text-[#ee237c] transition-colors truncate"
@@ -173,25 +173,25 @@ export function InquiryDetailDrawer({
               </span>
               {inquiry.phone && (
                 <span className="flex items-center gap-2">
-                  <Phone className="size-4 text-slate-400 shrink-0" />
+                  <Phone className="size-4 text-muted-foreground shrink-0" />
                   {inquiry.phone}
                 </span>
               )}
               {inquiry.user && (
                 <span className="flex items-center gap-2">
-                  <User className="size-4 text-slate-400 shrink-0" />
+                  <User className="size-4 text-muted-foreground shrink-0" />
                   {inquiry.user.fullName} ({inquiry.user.email})
                 </span>
               )}
               {inquiry.ipAddress && (
                 <span className="flex items-center gap-2">
-                  <MapPin className="size-4 text-slate-400 shrink-0" />
+                  <MapPin className="size-4 text-muted-foreground shrink-0" />
                   {inquiry.ipAddress}
                 </span>
               )}
               {inquiry.userAgent && (
                 <span className="flex items-center gap-2">
-                  <Monitor className="size-4 text-slate-400 shrink-0" />
+                  <Monitor className="size-4 text-muted-foreground shrink-0" />
                   <span className="truncate">{inquiry.userAgent}</span>
                 </span>
               )}
@@ -199,17 +199,17 @@ export function InquiryDetailDrawer({
           </div>
 
           <div>
-            <p className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+            <p className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">
               <MessageSquare className="size-3.5" />
               {t("message")}
             </p>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap rounded-xl border border-slate-100 bg-white p-4">
+            <p className="text-sm text-foreground whitespace-pre-wrap rounded-xl border border-border bg-card p-4">
               {inquiry.message}
             </p>
           </div>
 
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">
               {t("adminNote")}
             </p>
             <Textarea
@@ -217,7 +217,7 @@ export function InquiryDetailDrawer({
               onChange={(e) => setNote(e.target.value)}
               placeholder={t("notePlaceholder")}
               rows={3}
-              className="bg-white"
+              className="bg-card"
             />
             <div className="flex justify-end mt-2">
               <Button
