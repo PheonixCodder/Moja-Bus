@@ -16,7 +16,9 @@ export default async function OperatorPromotionsPage() {
 
   return (
     <HydrateClient>
-      <OperatorPromotionsView />
+      <div className="flex-1 overflow-y-auto px-6 py-5">
+        <OperatorPromotionsView />
+      </div>
     </HydrateClient>
   );
 }
