@@ -1422,7 +1422,9 @@ export const operatorRouter = createTRPCRouter({
       // H15: aggregate in the database instead of loading every CONFIRMED
       // booking row into memory. One row per hold group, grouped by route,
       // bucketed by the Abidjan calendar day. `pricingSnapshot.operatorNetXOF`
-      // is per hold group, so we group by hold group and dedupe naturally.
+      // is per hold group, so MAX() within the hold group prevents duplicate
+      // multiplication across multi-seat bookings while subtotalBaseXOF gives
+      // true operator ticket sales before commission.
       const rows = await ctx.prisma.$queryRaw<Array<{
         day: Date;
         originCity: string | null;
@@ -1436,8 +1438,8 @@ export const operatorRouter = createTRPCRouter({
           DATE_TRUNC('day', MIN(b."issuedAt") AT TIME ZONE 'Africa/Abidjan') AS "day",
           oc."name" AS "originCity",
           dc."name" AS "destCity",
-          SUM(ps."operatorNetXOF") AS "net",
-          SUM(ps."chargeAmountXOF") AS "gross",
+          COALESCE(MAX(ps."operatorNetXOF"), 0) AS "net",
+          COALESCE(MAX(ps."subtotalBaseXOF"), 0) AS "gross",
           COUNT(DISTINCT b."id") AS "bookingsCount",
           COUNT(DISTINCT t."id") AS "tripsCount"
         FROM "hold_group" hg
@@ -1542,7 +1544,7 @@ export const operatorRouter = createTRPCRouter({
         if (type === "TICKET_SALE") {
           where.transaction = { type: { in: ["BOOKING", "WALLET_BOOKING"] } };
         } else if (type === "WITHDRAWAL") {
-          where.transaction = { type: "OPERATOR_PAYOUT" };
+          where.transaction = { type: { in: ["WITHDRAWAL", "OPERATOR_PAYOUT"] } };
         } else if (type === "REFUND") {
           where.transaction = { type: { in: ["REFUND", "WALLET_REFUND"] } };
         } else if (type === "ADJUSTMENT") {
@@ -1597,6 +1599,17 @@ export const operatorRouter = createTRPCRouter({
           gte: new Date(input.from),
           lte: new Date(input.to),
         };
+      }
+      if (input.type && input.type !== "ALL") {
+        if (input.type === "TICKET_SALE") {
+          where.transaction = { type: { in: ["BOOKING", "WALLET_BOOKING"] } };
+        } else if (input.type === "WITHDRAWAL") {
+          where.transaction = { type: { in: ["WITHDRAWAL", "OPERATOR_PAYOUT"] } };
+        } else if (input.type === "REFUND") {
+          where.transaction = { type: { in: ["REFUND", "WALLET_REFUND"] } };
+        } else if (input.type === "ADJUSTMENT") {
+          where.transaction = { type: "MANUAL_ADJUSTMENT" };
+        }
       }
       const entries = await ctx.prisma.ledgerEntry.findMany({
         where,
@@ -1736,13 +1749,19 @@ export const operatorRouter = createTRPCRouter({
         const processedHoldGroups = new Set<string>();
         for (const booking of bookingsCreatedToday) {
           const hg = booking.holdGroup;
-          if (!hg) continue;
-          if (!processedHoldGroups.has(hg.id)) {
-            processedHoldGroups.add(hg.id);
-            const ps = hg.pricingSnapshot;
-            if (ps) {
-              revenueTodayXOF += ps.operatorNetXOF;
+          if (hg && hg.id) {
+            if (!processedHoldGroups.has(hg.id)) {
+              processedHoldGroups.add(hg.id);
+              const ps = hg.pricingSnapshot;
+              if (ps) {
+                revenueTodayXOF += ps.operatorNetXOF;
+              } else {
+                revenueTodayXOF += Math.round(booking.farePaid * 0.95);
+              }
             }
+          } else {
+            // Direct desk booking without holdGroup
+            revenueTodayXOF += Math.round(booking.farePaid * 0.95);
           }
         }
       }

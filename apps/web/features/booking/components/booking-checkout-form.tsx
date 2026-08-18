@@ -9,7 +9,7 @@ import { Input } from "@moja/ui/components/ui/input";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { Label } from "@moja/ui/components/ui/label";
 import { Spinner } from "@moja/ui/components/ui/spinner";
-import { CreditCard, Wallet } from "lucide-react";
+import { CreditCard, Sparkles, Wallet } from "lucide-react";
 import { formatPriceXOF } from "@/features/search/lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useTRPC } from "@/trpc/client";
@@ -616,90 +616,96 @@ export function BookingCheckoutForm({
 
       {/* Payment Selector Section */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-4">
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-slate-800">Payment Options</p>
-          <p className="text-xs text-slate-500">
-            Choose a checkout method below to complete seat registration.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Card / Mobile Money */}
-          <button
-            type="button"
-            onClick={() => setPaymentMethod("PAYSTACK")}
-            className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
-              paymentMethod === "PAYSTACK"
-                ? "border-primary bg-primary/5 text-primary shadow-xs"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50"
-            }`}
-          >
-            <CreditCard className="size-5 shrink-0" />
-            <div>
-              <p className="text-xs font-bold font-sans">Card / Mobile Money</p>
-              <p className="text-[10px] text-slate-500 font-sans mt-0.5">Pay via Paystack checkout</p>
+        {isZeroCash ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-emerald-900 font-semibold text-sm">
+              <Sparkles className="size-4.5 text-emerald-600 shrink-0" />
+              100% Covered by Promo Credits
             </div>
-          </button>
-
-          {/* Wallet Balance */}
-          <button
-            type="button"
-            disabled={!canPayWithWallet}
-            onClick={() => setPaymentMethod("WALLET")}
-            className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all relative ${
-              paymentMethod === "WALLET"
-                ? "border-primary bg-primary/5 text-primary shadow-xs"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50"
-            } ${!canPayWithWallet ? "opacity-50 cursor-not-allowed bg-slate-50/50" : ""}`}
-          >
-            <Wallet className="size-5 shrink-0" />
-            <div>
-              <p className="text-xs font-bold font-sans">Moja Wallet Balance</p>
-              <p className="text-[10px] text-slate-500 font-sans mt-0.5">
-                {isLoggedIn
-                  ? isZeroCash
-                    ? "Covered by promo — no wallet debit"
-                    : `Available: ${formatPriceXOF(walletAvailable)} · Due: ${formatPriceXOF(totalAmount)}`
-                  : "Sign in to pay with wallet"}
+            <p className="text-xs text-emerald-700 leading-relaxed">
+              Your promotional balance fully covers the ticket fare. No cash, card, or wallet debit is required.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-slate-800">Payment Options</p>
+              <p className="text-xs text-slate-500">
+                Choose a checkout method below to complete seat registration.
               </p>
             </div>
-          </button>
-        </div>
 
-        {/* Info alerts */}
-        {paymentMethod === "WALLET" && isZeroCash ? (
-          <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800 leading-relaxed">
-            <strong>Covered by promo</strong>: This booking is fully covered by promo credits. Confirming will not debit your cash wallet.
-          </div>
-        ) : null}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Card / Mobile Money */}
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("PAYSTACK")}
+                className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+                  paymentMethod === "PAYSTACK"
+                    ? "border-primary bg-primary/5 text-primary shadow-xs"
+                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50"
+                }`}
+              >
+                <CreditCard className="size-5 shrink-0" />
+                <div>
+                  <p className="text-xs font-bold font-sans">Card / Mobile Money</p>
+                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">Pay via Paystack checkout</p>
+                </div>
+              </button>
 
-        {paymentMethod === "WALLET" && !isZeroCash ? (
-          <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800 leading-relaxed">
-            <strong>Moja Wallet Checkout Benefit</strong>: Service convenience fees are fully waived (0 XOF) when paying with your internal wallet balance.
-          </div>
-        ) : null}
+              {/* Wallet Balance */}
+              <button
+                type="button"
+                disabled={!canPayWithWallet}
+                onClick={() => setPaymentMethod("WALLET")}
+                className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all relative ${
+                  paymentMethod === "WALLET"
+                    ? "border-primary bg-primary/5 text-primary shadow-xs"
+                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50"
+                } ${!canPayWithWallet ? "opacity-50 cursor-not-allowed bg-slate-50/50" : ""}`}
+              >
+                <Wallet className="size-5 shrink-0" />
+                <div>
+                  <p className="text-xs font-bold font-sans">Moja Wallet Balance</p>
+                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">
+                    {isLoggedIn
+                      ? `Available: ${formatPriceXOF(walletAvailable)} · Due: ${formatPriceXOF(totalAmount)}`
+                      : "Sign in to pay with wallet"}
+                  </p>
+                </div>
+              </button>
+            </div>
 
-        {isLoggedIn && paymentMethod === "PAYSTACK" && canPayWithWallet && !isZeroCash ? (
-          <p className="text-[10px] text-slate-500 italic">
-            Tip: Switch to Wallet Balance to waive the convenience fee!
-          </p>
-        ) : null}
+            {/* Info alerts */}
+            {paymentMethod === "WALLET" ? (
+              <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800 leading-relaxed">
+                <strong>Moja Wallet Checkout Benefit</strong>: Service convenience fees are fully waived (0 XOF) when paying with your internal wallet balance.
+              </div>
+            ) : null}
 
-        {isLoggedIn && !canPayWithWallet && !isZeroCash ? (
-          <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 text-xs text-amber-800 flex items-center justify-between gap-2">
-            <span>
-              Your wallet balance is insufficient for this booking (need{" "}
-              {formatPriceXOF(totalAmount)}).
-            </span>
-            <Link
-              href="/dashboard/wallet"
-              className="text-[#ee237c] font-bold hover:underline shrink-0"
-              target="_blank"
-            >
-              Top-Up Wallet →
-            </Link>
-          </div>
-        ) : null}
+            {isLoggedIn && paymentMethod === "PAYSTACK" && canPayWithWallet ? (
+              <p className="text-[10px] text-slate-500 italic">
+                Tip: Switch to Wallet Balance to waive the convenience fee!
+              </p>
+            ) : null}
+
+            {isLoggedIn && !canPayWithWallet ? (
+              <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 text-xs text-amber-800 flex items-center justify-between gap-2">
+                <span>
+                  Your wallet balance is insufficient for this booking (need{" "}
+                  {formatPriceXOF(totalAmount)}).
+                </span>
+                <Link
+                  href="/dashboard/wallet"
+                  className="text-[#ee237c] font-bold hover:underline shrink-0"
+                  target="_blank"
+                >
+                  Top-Up Wallet →
+                </Link>
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -716,12 +722,12 @@ export function BookingCheckoutForm({
               <Spinner className="mr-2 size-4" />
               Processing...
             </>
+          ) : isZeroCash ? (
+            "Confirm Free Booking (0 XOF)"
+          ) : paymentMethod === "WALLET" ? (
+            "Complete with Wallet"
           ) : (
-            paymentMethod === "WALLET"
-              ? isZeroCash
-                ? "Confirm (promo covers fare)"
-                : "Complete with Wallet"
-              : "Complete payment"
+            "Complete payment"
           )}
         </Button>
       </div>

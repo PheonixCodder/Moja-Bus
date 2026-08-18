@@ -117,9 +117,7 @@ export function SettlementsClearingCard() {
                 {t("operatorPayables")}
               </p>
               <p className="text-sm font-bold text-foreground">
-                {formatXOF(
-                  Math.max(0, posted - (treasury.revenueBalance ?? 0)),
-                )}
+                {formatXOF(treasury.operatorPayables ?? 0)}
               </p>
             </div>
           </div>

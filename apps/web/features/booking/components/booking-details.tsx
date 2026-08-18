@@ -23,6 +23,7 @@ import {
   Copy,
   CreditCard,
   ExternalLink,
+  Sparkles,
   Star,
   Ticket,
   Wallet,
@@ -549,83 +550,91 @@ function PaymentTab({
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-            {t("paymentMethod")}
-          </Label>
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              type="button"
-              onClick={() => setPaymentMethod("PAYSTACK")}
-              className={cn(
-                "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all",
-                paymentMethod === "PAYSTACK"
-                  ? "border-primary bg-primary/5 shadow-xs"
-                  : "border-border hover:bg-muted/40",
-              )}
-            >
-              <CreditCard className="size-4 shrink-0" />
-              <div>
-                <p className="text-xs font-bold">{t("cardMobileMoney")}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {t("payViaPaystack")}
-                </p>
+          {isZeroCash ? (
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 space-y-1.5">
+              <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-semibold text-xs">
+                <Sparkles className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                {t("promoCoveredTitle")}
               </div>
-            </button>
+              <p className="text-[11px] text-emerald-700 dark:text-emerald-400 leading-relaxed">
+                {t("promoCoveredDesc")}
+              </p>
+            </div>
+          ) : (
+            <>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">
+                {t("paymentMethod")}
+              </Label>
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("PAYSTACK")}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all",
+                    paymentMethod === "PAYSTACK"
+                      ? "border-primary bg-primary/5 shadow-xs"
+                      : "border-border hover:bg-muted/40",
+                  )}
+                >
+                  <CreditCard className="size-4 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold">{t("cardMobileMoney")}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {t("payViaPaystack")}
+                    </p>
+                  </div>
+                </button>
 
-            <button
-              type="button"
-              disabled={!canPayWithWallet}
-              onClick={() => canPayWithWallet && setPaymentMethod("WALLET")}
-              className={cn(
-                "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all",
-                paymentMethod === "WALLET"
-                  ? "border-primary bg-primary/5 shadow-xs"
-                  : "border-border hover:bg-muted/40",
-                !canPayWithWallet && "cursor-not-allowed opacity-50",
-              )}
-            >
-              <Wallet className="size-4 shrink-0" />
-              <div>
-                <p className="text-xs font-bold">{t("mojaWallet")}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-                  {isZeroCash
-                    ? "Covered by promo"
-                    : t("available", {
+                <button
+                  type="button"
+                  disabled={!canPayWithWallet}
+                  onClick={() => canPayWithWallet && setPaymentMethod("WALLET")}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all",
+                    paymentMethod === "WALLET"
+                      ? "border-primary bg-primary/5 shadow-xs"
+                      : "border-border hover:bg-muted/40",
+                    !canPayWithWallet && "cursor-not-allowed opacity-50",
+                  )}
+                >
+                  <Wallet className="size-4 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold">{t("mojaWallet")}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                      {t("available", {
                         balance: formatPriceXOF(Number(walletBalance)),
                       })}
-                </p>
+                    </p>
+                  </div>
+                </button>
               </div>
-            </button>
-          </div>
-        </div>
 
-        {paymentMethod === "WALLET" && isZeroCash ? (
-          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-700">
-            Fully covered by promo credits — no wallet debit.
-          </div>
-        ) : null}
-        {paymentMethod === "WALLET" && !isZeroCash ? (
-          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
-            <strong>{t("convenienceFee", { fee: "0 XOF" })}</strong>
-          </div>
-        ) : null}
-        {!canPayWithWallet && !isZeroCash ? (
-          <div className="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700">
-            <span>{t("walletInsufficient")}</span>
-            <Link
-              href="/dashboard/wallet"
-              className="font-bold text-primary hover:underline"
-              target="_blank"
-            >
-              {t("topUp")} →
-            </Link>
-          </div>
-        ) : null}
+              {paymentMethod === "WALLET" ? (
+                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
+                  <strong>{t("convenienceFee", { fee: "0 XOF" })}</strong>
+                </div>
+              ) : null}
+
+              {!canPayWithWallet ? (
+                <div className="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700">
+                  <span>{t("walletInsufficient")}</span>
+                  <Link
+                    href="/dashboard/wallet"
+                    className="font-bold text-primary hover:underline"
+                    target="_blank"
+                  >
+                    {t("topUp")} →
+                  </Link>
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
 
         <Button
           className="w-full gap-2 bg-primary hover:bg-primary/90 text-white font-bold"
           disabled={
-            isPaying || (paymentMethod === "WALLET" && !canPayWithWallet)
+            isPaying || (!isZeroCash && paymentMethod === "WALLET" && !canPayWithWallet)
           }
           onClick={() =>
             onExecutePayment({
@@ -637,7 +646,7 @@ function PaymentTab({
         >
           {isPaying && <Spinner className="size-4 text-white" />}
           {isZeroCash
-            ? "Confirm (promo covers fare)"
+            ? t("confirmFreeBooking")
             : paymentMethod === "WALLET"
               ? t("completeWithWallet")
               : t("completePayment")}

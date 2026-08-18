@@ -410,19 +410,28 @@ export const paymentsRouter = createTRPCRouter({
   getTreasuryOverview: adminProcedure.query(async ({ ctx }) => {
     requireAdminPermission(ctx, "platform:financials:read");
     const accountService = new FinancialAccountService(ctx.prisma);
-    const [clearing, commissionRevenue, convenienceRevenue] = await Promise.all(
-      [
+    const [clearing, commissionRevenue, convenienceRevenue, operatorLiabilitySum] =
+      await Promise.all([
         accountService.getSystemPaystackClearingAccount(),
         accountService.getPlatformCommissionRevenueAccount(),
         accountService.getPlatformConvenienceFeeRevenueAccount(),
-      ],
-    );
+        ctx.prisma.financialAccount.aggregate({
+          _sum: { postedBalance: true },
+          where: {
+            accountCategory: "LIABILITY",
+            accountClass: "OPERATOR_RECEIVABLE",
+          },
+        }),
+      ]);
 
     return {
       clearingBalance: toSafeDisplayNumber(clearing.postedBalance),
       revenueBalance:
         toSafeDisplayNumber(commissionRevenue.postedBalance) +
         toSafeDisplayNumber(convenienceRevenue.postedBalance),
+      operatorPayables: toSafeDisplayNumber(
+        operatorLiabilitySum._sum.postedBalance ?? 0,
+      ),
     };
   }),
 

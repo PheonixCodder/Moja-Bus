@@ -39,19 +39,14 @@ export const adminRouter = createTRPCRouter({
   getDashboardKPIs: adminProcedure.query(async ({ ctx }) => {
     requireAdminPermission(ctx, "platform:financials:read");
     const [
-      gmvResult,
-      commissionResult,
+      financialSnapshotResult,
       travelersCount,
       operatorsCount,
       pendingOperatorsCount,
       activeTripsCount,
     ] = await Promise.all([
-      ctx.prisma.externalPayment.aggregate({
-        _sum: { amountXOF: true },
-        where: { status: "SUCCESS" },
-      }),
       ctx.prisma.pricingSnapshot.aggregate({
-        _sum: { platformGrossXOF: true },
+        _sum: { subtotalBaseXOF: true, platformGrossXOF: true },
         where: { holdGroup: { status: "CONFIRMED" } },
       }),
       ctx.prisma.user.count({
@@ -66,8 +61,8 @@ export const adminRouter = createTRPCRouter({
       }),
     ]);
 
-    const totalGMV = gmvResult._sum.amountXOF ?? 0;
-    const totalCommission = commissionResult._sum.platformGrossXOF ?? 0;
+    const totalGMV = financialSnapshotResult._sum.subtotalBaseXOF ?? 0;
+    const totalCommission = financialSnapshotResult._sum.platformGrossXOF ?? 0;
 
     return {
       totalGMV,
