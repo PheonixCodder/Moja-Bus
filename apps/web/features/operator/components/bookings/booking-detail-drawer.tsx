@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowRightLeft, Calendar, Check, Clock, Sparkles, UserCheck } from "lucide-react";
+import { AlertTriangle, ArrowRightLeft, Calendar, Check, Clock, Printer, Sparkles, UserCheck } from "lucide-react";
 import { PassengerSeatMap } from "@/features/booking/components/passenger-seat-map";
 import { toast } from "sonner";
-import { Button } from "@moja/ui/components/ui/button";
+import { Button, buttonVariants } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { cn } from "@moja/ui/lib/utils";
@@ -177,12 +178,29 @@ export function BookingDetailDrawer({
       <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
         <SheetContent className="flex flex-col p-0 sm:max-w-lg">
           <SheetHeader>
-            <SheetTitle className="text-base font-semibold">
-              {t("detail.title")}
-            </SheetTitle>
-            <SheetDescription className="text-xs text-muted-foreground">
-              {booking?.bookingReference ?? t("detail.loading")}
-            </SheetDescription>
+            <div className="flex items-center justify-between gap-3 pr-6">
+              <div>
+                <SheetTitle className="text-base font-semibold">
+                  {t("detail.title")}
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground">
+                  {booking?.bookingReference ?? t("detail.loading")}
+                </SheetDescription>
+              </div>
+              {booking?.ticketToken && (
+                <Link
+                  href={`/tickets/${encodeURIComponent(booking.ticketToken)}`}
+                  target="_blank"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "h-8 gap-1.5 rounded-full text-xs font-medium print:hidden shrink-0",
+                  )}
+                >
+                  <Printer className="size-3.5" />
+                  Print Ticket
+                </Link>
+              )}
+            </div>
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">

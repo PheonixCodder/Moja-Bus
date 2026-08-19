@@ -22,3 +22,58 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Print Media Query Rules — Clean single page ticket printing */
+@media print {
+  /* Remove default browser header (page title) and footer (date/time/URL) */
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* When printing from a Sheet drawer modal, hide the main application background layout */
+  body:has([data-slot="sheet-content"]) > *:not([data-base-ui-portal], [data-slot="sheet-portal"], [data-slot="sheet-content"]) {
+    display: none !important;
+  }
+
+  /* Hide overlays, backdrops, close buttons, and non-printable elements */
+  [data-slot="sheet-overlay"],
+  [data-slot="sheet-close"],
+  [data-slot="dialog-overlay"],
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset SheetContent drawer container for clean single page printing */
+  [data-slot="sheet-content"] {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 550px !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 1.5rem !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure ticket card stays on a single page without breaking */
+  .print\:break-inside-avoid,
+  [data-slot="sheet-content"] > *,
+  svg {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
