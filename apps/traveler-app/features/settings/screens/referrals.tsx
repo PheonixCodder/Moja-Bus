@@ -113,7 +113,7 @@ export function ReferralsView() {
   }
 
   return (
-    <View className="flex-1 bg-slate-900">
+    <View className="flex-1">
       <SubpageHeader title={t("title")} />
       <ScrollView
         className="flex-1"

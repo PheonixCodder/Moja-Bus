@@ -22,11 +22,12 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
     <div
       className={cn(
         "rounded-[24px] border border-border bg-white overflow-hidden relative shadow-sm",
-        compact ? "p-5" : "p-8"
+        "print:shadow-none print:border-slate-300 print:rounded-xl print:bg-white",
+        compact ? "p-5" : "p-8 print:p-6"
       )}
     >
-      <div className="absolute right-0 top-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute left-0 bottom-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute right-0 top-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none print:hidden" />
+      <div className="absolute left-0 bottom-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl pointer-events-none print:hidden" />
 
       <div className={cn(
         "flex relative z-10",

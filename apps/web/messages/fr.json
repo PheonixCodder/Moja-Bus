@@ -562,7 +562,8 @@
     "notCheckedIn": "Pas encore embarqué",
     "validTicket": "Billet valide",
     "validTicketDesc": "Montrez cet écran ou le code QR ci-dessous au personnel lors de l'embarquement. Augmentez la luminosité de votre téléphone pour un scan plus rapide.",
-    "refSeat": "Référence {ref} · Siège {seat}"
+    "refSeat": "Référence {ref} · Siège {seat}",
+    "printTicket": "Imprimer le billet"
   },
   "capturePage": {
     "title": "Pin your terminal location",
@@ -970,6 +971,7 @@
       "cardArrival": "Arrivée (Est.)",
       "sheetTitle": "Billet numérique",
       "share": "Partager",
+      "printTicket": "Imprimer",
       "loadError": "Impossible de charger les détails du billet",
       "close": "Fermer",
       "qrInstructions": "Montrez ce code QR au personnel lors de l'embarquement. Veuillez augmenter la luminosité de votre écran.",

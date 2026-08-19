@@ -19,8 +19,8 @@ type BenefitType = "PERCENT_OFF" | "FIXED_AMOUNT_OFF";
 export interface CreatePromoData {
   name: string;
   benefitType: BenefitType;
-  percentBps?: number;
-  amountXOF?: number;
+  percentBps?: number | undefined;
+  amountXOF?: number | undefined;
 }
 
 interface OperatorPromotionCreateDialogProps {
@@ -59,8 +59,8 @@ export function OperatorPromotionCreateDialog({
     onCreate({
       name: name.trim(),
       benefitType,
-      percentBps: benefitType === "PERCENT_OFF" ? Math.round(Number(percentOff) * 100) : undefined,
-      amountXOF: benefitType === "FIXED_AMOUNT_OFF" ? Number(amountXOF) : undefined,
+      ...(benefitType === "PERCENT_OFF" ? { percentBps: Math.round(Number(percentOff) * 100) } : {}),
+      ...(benefitType === "FIXED_AMOUNT_OFF" ? { amountXOF: Number(amountXOF) } : {}),
     });
   }
 

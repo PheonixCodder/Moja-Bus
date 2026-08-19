@@ -13,6 +13,7 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { useTRPC } from "@/trpc/client";
 import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-card";
+import { PrintTicketButton } from "@/features/booking/components/print-ticket-button";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import {
   Sheet,
@@ -91,14 +92,21 @@ function TicketSheet({
                 {bookingReference}
               </SheetDescription>
             </SheetHeader>
-            <Link
-              href={`/tickets/${encodeURIComponent(ticketToken)}`}
-              target="_blank"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8 gap-1.5 rounded-full text-xs font-medium")}
-            >
-              <Share2 className="w-3 h-3" />
-              {t("share")}
-            </Link>
+            <div className="flex items-center gap-2">
+              <PrintTicketButton
+                translationNamespace="passengerDashboard.tickets"
+                size="sm"
+                className="h-8 gap-1.5 rounded-full text-xs font-medium"
+              />
+              <Link
+                href={`/tickets/${encodeURIComponent(ticketToken)}`}
+                target="_blank"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8 gap-1.5 rounded-full text-xs font-medium")}
+              >
+                <Share2 className="w-3 h-3" />
+                {t("share")}
+              </Link>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">

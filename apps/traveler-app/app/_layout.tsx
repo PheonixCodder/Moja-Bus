@@ -7,6 +7,7 @@ import { PortalHost } from "@rn-primitives/portal";
 import { useQuery } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import { DefaultTheme, router, Stack, ThemeProvider } from "expo-router";
+import * as Linking from "expo-linking";
 import { StatusBar } from "expo-status-bar";
 import { PostHogProvider as PHProvider } from "posthog-react-native";
 import { useEffect } from "react";
@@ -16,6 +17,8 @@ import { usePushToken } from "@/hooks/use-push-token";
 import { authClient } from "@/lib/auth-client";
 import { posthog } from "@/lib/posthog";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
+import { usePendingReferralApplier } from "@/hooks/use-pending-referral-applier";
+import { storePendingReferralCode } from "@/lib/pending-referral";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
@@ -84,6 +87,7 @@ function AuthenticatedNovuProvider({
 		>
 			<PushTokenRegistrar />
 			<NotificationHandler />
+			<PendingReferralApplier />
 			{children}
 		</NovuProvider>
 	);
@@ -91,6 +95,11 @@ function AuthenticatedNovuProvider({
 
 function PushTokenRegistrar() {
 	usePushToken();
+	return null;
+}
+
+function PendingReferralApplier() {
+	usePendingReferralApplier();
 	return null;
 }
 
@@ -180,6 +189,18 @@ function NotificationHandler() {
 
 export default function RootLayout() {
 	const { fontsLoaded, fontsError } = useLoadFonts();
+
+	useEffect(() => {
+		void (async () => {
+			const url = await Linking.getInitialURL();
+			if (!url) return;
+			const parsed = Linking.parse(url);
+			const parts = parsed.path?.split("/").filter(Boolean) ?? [];
+			if (parts[0] === "r" && parts[1]) {
+				await storePendingReferralCode(parts[1]);
+			}
+		})();
+	}, []);
 
 	if (!fontsLoaded && !fontsError) {
 		return null;

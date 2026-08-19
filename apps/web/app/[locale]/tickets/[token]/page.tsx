@@ -57,7 +57,7 @@ export default async function PublicTicketPage({ params }: PublicTicketPageProps
   return (
     <HydrateClient>
       <div className="min-h-screen bg-slate-50">
-        <header className="border-b border-slate-200 bg-white px-4 py-3">
+        <header className="border-b border-slate-200 bg-white px-4 py-3 print:hidden">
           <div className="max-w-lg mx-auto flex items-center gap-2">
             <Ticket className="size-5 text-[#ee237c]" />
             <Link href="/" className="text-sm font-bold text-slate-900">

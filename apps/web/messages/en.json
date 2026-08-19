@@ -562,7 +562,8 @@
     "notCheckedIn": "Not yet checked in",
     "validTicket": "Valid ticket",
     "validTicketDesc": "Show this screen or the QR code below to staff when boarding. Keep your phone brightness up for faster scanning.",
-    "refSeat": "Reference {ref} · Seat {seat}"
+    "refSeat": "Reference {ref} · Seat {seat}",
+    "printTicket": "Print Ticket"
   },
   "capturePage": {
     "title": "Pin your terminal location",
@@ -970,6 +971,7 @@
       "cardArrival": "Arrival (Est)",
       "sheetTitle": "Digital Ticket",
       "share": "Share",
+      "printTicket": "Print Ticket",
       "loadError": "Could not load ticket details",
       "close": "Close",
       "qrInstructions": "Show this QR code to staff when boarding. Please keep your screen brightness up.",

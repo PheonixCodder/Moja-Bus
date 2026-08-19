@@ -23,6 +23,7 @@ import {
   Wallet01Icon,
   CreditCardIcon,
   CheckmarkCircle01Icon,
+  SparklesIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@moja/theme/tokens';
 import { authClient } from '@/lib/auth-client';
@@ -39,6 +40,7 @@ import {
 import { PaystackWebView } from '@/features/settings/components/paystack-webview';
 import type { Offer } from './offer-card';
 import { formatPriceXOF } from '../lib/format';
+import { resolveDiscountRejectionMessage } from '../lib/discount-errors';
 
 export interface PassengerDraft {
   seatId: string;
@@ -183,6 +185,9 @@ export function PassengerFormSheet({
       ? Math.max(0, subtotalBaseXOF - creditAppliedXOF)
       : (pricingQuery.data?.chargeAmountXOF ?? subtotalBaseXOF + convenienceFeeXOF));
 
+  const isZeroCash = totalAmountXOF === 0 && pricingQuery.data !== undefined;
+  const effectivePaymentMethod = isZeroCash ? 'WALLET' : paymentMethod;
+
   const isValid = passengers.every(
     (p) => p.passengerName.trim().length >= 2 && p.passengerPhone.trim().length >= 6
   );
@@ -201,8 +206,21 @@ export function PassengerFormSheet({
       return;
     }
 
-    if (paymentMethod === 'WALLET' && walletBalance < totalAmountXOF) {
-      Alert.alert(t('error'), t('booking:insufficientWallet'));
+    if (effectivePaymentMethod === 'WALLET' && !isZeroCash && walletBalance < totalAmountXOF) {
+      Alert.alert(
+        t('booking:insufficientFunds'),
+        t('booking:insufficientWallet'),
+        [
+          { text: t('booking:cancel'), style: 'cancel' },
+          {
+            text: t('booking:topUpWallet'),
+            onPress: () => {
+              onClose();
+              router.push('/wallet');
+            },
+          },
+        ]
+      );
       return;
     }
 
@@ -243,10 +261,23 @@ export function PassengerFormSheet({
       const walletCharge = holdResult.subtotalBaseXOF ?? subtotalBaseXOF;
       const paystackCharge = holdResult.totalAmountXOF ?? totalAmountXOF;
 
-      if (paymentMethod === 'WALLET') {
-        if (walletBalance < walletCharge) {
+      if (effectivePaymentMethod === 'WALLET') {
+        if (!isZeroCash && walletBalance < walletCharge) {
           await releaseHold.mutateAsync({ holdId });
-          Alert.alert(t('error'), t('booking:insufficientWallet'));
+          Alert.alert(
+            t('booking:insufficientFunds'),
+            t('booking:insufficientWallet'),
+            [
+              { text: t('booking:cancel'), style: 'cancel' },
+              {
+                text: t('booking:topUpWallet'),
+                onPress: () => {
+                  onClose();
+                  router.push('/wallet');
+                },
+              },
+            ]
+          );
           return;
         }
 
@@ -639,7 +670,10 @@ export function PassengerFormSheet({
               ) : null}
               {pricingQuery.data?.discountOk === false && appliedCode ? (
                 <Text className="text-xs text-red-600 mb-2">
-                  {t('booking:applyFailed')}
+                  {resolveDiscountRejectionMessage(
+                    pricingQuery.data?.discountRejection?.messageKey,
+                    t
+                  )}
                 </Text>
               ) : null}
               <View className="mt-3 gap-1 border-t border-slate-100 pt-3">
@@ -676,69 +710,99 @@ export function PassengerFormSheet({
               </View>
             </View>
 
-            {/* Payment Method Selector */}
-            <View className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs mb-4">
-              <Text className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">
-                {t('booking:selectPaymentMethod')}
-              </Text>
-
-              <View className="gap-2.5">
-                {/* Option 1: Wallet Balance */}
-                <Pressable
-                  onPress={() => setPaymentMethod('WALLET')}
-                  className={`p-3.5 rounded-xl border flex-row items-center justify-between ${
-                    paymentMethod === 'WALLET'
-                      ? 'bg-pink-50/60 border-[#ee237c]'
-                      : 'bg-slate-50 border-slate-200'
-                  }`}
-                >
-                  <View className="flex-row items-center flex-1 mr-2">
-                    <View className="w-9 h-9 rounded-full bg-pink-100 items-center justify-center mr-3">
-                      <HugeiconsIcon icon={Wallet01Icon} size={20} color="#ee237c" />
-                    </View>
-                    <View className="flex-1">
-                      <View className="flex-row items-center gap-1.5">
-                        <Text className="text-sm font-black text-slate-900">{t('booking:mojaWallet')}</Text>
-                        <View className="bg-emerald-100 px-2 py-0.5 rounded-full">
-                          <Text className="text-emerald-800 text-xs font-bold">{t('booking:zeroFee')}</Text>
-                        </View>
-                      </View>
-                      <Text className="text-xs text-slate-500 mt-0.5">
-                        {t('booking:available')}: {formatPriceXOF(walletBalance)}
-                      </Text>
-                    </View>
-                  </View>
-                  {paymentMethod === 'WALLET' ? (
-                    <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#ee237c" />
-                  ) : null}
-                </Pressable>
-
-                {/* Option 2: Paystack (Card / Mobile Money) */}
-                <Pressable
-                  onPress={() => setPaymentMethod('PAYSTACK')}
-                  className={`p-3.5 rounded-xl border flex-row items-center justify-between ${
-                    paymentMethod === 'PAYSTACK'
-                      ? 'bg-pink-50/60 border-[#ee237c]'
-                      : 'bg-slate-50 border-slate-200'
-                  }`}
-                >
-                  <View className="flex-row items-center flex-1 mr-2">
-                    <View className="w-9 h-9 rounded-full bg-slate-200 items-center justify-center mr-3">
-                      <HugeiconsIcon icon={CreditCardIcon} size={20} color={Colors.light.text} />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-sm font-black text-slate-900">{t('booking:cardMobileMoney')}</Text>
-                      <Text className="text-xs text-slate-500 mt-0.5">
-                        {t('booking:paystackCheckout')}
-                      </Text>
-                    </View>
-                  </View>
-                  {paymentMethod === 'PAYSTACK' ? (
-                    <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#ee237c" />
-                  ) : null}
-                </Pressable>
+            {/* Payment Method Selector or 100% Promo Covered Banner */}
+            {isZeroCash ? (
+              <View className="bg-emerald-50 rounded-2xl border border-emerald-200 p-4 shadow-xs mb-4">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <HugeiconsIcon icon={SparklesIcon} size={18} color="#059669" />
+                  <Text className="text-sm font-black text-emerald-900">
+                    {t('booking:freeCoverTitle')}
+                  </Text>
+                </View>
+                <Text className="text-xs text-emerald-700 leading-relaxed">
+                  {t('booking:freeCoverBody')}
+                </Text>
               </View>
-            </View>
+            ) : (
+              <View className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs mb-4">
+                <Text className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">
+                  {t('booking:selectPaymentMethod')}
+                </Text>
+
+                <View className="gap-2.5">
+                  {/* Option 1: Wallet Balance */}
+                  <Pressable
+                    onPress={() => setPaymentMethod('WALLET')}
+                    className={`p-3.5 rounded-xl border flex-row items-center justify-between ${
+                      paymentMethod === 'WALLET'
+                        ? 'bg-pink-50/60 border-[#ee237c]'
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <View className="flex-row items-center flex-1 mr-2">
+                      <View className="w-9 h-9 rounded-full bg-pink-100 items-center justify-center mr-3">
+                        <HugeiconsIcon icon={Wallet01Icon} size={20} color="#ee237c" />
+                      </View>
+                      <View className="flex-1">
+                        <View className="flex-row items-center gap-1.5">
+                          <Text className="text-sm font-black text-slate-900">{t('booking:mojaWallet')}</Text>
+                          <View className="bg-emerald-100 px-2 py-0.5 rounded-full">
+                            <Text className="text-emerald-800 text-xs font-bold">{t('booking:zeroFee')}</Text>
+                          </View>
+                        </View>
+                        <Text className="text-xs text-slate-500 mt-0.5">
+                          {t('booking:available')}: {formatPriceXOF(walletBalance)}
+                        </Text>
+                        {paymentMethod === 'WALLET' && walletBalance < totalAmountXOF ? (
+                          <Text className="text-xs text-amber-600 font-semibold mt-1">
+                            {t('booking:walletShortfall', {
+                              short: formatPriceXOF(totalAmountXOF - walletBalance),
+                            })}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+                    {paymentMethod === 'WALLET' ? (
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#ee237c" />
+                    ) : null}
+                  </Pressable>
+
+                  {/* Option 2: Paystack (Card / Mobile Money) */}
+                  <Pressable
+                    onPress={() => setPaymentMethod('PAYSTACK')}
+                    className={`p-3.5 rounded-xl border flex-row items-center justify-between ${
+                      paymentMethod === 'PAYSTACK'
+                        ? 'bg-pink-50/60 border-[#ee237c]'
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <View className="flex-row items-center flex-1 mr-2">
+                      <View className="w-9 h-9 rounded-full bg-slate-200 items-center justify-center mr-3">
+                        <HugeiconsIcon icon={CreditCardIcon} size={20} color={Colors.light.text} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-sm font-black text-slate-900">{t('booking:cardMobileMoney')}</Text>
+                        <Text className="text-xs text-slate-500 mt-0.5">
+                          {t('booking:paystackCheckout')}
+                        </Text>
+                      </View>
+                    </View>
+                    {paymentMethod === 'PAYSTACK' ? (
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#ee237c" />
+                    ) : null}
+                  </Pressable>
+                </View>
+
+                {/* Fee-waiver nudge if Paystack selected but wallet could cover */}
+                {paymentMethod === 'PAYSTACK' && walletBalance >= totalAmountXOF ? (
+                  <View className="bg-slate-50 rounded-xl p-3 mt-3 border border-slate-100">
+                    <Text className="text-xs text-slate-500 text-center font-medium">
+                      {t('booking:walletFeeWaiverNudge')}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            )}
           </ScrollView>
 
           {/* Sticky Bottom Action Bar */}
@@ -773,7 +837,11 @@ export function PassengerFormSheet({
             >
               {isPending ? <ActivityIndicator size="small" color="white" /> : null}
               <Text className="text-white font-black text-base uppercase tracking-wider">
-                {isPending ? t('search:holdingSeats') : `${t('booking:confirmPayment')} (${formatPriceXOF(totalAmountXOF)})`}
+                {isPending
+                  ? t('search:holdingSeats')
+                  : isZeroCash
+                  ? t('booking:confirmFreeBooking')
+                  : `${t('booking:confirmPayment')} (${formatPriceXOF(totalAmountXOF)})`}
               </Text>
             </Pressable>
           </View>

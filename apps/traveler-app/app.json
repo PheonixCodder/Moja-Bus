@@ -11,7 +11,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "associatedDomains": ["applinks:mojaride.com"]
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +20,21 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.mojaride.traveler",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "mojaride.com",
+              "pathPrefix": "/r"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
