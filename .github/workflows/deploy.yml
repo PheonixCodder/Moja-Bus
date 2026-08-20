@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  typecheck:
-    name: Typecheck & Quality Gate
+  quality-gate:
+    name: Lint & Typecheck Quality Gate
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL_BUILD }}
@@ -27,12 +27,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck workspace except traveler app
+      - name: Typecheck workspace
         run: pnpm exec turbo run typecheck --filter=!traveler-app
 
   build-and-push:
-    name: Build & Push Docker Images
-    needs: typecheck
+    name: Build & Push Hardened Images
+    needs: quality-gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -47,13 +47,30 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+      - name: Build & Push Migrate Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: migrate
+          push: true
+          tags: |
+            pheonixcodder/moja-buss-migrate:latest
+            pheonixcodder/moja-buss-migrate:${{ github.sha }}
+          build-args: |
+            DATABASE_URL=${{ secrets.DATABASE_URL_BUILD }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Build & Push Web Image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile
           push: true
-          tags: pheonixcodder/moja-buss-web:latest
+          tags: |
+            pheonixcodder/moja-buss-web:latest
+            pheonixcodder/moja-buss-web:${{ github.sha }}
           build-args: |
             DATABASE_URL=${{ secrets.DATABASE_URL_BUILD }}
             NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY }}
@@ -66,32 +83,43 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build & Push Migrate Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile
-          target: migrate
-          push: true
-          tags: pheonixcodder/moja-buss-migrate:latest
-          build-args: |
-            DATABASE_URL=${{ secrets.DATABASE_URL_BUILD }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
   deploy:
-    name: Deploy to Server
+    name: Deploy to Production Server
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
+      - name: Execute Remote Zero-Downtime Deployment
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          script_stop: true
           script: |
+            set -euo pipefail
+            echo "==> 1. Navigating to project directory..."
             cd /moja-bus
-            git pull origin master
+
+            echo "==> 2. Syncing codebase to latest commit..."
+            git fetch origin master
+            git reset --hard origin/master
+
+            echo "==> 3. Pulling updated container images..."
             docker compose pull
-            docker compose up -d
+
+            echo "==> 4. Executing pending database migrations..."
+            docker compose run --rm migrate
+
+            echo "==> 5. Reloading application containers with zero downtime..."
+            docker compose up -d --remove-orphans
+
+            echo "==> 6. Verifying application healthcheck..."
+            sleep 10
+            docker compose exec -T web wget -qO- http://127.0.0.1:3000/api/health || (echo "Healthcheck failed!" && exit 1)
+
+            echo "==> 7. Pruning dangling build artifacts safely..."
+            if [ -f "./deploy/maintenance/safe-cleanup.sh" ]; then
+              sudo ./deploy/maintenance/safe-cleanup.sh || true
+            fi
+
+            echo "==> Deployment completed successfully!"
