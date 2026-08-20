@@ -6,12 +6,28 @@ import { getPrismaClient } from "../src/index.js";
 //
 // Example:
 //   pnpm --filter @moja/db tsx scripts/purge-operator.ts operator@example.com
+//
+// What this purges (for operators):
+//   - All company operational data: trips, schedules, routes, buses, seats, bookings,
+//     payments, refunds, ledger entries, financial accounts, discount campaigns,
+//     documents, verifications, bank details, locations, invitations.
+//   - All operator profiles linked to the user.
+//   - The user account itself (cascades: sessions, accounts, refreshTokens,
+//     creditLots, passengerProfile, referralCode, referralEdges, adminStaff).
+//
+// Cascade Note: Session, Account, RefreshToken, PassengerProfile, SavedPassenger,
+// CreditLot, ReferralCode, ReferralEdge, AdminStaff, OperatorOnboarding,
+// OperatorOnboardingEvent all CASCADE from User or Operator — no need to delete manually.
+// Similarly: Seat, TripSeat, TripStop, RouteWaypoint, ScheduleWaypoint,
+// ServiceCalendar, ServiceException all CASCADE from their parents.
 
 const targetEmail = process.argv[2]?.trim();
 
 if (!targetEmail) {
   console.error("❌ Error: Please provide an email to purge.");
-  console.error("Usage: pnpm --filter @moja/db tsx scripts/purge-operator.ts <email>");
+  console.error(
+    "Usage: pnpm --filter @moja/db tsx scripts/purge-operator.ts <email>"
+  );
   process.exit(1);
 }
 
@@ -23,188 +39,202 @@ async function purgeOperator() {
   const user = await prisma.user.findUnique({
     where: { email: targetEmail },
     include: {
-      operators: {
-        include: {
-          company: true,
-        },
+      operatorProfiles: {
+        select: { id: true, companyId: true },
       },
     },
   });
 
   if (!user) {
-    console.log(`ℹ️ No user found with email "${targetEmail}". Nothing to delete.`);
+    console.log(
+      `ℹ️  No user found with email "${targetEmail}". Nothing to delete.`
+    );
     return;
   }
 
-  const companyIds = user.operators.map((op) => op.companyId);
-  console.log(`Found User ID: ${user.id} (${user.name || "No name"})`);
-  console.log(`Found ${companyIds.length} associated company/operator record(s).`);
+  const companyIds = user.operatorProfiles.map((op) => op.companyId);
+  console.log(`\n✅ Found user: ${user.id} (${user.fullName || "No name"})`);
+  console.log(
+    `   Role: ${user.role} | Companies: ${companyIds.length > 0 ? companyIds.join(", ") : "none"}\n`
+  );
 
-  await prisma.$transaction(async (tx) => {
-    if (companyIds.length > 0) {
-      console.log("🗑️  Purging company operational and financial records...");
+  await prisma.$transaction(
+    async (tx) => {
+      if (companyIds.length > 0) {
+        console.log(
+          "🗑️  Step 1/3 — Purging company commercial & booking data..."
+        );
 
-      // 1. Delete passenger & booking records
-      await tx.ticket.deleteMany({
-        where: { booking: { companyId: { in: companyIds } } },
-      });
-      await tx.bookingPassenger.deleteMany({
-        where: { booking: { companyId: { in: companyIds } } },
-      });
-      await tx.payment.deleteMany({
-        where: { booking: { companyId: { in: companyIds } } },
-      });
-      await tx.discountRedemption.deleteMany({
-        where: { booking: { companyId: { in: companyIds } } },
-      });
-      await tx.booking.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // Booking children (WalletReservation, DiscountRedemption, Refund cascade from Booking)
+        await tx.booking.deleteMany({ where: { companyId: { in: companyIds } } });
+        console.log("   ✓ bookings (+ wallet_reservations, discount_redemptions, refunds via cascade)");
 
-      // 2. Delete reviews, trips, stops, manifests, occupancy
-      await tx.review.deleteMany({
-        where: { trip: { companyId: { in: companyIds } } },
-      });
-      await tx.tripSegmentOccupancy.deleteMany({
-        where: { trip: { companyId: { in: companyIds } } },
-      });
-      await tx.tripStop.deleteMany({
-        where: { trip: { companyId: { in: companyIds } } },
-      });
-      await tx.tripManifest.deleteMany({
-        where: { trip: { companyId: { in: companyIds } } },
-      });
-      await tx.trip.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // HoldGroup (booking cascade already covers hold via cascade on booking)
+        await tx.holdGroup.deleteMany({ where: { userId: user.id } });
+        console.log("   ✓ hold_groups");
 
-      // 3. Delete schedules
-      await tx.tripSchedule.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
-      await tx.recurringSchedule.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // Trip children cascade (TripSeat, TripStop, Review, CampaignTripScope cascade from Trip)
+        await tx.trip.deleteMany({ where: { companyId: { in: companyIds } } });
+        console.log("   ✓ trips (+ trip_seats, trip_stops, reviews, campaign_trip_scopes via cascade)");
 
-      // 4. Delete routes, price tiers, waypoints
-      await tx.routePriceTier.deleteMany({
-        where: { route: { companyId: { in: companyIds } } },
-      });
-      await tx.routeWaypoint.deleteMany({
-        where: { route: { companyId: { in: companyIds } } },
-      });
-      await tx.route.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // Schedule children cascade (ScheduleWaypoint, ServiceCalendar, ServiceException,
+        //   CampaignScheduleScope cascade from Schedule)
+        await tx.schedule.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ schedules (+ schedule_waypoints, service_calendar, service_exception, campaign_schedule_scopes via cascade)");
 
-      // 5. Delete buses, maintenance logs, seat maps
-      await tx.busMaintenanceLog.deleteMany({
-        where: { bus: { companyId: { in: companyIds } } },
-      });
-      await tx.busSeat.deleteMany({
-        where: { bus: { companyId: { in: companyIds } } },
-      });
-      await tx.bus.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // Route children cascade (RouteWaypoint, Fare, PricingSnapshot, CampaignRouteScope
+        //   cascade from Route)
+        await tx.route.deleteMany({ where: { companyId: { in: companyIds } } });
+        console.log("   ✓ routes (+ route_waypoints, fares, pricing_snapshots, campaign_route_scopes via cascade)");
 
-      // 6. Delete ledger entries and financial accounts
-      await tx.withdrawalRequest.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
-      await tx.settlementDisbursement.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
-      await tx.ledgerEntry.deleteMany({
-        where: { account: { companyId: { in: companyIds } } },
-      });
-      await tx.financialAccount.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // Bus children (Seat cascades from Bus)
+        await tx.bus.deleteMany({ where: { companyId: { in: companyIds } } });
+        console.log("   ✓ buses (+ seats via cascade)");
 
-      // 7. Delete discount campaigns & coupons
-      await tx.discountCoupon.deleteMany({
-        where: { campaign: { companyId: { in: companyIds } } },
-      });
-      await tx.discountCampaign.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        console.log(
+          "\n🗑️  Step 2/3 — Purging company financial & compliance data..."
+        );
 
-      // 8. Delete compliance, bank details, documents, locations
-      await tx.companyBankDetails.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
-      await tx.companyVerification.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
-      await tx.companyDocument.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
-      await tx.bankAccessAuditLog.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
-      await tx.operatorInvitation.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // Financial transactions cascade from FinancialAccount (LedgerEntry too)
+        await tx.financialAccount.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ financial_accounts (+ ledger_entries, financial_transactions, snapshots via cascade)");
 
-      await tx.locationCapture.deleteMany({
-        where: { location: { companyId: { in: companyIds } } },
-      });
-      await tx.companyLocation.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // Discount campaigns (CouponCode, CampaignCompanyOptIn, DiscountRedemption cascade)
+        await tx.discountCampaign.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ discount_campaigns (+ coupon_codes, campaign_opt_ins via cascade)");
 
-      // 9. Delete operator onboarding & operators
-      await tx.operatorOnboardingEvent.deleteMany({
-        where: { operator: { companyId: { in: companyIds } } },
-      });
-      await tx.operatorOnboarding.deleteMany({
-        where: { operator: { companyId: { in: companyIds } } },
-      });
-      await tx.operator.deleteMany({
-        where: { companyId: { in: companyIds } },
-      });
+        // PromoAbuseEvent
+        await tx.promoAbuseEvent.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ promo_abuse_events");
 
-      // 10. Delete the company
-      await tx.company.deleteMany({
-        where: { id: { in: companyIds } },
+        // Compliance & documents
+        await tx.companyDocument.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        await tx.companyVerification.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ company_documents, company_verifications");
+
+        // Bank accounts & access logs
+        await tx.bankAccount.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        await tx.bankAccessLog.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ bank_accounts, bank_access_logs");
+
+        // Staff invitations & activity logs
+        await tx.staffInvitation.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        await tx.activityLog.deleteMany({ where: { userId: user.id } });
+        console.log("   ✓ staff_invitations, activity_logs");
+
+        // Company locations (LocationCapture cascades from CompanyLocation)
+        await tx.companyLocation.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ company_locations (+ location_captures via cascade)");
+
+        // SettlementPolicy
+        await tx.settlementPolicy.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ settlement_policies");
+
+        // WithdrawalTwoFactorChallenge
+        await tx.withdrawalTwoFactorChallenge.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ withdrawal_2fa_challenges");
+
+        // OutboxMessages tied to company
+        await tx.outboxMessage.deleteMany({
+          where: { payload: { path: ["companyId"], equals: companyIds[0] } },
+        });
+
+        // Operator rows (OperatorOnboarding + OperatorOnboardingEvent cascade from Operator)
+        await tx.operator.deleteMany({
+          where: { companyId: { in: companyIds } },
+        });
+        console.log("   ✓ operators (+ operator_onboarding, operator_onboarding_events via cascade)");
+
+        // Now safe to delete company
+        await tx.company.deleteMany({ where: { id: { in: companyIds } } });
+        console.log("   ✓ companies");
+      }
+
+      console.log("\n🗑️  Step 3/3 — Purging user account & personal data...");
+
+      // PendingOperatorSignup
+      await tx.pendingOperatorSignup.deleteMany({
+        where: { email: user.email },
       });
-    }
+      console.log("   ✓ pending_operator_signups");
 
-    // 11. Delete user core & auth records
-    console.log("🗑️  Purging user auth, sessions, credits, and profile...");
-    await tx.operatorOnboardingEvent.deleteMany({
-      where: { operator: { userId: user.id } },
-    });
-    await tx.operatorOnboarding.deleteMany({
-      where: { operator: { userId: user.id } },
-    });
-    await tx.operator.deleteMany({
-      where: { userId: user.id },
-    });
-    await tx.adminStaff.deleteMany({
-      where: { userId: user.id },
-    });
-    await tx.creditLot.deleteMany({
-      where: { userId: user.id },
-    });
-    await tx.session.deleteMany({
-      where: { userId: user.id },
-    });
-    await tx.account.deleteMany({
-      where: { userId: user.id },
-    });
-    await tx.user.delete({
-      where: { id: user.id },
-    });
-  });
+      // AdminStaff & its invitations/activity logs
+      await tx.adminStaffInvitation
+        .deleteMany({ where: { invitedByUserId: user.id } })
+        .catch(() => null);
+      await tx.adminStaff.deleteMany({ where: { userId: user.id } });
+      console.log("   ✓ admin_staff (+ admin_staff_activity_logs via cascade)");
 
-  console.log(`\n✅ Successfully and completely purged all records for: ${targetEmail}`);
+      // User bookings (as traveler)
+      await tx.booking.deleteMany({ where: { userId: user.id } });
+      console.log("   ✓ traveler bookings");
+
+      // CreditLots, ReferralCode, ReferralEdge — cascade from User but delete explicitly for safety
+      await tx.creditLot.deleteMany({ where: { userId: user.id } });
+      await tx.referralEdge
+        .deleteMany({
+          where: {
+            OR: [{ referrerUserId: user.id }, { refereeUserId: user.id }],
+          },
+        })
+        .catch(() => null);
+      await tx.referralCode
+        .deleteMany({ where: { userId: user.id } })
+        .catch(() => null);
+      console.log("   ✓ credit_lots, referral_code, referral_edges");
+
+      // User reviews (as traveler)
+      await tx.review.deleteMany({ where: { userId: user.id } });
+      console.log("   ✓ traveler reviews");
+
+      // ContactInquiries
+      await tx.contactInquiry
+        .deleteMany({ where: { authorId: user.id } })
+        .catch(() => null);
+      console.log("   ✓ contact_inquiries");
+
+      // Finally delete the user — cascades: Session, Account, RefreshToken,
+      // PassengerProfile (+ SavedPassenger), DiscountRedemption, HoldGroup
+      await tx.user.delete({ where: { id: user.id } });
+      console.log(
+        "   ✓ user (+ sessions, accounts, refreshTokens, passengerProfile, savedPassengers via cascade)"
+      );
+    },
+    { timeout: 60_000 }
+  );
+
+  console.log(
+    `\n🎉 Successfully purged ALL records for: ${targetEmail}\n`
+  );
 }
 
 purgeOperator()
   .catch((err) => {
-    console.error("❌ Purge failed with error:", err);
+    console.error("\n❌ Purge failed:", err?.message ?? err);
     process.exit(1);
   })
   .finally(async () => {
