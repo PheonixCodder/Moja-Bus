@@ -16,6 +16,7 @@ import {
 import { OperatorPromotionDrawer, type PromoDrawerTab } from "../components/promotions/operator-promotion-drawer";
 import { OperatorPromotionOptInsCard } from "../components/promotions/operator-promotion-opt-ins-card";
 import { OperatorPageHeader } from "../components/operator-page-header";
+import { useTranslations } from "next-intl";
 
 export function OperatorPromotionsView() {
   const t = useTranslations("operatorDashboard.promotions");

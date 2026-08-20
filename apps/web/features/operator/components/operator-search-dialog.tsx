@@ -17,6 +17,7 @@ import {
   Ticket,
 } from "lucide-react";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Command,

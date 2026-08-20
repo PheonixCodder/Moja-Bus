@@ -33,7 +33,7 @@ function StatusBadge({ booking }: { booking: PassengerBookingSummary }) {
         variant="outline"
         className={cn(
           "text-xs font-semibold px-2.5 py-0.5",
-          countdown?.isUrgent
+          countdown?.expired === false
             ? "bg-rose-50 text-rose-700 border-rose-200 animate-pulse"
             : "bg-amber-50 text-amber-800 border-amber-200",
         )}

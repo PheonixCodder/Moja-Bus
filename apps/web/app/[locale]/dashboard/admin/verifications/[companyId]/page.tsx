@@ -40,7 +40,7 @@ export default async function VerificationDetailsPage({
         breadcrumbs={[
           { label: "Admin", tKey: "overview.breadcrumb.admin" },
           { label: "Verification Queue", tKey: "nav.verifications", href: "/dashboard/admin/verifications" },
-          { label: "{t("title")}", tKey: "overview.breadcrumb.operatorDetails" },
+          { label: t("title"), tKey: "overview.breadcrumb.operatorDetails" },
         ]}
       />
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

@@ -25,6 +25,7 @@ import {
 import { Search, Plus, MoreHorizontal, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { BannerFormDialog, type PromoBanner } from "../components/content/banner-form-dialog";
 
 export function AdminBannersView() {

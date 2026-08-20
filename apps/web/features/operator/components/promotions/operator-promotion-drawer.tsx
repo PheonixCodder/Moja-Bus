@@ -16,6 +16,7 @@ import { OperatorPromotionDrawerSettings } from "./operator-promotion-drawer-set
 import { OperatorPromotionDrawerRedemptions } from "./operator-promotion-drawer-redemptions";
 import type { CouponRow } from "@/features/discounts/components/campaign-coupons-panel";
 import type { RouteOption, ScopeOption } from "@/features/discounts/components/campaign-settings-editor";
+import { useTranslations } from "next-intl";
 
 export type PromoDrawerTab = "codes" | "settings" | "redemptions";
 

@@ -17,6 +17,7 @@ import { PersonalProfileDrawer } from "./drawers/personal-profile-drawer";
 import { SettingsSectionSkeleton } from "./ui/settings-skeleton";
 import { SettingsSectionError } from "./ui/settings-error";
 import { NotificationPreferences } from "@/features/notifications/components/notification-preferences";
+import { useTranslations } from "next-intl";
 
 const actionEnum = parseAsStringEnum([
   "edit-profile",

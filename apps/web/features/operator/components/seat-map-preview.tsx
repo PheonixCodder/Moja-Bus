@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
+import { useTranslations } from "next-intl";
 
 type Seat = NonNullable<
   RouterOutputs["fleet"]["getBusDetails"]

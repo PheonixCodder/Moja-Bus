@@ -38,12 +38,11 @@ export function ReferralJoinView({ code }: Props) {
     trpc.discounts.applyReferralCode.mutationOptions({
       onSuccess: (res) => {
         setApplied(true);
-        if (res.ok) {
-          toast.success(res.message);
-          router.push("/search");
-        } else {
-          toast.error(res.message);
-        }
+        const msg = res.welcomeCouponCode
+          ? t("successWithCoupon", { code: res.welcomeCouponCode })
+          : t("success");
+        toast.success(msg);
+        router.push("/search");
       },
       onError: (err) => {
         toast.error(err.message || "Could not apply referral code");

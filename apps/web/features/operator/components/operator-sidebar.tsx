@@ -433,6 +433,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

@@ -12,8 +12,8 @@ interface LedgerPageProps {
 }
 
 export const metadata = {
-  title: "{t("title")} — Moja Ride Admin",
-  description: "{t("description")}",
+  title: "Ledger — Moja Ride Admin",
+  description: "View and manage all financial ledger entries.",
 };
 
 export default async function LedgerPage({ searchParams }: LedgerPageProps) {

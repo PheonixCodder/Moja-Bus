@@ -72,6 +72,7 @@ export function AddBusModal({
 }: AddBusModalProps) {
   const t = useTranslations("operatorDashboard.fleet.addBusDrawer");
   const tLayouts = useTranslations("operatorDashboard.fleet.layouts");
+  const tc = useTranslations("common");
   const isEditing = !!editingBus;
 
   const queryClient = useQueryClient();

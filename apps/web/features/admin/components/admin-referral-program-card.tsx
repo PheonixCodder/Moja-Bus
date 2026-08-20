@@ -15,6 +15,7 @@ import {
 import { Switch } from "@moja/ui/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { InfoTooltip } from "@/features/discounts/components/info-tooltip";

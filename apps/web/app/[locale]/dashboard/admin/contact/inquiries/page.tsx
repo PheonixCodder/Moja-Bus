@@ -7,9 +7,8 @@ import { AdminInquiriesView } from "@/features/admin/views/admin-inquiries-view"
 import { HydrateClient, prefetch, trpc } from "@/trpc/server";
 
 export const metadata = {
-  title: "{t("title")} — Moja Ride Admin",
-  description:
-    "{t("description")}",
+  title: "Contact Inquiries — Moja Ride Admin",
+  description: "Manage and respond to contact inquiries submitted by users.",
 };
 
 export default async function AdminInquiriesPage({

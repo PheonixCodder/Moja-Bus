@@ -9,6 +9,7 @@ import {
   Popup,
 } from "react-leaflet";
 import L from "leaflet";
+import { useTranslations } from "next-intl";
 
 // Minimal shape accepted by the shared route map. Both the operator route
 // editors and the passenger booking surfaces map their own data into this.

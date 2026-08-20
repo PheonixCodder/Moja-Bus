@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -81,17 +81,15 @@ const TABS = [
   },
 ] as const;
 
-const POPULAR = ["Abidjan", "Yamoussoukro", "San Pedro", "Bouaké", "Korhogo"];
+const POPULAR = ["Abidjan", "Yamoussoukro", "San Pedro", "Bouake", "Korhogo"];
 
 export function HeroSearchBar() {
   const t = useTranslations("landing.hero");
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("buses");
-  
-  // For buses
+
   const [origin, setOrigin] = useState<CityValue>({ id: "", text: "" });
   const [destination, setDestination] = useState<CityValue>({ id: "", text: "" });
-  
   const [date, setDate] = useState(todayISO());
   const [travelers, setTravelers] = useState(1);
 
@@ -102,25 +100,10 @@ export function HeroSearchBar() {
     if (activeTab === "buses") {
       const originVal = origin.id || origin.text.trim();
       const destVal = destination.id || destination.text.trim();
-
-      if (!originVal) {
-        toast.error(t("validation.noOrigin"));
-        return;
-      }
-      if (!destVal) {
-        toast.error(t("validation.noDestination"));
-        return;
-      }
-      if (originVal === destVal) {
-        toast.error(t("validation.sameCity"));
-        return;
-      }
-      const params = new URLSearchParams({
-        from: originVal,
-        to: destVal,
-        date,
-        passengers: String(travelers),
-      });
+      if (!originVal) { toast.error(t("validation.noOrigin")); return; }
+      if (!destVal) { toast.error(t("validation.noDestination")); return; }
+      if (originVal === destVal) { toast.error(t("validation.sameCity")); return; }
+      const params = new URLSearchParams({ from: originVal, to: destVal, date, passengers: String(travelers) });
       router.push(`/search?${params.toString()}`);
     } else {
       toast.info(`${tab.label} booking is coming soon!`);
@@ -129,7 +112,6 @@ export function HeroSearchBar() {
 
   return (
     <div className="w-full">
-      {/* Booking type tabs */}
       <div className="flex overflow-x-auto scrollbar-hide border-b border-slate-100 rounded-t-xl">
         {TABS.map((item) => (
           <button
@@ -155,7 +137,6 @@ export function HeroSearchBar() {
         ))}
       </div>
 
-      {/* Search form */}
       <AnimatePresence mode="popLayout">
         <motion.form
           key={activeTab}
@@ -169,107 +150,80 @@ export function HeroSearchBar() {
           {activeTab === "buses" ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                {/* From Field */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-[#ee237c]" />
                     {t("from")}
                   </label>
-                  <CityAutocompleteField
-                    value={origin}
-                    onChange={setOrigin}
-                    placeholder={t("departurePlaceholder")}
-                  />
+                  <CityAutocompleteField value={origin} onChange={setOrigin} placeholder={t("departurePlaceholder")} />
                 </div>
 
-                {/* To Field */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-[#ee237c]" />
                     {t("to")}
                   </label>
-                  <CityAutocompleteField
-                    value={destination}
-                    onChange={setDestination}
-                    placeholder={t("destinationPlaceholder")}
-                  />
+                  <CityAutocompleteField value={destination} onChange={setDestination} placeholder={t("destinationPlaceholder")} />
                 </div>
 
-                {/* Date Field */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#ee237c]" />
                     {t("date")}
                   </label>
                   <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/20 transition-all text-left shadow-xs h-10"
-                      >
-                        <span className="truncate">
-                          {date ? format(parseLocalDate(date)!, "d MMM yyyy") : t("pickDate")}
-                        </span>
-                        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                      </button>
+                    <PopoverTrigger
+                      render={
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/20 transition-all text-left shadow-xs h-10"
+                        />
+                      }
+                    >
+                      <span className="truncate">
+                        {date ? format(parseLocalDate(date)!, "d MMM yyyy") : t("pickDate")}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 rounded-2xl shadow-xl border-slate-100" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={parseLocalDate(date)}
                         onSelect={(newDate) => {
-                          if (newDate) {
-                            setDate(format(newDate, "yyyy-MM-dd"));
-                          }
+                          if (newDate) setDate(format(newDate, "yyyy-MM-dd"));
                         }}
                         disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
-                        initialFocus
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
 
-                {/* Travelers Field */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5 text-[#ee237c]" />
                     {t("passengers")}
                   </label>
                   <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/20 transition-all text-left shadow-xs h-10"
-                      >
-                        <span className="truncate">
-                          {travelers === 1 ? t("guest", { count: 1 }) : t("guests", { count: travelers })}
-                        </span>
-                        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                      </button>
+                    <PopoverTrigger
+                      render={
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/20 transition-all text-left shadow-xs h-10"
+                        />
+                      }
+                    >
+                      <span className="truncate">
+                        {travelers === 1 ? t("guest", { count: 1 }) : t("guests", { count: travelers })}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                     </PopoverTrigger>
                     <PopoverContent className="w-48 p-3 rounded-2xl shadow-xl border-slate-100" align="start">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-slate-700">{t("passengers")}</span>
                         <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setTravelers(Math.max(1, travelers - 1))}
-                            disabled={travelers <= 1}
-                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold"
-                          >
-                            -
-                          </button>
-                          <span className="w-4 text-center text-sm font-semibold text-slate-900">
-                            {travelers}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setTravelers(Math.min(9, travelers + 1))}
-                            disabled={travelers >= 9}
-                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold"
-                          >
-                            +
-                          </button>
+                          <button type="button" onClick={() => setTravelers(Math.max(1, travelers - 1))} disabled={travelers <= 1} className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold">-</button>
+                          <span className="w-4 text-center text-sm font-semibold text-slate-900">{travelers}</span>
+                          <button type="button" onClick={() => setTravelers(Math.min(9, travelers + 1))} disabled={travelers >= 9} className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold">+</button>
                         </div>
                       </div>
                     </PopoverContent>
@@ -277,26 +231,16 @@ export function HeroSearchBar() {
                 </div>
               </div>
 
-              {/* Bottom bar: popular routes & search button */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-100">
                 <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
                   <span className="text-xs text-slate-400 font-medium">{t("popular")}</span>
                   {POPULAR.map((city) => (
-                    <button
-                      key={city}
-                      type="button"
-                      onClick={() => setDestination({ id: city, text: city })}
-                      className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-[#ee237c]/10 hover:text-[#ee237c] font-medium transition-colors"
-                    >
+                    <button key={city} type="button" onClick={() => setDestination({ id: city, text: city })} className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-[#ee237c]/10 hover:text-[#ee237c] font-medium transition-colors">
                       {city}
                     </button>
                   ))}
                 </div>
-
-                <Button
-                  type="submit"
-                  className="w-full sm:w-auto px-8 py-2.5 bg-[#ee237c] hover:bg-[#c71d65] text-white font-semibold text-sm rounded-xl shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 transition-all hover:shadow-xl hover:shadow-pink-500/30 shrink-0 h-10"
-                >
+                <Button type="submit" className="w-full sm:w-auto px-8 py-2.5 bg-[#ee237c] hover:bg-[#c71d65] text-white font-semibold text-sm rounded-xl shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 transition-all hover:shadow-xl hover:shadow-pink-500/30 shrink-0 h-10">
                   <Search className="w-4 h-4" />
                   {t("search")}
                 </Button>

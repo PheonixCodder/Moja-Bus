@@ -7,9 +7,8 @@ import { verificationsSearchParamsCache } from "@/features/admin/lib/search-para
 import { DashboardHeader } from "@/features/admin/components/dashboard-header";
 
 export const metadata = {
-  title: "{t("title")} — Moja Ride Admin",
-  description:
-    "{t("description")}",
+  title: "Verification Queue — Moja Ride Admin",
+  description: "Review and process operator verification requests.",
 };
 
 export default async function VerificationsQueuePage({
