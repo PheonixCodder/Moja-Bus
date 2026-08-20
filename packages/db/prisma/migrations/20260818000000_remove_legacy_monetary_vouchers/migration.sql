@@ -57,7 +57,7 @@ END $$;
 -- 4. Data Migration: If monetary_voucher table exists, migrate all active/valid vouchers into credit_lot
 DO $$
 BEGIN
-  IF to_regclass('public."monetary_voucher"') IS NOT NULL THEN
+  IF to_regclass('public."monetary_voucher"') IS NOT NULL AND EXISTS (SELECT 1 FROM "monetary_voucher") THEN
     EXECUTE $sql$
       INSERT INTO "credit_lot" (
         "id",
