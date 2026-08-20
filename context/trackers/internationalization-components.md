@@ -1,7 +1,7 @@
 # Internationalization Components Tracker
 
 > Tracker for confirming all UI components in `@apps/web/features/` have both French (FR) and English (EN) versions.
-> Last updated: 2026-08-01
+> Last updated: 2026-08-19
 
 ## Legend
 
@@ -128,7 +128,7 @@
 
 | # | Component | Path | FR | EN |
 |---|-----------|------|----|----|
-| 107 | auth-header | `auth/components/auth-header.tsx` | ✗ | ✗ |
+| 107 | auth-header | `auth/components/auth-header.tsx` | ✓ | ✓ |
 | 108 | passenger-auth-flow | `auth/components/passenger-auth-flow.tsx` | ✓ | ✓ |
 | 109 | login-view | `auth/views/login-view.tsx` | ✓ | ✓ |
 | 110 | operator-login-view | `auth/views/operator-login-view.tsx` | ✓ | ✓ |
@@ -138,9 +138,9 @@
 | # | Component | Path | FR | EN |
 |---|-----------|------|----|----|
 | 111 | blog-share-buttons | `blog/components/blog-share-buttons.tsx` | ✓ | ✓ |
-| 112 | blog-telemetry | `blog/components/blog-telemetry.tsx` | ✗ | ✗ |
+| 112 | blog-telemetry | `blog/components/blog-telemetry.tsx` | ✓ | ✓ |
 | 113 | booking-cta | `blog/components/booking-cta.tsx` | ✓ | ✓ |
-| 114 | blog-detail-view | `blog/views/blog-detail-view.tsx` | ✗ | ✗ |
+| 114 | blog-detail-view | `blog/views/blog-detail-view.tsx` | ✓ | ✓ |
 | 115 | blog-index-view | `blog/views/blog-index-view.tsx` | ✓ | ✓ |
 
 ## booking (18 files)
@@ -148,19 +148,19 @@
 | # | Component | Path | FR | EN |
 |---|-----------|------|----|----|
 | 116 | booking-card | `booking/components/booking-card.tsx` | ✓ | ✓ |
-| 117 | booking-checkout-form | `booking/components/booking-checkout-form.tsx` | ✗ | ✗ |
-| 118 | booking-context | `booking/components/booking-context.tsx` | ✗ | ✗ |
+| 117 | booking-checkout-form | `booking/components/booking-checkout-form.tsx` | ✓ | ✓ |
+| 118 | booking-context | `booking/components/booking-context.tsx` | ✓ | ✓ |
 | 119 | booking-details | `booking/components/booking-details.tsx` | ✓ | ✓ |
-| 120 | booking-dialog-flow | `booking/components/booking-dialog-flow.tsx` | ✗ | ✗ |
-| 121 | booking-dialog | `booking/components/booking-dialog.tsx` | ✗ | ✗ |
-| 122 | booking-kpi-strip | `booking/components/booking-kpi-strip.tsx` | ✗ | ✗ |
+| 120 | booking-dialog-flow | `booking/components/booking-dialog-flow.tsx` | ✓ | ✓ |
+| 121 | booking-dialog | `booking/components/booking-dialog.tsx` | ✓ | ✓ |
+| 122 | booking-kpi-strip | `booking/components/booking-kpi-strip.tsx` | ✓ | ✓ |
 | 123 | booking-list | `booking/components/booking-list.tsx` | ✓ | ✓ |
-| 124 | booking-route-map | `booking/components/booking-route-map.tsx` | ✗ | ✗ |
+| 124 | booking-route-map | `booking/components/booking-route-map.tsx` | ✓ | ✓ |
 | 125 | digital-ticket-card | `booking/components/digital-ticket-card.tsx` | ✓ | ✓ |
-| 126 | passenger-seat-map | `booking/components/passenger-seat-map.tsx` | ✗ | ✗ |
-| 127 | passenger-trip-card | `booking/components/passenger-trip-card.tsx` | ✗ | ✗ |
+| 126 | passenger-seat-map | `booking/components/passenger-seat-map.tsx` | ✓ | ✓ |
+| 127 | passenger-trip-card | `booking/components/passenger-trip-card.tsx` | ✓ | ✓ |
 | 128 | trip-summary-card | `booking/components/trip-summary-card.tsx` | ✓ | ✓ |
-| 129 | amenities | `booking/lib/amenities.tsx` | ✗ | ✗ |
+| 129 | amenities | `booking/lib/amenities.tsx` | ✓ | ✓ |
 | 130 | booking-success-view | `booking/views/booking-success-view.tsx` | ✓ | ✓ |
 | 131 | passenger-bookings-view | `booking/views/passenger-bookings-view.tsx` | ✓ | ✓ |
 | 132 | passenger-tickets-view | `booking/views/passenger-tickets-view.tsx` | ✓ | ✓ |
@@ -177,85 +177,85 @@
 | # | Component | Path | FR | EN |
 |---|-----------|------|----|----|
 | 135 | dashboard-header | `dashboard/components/dashboard-header.tsx` | ✓ | ✓ |
-| 136 | dashboard-quick-search | `dashboard/components/dashboard-quick-search.tsx` | ✗ | ✗ |
+| 136 | dashboard-quick-search | `dashboard/components/dashboard-quick-search.tsx` | ✓ | ✓ |
 | 137 | dashboard-sidebar | `dashboard/components/dashboard-sidebar.tsx` | ✓ | ✓ |
 | 138 | live-boarding-pass | `dashboard/components/live-boarding-pass.tsx` | ✓ | ✓ |
-| 139 | page-header | `dashboard/components/page-header.tsx` | ✗ | ✗ |
-| 140 | page-title-header | `dashboard/components/page-title-header.tsx` | ✗ | ✗ |
-| 141 | saved-companions | `dashboard/components/saved-companions.tsx` | ✗ | ✗ |
+| 139 | page-header | `dashboard/components/page-header.tsx` | ✓ | ✓ |
+| 140 | page-title-header | `dashboard/components/page-title-header.tsx` | ✓ | ✓ |
+| 141 | saved-companions | `dashboard/components/saved-companions.tsx` | ✓ | ✓ |
 | 142 | search-dialog | `dashboard/components/search-dialog.tsx` | ✓ | ✓ |
-| 143 | sessions-panel | `dashboard/components/sessions-panel.tsx` | ✗ | ✗ |
+| 143 | sessions-panel | `dashboard/components/sessions-panel.tsx` | ✓ | ✓ |
 | 144 | travel-stats-chart | `dashboard/components/travel-stats-chart.tsx` | ✓ | ✓ |
 | 145 | wallet-quick-deposit | `dashboard/components/wallet-quick-deposit.tsx` | ✓ | ✓ |
-| 146 | dashboard-view | `dashboard/views/dashboard-view.tsx` | ✗ | ✗ |
+| 146 | dashboard-view | `dashboard/views/dashboard-view.tsx` | ✓ | ✓ |
 
 ## home (14 files)
 
 | # | Component | Path | FR | EN |
 |---|-----------|------|----|----|
 | 147 | hero-search-bar-2 | `home/components/hero-search-bar-2.tsx` | ✓ | ✓ |
-| 148 | hero-search-bar | `home/components/hero-search-bar.tsx` | ✗ | ✗ |
-| 149 | home-cta | `home/components/home-cta.tsx` | ✗ | ✗ |
-| 150 | home-destinations | `home/components/home-destinations.tsx` | ✗ | ✗ |
+| 148 | hero-search-bar | `home/components/hero-search-bar.tsx` | ✓ | ✓ |
+| 149 | home-cta | `home/components/home-cta.tsx` | ✓ | ✓ |
+| 150 | home-destinations | `home/components/home-destinations.tsx` | ✓ | ✓ |
 | 151 | home-features | `home/components/home-features.tsx` | ✓ | ✓ |
-| 152 | home-footer | `home/components/home-footer.tsx` | ✗ | ✗ |
+| 152 | home-footer | `home/components/home-footer.tsx` | ✓ | ✓ |
 | 153 | home-header | `home/components/home-header.tsx` | ✓ | ✓ |
 
 > **2026-08-02:** home-header now uses locale-aware navigation primitives (`Link`, `usePathname` from `@/i18n/navigation`) — fixes FR-home transparent-hero state (`isHome` was `pathname === "/"` against the raw `/fr` path) and keeps nav links locale-prefixed. Added `LocaleSwitcher` (`components/locale-switcher.tsx`, extended with a `className` prop) to the desktop right section (color-adapted for the light hero state) and as a bottom row in the mobile menu. `locale.*` keys already existed in en/fr messages.
 | 154 | home-hero | `home/components/home-hero.tsx` | ✓ | ✓ |
-| 155 | home-how-it-works | `home/components/home-how-it-works.tsx` | ✗ | ✗ |
+| 155 | home-how-it-works | `home/components/home-how-it-works.tsx` | ✓ | ✓ |
 | 156 | home-operators-client | `home/components/home-operators-client.tsx` | ✓ | ✓ |
-| 157 | home-operators | `home/components/home-operators.tsx` | ✗ | ✗ |
-| 158 | home-testimonials | `home/components/home-testimonials.tsx` | ✗ | ✗ |
-| 159 | public-page-shell | `home/components/public-page-shell.tsx` | ✗ | ✗ |
+| 157 | home-operators | `home/components/home-operators.tsx` | ✓ | ✓ |
+| 158 | home-testimonials | `home/components/home-testimonials.tsx` | ✓ | ✓ |
+| 159 | public-page-shell | `home/components/public-page-shell.tsx` | ✓ | ✓ |
 | 160 | trustbar | `home/components/trustbar.tsx` | ✓ | ✓ |
 
 ## invitation (2 files)
 
 | # | Component | Path | FR | EN |
 |---|-----------|------|----|----|
-| 161 | invite-role-badge | `invitation/components/invite-role-badge.tsx` | ✗ | ✗ |
+| 161 | invite-role-badge | `invitation/components/invite-role-badge.tsx` | ✓ | ✓ |
 | 162 | invitation-view | `invitation/views/invitation-view.tsx` | ✓ | ✓ |
 
 ## notifications (2 files)
 
 | # | Component | Path | FR | EN |
 |---|-----------|------|----|----|
-| 163 | notification-inbox | `notifications/components/notification-inbox.tsx` | ✗ | ✗ |
-| 164 | notification-preferences | `notifications/components/notification-preferences.tsx` | ✗ | ✗ |
+| 163 | notification-inbox | `notifications/components/notification-inbox.tsx` | ✓ | ✓ |
+| 164 | notification-preferences | `notifications/components/notification-preferences.tsx` | ✓ | ✓ |
 
 ## operator (110 files)
 
 | # | Component | Path | FR | EN |
 |---|-----------|------|----|----|
-| 165 | access-denied-card | `operator/components/access-denied-card.tsx` | ✗ | ✗ |
-| 166 | add-bus-modal | `operator/components/add-bus-modal.tsx` | ✗ | ✗ |
+| 165 | access-denied-card | `operator/components/access-denied-card.tsx` | ✓ | ✓ |
+| 166 | add-bus-modal | `operator/components/add-bus-modal.tsx` | ✓ | ✓ |
 | 167 | layout-builder-sheet | `operator/components/layout-builder-sheet.tsx` | ✓ | ✓ |
-| 168 | operator-dashboard-header | `operator/components/operator-dashboard-header.tsx` | ✗ | ✗ |
-| 169 | operator-page-header | `operator/components/operator-page-header.tsx` | ✗ | ✗ |
-| 170 | operator-quick-actions | `operator/components/operator-quick-actions.tsx` | ✗ | ✗ |
-| 171 | operator-search-dialog | `operator/components/operator-search-dialog.tsx` | ✗ | ✗ |
-| 172 | operator-sidebar | `operator/components/operator-sidebar.tsx` | ✗ | ✗ |
-| 173 | route-map-preview | `operator/components/route-map-preview.tsx` | ✗ | ✗ |
-| 174 | seat-map-preview | `operator/components/seat-map-preview.tsx` | ✗ | ✗ |
-| 175 | stat-card | `operator/components/stat-card.tsx` | ✗ | ✗ |
+| 168 | operator-dashboard-header | `operator/components/operator-dashboard-header.tsx` | ✓ | ✓ |
+| 169 | operator-page-header | `operator/components/operator-page-header.tsx` | ✓ | ✓ |
+| 170 | operator-quick-actions | `operator/components/operator-quick-actions.tsx` | ✓ | ✓ |
+| 171 | operator-search-dialog | `operator/components/operator-search-dialog.tsx` | ✓ | ✓ |
+| 172 | operator-sidebar | `operator/components/operator-sidebar.tsx` | ✓ | ✓ |
+| 173 | route-map-preview | `operator/components/route-map-preview.tsx` | ✓ | ✓ |
+| 174 | seat-map-preview | `operator/components/seat-map-preview.tsx` | ✓ | ✓ |
+| 175 | stat-card | `operator/components/stat-card.tsx` | ✓ | ✓ |
 | 176 | ticket-scanner | `operator/components/ticket-scanner.tsx` | ✓ | ✓ |
 | 177 | booking-detail-drawer | `operator/components/bookings/booking-detail-drawer.tsx` | ✓ | ✓ |
-| 178 | booking-row | `operator/components/bookings/booking-row.tsx` | ✗ | ✗ |
+| 178 | booking-row | `operator/components/bookings/booking-row.tsx` | ✓ | ✓ |
 | 179 | bookings-list | `operator/components/bookings/bookings-list.tsx` | ✓ | ✓ |
-| 180 | check-in-badge | `operator/components/bookings/check-in-badge.tsx` | ✗ | ✗ |
+| 180 | check-in-badge | `operator/components/bookings/check-in-badge.tsx` | ✓ | ✓ |
 | 181 | add-bus-drawer | `operator/components/fleet/add-bus-drawer.tsx` | ✓ | ✓ |
 | 182 | add-bus-type-dialog | `operator/components/fleet/add-bus-type-dialog.tsx` | ✓ | ✓ |
-| 183 | bus-card | `operator/components/fleet/bus-card.tsx` | ✗ | ✗ |
-| 184 | bus-edit-modal | `operator/components/fleet/bus-edit-modal.tsx` | ✗ | ✗ |
-| 185 | buses-table | `operator/components/fleet/buses-table.tsx` | ✗ | ✗ |
-| 186 | delete-bus-dialog | `operator/components/fleet/delete-bus-dialog.tsx` | ✗ | ✗ |
-| 187 | seat-grid-matrix | `operator/components/fleet/seat-grid-matrix.tsx` | ✗ | ✗ |
-| 188 | seat-map-drawer | `operator/components/fleet/seat-map-drawer.tsx` | ✗ | ✗ |
+| 183 | bus-card | `operator/components/fleet/bus-card.tsx` | ✓ | ✓ |
+| 184 | bus-edit-modal | `operator/components/fleet/bus-edit-modal.tsx` | ✓ | ✓ |
+| 185 | buses-table | `operator/components/fleet/buses-table.tsx` | ✓ | ✓ |
+| 186 | delete-bus-dialog | `operator/components/fleet/delete-bus-dialog.tsx` | ✓ | ✓ |
+| 187 | seat-grid-matrix | `operator/components/fleet/seat-grid-matrix.tsx` | ✓ | ✓ |
+| 188 | seat-map-drawer | `operator/components/fleet/seat-map-drawer.tsx` | ✓ | ✓ |
 | 189 | bank-step | `operator/components/onboarding/bank-step.tsx` | ✓ | ✓ |
 | 190 | company-step | `operator/components/onboarding/company-step.tsx` | ✓ | ✓ |
 | 191 | documents-step | `operator/components/onboarding/documents-step.tsx` | ✓ | ✓ |
-| 192 | locations-step | `operator/components/onboarding/locations-step.tsx` | ✗ | ✗ |
+| 192 | locations-step | `operator/components/onboarding/locations-step.tsx` | ✓ | ✓ |
 | 193 | profile-step | `operator/components/onboarding/profile-step.tsx` | ✓ | ✓ |
 | 194 | terms-step | `operator/components/onboarding/terms-step.tsx` | ✓ | ✓ |
 | 195 | arrears-alert-banner | `operator/components/revenue/arrears-alert-banner.tsx` | ✓ | ✓ |
@@ -267,11 +267,11 @@
 | 201 | transaction-ledger-table | `operator/components/revenue/transaction-ledger-table.tsx` | ✓ | ✓ |
 | 202 | delete-route-dialog | `operator/components/routes/delete-route-dialog.tsx` | ✓ | ✓ |
 | 203 | route-card | `operator/components/routes/route-card.tsx` | ✓ | ✓ |
-| 204 | route-editor-sheet | `operator/components/routes/route-editor-sheet.tsx` | ✗ | ✗ |
+| 204 | route-editor-sheet | `operator/components/routes/route-editor-sheet.tsx` | ✓ | ✓ |
 | 205 | route-form-drawer | `operator/components/routes/route-form-drawer.tsx` | ✓ | ✓ |
 | 206 | route-success-panel | `operator/components/routes/route-success-panel.tsx` | ✓ | ✓ |
-| 207 | routes-table | `operator/components/routes/routes-table.tsx` | ✗ | ✗ |
-| 208 | sortable-waypoint | `operator/components/routes/sortable-waypoint.tsx` | ✗ | ✗ |
+| 207 | routes-table | `operator/components/routes/routes-table.tsx` | ✓ | ✓ |
+| 208 | sortable-waypoint | `operator/components/routes/sortable-waypoint.tsx` | ✓ | ✓ |
 | 209 | calendar-step | `operator/components/schedules/calendar-step.tsx` | ✓ | ✓ |
 | 210 | preview-step | `operator/components/schedules/preview-step.tsx` | ✓ | ✓ |
 | 211 | pricing-step | `operator/components/schedules/pricing-step.tsx` | ✓ | ✓ |
@@ -288,9 +288,9 @@
 | 222 | member-avatar | `operator/components/staff/member-avatar.tsx` | ✓ | ✓ |
 | 223 | permission-matrix | `operator/components/staff/permission-matrix.tsx` | ✓ | ✓ |
 | 224 | remove-staff-dialog | `operator/components/staff/remove-staff-dialog.tsx` | ✓ | ✓ |
-| 225 | role-badge | `operator/components/staff/role-badge.tsx` | ✗ | ✗ |
+| 225 | role-badge | `operator/components/staff/role-badge.tsx` | ✓ | ✓ |
 | 226 | role-sheet | `operator/components/staff/role-sheet.tsx` | ✓ | ✓ |
-| 227 | staff-activity-item | `operator/components/staff/staff-activity-item.tsx` | ✗ | ✗ |
+| 227 | staff-activity-item | `operator/components/staff/staff-activity-item.tsx` | ✓ | ✓ |
 | 228 | staff-activity-section | `operator/components/staff/staff-activity-section.tsx` | ✓ | ✓ |
 | 229 | staff-filters-toolbar | `operator/components/staff/staff-filters-toolbar.tsx` | ✓ | ✓ |
 | 230 | staff-invitation-card | `operator/components/staff/staff-invitation-card.tsx` | ✓ | ✓ |
@@ -298,34 +298,34 @@
 | 232 | staff-member-row | `operator/components/staff/staff-member-row.tsx` | ✓ | ✓ |
 | 233 | staff-members-section | `operator/components/staff/staff-members-section.tsx` | ✓ | ✓ |
 | 234 | staff-page-header | `operator/components/staff/staff-page-header.tsx` | ✓ | ✓ |
-| 235 | status-badge | `operator/components/staff/status-badge.tsx` | ✗ | ✗ |
+| 235 | status-badge | `operator/components/staff/status-badge.tsx` | ✓ | ✓ |
 | 236 | transfer-ownership-dialog | `operator/components/staff/transfer-ownership-dialog.tsx` | ✓ | ✓ |
 | 237 | terminal-editor-sheet | `operator/components/terminals/terminal-editor-sheet.tsx` | ✓ | ✓ |
 | 238 | terminals-table | `operator/components/terminals/terminals-table.tsx` | ✓ | ✓ |
 | 239 | manifest-drawer | `operator/components/trips/manifest-drawer.tsx` | ✓ | ✓ |
-| 240 | segment-occupancy | `operator/components/trips/segment-occupancy.tsx` | ✗ | ✗ |
+| 240 | segment-occupancy | `operator/components/trips/segment-occupancy.tsx` | ✓ | ✓ |
 | 241 | trip-card | `operator/components/trips/trip-card.tsx` | ✓ | ✓ |
 | 242 | trip-status-badge | `operator/components/trips/trip-status-badge.tsx` | ✓ | ✓ |
 | 243 | trips-toolbar | `operator/components/trips/trips-toolbar.tsx` | ✓ | ✓ |
-| 244 | bank-section | `operator/settings/components/bank-section.tsx` | ✗ | ✗ |
-| 245 | documents-section | `operator/settings/components/documents-section.tsx` | ✗ | ✗ |
-| 246 | health-score | `operator/settings/components/health-score.tsx` | ✗ | ✗ |
-| 247 | personal-profile-section | `operator/settings/components/personal-profile-section.tsx` | ✗ | ✗ |
-| 248 | profile-section | `operator/settings/components/profile-section.tsx` | ✗ | ✗ |
-| 249 | settings-hub | `operator/settings/components/settings-hub.tsx` | ✗ | ✗ |
-| 250 | settings-sidebar | `operator/settings/components/settings-sidebar.tsx` | ✗ | ✗ |
-| 251 | verification-pipeline | `operator/settings/components/verification-pipeline.tsx` | ✗ | ✗ |
-| 252 | bank-drawer | `operator/settings/components/drawers/bank-drawer.tsx` | ✗ | ✗ |
-| 253 | documents-drawer | `operator/settings/components/drawers/documents-drawer.tsx` | ✗ | ✗ |
-| 254 | personal-profile-drawer | `operator/settings/components/drawers/personal-profile-drawer.tsx` | ✗ | ✗ |
-| 255 | profile-drawer | `operator/settings/components/drawers/profile-drawer.tsx` | ✗ | ✗ |
-| 256 | verification-drawer | `operator/settings/components/drawers/verification-drawer.tsx` | ✗ | ✗ |
-| 257 | settings-error | `operator/settings/components/ui/settings-error.tsx` | ✗ | ✗ |
-| 258 | settings-skeleton | `operator/settings/components/ui/settings-skeleton.tsx` | ✗ | ✗ |
-| 259 | banking-view | `operator/settings/components/views/banking-view.tsx` | ✗ | ✗ |
-| 260 | company-profile-view | `operator/settings/components/views/company-profile-view.tsx` | ✗ | ✗ |
-| 261 | compliance-view | `operator/settings/components/views/compliance-view.tsx` | ✗ | ✗ |
-| 262 | personal-profile-view | `operator/settings/components/views/personal-profile-view.tsx` | ✗ | ✗ |
+| 244 | bank-section | `operator/settings/components/bank-section.tsx` | ✓ | ✓ |
+| 245 | documents-section | `operator/settings/components/documents-section.tsx` | ✓ | ✓ |
+| 246 | health-score | `operator/settings/components/health-score.tsx` | ✓ | ✓ |
+| 247 | personal-profile-section | `operator/settings/components/personal-profile-section.tsx` | ✓ | ✓ |
+| 248 | profile-section | `operator/settings/components/profile-section.tsx` | ✓ | ✓ |
+| 249 | settings-hub | `operator/settings/components/settings-hub.tsx` | ✓ | ✓ |
+| 250 | settings-sidebar | `operator/settings/components/settings-sidebar.tsx` | ✓ | ✓ |
+| 251 | verification-pipeline | `operator/settings/components/verification-pipeline.tsx` | ✓ | ✓ |
+| 252 | bank-drawer | `operator/settings/components/drawers/bank-drawer.tsx` | ✓ | ✓ |
+| 253 | documents-drawer | `operator/settings/components/drawers/documents-drawer.tsx` | ✓ | ✓ |
+| 254 | personal-profile-drawer | `operator/settings/components/drawers/personal-profile-drawer.tsx` | ✓ | ✓ |
+| 255 | profile-drawer | `operator/settings/components/drawers/profile-drawer.tsx` | ✓ | ✓ |
+| 256 | verification-drawer | `operator/settings/components/drawers/verification-drawer.tsx` | ✓ | ✓ |
+| 257 | settings-error | `operator/settings/components/ui/settings-error.tsx` | ✓ | ✓ |
+| 258 | settings-skeleton | `operator/settings/components/ui/settings-skeleton.tsx` | ✓ | ✓ |
+| 259 | banking-view | `operator/settings/components/views/banking-view.tsx` | ✓ | ✓ |
+| 260 | company-profile-view | `operator/settings/components/views/company-profile-view.tsx` | ✓ | ✓ |
+| 261 | compliance-view | `operator/settings/components/views/compliance-view.tsx` | ✓ | ✓ |
+| 262 | personal-profile-view | `operator/settings/components/views/personal-profile-view.tsx` | ✓ | ✓ |
 | 263 | operator-bookings-view | `operator/views/operator-bookings-view.tsx` | ✓ | ✓ |
 | 264 | operator-dashboard-view | `operator/views/operator-dashboard-view.tsx` | ✓ | ✓ |
 | 265 | operator-fleet-view | `operator/views/operator-fleet-view.tsx` | ✓ | ✓ |
@@ -370,7 +370,7 @@
 | 289 | search-empty-state | `search/components/search-empty-state.tsx` | ✓ | ✓ |
 | 290 | search-filters-sidebar | `search/components/search-filters-sidebar.tsx` | ✓ | ✓ |
 | 291 | search-form | `search/components/search-form.tsx` | ✓ | ✓ |
-| 292 | search-hero | `search/components/search-hero.tsx` | ✗ | ✗ |
+| 292 | search-hero | `search/components/search-hero.tsx` | ✓ | ✓ |
 | 293 | search-mobile-filters | `search/components/search-mobile-filters.tsx` | ✓ | ✓ |
 | 294 | search-page-client | `search/components/search-page-client.tsx` | ✓ | ✓ |
 | 295 | search-promo-card | `search/components/search-promo-card.tsx` | ✓ | ✓ |

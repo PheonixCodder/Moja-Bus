@@ -78,7 +78,7 @@ export async function HomeCta() {
               <div className="absolute left-0 top-6 w-[220px] h-[460px] -rotate-[10deg] rounded-[1.75rem] overflow-hidden shadow-[0_35px_60px_-15px_rgba(0,0,0,0.45)] ring-1 ring-white/20 transition-transform duration-500 hover:-translate-y-2 hover:-rotate-[13deg]">
                 <Image
                     src="/home/app-screenshot-booking.jpg"
-                    alt="Search schedules screen"
+                    alt={t("bookingScreenshotAlt")}
                     fill
                     className="object-cover"
                     sizes="220px"
@@ -89,7 +89,7 @@ export async function HomeCta() {
               <div className="absolute right-0 bottom-0 w-[220px] h-[460px] rotate-[8deg] rounded-[1.75rem] overflow-hidden shadow-[0_35px_60px_-15px_rgba(0,0,0,0.45)] ring-1 ring-white/20 transition-transform duration-500 hover:-translate-y-2 hover:rotate-[11deg] z-10">
                 <Image
                     src="/home/app-screenshot-ticket.jpg"
-                    alt="QR Boarding Pass screen"
+                    alt={t("ticketScreenshotAlt")}
                     fill
                     className="object-cover"
                     sizes="220px"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CheckCircle2, GripVertical, X, MapPin, ArrowUpRight, ArrowDownRight } from "lucide-react";
@@ -38,6 +39,7 @@ export function SortableWaypoint({
   onRemove,
   onUpdate,
 }: SortableWaypointProps) {
+  const t = useTranslations("operatorDashboard.routes.waypoint");
   const {
     attributes,
     listeners,
@@ -114,7 +116,7 @@ export function SortableWaypoint({
               {...attributes}
               {...listeners}
               className="mt-0.5 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0"
-              aria-label="Reorder stop"
+              aria-label={t("reorderStop")}
             >
               <GripVertical className="size-4" />
             </button>
@@ -143,10 +145,10 @@ export function SortableWaypoint({
                         : "text-muted-foreground/60 border-border hover:bg-muted",
                     )}
                     onClick={togglePickup}
-                    title="Toggle passenger pickup (boarding)"
+                    title={t("pickupTooltip")}
                   >
                     <ArrowUpRight className="size-3" />
-                    Pickup
+                    {t("pickup")}
                   </Badge>
 
                   <Badge
@@ -158,10 +160,10 @@ export function SortableWaypoint({
                         : "text-muted-foreground/60 border-border hover:bg-muted",
                     )}
                     onClick={toggleDropoff}
-                    title="Toggle passenger dropoff (alighting)"
+                    title={t("dropoffTooltip")}
                   >
                     <ArrowDownRight className="size-3" />
-                    Dropoff
+                    {t("dropoff")}
                   </Badge>
                 </div>
               )}
@@ -210,7 +212,7 @@ export function SortableWaypoint({
                     <span>
                       {waypoint.distanceFromOriginKm != null
                         ? `${waypoint.distanceFromOriginKm} km`
-                        : "+ Distance"}
+                        : t("addDistance")}
                     </span>
                   </button>
                 )
@@ -225,7 +227,7 @@ export function SortableWaypoint({
               variant="ghost"
               onClick={() => onRemove(waypoint.id)}
               className="size-7 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 shrink-0"
-              aria-label="Remove stop"
+              aria-label={t("removeStop")}
             >
               <X className="size-3.5" />
             </Button>

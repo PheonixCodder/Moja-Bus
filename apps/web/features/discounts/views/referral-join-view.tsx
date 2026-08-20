@@ -12,12 +12,14 @@ import {
   storePendingReferralCode,
 } from "@/features/discounts/lib/pending-referral";
 import { useTRPC } from "@/trpc/client";
+import { useTranslations } from "next-intl";
 
 type Props = {
   code: string;
 };
 
 export function ReferralJoinView({ code }: Props) {
+  const t = useTranslations("discounts.referralJoin");
   const trpc = useTRPC();
   const router = useRouter();
   const { data: session, isPending: sessionPending } = useSession();
@@ -29,37 +31,36 @@ export function ReferralJoinView({ code }: Props) {
   const program = programQuery.data;
 
   useEffect(() => {
-    if (code) storePendingReferralCode(code);
+    storePendingReferralCode(code);
   }, [code]);
 
   const applyMutation = useMutation(
     trpc.discounts.applyReferralCode.mutationOptions({
-      onSuccess: (result) => {
+      onSuccess: (res) => {
         setApplied(true);
-        if (result.welcomeCouponCode) {
-          toast.success(
-            `Invite applied. Your welcome code: ${result.welcomeCouponCode}`,
-          );
+        if (res.ok) {
+          toast.success(res.message);
+          router.push("/search");
         } else {
-          toast.success("Invite applied — welcome aboard");
+          toast.error(res.message);
         }
-        router.push("/dashboard/referrals");
       },
-      onError: (err) => toast.error(err.message),
+      onError: (err) => {
+        toast.error(err.message || "Could not apply referral code");
+      },
     }),
   );
-
-  const loginHref = `/login?callbackUrl=${encodeURIComponent("/dashboard/referrals")}`;
 
   if (sessionPending || programQuery.isLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-[#ee237c]" />
+        <Loader2 className="size-8 animate-spin text-[#ee237c]" />
       </div>
     );
   }
 
   const inactive = program && !program.isActive;
+  const loginHref = `/login?redirect=${encodeURIComponent(`/invite/${encodeURIComponent(code)}`)}`;
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-lg flex-col justify-center px-4 py-12">
@@ -70,18 +71,17 @@ export function ReferralJoinView({ code }: Props) {
           </div>
           <div className="space-y-1">
             <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
-              You&apos;re invited
+              {t("invitedTitle")}
             </h1>
             <p className="text-sm leading-relaxed text-slate-500">
-              A friend shared Moja Ride with you. Create an account or sign in to
-              claim this invite, then book your first trip.
+              {t("invitedDesc")}
             </p>
           </div>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
-            Invite code
+            {t("inviteCode")}
           </p>
           <p className="mt-1 font-mono text-xl font-bold tracking-widest text-slate-900">
             {code}
@@ -90,27 +90,26 @@ export function ReferralJoinView({ code }: Props) {
 
         {inactive ? (
           <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            The referral program is paused right now. You can still create an
-            account — ask your friend to share again when it reopens.
+            {t("pausedNotice")}
           </p>
         ) : program ? (
           <ul className="space-y-1.5 text-sm text-slate-600">
             <li>
-              Your friend earns{" "}
+              {t("friendEarns")}{" "}
               <span className="font-semibold text-slate-900">
                 {program.referrerCreditAmountXOF.toLocaleString()} XOF
               </span>{" "}
-              promo credit after your first paid trip
+              {t("friendEarnsSuffix")}
               {program.rewardDelayHours > 0
-                ? ` (after a ${program.rewardDelayHours}h review)`
+                ? ` (${program.rewardDelayHours}h)`
                 : ""}
               .
             </li>
             {program.recurringCreditAmountXOF > 0 ? (
               <li>
-                They can earn up to{" "}
-                {program.recurringCreditAmountXOF.toLocaleString()} XOF more on
-                later trips (max {program.recurringMaxBookings}).
+                {t("earnUpTo")}{" "}
+                {program.recurringCreditAmountXOF.toLocaleString()} XOF
+                (max {program.recurringMaxBookings}).
               </li>
             ) : null}
           </ul>
@@ -137,16 +136,16 @@ export function ReferralJoinView({ code }: Props) {
               {applyMutation.isPending ? "Applying…" : "Apply invite to my account"}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.push("/search")}>
-              Browse trips
+              {t("browseTrips")}
             </Button>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
             <Button type="button" onClick={() => router.push(loginHref)}>
-              Sign in or create account
+              {t("signInOrCreate")}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.push("/search")}>
-              Browse trips first
+              {t("browseTripsFirst")}
             </Button>
           </div>
         )}

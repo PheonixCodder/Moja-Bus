@@ -27,6 +27,7 @@ const actionEnum = parseAsStringEnum([
 ]).withDefault(null as any);
 
 export function SettingsHub() {
+  const t = useTranslations("operatorDashboard.settings.hub");
   // We use nuqs to track which drawer is currently open
   const [action, setAction] = useQueryState("action", actionEnum);
 
@@ -35,9 +36,9 @@ export function SettingsHub() {
   return (
     <div className="container max-w-6xl py-8 px-4 md:px-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Company Settings</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground mt-2 text-sm">
-          Manage your operator profile, banking, compliance documents, and platform verification.
+          {t("description")}
         </p>
       </div>
 

@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { Copy, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export type CouponRow = {
   id: string;
@@ -53,6 +54,7 @@ export function CampaignCouponsPanel({
   onDeactivate,
   onClose,
 }: Props) {
+  const t = useTranslations("discounts.campaignCoupons");
   const [couponCode, setCouponCode] = useState("");
   const [bulkPrefix, setBulkPrefix] = useState("PROMO");
   const [bulkCount, setBulkCount] = useState("20");
@@ -70,21 +72,20 @@ export function CampaignCouponsPanel({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">Coupon codes</h2>
+          <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
           <p className="text-xs text-slate-500">
-            Codes passengers enter at checkout. Select a code to see who used it.
-            Campaign must be Active to redeem.
+            {t("description")}
           </p>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-          Close
+          {t("close")}
         </Button>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           className="uppercase"
-          placeholder="SUMMER10"
+          placeholder={t("placeholder")}
           value={couponCode}
           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
         />
@@ -96,23 +97,23 @@ export function CampaignCouponsPanel({
             setCouponCode("");
           }}
         >
-          Create code
+          {t("createCode")}
         </Button>
       </div>
 
       {onBulkCreate ? (
         <div className="flex flex-col gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50/80 p-3 sm:flex-row sm:items-end">
           <div className="flex-1 space-y-1">
-            <p className="text-xs font-medium text-slate-600">Bulk generate</p>
+            <p className="text-xs font-medium text-slate-600">{t("bulkGenerate")}</p>
             <Input
               className="uppercase"
-              placeholder="Prefix"
+              placeholder={t("prefixPlaceholder")}
               value={bulkPrefix}
               onChange={(e) => setBulkPrefix(e.target.value.toUpperCase())}
             />
           </div>
           <div className="w-full space-y-1 sm:w-28">
-            <p className="text-xs font-medium text-slate-600">Count</p>
+            <p className="text-xs font-medium text-slate-600">{t("count")}</p>
             <Input
               inputMode="numeric"
               value={bulkCount}
@@ -135,7 +136,7 @@ export function CampaignCouponsPanel({
               });
             }}
           >
-            Generate
+            {t("generate")}
           </Button>
         </div>
       ) : null}
@@ -144,24 +145,24 @@ export function CampaignCouponsPanel({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Uses</TableHead>
-              <TableHead>Expires</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("tableCode")}</TableHead>
+              <TableHead>{t("tableStatus")}</TableHead>
+              <TableHead>{t("tableUses")}</TableHead>
+              <TableHead>{t("tableExpires")}</TableHead>
+              <TableHead className="text-right">{t("tableActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-8 text-center text-sm text-slate-500">
-                  Loading codes…
+                  {t("loading")}
                 </TableCell>
               </TableRow>
             ) : coupons.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-8 text-center text-sm text-slate-500">
-                  No codes yet. Create one above.
+                  {t("noCodes")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -205,7 +206,7 @@ export function CampaignCouponsPanel({
                           }
                         >
                           <Users className="size-3.5" />
-                          Users
+                          {t("users")}
                         </Button>
                       ) : null}
                       <Button
@@ -224,7 +225,7 @@ export function CampaignCouponsPanel({
                           disabled={deactivatePending}
                           onClick={() => onDeactivate(c.id)}
                         >
-                          Deactivate
+                          {t("deactivate")}
                         </Button>
                       ) : null}
                     </div>

@@ -222,7 +222,7 @@ export function OperatorProfilePage({ slug }: Props) {
               {operator.routes.length > 0 && (
                 <div>
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-slate-900">Routes</h2>
+                    <h2 className="text-xl font-bold text-slate-900">{t("tabRoutes")}</h2>
                     <button
                       onClick={() => setActiveTab("routes")}
                       className="text-sm text-[#ee237c] font-bold flex items-center gap-1 hover:gap-2 transition-all"

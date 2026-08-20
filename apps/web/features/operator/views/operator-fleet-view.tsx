@@ -998,7 +998,7 @@ export function OperatorFleetView() {
               </div>
               <div className="flex items-center gap-2">
                 <label htmlFor="fleet-status-filter" className="sr-only">
-                  Fleet status
+                  {t("fleetStatus")}
                 </label>
                 <Combobox
                   items={[

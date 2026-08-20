@@ -13,6 +13,8 @@ import { Button } from "@moja/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@moja/ui/components/ui/popover";
 import { Calendar as CalendarComponent } from "@moja/ui/components/ui/calendar";
 
+import { useTranslations } from "next-intl";
+
 const todayISO = () => new Date().toISOString().split("T")[0]!;
 
 function parseLocalDate(dateStr: string) {
@@ -82,6 +84,7 @@ const TABS = [
 const POPULAR = ["Abidjan", "Yamoussoukro", "San Pedro", "Bouaké", "Korhogo"];
 
 export function HeroSearchBar() {
+  const t = useTranslations("landing.hero");
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("buses");
   
@@ -101,15 +104,15 @@ export function HeroSearchBar() {
       const destVal = destination.id || destination.text.trim();
 
       if (!originVal) {
-        toast.error("Please select a departure city");
+        toast.error(t("validation.noOrigin"));
         return;
       }
       if (!destVal) {
-        toast.error("Please select a destination city");
+        toast.error(t("validation.noDestination"));
         return;
       }
       if (originVal === destVal) {
-        toast.error("Origin and destination cannot be the same");
+        toast.error(t("validation.sameCity"));
         return;
       }
       const params = new URLSearchParams({
@@ -128,23 +131,23 @@ export function HeroSearchBar() {
     <div className="w-full">
       {/* Booking type tabs */}
       <div className="flex overflow-x-auto scrollbar-hide border-b border-slate-100 rounded-t-xl">
-        {TABS.map((t) => (
+        {TABS.map((item) => (
           <button
-            key={t.id}
+            key={item.id}
             type="button"
-            onClick={() => setActiveTab(t.id)}
+            onClick={() => setActiveTab(item.id)}
             className={`flex-1 min-w-[90px] flex flex-col items-center gap-1.5 px-4 py-4 text-xs font-semibold transition-all duration-200 border-b-2 relative ${
-              activeTab === t.id
-                ? `${t.border} ${t.text} ${t.bg} h-full w-full first:rounded-tl-4xl last:rounded-tr-4xl`
+              activeTab === item.id
+                ? `${item.border} ${item.text} ${item.bg} h-full w-full first:rounded-tl-4xl last:rounded-tr-4xl`
                 : "border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50 h-full w-full first:hover:rounded-tl-4xl last:hover:rounded-tr-4xl"
             }`}
           >
-            <t.icon className={`w-5 h-5 ${activeTab === t.id ? t.text : "text-slate-400"}`} />
+            <item.icon className={`w-5 h-5 ${activeTab === item.id ? item.text : "text-slate-400"}`} />
             <span className="flex items-center gap-1">
-              {t.label}
-              {t.comingSoon && (
+              {t(`tabs.${item.id}`)}
+              {item.comingSoon && (
                 <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-amber-100 text-amber-600 leading-none">
-                  SOON
+                  {t("soonBadge")}
                 </span>
               )}
             </span>
@@ -159,124 +162,160 @@ export function HeroSearchBar() {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.15 }}
           onSubmit={handleSearch}
-          className="p-5 w-full"
+          className="p-5 md:p-6"
         >
           {activeTab === "buses" ? (
-            <>
-              <div className="flex flex-col md:flex-row gap-4 items-end">
-                {/* From */}
-                <div className="flex-1 w-full">
-                  <label className="block text-sm font-bold text-slate-900 mb-2">From</label>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* From Field */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#ee237c]" />
+                    {t("from")}
+                  </label>
                   <CityAutocompleteField
-                    placeholder="Departure city"
                     value={origin}
                     onChange={setOrigin}
-                    hideIcon={true}
-                    inputClassName="w-full h-12 px-4 rounded-xl border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none"
+                    placeholder={t("departurePlaceholder")}
                   />
                 </div>
 
-                {/* To */}
-                <div className="flex-1 w-full">
-                  <label className="block text-sm font-bold text-slate-900 mb-2">Destination</label>
+                {/* To Field */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#ee237c]" />
+                    {t("to")}
+                  </label>
                   <CityAutocompleteField
-                    placeholder="Destination city"
                     value={destination}
                     onChange={setDestination}
-                    hideIcon={true}
-                    inputClassName="w-full h-12 px-4 rounded-xl border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none"
+                    placeholder={t("destinationPlaceholder")}
                   />
                 </div>
 
-                {/* Date */}
-                <div className="w-full md:w-[220px]">
-                  <label className="block text-sm font-bold text-slate-900 mb-2">Dates</label>
+                {/* Date Field */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#ee237c]" />
+                    {t("date")}
+                  </label>
                   <Popover>
-                    <PopoverTrigger
-                      render={
-                        <button
-                          type="button"
-                          className="relative w-full h-12 px-4 rounded-xl border-none bg-slate-100 text-sm font-medium text-left flex items-center hover:bg-slate-200 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none text-slate-800"
-                        />
-                      }
-                    >
-                      <Calendar className="w-4 h-4 text-slate-500 mr-2 shrink-0 pointer-events-none" />
-                      <span className="flex-1 truncate">{date ? format(parseLocalDate(date)!, "PPP") : "Pick a date"}</span>
-                      <ChevronDown className="w-4 h-4 text-slate-500 ml-2 shrink-0 pointer-events-none" />
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/20 transition-all text-left shadow-xs h-10"
+                      >
+                        <span className="truncate">
+                          {date ? format(parseLocalDate(date)!, "d MMM yyyy") : t("pickDate")}
+                        </span>
+                        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                      </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 rounded-2xl shadow-xl border-slate-100" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={parseLocalDate(date)}
-                        onSelect={(d) => d && setDate(format(d, "yyyy-MM-dd"))}
-                        disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                        onSelect={(newDate) => {
+                          if (newDate) {
+                            setDate(format(newDate, "yyyy-MM-dd"));
+                          }
+                        }}
+                        disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                        initialFocus
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
 
-                {/* Passengers */}
-                <div className="w-full md:w-[120px]">
-                  <label className="block text-sm font-bold text-slate-900 mb-2">Guests</label>
-                  <div className="relative group">
-                    <select
-                      value={travelers}
-                      onChange={(e) => setTravelers(Number(e.target.value))}
-                      className="w-full h-12 px-4 pr-10 rounded-xl border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none appearance-none cursor-pointer"
+                {/* Travelers Field */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-[#ee237c]" />
+                    {t("passengers")}
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/20 transition-all text-left shadow-xs h-10"
+                      >
+                        <span className="truncate">
+                          {travelers === 1 ? t("guest", { count: 1 }) : t("guests", { count: travelers })}
+                        </span>
+                        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-3 rounded-2xl shadow-xl border-slate-100" align="start">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700">{t("passengers")}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setTravelers(Math.max(1, travelers - 1))}
+                            disabled={travelers <= 1}
+                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold"
+                          >
+                            -
+                          </button>
+                          <span className="w-4 text-center text-sm font-semibold text-slate-900">
+                            {travelers}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setTravelers(Math.min(9, travelers + 1))}
+                            disabled={travelers >= 9}
+                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {/* Bottom bar: popular routes & search button */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-100">
+                <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
+                  <span className="text-xs text-slate-400 font-medium">{t("popular")}</span>
+                  {POPULAR.map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => setDestination({ id: city, text: city })}
+                      className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-[#ee237c]/10 hover:text-[#ee237c] font-medium transition-colors"
                     >
-                      {[1, 2, 3, 4, 5, 6].map((n) => (
-                        <option key={n} value={n}>
-                          {n} {n === 1 ? "Guest" : "Guests"}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-                  </div>
+                      {city}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Search button */}
-                <div className="w-full md:w-auto">
-                  <Button
-                    type="submit"
-                    className="w-full md:w-auto h-12 px-8 rounded-xl bg-[#ee237c] text-white font-bold text-sm hover:bg-[#c71d65] hover:shadow-lg transition-all flex items-center justify-center border-0"
-                  >
-                    Search Trips
-                    <Plane className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto px-8 py-2.5 bg-[#ee237c] hover:bg-[#c71d65] text-white font-semibold text-sm rounded-xl shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 transition-all hover:shadow-xl hover:shadow-pink-500/30 shrink-0 h-10"
+                >
+                  <Search className="w-4 h-4" />
+                  {t("search")}
+                </Button>
               </div>
-
-              {/* Popular destinations */}
-              <div className="flex flex-wrap items-center gap-2 mt-5">
-                <span className="text-xs text-slate-500 font-medium">Popular:</span>
-                {POPULAR.map((dest) => (
-                  <button
-                    key={dest}
-                    type="button"
-                    onClick={() => setDestination({ id: dest, text: dest })}
-                    className="text-xs font-medium px-3 py-1 rounded-full bg-slate-50 hover:bg-pink-50 text-slate-600 hover:text-[#ee237c] border border-slate-200 hover:border-pink-200 transition-all duration-150"
-                  >
-                    {dest}
-                  </button>
-                ))}
-              </div>
-            </>
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-4 text-center min-h-[140px]">
               <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">
                 <tab.icon className="w-6 h-6 text-slate-400" />
               </div>
               <h3 className="text-base font-bold text-slate-700 mb-1">
-                {tab.label} Booking
+                {t("comingSoonHeading", { service: t(`tabs.${tab.id}`) })}
               </h3>
               <p className="text-sm text-slate-500 max-w-sm mx-auto mb-4">
-                We're working hard to bring {tab.label.toLowerCase()} booking to Moja Ride. Check back soon!
+                {t("comingSoonDesc", { service: t(`tabs.${tab.id}`).toLowerCase() })}
               </p>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
                 <span className="text-sm">✨</span>
-                Coming Soon
+                {t("comingSoonBadge")}
               </div>
             </div>
           )}

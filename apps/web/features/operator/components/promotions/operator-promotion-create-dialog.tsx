@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Dialog,
@@ -36,6 +37,7 @@ export function OperatorPromotionCreateDialog({
   onCreate,
   isPending,
 }: OperatorPromotionCreateDialogProps) {
+  const t = useTranslations("operatorDashboard.promotions.createDialog");
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState("");
   const [benefitType, setBenefitType] = useState<BenefitType>("PERCENT_OFF");
@@ -70,12 +72,10 @@ export function OperatorPromotionCreateDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="size-4 text-[#ee237c]" />
-            {step === 1 ? "Create promotion" : "Set benefit value"}
+            {step === 1 ? t("step1Title") : t("step2Title")}
           </DialogTitle>
           <DialogDescription>
-            {step === 1
-              ? "Name your promo and choose the discount type."
-              : "Set the discount amount. You can add codes, routes, and limits after creation."}
+            {step === 1 ? t("step1Desc") : t("step2Desc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -84,28 +84,28 @@ export function OperatorPromotionCreateDialog({
             <>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
-                  <Label htmlFor="op-promo-name">Promotion name</Label>
-                  <InfoTooltip content="Promotional name for your discount, e.g. 'Weekend Special' or 'Holiday Flash Sale'." />
+                  <Label htmlFor="op-promo-name">{t("promoName")}</Label>
+                  <InfoTooltip content={t("promoNameTooltip")} />
                 </div>
                 <Input
                   id="op-promo-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Weekend flash — 15% off"
+                  placeholder={t("promoNamePlaceholder")}
                   autoFocus
                 />
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
-                  <Label>Benefit type</Label>
-                  <InfoTooltip content="Choose whether tickets receive a percentage discount or a fixed XOF reduction." />
+                  <Label>{t("benefitType")}</Label>
+                  <InfoTooltip content={t("benefitTypeTooltip")} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {(
                     [
-                      { value: "PERCENT_OFF", label: "% Off", desc: "Percentage off ticket price" },
-                      { value: "FIXED_AMOUNT_OFF", label: "Fixed XOF", desc: "Fixed amount off ticket" },
+                      { value: "PERCENT_OFF", label: t("percentOff"), desc: t("percentOffDesc") },
+                      { value: "FIXED_AMOUNT_OFF", label: t("fixedXOF"), desc: t("fixedXOFDesc") },
                     ] as { value: BenefitType; label: string; desc: string }[]
                   ).map((opt) => (
                     <button
@@ -129,10 +129,10 @@ export function OperatorPromotionCreateDialog({
 
               <div className="flex justify-end gap-2 pt-1">
                 <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button type="button" disabled={!name.trim()} onClick={() => setStep(2)}>
-                  Next →
+                  {t("next")}
                 </Button>
               </div>
             </>
@@ -141,8 +141,8 @@ export function OperatorPromotionCreateDialog({
               {benefitType === "PERCENT_OFF" ? (
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-1.5">
-                    <Label htmlFor="op-percent">Discount percentage</Label>
-                    <InfoTooltip content="Percentage off the ticket fare (e.g. 10 for 10% off)." />
+                    <Label htmlFor="op-percent">{t("discountPercent")}</Label>
+                    <InfoTooltip content={t("discountPercentTooltip")} />
                   </div>
                   <div className="relative">
                     <Input
@@ -162,8 +162,8 @@ export function OperatorPromotionCreateDialog({
               ) : (
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-1.5">
-                    <Label htmlFor="op-amount">Discount amount</Label>
-                    <InfoTooltip content="Fixed amount in XOF deducted from each ticket price." />
+                    <Label htmlFor="op-amount">{t("discountAmount")}</Label>
+                    <InfoTooltip content={t("discountAmountTooltip")} />
                   </div>
                   <div className="relative">
                     <Input
@@ -181,23 +181,23 @@ export function OperatorPromotionCreateDialog({
               )}
 
               <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-slate-500">
-                Starts as <strong>Draft</strong>. Add coupon codes and set scopes before activating.
+                {t("draftNotice")}
               </p>
 
               <div className="flex justify-between gap-2 pt-1">
                 <Button type="button" variant="ghost" onClick={() => setStep(1)}>
-                  ← Back
+                  {t("back")}
                 </Button>
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
-                    Cancel
+                    {t("cancel")}
                   </Button>
                   <Button
                     type="button"
                     disabled={!name.trim() || isPending}
                     onClick={handleCreate}
                   >
-                    {isPending ? "Creating…" : "Create draft"}
+                    {isPending ? t("creating") : t("createDraft")}
                   </Button>
                 </div>
               </div>

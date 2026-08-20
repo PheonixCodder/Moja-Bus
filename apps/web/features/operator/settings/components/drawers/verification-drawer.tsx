@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ interface VerificationDrawerProps {
 }
 
 export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps) {
+  const t = useTranslations("operatorDashboard.settings.verificationDrawer");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -40,24 +42,24 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
 
   const handleSubmitVerification = async () => {
     try {
-      toast.loading("Submitting for verification...", { id: "submit-verification" });
+      toast.loading(t("toastSubmitting"), { id: "submit-verification" });
       await completeOnboardingMutation.mutateAsync();
-      toast.success("Verification request submitted", { id: "submit-verification" });
+      toast.success(t("toastSubmitted"), { id: "submit-verification" });
       onClose();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to submit";
+      const message = err instanceof Error ? err.message : t("toastSubmitFailed");
       toast.error(message, { id: "submit-verification" });
     }
   };
 
   const handleResubmitVerification = async () => {
     try {
-      toast.loading("Resubmitting for verification...", { id: "resubmit-verification" });
+      toast.loading(t("toastResubmitting"), { id: "resubmit-verification" });
       await resubmitVerificationMutation.mutateAsync();
-      toast.success("Verification request resubmitted", { id: "resubmit-verification" });
+      toast.success(t("toastResubmitted"), { id: "resubmit-verification" });
       onClose();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to resubmit";
+      const message = err instanceof Error ? err.message : t("toastResubmitFailed");
       toast.error(message, { id: "resubmit-verification" });
     }
   };
@@ -68,21 +70,21 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
   const statusPresentation = getCompanyStatusPresentation(company.status);
   const checklist = [
     {
-      label: "Company profile details filled",
+      label: t("checklist.profile"),
       done: !!company.name && !!company.taxId,
     },
     {
-      label: "Settlement bank details verified",
+      label: t("checklist.bank"),
       done: bankVerificationState === "verified",
     },
     {
-      label: "Business registration certificate approved",
+      label: t("checklist.registrationDoc"),
       done: company.documents?.some(
         (d) => d.type === "BUSINESS_REGISTRATION_CERTIFICATE" && d.status === "APPROVED"
       ),
     },
     {
-      label: "Operating permit approved",
+      label: t("checklist.permitDoc"),
       done: company.documents?.some(
         (d) => d.type === "TRANSPORT_OPERATING_PERMIT" && d.status === "APPROVED"
       ),
@@ -96,27 +98,26 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
     <ActionDrawer
       isOpen={isOpen}
       onClose={onClose}
-      title="Verification Status"
-      description="Track your application progress and platform compliance state."
+      title={t("title")}
+      description={t("description")}
       footer={
         <div className="flex w-full justify-end gap-3">
           <Button variant="outline" onClick={onClose}>
-            Close
+            {t("close")}
           </Button>
           {canSubmit && (
             <Button onClick={handleSubmitVerification} disabled={completeOnboardingMutation.isPending}>
-              {completeOnboardingMutation.isPending ? "Submitting..." : "Submit for Verification"}
+              {completeOnboardingMutation.isPending ? t("submitting") : t("submitForVerification")}
             </Button>
           )}
           {canResubmit && !canSubmit && (
             <Button onClick={handleResubmitVerification} disabled={resubmitVerificationMutation.isPending}>
-              {resubmitVerificationMutation.isPending ? "Resubmitting..." : "Resubmit Application"}
+              {resubmitVerificationMutation.isPending ? t("resubmitting") : t("resubmitApplication")}
             </Button>
           )}
         </div>
       }
     >
-      
       <div className="p-6 space-y-8">
         <div className="relative pl-6 border-l-2 border-border space-y-8">
           {/* Step 1: Company Profile */}
@@ -128,10 +129,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Company Profile Details
+                    {t("steps.profileTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Registration number, tax TIN ID, and company details provided.
+                    {t("steps.profileComplete")}
                   </p>
                 </div>
               </>
@@ -142,10 +143,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Company Profile Details
+                    {t("steps.profileTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Please provide your registration number and tax ID in the profile section.
+                    {t("steps.profileIncomplete")}
                   </p>
                 </div>
               </>
@@ -161,10 +162,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Settlement Bank Account
+                    {t("steps.bankTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Bank account verified by platform.
+                    {t("steps.bankVerified")}
                   </p>
                 </div>
               </>
@@ -175,10 +176,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Settlement Bank Account
+                    {t("steps.bankTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Bank details submitted — pending admin verification.
+                    {t("steps.bankPending")}
                   </p>
                 </div>
               </>
@@ -189,10 +190,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">
-                    Settlement Bank Account
+                    {t("steps.bankTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Please add bank details to receive ticket booking payouts.
+                    {t("steps.bankIncomplete")}
                   </p>
                 </div>
               </>
@@ -208,10 +209,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Compliance Permits & Documents
+                    {t("steps.docsTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Required documents uploaded and approved.
+                    {t("steps.docsApproved")}
                   </p>
                 </div>
               </>
@@ -222,10 +223,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Compliance Permits & Documents
+                    {t("steps.docsTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Documents submitted — pending admin approval.
+                    {t("steps.docsPending")}
                   </p>
                 </div>
               </>
@@ -236,10 +237,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">
-                    Compliance Permits & Documents
+                    {t("steps.docsTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Please upload all required business permits.
+                    {t("steps.docsIncomplete")}
                   </p>
                 </div>
               </>
@@ -255,10 +256,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Admin Verification Review
+                    {t("steps.reviewTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Compliance review verified and approved.
+                    {t("steps.reviewApproved")}
                   </p>
                 </div>
               </>
@@ -269,10 +270,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Admin Verification Review
+                    {t("steps.reviewTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Your application was rejected. Update your profile and resubmit when ready.
+                    {t("steps.reviewRejected")}
                   </p>
                 </div>
               </>
@@ -283,10 +284,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Admin Verification Review
+                    {t("steps.reviewTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Your account is suspended. Contact support for assistance.
+                    {t("steps.reviewSuspended")}
                   </p>
                 </div>
               </>
@@ -297,10 +298,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Admin Verification Review
+                    {t("steps.reviewTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Your documents are currently pending review by the admin team.
+                    {t("steps.reviewPending")}
                   </p>
                 </div>
               </>
@@ -311,10 +312,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">
-                    Admin Verification Review
+                    {t("steps.reviewTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Submit your profile for review once all steps are complete.
+                    {t("steps.reviewNotSubmitted")}
                   </p>
                 </div>
               </>
@@ -330,10 +331,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    Company Fully Verified
+                    {t("steps.finalTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Your company is authorized to host active routes and sell tickets.
+                    {t("steps.finalApproved")}
                   </p>
                 </div>
               </>
@@ -344,10 +345,10 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">
-                    Approval Authorized
+                    {t("steps.finalLockedTitle")}
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Authorized state unlocked on verification.
+                    {t("steps.finalLocked")}
                   </p>
                 </div>
               </>
@@ -358,7 +359,7 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
         {company.rejectionReason && (
           <div className="p-4 bg-red-500/10 border border-red-200 rounded-lg">
             <h5 className="text-sm font-bold text-red-600 flex items-center gap-2 mb-1">
-              <AlertCircle className="w-4 h-4" /> Rejection Reason
+              <AlertCircle className="w-4 h-4" /> {t("steps.rejectionReason")}
             </h5>
             <p className="text-sm text-red-600/90">{company.rejectionReason}</p>
           </div>

@@ -376,11 +376,11 @@ export function BookingCheckoutForm({
           })}
         </p>
         <p className="text-xs font-semibold text-slate-700">
-          Seats: {selectedLabels.join(", ")} ({selectedSeatIds.length})
+          {tBooking("checkout.seatsLabel")} {selectedLabels.join(", ")} ({selectedSeatIds.length})
         </p>
         <div className="space-y-1 pt-1 text-sm text-slate-700">
           <div className="flex justify-between">
-            <span>Fare</span>
+            <span>{tBooking("checkout.fare")}</span>
             <span>{formatPriceXOF(preDiscountSubtotalXOF)}</span>
           </div>
           {ticketDiscountXOF > 0 ? (
@@ -397,7 +397,7 @@ export function BookingCheckoutForm({
           ) : null}
           {convenienceFeeXOF > 0 ? (
             <div className="flex justify-between">
-              <span>Service fee</span>
+              <span>{tBooking("checkout.serviceFee")}</span>
               <span>{formatPriceXOF(convenienceFeeXOF)}</span>
             </div>
           ) : null}
@@ -408,7 +408,7 @@ export function BookingCheckoutForm({
             </div>
           ) : null}
           <div className="flex justify-between text-base font-black text-[#ee237c]">
-            <span>Total</span>
+            <span>{tBooking("checkout.total")}</span>
             <span>{formatPriceXOF(totalAmount)}</span>
           </div>
         </div>
@@ -489,10 +489,10 @@ export function BookingCheckoutForm({
 
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label className="text-base">Passengers per seat</Label>
+          <Label className="text-base">{tBooking("checkout.passengersPerSeat")}</Label>
           {isLoggedIn && savedPassengers.length > 0 ? (
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">Apply to all:</span>
+              <span className="text-muted-foreground">{tBooking("checkout.applyToAll")}</span>
               <select
                 className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
                 defaultValue=""
@@ -502,7 +502,7 @@ export function BookingCheckoutForm({
                 }}
               >
                 <option value="" disabled>
-                  Choose passenger
+                  {tBooking("checkout.choosePassenger")}
                 </option>
                 {savedPassengers.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -518,9 +518,9 @@ export function BookingCheckoutForm({
         {!isLoggedIn ? (
           <p className="text-xs text-muted-foreground">
             <Link href="/login" className="text-[#ee237c] font-semibold hover:underline">
-              Sign in
+              {tBooking("checkout.signInToUseSaved")}
             </Link>{" "}
-            to use saved passengers, or enter details manually below.
+            {tBooking("checkout.signInToUseSavedSuffix")}
           </p>
         ) : null}
 
@@ -531,13 +531,13 @@ export function BookingCheckoutForm({
               className="rounded-xl border border-slate-200 bg-white p-4 space-y-3"
             >
               <p className="text-sm font-bold text-slate-800">
-                Seat {row.seatLabel}
+                {tBooking("checkout.seat")} {row.seatLabel}
               </p>
 
               {isLoggedIn && savedPassengers.length > 0 ? (
                 <div className="space-y-1.5">
                   <Label htmlFor={`passenger-select-${row.seatId}`}>
-                    Passenger
+                    {tBooking("checkout.passenger")}
                   </Label>
                   <select
                     id={`passenger-select-${row.seatId}`}
@@ -555,7 +555,7 @@ export function BookingCheckoutForm({
                         {p.label ? ` — ${p.label}` : ""}
                       </option>
                     ))}
-                    <option value="manual">Enter manually</option>
+                    <option value="manual">{tBooking("checkout.enterManually")}</option>
                   </select>
                 </div>
               ) : null}
@@ -563,7 +563,7 @@ export function BookingCheckoutForm({
               {row.mode === "manual" || !isLoggedIn || savedPassengers.length === 0 ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label htmlFor={`name-${row.seatId}`}>Full name</Label>
+                    <Label htmlFor={`name-${row.seatId}`}>{tBooking("checkout.fullName")}</Label>
                     <Input
                       id={`name-${row.seatId}`}
                       value={row.passengerName}
@@ -572,12 +572,12 @@ export function BookingCheckoutForm({
                           passengerName: e.target.value,
                         })
                       }
-                      placeholder="Full name as on ID"
+                      placeholder={tBooking("checkout.fullNamePlaceholder")}
                       required
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor={`phone-${row.seatId}`}>Phone number</Label>
+                    <Label htmlFor={`phone-${row.seatId}`}>{tBooking("checkout.phoneNumber")}</Label>
                     <PhoneInput
                       id={`phone-${row.seatId}`}
                       value={row.passengerPhone}
@@ -602,12 +602,12 @@ export function BookingCheckoutForm({
 
         {isLoggedIn ? (
           <p className="text-[11px] text-muted-foreground">
-            Manage saved passengers in{" "}
+            {tBooking("checkout.manageSavedPassengersIn")}{" "}
             <Link
               href="/dashboard/passengers"
               className="text-[#ee237c] font-semibold hover:underline"
             >
-              your dashboard
+              {tBooking("checkout.yourDashboard")}
             </Link>
             .
           </p>
@@ -620,18 +620,18 @@ export function BookingCheckoutForm({
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 space-y-2">
             <div className="flex items-center gap-2 text-emerald-900 font-semibold text-sm">
               <Sparkles className="size-4.5 text-emerald-600 shrink-0" />
-              100% Covered by Promo Credits
+              {tBooking("checkout.promoCoveredTitle")}
             </div>
             <p className="text-xs text-emerald-700 leading-relaxed">
-              Your promotional balance fully covers the ticket fare. No cash, card, or wallet debit is required.
+              {tBooking("checkout.promoCoveredDesc")}
             </p>
           </div>
         ) : (
           <>
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-slate-800">Payment Options</p>
+              <p className="text-sm font-semibold text-slate-800">{tBooking("checkout.paymentOptions")}</p>
               <p className="text-xs text-slate-500">
-                Choose a checkout method below to complete seat registration.
+                {tBooking("checkout.paymentOptionsDesc")}
               </p>
             </div>
 
@@ -648,8 +648,8 @@ export function BookingCheckoutForm({
               >
                 <CreditCard className="size-5 shrink-0" />
                 <div>
-                  <p className="text-xs font-bold font-sans">Card / Mobile Money</p>
-                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">Pay via Paystack checkout</p>
+                  <p className="text-xs font-bold font-sans">{tBooking("checkout.cardMobileMoney")}</p>
+                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">{tBooking("checkout.payViaPaystack")}</p>
                 </div>
               </button>
 
@@ -666,7 +666,7 @@ export function BookingCheckoutForm({
               >
                 <Wallet className="size-5 shrink-0" />
                 <div>
-                  <p className="text-xs font-bold font-sans">Moja Wallet Balance</p>
+                  <p className="text-xs font-bold font-sans">{tBooking("checkout.mojaWalletBalance")}</p>
                   <p className="text-[10px] text-slate-500 font-sans mt-0.5">
                     {isLoggedIn
                       ? `Available: ${formatPriceXOF(walletAvailable)} · Due: ${formatPriceXOF(totalAmount)}`
@@ -679,28 +679,30 @@ export function BookingCheckoutForm({
             {/* Info alerts */}
             {paymentMethod === "WALLET" ? (
               <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800 leading-relaxed">
-                <strong>Moja Wallet Checkout Benefit</strong>: Service convenience fees are fully waived (0 XOF) when paying with your internal wallet balance.
+                <strong>{tBooking("checkout.walletBenefitTitle")}</strong>: {tBooking("checkout.walletBenefitDesc")}
               </div>
             ) : null}
 
             {isLoggedIn && paymentMethod === "PAYSTACK" && canPayWithWallet ? (
               <p className="text-[10px] text-slate-500 italic">
-                Tip: Switch to Wallet Balance to waive the convenience fee!
+                {tBooking("checkout.walletTip")}
               </p>
             ) : null}
 
             {isLoggedIn && !canPayWithWallet ? (
               <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 text-xs text-amber-800 flex items-center justify-between gap-2">
                 <span>
-                  Your wallet balance is insufficient for this booking (need{" "}
-                  {formatPriceXOF(totalAmount)}).
+                  {tBooking("checkout.insufficientBalance", {
+                    needed: formatPriceXOF(totalAmount),
+                    have: formatPriceXOF(walletAvailable),
+                  })}
                 </span>
                 <Link
                   href="/dashboard/wallet"
                   className="text-[#ee237c] font-bold hover:underline shrink-0"
                   target="_blank"
                 >
-                  Top-Up Wallet →
+                  {tBooking("checkout.topUpWallet")}
                 </Link>
               </div>
             ) : null}
@@ -710,7 +712,7 @@ export function BookingCheckoutForm({
 
       <div className="flex flex-col sm:flex-row gap-3">
         <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting}>
-          Back to seats
+          {tBooking("checkout.backToSeats")}
         </Button>
         <Button
           type="submit"
@@ -720,7 +722,7 @@ export function BookingCheckoutForm({
           {isSubmitting ? (
             <>
               <Spinner className="mr-2 size-4" />
-              Processing...
+              {tBooking("checkout.processing")}
             </>
           ) : isZeroCash ? (
             "Confirm Free Booking (0 XOF)"

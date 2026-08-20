@@ -212,7 +212,7 @@ export default async function BecomeAPartnerPage() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-extrabold text-[#ee237c] bg-pink-50 px-2.5 py-1 rounded-lg">
-                      Step {num}
+                      {t("stepLabel", { num })}
                     </span>
                     <Icon className="h-5 w-5 text-slate-400" />
                   </div>
@@ -278,7 +278,7 @@ export default async function BecomeAPartnerPage() {
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">
-                      Requirement #{idx + 1}
+                      {t("requirementLabel", { num: idx + 1 })}
                     </span>
                     <p className="text-slate-200 font-medium text-sm md:text-base">
                       {t(key)}

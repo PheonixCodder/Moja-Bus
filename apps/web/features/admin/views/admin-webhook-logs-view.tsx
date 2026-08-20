@@ -8,10 +8,11 @@ import { WebhookLogsFilters } from "../components/audit/webhooks/webhook-logs-fi
 import { WebhookLogsTable } from "../components/audit/webhooks/webhook-logs-table";
 
 function TableFallback() {
+  const t = useTranslations("adminDashboard.adminWebhookLogsView");
   return (
     <div className="flex flex-col items-center justify-center py-24 text-muted-foreground border rounded-md">
       <Spinner className="size-8 mb-4" />
-      <p>Loading webhook events...</p>
+      <p>{t("loadingEvents")}</p>
     </div>
   );
 }

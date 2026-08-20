@@ -1,0 +1,6 @@
+{
+  "notifications": {
+    "preferencesTitle": "Notification Channels",
+    "preferencesDescription": "Configure delivery preferences for your operator team. Toggle off SMS alerts to save on platform carrier fees."
+  }
+}

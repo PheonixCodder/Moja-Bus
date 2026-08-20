@@ -206,35 +206,37 @@ export default function RootLayout() {
 		return null;
 	}
 
+	const content = (
+		<TRPCReactProvider>
+			<AuthenticatedNovuProvider>
+				<ThemeProvider value={LightTheme}>
+					<StatusBar style="dark" />
+					<Stack
+						screenOptions={{
+							headerShown: false,
+							animation: "slide_from_right",
+							contentStyle: { flex: 1, backgroundColor: "#ffffff" },
+						}}
+					>
+						<Stack.Screen name="(tabs)" />
+						<Stack.Screen
+							name="article/[slug]"
+							options={{
+								presentation: "modal",
+								animation: "slide_from_bottom",
+							}}
+						/>
+					</Stack>
+					<Toast />
+					<PortalHost />
+				</ThemeProvider>
+			</AuthenticatedNovuProvider>
+		</TRPCReactProvider>
+	);
+
 	return (
 		<SafeAreaProvider>
-			<PHProvider client={posthog ?? undefined}>
-				<TRPCReactProvider>
-					<AuthenticatedNovuProvider>
-						<ThemeProvider value={LightTheme}>
-							<StatusBar style="dark" />
-							<Stack
-								screenOptions={{
-									headerShown: false,
-									animation: "slide_from_right",
-									contentStyle: { flex: 1, backgroundColor: "#ffffff" },
-								}}
-							>
-								<Stack.Screen name="(tabs)" />
-								<Stack.Screen
-									name="article/[slug]"
-									options={{
-										presentation: "modal",
-										animation: "slide_from_bottom",
-									}}
-								/>
-							</Stack>
-							<Toast />
-							<PortalHost />
-						</ThemeProvider>
-					</AuthenticatedNovuProvider>
-				</TRPCReactProvider>
-			</PHProvider>
+			{posthog ? <PHProvider client={posthog}>{content}</PHProvider> : content}
 		</SafeAreaProvider>
 	);
 }

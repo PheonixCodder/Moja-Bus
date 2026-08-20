@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import { Suspense } from "react";
 import { DashboardHeader } from "@/features/admin/components/dashboard-header";
@@ -10,6 +11,7 @@ export const metadata = {
 };
 
 export default async function AdminMarketingAbusePage() {
+  const t = await getTranslations("adminDashboard.pages.promoAbuse");
   await prefetch(
     trpc.discountsAdmin.listAbuseEvents.queryOptions({
       limit: 50,
@@ -29,11 +31,10 @@ export default async function AdminMarketingAbusePage() {
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="space-y-1">
             <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
-              Promo abuse queue
+              {t("title")}
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-slate-500">
-              Events recorded when referral or promo safeguards block suspicious
-              activity. Mark items reviewed after investigation.
+              {t("description")}
             </p>
           </div>
           <Suspense

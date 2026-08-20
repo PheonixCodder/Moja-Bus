@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { BannerFormDialog, type PromoBanner } from "../components/content/banner-form-dialog";
 
 export function AdminBannersView() {
+  const t = useTranslations("adminDashboard.banners");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -46,20 +47,20 @@ export function AdminBannersView() {
     try {
       await updateMutation.mutateAsync({ id: banner.id, isActive: active });
       await queryClient.invalidateQueries();
-      toast.success(active ? "Banner activated" : "Banner deactivated");
+      toast.success(active ? t("toast.bannerActivated") : t("toast.bannerDeactivated"));
     } catch {
-      toast.error("Failed to update status");
+      toast.error(t("toast.statusUpdateFailed"));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this promotional banner?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     try {
       await deleteMutation.mutateAsync({ id });
       await queryClient.invalidateQueries();
-      toast.success("Banner deleted successfully");
+      toast.success(t("toast.bannerDeleted"));
     } catch {
-      toast.error("Failed to delete banner");
+      toast.error(t("toast.deleteFailed"));
     }
   };
 
@@ -81,7 +82,7 @@ export function AdminBannersView() {
           <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
           <Input
             type="text"
-            placeholder="Search banners..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 text-xs"
@@ -89,7 +90,7 @@ export function AdminBannersView() {
         </div>
         <Button onClick={handleCreateNew} className="bg-rose-600 hover:bg-rose-700 text-white text-xs gap-1.5 w-full sm:w-auto">
           <Plus className="size-4" />
-          New Banner
+          {t("newBanner")}
         </Button>
       </div>
 
@@ -98,12 +99,12 @@ export function AdminBannersView() {
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/50">
-              <TableHead className="w-20">Preview</TableHead>
-              <TableHead>Title & Subtitle</TableHead>
-              <TableHead>Badge</TableHead>
-              <TableHead>Action Target</TableHead>
-              <TableHead className="w-24 text-center">Status</TableHead>
-              <TableHead className="w-16 text-center">Order</TableHead>
+              <TableHead className="w-20">{t("table.preview")}</TableHead>
+              <TableHead>{t("table.titleAndSubtitle")}</TableHead>
+              <TableHead>{t("table.badge")}</TableHead>
+              <TableHead>{t("table.actionTarget")}</TableHead>
+              <TableHead className="w-24 text-center">{t("table.status")}</TableHead>
+              <TableHead className="w-16 text-center">{t("table.order")}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -111,13 +112,13 @@ export function AdminBannersView() {
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center text-xs text-slate-400">
-                  Loading promotional banners...
+                  {t("table.loading")}
                 </TableCell>
               </TableRow>
             ) : bannerData?.items?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center text-xs text-slate-400">
-                  No promotional banners found. Click "New Banner" to create one.
+                  {t("table.empty")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -180,14 +181,14 @@ export function AdminBannersView() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(banner as PromoBanner)} className="gap-2 text-xs">
                           <Edit className="size-3.5" />
-                          Edit Banner
+                          {t("editBanner")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(banner.id)}
                           className="gap-2 text-xs text-red-600 focus:text-red-600"
                         >
                           <Trash2 className="size-3.5" />
-                          Delete Banner
+                          {t("deleteBanner")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

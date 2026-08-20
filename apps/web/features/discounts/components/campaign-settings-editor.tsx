@@ -13,6 +13,7 @@ import { Switch } from "@moja/ui/components/ui/switch";
 import { ChevronDown, Settings2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { InfoTooltip } from "@/features/discounts/components/info-tooltip";
+import { useTranslations } from "next-intl";
 
 export type CampaignSettingsValues = {
   description: string | null;
@@ -105,6 +106,7 @@ export function CampaignSettingsEditor({
   onScheduleIdsChange,
   onSave,
 }: Props) {
+  const t = useTranslations("discounts.campaignSettings");
   const [description, setDescription] = useState(campaign.description ?? "");
   const [startsAt, setStartsAt] = useState<Date | undefined>(toDate(campaign.startsAt));
   const [endsAt, setEndsAt] = useState<Date | undefined>(toDate(campaign.endsAt));
@@ -200,8 +202,8 @@ export function CampaignSettingsEditor({
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5">
           <Label htmlFor="camp-desc" className="text-sm font-medium text-slate-700">
-            Description{" "}
-            <span className="font-normal text-slate-400">(internal)</span>
+            {t("description")}{" "}
+            <span className="font-normal text-slate-400">{t("internal")}</span>
           </Label>
           <InfoTooltip content="Internal notes and campaign purpose. Only visible to operators and administrators." />
         </div>
@@ -217,24 +219,24 @@ export function CampaignSettingsEditor({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-slate-700">Starts</Label>
+            <Label className="text-sm font-medium text-slate-700">{t("starts")}</Label>
             <InfoTooltip content="The exact date and time when passengers can start applying this promotion at checkout." />
           </div>
           <DateTimePicker
             value={startsAt}
             onChange={setStartsAt}
-            placeholder="Pick start date & time"
+            placeholder={t("pickStartDatePlaceholder")}
           />
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-slate-700">Ends</Label>
+            <Label className="text-sm font-medium text-slate-700">{t("ends")}</Label>
             <InfoTooltip content="Optional expiration cutoff. After this time, codes will be rejected at checkout." />
           </div>
           <DateTimePicker
             value={endsAt}
             onChange={setEndsAt}
-            placeholder="Pick end date & time (optional)"
+            placeholder={t("pickEndDatePlaceholder")}
           />
         </div>
       </div>
@@ -243,7 +245,7 @@ export function CampaignSettingsEditor({
       <div className="grid gap-2 sm:grid-cols-2">
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
           <span className="flex items-center gap-1.5">
-            First booking only
+            {t("firstBookingOnly")}
             <InfoTooltip content="Restricts redemption strictly to travelers making their very first ticket purchase on Moja Ride." />
           </span>
           <Switch checked={firstBookingOnly} onCheckedChange={setFirstBookingOnly} />
@@ -251,7 +253,7 @@ export function CampaignSettingsEditor({
 
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
           <span className="flex items-center gap-1.5">
-            New users only
+            {t("newUsersOnly")}
             <InfoTooltip content="Restricts redemption to newly registered accounts created within the introductory onboarding window." />
           </span>
           <Switch checked={newUserOnly} onCheckedChange={setNewUserOnly} />
@@ -259,7 +261,7 @@ export function CampaignSettingsEditor({
 
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
           <span className="flex items-center gap-1.5">
-            Auto-apply at checkout
+            {t("autoApplyCheckout")}
             <InfoTooltip content="Automatically applies the best matching discount to the passenger's cart without requiring them to enter a coupon code." />
           </span>
           <Switch checked={isAutoApply} onCheckedChange={setIsAutoApply} />
@@ -267,7 +269,7 @@ export function CampaignSettingsEditor({
 
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
           <span className="flex items-center gap-1.5">
-            Stack with promo credits
+            {t("stackWithPromoCredits")}
             <InfoTooltip content="When enabled, passengers can use both this discount code and their earned referral promo credits on the same booking." />
           </span>
           <Switch checked={allowCombineWithCredit} onCheckedChange={setAllowCombineWithCredit} />
@@ -280,7 +282,7 @@ export function CampaignSettingsEditor({
           className="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
         >
           <Settings2 className="size-4 text-slate-400" />
-          Advanced limits &amp; funding
+          {t("advancedLimitsFunding")}
           <ChevronDown
             className={`ml-auto size-4 text-slate-400 transition-transform duration-200 ${
               advancedOpen ? "rotate-180" : ""
@@ -297,7 +299,7 @@ export function CampaignSettingsEditor({
                     htmlFor="camp-budget"
                     className="text-xs font-semibold uppercase tracking-wide text-slate-500"
                   >
-                    Budget (XOF)
+                    {t("budgetXOF")}
                   </Label>
                   <InfoTooltip content="Total maximum monetary discount value permitted across this entire campaign. Once reached, no further redemptions are allowed." />
                 </div>
@@ -306,7 +308,7 @@ export function CampaignSettingsEditor({
                   inputMode="numeric"
                   value={budgetXOF}
                   onChange={(e) => setBudgetXOF(e.target.value)}
-                  placeholder="Unlimited"
+                  placeholder={t("unlimitedPlaceholder")}
                 />
               </div>
 
@@ -316,7 +318,7 @@ export function CampaignSettingsEditor({
                     htmlFor="camp-max-global"
                     className="text-xs font-semibold uppercase tracking-wide text-slate-500"
                   >
-                    Max redemptions
+                    {t("maxRedemptions")}
                   </Label>
                   <InfoTooltip content="The total overall number of successful ticket bookings that can use this campaign across all passengers." />
                 </div>
@@ -325,7 +327,7 @@ export function CampaignSettingsEditor({
                   inputMode="numeric"
                   value={maxGlobal}
                   onChange={(e) => setMaxGlobal(e.target.value)}
-                  placeholder="Unlimited"
+                  placeholder={t("unlimitedPlaceholder")}
                 />
               </div>
 
@@ -335,7 +337,7 @@ export function CampaignSettingsEditor({
                     htmlFor="camp-max-user"
                     className="text-xs font-semibold uppercase tracking-wide text-slate-500"
                   >
-                    Max per user
+                    {t("maxPerUser")}
                   </Label>
                   <InfoTooltip content="The maximum number of times any single authenticated traveler account can redeem this promotion." />
                 </div>
@@ -344,7 +346,7 @@ export function CampaignSettingsEditor({
                   inputMode="numeric"
                   value={maxUser}
                   onChange={(e) => setMaxUser(e.target.value)}
-                  placeholder="Unlimited"
+                  placeholder={t("unlimitedPlaceholder")}
                 />
               </div>
 
@@ -354,7 +356,7 @@ export function CampaignSettingsEditor({
                     htmlFor="camp-max-phone"
                     className="text-xs font-semibold uppercase tracking-wide text-slate-500"
                   >
-                    Max per phone
+                    {t("maxPerPhone")}
                   </Label>
                   <InfoTooltip content="The maximum number of redemptions tied to the same passenger telephone number, preventing multi-account circumvention." />
                 </div>
@@ -363,7 +365,7 @@ export function CampaignSettingsEditor({
                   inputMode="numeric"
                   value={maxPhone}
                   onChange={(e) => setMaxPhone(e.target.value)}
-                  placeholder="Unlimited"
+                  placeholder={t("unlimitedPlaceholder")}
                 />
               </div>
 
@@ -373,7 +375,7 @@ export function CampaignSettingsEditor({
                     htmlFor="camp-max-disc"
                     className="text-xs font-semibold uppercase tracking-wide text-slate-500"
                   >
-                    Max discount / booking (XOF)
+                    {t("maxDiscountPerBooking")}
                   </Label>
                   <InfoTooltip content="Upper monetary ceiling in XOF applied to any single booking, especially useful for percentage-off discounts on large family orders." />
                 </div>
@@ -382,7 +384,7 @@ export function CampaignSettingsEditor({
                   inputMode="numeric"
                   value={maxDiscount}
                   onChange={(e) => setMaxDiscount(e.target.value)}
-                  placeholder="Unlimited"
+                  placeholder={t("unlimitedPlaceholder")}
                 />
               </div>
 
@@ -392,7 +394,7 @@ export function CampaignSettingsEditor({
                     htmlFor="camp-min-spend"
                     className="text-xs font-semibold uppercase tracking-wide text-slate-500"
                   >
-                    Min spend (XOF)
+                    {t("minSpendXOF")}
                   </Label>
                   <InfoTooltip content="Minimum cart subtotal before this promotion is eligible to be applied." />
                 </div>
@@ -411,11 +413,11 @@ export function CampaignSettingsEditor({
               <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <p>Require operator opt-in</p>
+                    <p>{t("requireOperatorOptIn")}</p>
                     <InfoTooltip content="Forces bus operators to explicitly accept this platform promotion before it becomes active on their routes and schedules." />
                   </div>
                   <p className="text-xs font-normal text-slate-400">
-                    Operators must accept this campaign before it applies on their trips
+                    {t("requireOperatorOptInDesc")}
                   </p>
                 </div>
                 <Switch checked={requireOperatorOptIn} onCheckedChange={setRequireOperatorOptIn} />
@@ -428,11 +430,11 @@ export function CampaignSettingsEditor({
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <p>Split cost with operator (hybrid funding)</p>
+                      <p>{t("splitCostOperator")}</p>
                       <InfoTooltip content="Shared co-marketing promo where the platform absorbs a percentage of the discount and the operator covers the remainder." />
                     </div>
                     <p className="text-xs font-normal text-slate-400">
-                      Platform and operator share the discount expense
+                      {t("splitCostOperatorDesc")}
                     </p>
                   </div>
                   <Switch checked={hybrid} onCheckedChange={setHybrid} />
@@ -444,7 +446,7 @@ export function CampaignSettingsEditor({
                         htmlFor="camp-plat-share"
                         className="text-xs font-semibold uppercase tracking-wide text-slate-500"
                       >
-                        Platform share (%)
+                        {t("platformSharePercent")}
                       </Label>
                       <InfoTooltip content="The exact percentage of the discount amount subsidized directly by the platform." />
                     </div>
@@ -455,7 +457,7 @@ export function CampaignSettingsEditor({
                       onChange={(e) => setPlatformSharePct(e.target.value)}
                     />
                     <p className="text-xs text-slate-500">
-                      Operator covers the remaining{" "}
+                      {t("operatorCoversRemaining")}{" "}
                       {100 - (Number(platformSharePct) || 0)}%
                     </p>
                   </div>
@@ -472,21 +474,21 @@ export function CampaignSettingsEditor({
           <div className="h-px flex-1 bg-slate-100" />
           <div className="flex items-center gap-1.5">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Targeting scope
+              {t("targetingScope")}
             </p>
             <InfoTooltip content="Narrow which routes, recurring schedules, or specific upcoming departures this promotion applies to. Leave empty to apply everywhere." />
           </div>
           <div className="h-px flex-1 bg-slate-100" />
         </div>
         <p className="text-xs text-slate-500">
-          Leave all empty to apply on every route, schedule, and trip.
+          {t("targetingScopeDesc")}
         </p>
 
         {/* Routes */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Routes{" "}
+              {t("routes")}{" "}
               {routeIds.length > 0 && (
                 <span className="ml-1 rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
                   {routeIds.length}
@@ -496,7 +498,7 @@ export function CampaignSettingsEditor({
             <InfoTooltip content="Restrict discount eligibility only to tickets booked on the selected corridors/routes." />
           </div>
           {routeOptions.length === 0 ? (
-            <p className="text-xs text-slate-500">No routes available.</p>
+            <p className="text-xs text-slate-500">{t("noRoutesAvailable")}</p>
           ) : (
             <div className="max-h-36 space-y-0.5 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2">
               {routeOptions.map((route) => (
@@ -521,7 +523,7 @@ export function CampaignSettingsEditor({
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Schedules{" "}
+              {t("schedules")}{" "}
               {scheduleIds.length > 0 && (
                 <span className="ml-1 rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
                   {scheduleIds.length}
@@ -556,7 +558,7 @@ export function CampaignSettingsEditor({
           )}
           {scheduleCapWarn && (
             <p className="text-xs text-amber-700">
-              Max {MAX_SCHEDULES} schedules — selection was capped.
+              {t("maxCapped", { count: MAX_SCHEDULES })}
             </p>
           )}
         </div>
@@ -565,7 +567,7 @@ export function CampaignSettingsEditor({
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Specific trips{" "}
+              {t("specificTrips")}{" "}
               {tripIds.length > 0 && (
                 <span className="ml-1 rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
                   {tripIds.length}
@@ -600,7 +602,7 @@ export function CampaignSettingsEditor({
           )}
           {tripCapWarn && (
             <p className="text-xs text-amber-700">
-              Max {MAX_TRIPS} trips — selection was capped.
+              {t("maxTripsCapped", { count: MAX_TRIPS })}
             </p>
           )}
         </div>

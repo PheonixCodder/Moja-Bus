@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useBankAccounts } from "../api/use-bank-accounts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
@@ -11,6 +12,7 @@ interface BankSectionProps {
 }
 
 export function BankSection({ onManage }: BankSectionProps) {
+  const t = useTranslations("operatorDashboard.settings.banking");
   const { data: bankAccounts } = useBankAccounts();
   const defaultAccount = bankAccounts?.find(a => a.isDefault) || bankAccounts?.[0];
 
@@ -20,12 +22,12 @@ export function BankSection({ onManage }: BankSectionProps) {
         <div className="space-y-1">
           <CardTitle className="flex items-center gap-2">
             <Landmark className="w-5 h-5 text-muted-foreground" />
-            Payout Account
+            {t("payoutAccount")}
           </CardTitle>
-          <CardDescription>Where you receive your settlements</CardDescription>
+          <CardDescription>{t("settlementDesc")}</CardDescription>
         </div>
         <Button variant="outline" size="sm" onClick={onManage}>
-          Manage
+          {t("manage")}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </CardHeader>
@@ -42,17 +44,17 @@ export function BankSection({ onManage }: BankSectionProps) {
                 </div>
                 {defaultAccount.isVerified ? (
                   <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
-                    <ShieldCheck className="w-3 h-3 mr-1" /> Verified
+                    <ShieldCheck className="w-3 h-3 mr-1" /> {t("verified")}
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
-                    <Clock className="w-3 h-3 mr-1" /> Pending Verification
+                    <Clock className="w-3 h-3 mr-1" /> {t("pending")}
                   </Badge>
                 )}
               </div>
               
               <div className="pt-3 border-t grid grid-cols-2 text-sm gap-2">
-                <div className="text-muted-foreground">Account Name</div>
+                <div className="text-muted-foreground">{t("accountName")}</div>
                 <div className="font-medium truncate" title={defaultAccount.accountName || ""}>
                   {defaultAccount.accountName}
                 </div>
@@ -61,19 +63,19 @@ export function BankSection({ onManage }: BankSectionProps) {
 
             {bankAccounts.length > 1 && (
               <p className="text-xs text-muted-foreground text-center">
-                + {bankAccounts.length - 1} other account(s) on file
+                {t("otherAccounts", { count: bankAccounts.length - 1 })}
               </p>
             )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-lg bg-muted/30">
             <Landmark className="w-8 h-8 text-muted-foreground mb-3" />
-            <p className="font-medium text-sm">No payout account</p>
+            <p className="font-medium text-sm">{t("noPayoutAccount")}</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
-              Add a bank account to receive your ride settlements.
+              {t("noPayoutAccountDesc")}
             </p>
             <Button variant="link" size="sm" className="mt-2" onClick={onManage}>
-              Add Bank Account
+              {t("addAccount")}
             </Button>
           </div>
         )}

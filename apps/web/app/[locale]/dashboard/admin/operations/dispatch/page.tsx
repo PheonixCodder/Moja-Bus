@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
 import { AdminDispatchView } from "@/features/admin/views/admin-dispatch-view";
@@ -15,6 +16,7 @@ interface PageProps {
 }
 
 export default async function AdminDispatchPage({ searchParams }: PageProps) {
+  const t = await getTranslations("adminDashboard.pages.dispatch");
   const params = await searchParams;
   const { status, companyId, from, to } = dispatchSearchParamsCache.parse(params);
 
@@ -31,11 +33,11 @@ export default async function AdminDispatchPage({ searchParams }: PageProps) {
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Live Dispatch Board"
-        description="Monitor real-time operations, trip delays, and bus assignments across all transport operators. Click on a trip to view passenger manifests and segment occupancy."
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Operations", href: "/dashboard/admin/operations" },
-          { label: "Live Dispatch" },
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
         ]}
       >
         <AdminDispatchView />

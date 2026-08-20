@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Armchair, BusFront, LayoutGrid, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
@@ -9,24 +10,20 @@ import type { RouterOutputs } from "@/trpc/client";
 
 type Bus = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 
-const STATUS_CONFIG = {
+const STATUS_STYLE = {
   ACTIVE: {
-    label: "Active",
     className: "bg-chart-2/10 text-chart-2 border-chart-2/20",
     dot: "bg-chart-2",
   },
   MAINTENANCE: {
-    label: "Maintenance",
     className: "bg-chart-4/10 text-chart-4 border-chart-4/20",
     dot: "bg-chart-4",
   },
   INACTIVE: {
-    label: "Inactive",
     className: "bg-muted text-muted-foreground border-border",
     dot: "bg-muted-foreground",
   },
   RETIRED: {
-    label: "Retired",
     className: "bg-muted/50 text-muted-foreground/70 border-border/50",
     dot: "bg-muted-foreground/50",
   },
@@ -53,7 +50,9 @@ export function BusCard({
   onDelete,
   onViewMap,
 }: BusCardProps) {
-  const status = STATUS_CONFIG[bus.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.INACTIVE;
+  const t = useTranslations("operatorDashboard.fleet");
+  const statusKey = (bus.status in STATUS_STYLE ? bus.status : "INACTIVE") as keyof typeof STATUS_STYLE;
+  const statusStyle = STATUS_STYLE[statusKey];
   const seatClass = bus.seatClass ?? "STANDARD";
 
   return (
@@ -87,11 +86,11 @@ export function BusCard({
           <span
             className={cn(
               "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-              status.className,
+              statusStyle.className,
             )}
           >
-            <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
-            {status.label}
+            <span className={cn("h-1.5 w-1.5 rounded-full", statusStyle.dot)} />
+            {t(`status.${statusKey}`)}
           </span>
         </div>
 
@@ -99,7 +98,7 @@ export function BusCard({
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-md bg-muted/50 px-2.5 py-1.5">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-              Type
+              {t("busCard.type")}
             </p>
             <p className="text-xs font-medium text-foreground/90 truncate mt-0.5">
               {bus.busType?.name ?? "Standard"}
@@ -107,7 +106,7 @@ export function BusCard({
           </div>
           <div className="rounded-md bg-muted/50 px-2.5 py-1.5">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-              Configuration
+              {t("busCard.configuration")}
             </p>
             <p className="text-xs font-medium text-foreground/90 truncate mt-0.5">
               {bus.layoutTemplate?.name ?? "Default"}
@@ -118,7 +117,7 @@ export function BusCard({
         {/* Notes */}
         {bus.notes && (
           <div className="rounded-md bg-amber-50/60 border border-amber-200/60 px-2.5 py-1.5">
-            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">Notes</p>
+            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">{t("busCard.notes")}</p>
             <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">{bus.notes}</p>
           </div>
         )}
@@ -131,7 +130,7 @@ export function BusCard({
               <strong className="text-foreground/80 font-semibold">
                 {bus.layoutTemplate?.totalSeats ?? 0}
               </strong>{" "}
-              seats
+              {t("busCard.seats")}
             </span>
             {bus.manufactureYear && (
               <span className="text-muted-foreground/70">
@@ -140,7 +139,7 @@ export function BusCard({
             )}
           </span>
 
-          <div className="flex items-center gap-0.5 opacity-0 group-hover/bus-card:opacity-100 transition-opacity duration-150">
+          <div className="flex items-center gap-0.5 opacity-0 group/bus-card:opacity-100 transition-opacity duration-150">
             <Button
               size="sm"
               variant="ghost"
@@ -148,7 +147,7 @@ export function BusCard({
               onClick={() => onViewMap(bus)}
             >
               <LayoutGrid className="size-3.5 mr-1" />
-              Plan
+              {t("busCard.plan")}
             </Button>
             {canManageFleet && (
               <>
@@ -159,7 +158,7 @@ export function BusCard({
                   onClick={() => onEdit(bus)}
                 >
                   <Pencil className="size-3.5 mr-1" />
-                  Edit
+                  {t("busCard.edit")}
                 </Button>
                 <Button
                   size="sm"

@@ -197,7 +197,7 @@ export function BookingDetailDrawer({
                   )}
                 >
                   <Printer className="size-3.5" />
-                  Print Ticket
+                  {t("detail.printTicket")}
                 </Link>
               )}
             </div>
@@ -218,7 +218,7 @@ export function BookingDetailDrawer({
                 <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-4 py-3.5">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Booking Ref
+                      {t("detail.bookingRef")}
                     </p>
                     <p className="font-mono text-lg font-bold text-foreground">
                       {booking.bookingReference}
@@ -244,7 +244,7 @@ export function BookingDetailDrawer({
                 {/* Passenger Info */}
                 <div className="rounded-xl border border-border bg-card px-4 py-4 space-y-3">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Passenger
+                    {t("detail.passenger")}
                   </p>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                     <div>
@@ -350,7 +350,7 @@ export function BookingDetailDrawer({
                   onClick={() => setIsRebookModalOpen(true)}
                 >
                   <ArrowRightLeft className="size-4" />
-                  Rebook Passenger
+                  {t("rebookButton")}
                 </Button>
                 {canCancel && (
                   <Button
@@ -373,10 +373,10 @@ export function BookingDetailDrawer({
           <DialogHeader className="space-y-1">
             <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <ArrowRightLeft className="size-5 text-[#00875A]" />
-              Rebook Passenger to Upcoming Trip
+              {t("rebookModal.title")}
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Transfer this passenger onto any upcoming departure from the same schedule. A new booking and ticket will be issued immediately.
+              {t("rebookModal.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -385,27 +385,30 @@ export function BookingDetailDrawer({
               {/* Current Ticket Summary */}
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-1.5 text-xs text-slate-700">
                 <div className="flex justify-between font-semibold text-slate-900">
-                  <span>Passenger: {booking.passengerName}</span>
-                  <span>Seat: #{booking.seatLabel}</span>
+                  <span>{t("rebookModal.passenger")} {booking.passengerName}</span>
+                  <span>{t("rebookModal.seatNumber", { seat: booking.seatLabel })}</span>
                 </div>
                 <div className="text-slate-500">
-                  Current Departure: {formatDateWithWeekday(booking.departureTime)} at {formatDepartureTime(booking.departureTime)}
+                  {t("rebookModal.currentDeparture", {
+                    date: formatDateWithWeekday(booking.departureTime),
+                    time: formatDepartureTime(booking.departureTime),
+                  })}
                 </div>
               </div>
 
               {/* Target Upcoming Trip Selector */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Select Upcoming Departure
+                  {t("rebookModal.selectDeparture")}
                 </Label>
                 {upcomingTripsQuery.isLoading ? (
                   <div className="flex items-center gap-2 text-xs text-slate-500 py-2">
                     <Spinner className="size-4 text-[#00875A]" />
-                    Loading upcoming departures...
+                    {t("rebookModal.loadingDepartures")}
                   </div>
                 ) : candidateTrips.length === 0 ? (
                   <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                    No other upcoming trips found for this schedule. You can create a new trip under Fleet Management.
+                    {t("rebookModal.noDepartures")}
                   </p>
                 ) : (
                   <Select
@@ -416,18 +419,18 @@ export function BookingDetailDrawer({
                     }}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose an upcoming departure..." />
+                      <SelectValue placeholder={t("rebookModal.chooseDeparture")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {candidateTrips.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
+                      {candidateTrips.map((trip) => (
+                        <SelectItem key={trip.id} value={trip.id}>
                           {new Intl.DateTimeFormat("en-GB", {
                             weekday: "short",
                             day: "numeric",
                             month: "short",
                             hour: "2-digit",
                             minute: "2-digit",
-                          }).format(new Date(t.departureDate))} · {t.availableSeats} open seats ({t.busName})
+                          }).format(new Date(trip.departureDate))} · {t("rebookModal.openSeats", { open: trip.availableSeats, total: trip.busName })}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -440,7 +443,7 @@ export function BookingDetailDrawer({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Seat Assignment ({selectedTrip.availableSeats} Available)
+                      {t("rebookModal.seatAssignment", { count: selectedTrip.availableSeats })}
                     </Label>
                     <button
                       type="button"
@@ -452,7 +455,7 @@ export function BookingDetailDrawer({
                           : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 font-medium",
                       )}
                     >
-                      ⚡ Auto-Assign Next Available
+                      {t("rebookModal.autoAssign")}
                     </button>
                   </div>
 
@@ -460,12 +463,14 @@ export function BookingDetailDrawer({
                     <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium">
                       <Sparkles className="size-4 text-emerald-600 shrink-0" />
                       <span>
-                        Selected Seat: <strong className="font-mono text-emerald-900">#{selectedTrip.seats.find((s) => s.seatId === selectedSeatId)?.label ?? selectedSeatId}</strong>
+                        {t("rebookModal.selectedSeat", {
+                          number: selectedTrip.seats.find((s) => s.seatId === selectedSeatId)?.label ?? selectedSeatId,
+                        })}
                       </span>
                     </div>
                   ) : (
                     <p className="text-[11px] text-slate-500 italic">
-                      Click any available seat below, or keep auto-assign enabled.
+                      {t("rebookModal.seatHint")}
                     </p>
                   )}
 
@@ -492,12 +497,12 @@ export function BookingDetailDrawer({
                   htmlFor="rebook-reason"
                   className="text-xs font-bold text-slate-700 uppercase tracking-wider"
                 >
-                  Reason for Rebooking
+                  {t("rebookModal.reasonLabel")}
                 </Label>
                 <Input
                   id="rebook-reason"
                   type="text"
-                  placeholder="e.g. Schedule delay, passenger request, mechanical change"
+                  placeholder={t("rebookModal.reasonPlaceholder")}
                   value={rebookReason}
                   onChange={(e) => setRebookReason(e.target.value)}
                   required
@@ -511,7 +516,7 @@ export function BookingDetailDrawer({
                   className="h-9"
                   onClick={() => setIsRebookModalOpen(false)}
                 >
-                  Cancel
+                  {t("rebookModal.cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -525,10 +530,10 @@ export function BookingDetailDrawer({
                   {rebookMutation.isPending ? (
                     <>
                       <Spinner className="mr-2 size-3.5 text-white" />
-                      Rebooking...
+                      {t("rebookModal.rebooking")}
                     </>
                   ) : (
-                    "Confirm Rebooking"
+                    t("rebookModal.confirm")
                   )}
                 </Button>
               </DialogFooter>

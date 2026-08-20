@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { getPrismaClient } from "@moja/db";
 import { getAdminEffectivePermissions } from "@moja/schemas";
 import { Separator } from "@moja/ui/components/ui/separator";
@@ -12,6 +13,7 @@ export const metadata = {
 };
 
 export default async function AdminStaffPage() {
+  const t = await getTranslations("adminDashboard.pages.staff");
   const session = await getServerSession();
   const staff = session?.user?.id
     ? await getPrismaClient().adminStaff.findUnique({
@@ -54,9 +56,9 @@ export default async function AdminStaffPage() {
         <SidebarTrigger className="text-text-muted hover:text-text-primary" />
         <Separator orientation="vertical" className="h-4 bg-border" />
         <nav className="flex items-center gap-1 text-xs text-text-muted">
-          <span>Admin</span>
+          <span>{t("breadcrumbAdmin")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">Admin Staff</span>
+          <span className="text-text-primary font-medium">{t("breadcrumbStaff")}</span>
         </nav>
       </header>
       <div className="flex-1 overflow-y-auto">

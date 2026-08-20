@@ -18,6 +18,7 @@ import { OperatorPromotionOptInsCard } from "../components/promotions/operator-p
 import { OperatorPageHeader } from "../components/operator-page-header";
 
 export function OperatorPromotionsView() {
+  const t = useTranslations("operatorDashboard.promotions");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -200,12 +201,12 @@ export function OperatorPromotionsView() {
   return (
     <>
       <OperatorPageHeader
-        title="Promotions"
-        description="Operator-funded discount codes for your routes."
+        title={t("pageTitle")}
+        description={t("pageDescription")}
         actions={
           <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="size-4" />
-            New promo
+            {t("newPromo")}
           </Button>
         }
       />
@@ -223,12 +224,12 @@ export function OperatorPromotionsView() {
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-slate-500">
             {items.length > 0
-              ? `${items.length} promotion${items.length !== 1 ? "s" : ""}`
-              : "No promotions yet"}
+              ? t("promotionsCount", { count: items.length })
+              : t("noPromotions")}
           </p>
           <Button type="button" size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
             <Plus className="size-3.5" />
-            New promo
+            {t("newPromo")}
           </Button>
         </div>
 

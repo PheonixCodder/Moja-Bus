@@ -69,6 +69,7 @@ function useDebounced<T>(value: T, delay: number): T {
 }
 
 export function OperatorSearchDialog() {
+  const t = useTranslations("operatorDashboard.globalSearch");
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const router = useRouter();
@@ -134,7 +135,7 @@ export function OperatorSearchDialog() {
         className="px-0! font-normal text-muted-foreground hover:no-underline flex items-center gap-2 text-xs"
       >
         <Search className="size-4" />
-        Search...
+        {t("searchButton")}
         <kbd className="inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium text-[10px]">
           <span className="text-xs">⌘</span>K
         </kbd>
@@ -145,12 +146,12 @@ export function OperatorSearchDialog() {
           <CommandInput
             value={query}
             onValueChange={setQuery}
-            placeholder="Search bookings, trips, staff..."
+            placeholder={t("searchPlaceholder")}
           />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>{t("noResults")}</CommandEmpty>
             {bookingResults.length > 0 ? (
-              <CommandGroup heading="Bookings">
+              <CommandGroup heading={t("headings.bookings")}>
                 {bookingResults.map((r) => (
                   <CommandItem
                     key={r.id}
@@ -169,7 +170,7 @@ export function OperatorSearchDialog() {
               </CommandGroup>
             ) : null}
             {tripResults.length > 0 ? (
-              <CommandGroup heading="Trips">
+              <CommandGroup heading={t("headings.trips")}>
                 {tripResults.map((r) => (
                   <CommandItem
                     key={r.id}
@@ -188,7 +189,7 @@ export function OperatorSearchDialog() {
               </CommandGroup>
             ) : null}
             {staffResults.length > 0 ? (
-              <CommandGroup heading="Staff">
+              <CommandGroup heading={t("headings.staff")}>
                 {staffResults.map((r) => (
                   <CommandItem
                     key={r.id}
@@ -206,7 +207,7 @@ export function OperatorSearchDialog() {
                 ))}
               </CommandGroup>
             ) : null}
-            <CommandGroup heading="Quick Navigation">
+            <CommandGroup heading={t("headings.quickNav")}>
               {operatorSearchItems.map((item) => (
                 <CommandItem
                   key={item.id}

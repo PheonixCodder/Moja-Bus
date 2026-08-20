@@ -24,7 +24,7 @@ export function BlogKpiStrip({ kpis }: BlogKpiStripProps) {
         <Card className="flex flex-col gap-1 border-0 rounded-none bg-transparent p-4 shadow-none">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-muted-foreground">
-              Total Views
+              {t("totalViews")}
             </p>
             <Badge
               variant="secondary"
@@ -44,7 +44,7 @@ export function BlogKpiStrip({ kpis }: BlogKpiStripProps) {
         <Card className="flex flex-col gap-1 border-0 rounded-none bg-transparent p-4 shadow-none">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-muted-foreground">
-              Published Posts
+              {t("publishedPosts")}
             </p>
           </div>
           <div className="flex items-baseline gap-2">
@@ -58,7 +58,7 @@ export function BlogKpiStrip({ kpis }: BlogKpiStripProps) {
         <Card className="flex flex-col gap-1 border-0 rounded-none bg-transparent p-4 shadow-none">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-muted-foreground">
-              Draft Posts
+              {t("draftPosts")}
             </p>
           </div>
           <div className="flex items-baseline gap-2">
@@ -72,7 +72,7 @@ export function BlogKpiStrip({ kpis }: BlogKpiStripProps) {
         <Card className="flex flex-col gap-1 border-0 rounded-none bg-transparent p-4 shadow-none">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-muted-foreground">
-              Total Shares
+              {t("totalShares")}
             </p>
           </div>
           <div className="flex items-baseline gap-2">
@@ -86,7 +86,7 @@ export function BlogKpiStrip({ kpis }: BlogKpiStripProps) {
         <Card className="flex flex-col gap-1 border-0 rounded-none bg-transparent p-4 shadow-none">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-muted-foreground">
-              CTA Clicks
+              {t("ctaClicks")}
             </p>
           </div>
           <div className="flex items-baseline gap-2">

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
 import { AdminTripAuditView } from "@/features/admin/views/admin-trip-audit-view";
@@ -16,6 +17,7 @@ interface PageProps {
 }
 
 export default async function AdminTripAuditPage({ params, searchParams }: PageProps) {
+  const t = await getTranslations("adminDashboard.pages.tripAudit");
   const { tripId } = await params;
   await searchParams.then((p) => tripAuditSearchParamsCache.parse(p));
 
@@ -24,12 +26,11 @@ export default async function AdminTripAuditPage({ params, searchParams }: PageP
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Trip Audit"
-        description="Full read-only audit view of a single trip — passenger manifest, segment occupancy, and post-trip reviews."
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Operations", href: "/dashboard/admin/operations" },
-          { label: "Live Dispatch", href: "/dashboard/admin/operations/dispatch" },
-          { label: "Trip Audit" },
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
         ]}
       >
         <AdminTripAuditView tripId={tripId} />

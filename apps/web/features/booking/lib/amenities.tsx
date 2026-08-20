@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Briefcase, Coffee, Wifi, Wind, type LucideIcon } from "lucide-react";
 import type { Amenity } from "@moja/types";
 
@@ -16,16 +17,20 @@ export const AMENITY_LABEL: Partial<Record<Amenity, string>> = {
 };
 
 export function AmenityChips({ amenities }: { amenities: Amenity[] }) {
+  const t = useTranslations("booking");
+  const tSearch = useTranslations("search");
   if (amenities.length === 0) return null;
 
   return (
     <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
-      <span>Includes:</span>
+      <span>{t("amenitiesIncludes")}</span>
       <div className="flex flex-wrap items-center gap-3">
         {amenities.map((amenity) => {
           const Icon = AMENITY_ICON[amenity];
-          const label = AMENITY_LABEL[amenity];
-          if (!Icon || !label) return null;
+          const fallbackLabel = AMENITY_LABEL[amenity];
+          if (!Icon || !fallbackLabel) return null;
+          const searchKey = `amenity${amenity}`;
+          const label = tSearch.has(searchKey) ? tSearch(searchKey) : fallbackLabel;
           return (
             <span
               key={amenity}

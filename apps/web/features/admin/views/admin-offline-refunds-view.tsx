@@ -7,7 +7,10 @@ import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 import { formatPriceXOF } from "@/features/search/lib/format";
 
+import { useTranslations } from "next-intl";
+
 export function AdminOfflineRefundsView() {
+  const t = useTranslations("adminDashboard.offlineRefunds");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const listQuery = useQuery(
@@ -22,7 +25,7 @@ export function AdminOfflineRefundsView() {
   const paidMutation = useMutation(
     trpc.payments.markOfflineRefundPaid.mutationOptions({
       onSuccess: async () => {
-        toast.success("Marked as paid");
+        toast.success(t("markPaid"));
         await invalidate();
       },
       onError: (e) => toast.error(e.message),
@@ -31,7 +34,7 @@ export function AdminOfflineRefundsView() {
   const voidMutation = useMutation(
     trpc.payments.markOfflineRefundVoid.mutationOptions({
       onSuccess: async () => {
-        toast.success("Voided obligation");
+        toast.success(t("void"));
         await invalidate();
       },
       onError: (e) => toast.error(e.message),
@@ -44,17 +47,17 @@ export function AdminOfflineRefundsView() {
     <div className="space-y-4 p-4 md:p-6">
       <div>
         <h1 className="text-lg font-semibold text-slate-900">
-          Offline refunds owed
+          {t("title")}
         </h1>
         <p className="text-sm text-slate-500">
-          Cash cancellations awaiting fulfilment (PENDING_FULFILMENT).
+          {t("description")}
         </p>
       </div>
       <Card className="divide-y overflow-hidden">
         {listQuery.isLoading ? (
-          <p className="p-4 text-sm text-slate-500">Loading…</p>
+          <p className="p-4 text-sm text-slate-500">{t("loading")}</p>
         ) : items.length === 0 ? (
-          <p className="p-4 text-sm text-slate-500">No outstanding offline refunds.</p>
+          <p className="p-4 text-sm text-slate-500">{t("empty")}</p>
         ) : (
           items.map((r) => (
             <div
@@ -80,7 +83,7 @@ export function AdminOfflineRefundsView() {
                   disabled={paidMutation.isPending || voidMutation.isPending}
                   onClick={() => paidMutation.mutate({ refundId: r.id })}
                 >
-                  Mark paid
+                  {t("markPaid")}
                 </Button>
                 <Button
                   size="sm"
@@ -93,7 +96,7 @@ export function AdminOfflineRefundsView() {
                     })
                   }
                 >
-                  Void
+                  {t("void")}
                 </Button>
               </div>
             </div>

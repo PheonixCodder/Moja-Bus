@@ -122,14 +122,14 @@ export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
           <div className="flex items-center gap-1.5">
             <div className="size-1.5 rounded-full bg-primary/60" />
             <span className="text-[11px] text-muted-foreground">
-              {stopCount + 2} stops
+              {t("card.stops", { count: stopCount + 2 })}
             </span>
           </div>
           {scheduleCount > 0 && (
             <div className="flex items-center gap-1.5">
               <CalendarClock className="size-3 text-primary/60" />
               <span className="text-[11px] font-semibold text-primary/80">
-                {scheduleCount} schedule{scheduleCount !== 1 ? "s" : ""}
+                {t("card.schedules", { count: scheduleCount })}
               </span>
             </div>
           )}

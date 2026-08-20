@@ -59,11 +59,12 @@ const RouteMapPreview = dynamic(
 );
 
 function MapSkeleton() {
+  const t = useTranslations("operatorDashboard.routes.form");
   return (
     <div className="h-full w-full bg-slate-100 animate-pulse rounded-r-lg flex items-center justify-center">
       <div className="text-center space-y-2">
         <MapIcon className="size-8 text-slate-300 mx-auto" />
-        <p className="text-xs text-slate-400">Loading map…</p>
+        <p className="text-xs text-slate-400">{t("loadingMap")}</p>
       </div>
     </div>
   );
@@ -385,11 +386,11 @@ export function RouteFormDrawer({
               : "Define the origin, destination, and intermediate stops."}
             {effectiveServiceType === "URBAN" ? (
               <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 text-[10px] font-semibold py-0">
-                Urban Route
+                {t("form.urbanRoute")}
               </Badge>
             ) : (
               <Badge className="bg-sky-50 text-sky-700 hover:bg-sky-50 border border-sky-200 text-[10px] font-semibold py-0">
-                Intercity Route
+                {t("form.intercityRoute")}
               </Badge>
             )}
           </DrawerDescription>
@@ -400,7 +401,7 @@ export function RouteFormDrawer({
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
             {/* Name */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Route name *</Label>
+              <Label className="text-xs font-semibold">{t("form.routeName")} *</Label>
               <Input
                 placeholder="e.g. Abidjan – Bouaké Express"
                 value={name}
@@ -412,7 +413,7 @@ export function RouteFormDrawer({
             {/* Service type */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">
-                Service type *
+                {t("form.serviceType")} *
               </Label>
               <div className="flex w-fit rounded-lg border border-border bg-slate-100/80 p-0.5">
                 {(["URBAN", "INTERCITY"] as const).map((type) => (
@@ -435,20 +436,19 @@ export function RouteFormDrawer({
               </div>
               {strayWaypointInUrban && (
                 <p className="text-[11px] text-amber-700">
-                  All stops on an urban route must be in{" "}
-                  {originTerminal?.cityRelation?.name ?? originTerminal?.city}.
+                  {t("form.urbanCityDesc", { city: originTerminal?.cityRelation?.name ?? originTerminal?.city ?? "" })}
                 </p>
               )}
               {intercitySameCity && (
                 <p className="text-[11px] text-amber-700">
-                  Intercity routes need terminals in different cities.
+                  {t("form.intercityDesc")}
                 </p>
               )}
             </div>
 
             {/* Origin */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Origin terminal *</Label>
+              <Label className="text-xs font-semibold">{t("form.originTerminal")} *</Label>
               <div className="w-full">
                 <Combobox
                   items={terminals
@@ -461,7 +461,7 @@ export function RouteFormDrawer({
                   onValueChange={(val) => setOriginId(val || "")}
                 >
                   <ComboboxInput
-                    placeholder="Select origin terminal…"
+                    placeholder={t("form.selectOrigin")}
                     className="w-full text-sm"
                     value={
                       originId
@@ -475,7 +475,7 @@ export function RouteFormDrawer({
                     }
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No terminal found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("form.noTerminalFound")}</ComboboxEmpty>
                     <ComboboxList>
                       {terminals
                         .filter((t) => t.id !== destId)
@@ -493,7 +493,7 @@ export function RouteFormDrawer({
             {/* Destination */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">
-                Destination terminal *
+                {t("form.destinationTerminal")} *
               </Label>
               <div className="w-full">
                 <Combobox
@@ -507,7 +507,7 @@ export function RouteFormDrawer({
                   onValueChange={(val) => setDestId(val || "")}
                 >
                   <ComboboxInput
-                    placeholder="Select destination terminal…"
+                    placeholder={t("form.selectDestination")}
                     className="w-full text-sm"
                     value={
                       destId
@@ -521,7 +521,7 @@ export function RouteFormDrawer({
                     }
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No terminal found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("form.noTerminalFound")}</ComboboxEmpty>
                     <ComboboxList>
                       {terminals
                         .filter((t) => t.id !== originId)
@@ -540,7 +540,7 @@ export function RouteFormDrawer({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground">
-                  Total distance (km)
+                  {t("form.distanceKm")}
                 </Label>
                 <Input
                   type="number"
@@ -559,7 +559,7 @@ export function RouteFormDrawer({
             {(originId || destId) && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold">Stop sequence</Label>
+                  <Label className="text-xs font-semibold">{t("form.stopSequence")}</Label>
                 </div>
 
                 <div className="border border-border rounded-lg p-3.5 bg-slate-50/50 space-y-2">
@@ -601,7 +601,7 @@ export function RouteFormDrawer({
                                 onValueChange={(val) => setNewStopId(val || "")}
                               >
                                 <ComboboxInput
-                                  placeholder="Select a terminal…"
+                                  placeholder={t("form.selectTerminal")}
                                   className="h-8 text-xs w-full"
                                   value={
                                     newStopId
@@ -618,7 +618,7 @@ export function RouteFormDrawer({
                                 />
                                 <ComboboxContent>
                                   <ComboboxEmpty>
-                                    No terminal found.
+                                    {t("form.noTerminalFound")}
                                   </ComboboxEmpty>
                                   <ComboboxList>
                                     {intermediateOptions.map((t) => (
@@ -641,7 +641,7 @@ export function RouteFormDrawer({
                             onClick={addIntermediateStop}
                             disabled={!newStopId}
                           >
-                            Add
+                            {t("form.add")}
                           </Button>
                           <Button
                             size="sm"
@@ -663,7 +663,7 @@ export function RouteFormDrawer({
                           onClick={() => setAddingStop(true)}
                         >
                           <Plus className="size-3 mr-1.5" />
-                          Add intermediate stop
+                          {t("form.addIntermediateStop")}
                         </Button>
                       )}
                     </div>

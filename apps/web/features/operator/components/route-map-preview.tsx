@@ -51,6 +51,7 @@ interface RouteMapPreviewProps {
 }
 
 export default function RouteMapPreview({ points }: RouteMapPreviewProps) {
+  const t = useTranslations("operatorDashboard.routes.mapPreview");
   const validPoints = points.filter(
     (p) => p.latitude != null && p.longitude != null,
   );
@@ -59,7 +60,7 @@ export default function RouteMapPreview({ points }: RouteMapPreviewProps) {
     return (
       <div className="h-full w-full bg-slate-100 flex flex-col items-center justify-center gap-2 p-4">
         <p className="text-xs text-center text-slate-400 leading-relaxed">
-          Map unavailable — no coordinates for the stops on this route.
+          {t("unavailable")}
         </p>
       </div>
     );

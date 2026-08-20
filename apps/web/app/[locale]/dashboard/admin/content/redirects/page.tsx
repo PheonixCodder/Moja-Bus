@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { prefetch, HydrateClient, trpc } from "@/trpc/server";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
 import { AdminRedirectsView } from "@/features/admin/views/admin-redirects-view";
@@ -10,6 +11,7 @@ export const metadata = {
 };
 
 export default async function RedirectsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const t = await getTranslations("adminDashboard.pages.redirects");
   const { q, page } = adminRedirectsParamsCache.parse(await searchParams);
 
   await prefetch(trpc.admin.listBlogRedirects.queryOptions({
@@ -21,11 +23,11 @@ export default async function RedirectsPage({ searchParams }: { searchParams: Pr
   return (
     <HydrateClient>
       <AdminPageShell
-        title="URL Redirects"
-        description="Manage 301 and 302 redirects for blog content."
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Content", href: "/dashboard/admin/content/posts" },
-          { label: "Redirects" },
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
         ]}
       >
         <AdminRedirectsView />

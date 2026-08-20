@@ -17,6 +17,8 @@ import {
   TableRow,
 } from "@moja/ui/components/ui/table";
 
+import { useTranslations } from "next-intl";
+
 interface BlogTopPostsTableProps {
   posts: Array<{
     id: string;
@@ -29,23 +31,24 @@ interface BlogTopPostsTableProps {
 }
 
 export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
+  const t = useTranslations("adminDashboard.blogTopPostsTable");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Posts</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          Most viewed content in the selected period
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-0 pt-0">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[50%] pl-6">Post</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Views</TableHead>
-              <TableHead className="text-right pr-6">Shares</TableHead>
+              <TableHead className="w-[50%] pl-6">{t("post")}</TableHead>
+              <TableHead>{t("category")}</TableHead>
+              <TableHead>{t("status")}</TableHead>
+              <TableHead className="text-right">{t("views")}</TableHead>
+              <TableHead className="text-right pr-6">{t("shares")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -55,7 +58,7 @@ export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
                   colSpan={5}
                   className="h-24 text-center text-slate-500"
                 >
-                  No posts found.
+                  {t("noPosts")}
                 </TableCell>
               </TableRow>
             ) : (

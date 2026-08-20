@@ -4,6 +4,7 @@ import type { PassengerBookingSummary } from "@moja/types";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Map as MapIcon, Navigation } from "lucide-react";
 import { formatLocationLabel } from "@/lib/format-location-label";
+import { useTranslations } from "next-intl";
 import RouteMapPreview, {
   type RouteMapPoint,
 } from "@/features/operator/components/route-map-preview";
@@ -12,6 +13,7 @@ import RouteMapPreview, {
 // Fallback Banner
 // ─────────────────────────────────────────────────────────
 function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }) {
+  const t = useTranslations("booking");
   if (!booking) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-muted">
@@ -35,11 +37,11 @@ function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }
       <div className="z-10 flex w-full max-w-sm flex-col gap-6 rounded-2xl border bg-background/80 p-6 shadow-sm backdrop-blur-md">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Origin</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("routeMap.origin")}</span>
             <span className="font-semibold">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
           </div>
           <div className="flex flex-col items-end gap-1 text-right">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Destination</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("routeMap.destination")}</span>
             <span className="font-semibold">{formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
           </div>
         </div>
@@ -63,7 +65,7 @@ function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }
       </div>
       
       <Badge variant="outline" className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-md">
-        Standard Route
+        {t("routeMap.standardRoute")}
       </Badge>
     </div>
   );

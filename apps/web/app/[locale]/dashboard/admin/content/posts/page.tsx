@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 import { AdminBlogView } from "@/features/admin/views/admin-blog-view";
 import { adminBlogParamsCache } from "@/features/admin/lib/params";
@@ -16,6 +17,7 @@ export default async function AdminPostsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const t = await getTranslations("adminDashboard.pages.blogPosts");
   const parsedParams = adminBlogParamsCache.parse(await searchParams);
   const { q, status, page } = parsedParams;
 
@@ -38,11 +40,11 @@ export default async function AdminPostsPage({
         <SidebarTrigger className="text-text-muted hover:text-text-primary" />
         <Separator orientation="vertical" className="h-4 bg-border" />
         <nav className="flex items-center gap-1 text-xs text-text-muted">
-          <span>Admin</span>
+          <span>{t("breadcrumbAdmin")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span>Content</span>
+          <span>{t("breadcrumbContent")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">Posts</span>
+          <span className="text-text-primary font-medium">{t("breadcrumbPosts")}</span>
         </nav>
       </header>
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
 import { AdminRoutesView } from "@/features/admin/views/admin-routes-view";
@@ -15,6 +16,7 @@ interface PageProps {
 }
 
 export default async function AdminRoutesPage({ searchParams }: PageProps) {
+  const t = await getTranslations("adminDashboard.pages.routes");
   const params = await searchParams;
   const { q, status, page, pageSize } = adminRoutesSearchParamsCache.parse(params);
 
@@ -23,11 +25,11 @@ export default async function AdminRoutesPage({ searchParams }: PageProps) {
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Routes & Terminals"
-        description="Monitor and manage all bus routes and terminal configurations across operators on the platform."
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Operations", href: "/dashboard/admin/operations/dispatch" },
-          { label: "Routes & Terminals" },
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
         ]}
       >
         <AdminRoutesView />

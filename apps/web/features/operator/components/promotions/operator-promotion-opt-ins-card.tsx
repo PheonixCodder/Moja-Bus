@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
@@ -19,27 +20,30 @@ interface OperatorPromotionOptInsCardProps {
   isPending: boolean;
 }
 
-function benefitLabel(item: { benefitType: string; percentBps?: number | null }) {
-  if (item.benefitType === "PERCENT_OFF") return `${(item.percentBps ?? 0) / 100}% off`;
-  return item.benefitType;
-}
-
 export function OperatorPromotionOptInsCard({
   campaigns,
   onOptIn,
   isPending,
 }: OperatorPromotionOptInsCardProps) {
+  const t = useTranslations("operatorDashboard.promotions.optIns");
+  const tTable = useTranslations("operatorDashboard.promotions.table");
+
   if (campaigns.length === 0) return null;
+
+  function benefitLabel(item: { benefitType: string; percentBps?: number | null }) {
+    if (item.benefitType === "PERCENT_OFF") return tTable("percentOff", { percent: (item.percentBps ?? 0) / 100 });
+    return item.benefitType;
+  }
 
   return (
     <Card className="space-y-3 p-5 border-slate-200/80 shadow-xs">
       <div>
         <div className="flex items-center gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-900">Platform campaigns — opt-in</h2>
-          <InfoTooltip content="Nationwide or regional promotions organized by the platform. You can opt your company in or out at any time." />
+          <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
+          <InfoTooltip content={t("tooltip")} />
         </div>
         <p className="mt-0.5 text-xs text-slate-500">
-          Platform promos available for your routes. Opt in to let passengers on your trips benefit from these deals.
+          {t("description")}
         </p>
       </div>
       <ul className="space-y-2">
@@ -59,7 +63,7 @@ export function OperatorPromotionOptInsCard({
                     {benefitLabel(c)}{" "}
                     ·{" "}
                     <span className={`font-medium ${isOptedIn ? "text-emerald-600" : "text-slate-500"}`}>
-                      {isOptedIn ? "Opted in" : optInStatus === "OPTED_OUT" ? "Opted out" : "Invited"}
+                      {isOptedIn ? t("optedIn") : optInStatus === "OPTED_OUT" ? t("optedOut") : t("invited")}
                     </span>
                   </p>
                 </div>
@@ -71,7 +75,7 @@ export function OperatorPromotionOptInsCard({
                   disabled={isPending || isOptedIn}
                   onClick={() => onOptIn(c.id, "OPTED_IN")}
                 >
-                  Opt in
+                  {t("optInBtn")}
                 </Button>
                 <Button
                   type="button"
@@ -80,7 +84,7 @@ export function OperatorPromotionOptInsCard({
                   disabled={isPending || optInStatus === "OPTED_OUT"}
                   onClick={() => onOptIn(c.id, "OPTED_OUT")}
                 >
-                  Opt out
+                  {t("optOutBtn")}
                 </Button>
               </div>
             </li>

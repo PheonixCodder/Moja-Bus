@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
 import { AdminBlogAnalyticsView } from "@/features/admin/views/admin-blog-analytics-view";
@@ -15,6 +16,7 @@ export default async function ContentAnalyticsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const t = await getTranslations("adminDashboard.pages.blogAnalytics");
   const { period } = blogAnalyticsSearchParamsCache.parse(await searchParams);
 
   await prefetch(
@@ -26,11 +28,11 @@ export default async function ContentAnalyticsPage({
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Content Analytics"
-        description="Deep insights on blog views, engagement, and reader behavior."
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Content", href: "/dashboard/admin/content/posts" },
-          { label: "Analytics" },
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
         ]}
       >
         <AdminBlogAnalyticsView />

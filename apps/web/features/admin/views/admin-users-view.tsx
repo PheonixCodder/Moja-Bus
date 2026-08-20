@@ -369,9 +369,11 @@ export function AdminUsersView() {
           {usersData.total > pageSize && (
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-500 font-medium">
-                Showing {currentPage * pageSize + 1} -{" "}
-                {Math.min((currentPage + 1) * pageSize, usersData.total)} of{" "}
-                {usersData.total} users
+                {t("showingUsers", {
+                  start: currentPage * pageSize + 1,
+                  end: Math.min((currentPage + 1) * pageSize, usersData.total),
+                  total: usersData.total,
+                })}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -381,7 +383,7 @@ export function AdminUsersView() {
                   onClick={() => setCurrentPageParam((p) => p - 1)}
                   className="h-8 text-xs font-semibold"
                 >
-                  Previous
+                  {t("previous")}
                 </Button>
                 <Button
                   size="sm"
@@ -390,7 +392,7 @@ export function AdminUsersView() {
                   onClick={() => setCurrentPageParam((p) => p + 1)}
                   className="h-8 text-xs font-semibold"
                 >
-                  Next
+                  {t("next")}
                 </Button>
               </div>
             </div>

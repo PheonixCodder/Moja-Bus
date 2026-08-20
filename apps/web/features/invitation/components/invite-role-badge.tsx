@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import { type StaffRole, ROLE_LABELS, ROLE_COLORS } from "@/features/operator/lib/staff";
 
@@ -13,6 +14,7 @@ interface InviteRoleBadgeProps {
 }
 
 export function InviteRoleBadge({ role, className }: InviteRoleBadgeProps) {
+  const t = useTranslations("common.roles");
   return (
     <span
       className={cn(
@@ -21,7 +23,7 @@ export function InviteRoleBadge({ role, className }: InviteRoleBadgeProps) {
         className,
       )}
     >
-      {ROLE_LABELS[role]}
+      {t.has(role) ? t(role) : ROLE_LABELS[role]}
     </span>
   );
 }

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
 import { AdminWebhookLogsView } from "@/features/admin/views/admin-webhook-logs-view";
@@ -15,6 +16,7 @@ interface PageProps {
 }
 
 export default async function WebhookLogsPage({ searchParams }: PageProps) {
+  const t = await getTranslations("adminDashboard.pages.webhooks");
   const params = await searchParams.then((p) => webhookLogsSearchParamsCache.parse(p));
 
   await prefetch(
@@ -30,11 +32,11 @@ export default async function WebhookLogsPage({ searchParams }: PageProps) {
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Webhook Events"
-        description="Monitor incoming platform webhooks, debug payload processing, and track integration health."
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Audit & Security" },
-          { label: "Webhook Events" },
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
         ]}
       >
         <AdminWebhookLogsView />

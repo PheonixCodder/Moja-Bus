@@ -23,6 +23,8 @@ import {
   YAxis,
 } from "recharts";
 
+import { useTranslations } from "next-intl";
+
 interface BlogReadDepthChartProps {
   data: Array<{ stage: string; count: number }>;
 }
@@ -35,11 +37,12 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function BlogReadDepthChart({ data }: BlogReadDepthChartProps) {
+  const t = useTranslations("adminDashboard.blogReadDepthChart");
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2">
-        <CardTitle>Read Depth Funnel</CardTitle>
-        <CardDescription>How far down readers are scrolling</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-4">
         <ChartContainer

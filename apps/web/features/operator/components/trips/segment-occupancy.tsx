@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ArrowRight, User } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import type { RouterOutputs } from "@/trpc/client";
@@ -16,6 +17,7 @@ type ManifestTrip = RouterOutputs["trips"]["getManifest"];
 type TripSeatItem = RouterOutputs["trips"]["getSeatMap"]["seats"][number];
 
 function SeatFillBar({ booked, total }: { booked: number; total: number }) {
+  const t = useTranslations("operatorDashboard.trips.segmentOccupancy");
   const activeTotal = Math.max(total, 1);
   const pct = Math.min((booked / activeTotal) * 100, 100);
   const color =
@@ -24,7 +26,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-muted-foreground">
-          {booked} / {total} seats
+          {t("seatsCount", { booked, total })}
         </span>
         <span className="text-[11px] font-semibold text-foreground">
           {Math.round(pct)}%
@@ -49,12 +51,13 @@ function SegmentSeatGrid({
   bookings: ManifestTrip["bookings"];
   segment: TripSegment;
 }) {
+  const t = useTranslations("operatorDashboard.trips.segmentOccupancy");
   const seatList = seats ?? [];
 
   if (seatList.length === 0) {
     return (
       <p className="text-xs text-muted-foreground text-center py-4">
-        No seat map available for this trip.
+        {t("noSeatMap")}
       </p>
     );
   }
@@ -104,18 +107,11 @@ function SegmentSeatGrid({
                 segment,
                 isBlocked,
               );
-              const statusLabel =
-                seatStatus === "booked"
-                  ? "Booked"
-                  : seatStatus === "held"
-                    ? "Held"
-                    : seatStatus === "blocked"
-                      ? "Blocked"
-                      : "Available";
+              const statusLabel = t(`seatStatus.${seatStatus}` as any);
               return (
                 <div
                   key={col}
-                  title={`Seat ${seat.seat.label} — ${statusLabel}`}
+                  title={t("seatTitle", { label: seat.seat.label, status: statusLabel })}
                   className={cn(
                     "w-7 h-7 rounded border text-[9px] font-bold flex items-center justify-center",
                     seatStatus === "booked" &&
@@ -137,19 +133,19 @@ function SegmentSeatGrid({
         <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border">
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-primary border border-primary" />
-            <span className="text-[11px] text-muted-foreground">Booked</span>
+            <span className="text-[11px] text-muted-foreground">{t("legend.booked")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-amber-400 border border-amber-500" />
-            <span className="text-[11px] text-muted-foreground">Held</span>
+            <span className="text-[11px] text-muted-foreground">{t("legend.held")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-background border border-border" />
-            <span className="text-[11px] text-muted-foreground">Available</span>
+            <span className="text-[11px] text-muted-foreground">{t("legend.available")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-slate-200 border border-slate-300" />
-            <span className="text-[11px] text-muted-foreground">Blocked</span>
+            <span className="text-[11px] text-muted-foreground">{t("legend.blocked")}</span>
           </div>
         </div>
       </div>
@@ -164,6 +160,7 @@ export function SegmentOccupancySection({
   trip: ManifestTrip;
   seats?: TripSeatItem[];
 }) {
+  const t = useTranslations("operatorDashboard.trips.segmentOccupancy");
   const segments = buildConsecutiveSegments(trip.tripStops ?? []);
   const bookings = trip.bookings ?? [];
   const seatList = seats ?? [];
@@ -179,7 +176,7 @@ export function SegmentOccupancySection({
   if (segments.length === 0) {
     return (
       <p className="text-xs text-muted-foreground">
-        No route segments available for this trip.
+        {t("noSegments")}
       </p>
     );
   }
@@ -202,7 +199,7 @@ export function SegmentOccupancySection({
               </h5>
               {counts.held > 0 ? (
                 <span className="text-[10px] text-muted-foreground">
-                  {counts.confirmed} confirmed · {counts.held} held
+                  {t("confirmedHeld", { confirmed: counts.confirmed, held: counts.held })}
                 </span>
               ) : null}
             </div>

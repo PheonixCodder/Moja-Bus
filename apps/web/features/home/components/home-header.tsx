@@ -151,7 +151,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
                                 className="group flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-all duration-200"
                               >
                                 <span className="text-sm font-semibold text-slate-700 group-hover:text-[#ee237c] transition-colors duration-200">
-                                  {r.from} to {r.to}
+                                  {r.from} → {r.to}
                                 </span>
                                 <span className="text-xs text-[#ee237c] opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-1 group-hover:translate-x-0 font-bold shrink-0">
                                   →

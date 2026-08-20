@@ -180,14 +180,14 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
             <TabsList className="h-8">
               <TabsTrigger
                 value="list"
-                aria-label="List view"
+                aria-label={t("listView")}
                 className="h-6 px-2"
               >
                 <Rows3 className="size-3.5" />
               </TabsTrigger>
               <TabsTrigger
                 value="grid"
-                aria-label="Grid view"
+                aria-label={t("gridView")}
                 className="h-6 px-2"
               >
                 <Grid className="size-3.5" />

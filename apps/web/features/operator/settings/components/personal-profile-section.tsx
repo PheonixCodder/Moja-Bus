@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCompanySettings } from "../api/use-company-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
@@ -11,6 +12,7 @@ interface PersonalProfileSectionProps {
 }
 
 export function PersonalProfileSection({ onManage }: PersonalProfileSectionProps) {
+  const t = useTranslations("operatorDashboard.settings.personal");
   const { data: settings } = useCompanySettings();
   const operator = settings?.operator;
 
@@ -20,13 +22,13 @@ export function PersonalProfileSection({ onManage }: PersonalProfileSectionProps
         <div className="space-y-1">
           <CardTitle className="flex items-center gap-2">
             <UserCircle className="w-5 h-5 text-muted-foreground" />
-            Personal Profile
+            {t("title")}
           </CardTitle>
-          <CardDescription>Your personal account details</CardDescription>
+          <CardDescription>{t("personalDetails")}</CardDescription>
         </div>
         <Button variant="outline" size="sm" onClick={onManage}>
           <Pencil className="w-4 h-4 mr-2" />
-          Edit
+          {t("edit")}
         </Button>
       </CardHeader>
       <CardContent className="flex-1 mt-4">
@@ -38,18 +40,18 @@ export function PersonalProfileSection({ onManage }: PersonalProfileSectionProps
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1 overflow-hidden">
-            <h3 className="font-semibold text-lg truncate">{operator?.user?.fullName || "No Name"}</h3>
-            <p className="text-sm text-muted-foreground truncate">{operator?.jobTitle || "No title set"}</p>
+            <h3 className="font-semibold text-lg truncate">{operator?.user?.fullName || t("noName")}</h3>
+            <p className="text-sm text-muted-foreground truncate">{operator?.jobTitle || t("noTitleSet")}</p>
           </div>
         </div>
 
         <div className="mt-6 space-y-3">
           <div className="grid grid-cols-2 text-sm gap-2">
-            <div className="text-muted-foreground">Role</div>
-            <div className="font-medium capitalize">{operator?.role?.toLowerCase() || "Not set"}</div>
+            <div className="text-muted-foreground">{t("role")}</div>
+            <div className="font-medium capitalize">{operator?.role?.toLowerCase() || t("notSet")}</div>
             
-            <div className="text-muted-foreground">Joined</div>
-            <div className="font-medium">{operator?.joinedAt ? new Date(operator.joinedAt).toLocaleDateString() : "Unknown"}</div>
+            <div className="text-muted-foreground">{t("joined")}</div>
+            <div className="font-medium">{operator?.joinedAt ? new Date(operator.joinedAt).toLocaleDateString() : t("unknown")}</div>
           </div>
         </div>
       </CardContent>

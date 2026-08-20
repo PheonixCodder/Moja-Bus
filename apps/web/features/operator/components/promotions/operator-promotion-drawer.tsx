@@ -92,6 +92,8 @@ export function OperatorPromotionDrawer({
   onSaveSettings,
   isSavingSettings,
 }: OperatorPromotionDrawerProps) {
+  const t = useTranslations("operatorDashboard.promotions.drawer");
+  const tc = useTranslations("common");
   const isOpen = Boolean(promoId);
   const campaign = campaignDetail;
   const coupons: CouponRow[] = campaign?.coupons ?? [];
@@ -105,7 +107,7 @@ export function OperatorPromotionDrawer({
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
                   <DrawerTitle className="text-xl font-bold tracking-tight text-slate-900">
-                    {isDetailLoading ? "Loading…" : campaign?.name ?? "Promotion"}
+                    {isDetailLoading ? t("loading") : campaign?.name ?? t("promotion")}
                   </DrawerTitle>
                   {campaign && (
                     <Badge variant={statusVariant(campaign.status)} className="capitalize">
@@ -115,8 +117,8 @@ export function OperatorPromotionDrawer({
                 </div>
                 <DrawerDescription className="text-xs text-slate-500">
                   {campaign
-                    ? `Operator promotion · ${campaign._count?.coupons ?? 0} codes · ${campaign._count?.redemptions ?? 0} redemptions`
-                    : "Manage coupon codes, scopes, and review usage."}
+                    ? t("descWithCounts", { codes: campaign._count?.coupons ?? 0, redemptions: campaign._count?.redemptions ?? 0 })
+                    : t("descDefault")}
                 </DrawerDescription>
               </div>
 
@@ -131,7 +133,7 @@ export function OperatorPromotionDrawer({
                     className="gap-1.5 text-xs font-medium text-amber-700 border-amber-200 hover:bg-amber-50"
                   >
                     <Pause className="size-3.5" />
-                    Pause
+                    {t("pause")}
                   </Button>
                 )}
                 {campaign && campaign.status !== "ACTIVE" && (
@@ -144,13 +146,13 @@ export function OperatorPromotionDrawer({
                     className="gap-1.5 text-xs font-medium text-emerald-700 border-emerald-200 hover:bg-emerald-50"
                   >
                     <Play className="size-3.5" />
-                    Activate
+                    {t("activate")}
                   </Button>
                 )}
                 <DrawerClose asChild>
                   <Button type="button" size="sm" variant="ghost" className="size-8 p-0 text-slate-500">
                     <X className="size-4" />
-                    <span className="sr-only">Close</span>
+                    <span className="sr-only">{tc("close")}</span>
                   </Button>
                 </DrawerClose>
               </div>
@@ -160,9 +162,9 @@ export function OperatorPromotionDrawer({
             <div className="mt-4 flex items-center gap-1 border-b border-slate-200/80 -mb-4">
               {(
                 [
-                  { id: "codes" as const, label: `Codes (${coupons.length})`, icon: Code2 },
-                  { id: "settings" as const, label: "Scopes & Rules", icon: SlidersHorizontal },
-                  { id: "redemptions" as const, label: `Redemptions (${redemptionsTotal})`, icon: FileSpreadsheet },
+                  { id: "codes" as const, label: t("tabCodes", { count: coupons.length }), icon: Code2 },
+                  { id: "settings" as const, label: t("tabSettings"), icon: SlidersHorizontal },
+                  { id: "redemptions" as const, label: t("tabRedemptions", { count: redemptionsTotal }), icon: FileSpreadsheet },
                 ] as const
               ).map(({ id, label, icon: Icon }) => (
                 <button

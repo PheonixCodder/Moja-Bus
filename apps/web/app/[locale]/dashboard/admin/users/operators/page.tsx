@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { SidebarTrigger } from "@moja/ui/components/ui/sidebar";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { AdminOperatorsView } from "@/features/admin/views/admin-operators-view";
@@ -9,6 +10,7 @@ export const metadata = {
 };
 
 export default async function AdminOperatorsPage() {
+  const t = await getTranslations("adminDashboard.pages.operators");
   await prefetch(
     trpc.admin.listUsers.queryOptions({
       limit: 100,
@@ -23,11 +25,11 @@ export default async function AdminOperatorsPage() {
         <SidebarTrigger className="text-text-muted hover:text-text-primary" />
         <Separator orientation="vertical" className="h-4 bg-border" />
         <nav className="flex items-center gap-1 text-xs text-text-muted">
-          <span>Admin</span>
+          <span>{t("breadcrumbAdmin")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span>Users</span>
+          <span>{t("breadcrumbUsers")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">Operators</span>
+          <span className="text-text-primary font-medium">{t("breadcrumbOperators")}</span>
         </nav>
       </header>
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

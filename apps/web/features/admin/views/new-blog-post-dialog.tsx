@@ -81,7 +81,7 @@ export function NewBlogPostDialog({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("e.g.5TipsForSafeIntercityTravel")}
+              placeholder={t("postTitlePlaceholder")}
               className="h-10 text-sm"
               autoFocus
               required

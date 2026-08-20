@@ -39,7 +39,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-muted-foreground">
-          {booked} / {total} seats
+          {booked} / {t("seatsCount", { count: total })}
         </span>
         <span className="text-[11px] font-semibold text-foreground">
           {Math.round(pct)}%
@@ -217,7 +217,10 @@ function SegmentOccupancySection({ trip }: { trip: TripDetail }) {
               </h5>
               {counts.held > 0 ? (
                 <span className="text-[10px] text-muted-foreground">
-                  {counts.confirmed} confirmed · {counts.held} held
+                  {t("confirmedHeld", {
+                    confirmed: counts.confirmed,
+                    held: counts.held,
+                  })}
                 </span>
               ) : null}
             </div>

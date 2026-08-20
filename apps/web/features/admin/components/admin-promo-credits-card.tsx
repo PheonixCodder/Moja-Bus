@@ -9,7 +9,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 
+import { useTranslations } from "next-intl";
+
 export function AdminPromoCreditsCard() {
+  const t = useTranslations("adminDashboard.promoCredits");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [userId, setUserId] = useState("");
@@ -19,7 +22,7 @@ export function AdminPromoCreditsCard() {
   const grantMutation = useMutation(
     trpc.discountsAdmin.grantCredit.mutationOptions({
       onSuccess: async () => {
-        toast.success("Promo credits granted");
+        toast.success(t("toastGranted"));
         if (lookupUserId) {
           await queryClient.invalidateQueries(
             trpc.discountsAdmin.listUserCredits.queryFilter({
@@ -44,17 +47,16 @@ export function AdminPromoCreditsCard() {
     <Card className="space-y-4 p-4">
       <div>
         <h2 className="text-sm font-semibold text-slate-900">
-          Promo credits catalog
+          {t("title")}
         </h2>
         <p className="text-xs text-slate-500">
-          Grant wallet promo credits (XOF) to a traveler. Referral earn rules
-          stay on the referral program card below. Not a points system.
+          {t("description")}
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="credit-user">User ID</Label>
+          <Label htmlFor="credit-user">{t("userIdLabel")}</Label>
           <Input
             id="credit-user"
             value={userId}
@@ -63,7 +65,7 @@ export function AdminPromoCreditsCard() {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="credit-amount">Amount (XOF)</Label>
+          <Label htmlFor="credit-amount">{t("amountLabel")}</Label>
           <Input
             id="credit-amount"
             type="number"
@@ -85,7 +87,7 @@ export function AdminPromoCreditsCard() {
             })
           }
         >
-          Grant promo credits
+          {t("grantBtn")}
         </Button>
         <Button
           type="button"
@@ -93,19 +95,19 @@ export function AdminPromoCreditsCard() {
           disabled={!userId.trim()}
           onClick={() => setLookupUserId(userId.trim())}
         >
-          Look up lots
+          {t("lookupBtn")}
         </Button>
       </div>
 
       {lookupUserId ? (
         <div className="space-y-1.5">
           <p className="text-xs font-medium text-slate-700">
-            Lots for {lookupUserId}
+            {t("lotsFor", { userId: lookupUserId })}
           </p>
           {lotsQuery.isLoading ? (
-            <p className="text-xs text-slate-500">Loading…</p>
+            <p className="text-xs text-slate-500">{t("loading")}</p>
           ) : (lotsQuery.data ?? []).length === 0 ? (
-            <p className="text-xs text-slate-500">No credit lots.</p>
+            <p className="text-xs text-slate-500">{t("noLots")}</p>
           ) : (
             <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-slate-600">
               {(lotsQuery.data ?? []).map((lot) => (

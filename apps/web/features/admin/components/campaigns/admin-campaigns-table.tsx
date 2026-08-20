@@ -14,6 +14,8 @@ import {
 import { format } from "date-fns";
 import { Bell, Pause, Play, Settings2 } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 export type CampaignStatus = "DRAFT" | "SCHEDULED" | "ACTIVE" | "PAUSED" | "EXHAUSTED" | "EXPIRED" | "ARCHIVED";
 
 export interface CampaignListItem {
@@ -53,13 +55,6 @@ function statusVariant(status: string): "default" | "secondary" | "outline" | "d
   return "outline";
 }
 
-function benefitLabel(item: { benefitType: string; percentBps?: number | null; amountXOF?: number | null }) {
-  if (item.benefitType === "PERCENT_OFF") return `${(item.percentBps ?? 0) / 100}% off`;
-  if (item.benefitType === "FIXED_AMOUNT_OFF") return `${item.amountXOF?.toLocaleString()} XOF off`;
-  if (item.benefitType === "WALLET_CREDIT_GRANT") return `+${item.amountXOF?.toLocaleString()} XOF credit`;
-  return item.benefitType;
-}
-
 export function AdminCampaignsTable({
   items,
   isLoading,
@@ -70,31 +65,40 @@ export function AdminCampaignsTable({
   statusPending,
   notifyPending,
 }: AdminCampaignsTableProps) {
+  const t = useTranslations("adminDashboard.campaigns.table");
+
+  function benefitLabel(item: { benefitType: string; percentBps?: number | null; amountXOF?: number | null }) {
+    if (item.benefitType === "PERCENT_OFF") return t("percentOff", { pct: (item.percentBps ?? 0) / 100 });
+    if (item.benefitType === "FIXED_AMOUNT_OFF") return t("fixedOff", { amount: item.amountXOF?.toLocaleString() ?? "0" });
+    if (item.benefitType === "WALLET_CREDIT_GRANT") return t("creditGrant", { amount: item.amountXOF?.toLocaleString() ?? "0" });
+    return item.benefitType;
+  }
+
   return (
     <Card className="overflow-hidden border-slate-200/80 shadow-xs bg-white">
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50/70 hover:bg-slate-50/70">
-            <TableHead className="font-semibold text-slate-700">Campaign</TableHead>
-            <TableHead className="font-semibold text-slate-700">Benefit</TableHead>
-            <TableHead className="font-semibold text-slate-700">Status</TableHead>
-            <TableHead className="font-semibold text-slate-700">Budget used</TableHead>
-            <TableHead className="font-semibold text-slate-700">Redemptions</TableHead>
-            <TableHead className="font-semibold text-slate-700">Created</TableHead>
-            <TableHead className="text-right font-semibold text-slate-700">Actions</TableHead>
+            <TableHead className="font-semibold text-slate-700">{t("campaign")}</TableHead>
+            <TableHead className="font-semibold text-slate-700">{t("benefit")}</TableHead>
+            <TableHead className="font-semibold text-slate-700">{t("status")}</TableHead>
+            <TableHead className="font-semibold text-slate-700">{t("budgetUsed")}</TableHead>
+            <TableHead className="font-semibold text-slate-700">{t("redemptions")}</TableHead>
+            <TableHead className="font-semibold text-slate-700">{t("created")}</TableHead>
+            <TableHead className="text-right font-semibold text-slate-700">{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
               <TableCell colSpan={7} className="py-12 text-center text-sm text-slate-500">
-                Loading campaigns...
+                {t("loading")}
               </TableCell>
             </TableRow>
           ) : items.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7} className="py-12 text-center text-sm text-slate-500">
-                No marketing campaigns found. Create your first campaign to get started.
+                {t("empty")}
               </TableCell>
             </TableRow>
           ) : (
@@ -116,12 +120,12 @@ export function AdminCampaignsTable({
                     <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
                       {item.isAutoApply && (
                         <span className="inline-flex items-center rounded-sm bg-pink-50 px-1.5 py-0.5 text-[10px] font-medium text-[#ee237c] ring-1 ring-inset ring-pink-700/10">
-                          Auto-apply
+                          {t("autoApplyTag")}
                         </span>
                       )}
                       {item.firstBookingOnly && (
                         <span className="inline-flex items-center rounded-sm bg-pink-50 px-1.5 py-0.5 text-[10px] font-medium text-[#ee237c] ring-1 ring-pink-700/10">
-                          1st booking
+                          {t("firstBookingTag")}
                         </span>
                       )}
                       <span className="font-mono text-[11px] text-slate-400">{item.id.slice(-6)}</span>
@@ -157,7 +161,7 @@ export function AdminCampaignsTable({
                         </div>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-400">Unlimited</span>
+                      <span className="text-xs text-slate-400">{t("unlimited")}</span>
                     )}
                   </TableCell>
 
@@ -165,9 +169,9 @@ export function AdminCampaignsTable({
                     <span className="font-semibold text-slate-900 tabular-nums">
                       {item._count.redemptions}
                     </span>
-                    <span className="text-slate-400"> uses · </span>
+                    <span className="text-slate-400"> {t("uses")} · </span>
                     <span className="tabular-nums font-semibold text-slate-900">{item._count.coupons}</span>
-                    <span className="text-slate-400"> codes</span>
+                    <span className="text-slate-400"> {t("codes")}</span>
                   </TableCell>
 
                   <TableCell className="whitespace-nowrap text-sm text-slate-500">
@@ -184,7 +188,7 @@ export function AdminCampaignsTable({
                         className="gap-1.5 font-medium"
                       >
                         <Settings2 className="size-3.5" />
-                        Manage
+                        {t("manage")}
                       </Button>
 
                       {item.status === "ACTIVE" ? (
@@ -195,7 +199,7 @@ export function AdminCampaignsTable({
                             variant="ghost"
                             disabled={notifyPending}
                             onClick={() => onNotifyPassengers(item.id)}
-                            title="Notify opted-in passengers"
+                            title={t("notifyPassengers")}
                             className="size-8 p-0 text-slate-500 hover:text-slate-900"
                           >
                             <Bell className="size-3.5" />
@@ -206,7 +210,7 @@ export function AdminCampaignsTable({
                             variant="ghost"
                             disabled={statusPending}
                             onClick={() => onStatusChange(item.id, "PAUSED", "Paused from admin dashboard")}
-                            title="Pause campaign"
+                            title={t("pauseCampaign")}
                             className="size-8 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                           >
                             <Pause className="size-3.5" />
@@ -219,7 +223,7 @@ export function AdminCampaignsTable({
                           variant="ghost"
                           disabled={statusPending}
                           onClick={() => onStatusChange(item.id, "ACTIVE")}
-                          title="Activate campaign"
+                          title={t("activateCampaign")}
                           className="size-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                         >
                           <Play className="size-3.5" />

@@ -1,13 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useTRPC } from "@/trpc/client";
 import { useCompanySettings } from "../../api/use-company-settings";
-import { useMutation, useQueryClient, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ActionDrawer } from "@moja/ui/components/ui/action-drawer";
 import { Label } from "@moja/ui/components/ui/label";
 import { DatePicker } from "@moja/ui/components/ui/date-picker";
-import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Eye, Trash2, FileUp, AlertTriangle } from "lucide-react";
 import { useState } from "react";
@@ -24,28 +24,21 @@ interface DocumentsDrawerProps {
 
 const DOCUMENT_SLOTS = [
   {
-    key: "BUSINESS_REGISTRATION_CERTIFICATE",
-    label: "Business Registration License",
-    desc: "Proof of legal commerce registry.",
+    key: "BUSINESS_REGISTRATION_CERTIFICATE" as const,
   },
   {
-    key: "TAX_CLEARANCE_CERTIFICATE",
-    label: "Tax Compliance Certificate",
-    desc: "TIN verification certificate.",
+    key: "TAX_CLEARANCE_CERTIFICATE" as const,
   },
   {
-    key: "TRANSPORT_OPERATING_PERMIT",
-    label: "National Transport Permit",
-    desc: "Permit to operate intercity passenger transport.",
+    key: "TRANSPORT_OPERATING_PERMIT" as const,
   },
   {
-    key: "INSURANCE_CERTIFICATE",
-    label: "Passenger Fleet Insurance",
-    desc: "Proof of liability insurance coverage.",
+    key: "INSURANCE_CERTIFICATE" as const,
   },
 ] as const;
 
 export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
+  const t = useTranslations("operatorDashboard.settings.compliance");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -95,6 +88,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
   const [uploadingDocType, setUploadingDocType] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [docExpiryDates, setDocExpiryDates] = useState<Record<string, string>>({});
+  
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
@@ -130,9 +124,9 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
         expiresAt: docExpiryDates[type] ? new Date(docExpiryDates[type]).toISOString() : undefined,
       });
 
-      toast.success(`${type.replace(/_/g, " ")} uploaded successfully`);
+      toast.success(t("toast.uploaded"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to upload document");
+      toast.error(err.message || t("toast.uploadFailed"));
     } finally {
       setUploadingDocType(null);
       setUploadProgress(0);
@@ -144,10 +138,10 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
 
     try {
       await deleteDocumentMutation.mutateAsync({ id: deletingId });
-      toast.success("Document deleted");
+      toast.success(t("toast.deleted"));
       setDeletingId(null);
     } catch (err: any) {
-      toast.error(err.message || "Failed to delete document");
+      toast.error(err.message || t("toast.deleteFailed"));
     }
   };
 
@@ -187,12 +181,12 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
       <ActionDrawer
         isOpen={isOpen}
         onClose={onClose}
-        title="Compliance Documents"
-        description="Upload and manage your company's legal operating requirements."
+        title={t("title")}
+        description={t("description")}
         footer={
           <div className="flex w-full justify-end">
             <Button variant="outline" onClick={onClose}>
-              Close
+              {t("dialog.cancel")}
             </Button>
           </div>
         }
@@ -209,10 +203,10 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
               >
                 <div className="space-y-1">
                   <h4 className="text-sm font-semibold text-foreground">
-                    {slot.label}
+                    {t(`slots.${slot.key}.label` as any)}
                   </h4>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    {slot.desc}
+                    {t(`slots.${slot.key}.desc` as any)}
                   </p>
                 </div>
 
@@ -221,7 +215,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                     <div className="space-y-2 py-3 text-center">
                       <Spinner className="w-5 h-5 mx-auto" />
                       <p className="text-[11px] text-primary font-semibold font-mono">
-                        Uploading... {uploadProgress}%
+                        {t("uploading")} {uploadProgress}%
                       </p>
                     </div>
                   ) : uploaded ? (
@@ -233,17 +227,17 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                           </span>
                           {uploaded.status === "APPROVED" && (
                             <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-bold tracking-wider shrink-0">
-                              APPROVED
+                              {t("status.APPROVED")}
                             </span>
                           )}
                           {uploaded.status === "PENDING" && (
                             <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-bold tracking-wider shrink-0">
-                              PENDING
+                              {t("status.PENDING")}
                             </span>
                           )}
                           {uploaded.status === "REJECTED" && (
                             <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold tracking-wider shrink-0">
-                              REJECTED
+                              {t("status.REJECTED")}
                             </span>
                           )}
                         </div>
@@ -251,7 +245,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                           <span>{uploaded.mimeType === "application/pdf" ? "PDF" : "IMG"}</span>
                           <span>•</span>
                           <span>
-                            {format(new Date(uploaded.createdAt), "PPP")}
+                            {t("uploadedOn", { date: format(new Date(uploaded.createdAt), "PPP") })}
                           </span>
                           {uploaded.expiresAt && (
                             <>
@@ -261,7 +255,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                                 new Date(uploaded.expiresAt) < new Date() ? "text-red-500 font-bold" :
                                 new Date(uploaded.expiresAt) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? "text-amber-500 font-bold" : ""
                               )}>
-                                Expires: {format(new Date(uploaded.expiresAt), "PPP")}
+                                {t("expiresOnDate", { date: format(new Date(uploaded.expiresAt), "PPP") })}
                               </span>
                             </>
                           )}
@@ -273,7 +267,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                           type="button"
                           onClick={() => handleViewDocument(uploaded.id, uploaded.objectKey!)}
                           className="inline-flex items-center justify-center w-7 h-7 border border-border hover:bg-slate-50 rounded text-muted-foreground transition-colors shrink-0"
-                          title="View Document"
+                          title={t("viewDocument")}
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
@@ -281,7 +275,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                           type="button"
                           onClick={() => setDeletingId(uploaded.id)}
                           className="inline-flex items-center justify-center w-7 h-7 border border-border hover:bg-red-50 hover:text-red-500 transition-colors rounded text-muted-foreground shrink-0"
-                          title="Delete Document"
+                          title={t("deleteDocument")}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -295,10 +289,10 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                       >
                         <FileUp className="w-5 h-5 text-muted-foreground/60 mb-1" />
                         <span className="text-xs font-semibold text-foreground">
-                          Upload document
+                          {t("chooseFile")}
                         </span>
                         <span className="text-[10px] text-muted-foreground mt-0.5">
-                          PDF or image files up to 5MB
+                          {t("dropHint")}
                         </span>
                         <input
                           type="file"
@@ -309,7 +303,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                         />
                       </Label>
                       <div className="mt-2 space-y-1 w-full max-w-[200px] mx-auto text-left">
-                        <Label htmlFor={`expiry-${slot.key}`} className="text-[10px] text-muted-foreground ml-1">Expiry Date (Optional)</Label>
+                        <Label htmlFor={`expiry-${slot.key}`} className="text-[10px] text-muted-foreground ml-1">{t("expiresOn")}</Label>
                         <DatePicker
                           value={docExpiryDates[slot.key] || ""}
                           onChange={(date) => {
@@ -322,7 +316,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                               setDocExpiryDates(prev => ({ ...prev, [slot.key]: "" }));
                             }
                           }}
-                          placeholder="Select expiry"
+                          placeholder={t("selectExpiry")}
                           className="h-8 text-xs w-full"
                         />
                       </div>
@@ -341,15 +335,15 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 mb-4">
               <AlertTriangle className="size-6 text-red-600" />
             </div>
-            <AlertDialogTitle>Delete Compliance Document</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this document? Removing mandatory compliance files may temporarily suspend your operating permit.
+              {t("dialog.deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("dialog.cancel")}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={confirmDelete} disabled={deleteDocumentMutation.isPending}>
-              {deleteDocumentMutation.isPending ? "Deleting..." : "Yes, delete document"}
+              {deleteDocumentMutation.isPending ? "Deleting..." : t("dialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

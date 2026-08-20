@@ -1,20 +1,22 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCompanySettings } from "../api/use-company-settings";
 import { Progress } from "@moja/ui/components/ui/progress";
 import { getBankVerificationState, getDocumentsVerificationState } from "../../lib/company-status";
 
 export function HealthScore() {
+  const t = useTranslations("operatorDashboard.settings.healthScore");
   const { data: settings } = useCompanySettings();
   
   const checklist = [
     { 
-      label: "Profile details filled", 
-      done: !!settings?.company.name && !!settings?.company.taxId && !!settings?.company.registrationNumber 
+      label: "Complete company profile & tax details", 
+      done: !!(settings?.company.name && settings?.company.taxId) 
     },
     { 
-      label: "Payout bank account verified", 
-      done: settings?.company?.bankAccounts?.some(b => b.isVerified) || false
+      label: "Add & verify a payout bank account", 
+      done: !!settings?.company.bankAccounts?.some((b) => b.isVerified) 
     },
     { 
       label: "Required documents approved", 
@@ -32,11 +34,11 @@ export function HealthScore() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 flex-1">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            Company Health Score
+            {t("title")}
             <span className="text-primary">{score}%</span>
           </h3>
           <p className="text-sm text-muted-foreground">
-            Complete these remaining steps to ensure your account is fully operational.
+            {t("description")}
           </p>
           <Progress value={score} className="h-2 w-full md:max-w-md mt-4" />
         </div>

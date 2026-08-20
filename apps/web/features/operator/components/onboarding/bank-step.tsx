@@ -153,7 +153,7 @@ export function BankStep({
                 <ComboboxInput
                   id="bank-name"
                   placeholder={isLoadingBanks ? t("loadingBanks") : t("selectBank")}
-                  aria-label="Search and select your bank"
+                  aria-label={t("bankSearchPlaceholder")}
                   className="w-full text-sm"
                   value={bankName || ""}
                 />

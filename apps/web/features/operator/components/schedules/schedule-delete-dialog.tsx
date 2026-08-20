@@ -33,13 +33,10 @@ export function ScheduleDeleteDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertCircle className="size-4" />
-            {tc("delete")} schedule
+            {t("delete.title")}
           </DialogTitle>
           <DialogDescription>
-            This permanently deletes the schedule and all of its trips. It is
-            only allowed when the schedule has never had any passenger bookings.
-            If bookings exist, use Retire instead to deactivate the schedule and
-            prune empty future trips. This action cannot be undone.
+            {t("delete.warningText")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">
@@ -48,7 +45,7 @@ export function ScheduleDeleteDialog({
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={pending}>
             {pending ? <Spinner className="size-4 mr-2" /> : null}
-            {pending ? "Deleting…" : tc("delete")}
+            {pending ? t("delete.deleting") : tc("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -30,6 +30,7 @@ export function SeatMapPreview({
   interactive = false,
   onSeatToggled,
 }: SeatMapPreviewProps) {
+  const t = useTranslations("operatorDashboard.fleet.seatMap");
   const [seatStates, setSeatStates] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(seats.map((s) => [s.id, s.isActive])),
   );
@@ -69,13 +70,13 @@ export function SeatMapPreview({
           onSeatToggled?.(updated);
           toast.success(
             nextActive
-              ? `Seat ${seat.label} reactivated`
-              : `Seat ${seat.label} placed out of service`,
+              ? t("toastReactivated", { label: seat.label })
+              : t("toastOutOfService", { label: seat.label }),
           );
           setToggling(null);
         },
         onError: () => {
-          toast.error("Unable to update seat status");
+          toast.error(t("toastError"));
           setToggling(null);
         },
       },
@@ -94,15 +95,15 @@ export function SeatMapPreview({
         <div className="flex flex-wrap gap-3 mb-4 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="size-3.5 rounded-[4px] border border-primary/30 bg-primary/10" />
-            <span>Active</span>
+            <span>{t("legend.active")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="size-3.5 rounded-[4px] border border-border bg-muted" />
-            <span>Out of service</span>
+            <span>{t("legend.outOfService")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="size-3.5 rounded-[4px] border border-border bg-foreground/80" />
-            <span>Driver</span>
+            <span>{t("legend.driver")}</span>
           </div>
         </div>
       )}
@@ -211,7 +212,7 @@ export function SeatMapPreview({
         {/* Door indicator at bottom */}
         <div className="mt-3 text-center text-[10px] text-muted-foreground tracking-widest uppercase flex items-center justify-center gap-2">
           <div className="flex-1 border-t border-dashed border-border" />
-          <span>Entrance door</span>
+          <span>{t("entranceDoor")}</span>
           <div className="flex-1 border-t border-dashed border-border" />
         </div>
       </div>

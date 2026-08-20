@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@moja/ui/components/ui/table";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 export type RedemptionRow = {
   id: string;
@@ -37,23 +38,25 @@ export function CampaignRedemptionsTable({
   isLoading,
   emptyHint = "No redemptions yet for this filter.",
 }: Props) {
+  const t = useTranslations("discounts.campaignRedemptions");
+
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>When</TableHead>
-            <TableHead>User</TableHead>
-            <TableHead>Code</TableHead>
-            <TableHead>Discount</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{t("tableWhen")}</TableHead>
+            <TableHead>{t("tableUser")}</TableHead>
+            <TableHead>{t("tableCode")}</TableHead>
+            <TableHead>{t("tableDiscount")}</TableHead>
+            <TableHead>{t("tableStatus")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
               <TableCell colSpan={5} className="py-8 text-center text-sm text-slate-500">
-                Loading redemptions…
+                {t("loading")}
               </TableCell>
             </TableRow>
           ) : items.length === 0 ? (
@@ -80,7 +83,7 @@ export function CampaignRedemptionsTable({
                       </div>
                     </div>
                   ) : (
-                    <span className="text-sm text-slate-400">Guest / unknown</span>
+                    <span className="text-sm text-slate-400">{t("guestUnknown")}</span>
                   )}
                 </TableCell>
                 <TableCell className="font-mono text-xs">

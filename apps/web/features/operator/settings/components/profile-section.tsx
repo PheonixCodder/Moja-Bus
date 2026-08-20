@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCompanySettings } from "../api/use-company-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
@@ -12,6 +13,7 @@ interface ProfileSectionProps {
 }
 
 export function ProfileSection({ onManage }: ProfileSectionProps) {
+  const t = useTranslations("operatorDashboard.settings.company");
   const { data: settings } = useCompanySettings();
   const { can } = useStaffPermissions();
   const company = settings?.company;
@@ -23,14 +25,14 @@ export function ProfileSection({ onManage }: ProfileSectionProps) {
         <div className="space-y-1">
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5 text-muted-foreground" />
-            Company Profile
+            {t("title")}
           </CardTitle>
-          <CardDescription>Your public business details</CardDescription>
+          <CardDescription>{t("publicDetails")}</CardDescription>
         </div>
         {can("company:profile:update") ? (
           <Button variant="outline" size="sm" onClick={onManage}>
             <Pencil className="w-4 h-4 mr-2" />
-            Edit
+            {t("edit")}
           </Button>
         ) : null}
       </CardHeader>
@@ -43,24 +45,24 @@ export function ProfileSection({ onManage }: ProfileSectionProps) {
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1 overflow-hidden">
-            <h3 className="font-semibold text-lg truncate">{company?.name || "No Company Name"}</h3>
-            <p className="text-sm text-muted-foreground truncate">{company?.email || "No email set"}</p>
-            <p className="text-sm text-muted-foreground truncate">{company?.phone || "No phone set"}</p>
+            <h3 className="font-semibold text-lg truncate">{company?.name || t("noCompanyName")}</h3>
+            <p className="text-sm text-muted-foreground truncate">{company?.email || t("noEmailSet")}</p>
+            <p className="text-sm text-muted-foreground truncate">{company?.phone || t("noPhoneSet")}</p>
           </div>
         </div>
 
         <div className="mt-6 space-y-3">
           <div className="grid grid-cols-2 text-sm gap-2">
-            <div className="text-muted-foreground">Type</div>
-            <div className="font-medium capitalize">{company?.businessType?.toLowerCase().replace(/_/g, ' ') || "Not set"}</div>
+            <div className="text-muted-foreground">{t("type")}</div>
+            <div className="font-medium capitalize">{company?.businessType ? (t(`types.${company.businessType}` as any) || company.businessType) : t("notSet")}</div>
             
-            <div className="text-muted-foreground">Reg. Number</div>
-            <div className="font-medium truncate" title={company?.registrationNumber || ""}>{company?.registrationNumber || "Not set"}</div>
+            <div className="text-muted-foreground">{t("regNumber")}</div>
+            <div className="font-medium truncate" title={company?.registrationNumber || ""}>{company?.registrationNumber || t("notSet")}</div>
             
-            <div className="text-muted-foreground">Tax ID</div>
-            <div className="font-medium truncate" title={company?.taxId || ""}>{company?.taxId || "Not set"}</div>
+            <div className="text-muted-foreground">{t("taxId")}</div>
+            <div className="font-medium truncate" title={company?.taxId || ""}>{company?.taxId || t("notSet")}</div>
 
-            <div className="text-muted-foreground">Manager</div>
+            <div className="text-muted-foreground">{t("manager")}</div>
             <div className="font-medium truncate">{operator?.user?.fullName}</div>
           </div>
         </div>

@@ -499,16 +499,15 @@ export function TerminalEditorSheet({
 
                   <div className="rounded-lg border border-border p-4 space-y-4">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                      Location Role & Status
+                      {t("editor.locationRoleAndStatus")}
                     </h4>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-sm font-medium">
-                          Passenger Terminal
+                          {t("editor.passengerTerminal")}
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          Capture links can only be generated for passenger
-                          terminals.
+                          {t("editor.captureTerminalDesc")}
                         </p>
                       </div>
                       <Switch checked disabled />
@@ -516,9 +515,9 @@ export function TerminalEditorSheet({
 
                     <div className="flex items-center justify-between border-t border-border pt-3">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-medium">Primary Hub</Label>
+                        <Label className="text-sm font-medium">{t("editor.primaryHub")}</Label>
                         <p className="text-xs text-muted-foreground">
-                          Set as company primary operational headquarters.
+                          {t("editor.primaryHubDesc")}
                         </p>
                       </div>
                       <Switch
@@ -532,9 +531,9 @@ export function TerminalEditorSheet({
 
                     <div className="flex items-center justify-between border-t border-border pt-3">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-medium">Active Status</Label>
+                        <Label className="text-sm font-medium">{t("editor.activeStatus")}</Label>
                         <p className="text-xs text-muted-foreground">
-                          Enable or disable operations at this location.
+                          {t("editor.activeStatusDesc")}
                         </p>
                       </div>
                       <Switch
@@ -648,7 +647,7 @@ export function TerminalEditorSheet({
                   <DrawerClose asChild>
                     <Button type="button" onClick={onClose}>
                       <CheckCircle className="mr-2 size-4" />
-                      {tc("save")} &amp; Close
+                      {tc("save")} {t("editor.andClose")}
                     </Button>
                   </DrawerClose>
                 )}
@@ -719,7 +718,7 @@ export function TerminalEditorSheet({
                   </Label>
                   <Input
                     id="addressLine1"
-                    placeholder="Street address or location details"
+                    placeholder={t("editor.addressDetails")}
                     value={addressLine1}
                     onChange={(e) => {
                       setAddressLine1(e.target.value);
@@ -758,7 +757,7 @@ export function TerminalEditorSheet({
                   >
                     <ComboboxInput
                       id="cityId"
-                      placeholder="Select city..."
+                      placeholder={t("editor.selectCity")}
                       className="w-full text-sm"
                       value={
                         cityId
@@ -767,7 +766,7 @@ export function TerminalEditorSheet({
                       }
                     />
                     <ComboboxContent>
-                      <ComboboxEmpty>No city found.</ComboboxEmpty>
+                      <ComboboxEmpty>{t("editor.noCityFound")}</ComboboxEmpty>
                       <ComboboxList>
                         {cities.map((city: any) => (
                           <ComboboxItem key={city.id} value={city.id}>
@@ -789,7 +788,7 @@ export function TerminalEditorSheet({
                     htmlFor="municipalityId"
                     className="text-xs font-semibold uppercase tracking-wider"
                   >
-                    Municipality
+                    {t("editor.municipality")}
                   </Label>
                   {cityId && municipalities.length > 0 ? (
                     <>
@@ -816,7 +815,7 @@ export function TerminalEditorSheet({
                         >
                           <ComboboxInput
                             id="municipalityId"
-                            placeholder="Select municipality..."
+                            placeholder={t("editor.selectMunicipality")}
                             className="w-full text-sm"
                             value={
                               municipalityId
@@ -828,7 +827,7 @@ export function TerminalEditorSheet({
                           />
                           <ComboboxContent>
                             <ComboboxEmpty>
-                              No municipality found.
+                              {t("editor.noMunicipalityFound")}
                             </ComboboxEmpty>
                             <ComboboxList>
                               {municipalities.map((m: any) => (
@@ -847,7 +846,7 @@ export function TerminalEditorSheet({
                       value=""
                       readOnly
                       placeholder={
-                        cityId ? "No municipalities found" : "Select a city first"
+                        cityId ? t("editor.noMunicipalityFound") : t("editor.selectCity")
                       }
                       className="bg-muted"
                     />
@@ -861,7 +860,7 @@ export function TerminalEditorSheet({
                     htmlFor="quarterId"
                     className="text-xs font-semibold uppercase tracking-wider"
                   >
-                    Quarter / Neighbourhood
+                    {t("editor.quarter")}
                   </Label>
                   <Combobox
                     items={quarters.map((q: any) => ({
@@ -878,8 +877,8 @@ export function TerminalEditorSheet({
                       id="quarterId"
                       placeholder={
                         municipalityId
-                          ? "Select quarter..."
-                          : "Select a municipality first..."
+                          ? `${t("editor.quarter")}...`
+                          : `${t("editor.selectMunicipality")}...`
                       }
                       className="w-full text-sm"
                       value={
@@ -890,7 +889,7 @@ export function TerminalEditorSheet({
                       }
                     />
                     <ComboboxContent>
-                      <ComboboxEmpty>No quarter found.</ComboboxEmpty>
+                      <ComboboxEmpty>{t("editor.noQuarterFound")}</ComboboxEmpty>
                       <ComboboxList>
                         {quarters.map((q: any) => (
                           <ComboboxItem key={q.id} value={q.id}>
@@ -907,7 +906,7 @@ export function TerminalEditorSheet({
                     htmlFor="latitude"
                     className="text-xs font-semibold uppercase tracking-wider"
                   >
-                    Latitude
+                    {t("editor.latitude")}
                   </Label>
                   <Input
                     id="latitude"
@@ -929,7 +928,7 @@ export function TerminalEditorSheet({
                     htmlFor="longitude"
                     className="text-xs font-semibold uppercase tracking-wider"
                   >
-                    Longitude
+                    {t("editor.longitude")}
                   </Label>
                   <Input
                     id="longitude"
@@ -949,7 +948,7 @@ export function TerminalEditorSheet({
                     htmlFor="state"
                     className="text-xs font-semibold uppercase tracking-wider"
                   >
-                    State / Region
+                    {t("editor.stateRegion")}
                   </Label>
                   <Input
                     id="state"
@@ -965,16 +964,15 @@ export function TerminalEditorSheet({
 
               <div className="rounded-lg border border-border p-4 space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                  Location Role & Status
+                  {t("editor.locationRoleAndStatus")}
                 </h4>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-sm font-medium">
-                      Passenger Terminal
+                      {t("editor.passengerTerminal")}
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Mark as a bookable passenger terminal for departure and
-                      arrival routes.
+                      {t("editor.passengerTerminalDesc")}
                     </p>
                   </div>
                   <Switch
@@ -988,16 +986,15 @@ export function TerminalEditorSheet({
 
                 {isTerminal && !cityId && (
                   <p className="text-xs text-destructive border-t border-border pt-2">
-                    Select a city above before saving — a passenger terminal must
-                    have a city assigned.
+                    {t("editor.selectCityWarning")}
                   </p>
                 )}
 
                 <div className="flex items-center justify-between border-t border-border pt-3">
                   <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Primary Hub</Label>
+                    <Label className="text-sm font-medium">{t("editor.primaryHub")}</Label>
                     <p className="text-xs text-muted-foreground">
-                      Set as company primary operational headquarters.
+                      {t("editor.primaryHubDesc")}
                     </p>
                   </div>
                   <Switch
@@ -1011,9 +1008,9 @@ export function TerminalEditorSheet({
 
                 <div className="flex items-center justify-between border-t border-border pt-3">
                   <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Active Status</Label>
+                    <Label className="text-sm font-medium">{t("editor.activeStatus")}</Label>
                     <p className="text-xs text-muted-foreground">
-                      Enable or disable operations at this location.
+                      {t("editor.activeStatusDesc")}
                     </p>
                   </div>
                   <Switch

@@ -33,7 +33,7 @@ export function LocaleSwitcher({ className }: LocaleSwitcherProps) {
           variant="ghost"
           size="sm"
           className={cn("gap-1.5 text-sm font-medium", className)}
-          aria-label="Switch language"
+          aria-label={t("switchLanguage")}
         >
           <Globe className="size-4 shrink-0" />
           <span className="hidden sm:inline">{t("current")}</span>

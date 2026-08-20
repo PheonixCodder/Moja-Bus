@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { AdminVerificationsView } from "@/features/admin/views/admin-verifications-view";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 import { Suspense } from "react";
@@ -6,9 +7,9 @@ import { verificationsSearchParamsCache } from "@/features/admin/lib/search-para
 import { DashboardHeader } from "@/features/admin/components/dashboard-header";
 
 export const metadata = {
-  title: "Verification Queue — Moja Ride Admin",
+  title: "{t("title")} — Moja Ride Admin",
   description:
-    "Review operator legal documents, tax clearance files, and bank details. Approve to activate the operator's internal ledger account and register them as a Paystack Transfer Recipient.",
+    "{t("description")}",
 };
 
 export default async function VerificationsQueuePage({
@@ -16,6 +17,7 @@ export default async function VerificationsQueuePage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const t = await getTranslations("adminDashboard.pages.verifications");
   const parsed = verificationsSearchParamsCache.parse(await searchParams);
 
   const limit = parsed.pageSize;
@@ -50,10 +52,10 @@ export default async function VerificationsQueuePage({
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
-              Verification Queue
+              {t("title")}
             </h1>
             <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Review operator legal documents, tax clearance files, and bank details. Approve to activate the operator's internal ledger account and register them as a Paystack Transfer Recipient.
+              {t("description")}
             </p>
           </div>
           <Suspense

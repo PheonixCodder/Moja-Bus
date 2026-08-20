@@ -44,13 +44,13 @@ export function DeleteRouteDialog({
       { id: route.id },
       {
         onSuccess: () => {
-          toast.success(`Route "${route.name}" deleted`);
+          toast.success(t("deleteDialog.toastDeleted", { name: route.name }));
           if (onDeleted) onDeleted(route.id);
           onClose();
           queryClient.invalidateQueries(trpc.routes.list.pathFilter());
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to delete route");
+          toast.error(err.message || t("deleteDialog.toastFailed"));
         },
       },
     );
@@ -62,14 +62,10 @@ export function DeleteRouteDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertCircle className="size-4" />
-            {tc("delete")} route
+            {t("deleteDialog.title")}
           </DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete{" "}
-            <span className="font-semibold text-foreground">
-              "{route?.name}"
-            </span>
-            ? This action will remove the route. Active schedules or trips using this route must be updated or archived.
+            {t("deleteDialog.description", { name: route?.name ?? "" })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
@@ -88,7 +84,7 @@ export function DeleteRouteDialog({
             {deleteMutation.isPending ? (
               <Spinner className="size-4 mr-2" />
             ) : null}
-            {deleteMutation.isPending ? "Deleting…" : tc("delete")}
+            {deleteMutation.isPending ? t("deleteDialog.deleting") : tc("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

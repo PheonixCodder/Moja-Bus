@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import { Suspense } from "react";
 import { DashboardHeader } from "@/features/admin/components/dashboard-header";
@@ -6,9 +7,9 @@ import { AdminInquiriesView } from "@/features/admin/views/admin-inquiries-view"
 import { HydrateClient, prefetch, trpc } from "@/trpc/server";
 
 export const metadata = {
-  title: "Contact Inquiries — Moja Ride Admin",
+  title: "{t("title")} — Moja Ride Admin",
   description:
-    "Review contact form submissions from passengers and visitors. Respond to questions, booking help, payment issues, and partnership inquiries.",
+    "{t("description")}",
 };
 
 export default async function AdminInquiriesPage({
@@ -16,6 +17,7 @@ export default async function AdminInquiriesPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const t = await getTranslations("adminDashboard.pages.inquiries");
   const parsed = inquiriesSearchParamsCache.parse(await searchParams);
 
   const limit = parsed.pageSize;
@@ -47,12 +49,10 @@ export default async function AdminInquiriesPage({
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
-              Contact Inquiries
+              {t("title")}
             </h1>
             <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Review contact form submissions from passengers and visitors.
-              Respond to questions, booking help, payment issues, and
-              partnership inquiries.
+              {t("description")}
             </p>
           </div>
           <Suspense

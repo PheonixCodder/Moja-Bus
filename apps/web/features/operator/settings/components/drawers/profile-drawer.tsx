@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ActionDrawer } from "@moja/ui/components/ui/action-drawer";
 import { useProfileForm } from "../../hooks/use-profile-form";
 import { useCompanySettings } from "../../api/use-company-settings";
@@ -23,6 +24,7 @@ interface ProfileDrawerProps {
 }
 
 export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
+  const t = useTranslations("operatorDashboard.settings.company");
   const { data: settings } = useCompanySettings();
   const form = useProfileForm(settings?.company || {});
   
@@ -33,7 +35,7 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
   const mutation = useMutation(
     trpc.operator.updateCompany.mutationOptions({
       onMutate: async (variables) => {
-        toast.loading("Saving profile...", { id: "save-profile" });
+        toast.loading(t("toastSaving"), { id: "save-profile" });
         const queryKey = trpc.operator.getSettings.queryKey();
         await queryClient.cancelQueries({ queryKey });
 
@@ -53,11 +55,11 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
         return { previousSettings };
       },
       onSuccess: () => {
-        toast.success("Profile saved successfully", { id: "save-profile" });
+        toast.success(t("toastSaved"), { id: "save-profile" });
         onClose();
       },
       onError: (err, variables, context) => {
-        toast.error(err.message || "Failed to save profile", { id: "save-profile" });
+        toast.error(err.message || t("toastSaveFailed"), { id: "save-profile" });
         if (context?.previousSettings) {
           queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
         }
@@ -94,17 +96,17 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
       title={
         <div className="flex items-center gap-2">
           <Building2 className="w-5 h-5" />
-          Edit Company Profile
+          {t("editProfile")}
         </div>
       }
-      description="Update your business details. This information is visible on invoices and digital tickets."
+      description={t("description")}
       footer={
         <div className="flex gap-2 w-full">
           <Button variant="outline" className="flex-1" onClick={handleClose} disabled={mutation.isPending}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button className="flex-1" onClick={onSubmit} disabled={mutation.isPending}>
-            {mutation.isPending ? "Saving..." : "Save Changes"}
+            {mutation.isPending ? t("saving") : t("saveChanges")}
           </Button>
         </div>
       }
@@ -112,19 +114,19 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
       <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
         <div className="space-y-4">
           <Field>
-            <FieldLabel>Company Name</FieldLabel>
-            <Input placeholder="Enter registered business name" {...form.register("name")} />
+            <FieldLabel>{t("companyName")}</FieldLabel>
+            <Input placeholder={t("companyNamePlaceholder")} {...form.register("name")} />
             <FieldError errors={[form.formState.errors.name]} />
           </Field>
 
           <Field>
-            <FieldLabel>Support Email</FieldLabel>
-            <Input type="email" placeholder="support@company.com" {...form.register("email")} />
+            <FieldLabel>{t("supportEmail")}</FieldLabel>
+            <Input type="email" placeholder={t("supportEmailPlaceholder")} {...form.register("email")} />
             <FieldError errors={[form.formState.errors.email]} />
           </Field>
 
           <Field>
-            <FieldLabel>Contact Phone</FieldLabel>
+            <FieldLabel>{t("contactPhone")}</FieldLabel>
             <Controller
               name="phone"
               control={form.control}
@@ -141,13 +143,13 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
           </Field>
 
           <Field>
-            <FieldLabel>Company Logo</FieldLabel>
+            <FieldLabel>{t("companyLogo")}</FieldLabel>
             <ImageUploadField
               purpose="operator-logo"
               value={form.watch("logoUrl") ?? null}
               onUploaded={(res) => form.setValue("logoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
-              label="Upload Logo"
-              hint="Recommended 512x512px, JPG or PNG."
+              label={t("uploadLogo")}
+              hint={t("logoHint")}
               shape="square"
               previewClassName="h-16 w-16 rounded-xl"
             />
@@ -158,56 +160,56 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Field>
-              <FieldLabel>Tax ID (NIF)</FieldLabel>
-              <Input placeholder="Tax ID" {...form.register("taxId")} />
+              <FieldLabel>{t("taxId")}</FieldLabel>
+              <Input placeholder={t("taxIdPlaceholder")} {...form.register("taxId")} />
               <FieldError errors={[form.formState.errors.taxId]} />
             </Field>
             
             <Field>
-              <FieldLabel>Reg. Number (RCCM)</FieldLabel>
-              <Input placeholder="Registration #" {...form.register("registrationNumber")} />
+              <FieldLabel>{t("regNumber")}</FieldLabel>
+              <Input placeholder={t("regNumberPlaceholder")} {...form.register("registrationNumber")} />
               <FieldError errors={[form.formState.errors.registrationNumber]} />
             </Field>
           </div>
 
           <Field>
-            <FieldLabel>Business Type</FieldLabel>
+            <FieldLabel>{t("businessType")}</FieldLabel>
             <select
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               {...form.register("businessType")}
             >
-              <option value="SOLE_PROPRIETORSHIP">Sole Proprietorship</option>
-              <option value="LLC">LLC</option>
-              <option value="CORPORATION">Corporation</option>
-              <option value="PARTNERSHIP">Partnership</option>
-              <option value="COOPERATIVE">Cooperative</option>
-              <option value="OTHER">Other</option>
+              <option value="SOLE_PROPRIETORSHIP">{t("types.SOLE_PROPRIETORSHIP")}</option>
+              <option value="LLC">{t("types.LLC")}</option>
+              <option value="CORPORATION">{t("types.CORPORATION")}</option>
+              <option value="PARTNERSHIP">{t("types.PARTNERSHIP")}</option>
+              <option value="COOPERATIVE">{t("types.COOPERATIVE")}</option>
+              <option value="OTHER">{t("types.OTHER")}</option>
             </select>
             <FieldError errors={[form.formState.errors.businessType]} />
           </Field>
 
           <Field>
-            <FieldLabel>Year Established</FieldLabel>
-            <Input type="number" placeholder="YYYY" {...form.register("yearEstablished", { valueAsNumber: true })} />
+            <FieldLabel>{t("yearEstablished")}</FieldLabel>
+            <Input type="number" placeholder={t("yearPlaceholder")} {...form.register("yearEstablished", { valueAsNumber: true })} />
             <FieldError errors={[form.formState.errors.yearEstablished]} />
           </Field>
 
           <Field>
-            <FieldLabel>Estimated Staff Size</FieldLabel>
-            <Input type="number" placeholder="Number of employees" {...form.register("estimatedStaffSize", { valueAsNumber: true })} />
+            <FieldLabel>{t("staffSize")}</FieldLabel>
+            <Input type="number" placeholder={t("staffSizePlaceholder")} {...form.register("estimatedStaffSize", { valueAsNumber: true })} />
             <FieldError errors={[form.formState.errors.estimatedStaffSize]} />
           </Field>
 
           <Field>
-            <FieldLabel>Website URL</FieldLabel>
-            <Input type="url" placeholder="https://example.com" {...form.register("website")} />
+            <FieldLabel>{t("websiteUrl")}</FieldLabel>
+            <Input type="url" placeholder={t("websitePlaceholder")} {...form.register("website")} />
             <FieldError errors={[form.formState.errors.website]} />
           </Field>
 
           <Field>
-            <FieldLabel>Business Description</FieldLabel>
+            <FieldLabel>{t("businessDescription")}</FieldLabel>
             <Textarea 
-              placeholder="Tell us about your transport business..." 
+              placeholder={t("businessDescPlaceholder")} 
               className="resize-none" 
               rows={4}
               {...form.register("description")} 
@@ -224,15 +226,15 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-amber-100 mb-4">
               <AlertTriangle className="size-6 text-amber-600" />
             </div>
-            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogTitle>{t("discardDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              You have unsaved changes in your company profile. Are you sure you want to discard them?
+              {t("discardDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogCancel>{t("discardDialog.keepEditing")}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={confirmDiscard}>
-              Yes, discard changes
+              {t("discardDialog.discard")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

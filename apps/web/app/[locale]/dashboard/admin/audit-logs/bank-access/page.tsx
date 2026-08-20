@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { prefetch, HydrateClient, trpc } from "@/trpc/server";
 import { AdminBankAccessLogsView } from "../../../../../../features/admin/views/admin-bank-access-logs-view";
 import { bankAccessLogSearchParams } from "../../../../../../features/admin/lib/search-params";
@@ -14,6 +15,7 @@ export default async function BankAccessLogsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const t = await getTranslations("adminDashboard.pages.bankAccess");
   const params = bankAccessLogSearchParamsCache.parse(await searchParams);
 
   await prefetch(
@@ -29,11 +31,11 @@ export default async function BankAccessLogsPage({
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Bank Access Audit"
-        description="Security ledger tracking decryption and modification of operator bank accounts."
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Audit & Security" },
-          { label: "Bank Access" },
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
         ]}
       >
         <AdminBankAccessLogsView />

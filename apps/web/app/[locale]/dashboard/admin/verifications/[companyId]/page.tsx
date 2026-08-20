@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { AdminVerificationDetailsView } from "@/features/admin/views/admin-verification-details-view";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
 import { Suspense } from "react";
@@ -19,6 +20,7 @@ export default async function VerificationDetailsPage({
   params: Promise<{ companyId: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const t = await getTranslations("adminDashboard.pages.verificationDetails");
   const { companyId } = await params;
   const parsed = verificationDetailsSearchParamsCache.parse(await searchParams);
 
@@ -38,7 +40,7 @@ export default async function VerificationDetailsPage({
         breadcrumbs={[
           { label: "Admin", tKey: "overview.breadcrumb.admin" },
           { label: "Verification Queue", tKey: "nav.verifications", href: "/dashboard/admin/verifications" },
-          { label: "Operator Details", tKey: "overview.breadcrumb.operatorDetails" },
+          { label: "{t("title")}", tKey: "overview.breadcrumb.operatorDetails" },
         ]}
       />
       <div className="flex-1 overflow-y-auto p-6 md:p-8">
@@ -57,10 +59,10 @@ export default async function VerificationDetailsPage({
             />
             <div className="space-y-0.5">
               <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
-                Operator Details
+                {t("title")}
               </h1>
               <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-                Review legal profiles, tax registries, settlement banks, and update KYC checklists.
+                {t("description")}
               </p>
             </div>
           </div>

@@ -6,7 +6,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 
+import { useTranslations } from "next-intl";
+
 export function AdminOutboxDeadLettersView() {
+  const t = useTranslations("adminDashboard.outboxDeadLetters");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const listQuery = useQuery(
@@ -37,19 +40,18 @@ export function AdminOutboxDeadLettersView() {
     <div className="space-y-4 p-4 md:p-6">
       <div>
         <h1 className="text-lg font-semibold text-slate-900">
-          Notification outbox
+          {t("title")}
         </h1>
         <p className="text-sm text-slate-500">
-          Failed and dead commercial Novu messages (Phase 07). Retry re-queues
-          delivery via the process-outbox cron.
+          {t("description")}
         </p>
       </div>
       <Card className="divide-y overflow-hidden">
         {listQuery.isLoading ? (
-          <p className="p-4 text-sm text-slate-500">Loading…</p>
+          <p className="p-4 text-sm text-slate-500">{t("loading")}</p>
         ) : items.length === 0 ? (
           <p className="p-4 text-sm text-slate-500">
-            No failed or dead outbox messages.
+            {t("empty")}
           </p>
         ) : (
           items.map((m) => (
@@ -65,7 +67,7 @@ export function AdminOutboxDeadLettersView() {
                   {m.idempotencyKey}
                 </p>
                 <p className="text-xs text-slate-400">
-                  Attempts {m.attempts}/{m.maxAttempts} ·{" "}
+                  {t("attempts")} {m.attempts}/{m.maxAttempts} ·{" "}
                   {new Date(m.updatedAt).toLocaleString()}
                 </p>
                 {m.lastError ? (
@@ -78,7 +80,7 @@ export function AdminOutboxDeadLettersView() {
                 disabled={retryMutation.isPending}
                 onClick={() => retryMutation.mutate({ id: m.id })}
               >
-                Retry
+                {t("retry")}
               </Button>
             </div>
           ))

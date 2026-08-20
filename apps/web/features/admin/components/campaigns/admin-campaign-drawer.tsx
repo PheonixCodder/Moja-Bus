@@ -80,6 +80,8 @@ function statusVariant(status: string): "default" | "secondary" | "outline" | "d
   return "outline";
 }
 
+import { useTranslations } from "next-intl";
+
 export function AdminCampaignDrawer({
   campaignId,
   onClose,
@@ -109,6 +111,7 @@ export function AdminCampaignDrawer({
   onExportCsv,
   isExportingCsv,
 }: AdminCampaignDrawerProps) {
+  const t = useTranslations("adminDashboard.campaigns.drawer");
   const isOpen = Boolean(campaignId);
   const campaign = campaignDetail;
 
@@ -121,7 +124,7 @@ export function AdminCampaignDrawer({
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
                   <DrawerTitle className="text-xl font-bold tracking-tight text-slate-900">
-                    {isDetailLoading ? "Loading campaign..." : campaign?.name || "Campaign Management"}
+                    {isDetailLoading ? t("loading") : campaign?.name || t("defaultTitle")}
                   </DrawerTitle>
                   {campaign && (
                     <Badge variant={statusVariant(campaign.status)} className="capitalize">
@@ -131,8 +134,8 @@ export function AdminCampaignDrawer({
                 </div>
                 <DrawerDescription className="text-xs text-slate-500">
                   {campaign
-                    ? `Platform campaign · ID: ${campaign.id} · Stacking group: ${campaign.stackGroup || "PROMO"}`
-                    : "Configure campaign parameters, coupon codes, and review redemption activity."}
+                    ? t("description", { id: campaign.id, group: campaign.stackGroup || "PROMO" })
+                    : t("defaultDescription")}
                 </DrawerDescription>
               </div>
 
@@ -148,7 +151,7 @@ export function AdminCampaignDrawer({
                       className="gap-1.5 text-xs font-medium text-slate-700"
                     >
                       <Bell className="size-3.5 text-slate-500" />
-                      Notify Passengers
+                      {t("notifyPassengers")}
                     </Button>
                     <Button
                       type="button"
@@ -159,7 +162,7 @@ export function AdminCampaignDrawer({
                       className="gap-1.5 text-xs font-medium text-amber-700 border-amber-200 hover:bg-amber-50"
                     >
                       <Pause className="size-3.5" />
-                      Pause
+                      {t("pause")}
                     </Button>
                   </>
                 )}
@@ -174,14 +177,14 @@ export function AdminCampaignDrawer({
                     className="gap-1.5 text-xs font-medium text-emerald-700 border-emerald-200 hover:bg-emerald-50"
                   >
                     <Play className="size-3.5" />
-                    Activate
+                    {t("activate")}
                   </Button>
                 )}
 
                 <DrawerClose asChild>
                   <Button type="button" size="sm" variant="ghost" className="size-8 p-0 text-slate-500">
                     <X className="size-4" />
-                    <span className="sr-only">Close</span>
+                    <span className="sr-only">{t("close")}</span>
                   </Button>
                 </DrawerClose>
               </div>
@@ -199,7 +202,7 @@ export function AdminCampaignDrawer({
                 }`}
               >
                 <BarChart3 className="size-3.5" />
-                Performance & Spend
+                {t("tabs.performance")}
               </button>
 
               <button
@@ -212,7 +215,7 @@ export function AdminCampaignDrawer({
                 }`}
               >
                 <Code2 className="size-3.5" />
-                Coupon Codes ({campaign?.coupons?.length ?? 0})
+                {t("tabs.codes", { count: campaign?.coupons?.length ?? 0 })}
               </button>
 
               <button
@@ -225,7 +228,7 @@ export function AdminCampaignDrawer({
                 }`}
               >
                 <SlidersHorizontal className="size-3.5" />
-                Scopes & Rules
+                {t("tabs.settings")}
               </button>
 
               <button
@@ -238,7 +241,7 @@ export function AdminCampaignDrawer({
                 }`}
               >
                 <FileSpreadsheet className="size-3.5" />
-                Redemptions ({redemptions.length})
+                {t("tabs.redemptions", { count: redemptions.length })}
               </button>
             </div>
           </DrawerHeader>

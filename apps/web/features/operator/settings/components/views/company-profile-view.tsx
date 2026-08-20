@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useProfileForm } from "../../hooks/use-profile-form";
 import { useCompanySettings } from "../../api/use-company-settings";
 import { Controller } from "react-hook-form";
@@ -17,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 export function CompanyProfileView() {
+  const t = useTranslations("operatorDashboard.settings.company");
   const { data: settings } = useCompanySettings();
   const form = useProfileForm(settings?.company || {});
   const { can } = useStaffPermissions();
@@ -28,7 +30,7 @@ export function CompanyProfileView() {
   const mutation = useMutation(
     trpc.operator.updateCompany.mutationOptions({
       onMutate: async (variables) => {
-        toast.loading("Saving profile...", { id: "save-profile" });
+        toast.loading(t("toastSaving"), { id: "save-profile" });
         const queryKey = trpc.operator.getSettings.queryKey();
         await queryClient.cancelQueries({ queryKey });
 
@@ -51,11 +53,11 @@ export function CompanyProfileView() {
         return { previousSettings };
       },
       onSuccess: () => {
-        toast.success("Profile saved successfully", { id: "save-profile" });
+        toast.success(t("toastSaved"), { id: "save-profile" });
         form.reset(form.getValues());
       },
       onError: (err, _variables, context) => {
-        toast.error(err.message || "Failed to save profile", { id: "save-profile" });
+        toast.error(err.message || t("toastSaveFailed"), { id: "save-profile" });
         if (context?.previousSettings) {
           queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
         }
@@ -75,9 +77,9 @@ export function CompanyProfileView() {
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h3 className="text-lg font-medium">Company Profile</h3>
+        <h3 className="text-lg font-medium">{t("title")}</h3>
         <p className="text-sm text-muted-foreground">
-          Update your business details. This information is visible on invoices and digital tickets.
+          {t("description")}
         </p>
       </div>
 
@@ -86,28 +88,28 @@ export function CompanyProfileView() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Building2 className="w-5 h-5 text-muted-foreground" />
-              General Information
+              {t("generalInfo")}
             </CardTitle>
             <CardDescription>
-              Basic contact and identification details.
+              {t("generalInfoDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <Field>
-                <FieldLabel>Company Name</FieldLabel>
-                <Input placeholder="Enter registered business name" {...form.register("name")} />
+                <FieldLabel>{t("companyName")}</FieldLabel>
+                <Input placeholder={t("companyNamePlaceholder")} {...form.register("name")} />
                 <FieldError errors={[form.formState.errors.name]} />
               </Field>
 
               <Field>
-                <FieldLabel>Support Email</FieldLabel>
-                <Input type="email" placeholder="support@company.com" {...form.register("email")} />
+                <FieldLabel>{t("supportEmail")}</FieldLabel>
+                <Input type="email" placeholder={t("supportEmailPlaceholder")} {...form.register("email")} />
                 <FieldError errors={[form.formState.errors.email]} />
               </Field>
 
               <Field>
-                <FieldLabel>Contact Phone</FieldLabel>
+                <FieldLabel>{t("contactPhone")}</FieldLabel>
                 <Controller
                   name="phone"
                   control={form.control}
@@ -124,13 +126,13 @@ export function CompanyProfileView() {
               </Field>
 
               <Field>
-                <FieldLabel>Company Logo</FieldLabel>
+                <FieldLabel>{t("companyLogo")}</FieldLabel>
                 <ImageUploadField
                   purpose="operator-logo"
                   value={form.watch("logoUrl") ?? null}
                   onUploaded={(res) => form.setValue("logoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
-                  label="Upload Logo"
-                  hint="Recommended 512x512px, JPG or PNG."
+                  label={t("uploadLogo")}
+                  hint={t("logoHint")}
                   shape="square"
                   previewClassName="h-16 w-16 rounded-xl"
                 />
@@ -141,58 +143,58 @@ export function CompanyProfileView() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field>
-                  <FieldLabel>Tax ID (NIF)</FieldLabel>
-                  <Input placeholder="Tax ID" {...form.register("taxId")} />
+                  <FieldLabel>{t("taxId")}</FieldLabel>
+                  <Input placeholder={t("taxIdPlaceholder")} {...form.register("taxId")} />
                   <FieldError errors={[form.formState.errors.taxId]} />
                 </Field>
                 
                 <Field>
-                  <FieldLabel>Reg. Number (RCCM)</FieldLabel>
-                  <Input placeholder="Registration #" {...form.register("registrationNumber")} />
+                  <FieldLabel>{t("regNumber")}</FieldLabel>
+                  <Input placeholder={t("regNumberPlaceholder")} {...form.register("registrationNumber")} />
                   <FieldError errors={[form.formState.errors.registrationNumber]} />
                 </Field>
               </div>
 
               <Field>
-                <FieldLabel>Business Type</FieldLabel>
+                <FieldLabel>{t("businessType")}</FieldLabel>
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   {...form.register("businessType")}
                 >
-                  <option value="SOLE_PROPRIETORSHIP">Sole Proprietorship</option>
-                  <option value="LLC">LLC</option>
-                  <option value="CORPORATION">Corporation</option>
-                  <option value="PARTNERSHIP">Partnership</option>
-                  <option value="COOPERATIVE">Cooperative</option>
-                  <option value="OTHER">Other</option>
+                  <option value="SOLE_PROPRIETORSHIP">{t("types.SOLE_PROPRIETORSHIP")}</option>
+                  <option value="LLC">{t("types.LLC")}</option>
+                  <option value="CORPORATION">{t("types.CORPORATION")}</option>
+                  <option value="PARTNERSHIP">{t("types.PARTNERSHIP")}</option>
+                  <option value="COOPERATIVE">{t("types.COOPERATIVE")}</option>
+                  <option value="OTHER">{t("types.OTHER")}</option>
                 </select>
                 <FieldError errors={[form.formState.errors.businessType]} />
               </Field>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field>
-                  <FieldLabel>Year Established</FieldLabel>
-                  <Input type="number" placeholder="YYYY" {...form.register("yearEstablished", { valueAsNumber: true })} />
+                  <FieldLabel>{t("yearEstablished")}</FieldLabel>
+                  <Input type="number" placeholder={t("yearPlaceholder")} {...form.register("yearEstablished", { valueAsNumber: true })} />
                   <FieldError errors={[form.formState.errors.yearEstablished]} />
                 </Field>
 
                 <Field>
-                  <FieldLabel>Staff Size</FieldLabel>
-                  <Input type="number" placeholder="Count" {...form.register("estimatedStaffSize", { valueAsNumber: true })} />
+                  <FieldLabel>{t("staffSize")}</FieldLabel>
+                  <Input type="number" placeholder={t("staffSizePlaceholder")} {...form.register("estimatedStaffSize", { valueAsNumber: true })} />
                   <FieldError errors={[form.formState.errors.estimatedStaffSize]} />
                 </Field>
               </div>
 
               <Field>
-                <FieldLabel>Website URL</FieldLabel>
-                <Input type="url" placeholder="https://example.com" {...form.register("website")} />
+                <FieldLabel>{t("websiteUrl")}</FieldLabel>
+                <Input type="url" placeholder={t("websitePlaceholder")} {...form.register("website")} />
                 <FieldError errors={[form.formState.errors.website]} />
               </Field>
 
               <Field>
-                <FieldLabel>Business Description</FieldLabel>
+                <FieldLabel>{t("businessDescription")}</FieldLabel>
                 <Textarea 
-                  placeholder="Tell us about your transport business..." 
+                  placeholder={t("businessDescPlaceholder")} 
                   className="resize-none" 
                   rows={4}
                   {...form.register("description")} 
@@ -208,7 +210,7 @@ export function CompanyProfileView() {
               className="w-full sm:w-auto"
             >
               <Save className="w-4 h-4 mr-2" />
-              {mutation.isPending ? "Saving..." : "Save Changes"}
+              {mutation.isPending ? t("saving") : t("saveChanges")}
             </Button>
           </CardFooter>
         </Card>

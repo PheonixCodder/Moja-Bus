@@ -168,7 +168,7 @@ export function AdminBlogView() {
             }`}
           >
             <Globe className="size-4" />
-            Banners
+            {t("banners")}
           </button>
         </div>
       </div>

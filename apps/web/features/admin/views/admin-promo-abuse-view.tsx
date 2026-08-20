@@ -20,43 +20,34 @@ import { toast } from "sonner";
 import { InfoTooltip } from "@/features/discounts/components/info-tooltip";
 import { useTRPC } from "@/trpc/client";
 
+import { useTranslations } from "next-intl";
+
 type EventTypeFilter =
   | "SELF_REFERRAL"
   | "SAME_PHONE_REFERRAL"
   | "SAME_DEVICE_REFERRAL"
   | "VELOCITY_CAP";
 
-const EVENT_LABELS: Record<
-  EventTypeFilter,
-  { label: string; color: string; desc: string }
-> = {
-  SELF_REFERRAL: {
-    label: "Self-referral",
-    color: "bg-pink-100 text-[#ee237c]",
-    desc: "A traveler attempted to use their own referral link or code to claim a reward.",
-  },
-  SAME_PHONE_REFERRAL: {
-    label: "Same phone",
-    color: "bg-yellow-100 text-yellow-700",
-    desc: "Referred account shares the same phone number as the referrer.",
-  },
-  SAME_DEVICE_REFERRAL: {
-    label: "Same device",
-    color: "bg-rose-100 text-rose-700",
-    desc: "Browser fingerprint collision detected on the same hardware/device.",
-  },
-  VELOCITY_CAP: {
-    label: "Velocity cap",
-    color: "bg-red-100 text-red-700",
-    desc: "Rapid repetitive redemption rate threshold triggered across short intervals.",
-  },
+const EVENT_CONFIG: Record<EventTypeFilter, { color: string }> = {
+  SELF_REFERRAL: { color: "bg-pink-100 text-[#ee237c]" },
+  SAME_PHONE_REFERRAL: { color: "bg-yellow-100 text-yellow-700" },
+  SAME_DEVICE_REFERRAL: { color: "bg-rose-100 text-rose-700" },
+  VELOCITY_CAP: { color: "bg-red-100 text-red-700" },
 };
+
+const EVENT_TYPES: EventTypeFilter[] = [
+  "SELF_REFERRAL",
+  "SAME_PHONE_REFERRAL",
+  "SAME_DEVICE_REFERRAL",
+  "VELOCITY_CAP",
+];
 
 function travelerHref(userId: string) {
   return `/dashboard/admin/users/travelers/${userId}`;
 }
 
 export function AdminPromoAbuseView() {
+  const t = useTranslations("adminDashboard.promoAbuse");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [eventType, setEventType] = useState<string | undefined>(undefined);
@@ -72,7 +63,7 @@ export function AdminPromoAbuseView() {
   const resolveMutation = useMutation(
     trpc.discountsAdmin.resolveAbuseEvent.mutationOptions({
       onSuccess: async () => {
-        toast.success("Marked as reviewed");
+        toast.success(t("toastReviewed"));
         await queryClient.invalidateQueries(
           trpc.discountsAdmin.listAbuseEvents.pathFilter(),
         );
@@ -84,7 +75,7 @@ export function AdminPromoAbuseView() {
   const pauseMutation = useMutation(
     trpc.discountsAdmin.setCampaignStatus.mutationOptions({
       onSuccess: async () => {
-        toast.success("Campaign paused");
+        toast.success(t("toastCampaignPaused"));
         await queryClient.invalidateQueries(
           trpc.discountsAdmin.listAbuseEvents.pathFilter(),
         );
@@ -109,7 +100,7 @@ export function AdminPromoAbuseView() {
               : "border border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-900"
           }`}
         >
-          All events
+          {t("allEvents")}
           {total > 0 && (
             <span
               className={`ml-2 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
@@ -122,12 +113,7 @@ export function AdminPromoAbuseView() {
             </span>
           )}
         </button>
-        {(
-          Object.entries(EVENT_LABELS) as [
-            EventTypeFilter,
-            { label: string; color: string; desc: string },
-          ][]
-        ).map(([type, meta]) => (
+        {EVENT_TYPES.map((type) => (
           <div key={type} className="inline-flex items-center gap-1">
             <button
               type="button"
@@ -138,9 +124,9 @@ export function AdminPromoAbuseView() {
                   : "border border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-900"
               }`}
             >
-              {meta.label}
+              {t(`events.${type}.label`)}
             </button>
-            <InfoTooltip content={meta.desc} />
+            <InfoTooltip content={t(`events.${type}.desc`)} />
           </div>
         ))}
       </div>
@@ -150,18 +136,18 @@ export function AdminPromoAbuseView() {
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/60">
-              <TableHead className="font-semibold text-slate-600">When</TableHead>
-              <TableHead className="font-semibold text-slate-600">Type</TableHead>
-              <TableHead className="font-semibold text-slate-600">User</TableHead>
-              <TableHead className="font-semibold text-slate-600">Details</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">Actions</TableHead>
+              <TableHead className="font-semibold text-slate-600">{t("when")}</TableHead>
+              <TableHead className="font-semibold text-slate-600">{t("type")}</TableHead>
+              <TableHead className="font-semibold text-slate-600">{t("user")}</TableHead>
+              <TableHead className="font-semibold text-slate-600">{t("details")}</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {listQuery.isLoading ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-12 text-center text-sm text-slate-400">
-                  Loading events…
+                  {t("loading")}
                 </TableCell>
               </TableRow>
             ) : items.length === 0 ? (
@@ -172,9 +158,9 @@ export function AdminPromoAbuseView() {
                       <ShieldAlert className="size-6 text-emerald-500" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-700">No abuse events</p>
+                      <p className="text-sm font-semibold text-slate-700">{t("emptyTitle")}</p>
                       <p className="mt-0.5 text-xs text-slate-400">
-                        Blocked self-referrals, phone collisions, and velocity hits appear here.
+                        {t("emptyDesc")}
                       </p>
                     </div>
                   </div>
@@ -182,7 +168,8 @@ export function AdminPromoAbuseView() {
               </TableRow>
             ) : (
               items.map((item) => {
-                const meta = EVENT_LABELS[item.eventType as EventTypeFilter];
+                const isKnownType = item.eventType in EVENT_CONFIG;
+                const config = isKnownType ? EVENT_CONFIG[item.eventType as EventTypeFilter] : null;
                 return (
                   <TableRow key={item.id} className={item.reviewed ? "opacity-60" : ""}>
                     <TableCell className="whitespace-nowrap text-sm text-slate-500">
@@ -193,11 +180,11 @@ export function AdminPromoAbuseView() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      {meta ? (
+                      {config ? (
                         <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${meta.color}`}
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${config.color}`}
                         >
-                          {meta.label}
+                          {t(`events.${item.eventType as EventTypeFilter}.label`)}
                         </span>
                       ) : (
                         <Badge variant="secondary">{item.eventType}</Badge>
@@ -229,7 +216,7 @@ export function AdminPromoAbuseView() {
                       <p>{item.summary}</p>
                       {item.campaign && (
                         <p className="mt-1 text-xs text-slate-500">
-                          Campaign:{" "}
+                          {t("campaign")}{" "}
                           <span className="font-medium text-slate-700">{item.campaign.name}</span>{" "}
                           <span
                             className={`text-[10px] font-semibold uppercase ${
@@ -261,13 +248,13 @@ export function AdminPromoAbuseView() {
                             className="border-slate-200 text-slate-700 hover:bg-slate-50"
                           >
                             <ShieldOff className="size-3.5" />
-                            Pause campaign
+                            {t("pauseCampaign")}
                           </Button>
                         )}
                         {item.reviewed ? (
                           <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-emerald-700">
                             <CheckCheck className="size-3.5" />
-                            Reviewed
+                            {t("reviewed")}
                           </span>
                         ) : (
                           <Button
@@ -283,7 +270,7 @@ export function AdminPromoAbuseView() {
                             }
                           >
                             <CheckCheck className="size-3.5" />
-                            Mark reviewed
+                            {t("markReviewed")}
                           </Button>
                         )}
                       </div>
@@ -297,7 +284,7 @@ export function AdminPromoAbuseView() {
       </Card>
 
       {total > 0 && (
-        <p className="text-xs text-slate-400">{total} total matching events</p>
+        <p className="text-xs text-slate-400">{t("totalEvents", { total })}</p>
       )}
     </div>
   );

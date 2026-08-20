@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import { Suspense } from "react";
 import { DashboardHeader } from "@/features/admin/components/dashboard-header";
@@ -11,6 +12,7 @@ export const metadata = {
 };
 
 export default async function AdminMarketingReferralsPage() {
+  const t = await getTranslations("adminDashboard.pages.referrals");
   await Promise.all([
     prefetch(trpc.discountsAdmin.getReferralProgram.queryOptions()),
     prefetch(trpc.discountsAdmin.marketingSummary.queryOptions()),
@@ -36,11 +38,10 @@ export default async function AdminMarketingReferralsPage() {
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="space-y-1">
             <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
-              Referral Program & Credits
+              {t("title")}
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-slate-500">
-              Set viral acquisition rewards, referee welcome campaigns, anti-fraud rules,
-              and grant promo wallet credits directly to riders.
+              {t("description")}
             </p>
           </div>
           <Suspense

@@ -24,6 +24,7 @@ import {
   Tag,
 } from "lucide-react";
 
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { cn } from "@moja/ui/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
@@ -124,6 +125,7 @@ interface OperatorSidebarProps {
 }
 
 export function OperatorSidebar({ user }: OperatorSidebarProps) {
+  const t = useTranslations("operatorDashboard.nav");
   const pathname = usePathname();
   const sidebar = useSidebar();
   const { signOut } = useAuth();
@@ -135,24 +137,24 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const statusPresentation = getCompanyStatusPresentation(status);
 
   const operationsItems: NavItem[] = [
-    { id: "overview", label: "Overview", path: "/dashboard/operator", icon: Gauge, permissions: ["trips:read", "bookings:read", "company:view"] },
+    { id: "overview", label: t("overview"), path: "/dashboard/operator", icon: Gauge, permissions: ["trips:read", "bookings:read", "company:view"] },
     {
       id: "dispatch-board",
-      label: "Dispatch Board",
+      label: t("dispatchBoard"),
       path: "/dashboard/operator/trips",
       icon: Radio,
       permissions: ["trips:read"],
     },
     {
       id: "bookings",
-      label: "Bookings",
+      label: t("bookings"),
       path: "/dashboard/operator/bookings",
       icon: Ticket,
       permissions: ["bookings:read"],
     },
     {
       id: "reviews",
-      label: "Reviews",
+      label: t("reviews"),
       path: "/dashboard/operator/reviews",
       icon: Star,
       permissions: ["reviews:read"],
@@ -162,21 +164,21 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const planningItems: NavItem[] = [
     {
       id: "terminals",
-      label: "Terminals",
+      label: t("terminals"),
       path: "/dashboard/operator/terminals",
       icon: MapPin,
       permissions: ["terminals:read"],
     },
     {
       id: "routes",
-      label: "Routes",
+      label: t("routes"),
       path: "/dashboard/operator/routes",
       icon: Map,
       permissions: ["routes:read"],
     },
     {
       id: "schedules",
-      label: "Schedules",
+      label: t("schedules"),
       path: "/dashboard/operator/schedules",
       icon: CalendarClock,
       permissions: ["schedules:read"],
@@ -186,7 +188,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const fleetItems: NavItem[] = [
     {
       id: "buses",
-      label: "Buses",
+      label: t("buses"),
       path: "/dashboard/operator/fleet",
       icon: BusFront,
       permissions: ["fleet:read"],
@@ -196,14 +198,14 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const financialsItems: NavItem[] = [
     {
       id: "revenue",
-      label: "Revenue",
+      label: t("revenue"),
       path: "/dashboard/operator/revenue",
       icon: TrendingUp,
       permissions: ["revenue:view"],
     },
     {
       id: "withdrawals",
-      label: "Withdrawals",
+      label: t("withdrawals"),
       path: "/dashboard/operator/withdraw",
       icon: Banknote,
       permissions: ["withdrawals:view"],
@@ -213,7 +215,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const growthItems: NavItem[] = [
     {
       id: "promotions",
-      label: "Promotions",
+      label: t("promotions"),
       path: "/dashboard/operator/promotions",
       icon: Tag,
       permissions: ["promotions:read"],
@@ -223,14 +225,14 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const organizationItems: NavItem[] = [
     {
       id: "company",
-      label: "Company",
+      label: t("company"),
       path: "/dashboard/operator/settings",
       icon: Settings,
       permissions: ["company:view"],
     },
     {
       id: "staff",
-      label: "Staff",
+      label: t("staff"),
       path: "/dashboard/operator/staff",
       icon: Users,
       permissions: ["staff:read"],
@@ -239,11 +241,11 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
 
   const userInitials = user?.name
     ? user.name
-        .split(" ")
-        .map((part: string) => part[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+    .split(" ")
+    .map((part: string) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
     : "OP";
 
   return (
@@ -287,7 +289,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
             </span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[9px] font-bold uppercase tracking-widest text-sidebar-primary/80">
-                Operator
+                {t("operator")}
               </span>
               {status && (
                 <>
@@ -315,37 +317,37 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
 
       <SidebarContent className="px-0">
         <NavSection
-          label="Operations"
+          label={t("sections.operations")}
           items={operationsItems}
           pathname={pathname}
           can={can}
         />
         <NavSection
-          label="Planning"
+          label={t("sections.planning")}
           items={planningItems}
           pathname={pathname}
           can={can}
         />
         <NavSection
-          label="Fleet"
+          label={t("sections.fleet")}
           items={fleetItems}
           pathname={pathname}
           can={can}
         />
         <NavSection
-          label="Financials"
+          label={t("sections.financials")}
           items={financialsItems}
           pathname={pathname}
           can={can}
         />
         <NavSection
-          label="Growth"
+          label={t("sections.growth")}
           items={growthItems}
           pathname={pathname}
           can={can}
         />
         <NavSection
-          label="Organization"
+          label={t("sections.organization")}
           items={organizationItems}
           pathname={pathname}
           can={can}
@@ -370,7 +372,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                   "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                   "group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
                 )}
-                title={user?.name ?? "Account"}
+                title={user?.name ?? t("operator")}
               >
                 <Avatar className="size-6 shrink-0">
                   <AvatarImage
@@ -385,7 +387,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                   </AvatarFallback>
                 </Avatar>
                 <span className="truncate text-[13px] font-medium text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-                  {user?.name ?? user?.email ?? "Operator"}
+                  {user?.name ?? user?.email ?? t("operator")}
                 </span>
                 <ChevronsUpDown className="ml-auto size-3.5 text-sidebar-foreground/40 group-data-[collapsible=icon]:hidden" />
               </DropdownMenuTrigger>
@@ -402,7 +404,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                    {user?.role === "ADMIN" ? (
                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-500/10 rounded px-1.5 py-0.5 mt-0.5">
                        <Shield className="size-3" />
-                       Platform Admin
+                       {t("platformAdmin")}
                      </span>
                    ) : null}
                    <p className="truncate text-xs text-muted-foreground">
@@ -416,7 +418,7 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                     render={<Link href="/dashboard/operator/settings" />}
                   >
                     <Settings className="mr-2 size-4 text-muted-foreground" />
-                    Settings
+                    {t("settings")}
                   </DropdownMenuItem>
                 ) : null}
                 <DropdownMenuSeparator className="bg-border" />
@@ -425,14 +427,12 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                   className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive hover:text-destructive"
                 >
                   <LogOut className="mr-2 size-4" />
-                  Sign out
+                  {t("signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
-
       <SidebarRail />
     </Sidebar>
   );

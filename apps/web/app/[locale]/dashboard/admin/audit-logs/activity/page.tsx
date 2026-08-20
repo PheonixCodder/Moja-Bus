@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { prefetch, HydrateClient, trpc } from "@/trpc/server";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
 import { AdminActivityLogsView } from "@/features/admin/views/admin-activity-logs-view";
@@ -14,6 +15,7 @@ export default async function ActivityLogsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const t = await getTranslations("adminDashboard.pages.activityLogs");
   const { search, channel, template, page } = adminActivityLogsParamsCache.parse(
     await searchParams
   );
@@ -31,11 +33,11 @@ export default async function ActivityLogsPage({
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Activity Logs"
-        description="All notification events fired across the platform via Novu."
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Audit & Security" },
-          { label: "Activity Logs" },
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
         ]}
       >
         <AdminActivityLogsView />

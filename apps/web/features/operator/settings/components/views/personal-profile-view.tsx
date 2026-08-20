@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCompanySettings } from "../../api/use-company-settings";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
@@ -14,9 +15,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { profileStepSchema } from "@moja/schemas";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@moja/ui/components/ui/card";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@moja/ui/components/ui/select";
 
 export function PersonalProfileView() {
+  const t = useTranslations("operatorDashboard.settings.personal");
   const { data: settings } = useCompanySettings();
   
   const form = useForm({
@@ -38,7 +39,7 @@ export function PersonalProfileView() {
   const mutation = useMutation(
     trpc.operator.updateProfile.mutationOptions({
       onMutate: async (variables) => {
-        toast.loading("Saving personal profile...", { id: "save-personal-profile" });
+        toast.loading(t("toastSaving"), { id: "save-personal-profile" });
         const queryKey = trpc.operator.getSettings.queryKey();
         await queryClient.cancelQueries({ queryKey });
 
@@ -58,11 +59,11 @@ export function PersonalProfileView() {
         return { previousSettings };
       },
       onSuccess: () => {
-        toast.success("Profile saved successfully", { id: "save-personal-profile" });
+        toast.success(t("toastSaved"), { id: "save-personal-profile" });
         form.reset(form.getValues());
       },
       onError: (err, variables, context) => {
-        toast.error(err.message || "Failed to save profile", { id: "save-personal-profile" });
+        toast.error(err.message || t("toastFailed"), { id: "save-personal-profile" });
         if (context?.previousSettings) {
           queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
         }
@@ -82,9 +83,9 @@ export function PersonalProfileView() {
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h3 className="text-lg font-medium">Personal Profile</h3>
+        <h3 className="text-lg font-medium">{t("title")}</h3>
         <p className="text-sm text-muted-foreground">
-          Update your personal details. This information is required for KYC compliance.
+          {t("description")}
         </p>
       </div>
 
@@ -93,35 +94,35 @@ export function PersonalProfileView() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <UserCircle className="w-5 h-5 text-muted-foreground" />
-              Your Identity
+              {t("yourIdentity")}
             </CardTitle>
             <CardDescription>
-              Basic contact and identification details.
+              {t("identityDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <Field>
-                <FieldLabel>Profile Photo</FieldLabel>
+                <FieldLabel>{t("photo")}</FieldLabel>
                 <ImageUploadField
                   purpose="operator-profile-photo"
                   value={form.watch("profilePhotoUrl") || ""}
                   onUploaded={(res) => form.setValue("profilePhotoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
-                  label="Upload Avatar"
-                  hint="Recommended 256x256px, JPG or PNG."
+                  label={t("uploadAvatar")}
+                  hint={t("avatarHint")}
                   shape="circle"
                   previewClassName="h-16 w-16"
                 />
               </Field>
 
               <Field>
-                <FieldLabel>Job Title</FieldLabel>
-                <Input placeholder="e.g. Operations Manager" {...form.register("jobTitle")} />
+                <FieldLabel>{t("jobTitle")}</FieldLabel>
+                <Input placeholder={t("jobTitlePlaceholder")} {...form.register("jobTitle")} />
                 <FieldError errors={[form.formState.errors.jobTitle]} />
               </Field>
 
               <Field>
-                <FieldLabel>Personal Phone</FieldLabel>
+                <FieldLabel>{t("personalPhone")}</FieldLabel>
                 <Controller
                   name="personalPhone"
                   control={form.control}
@@ -141,33 +142,33 @@ export function PersonalProfileView() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field>
-                  <FieldLabel>ID Type</FieldLabel>
+                  <FieldLabel>{t("idType")}</FieldLabel>
                   <select
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     {...form.register("nationalIdType")}
                   >
-                    <option value="PASSPORT">Passport</option>
-                    <option value="NATIONAL_ID">National ID</option>
-                    <option value="DRIVERS_LICENSE">Driver's License</option>
+                    <option value="PASSPORT">{t("idTypes.PASSPORT")}</option>
+                    <option value="NATIONAL_ID">{t("idTypes.NATIONAL_ID")}</option>
+                    <option value="DRIVERS_LICENSE">{t("idTypes.DRIVERS_LICENSE")}</option>
                   </select>
                   <FieldError errors={[form.formState.errors.nationalIdType]} />
                 </Field>
                 
                 <Field>
-                  <FieldLabel>ID Number</FieldLabel>
-                  <Input placeholder="Document Number" {...form.register("nationalIdNumber")} />
+                  <FieldLabel>{t("idNumber")}</FieldLabel>
+                  <Input placeholder={t("idNumberPlaceholder")} {...form.register("nationalIdNumber")} />
                   <FieldError errors={[form.formState.errors.nationalIdNumber]} />
                 </Field>
               </div>
 
               <Field>
-                <FieldLabel>Emergency Contact Name</FieldLabel>
-                <Input placeholder="Full Name" {...form.register("emergencyContactName")} />
+                <FieldLabel>{t("emergencyContactName")}</FieldLabel>
+                <Input placeholder={t("emergencyContactNamePlaceholder")} {...form.register("emergencyContactName")} />
                 <FieldError errors={[form.formState.errors.emergencyContactName]} />
               </Field>
 
               <Field>
-                <FieldLabel>Emergency Contact Phone</FieldLabel>
+                <FieldLabel>{t("emergencyContactPhone")}</FieldLabel>
                 <Controller
                   name="emergencyContactPhone"
                   control={form.control}
@@ -191,7 +192,7 @@ export function PersonalProfileView() {
               className="w-full sm:w-auto"
             >
               <Save className="w-4 h-4 mr-2" />
-              {mutation.isPending ? "Saving..." : "Save Changes"}
+              {mutation.isPending ? t("saving") : t("saveChanges")}
             </Button>
           </CardFooter>
         </Card>

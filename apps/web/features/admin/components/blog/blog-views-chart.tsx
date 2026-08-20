@@ -16,6 +16,8 @@ import { format, parseISO } from "date-fns";
 import { useMemo } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { useTranslations } from "next-intl";
+
 interface BlogViewsChartProps {
   data: Array<{ date: string; views: number }>;
 }
@@ -28,6 +30,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function BlogViewsChart({ data }: BlogViewsChartProps) {
+  const t = useTranslations("adminDashboard.blogViewsChart");
   // Add missing dates with 0 views if needed, or just format
   const chartData = useMemo(() => {
     return data.map((item) => ({
@@ -40,8 +43,8 @@ export function BlogViewsChart({ data }: BlogViewsChartProps) {
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="space-y-1">
-          <CardTitle>Daily Views</CardTitle>
-          <CardDescription>Views across all published posts</CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </div>
       </CardHeader>
       <CardContent>
@@ -98,7 +101,7 @@ export function BlogViewsChart({ data }: BlogViewsChartProps) {
                           {format(parseISO(p.payload.date), "MMM d, yyyy")}
                         </span>
                         <span className="font-bold text-muted-foreground">
-                          {p.value} views
+                          {t("viewsCount", { count: Number(p.value) })}
                         </span>
                       </div>
                     </div>

@@ -286,7 +286,7 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  Personal Details
+                  {t("personalDetails")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
@@ -345,7 +345,7 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <Monitor className="h-4 w-4 text-muted-foreground" />
-                  Recent Sessions
+                  {t("recentSessions")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">

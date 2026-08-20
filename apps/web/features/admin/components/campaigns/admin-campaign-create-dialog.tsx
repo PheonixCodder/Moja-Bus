@@ -21,6 +21,8 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useTranslations } from "next-intl";
+
 export type BenefitType = "PERCENT_OFF" | "FIXED_AMOUNT_OFF" | "WALLET_CREDIT_GRANT";
 
 export interface CreateCampaignData {
@@ -50,6 +52,7 @@ export function AdminCampaignCreateDialog({
   onSubmit,
   isPending,
 }: AdminCampaignCreateDialogProps) {
+  const t = useTranslations("adminDashboard.campaigns.create");
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState("");
   const [benefitType, setBenefitType] = useState<BenefitType>("PERCENT_OFF");
@@ -86,7 +89,7 @@ export function AdminCampaignCreateDialog({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error("Campaign name is required");
+      toast.error(t("nameRequired"));
       return;
     }
 
@@ -111,11 +114,11 @@ export function AdminCampaignCreateDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create Marketing Campaign</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
             {step === 1
-              ? "Set up the core discount incentive and campaign name."
-              : "Configure budget limits, guardrails, and stacking rules."}
+              ? t("step1Desc")
+              : t("step2Desc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -123,10 +126,10 @@ export function AdminCampaignCreateDialog({
           {step === 1 ? (
             <div className="space-y-4 py-2">
               <div className="space-y-1.5">
-                <Label htmlFor="campaign-name">Campaign name</Label>
+                <Label htmlFor="campaign-name">{t("name")}</Label>
                 <Input
                   id="campaign-name"
-                  placeholder="e.g. Summer Holiday Rush 2026"
+                  placeholder={t("namePlaceholder")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoFocus
@@ -135,7 +138,7 @@ export function AdminCampaignCreateDialog({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Benefit type</Label>
+                  <Label>{t("benefitType")}</Label>
                   <Select
                     value={benefitType}
                     onValueChange={(v) => setBenefitType(v as BenefitType)}
@@ -144,16 +147,16 @@ export function AdminCampaignCreateDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PERCENT_OFF">Percent discount (%)</SelectItem>
-                      <SelectItem value="FIXED_AMOUNT_OFF">Fixed discount (XOF)</SelectItem>
-                      <SelectItem value="WALLET_CREDIT_GRANT">Promo wallet credit</SelectItem>
+                      <SelectItem value="PERCENT_OFF">{t("benefitTypes.percent")}</SelectItem>
+                      <SelectItem value="FIXED_AMOUNT_OFF">{t("benefitTypes.fixed")}</SelectItem>
+                      <SelectItem value="WALLET_CREDIT_GRANT">{t("benefitTypes.walletCredit")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {benefitType === "PERCENT_OFF" ? (
                   <div className="space-y-1.5">
-                    <Label htmlFor="percent-off">Discount percentage</Label>
+                    <Label htmlFor="percent-off">{t("discountPercent")}</Label>
                     <div className="relative">
                       <Input
                         id="percent-off"
@@ -170,7 +173,7 @@ export function AdminCampaignCreateDialog({
                   </div>
                 ) : (
                   <div className="space-y-1.5">
-                    <Label htmlFor="amount-xof">Amount (XOF)</Label>
+                    <Label htmlFor="amount-xof">{t("amountXOF")}</Label>
                     <Input
                       id="amount-xof"
                       type="number"
@@ -187,22 +190,22 @@ export function AdminCampaignCreateDialog({
             <div className="space-y-4 py-2">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="budget-xof">Total campaign budget (XOF)</Label>
+                  <Label htmlFor="budget-xof">{t("budgetLabel")}</Label>
                   <Input
                     id="budget-xof"
                     type="number"
-                    placeholder="Optional (unlimited)"
+                    placeholder={t("budgetPlaceholder")}
                     value={budgetXOF}
                     onChange={(e) => setBudgetXOF(e.target.value)}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="min-subtotal">Min ticket subtotal (XOF)</Label>
+                  <Label htmlFor="min-subtotal">{t("minSubtotal")}</Label>
                   <Input
                     id="min-subtotal"
                     type="number"
-                    placeholder="Optional"
+                    placeholder={t("minSubtotalPlaceholder")}
                     value={minSubtotalXOF}
                     onChange={(e) => setMinSubtotalXOF(e.target.value)}
                   />
@@ -210,11 +213,11 @@ export function AdminCampaignCreateDialog({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="max-discount">Max discount per booking (XOF)</Label>
+                <Label htmlFor="max-discount">{t("maxDiscount")}</Label>
                 <Input
                   id="max-discount"
                   type="number"
-                  placeholder="Optional cap for percent discounts"
+                  placeholder={t("maxDiscountPlaceholder")}
                   value={maxDiscountXOF}
                   onChange={(e) => setMaxDiscountXOF(e.target.value)}
                 />
@@ -228,7 +231,7 @@ export function AdminCampaignCreateDialog({
                     checked={firstBookingOnly}
                     onChange={(e) => setFirstBookingOnly(e.target.checked)}
                   />
-                  <span>First booking only (new riders)</span>
+                  <span>{t("firstBookingOnly")}</span>
                 </label>
 
                 <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
@@ -238,7 +241,7 @@ export function AdminCampaignCreateDialog({
                     checked={isAutoApply}
                     onChange={(e) => setIsAutoApply(e.target.checked)}
                   />
-                  <span>Auto-apply to eligible bookings without promo code</span>
+                  <span>{t("autoApply")}</span>
                 </label>
               </div>
             </div>
@@ -252,7 +255,7 @@ export function AdminCampaignCreateDialog({
                 onClick={() => setStep(1)}
                 disabled={isPending}
               >
-                Back
+                {t("back")}
               </Button>
             )}
             {step === 1 ? (
@@ -260,17 +263,17 @@ export function AdminCampaignCreateDialog({
                 type="button"
                 onClick={() => {
                   if (!name.trim()) {
-                    toast.error("Campaign name is required");
+                    toast.error(t("nameRequired"));
                     return;
                   }
                   setStep(2);
                 }}
               >
-                Next: Budget & Rules
+                {t("nextBudget")}
               </Button>
             ) : (
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Creating..." : "Create Campaign"}
+                {isPending ? t("creating") : t("createBtn")}
               </Button>
             )}
           </DialogFooter>

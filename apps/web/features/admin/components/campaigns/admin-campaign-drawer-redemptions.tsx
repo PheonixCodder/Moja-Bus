@@ -7,6 +7,8 @@ import {
 import { Button } from "@moja/ui/components/ui/button";
 import { Download } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 interface AdminCampaignDrawerRedemptionsProps {
   redemptions: RedemptionRow[];
   isLoading: boolean;
@@ -24,16 +26,17 @@ export function AdminCampaignDrawerRedemptions({
   onExportCsv,
   isExporting,
 }: AdminCampaignDrawerRedemptionsProps) {
+  const t = useTranslations("adminDashboard.campaigns.drawer.redemptionsView");
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Redemptions Ledger
+            {t("title")}
           </p>
           {selectedCouponId && (
             <div className="flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs text-amber-800 border border-amber-200/60">
-              <span>Filtered by selected code</span>
+              <span>{t("filteredByCode")}</span>
               <button
                 type="button"
                 onClick={onClearCouponFilter}
@@ -54,7 +57,7 @@ export function AdminCampaignDrawerRedemptions({
           className="gap-1.5 text-xs font-medium"
         >
           <Download className="size-3.5" />
-          {isExporting ? "Exporting..." : "Export CSV"}
+          {isExporting ? t("exporting") : t("exportCsv")}
         </Button>
       </div>
 

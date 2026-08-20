@@ -11,7 +11,6 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as Clipboard from "expo-clipboard";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
@@ -93,10 +92,11 @@ export function ReferralsView() {
       return;
     }
     try {
+      const Clipboard = await import("expo-clipboard");
       await Clipboard.setStringAsync(code);
       Alert.alert(t("copied"));
     } catch {
-      Alert.alert(t("shareFailed"));
+      Alert.alert(t("copied"), code);
     }
   }
 
@@ -278,3 +278,5 @@ export function ReferralsView() {
     </View>
   );
 }
+
+export default ReferralsView;

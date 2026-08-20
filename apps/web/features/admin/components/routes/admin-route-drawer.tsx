@@ -21,11 +21,12 @@ const RouteMapPreview = dynamic(
 );
 
 function MapSkeleton() {
+  const t = useTranslations("adminDashboard.adminRouteDrawer");
   return (
     <div className="h-full w-full bg-slate-50 animate-pulse flex items-center justify-center">
       <div className="text-center space-y-2">
         <Map className="size-8 text-slate-300 mx-auto" />
-        <p className="text-xs text-slate-400">Loading map...</p>
+        <p className="text-xs text-slate-400">{t("loadingMap")}</p>
       </div>
     </div>
   );

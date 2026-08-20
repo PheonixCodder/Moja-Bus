@@ -23,6 +23,7 @@ import { useTRPC } from "@/trpc/client";
 const NONE = "__none__";
 
 export function AdminReferralProgramCard() {
+  const t = useTranslations("adminDashboard.referrals.program");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const programQuery = useQuery(
@@ -65,7 +66,7 @@ export function AdminReferralProgramCard() {
   const saveMutation = useMutation(
     trpc.discountsAdmin.updateReferralProgram.mutationOptions({
       onSuccess: async () => {
-        toast.success("Referral program saved");
+        toast.success(t("toastSaved"));
         await queryClient.invalidateQueries(
           trpc.discountsAdmin.getReferralProgram.pathFilter(),
         );
@@ -80,16 +81,15 @@ export function AdminReferralProgramCard() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
-            <h2 className="text-sm font-semibold text-slate-900">Referral program</h2>
-            <InfoTooltip content="Reward existing travelers with promo credits when their friends complete paid bookings on Moja Ride." />
+            <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
+            <InfoTooltip content={t("tooltip")} />
           </div>
           <p className="max-w-sm text-xs text-slate-500">
-            Reward referrers with promo credits when their referred friend completes a paid trip.
-            A personal welcome coupon can be minted for the new traveler from any active campaign.
+            {t("description")}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="text-xs text-slate-500">{isActive ? "Active" : "Paused"}</span>
+          <span className="text-xs text-slate-500">{isActive ? t("active") : t("paused")}</span>
           <Switch id="ref-active" checked={isActive} onCheckedChange={setIsActive} />
         </div>
       </div>
@@ -99,9 +99,9 @@ export function AdminReferralProgramCard() {
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="ref-initial" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Referrer initial reward (XOF)
+              {t("initialRewardLabel")}
             </Label>
-            <InfoTooltip content="One-time promo credit granted to the referrer after the referred friend boards and completes their first eligible paid trip." />
+            <InfoTooltip content={t("initialRewardTooltip")} />
           </div>
           <Input
             id="ref-initial"
@@ -110,15 +110,15 @@ export function AdminReferralProgramCard() {
             onChange={(e) => setReferrerCredit(e.target.value)}
             placeholder="e.g. 1000"
           />
-          <p className="text-[11px] text-slate-400">One-time credit after the friend's first confirmed trip</p>
+          <p className="text-[11px] text-slate-400">{t("initialRewardSub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="ref-recurring" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Recurring bonus per trip (XOF)
+              {t("recurringRewardLabel")}
             </Label>
-            <InfoTooltip content="Smaller bonus promo credit given to the referrer every time the friend takes subsequent trips, up to the maximum trips cap." />
+            <InfoTooltip content={t("recurringRewardTooltip")} />
           </div>
           <Input
             id="ref-recurring"
@@ -127,15 +127,15 @@ export function AdminReferralProgramCard() {
             onChange={(e) => setRecurringCredit(e.target.value)}
             placeholder="e.g. 250"
           />
-          <p className="text-[11px] text-slate-400">Smaller bonus for each repeat trip the friend takes (up to the cap)</p>
+          <p className="text-[11px] text-slate-400">{t("recurringRewardSub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="ref-max" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Max recurring trips cap
+              {t("maxTripsLabel")}
             </Label>
-            <InfoTooltip content="The maximum number of repeat trips that will earn recurring credits for the referrer. Prevents infinite credit drain." />
+            <InfoTooltip content={t("maxTripsTooltip")} />
           </div>
           <Input
             id="ref-max"
@@ -143,15 +143,15 @@ export function AdminReferralProgramCard() {
             value={recurringMax}
             onChange={(e) => setRecurringMax(e.target.value)}
           />
-          <p className="text-[11px] text-slate-400">Stop issuing recurring bonuses after this many trips</p>
+          <p className="text-[11px] text-slate-400">{t("maxTripsSub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="ref-window" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Recurring window (days)
+              {t("windowLabel")}
             </Label>
-            <InfoTooltip content="Only trips completed within this number of days from the initial referral date qualify for the recurring bonus." />
+            <InfoTooltip content={t("windowTooltip")} />
           </div>
           <Input
             id="ref-window"
@@ -159,15 +159,15 @@ export function AdminReferralProgramCard() {
             value={windowDays}
             onChange={(e) => setWindowDays(e.target.value)}
           />
-          <p className="text-[11px] text-slate-400">Only count trips within this many days of the original referral</p>
+          <p className="text-[11px] text-slate-400">{t("windowSub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="ref-delay" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Reward maturation delay (hours)
+              {t("delayLabel")}
             </Label>
-            <InfoTooltip content="Grace period after the friend's trip departure before the referrer's promo credits unlock for spending, allowing for cancellations or disputes." />
+            <InfoTooltip content={t("delayTooltip")} />
           </div>
           <Input
             id="ref-delay"
@@ -175,25 +175,25 @@ export function AdminReferralProgramCard() {
             value={delayHours}
             onChange={(e) => setDelayHours(e.target.value)}
           />
-          <p className="text-[11px] text-slate-400">Hours after the referred friend's trip departure before credits unlock</p>
+          <p className="text-[11px] text-slate-400">{t("delaySub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Welcome coupon campaign
+              {t("welcomeCampaignLabel")}
             </Label>
-            <InfoTooltip content="When linked to an active campaign, new travelers who register through a referral link automatically receive a personal welcome discount code." />
+            <InfoTooltip content={t("welcomeCampaignTooltip")} />
           </div>
           <Select
             value={welcomeCampaignId}
             onValueChange={(value) => setWelcomeCampaignId(value ?? NONE)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="None — no welcome coupon" />
+              <SelectValue placeholder={t("welcomeCampaignNone")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NONE}>None</SelectItem>
+              <SelectItem value={NONE}>{t("welcomeCampaignNoneOption")}</SelectItem>
               {(campaignsQuery.data?.items ?? []).map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
@@ -202,7 +202,7 @@ export function AdminReferralProgramCard() {
             </SelectContent>
           </Select>
           <p className="text-[11px] text-slate-400">
-            When set, new travelers who register via a referral link receive a personal coupon code from this campaign
+            {t("welcomeCampaignSub")}
           </p>
         </div>
       </div>
@@ -212,20 +212,15 @@ export function AdminReferralProgramCard() {
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
             <ShieldCheck className="size-4 shrink-0 text-emerald-600" />
-            <p className="text-sm font-semibold text-emerald-800">Built-in fraud protection active</p>
+            <p className="text-sm font-semibold text-emerald-800">{t("fraudTitle")}</p>
           </div>
           <InfoTooltip
-            content="These automated security guards protect promo credit balances against abuse, bot attacks, and collusion."
+            content={t("fraudTooltip")}
             iconClassName="text-emerald-600 hover:text-emerald-800"
           />
         </div>
         <ul className="mt-2.5 space-y-1 pl-6">
-          {[
-            "Self-referral prevention",
-            "Same phone number detection",
-            "Same-device fingerprint detection",
-            "Requires a confirmed, paid trip before reward matures",
-          ].map((item) => (
+          {(t.raw("fraudItems") as string[]).map((item) => (
             <li key={item} className="flex items-center gap-2 text-xs text-emerald-700">
               <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
               {item}
@@ -233,7 +228,7 @@ export function AdminReferralProgramCard() {
           ))}
         </ul>
         <p className="mt-2 pl-0 text-[11px] text-emerald-600/70">
-          These controls are permanently enabled and cannot be disabled to protect platform integrity.
+          {t("fraudFooter")}
         </p>
       </div>
 
@@ -257,7 +252,7 @@ export function AdminReferralProgramCard() {
           })
         }
       >
-        {saveMutation.isPending ? "Saving…" : "Save referral settings"}
+        {saveMutation.isPending ? t("saving") : t("saveBtn")}
       </Button>
     </Card>
   );

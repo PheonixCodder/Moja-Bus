@@ -37,7 +37,7 @@ export function ScheduleToolbar({
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-border shrink-0">
       <div className="flex items-center gap-3 flex-1 min-w-0 flex-wrap">
         <p className="text-sm font-semibold text-foreground shrink-0">
-          {total} schedule{total !== 1 ? "s" : ""}
+          {t("schedulesCount", { count: total })}
         </p>
         <div className="relative max-w-xs flex-1 min-w-[140px]">
           <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />

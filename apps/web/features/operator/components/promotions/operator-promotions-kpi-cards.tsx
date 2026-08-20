@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card } from "@moja/ui/components/ui/card";
 import { CheckCircle2, Coins, Megaphone } from "lucide-react";
 
@@ -16,6 +17,8 @@ export function OperatorPromotionsKpiCards({
   operatorFundedXOF,
   isLoading = false,
 }: OperatorPromotionsKpiCardsProps) {
+  const t = useTranslations("operatorDashboard.promotions.kpi");
+
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <Card className="flex items-center gap-4 p-5 shadow-xs border-slate-200/80 bg-white">
@@ -23,7 +26,7 @@ export function OperatorPromotionsKpiCards({
           <Megaphone className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">Active promos</p>
+          <p className="text-xs font-medium text-slate-500">{t("activePromos")}</p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : activePromos}
           </p>
@@ -35,7 +38,7 @@ export function OperatorPromotionsKpiCards({
           <CheckCircle2 className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">Confirmed redemptions</p>
+          <p className="text-xs font-medium text-slate-500">{t("confirmedRedemptions")}</p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : confirmedRedemptions.toLocaleString()}
           </p>
@@ -47,7 +50,7 @@ export function OperatorPromotionsKpiCards({
           <Coins className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">Operator-funded discounts</p>
+          <p className="text-xs font-medium text-slate-500">{t("operatorFunded")}</p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : (
               <>

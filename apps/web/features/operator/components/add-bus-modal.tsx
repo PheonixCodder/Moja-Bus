@@ -70,7 +70,8 @@ export function AddBusModal({
   editingBus,
   onSuccess,
 }: AddBusModalProps) {
-  const t = useTranslations("operator.addBusModal");
+  const t = useTranslations("operatorDashboard.fleet.addBusDrawer");
+  const tLayouts = useTranslations("operatorDashboard.fleet.layouts");
   const isEditing = !!editingBus;
 
   const queryClient = useQueryClient();
@@ -144,13 +145,13 @@ export function AddBusModal({
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
     if (!plateNumber.trim() || plateNumber.trim().length < 4) {
-      newErrors["plateNumber"] = "Registration plate is required (min 4 chars)";
+      newErrors["plateNumber"] = t("errors.plate");
     }
     if (!isEditing && !busTypeId) {
-      newErrors["busTypeId"] = "Please select a vehicle type";
+      newErrors["busTypeId"] = t("errors.busType");
     }
     if (!isEditing && !seatLayoutId) {
-      newErrors["seatLayoutId"] = "Please select a seat configuration";
+      newErrors["seatLayoutId"] = t("errors.seatLayout");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -175,12 +176,12 @@ export function AddBusModal({
         },
         {
           onSuccess: () => {
-            toast.success("Vehicle updated successfully");
+            toast.success(t("toast.updated"));
             onSuccess();
             onOpenChange(false);
           },
           onError: (err) => {
-            toast.error(err.message || "Unexpected error");
+            toast.error(err.message || t("toast.error"));
           },
         },
       );
@@ -199,12 +200,12 @@ export function AddBusModal({
         },
         {
           onSuccess: () => {
-            toast.success("Vehicle added to the fleet!");
+            toast.success(t("toast.created"));
             onSuccess();
             onOpenChange(false);
           },
           onError: (err) => {
-            toast.error(err.message || "Unexpected error");
+            toast.error(err.message || t("toast.error"));
           },
         },
       );
@@ -224,17 +225,15 @@ export function AddBusModal({
               </div>
               <div>
                 <DrawerTitle className="text-base font-semibold text-foreground">
-                  {isEditing ? "Edit vehicle" : "Add vehicle"}
+                  {isEditing ? t("titleEdit") : t("titleAdd")}
                 </DrawerTitle>
                 <DrawerDescription className="text-xs text-muted-foreground mt-0.5">
-                  {isEditing
-                    ? "Update the details of this vehicle."
-                    : "Fill in the details to register a new vehicle."}
+                  {isEditing ? t("descEdit") : t("descAdd")}
                 </DrawerDescription>
               </div>
             </div>
             <DrawerClose
-              aria-label="Close"
+              aria-label={tc("close")}
               className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <X className="size-4" />
@@ -249,11 +248,11 @@ export function AddBusModal({
                   htmlFor="plateNumber"
                   className="text-xs font-semibold text-foreground/80"
                 >
-                  Registration plate *
+                  {t("plateLabel")}
                 </Label>
                 <Input
                   id="plateNumber"
-                  placeholder="e.g. 1234AB01"
+                  placeholder={t("platePlaceholder")}
                   className="h-9 text-sm bg-card border-border font-mono uppercase"
                   value={plateNumber}
                   onChange={(e) => setPlateNumber(e.target.value)}
@@ -269,12 +268,12 @@ export function AddBusModal({
                   htmlFor="internalName"
                   className="text-xs font-semibold text-foreground/80"
                 >
-                  Internal name{" "}
-                  <span className="text-muted-foreground font-normal">(optional)</span>
+                  {t("internalNameLabel")}{" "}
+                  <span className="text-muted-foreground font-normal">{t("internalNameOptional")}</span>
                 </Label>
                 <Input
                   id="internalName"
-                  placeholder='e.g. "Bus Alpha", "VIP-07"'
+                  placeholder={t("internalNamePlaceholder")}
                   className="h-9 text-sm bg-card border-border"
                   value={internalName}
                   onChange={(e) => setInternalName(e.target.value)}
@@ -284,7 +283,7 @@ export function AddBusModal({
               {/* Manufacture Year */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground/80">
-                  Manufacture year
+                  {t("yearLabel")}
                 </Label>
                 <Combobox
                   items={yearOptions.map((y) => ({
@@ -294,9 +293,9 @@ export function AddBusModal({
                   value={manufactureYear}
                   onValueChange={(v) => { if (v !== null) setManufactureYear(v); }}
                 >
-                  <ComboboxInput placeholder="Select a year..." className="w-full" />
+                  <ComboboxInput placeholder={t("yearPlaceholder")} className="w-full" />
                   <ComboboxContent>
-                    <ComboboxEmpty>No year found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("yearEmpty")}</ComboboxEmpty>
                     <ComboboxList>
                       {yearOptions.map((y) => (
                         <ComboboxItem key={y} value={y.toString()}>
@@ -311,20 +310,20 @@ export function AddBusModal({
               {/* Seat Class */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground/80">
-                  Seat class *
+                  {t("seatLayoutLabel")}
                 </Label>
                 <Combobox
-items={[
-                     { value: "STANDARD", label: t("seatClass.STANDARD") },
-                     { value: "VIP", label: t("seatClass.VIP") },
-                     { value: "ECONOMY", label: t("seatClass.ECONOMY") },
-                   ]}
+                  items={[
+                    { value: "STANDARD", label: t("seatClass.STANDARD") },
+                    { value: "VIP", label: t("seatClass.VIP") },
+                    { value: "ECONOMY", label: t("seatClass.ECONOMY") },
+                  ]}
                   value={seatClass}
                   onValueChange={(v) => { if (v !== null) setSeatClass(v as SeatClass); }}
                 >
-                  <ComboboxInput placeholder="Select seat class..." className="w-full" />
+                  <ComboboxInput placeholder={t("seatClass.STANDARD")} className="w-full" />
                   <ComboboxContent>
-                    <ComboboxEmpty>No seat class found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("statusEmpty")}</ComboboxEmpty>
                     <ComboboxList>
                       <ComboboxItem value="STANDARD">{t("seatClass.STANDARD")}</ComboboxItem>
                       <ComboboxItem value="VIP">{t("seatClass.VIP")}</ComboboxItem>
@@ -337,7 +336,7 @@ items={[
               {/* Bus Type */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground/80">
-                  Vehicle type *
+                  {t("busTypeLabel")}
                 </Label>
                 <Combobox
                   items={busTypes.map((bt) => ({
@@ -355,11 +354,11 @@ items={[
                   disabled={isEditing}
                 >
                   <ComboboxInput
-                    placeholder="Select vehicle type..."
+                    placeholder={t("busTypePlaceholder")}
                     className="w-full"
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No vehicle type found.</ComboboxEmpty>
+                    <ComboboxEmpty>{t("busTypeEmpty")}</ComboboxEmpty>
                     <ComboboxList>
                       {busTypes.map((bt) => (
                         <ComboboxItem key={bt.id} value={bt.id}>
@@ -381,7 +380,7 @@ items={[
                 )}
                 {isEditing && (
                   <p className="text-[11px] text-muted-foreground">
-                    Vehicle type can&apos;t be changed after creation.
+                    {t("busTypeLockedHint")}
                   </p>
                 )}
               </div>
@@ -391,7 +390,7 @@ items={[
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold text-foreground/80">
-                      Seat configuration *
+                      {t("seatLayoutLabel")}
                     </Label>
                     {busTypeId && (
                       <button
@@ -400,7 +399,7 @@ items={[
                         className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
                       >
                         <Plus className="size-3" />
-                        Create new layout
+                        {tLayouts("createCustomLayout")}
                       </button>
                     )}
                   </div>
@@ -408,7 +407,7 @@ items={[
                   {/* Hint when no bus type selected */}
                   {!busTypeId && (
                     <p className="text-xs text-muted-foreground">
-                      Select a vehicle type first to see compatible layouts.
+                      {t("selectTypeFirst")}
                     </p>
                   )}
 
@@ -420,7 +419,7 @@ items={[
                           <div className="flex items-center gap-2">
                             <Layers className="size-3 text-primary" />
                             <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                              My layouts
+                              {tLayouts("myLayouts")}
                             </span>
                           </div>
                           <div className="grid grid-cols-1 gap-1.5">
@@ -443,7 +442,7 @@ items={[
                           <div className="flex items-center gap-2">
                             <ShieldCheck className="size-3 text-muted-foreground" />
                             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                              Platform defaults
+                              {tLayouts("platformDefaults")}
                             </span>
                           </div>
                           <div className="grid grid-cols-1 gap-1.5">
@@ -464,7 +463,7 @@ items={[
                       {filteredPlatform.length === 0 && filteredCustom.length === 0 && (
                         <div className="rounded-lg border border-dashed border-border p-4 text-center">
                           <p className="text-xs text-muted-foreground">
-                            No layouts available for this vehicle type.
+                            {t("noLayoutsAvailable")}
                           </p>
                           <button
                             type="button"
@@ -472,7 +471,7 @@ items={[
                             className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
                           >
                             <Plus className="size-3.5" />
-                            Create a custom layout
+                            {tLayouts("createCustomLayout")}
                           </button>
                         </div>
                       )}
@@ -489,24 +488,24 @@ items={[
               {isEditing && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-foreground/80">
-                    Status
+                    {t("statusLabel")}
                   </Label>
                   <Combobox
                     items={[
-                      { value: "ACTIVE", label: "Active" },
-                      { value: "MAINTENANCE", label: "Maintenance" },
-                      { value: "INACTIVE", label: "Inactive" },
+                      { value: "ACTIVE", label: t("status.ACTIVE") },
+                      { value: "MAINTENANCE", label: t("status.MAINTENANCE") },
+                      { value: "INACTIVE", label: t("status.INACTIVE") },
                     ]}
                     value={status}
                     onValueChange={(v) => setStatus((v ?? "ACTIVE") as BusStatus)}
                   >
-                    <ComboboxInput placeholder="Select status..." className="w-full" />
+                    <ComboboxInput placeholder={t("statusPlaceholder")} className="w-full" />
                     <ComboboxContent>
-                      <ComboboxEmpty>No status found.</ComboboxEmpty>
+                      <ComboboxEmpty>{t("statusEmpty")}</ComboboxEmpty>
                       <ComboboxList>
-                        <ComboboxItem value="ACTIVE">Active</ComboboxItem>
-                        <ComboboxItem value="MAINTENANCE">Maintenance</ComboboxItem>
-                        <ComboboxItem value="INACTIVE">Inactive</ComboboxItem>
+                        <ComboboxItem value="ACTIVE">{t("status.ACTIVE")}</ComboboxItem>
+                        <ComboboxItem value="MAINTENANCE">{t("status.MAINTENANCE")}</ComboboxItem>
+                        <ComboboxItem value="INACTIVE">{t("status.INACTIVE")}</ComboboxItem>
                       </ComboboxList>
                     </ComboboxContent>
                   </Combobox>
@@ -519,12 +518,12 @@ items={[
                   htmlFor="notes"
                   className="text-xs font-semibold text-foreground/80"
                 >
-                  Notes{" "}
-                  <span className="text-muted-foreground font-normal">(optional)</span>
+                  {t("notesLabel")}{" "}
+                  <span className="text-muted-foreground font-normal">{t("notesOptional")}</span>
                 </Label>
                 <Textarea
                   id="notes"
-                  placeholder="Additional details about this vehicle..."
+                  placeholder={t("notesPlaceholder")}
                   className="text-sm bg-card border-border resize-none min-h-[72px]"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -541,14 +540,14 @@ items={[
               className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm"
             >
               {isPending && <Spinner className="size-4 mr-2" />}
-              {isEditing ? "Save changes" : "Add vehicle"}
+              {isEditing ? t("saveBtn") : t("addBtn")}
             </Button>
             <DrawerClose asChild>
               <Button
                 variant="ghost"
                 className="h-9 text-muted-foreground hover:text-foreground"
               >
-                Cancel
+                {t("cancelBtn")}
               </Button>
             </DrawerClose>
           </DrawerFooter>
@@ -582,6 +581,7 @@ interface LayoutRadioCardProps {
 }
 
 function LayoutRadioCard({ layout, selected, onSelect, isCustom }: LayoutRadioCardProps) {
+  const t = useTranslations("operatorDashboard.fleet.addBusDrawer");
   return (
     <button
       type="button"
@@ -613,14 +613,14 @@ function LayoutRadioCard({ layout, selected, onSelect, isCustom }: LayoutRadioCa
           </p>
           {isCustom && (
             <span className="shrink-0 inline-flex items-center gap-0.5 rounded-full border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary uppercase tracking-wide">
-              Custom
+              {t("custom")}
             </span>
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {layout.rows} rows × {layout.columns} columns —{" "}
+          {t("rowsCols", { rows: layout.rows, columns: layout.columns })} —{" "}
           <strong className="text-foreground/80 font-medium">
-            {layout.totalSeats} seats
+            {t("totalSeats", { count: layout.totalSeats })}
           </strong>
         </p>
       </div>

@@ -11,11 +11,13 @@ import {
   formatTripDuration,
 } from "@/features/search/lib/format";
 import type { PassengerBookingSummary } from "@moja/types";
+import { useTranslations } from "next-intl";
 import { useHoldCountdown } from "@/features/booking/lib/hold-countdown";
 import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatLocationLabel } from "@/lib/format-location-label";
 
 function StatusBadge({ booking }: { booking: PassengerBookingSummary }) {
+  const t = useTranslations("booking");
   const countdown = useHoldCountdown(
     booking.status === "PENDING_PAYMENT" ? booking.holdExpiresAt : null,
   );
@@ -28,10 +30,11 @@ function StatusBadge({ booking }: { booking: PassengerBookingSummary }) {
 
     return (
       <Badge
+        variant="outline"
         className={cn(
-          "border hover:bg-amber-50",
-          countdown?.expired
-            ? "bg-slate-100 text-slate-600 border-slate-200"
+          "text-xs font-semibold px-2.5 py-0.5",
+          countdown?.isUrgent
+            ? "bg-rose-50 text-rose-700 border-rose-200 animate-pulse"
             : "bg-amber-50 text-amber-800 border-amber-200",
         )}
       >
@@ -42,7 +45,7 @@ function StatusBadge({ booking }: { booking: PassengerBookingSummary }) {
   if (booking.status === "CONFIRMED") {
     return (
       <Badge className="bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-50">
-        Confirmed
+        {t("confirmed")}
       </Badge>
     );
   }
@@ -69,6 +72,7 @@ export function PassengerTripCard({
   footer,
   className,
 }: PassengerTripCardProps) {
+  const t = useTranslations("booking");
   const seatLabels = booking.seats.map((s) => s.seatLabel).join(", ");
   const durationMinutes = Math.max(
     0,
@@ -128,7 +132,7 @@ export function PassengerTripCard({
               <div className="absolute h-2 w-2 rounded-full bg-[#ee237c] right-0" />
             </div>
             <span className="text-[10px] font-semibold text-slate-500 mt-1">
-              Seats {seatLabels}
+              {t("seats")} {seatLabels}
             </span>
           </div>
 

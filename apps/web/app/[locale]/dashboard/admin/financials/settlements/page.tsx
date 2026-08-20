@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { AdminSettlementsView } from "@/features/admin/views/admin-settlements-view";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
@@ -15,6 +16,7 @@ export const metadata = {
 };
 
 export default async function SettlementsPage({ searchParams }: SettlementsPageProps) {
+  const t = await getTranslations("adminDashboard.pages.settlements");
   const parsed = await settlementsSearchParamsCache.parse(searchParams);
   const PAGE_SIZE = 20;
 
@@ -33,9 +35,12 @@ export default async function SettlementsPage({ searchParams }: SettlementsPageP
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Paystack Clearing & Settlements"
-        description="Monitor the central clearing account balance and record manual offline operator disbursements."
-        breadcrumbs={[{ label: "Financials" }, { label: "Settlements" }]}
+        title={t("title")}
+        description={t("description")}
+        breadcrumbs={[
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
+        ]}
       >
         <AdminSettlementsView />
       </AdminPageShell>

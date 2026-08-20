@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCompanySettings } from "../api/use-company-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
@@ -12,6 +13,7 @@ interface VerificationPipelineProps {
 }
 
 export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
+  const t = useTranslations("operatorDashboard.settings.verification");
   const { data: settings } = useCompanySettings();
   const status = getCompanyStatusPresentation(settings?.company.status);
 
@@ -30,7 +32,7 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
               ) : (
                 <ShieldAlert className="w-5 h-5 text-muted-foreground" />
               )}
-              Platform Verification
+              {t("platformVerification")}
             </CardTitle>
             <CardDescription>{status.description}</CardDescription>
           </div>
@@ -39,7 +41,7 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
             className="w-full sm:w-auto shrink-0" 
             onClick={onManage}
           >
-            {status.isFullyVerified ? "View Details" : "Continue Setup"}
+            {status.isFullyVerified ? t("viewDetails") : t("continueSetup")}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
@@ -47,27 +49,27 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
       <CardContent className="p-0">
         <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x text-sm">
           <div className="p-4 flex flex-col gap-1">
-            <span className="text-muted-foreground">Current Status</span>
+            <span className="text-muted-foreground">{t("currentStatus")}</span>
             <span className={cn("font-medium", status.badgeClassName.split(" ")[1])}>
               {status.label}
             </span>
           </div>
           <div className="p-4 flex flex-col gap-1">
-            <span className="text-muted-foreground">Profile Details</span>
+            <span className="text-muted-foreground">{t("profileDetails")}</span>
             <span className={settings?.company.name && settings?.company.taxId ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>
-              {settings?.company.name && settings?.company.taxId ? "Complete" : "Incomplete"}
+              {settings?.company.name && settings?.company.taxId ? t("complete") : t("incomplete")}
             </span>
           </div>
           <div className="p-4 flex flex-col gap-1">
-            <span className="text-muted-foreground">Payout Account</span>
+            <span className="text-muted-foreground">{t("payoutAccount")}</span>
             <span className={settings?.company?.bankAccounts?.some(b => b.isVerified) ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>
-              {settings?.company?.bankAccounts?.some(b => b.isVerified) ? "Verified" : "Pending"}
+              {settings?.company?.bankAccounts?.some(b => b.isVerified) ? t("verified") : t("pending")}
             </span>
           </div>
           <div className="p-4 flex flex-col gap-1">
-            <span className="text-muted-foreground">Legal Docs</span>
+            <span className="text-muted-foreground">{t("legalDocs")}</span>
             <span className={settings?.company.documents?.some(d => d.status === "APPROVED") ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>
-              {settings?.company.documents?.some(d => d.status === "APPROVED") ? "Approved" : "Action Needed"}
+              {settings?.company.documents?.some(d => d.status === "APPROVED") ? t("approved") : t("actionNeeded")}
             </span>
           </div>
         </div>

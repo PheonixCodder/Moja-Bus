@@ -123,7 +123,7 @@ export function WebhookLogsTable() {
                         onClick={() => setSelectedEvent(event)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        Payload
+                        {t("payload")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -137,9 +137,11 @@ export function WebhookLogsTable() {
       {data.total > 0 && (
         <div className="flex items-center justify-between pt-4">
           <p className="text-sm text-muted-foreground">
-            Showing {params.page * params.pageSize - params.pageSize + 1} to{" "}
-            {Math.min(params.page * params.pageSize, data.total)} of{" "}
-            {data.total} results
+            {t("pagination", {
+              start: params.page * params.pageSize - params.pageSize + 1,
+              end: Math.min(params.page * params.pageSize, data.total),
+              total: data.total,
+            })}
           </p>
           <div className="flex items-center gap-2">
             <Button

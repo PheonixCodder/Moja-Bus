@@ -1,11 +1,15 @@
+"use client";
+
 import { ShieldAlert } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface AccessDeniedProps {
   reason?: "admin-profile-missing" | "suspended";
 }
 
 export function AccessDenied({ reason }: AccessDeniedProps) {
+  const t = useTranslations("adminDashboard.accessDenied");
   const isSuspended = reason === "suspended";
 
   return (
@@ -16,23 +20,23 @@ export function AccessDenied({ reason }: AccessDeniedProps) {
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
-            {isSuspended ? "Account Suspended" : "Admin Access Unavailable"}
+            {isSuspended ? t("accountSuspended") : t("adminUnavailable")}
           </h2>
           <p className="text-sm text-muted-foreground">
             {isSuspended
-              ? "Your admin access is suspended. Contact your administrator for more details."
-              : "Your account is not linked to a valid admin staff profile. Contact an administrator."}
+              ? t("suspendedDesc")
+              : t("profileMissingDesc")}
           </p>
         </div>
         <a
           href="/dashboard"
           className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
         >
-          Return to Dashboard
+          {t("returnToDashboard")}
         </a>
         <p className="text-xs text-muted-foreground">
           <Link href="/logout" className="underline underline-offset-4">
-            Sign out
+            {t("signOut")}
           </Link>
         </p>
       </div>

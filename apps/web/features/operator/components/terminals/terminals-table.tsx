@@ -69,11 +69,10 @@ export function TerminalsTable({
       <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed rounded-lg bg-card/50">
         <Building className="size-10 text-muted-foreground/50 mb-3" />
         <h3 className="text-base font-semibold text-foreground">
-          No locations found
+          {t("noLocations")}
         </h3>
         <p className="text-xs text-muted-foreground max-w-sm mt-1">
-          Create your first passenger terminal or depot location to start
-          configuring transit routes.
+          {t("noLocationsDesc")}
         </p>
       </div>
     );
@@ -85,7 +84,7 @@ export function TerminalsTable({
         <thead>
           <tr className="border-b border-border bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <th className="px-4 py-3">{tc("name")}</th>
-            <th className="px-4 py-3">Type</th>
+            <th className="px-4 py-3">{t("type")}</th>
             <th className="px-4 py-3">
               {tc("city")} & {tc("address")}
             </th>
@@ -112,7 +111,7 @@ export function TerminalsTable({
                     </span>
                     {loc.isPrimary && (
                       <span className="ml-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wider">
-                        Primary Hub
+                        {t("primaryHub")}
                       </span>
                     )}
                   </div>
@@ -157,7 +156,7 @@ export function TerminalsTable({
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {loc.isActive ? "Active" : "Inactive"}
+                    {loc.isActive ? t("active") : t("inactive")}
                   </span>
                   {loc.geoCaptureStatus &&
                     loc.geoCaptureStatus !== "COMPLETE" && (

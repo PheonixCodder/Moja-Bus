@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,6 +28,7 @@ interface BankDrawerProps {
 }
 
 export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
+  const t = useTranslations("operatorDashboard.settings.banking");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -42,11 +44,11 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
         queryClient.invalidateQueries(trpc.operator.listBankAccounts.queryFilter());
-        toast.success("Settlement account added and verified automatically.");
+        toast.success(t("toast.added"));
         setIsAdding(false);
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to add bank account");
+        toast.error(err.message || t("toast.addFailed"));
       }
     })
   );
@@ -56,12 +58,12 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
         queryClient.invalidateQueries(trpc.operator.listBankAccounts.queryFilter());
-        toast.success("Bank account updated successfully.");
+        toast.success(t("toast.updated"));
         setIsEditing(false);
         setEditingId(null);
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to update bank account");
+        toast.error(err.message || t("toast.updateFailed"));
       }
     })
   );
@@ -142,9 +144,9 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
   const renderList = () => (
     <div className="space-y-4 px-4 py-2">
       <div className="flex justify-between items-center mb-2">
-        <p className="text-sm text-muted-foreground">Manage your payout accounts</p>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
         <Button size="sm" onClick={() => setIsAdding(true)} variant="outline">
-          <Plus className="w-4 h-4 mr-1" /> Add Account
+          <Plus className="w-4 h-4 mr-1" /> {t("addAccount")}
         </Button>
       </div>
       
@@ -161,21 +163,21 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
               <div className="flex flex-col items-end gap-2">
                 {account.isVerified ? (
                   <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
-                    <ShieldCheck className="w-3 h-3 mr-1" /> Verified
+                    <ShieldCheck className="w-3 h-3 mr-1" /> {t("verified")}
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
-                    <Clock className="w-3 h-3 mr-1" /> Pending
+                    <Clock className="w-3 h-3 mr-1" /> {t("pending")}
                   </Badge>
                 )}
                 {account.isDefault && (
-                  <Badge variant="secondary" className="text-[10px]">Primary</Badge>
+                  <Badge variant="secondary" className="text-[10px]">{t("default")}</Badge>
                 )}
               </div>
             </div>
             
             <div className="pt-3 border-t grid grid-cols-2 text-sm gap-2">
-              <div className="text-muted-foreground">Account Name</div>
+              <div className="text-muted-foreground">{t("accountName")}</div>
               <div className="font-medium truncate" title={account.accountName || ""}>
                 {account.accountName}
               </div>
@@ -185,7 +187,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
               <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
                 <AlertTriangle className="size-3.5 shrink-0" />
                 <span>
-                  The name on record for this account differs from the name you entered. Please confirm it is correct before requesting a payout.
+                  {t("nameMismatchWarning")}
                 </span>
               </div>
             )}
@@ -218,7 +220,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
   const renderForm = () => (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-4 py-2">
       <Field>
-        <FieldLabel>Payout Provider *</FieldLabel>
+        <FieldLabel>{t("bankName")} *</FieldLabel>
         <Combobox
           value={form.watch("bankCode") || ""}
           onValueChange={(val) => {
@@ -230,7 +232,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
             }
           }}
         >
-          <ComboboxInput placeholder={isLoadingBanks ? "Loading banks..." : "Search for a bank..."} />
+          <ComboboxInput placeholder={isLoadingBanks ? "Loading banks..." : t("bankNamePlaceholder")} />
           <ComboboxContent>
             <ComboboxList>
               {paystackBanks?.map((provider) => (
@@ -245,42 +247,45 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
       </Field>
 
       <Field>
-        <FieldLabel>Account / Wallet Number *</FieldLabel>
+        <FieldLabel>{t("accountNumber")} *</FieldLabel>
         <Input
-          placeholder={form.watch("bankType") === "mobile_money" ? "Mobile money number (e.g. 07 00 00 00 00)" : "14-digit RIB (e.g. 00000000000000)"}
+          placeholder={t("accountNumberPlaceholder")}
           {...form.register("accountNumber")}
         />
         <FieldError errors={[form.formState.errors.accountNumber as any]} />
       </Field>
 
       <Field>
-        <FieldLabel>Account Holder Name *</FieldLabel>
+        <FieldLabel>{t("accountName")} *</FieldLabel>
         <Input
-          placeholder="Enter account holder name"
+          placeholder={t("accountNamePlaceholder")}
           {...form.register("accountName")}
         />
         <FieldError errors={[form.formState.errors.accountName as any]} />
       </Field>
 
       <Field>
-        <FieldLabel>Branch Location (Optional)</FieldLabel>
+        <FieldLabel>{t("branch")}</FieldLabel>
         <Input
+          placeholder={t("branchPlaceholder")}
           {...form.register("branch")}
         />
         <FieldError errors={[form.formState.errors.branch as any]} />
       </Field>
 
       <Field>
-        <FieldLabel>SWIFT / BIC Code (Optional)</FieldLabel>
+        <FieldLabel>{t("swiftCode")}</FieldLabel>
         <Input
+          placeholder={t("swiftCodePlaceholder")}
           {...form.register("swiftCode")}
         />
         <FieldError errors={[form.formState.errors.swiftCode as any]} />
       </Field>
 
       <Field>
-        <FieldLabel>IBAN (Optional)</FieldLabel>
+        <FieldLabel>{t("iban")}</FieldLabel>
         <Input
+          placeholder={t("ibanPlaceholder")}
           {...form.register("iban")}
         />
         <FieldError errors={[form.formState.errors.iban as any]} />
@@ -293,22 +298,22 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
       <ActionDrawer
         isOpen={isOpen}
         onClose={onClose}
-        title={isEditing ? "Edit Settlement Account" : isAdding ? "Add Settlement Account" : "Manage Banks"}
-        description={isEditing ? "Update your bank account details." : isAdding ? "Register a Côte d'Ivoire Bank or Mobile Money wallet." : "View and manage your payout methods."}
+        title={isEditing ? t("editAccount") : isAdding ? t("addAccount") : t("title")}
+        description={t("manageAccountsDesc")}
         footer={
           <div className="flex w-full justify-end gap-3">
             {(isAdding || isEditing) && bankAccounts && bankAccounts.length > 0 ? (
               <Button variant="outline" onClick={() => { setIsAdding(false); setIsEditing(false); setEditingId(null); }}>
-                Back to List
+                {t("cancel")}
               </Button>
             ) : (
               <Button variant="outline" onClick={onClose}>
-                Close
+                {t("cancel")}
               </Button>
             )}
             {(isAdding || isEditing) && (
               <Button onClick={form.handleSubmit(onSubmit)} disabled={addBankAccountMutation.isPending || updateBankAccountMutation.isPending}>
-                {(addBankAccountMutation.isPending || updateBankAccountMutation.isPending) ? "Submitting..." : "Submit"}
+                {(addBankAccountMutation.isPending || updateBankAccountMutation.isPending) ? t("saving") : t("saveChanges")}
               </Button>
             )}
           </div>
@@ -323,15 +328,15 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 mb-4">
               <AlertTriangle className="size-6 text-red-600" />
             </div>
-            <AlertDialogTitle>Delete Payout Account</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove this bank account? This action cannot be undone and may delay your settlements.
+              {t("dialog.deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("dialog.cancel")}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={confirmDelete}>
-              Yes, delete account
+              {t("dialog.deleteConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

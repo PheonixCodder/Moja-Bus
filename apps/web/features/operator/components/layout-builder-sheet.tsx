@@ -911,7 +911,7 @@ export function LayoutBuilderSheet({
                   <div>
                     <p className="text-sm font-bold text-foreground">{name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {selectedBusType?.name} · {rows} rows × {cols} columns
+                      {selectedBusType?.name} · {t("step3.gridSummary", { rows, cols })}
                     </p>
                   </div>
                   <div className="shrink-0 rounded-lg bg-primary/10 border border-primary/20 px-3 py-1.5 text-center">
@@ -928,22 +928,22 @@ export function LayoutBuilderSheet({
                 <div className="flex flex-wrap gap-1.5">
                   {hasAC && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground font-medium">
-                      <ThermometerSun className="size-3" /> AC
+                      <ThermometerSun className="size-3" /> {t("step3.ac")}
                     </span>
                   )}
                   {hasWifi && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground font-medium">
-                      <Wifi className="size-3" /> Wi-Fi
+                      <Wifi className="size-3" /> {t("step3.wifi")}
                     </span>
                   )}
                   {hasToilet && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground font-medium">
-                      <CircleDot className="size-3" /> Toilet
+                      <CircleDot className="size-3" /> {t("step3.toilet")}
                     </span>
                   )}
                   {hasLuggage && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground font-medium">
-                      <Luggage className="size-3" /> Luggage
+                      <Luggage className="size-3" /> {t("step3.luggage")}
                     </span>
                   )}
                   {!hasAC && !hasWifi && !hasToilet && !hasLuggage && (

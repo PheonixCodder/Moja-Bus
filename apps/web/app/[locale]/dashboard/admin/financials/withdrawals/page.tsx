@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
 import { AdminWithdrawalsView } from "@/features/admin/views/admin-withdrawals-view";
@@ -14,6 +15,7 @@ export default async function AdminWithdrawalsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const t = await getTranslations("adminDashboard.pages.withdrawals");
   const parsed = await withdrawalsSearchParamsCache.parse(await searchParams);
   const PAGE_SIZE = 15;
 
@@ -38,9 +40,12 @@ export default async function AdminWithdrawalsPage({
   return (
     <HydrateClient>
       <AdminPageShell
-        title="Withdrawal Queue"
-        description="Audit and manually resolve transport company bank payout requests."
-        breadcrumbs={[{ label: "Financials" }, { label: "Withdrawal Queue" }]}
+        title={t("title")}
+        description={t("description")}
+        breadcrumbs={[
+          { label: t("breadcrumbSection") },
+          { label: t("breadcrumbPage") },
+        ]}
       >
         <Suspense
           fallback={

@@ -3,6 +3,8 @@
 import { Card } from "@moja/ui/components/ui/card";
 import { CheckCircle2, Coins, Megaphone, Tag } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 interface AdminCampaignsKpiCardsProps {
   activeCampaigns: number;
   confirmedRedemptions: number;
@@ -18,6 +20,7 @@ export function AdminCampaignsKpiCards({
   platformExpenseXOF,
   isLoading = false,
 }: AdminCampaignsKpiCardsProps) {
+  const t = useTranslations("adminDashboard.campaigns.kpi");
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Card className="flex items-center gap-4 p-5 shadow-xs border-slate-200/80 bg-white">
@@ -25,7 +28,7 @@ export function AdminCampaignsKpiCards({
           <Megaphone className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">Active campaigns</p>
+          <p className="text-xs font-medium text-slate-500">{t("activeCampaigns")}</p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : activeCampaigns}
           </p>
@@ -37,7 +40,7 @@ export function AdminCampaignsKpiCards({
           <CheckCircle2 className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">Confirmed redemptions</p>
+          <p className="text-xs font-medium text-slate-500">{t("confirmedRedemptions")}</p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : confirmedRedemptions.toLocaleString()}
           </p>
@@ -49,7 +52,7 @@ export function AdminCampaignsKpiCards({
           <Tag className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">Ticket discounts</p>
+          <p className="text-xs font-medium text-slate-500">{t("ticketDiscounts")}</p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : (
               <>
@@ -66,7 +69,7 @@ export function AdminCampaignsKpiCards({
           <Coins className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">Platform expense</p>
+          <p className="text-xs font-medium text-slate-500">{t("platformExpense")}</p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : (
               <>

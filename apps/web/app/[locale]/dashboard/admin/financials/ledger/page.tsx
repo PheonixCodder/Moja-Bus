@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
@@ -11,11 +12,12 @@ interface LedgerPageProps {
 }
 
 export const metadata = {
-  title: "Double-Entry Ledger Sheet — Moja Ride Admin",
-  description: "Monitor transaction journals, ledger account entry sheets, and balance validations.",
+  title: "{t("title")} — Moja Ride Admin",
+  description: "{t("description")}",
 };
 
 export default async function LedgerPage({ searchParams }: LedgerPageProps) {
+  const t = await getTranslations("adminDashboard.pages.ledger");
   const parsedParams = await ledgerSearchParamsCache.parse(searchParams);
 
   const currentPageIndex = parsedParams.page - 1; // 0-indexed offset
@@ -44,10 +46,10 @@ export default async function LedgerPage({ searchParams }: LedgerPageProps) {
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
-              Double-Entry Ledger Sheet
+              {t("title")}
             </h1>
             <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Monitor transaction journals, ledger account entry sheets, and balance validations.
+              {t("description")}
             </p>
           </div>
           <Suspense

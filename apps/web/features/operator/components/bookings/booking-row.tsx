@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { CheckCircle2, Radio, Ticket } from "lucide-react";
 import { Button, buttonVariants } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
@@ -22,6 +23,8 @@ export function BookingRow({
   onViewDetail: (booking: OperatorBookingListItem) => void;
   checkingIn: boolean;
 }) {
+  const t = useTranslations("operatorDashboard.bookings");
+
   return (
     <Card className="border-border bg-bg-surface">
       <CardContent className="p-4 space-y-3">
@@ -34,8 +37,7 @@ export function BookingRow({
               {booking.passengerName}
             </h3>
             <p className="text-xs text-text-secondary mt-0.5">
-              {booking.originCityName} → {booking.destinationCityName} · Seat{" "}
-              {booking.seatLabel}
+              {booking.originCityName} → {booking.destinationCityName} · {t("card.seat", { seat: booking.seatLabel })}
             </p>
             <p className="text-xs text-text-muted mt-0.5">
               {formatDateWithWeekday(booking.departureTime)} · {formatDepartureTime(booking.departureTime)} · {booking.passengerPhone}
@@ -52,7 +54,7 @@ export function BookingRow({
             onClick={() => onViewDetail(booking)}
           >
             <Ticket className="size-3.5" />
-            Details
+            {t("card.details")}
           </Button>
           <Link
             href={`/dashboard/operator/trips?manifest=${encodeURIComponent(booking.tripId)}`}
@@ -62,7 +64,7 @@ export function BookingRow({
             )}
           >
             <Radio className="size-3.5" />
-            Manifest
+            {t("card.manifest")}
           </Link>
           {onCheckIn &&
           booking.status === "CONFIRMED" &&
@@ -78,7 +80,7 @@ export function BookingRow({
               ) : (
                 <CheckCircle2 className="size-3.5" />
               )}
-              Check in
+              {t("card.checkIn")}
             </Button>
           ) : null}
         </div>

@@ -17,16 +17,18 @@ interface DigitalTicketCardProps {
 
 export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCardProps) {
   const t = useTranslations("passengerDashboard.tickets");
+  const tTicket = useTranslations("ticket");
 
   return (
     <div
       className={cn(
         "rounded-[24px] border border-border bg-white overflow-hidden relative shadow-sm",
         "print:shadow-none print:border-slate-300 print:rounded-xl print:bg-white",
-        compact ? "p-5" : "p-8 print:p-6"
+        compact ? "p-4" : "p-6 sm:p-7"
       )}
     >
-      <div className="absolute right-0 top-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none print:hidden" />
+      {/* Decorative ambient background blur */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none print:hidden" />
       <div className="absolute left-0 bottom-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl pointer-events-none print:hidden" />
 
       {/* Printable Platform Header — visible ONLY when printing */}
@@ -38,7 +40,7 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
           </span>
         </div>
         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-          Digital Boarding Pass
+          {tTicket("digitalBoardingPass")}
         </span>
       </div>
 

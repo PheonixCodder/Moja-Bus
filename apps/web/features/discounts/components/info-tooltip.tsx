@@ -7,6 +7,7 @@ import {
 } from "@moja/ui/components/ui/tooltip";
 import { Info } from "lucide-react";
 import * as React from "react";
+import { useTranslations } from "next-intl";
 
 type InfoTooltipProps = {
   content: React.ReactNode;
@@ -24,6 +25,8 @@ export function InfoTooltip({
   className,
   iconClassName,
 }: InfoTooltipProps) {
+  const t = useTranslations("discounts.infoTooltip");
+
   return (
     <Tooltip>
       <TooltipTrigger
@@ -32,7 +35,7 @@ export function InfoTooltip({
         className={`inline-flex items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-400 ${
           className ?? ""
         }`}
-        aria-label="More information"
+        aria-label={t("ariaLabel")}
       >
         <Info className={`size-3.5 ${iconClassName ?? ""}`} />
       </TooltipTrigger>
