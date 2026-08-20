@@ -58,64 +58,65 @@ END $$;
 DO $$
 BEGIN
   IF to_regclass('public."monetary_voucher"') IS NOT NULL THEN
-    -- Insert migrated credit lots from monetary_voucher if not already migrated
-    INSERT INTO "credit_lot" (
-      "id",
-      "userId",
-      "source",
-      "status",
-      "amountXOF",
-      "remainingXOF",
-      "reservedXOF",
-      "expiresAt",
-      "sourceBookingId",
-      "sourceHoldGroupId",
-      "grantIdempotencyKey",
-      "createdAt",
-      "updatedAt"
-    )
-    SELECT
-      'lot_migrated_' || mv."id",
-      mv."userId",
-      CASE 
-        WHEN mv."source"::text = 'REFERRAL_REWARD' THEN 'REFERRAL'::"CreditLotSource"
-        WHEN mv."source"::text = 'MARKETING_GRANT' THEN 'MARKETING_GRANT'::"CreditLotSource"
-        WHEN mv."source"::text = 'ADMIN_MANUAL' THEN 'ADMIN_MANUAL'::"CreditLotSource"
-        WHEN mv."source"::text = 'GOODWILL' THEN 'GOODWILL'::"CreditLotSource"
-        ELSE 'GOODWILL'::"CreditLotSource" -- Cancellation and modification vouchers mapped to GOODWILL credit lots
-      END,
-      CASE
-        WHEN mv."status"::text = 'PARTIALLY_REDEEMED' THEN 'PARTIALLY_REDEEMED'::"CreditLotStatus"
-        WHEN mv."status"::text = 'REDEEMED' THEN 'REDEEMED'::"CreditLotStatus"
-        WHEN mv."status"::text = 'EXPIRED' THEN 'EXPIRED'::"CreditLotStatus"
-        WHEN mv."status"::text = 'REVOKED' OR mv."status"::text = 'CANCELLED' THEN 'REVOKED'::"CreditLotStatus"
-        ELSE 'ACTIVE'::"CreditLotStatus"
-      END,
-      mv."originalAmountXOF",
-      mv."remainingAmountXOF",
-      mv."reservedAmountXOF",
-      mv."expiresAt",
-      mv."sourceBookingId",
-      mv."sourceHoldGroupId",
-      'migrated-voucher-' || mv."id",
-      mv."createdAt",
-      mv."updatedAt"
-    FROM "monetary_voucher" mv
-    ON CONFLICT ("grantIdempotencyKey") DO NOTHING;
+    EXECUTE $sql$
+      INSERT INTO "credit_lot" (
+        "id",
+        "userId",
+        "source",
+        "status",
+        "amountXOF",
+        "remainingXOF",
+        "reservedXOF",
+        "expiresAt",
+        "sourceBookingId",
+        "sourceHoldGroupId",
+        "grantIdempotencyKey",
+        "createdAt",
+        "updatedAt"
+      )
+      SELECT
+        'lot_migrated_' || mv."id",
+        mv."userId",
+        CASE 
+          WHEN mv."source"::text = 'REFERRAL_REWARD' THEN 'REFERRAL'::"CreditLotSource"
+          WHEN mv."source"::text = 'MARKETING_GRANT' THEN 'MARKETING_GRANT'::"CreditLotSource"
+          WHEN mv."source"::text = 'ADMIN_MANUAL' THEN 'ADMIN_MANUAL'::"CreditLotSource"
+          WHEN mv."source"::text = 'GOODWILL' THEN 'GOODWILL'::"CreditLotSource"
+          ELSE 'GOODWILL'::"CreditLotSource"
+        END,
+        CASE
+          WHEN mv."status"::text = 'PARTIALLY_REDEEMED' THEN 'PARTIALLY_REDEEMED'::"CreditLotStatus"
+          WHEN mv."status"::text = 'REDEEMED' THEN 'REDEEMED'::"CreditLotStatus"
+          WHEN mv."status"::text = 'EXPIRED' THEN 'EXPIRED'::"CreditLotStatus"
+          WHEN mv."status"::text = 'REVOKED' OR mv."status"::text = 'CANCELLED' THEN 'REVOKED'::"CreditLotStatus"
+          ELSE 'ACTIVE'::"CreditLotStatus"
+        END,
+        mv."originalAmountXOF",
+        mv."remainingAmountXOF",
+        mv."reservedAmountXOF",
+        mv."expiresAt",
+        mv."sourceBookingId",
+        mv."sourceHoldGroupId",
+        'migrated-voucher-' || mv."id",
+        mv."createdAt",
+        mv."updatedAt"
+      FROM "monetary_voucher" mv
+      ON CONFLICT ("grantIdempotencyKey") DO NOTHING;
+    $sql$;
 
-    -- Update discount_redemption: link creditLotId to migrated credit lot and update instrumentType
     IF EXISTS (
       SELECT 1 FROM information_schema.columns 
       WHERE table_name = 'discount_redemption' AND column_name = 'voucherId'
     ) THEN
-      UPDATE "discount_redemption" dr
-      SET 
-        "creditLotId" = 'lot_migrated_' || dr."voucherId",
-        "instrumentType" = 'CREDIT_LOT'::"InstrumentType"
-      WHERE dr."voucherId" IS NOT NULL AND dr."creditLotId" IS NULL;
+      EXECUTE $sql$
+        UPDATE "discount_redemption" dr
+        SET 
+          "creditLotId" = 'lot_migrated_' || dr."voucherId",
+          "instrumentType" = 'CREDIT_LOT'::"InstrumentType"
+        WHERE dr."voucherId" IS NOT NULL AND dr."creditLotId" IS NULL;
+      $sql$;
     END IF;
 
-    -- Re-class financial_account VOUCHER_LIABILITY to PROMO_LIABILITY_PLATFORM
     UPDATE "financial_account"
     SET "accountClass" = 'PROMO_LIABILITY_PLATFORM'
     WHERE "accountClass" = 'VOUCHER_LIABILITY';
