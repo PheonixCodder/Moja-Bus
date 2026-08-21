@@ -512,7 +512,7 @@ export const operatorRouter = createTRPCRouter({
         const newCompanyId = crypto.randomUUID();
         const user = await ctx.prisma.user.findUnique({
           where: { id: ctx.user.id },
-          select: { email: true, phoneNumber: true, fullName: true, name: true },
+          select: { email: true, phoneNumber: true, fullName: true },
         });
 
         await ctx.prisma.$transaction(async (tx) => {
@@ -524,7 +524,7 @@ export const operatorRouter = createTRPCRouter({
           const company = await tx.company.create({
             data: {
               id: newCompanyId,
-              name: companyData?.name || user?.fullName || user?.name || "Transport Operator",
+              name: companyData?.name || user?.fullName || "Transport Operator",
               slug: `draft-${newCompanyId}`,
               email: companyData?.email || user?.email || "",
               phone: companyData?.phone || user?.phoneNumber || "",
