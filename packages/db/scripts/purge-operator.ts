@@ -65,58 +65,148 @@ async function purgeOperator() {
           "🗑️  Step 1/3 — Purging company commercial & booking data..."
         );
 
-        // Booking children (WalletReservation, DiscountRedemption, Refund cascade from Booking)
+        // Find all hold groups and bookings tied to these companies (and the user)
+        const holdGroups = await tx.holdGroup.findMany({
+          where: {
+            OR: [
+              { companyId: { in: companyIds } },
+              { userId: user.id },
+            ],
+          },
+          select: { id: true },
+        });
+        const holdGroupIds = holdGroups.map((h) => h.id);
+
+        const companyBookings = await tx.booking.findMany({
+          where: {
+            OR: [
+              { companyId: { in: companyIds } },
+              { userId: user.id },
+            ],
+          },
+          select: { id: true },
+        });
+        const bookingIds = companyBookings.map((b) => b.id);
+
+        // 1. Refunds (holdGroup relation has onDelete: Restrict)
+        if (holdGroupIds.length > 0 || bookingIds.length > 0) {
+          await tx.refund.deleteMany({
+            where: {
+              OR: [
+                ...(holdGroupIds.length > 0 ? [{ holdGroupId: { in: holdGroupIds } }] : []),
+                ...(bookingIds.length > 0 ? [{ bookingId: { in: bookingIds } }] : []),
+              ],
+            },
+          });
+          console.log("   ✓ refunds");
+        }
+
+        // 2. External Payments (holdGroup relation has onDelete: Restrict)
+        if (holdGroupIds.length > 0) {
+          await tx.externalPayment.deleteMany({
+            where: { holdGroupId: { in: holdGroupIds } },
+          });
+          console.log("   ✓ external_payments (+ payment_attempts, payment_events via cascade)");
+        }
+
+        // 3. Bookings
         await tx.booking.deleteMany({ where: { companyId: { in: companyIds } } });
-        console.log("   ✓ bookings (+ wallet_reservations, discount_redemptions, refunds via cascade)");
+        console.log("   ✓ company bookings");
 
-        // HoldGroup (booking cascade already covers hold via cascade on booking)
-        await tx.holdGroup.deleteMany({ where: { userId: user.id } });
-        console.log("   ✓ hold_groups");
+        // 4. HoldGroups (now safe to delete since refunds & payments are removed)
+        if (holdGroupIds.length > 0) {
+          await tx.holdGroup.deleteMany({ where: { id: { in: holdGroupIds } } });
+          console.log("   ✓ hold_groups (+ pricing_snapshots, discount_redemptions via cascade)");
+        }
 
-        // Trip children cascade (TripSeat, TripStop, CampaignTripScope cascade from Trip)
-        // Note: Review.tripId is onDelete: SetNull — reviews are NOT deleted here;
-        //       they are deleted by the Company cascade (line ~173) or by the explicit
-        //       authorId delete in Step 3.
+        // 5. Trips (+ TripSeat, TripStop, CampaignTripScope, TripDriverAssignment via cascade)
         await tx.trip.deleteMany({ where: { companyId: { in: companyIds } } });
-        console.log("   ✓ trips (+ trip_seats, trip_stops, campaign_trip_scopes via cascade)");
+        console.log("   ✓ trips (+ trip_seats, trip_stops, campaign_trip_scopes, driver_assignments via cascade)");
 
-        // Schedule children cascade (ScheduleWaypoint, ServiceCalendar, ServiceException,
-        //   CampaignScheduleScope cascade from Schedule)
+        // 6. Schedules (+ ScheduleWaypoint, ServiceCalendar, ServiceException, CampaignScheduleScope via cascade)
         await tx.schedule.deleteMany({
           where: { companyId: { in: companyIds } },
         });
         console.log("   ✓ schedules (+ schedule_waypoints, service_calendar, service_exception, campaign_schedule_scopes via cascade)");
 
-        // Route children cascade (RouteWaypoint, Fare, PricingSnapshot, CampaignRouteScope
-        //   cascade from Route)
+        // 7. Routes (+ RouteWaypoint, Fare, CampaignRouteScope via cascade)
         await tx.route.deleteMany({ where: { companyId: { in: companyIds } } });
-        console.log("   ✓ routes (+ route_waypoints, fares, pricing_snapshots, campaign_route_scopes via cascade)");
+        console.log("   ✓ routes (+ route_waypoints, fares, campaign_route_scopes via cascade)");
 
-        // Bus children (Seat cascades from Bus)
+        // 8. Buses (+ seats via cascade)
         await tx.bus.deleteMany({ where: { companyId: { in: companyIds } } });
         console.log("   ✓ buses (+ seats via cascade)");
+
+        // 9. Custom SeatLayoutTemplates (+ SeatTemplate via cascade) and BusTypes for company
+        await tx.seatLayoutTemplate.deleteMany({ where: { companyId: { in: companyIds } } }).catch(() => null);
+        await tx.busType.deleteMany({ where: { companyId: { in: companyIds } } }).catch(() => null);
+        console.log("   ✓ custom seat_layout_templates, bus_types");
 
         console.log(
           "\n🗑️  Step 2/3 — Purging company financial & compliance data..."
         );
 
-        // Financial transactions cascade from FinancialAccount (LedgerEntry too)
-        await tx.financialAccount.deleteMany({
-          where: { companyId: { in: companyIds } },
+        // Financial Accounts (FinancialAccount uses polymorphic ownerType + ownerId)
+        const companyAccounts = await tx.financialAccount.findMany({
+          where: {
+            ownerType: "COMPANY",
+            ownerId: { in: companyIds },
+          },
+          select: { id: true },
         });
-        console.log("   ✓ financial_accounts (+ ledger_entries, financial_transactions, snapshots via cascade)");
+        const companyAccountIds = companyAccounts.map((a) => a.id);
 
-        // Discount campaigns (CouponCode, CampaignCompanyOptIn, DiscountRedemption cascade)
+        if (companyAccountIds.length > 0) {
+          const ledgerEntries = await tx.ledgerEntry.findMany({
+            where: { accountId: { in: companyAccountIds } },
+            select: { transactionId: true },
+          });
+          const txIds = [...new Set(ledgerEntries.map((le) => le.transactionId))];
+
+          await tx.walletReservation.deleteMany({
+            where: { accountId: { in: companyAccountIds } },
+          });
+          await tx.financialAccountSnapshot.deleteMany({
+            where: { accountId: { in: companyAccountIds } },
+          });
+          await tx.ledgerEntry.deleteMany({
+            where: { accountId: { in: companyAccountIds } },
+          });
+          if (txIds.length > 0) {
+            await tx.financialTransaction
+              .deleteMany({ where: { id: { in: txIds } } })
+              .catch(() => null);
+          }
+          await tx.financialAccount.deleteMany({
+            where: { id: { in: companyAccountIds } },
+          });
+          console.log("   ✓ financial_accounts (+ ledger_entries, wallet_reservations, snapshots, transactions)");
+        }
+
+        // Discount campaigns
+        const companyCampaigns = await tx.discountCampaign.findMany({
+          where: { companyId: { in: companyIds } },
+          select: { id: true },
+        });
+        const campaignIds = companyCampaigns.map((c) => c.id);
+
+        // PromoAbuseEvents (filter by campaignId or userId)
+        await tx.promoAbuseEvent.deleteMany({
+          where: {
+            OR: [
+              ...(campaignIds.length > 0 ? [{ campaignId: { in: campaignIds } }] : []),
+              { userId: user.id },
+              { assigneeUserId: user.id },
+              { resolvedByUserId: user.id },
+            ],
+          },
+        }).catch(() => null);
+        console.log("   ✓ promo_abuse_events");
+
         await tx.discountCampaign.deleteMany({
           where: { companyId: { in: companyIds } },
         });
-        console.log("   ✓ discount_campaigns (+ coupon_codes, campaign_opt_ins via cascade)");
-
-        // PromoAbuseEvent
-        await tx.promoAbuseEvent.deleteMany({
-          where: { companyId: { in: companyIds } },
-        });
-        console.log("   ✓ promo_abuse_events");
+        console.log("   ✓ discount_campaigns (+ coupon_codes, campaign_opt_ins, campaign_scopes via cascade)");
 
         // Compliance & documents
         await tx.companyDocument.deleteMany({
@@ -138,9 +228,22 @@ async function purgeOperator() {
 
         // Staff invitations & activity logs
         await tx.staffInvitation.deleteMany({
-          where: { companyId: { in: companyIds } },
+          where: {
+            OR: [
+              { companyId: { in: companyIds } },
+              { invitedById: user.id },
+              { acceptedById: user.id },
+            ],
+          },
+        }).catch(() => null);
+        await tx.activityLog.deleteMany({
+          where: {
+            OR: [
+              { companyId: { in: companyIds } },
+              { userId: user.id },
+            ],
+          },
         });
-        await tx.activityLog.deleteMany({ where: { userId: user.id } });
         console.log("   ✓ staff_invitations, activity_logs");
 
         // Company locations (LocationCapture cascades from CompanyLocation)
@@ -149,17 +252,26 @@ async function purgeOperator() {
         });
         console.log("   ✓ company_locations (+ location_captures via cascade)");
 
-        // SettlementPolicy
-        await tx.settlementPolicy.deleteMany({
-          where: { companyId: { in: companyIds } },
-        });
-        console.log("   ✓ settlement_policies");
-
         // WithdrawalTwoFactorChallenge
         await tx.withdrawalTwoFactorChallenge.deleteMany({
           where: { companyId: { in: companyIds } },
         });
         console.log("   ✓ withdrawal_2fa_challenges");
+
+        // Driver affiliations & shifts for this company
+        await tx.driverCompanyAffiliation.deleteMany({
+          where: { companyId: { in: companyIds } },
+        }).catch(() => null);
+        await tx.driverShift.deleteMany({
+          where: { companyId: { in: companyIds } },
+        }).catch(() => null);
+        console.log("   ✓ driver_company_affiliations, driver_shifts");
+
+        // Reviews for this company
+        await tx.review.deleteMany({
+          where: { companyId: { in: companyIds } },
+        }).catch(() => null);
+        console.log("   ✓ company reviews");
 
         // OutboxMessages tied to company (iterate all — JSON path filter doesn't support `in`)
         for (const cid of companyIds) {
@@ -196,7 +308,42 @@ async function purgeOperator() {
         })
         .catch(() => null);
       await tx.adminStaff.deleteMany({ where: { userId: user.id } });
-      console.log("   ✓ admin_staff (+ admin_staff_activity_logs via cascade)");
+      await tx.platformSettingsAudit.deleteMany({ where: { changedById: user.id } }).catch(() => null);
+      console.log("   ✓ admin_staff (+ admin_staff_activity_logs, platform_settings_audits)");
+
+      // Blog posts authored by user
+      await tx.blogRevision.deleteMany({ where: { changedById: user.id } }).catch(() => null);
+      await tx.blogEvent.deleteMany({ where: { userId: user.id } }).catch(() => null);
+      await tx.blogPost.deleteMany({ where: { authorId: user.id } }).catch(() => null);
+      await tx.blogPost.updateMany({
+        where: { lastReviewedById: user.id },
+        data: { lastReviewedById: null },
+      }).catch(() => null);
+
+      // User financial accounts (passenger wallet, etc.)
+      const userAccounts = await tx.financialAccount.findMany({
+        where: {
+          ownerType: "USER",
+          ownerId: user.id,
+        },
+        select: { id: true },
+      });
+      const userAccountIds = userAccounts.map((a) => a.id);
+      if (userAccountIds.length > 0) {
+        await tx.walletReservation.deleteMany({
+          where: { accountId: { in: userAccountIds } },
+        });
+        await tx.financialAccountSnapshot.deleteMany({
+          where: { accountId: { in: userAccountIds } },
+        });
+        await tx.ledgerEntry.deleteMany({
+          where: { accountId: { in: userAccountIds } },
+        });
+        await tx.financialAccount.deleteMany({
+          where: { id: { in: userAccountIds } },
+        });
+        console.log("   ✓ user financial_accounts");
+      }
 
       // User bookings (as traveler)
       await tx.booking.deleteMany({ where: { userId: user.id } });
@@ -231,10 +378,10 @@ async function purgeOperator() {
       console.log("   ✓ contact_inquiries");
 
       // Finally delete the user — cascades: Session, Account, RefreshToken,
-      // PassengerProfile (+ SavedPassenger), DiscountRedemption, HoldGroup
+      // PassengerProfile (+ SavedPassenger), DiscountRedemption, DriverProfile
       await tx.user.delete({ where: { id: user.id } });
       console.log(
-        "   ✓ user (+ sessions, accounts, refreshTokens, passengerProfile, savedPassengers via cascade)"
+        "   ✓ user (+ sessions, accounts, refreshTokens, passengerProfile, savedPassengers, driverProfile via cascade)"
       );
     },
     { timeout: 60_000 }
