@@ -73,9 +73,12 @@ async function purgeOperator() {
         await tx.holdGroup.deleteMany({ where: { userId: user.id } });
         console.log("   ✓ hold_groups");
 
-        // Trip children cascade (TripSeat, TripStop, Review, CampaignTripScope cascade from Trip)
+        // Trip children cascade (TripSeat, TripStop, CampaignTripScope cascade from Trip)
+        // Note: Review.tripId is onDelete: SetNull — reviews are NOT deleted here;
+        //       they are deleted by the Company cascade (line ~173) or by the explicit
+        //       authorId delete in Step 3.
         await tx.trip.deleteMany({ where: { companyId: { in: companyIds } } });
-        console.log("   ✓ trips (+ trip_seats, trip_stops, reviews, campaign_trip_scopes via cascade)");
+        console.log("   ✓ trips (+ trip_seats, trip_stops, campaign_trip_scopes via cascade)");
 
         // Schedule children cascade (ScheduleWaypoint, ServiceCalendar, ServiceException,
         //   CampaignScheduleScope cascade from Schedule)
@@ -158,10 +161,12 @@ async function purgeOperator() {
         });
         console.log("   ✓ withdrawal_2fa_challenges");
 
-        // OutboxMessages tied to company
-        await tx.outboxMessage.deleteMany({
-          where: { payload: { path: ["companyId"], equals: companyIds[0] } },
-        });
+        // OutboxMessages tied to company (iterate all — JSON path filter doesn't support `in`)
+        for (const cid of companyIds) {
+          await tx.outboxMessage
+            .deleteMany({ where: { payload: { path: ["companyId"], equals: cid } } })
+            .catch(() => null);
+        }
 
         // Operator rows (OperatorOnboarding + OperatorOnboardingEvent cascade from Operator)
         await tx.operator.deleteMany({
@@ -184,7 +189,11 @@ async function purgeOperator() {
 
       // AdminStaff & its invitations/activity logs
       await tx.adminStaffInvitation
-        .deleteMany({ where: { invitedByUserId: user.id } })
+        .deleteMany({
+          where: {
+            OR: [{ invitedById: user.id }, { acceptedById: user.id }],
+          },
+        })
         .catch(() => null);
       await tx.adminStaff.deleteMany({ where: { userId: user.id } });
       console.log("   ✓ admin_staff (+ admin_staff_activity_logs via cascade)");
@@ -208,12 +217,16 @@ async function purgeOperator() {
       console.log("   ✓ credit_lots, referral_code, referral_edges");
 
       // User reviews (as traveler)
-      await tx.review.deleteMany({ where: { userId: user.id } });
+      await tx.review.deleteMany({ where: { authorId: user.id } });
       console.log("   ✓ traveler reviews");
 
-      // ContactInquiries
+      // ContactInquiries (as author or resolver)
       await tx.contactInquiry
-        .deleteMany({ where: { authorId: user.id } })
+        .deleteMany({
+          where: {
+            OR: [{ userId: user.id }, { resolvedById: user.id }],
+          },
+        })
         .catch(() => null);
       console.log("   ✓ contact_inquiries");
 
