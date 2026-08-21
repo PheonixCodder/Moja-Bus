@@ -36,6 +36,9 @@ type PassengerRouter = {
 			companyId: string;
 			bookingId: string;
 			rating: number;
+			driverRating?: number | null;
+			busRating?: number | null;
+			punctualityRating?: number | null;
 			content?: string | null;
 		},
 		unknown

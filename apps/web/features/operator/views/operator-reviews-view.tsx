@@ -189,6 +189,25 @@ export function OperatorReviewsView() {
                   </p>
                 )}
 
+                {/* 3-Way Review Breakdown */}
+                <div className="flex flex-wrap gap-2 pt-1 text-xs">
+                  {review.driver && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 font-medium">
+                      Driver: {review.driver.user.fullName} {review.driverRating ? `(${review.driverRating}★)` : ""}
+                    </span>
+                  )}
+                  {review.bus && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 font-medium">
+                      Bus: {review.bus.registrationPlate} {review.busRating ? `(${review.busRating}★)` : ""}
+                    </span>
+                  )}
+                  {review.punctualityRating && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium">
+                      Punctuality: {review.punctualityRating}★
+                    </span>
+                  )}
+                </div>
+
                 {/* Existing operator response */}
                 {review.response && !isEditing ? (
                   <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-1">

@@ -8,6 +8,7 @@ import { contactRouter } from "./contact";
 import { discountsRouter } from "./discounts";
 import { discountsAdminRouter } from "./discounts-admin";
 import { discountsOperatorRouter } from "./discounts-operator";
+import { driversRouter } from "./drivers";
 import { fleetRouter } from "./fleet";
 import { invitationRouter } from "./invitation";
 import { locationsRouter } from "./locations";
@@ -29,6 +30,7 @@ export const appRouter = createTRPCRouter({
   terminals: terminalsRouter,
   staff: staffRouter,
   fleet: fleetRouter,
+  drivers: driversRouter,
   routes: routesRouter,
   schedules: schedulesRouter,
   trips: tripsRouter,

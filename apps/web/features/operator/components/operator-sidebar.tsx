@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   Shield,
   Tag,
+  UserCheck,
 } from "lucide-react";
 
 import { useTranslations } from "next-intl";
@@ -192,6 +193,13 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
       path: "/dashboard/operator/fleet",
       icon: BusFront,
       permissions: ["fleet:read"],
+    },
+    {
+      id: "drivers",
+      label: t("drivers"),
+      path: "/dashboard/operator/drivers",
+      icon: UserCheck,
+      permissions: ["drivers:read"],
     },
   ];
 

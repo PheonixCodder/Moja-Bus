@@ -411,22 +411,32 @@ export function BookingDetailView({
 					) : null}
 
 					{isConfirmed ? (
-						<View className="flex-row gap-3">
+						<View className="space-y-2.5">
 							<Pressable
-								onPress={() => router.push("/(tabs)/tickets" as any)}
-								className="flex-1 bg-primary py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs"
+								onPress={() => router.push(`/tracking/${booking.seats?.[0]?.bookingId || bookingReference}` as any)}
+								className="bg-emerald-600 py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs active:bg-emerald-700"
 							>
-								<HugeiconsIcon icon={Ticket01Icon} size={16} color="#ffffff" />
-								<Text className="text-white font-bold text-xs">{t("viewTicket")}</Text>
+								<View className="size-2 rounded-full bg-white animate-ping" />
+								<Text className="text-white font-bold text-xs">Track Live Bus in Realtime</Text>
 							</Pressable>
 
-							<Pressable
-								onPress={() => setCancelDialogOpen(true)}
-								className="bg-destructive/10 border border-destructive/20 px-4 py-3.5 rounded-xl items-center justify-center flex-row gap-1.5"
-							>
-								<HugeiconsIcon icon={Cancel01Icon} size={16} color="#ef4444" />
-								<Text className="text-destructive font-bold text-xs">{t("cancel")}</Text>
-							</Pressable>
+							<View className="flex-row gap-3">
+								<Pressable
+									onPress={() => router.push("/(tabs)/tickets" as any)}
+									className="flex-1 bg-primary py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs"
+								>
+									<HugeiconsIcon icon={Ticket01Icon} size={16} color="#ffffff" />
+									<Text className="text-white font-bold text-xs">{t("viewTicket")}</Text>
+								</Pressable>
+
+								<Pressable
+									onPress={() => setCancelDialogOpen(true)}
+									className="bg-destructive/10 border border-destructive/20 px-4 py-3.5 rounded-xl items-center justify-center flex-row gap-1.5"
+								>
+									<HugeiconsIcon icon={Cancel01Icon} size={16} color="#ef4444" />
+									<Text className="text-destructive font-bold text-xs">{t("cancel")}</Text>
+								</Pressable>
+							</View>
 						</View>
 					) : null}
 

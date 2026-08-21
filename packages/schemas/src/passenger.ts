@@ -55,6 +55,9 @@ export const submitReviewSchema = z.object({
   companyId: z.string().min(1, "Company ID is required"),
   bookingId: z.string().min(1, "Booking ID is required"),
   rating: z.number().int().min(1).max(5, "Rating must be between 1 and 5"),
+  driverRating: z.number().int().min(1).max(5).optional().nullable(),
+  busRating: z.number().int().min(1).max(5).optional().nullable(),
+  punctualityRating: z.number().int().min(1).max(5).optional().nullable(),
   content: z.string().max(1000).optional().nullable(),
 });
 export type SubmitReviewInput = z.infer<typeof submitReviewSchema>;

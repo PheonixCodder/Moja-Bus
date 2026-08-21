@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "Moja Driver",
+    "slug": "driver-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "driver-app",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": ["location", "fetch", "remote-notification"],
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Moja Driver requires background GPS telemetry to stream vehicle position, calculate accurate passenger ETAs, and power fleet dispatch.",
+        "NSLocationWhenInUseUsageDescription": "Moja Driver requires your location to navigate routes and verify terminal check-ins.",
+        "NSCameraUsageDescription": "Moja Driver uses the camera to scan and validate passenger QR ticket barcodes."
+      }
+    },
+    "android": {
+      "package": "com.mojaride.driver",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "CAMERA",
+        "WAKE_LOCK"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-localization",
+      "expo-status-bar",
+      "expo-notifications",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Moja Driver to stream live vehicle telemetry to passengers and dispatchers."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Moja Driver to access camera for scanning passenger boarding tickets."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

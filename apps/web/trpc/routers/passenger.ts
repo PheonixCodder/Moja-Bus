@@ -379,6 +379,15 @@ export const passengerRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const booking = await ctx.prisma.booking.findUnique({
         where: { id: input.bookingId, userId: ctx.user.id },
+        include: {
+          trip: {
+            select: {
+              id: true,
+              driverId: true,
+              busId: true,
+            },
+          },
+        },
       });
 
       if (!booking) {
@@ -404,10 +413,33 @@ export const passengerRouter = createTRPCRouter({
           companyId: booking.companyId,
           bookingId: input.bookingId,
           rating: input.rating,
+          driverRating: input.driverRating ?? null,
+          busRating: input.busRating ?? null,
+          punctualityRating: input.punctualityRating ?? null,
+          driverId: booking.trip?.driverId ?? null,
+          busId: booking.trip?.busId ?? null,
+          tripId: booking.trip?.id ?? null,
           content: input.content || null,
           authorId: ctx.user.id,
         },
       });
+
+      // Update driver aggregate reputation if assigned
+      if (booking.trip?.driverId) {
+        const agg = await ctx.prisma.review.aggregate({
+          where: { driverId: booking.trip.driverId },
+          _avg: { driverRating: true, rating: true },
+          _count: { id: true },
+        });
+
+        await ctx.prisma.driverProfile.update({
+          where: { id: booking.trip.driverId },
+          data: {
+            averageRating: agg._avg.driverRating ?? agg._avg.rating ?? input.rating,
+            totalReviews: agg._count.id,
+          },
+        });
+      }
 
       // Trigger passenger-review-submitted
       const company = await ctx.prisma.company.findUnique({

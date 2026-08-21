@@ -9,6 +9,8 @@ import {
   delayTripSchema,
   cancelTripSchema,
   tripStatusEnum,
+  assignDriverToTripSchema,
+  unassignDriverFromTripSchema,
 } from "@moja/schemas";
 import { cancelTripWithRefunds } from "@/lib/cancel-trip-with-refunds";
 import { assertTripTransition } from "@/lib/trip-status";
@@ -336,6 +338,26 @@ export const tripsRouter = createTRPCRouter({
             bus: {
               include: { busType: true, layoutTemplate: true },
             },
+            driver: {
+              select: {
+                id: true,
+                licenseNumber: true,
+                averageRating: true,
+                status: true,
+                user: {
+                  select: { fullName: true, phoneNumber: true, image: true },
+                },
+              },
+            },
+            reliefDriver: {
+              select: {
+                id: true,
+                licenseNumber: true,
+                user: {
+                  select: { fullName: true, phoneNumber: true, image: true },
+                },
+              },
+            },
             schedule: {
               include: {
                 route: {
@@ -427,6 +449,48 @@ export const tripsRouter = createTRPCRouter({
         include: {
           bus: {
             include: { busType: true },
+          },
+          driver: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                  phoneNumber: true,
+                  image: true,
+                },
+              },
+            },
+          },
+          reliefDriver: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                  phoneNumber: true,
+                  image: true,
+                },
+              },
+            },
+          },
+          driverAssignments: {
+            include: {
+              driverProfile: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      fullName: true,
+                      phoneNumber: true,
+                      image: true,
+                    },
+                  },
+                },
+              },
+            },
           },
           schedule: {
             include: {
@@ -1356,5 +1420,108 @@ export const tripsRouter = createTRPCRouter({
       });
 
       return tripSeat;
+    }),
+
+  assignDriver: operatorCompanyProcedure
+    .input(assignDriverToTripSchema)
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "trips:update");
+      const { tripId, driverProfileId, role, startStopOrder, endStopOrder } = input;
+
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: tripId, companyId: ctx.companyId, archivedAt: null },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      }
+
+      const driver = await ctx.prisma.driverProfile.findFirst({
+        where: {
+          id: driverProfileId,
+          companyAffiliations: { some: { companyId: ctx.companyId, isActive: true } },
+        },
+      });
+      if (!driver) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Driver not affiliated with your company.",
+        });
+      }
+
+      if (driver.verificationStatus !== "VERIFIED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot assign driver: Driving license compliance is not verified.",
+        });
+      }
+
+      await ctx.prisma.$transaction(async (tx) => {
+        if (role === "PRIMARY") {
+          await tx.trip.update({
+            where: { id: tripId },
+            data: { driverId: driverProfileId },
+          });
+        } else if (role === "RELIEF") {
+          await tx.trip.update({
+            where: { id: tripId },
+            data: { reliefDriverId: driverProfileId },
+          });
+        }
+
+        await tx.tripDriverAssignment.upsert({
+          where: {
+            tripId_driverProfileId_role: {
+              tripId,
+              driverProfileId,
+              role,
+            },
+          },
+          create: {
+            tripId,
+            driverProfileId,
+            role,
+            startStopOrder,
+            endStopOrder: endStopOrder ?? null,
+            assignedByStaffId: ctx.user.id,
+          },
+          update: {
+            startStopOrder,
+            ...(endStopOrder !== undefined ? { endStopOrder } : {}),
+          },
+        });
+      });
+
+      return { success: true };
+    }),
+
+  unassignDriver: operatorCompanyProcedure
+    .input(unassignDriverFromTripSchema)
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "trips:update");
+      const { tripId, driverProfileId, role } = input;
+
+      await ctx.prisma.$transaction(async (tx) => {
+        if (role === "PRIMARY") {
+          await tx.trip.update({
+            where: { id: tripId },
+            data: { driverId: null },
+          });
+        } else if (role === "RELIEF") {
+          await tx.trip.update({
+            where: { id: tripId },
+            data: { reliefDriverId: null },
+          });
+        }
+
+        await tx.tripDriverAssignment.deleteMany({
+          where: {
+            tripId,
+            driverProfileId,
+            role,
+          },
+        });
+      });
+
+      return { success: true };
     }),
 });

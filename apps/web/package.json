@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:ws": "tsx server.ts",
     "build": "next build",
     "start": "next start",
+    "start:ws": "tsx server.ts",
     "lint": "biome check app components.json next.config.ts package.json postcss.config.mjs tsconfig.json",
     "typecheck": "tsc --noEmit",
     "i18n:audit": "node scripts/audit-i18n.js",
@@ -49,6 +51,7 @@
     "feed": "^6.0.0",
     "framer-motion": "^12.42.2",
     "html5-qrcode": "^2.3.8",
+    "ioredis": "^6.0.0",
     "leaflet": "^1.9.4",
     "libphonenumber-js": "^1.13.9",
     "lucide-react": "^0.561.0",
@@ -84,6 +87,7 @@
     "shiki": "^4.3.1",
     "sonner": "^2.0.7",
     "superjson": "^2.2.6",
+    "ws": "^8.21.3",
     "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
@@ -91,9 +95,11 @@
     "@moja/typescript": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.20",
+    "@types/ioredis": "^5.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5"
