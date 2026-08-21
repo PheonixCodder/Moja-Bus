@@ -2,12 +2,17 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import crypto from "node:crypto";
 import { getNovuClient } from "@/lib/novu";
+import { createRateLimiter } from "@/lib/rate-limit";
 import {
   ROLE_TEMPLATES,
   type StaffRole,
 } from "@moja/schemas";
 import { createTRPCRouter, publicProcedure } from "../init";
 
+const validateTokenLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: 30,
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared select shape returned to the client
@@ -41,6 +46,19 @@ export const invitationRouter = createTRPCRouter({
   validateToken: publicProcedure
     .input(z.object({ token: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
+      const forwarded = ctx.headers.get("x-forwarded-for");
+      const ip =
+        forwarded?.split(",")[0]?.trim() ||
+        ctx.headers.get("x-real-ip") ||
+        "unknown";
+      const limit = validateTokenLimiter(`invite-val:${ip}`);
+      if (!limit.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many attempts. Please try again shortly.",
+        });
+      }
+
       const hashedToken = crypto.createHash("sha256").update(input.token).digest("hex");
       const invitation = await ctx.prisma.staffInvitation.findUnique({
         where: { token: hashedToken },

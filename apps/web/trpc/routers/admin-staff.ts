@@ -20,6 +20,7 @@ import {
   UpdateAdminStatusSchema,
 } from "@/features/admin/lib/validations/admin-staff";
 import { getNovuClient } from "@/lib/novu";
+import { createRateLimiter } from "@/lib/rate-limit";
 import {
   type AdminPermissionContext,
   adminHasPermission,
@@ -37,6 +38,11 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "../init";
+
+const validateAdminTokenLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: 30,
+});
 
 type Ctx = AdminPermissionContext & {
   prisma: PrismaClient;
@@ -139,6 +145,19 @@ export const adminStaffRouter = createTRPCRouter({
   validateToken: publicProcedure
     .input(z.object({ token: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
+      const forwarded = ctx.headers.get("x-forwarded-for");
+      const ip =
+        forwarded?.split(",")[0]?.trim() ||
+        ctx.headers.get("x-real-ip") ||
+        "unknown";
+      const limit = validateAdminTokenLimiter(`admin-val:${ip}`);
+      if (!limit.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many attempts. Please try again shortly.",
+        });
+      }
+
       const hashedToken = crypto
         .createHash("sha256")
         .update(input.token)

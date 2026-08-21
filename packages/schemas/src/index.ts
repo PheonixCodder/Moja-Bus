@@ -18,3 +18,5 @@ export * from "./wallet";
 export * from "./contact";
 export * from "./admin-permissions";
 export * from "./discounts";
+export * from "./drivers";
+export * from "./iam-core";

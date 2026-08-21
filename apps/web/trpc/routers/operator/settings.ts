@@ -136,10 +136,16 @@ export const operatorSettingsProcedures = {
 
       const { data: profileFields } = parsed;
 
+      if (profileFields.fullName !== undefined) {
+        await ctx.prisma.user.update({
+          where: { id: ctx.user.id },
+          data: { fullName: profileFields.fullName },
+        });
+      }
+
       const updatedOperator = await ctx.prisma.operator.update({
         where: { id: operator.id },
         data: {
-          ...(profileFields.fullName !== undefined && { fullName: profileFields.fullName }),
           ...(profileFields.personalPhone !== undefined && { personalPhone: profileFields.personalPhone }),
           ...(profileFields.jobTitle !== undefined && { jobTitle: profileFields.jobTitle }),
           ...(profileFields.dateOfBirth !== undefined && { dateOfBirth: profileFields.dateOfBirth }),

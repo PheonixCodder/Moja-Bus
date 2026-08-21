@@ -10,7 +10,7 @@ import {
   StorageError,
 } from "@/lib/storage";
 import { getStoragePurpose, type StorageKeyContext, type StoragePurposeId } from "@/lib/storage/purposes";
-import { requirePermission, type PermissionContext } from "@/lib/permissions/authorize";
+import { requirePermission, requireAnyPermission, type PermissionContext } from "@/lib/permissions/authorize";
 
 type OperatorCtx = {
   prisma: { operator: { findFirst: (args: any) => Promise<any> } };
@@ -182,7 +182,7 @@ export const storageRouter = createTRPCRouter({
            throw new TRPCError({ code: "NOT_FOUND", message: "Document not found." });
          }
 
-         requirePermission(
+         requireAnyPermission(
            isAdmin
              ? {
                  user: { id: ctx.user.id, role: ctx.user.role },
@@ -195,7 +195,7 @@ export const storageRouter = createTRPCRouter({
                  companyId: doc.companyId,
                }
              : operatorPermissionContext(ctx, caller!),
-           "financials:view",
+           ["company:compliance:update", "company:view", "financials:view"],
          );
 
          // Defense-in-depth: even if the caller reaches here, the document must

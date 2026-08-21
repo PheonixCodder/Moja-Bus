@@ -84,6 +84,7 @@ export function CompanyStep({
             : generateSlug(company.name || ""),
         );
         setEmail(company.email || "");
+        setPhone(company.phone || "");
         setWebsite(company.website || "");
        setDescription(company.description || "");
        setBusinessType(company.businessType || "");

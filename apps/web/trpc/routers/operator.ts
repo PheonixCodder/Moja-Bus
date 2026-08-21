@@ -191,9 +191,9 @@ export const operatorRouter = createTRPCRouter({
     const nextStep =
       currentIdx < STEP_ORDER.length - 1 ? STEP_ORDER[currentIdx + 1] : null;
 
-    // Business Readiness — computed from live DB counts
+    // Business Readiness — computed from live DB counts once onboarding is complete
     let businessReadiness = null;
-    if (operator.companyId) {
+    if (operator.companyId && operator.onboardingStatus === "COMPLETED") {
       const [terminals, buses, routes, schedules, trips] = await Promise.all([
         ctx.prisma.companyLocation.count({
           where: { companyId: operator.companyId, isTerminal: true },
@@ -501,16 +501,71 @@ export const operatorRouter = createTRPCRouter({
         };
       };
 
-      const existingOperator = await ctx.prisma.operator.findFirst({
+      let existingOperator = await ctx.prisma.operator.findFirst({
         where: { userId: ctx.user.id, deletedAt: null },
         orderBy: { joinedAt: "desc" },
         include: { company: true, onboardingProgress: true },
       });
 
       if (!existingOperator) {
+        // Auto-provision company + operator profile for the user
+        const newCompanyId = crypto.randomUUID();
+        const user = await ctx.prisma.user.findUnique({
+          where: { id: ctx.user.id },
+          select: { email: true, phoneNumber: true, fullName: true, name: true },
+        });
+
+        await ctx.prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: ctx.user.id },
+            data: { role: "OPERATOR" },
+          });
+
+          const company = await tx.company.create({
+            data: {
+              id: newCompanyId,
+              name: companyData?.name || user?.fullName || user?.name || "Transport Operator",
+              slug: `draft-${newCompanyId}`,
+              email: companyData?.email || user?.email || "",
+              phone: companyData?.phone || user?.phoneNumber || "",
+              registrationNumber: `DRAFT-${newCompanyId}`,
+              taxId: `DRAFT-${newCompanyId}`,
+              estimatedStaffSize: 1,
+              status: "DRAFT",
+            },
+          });
+
+          const op = await tx.operator.create({
+            data: {
+              userId: ctx.user.id,
+              companyId: company.id,
+              role: "OWNER",
+              status: "ACTIVE",
+            },
+          });
+
+          await tx.operatorOnboarding.create({
+            data: {
+              operatorId: op.id,
+              currentStep: "COMPANY",
+              completedSteps: [],
+              completedStepCount: 0,
+              totalSteps: TOTAL_STEPS,
+            },
+          });
+        });
+
+        existingOperator = await ctx.prisma.operator.findFirst({
+          where: { userId: ctx.user.id, deletedAt: null },
+          orderBy: { joinedAt: "desc" },
+          include: { company: true, onboardingProgress: true },
+        });
+      }
+
+      if (!existingOperator) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Complete signup first to create an operator profile.",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to initialize operator profile.",
         });
       }
 
@@ -519,7 +574,7 @@ export const operatorRouter = createTRPCRouter({
       const operatorId = existingOperator.id;
 
       const getCompleted = () =>
-        (existingOperator.onboardingProgress
+        (existingOperator?.onboardingProgress
           ?.completedSteps as string[] | null) ?? [];
 
       if (step === "COMPANY") {
@@ -838,7 +893,7 @@ export const operatorRouter = createTRPCRouter({
             where: { id: operatorId },
             data: {
               personalPhone: profileData.personalPhone ?? null,
-              role: profileData.role,
+              role: "OWNER",
               dateOfBirth: profileData.dateOfBirth
                 ? new Date(profileData.dateOfBirth)
                 : null,
@@ -1347,6 +1402,20 @@ export const operatorRouter = createTRPCRouter({
       where: { companyId },
       include: {
         author: { select: { fullName: true, email: true } },
+        driver: {
+          include: {
+            user: {
+              select: { fullName: true, phoneNumber: true },
+            },
+          },
+        },
+        bus: {
+          select: {
+            id: true,
+            registrationPlate: true,
+            internalName: true,
+          },
+        },
         booking: {
           select: {
             bookingReference: true,

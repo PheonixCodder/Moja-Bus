@@ -16,6 +16,7 @@ export const STAFF_ROLES = [
   "TREASURY",
   "DISPATCHER",
   "CONDUCTOR",
+  "DRIVER",
 ] as const;
 
 export type StaffRole = (typeof STAFF_ROLES)[number];
@@ -41,6 +42,17 @@ export const PERMISSION_META = {
   "fleet:create": { group: "Fleet", label: "Add buses & layouts" },
   "fleet:update": { group: "Fleet", label: "Edit buses & layouts" },
   "fleet:delete": { group: "Fleet", label: "Delete buses & layouts" },
+
+  // Drivers
+  "drivers:read": { group: "Drivers", label: "View drivers & live status" },
+  "drivers:create": { group: "Drivers", label: "Add & onboard drivers" },
+  "drivers:update": { group: "Drivers", label: "Edit driver profiles & licenses" },
+  "drivers:delete": { group: "Drivers", label: "Remove driver affiliations" },
+  "drivers:verify": { group: "Drivers", label: "Verify driver licenses & compliance" },
+  "drivers:assign": { group: "Drivers", label: "Assign drivers to trips" },
+
+  // Telemetry & GPS
+  "telemetry:stream": { group: "Telemetry", label: "Broadcast live GPS telemetry" },
 
   // Schedules
   "schedules:read": { group: "Schedules", label: "View schedules" },
@@ -169,6 +181,12 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "promotions:create",
     "promotions:update",
     "promotions:pause",
+    "drivers:read",
+    "drivers:create",
+    "drivers:update",
+    "drivers:delete",
+    "drivers:verify",
+    "drivers:assign",
   ],
 
   MANAGER: [
@@ -197,6 +215,10 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "promotions:create",
     "promotions:update",
     "promotions:pause",
+    "drivers:read",
+    "drivers:create",
+    "drivers:update",
+    "drivers:assign",
   ],
 
   OPERATIONS: [
@@ -213,6 +235,8 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "bookings:cancel",
     "reviews:read",
     "reviews:respond",
+    "drivers:read",
+    "drivers:assign",
   ],
 
   FINANCE: [
@@ -232,6 +256,7 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "trips:read",
     "bookings:read",
     "reviews:read",
+    "drivers:read",
   ],
 
   TREASURY: [
@@ -256,6 +281,8 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "trips:cancel",
     "trips:dispatch",
     "bookings:read",
+    "drivers:read",
+    "drivers:assign",
   ],
 
   CONDUCTOR: [
@@ -266,23 +293,28 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "bookings:checkin",
     "reviews:read",
   ],
+
+  DRIVER: [
+    "trips:read",
+    "bookings:read",
+    "bookings:checkin",
+    "telemetry:stream",
+    "reviews:read",
+  ],
 };
 
 /** Who may assign which role labels (OWNER never via invite). */
 export const ASSIGNABLE_ROLES: Record<StaffRole, StaffRole[]> = {
-  OWNER: ["ADMIN", "MANAGER", "OPERATIONS", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
-  // D3: ADMIN/MANAGER cannot assign OPERATIONS — the OPERATIONS template
-  // includes `trips:create` which neither holds, so `requireCanGrant`
-  // (server-side) rejects it. Drop it here so the roster doesn't offer a role
-  // the server refuses.
-  ADMIN: ["MANAGER", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
-  MANAGER: ["SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR"],
-  OPERATIONS: [],
+  OWNER: ["ADMIN", "MANAGER", "OPERATIONS", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR", "DRIVER"],
+  ADMIN: ["MANAGER", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR", "DRIVER"],
+  MANAGER: ["SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR", "DRIVER"],
+  OPERATIONS: ["DRIVER"],
   FINANCE: [],
   SUPPORT: [],
   TREASURY: [],
   DISPATCHER: [],
   CONDUCTOR: [],
+  DRIVER: [],
 };
 
 export const ROLE_LEVELS: Record<StaffRole, number> = {
@@ -295,7 +327,16 @@ export const ROLE_LEVELS: Record<StaffRole, number> = {
   CONDUCTOR: 275,
   FINANCE: 250,
   SUPPORT: 200,
+  DRIVER: 150,
 };
+
+import {
+  checkCanAssignRole,
+  checkCanModifyMember,
+  checkHasPermission,
+  evaluateAssertCanGrant,
+  evaluateEffectivePermissions,
+} from "./iam-core";
 
 export function getRoleLevel(role: string): number {
   return ROLE_LEVELS[role as StaffRole] ?? 0;
@@ -305,16 +346,14 @@ export function canAssignRole(
   assignerRole: string,
   targetRole: string,
 ): boolean {
-  return (ASSIGNABLE_ROLES[assignerRole as StaffRole] ?? []).includes(
-    targetRole as StaffRole,
-  );
+  return checkCanAssignRole(ASSIGNABLE_ROLES, assignerRole, targetRole);
 }
 
 export function canModifyMember(
   modifierRole: string,
   targetRole: string,
 ): boolean {
-  return getRoleLevel(modifierRole) > getRoleLevel(targetRole);
+  return checkCanModifyMember(ROLE_LEVELS, modifierRole, targetRole);
 }
 
 export function getTemplatePermissions(role: StaffRole): PermissionKey[] {
@@ -326,9 +365,7 @@ export function getEffectivePermissions(
   role: string,
   stored: string[],
 ): PermissionKey[] {
-  if (role === "OWNER") return [...PERMISSION_KEYS];
-  const valid = new Set(PERMISSION_KEYS);
-  return stored.filter((p): p is PermissionKey => valid.has(p as PermissionKey));
+  return evaluateEffectivePermissions("OWNER", PERMISSION_KEYS, role, stored, ROLE_TEMPLATES);
 }
 
 export function hasPermission(
@@ -336,8 +373,7 @@ export function hasPermission(
   stored: string[],
   key: PermissionKey,
 ): boolean {
-  if (role === "OWNER") return true;
-  return stored.includes(key);
+  return checkHasPermission("OWNER", role, stored, key, ROLE_TEMPLATES);
 }
 
 /**
@@ -349,11 +385,7 @@ export function assertCanGrant(
   actorStored: string[],
   proposed: string[],
 ): { ok: true } | { ok: false; missing: string[] } {
-  if (actorRole === "OWNER") return { ok: true };
-  const effective = new Set(getEffectivePermissions(actorRole, actorStored));
-  const missing = proposed.filter((p) => !effective.has(p as PermissionKey));
-  if (missing.length > 0) return { ok: false, missing };
-  return { ok: true };
+  return evaluateAssertCanGrant("OWNER", getEffectivePermissions, actorRole, actorStored, proposed);
 }
 
 export function isPermissionKey(value: string): value is PermissionKey {

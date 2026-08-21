@@ -20,6 +20,13 @@ const ROUTE_PERMISSIONS: Record<string, PermissionKey[]> = {
   "/dashboard/operator/settings": ["company:view"],
 };
 
+function normalizePathname(pathname: string): string {
+  const stripped = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(\/|$)/, "/");
+  return stripped.length > 1 && stripped.endsWith("/")
+    ? stripped.slice(0, -1)
+    : stripped;
+}
+
 function resolvePermissions(pathname: string): PermissionKey[] | undefined {
   const exact = ROUTE_PERMISSIONS[pathname];
   if (exact) return exact;
@@ -31,9 +38,14 @@ function resolvePermissions(pathname: string): PermissionKey[] | undefined {
 
 export function OperatorRouteGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { can } = useStaffPermissions();
+  const { can, role } = useStaffPermissions();
 
-  const required = resolvePermissions(pathname);
+  if (role === "OWNER") {
+    return <>{children}</>;
+  }
+
+  const normalized = normalizePathname(pathname);
+  const required = resolvePermissions(normalized);
   if (required && !required.some((key) => can(key))) {
     return <AccessDeniedCard />;
   }

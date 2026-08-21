@@ -42,7 +42,7 @@ export function ProfileStep({
   const tRoot = useTranslations("onboarding");
   const [fullName, setFullName] = useState("");
   const [personalPhone, setPersonalPhone] = useState("");
-  const [role, setRole] = useState<StaffRole>("OWNER");
+  const role: StaffRole = "OWNER";
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [dobInput, setDobInput] = useState("");
   const [dobError, setDobError] = useState("");
@@ -50,15 +50,6 @@ export function ProfileStep({
   const [nationalIdType, setNationalIdType] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
-
-  const staffRoles: { value: StaffRole; label: string }[] = [
-    { value: "OWNER", label: t("owner") },
-    { value: "ADMIN", label: t("administrator") },
-    { value: "MANAGER", label: t("manager") },
-    { value: "OPERATIONS", label: t("operations") },
-    { value: "FINANCE", label: t("finance") },
-    { value: "SUPPORT", label: t("customerSupport") },
-  ];
 
   const idTypes = [
     { value: "passport", label: t("passport") },
@@ -72,7 +63,6 @@ export function ProfileStep({
       const op = initialData.operator;
       setFullName(initialData.user?.fullName || op.user?.fullName || "");
       setPersonalPhone(op.personalPhone || "");
-      setRole(op.role || "OWNER");
       const dobIso = op.dateOfBirth ? op.dateOfBirth.split("T")[0] : "";
       setDateOfBirth(dobIso);
       setDobInput(dobIso ? formatDisplayDob(dobIso) : "");
@@ -207,42 +197,7 @@ export function ProfileStep({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label
-                htmlFor="staff-role"
-                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                {t("role")}
-              </Label>
-              <Combobox
-                items={staffRoles}
-                value={role}
-                onValueChange={(val) => setRole((val as StaffRole) || "OWNER")}
-              >
-                <ComboboxInput
-                  id="staff-role"
-                  placeholder={t("rolePlaceholder")}
-                  className="w-full text-sm"
-                  value={
-                    role
-                      ? staffRoles.find((r) => r.value === role)?.label || ""
-                      : ""
-                  }
-                />
-                <ComboboxContent>
-                  <ComboboxEmpty>{t("noRoleFound")}</ComboboxEmpty>
-                  <ComboboxList>
-                    {staffRoles.map((r) => (
-                      <ComboboxItem key={r.value} value={r.value}>
-                        {r.label}
-                      </ComboboxItem>
-                    ))}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label
                 htmlFor="job-title"

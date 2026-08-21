@@ -236,6 +236,14 @@ export const ADMIN_ROLE_LEVELS: Record<AdminStaffRole, number> = {
   SUPPORT: 200,
 };
 
+import {
+  checkCanAssignRole,
+  checkCanModifyMember,
+  checkHasPermission,
+  evaluateAssertCanGrant,
+  evaluateEffectivePermissions,
+} from "./iam-core";
+
 export function getAdminRoleLevel(role: string): number {
   return ADMIN_ROLE_LEVELS[role as AdminStaffRole] ?? 0;
 }
@@ -244,16 +252,14 @@ export function canAssignAdminRole(
   assignerRole: string,
   targetRole: string,
 ): boolean {
-  return (ADMIN_ASSIGNABLE_ROLES[assignerRole as AdminStaffRole] ?? []).includes(
-    targetRole as AdminStaffRole,
-  );
+  return checkCanAssignRole(ADMIN_ASSIGNABLE_ROLES, assignerRole, targetRole);
 }
 
 export function canModifyAdminMember(
   modifierRole: string,
   targetRole: string,
 ): boolean {
-  return getAdminRoleLevel(modifierRole) > getAdminRoleLevel(targetRole);
+  return checkCanModifyMember(ADMIN_ROLE_LEVELS, modifierRole, targetRole);
 }
 
 export function getAdminTemplatePermissions(role: AdminStaffRole): AdminPermissionKey[] {
@@ -265,9 +271,7 @@ export function getAdminEffectivePermissions(
   role: string,
   stored: string[],
 ): AdminPermissionKey[] {
-  if (role === "SUPER_ADMIN") return [...ADMIN_PERMISSION_KEYS];
-  const valid = new Set(ADMIN_PERMISSION_KEYS);
-  return stored.filter((p): p is AdminPermissionKey => valid.has(p as AdminPermissionKey));
+  return evaluateEffectivePermissions("SUPER_ADMIN", ADMIN_PERMISSION_KEYS, role, stored, ADMIN_ROLE_TEMPLATES);
 }
 
 export function hasAdminPermission(
@@ -275,8 +279,7 @@ export function hasAdminPermission(
   stored: string[],
   key: AdminPermissionKey,
 ): boolean {
-  if (role === "SUPER_ADMIN") return true;
-  return stored.includes(key);
+  return checkHasPermission("SUPER_ADMIN", role, stored, key, ADMIN_ROLE_TEMPLATES);
 }
 
 /**
@@ -288,11 +291,7 @@ export function assertAdminCanGrant(
   actorStored: string[],
   proposed: string[],
 ): { ok: true } | { ok: false; missing: string[] } {
-  if (actorRole === "SUPER_ADMIN") return { ok: true };
-  const effective = new Set(getAdminEffectivePermissions(actorRole, actorStored));
-  const missing = proposed.filter((p) => !effective.has(p as AdminPermissionKey));
-  if (missing.length > 0) return { ok: false, missing };
-  return { ok: true };
+  return evaluateAssertCanGrant("SUPER_ADMIN", getAdminEffectivePermissions, actorRole, actorStored, proposed);
 }
 
 export function isAdminPermissionKey(value: string): value is AdminPermissionKey {

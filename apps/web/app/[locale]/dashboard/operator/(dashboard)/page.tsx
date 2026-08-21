@@ -29,12 +29,13 @@ export default async function OperatorDashboardPage({ params }: Props) {
   }
 
   const canViewDashboard =
-    permsData?.permissions.some(
+    permsData?.role === "OWNER" ||
+    (permsData?.permissions.some(
       (key) =>
         key === "trips:read" ||
         key === "bookings:read" ||
         key === "company:view",
-    ) ?? false;
+    ) ?? false);
 
   if (!canViewDashboard) {
     return (
