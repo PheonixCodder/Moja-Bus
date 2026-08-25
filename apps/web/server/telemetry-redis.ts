@@ -1,75 +1,139 @@
 import Redis from "ioredis";
 
+/**
+ * Phase 28 (F-TM-08/F-TM-09) — deployment posture, made HONEST:
+ *
+ * 1. The write-only `driver:{id}:live` hash and the never-called GEOADD
+ *    index are DELETED (delete-arm of F-TM-08). The jump gate reads the
+ *    DriverProfile.last* columns instead (see telemetry-prev-point.ts), and
+ *    proximity search stays roadmap — it should build its own geo index when
+ *    a consumer exists.
+ * 2. What remains is pub/sub ONLY, feeding the dormant WS gateway channels
+ *    (`trip:*:telemetry`, `operator:*:fleet`). No process subscribes yet;
+ *    the subscriber relay belongs to the "WS hosting scale-out" roadmap item.
+ * 3. Backend selection is LOUD: in-memory IS the official v1 posture for the
+ *    single-instance deployment (Phase 09 Option B / F-IN-15). Setting
+ *    REDIS_URL/KV_URL switches to real Redis; a failed connect retries with
+ *    backoff at boot and then downgrades PERMANENTLY FOR THE PROCESS with an
+ *    explicit log — never a silent warn, never a crash loop. The active
+ *    backend surfaces in /api/health?full=1 via getTelemetryBackend().
+ */
+
 const REDIS_URL = process.env["REDIS_URL"] || process.env["KV_URL"];
 
-class MockRedisStore {
-  private geoData: Map<string, Map<string, { lat: number; lng: number }>> = new Map();
-  private hashes: Map<string, Map<string, string>> = new Map();
+class MockPubSubStore {
   private subscribers: Map<string, Set<(message: string) => void>> = new Map();
-
-  async geoadd(key: string, lng: number, lat: number, member: string) {
-    if (!this.geoData.has(key)) this.geoData.set(key, new Map());
-    this.geoData.get(key)!.set(member, { lat, lng });
-    return 1;
-  }
-
-  async hset(key: string, data: Record<string, any>) {
-    if (!this.hashes.has(key)) this.hashes.set(key, new Map());
-    const hash = this.hashes.get(key)!;
-    for (const [k, v] of Object.entries(data)) {
-      hash.set(k, typeof v === "object" ? JSON.stringify(v) : String(v));
-    }
-    return Object.keys(data).length;
-  }
-
-  async hgetall(key: string): Promise<Record<string, string>> {
-    const hash = this.hashes.get(key);
-    if (!hash) return {};
-    const obj: Record<string, string> = {};
-    for (const [k, v] of hash.entries()) {
-      obj[k] = v;
-    }
-    return obj;
-  }
 
   async publish(channel: string, message: string): Promise<number> {
     const listeners = this.subscribers.get(channel);
     if (listeners) {
-      listeners.forEach((cb) => cb(message));
+      listeners.forEach((cb) => {
+        cb(message);
+      });
       return listeners.size;
     }
     return 0;
   }
 
   subscribe(channel: string, cb: (message: string) => void) {
-    if (!this.subscribers.has(channel)) {
-      this.subscribers.set(channel, new Set());
+    let set = this.subscribers.get(channel);
+    if (!set) {
+      set = new Set();
+      this.subscribers.set(channel, set);
     }
-    this.subscribers.get(channel)!.add(cb);
+    set.add(cb);
   }
 
   unsubscribe(channel: string, cb: (message: string) => void) {
-    const listeners = this.subscribers.get(channel);
-    if (listeners) {
-      listeners.delete(cb);
-    }
+    this.subscribers.get(channel)?.delete(cb);
   }
 }
 
-let redisPub: Redis | MockRedisStore;
-let redisSub: Redis | MockRedisStore;
+export type TelemetryBackend = "redis" | "memory";
+
+let redisPub: Redis | MockPubSubStore;
+let redisSub: Redis | MockPubSubStore;
+let activeBackend: TelemetryBackend = "memory";
+
+function logBackend(level: "info" | "warn" | "error", msg: string) {
+  const line = `[Telemetry] ${msg}`;
+  if (level === "error") console.error(line);
+  else if (level === "warn") console.warn(line);
+  else console.log(line);
+}
+
+function downgradeToMemoryPermanently(reason: string) {
+  // Phase 28 (F-TM-09) — the downgrade is a logged DECISION, not a silent
+  // swap. Pub/sub has zero consumers today, so ingest continues unaffected.
+  redisPub = new MockPubSubStore() as unknown as Redis;
+  redisSub = new MockPubSubStore() as unknown as Redis;
+  activeBackend = "memory";
+  logBackend(
+    "error",
+    `backend=memory (DOWNGRADED from redis: ${reason}) — pub/sub unavailable until process restart. Ingest unaffected.`,
+  );
+}
 
 if (REDIS_URL) {
-  redisPub = new Redis(REDIS_URL, { maxRetriesPerRequest: 3, lazyConnect: true });
-  redisSub = new Redis(REDIS_URL, { maxRetriesPerRequest: 3, lazyConnect: true });
-  redisPub.connect().catch((err) => {
-    console.warn("[Telemetry] Redis connection fallback to in-memory store:", err.message);
-    redisPub = new MockRedisStore() as any;
-    redisSub = new MockRedisStore() as any;
+  const pub = new Redis(REDIS_URL, {
+    maxRetriesPerRequest: 3,
+    lazyConnect: true,
   });
+  const sub = new Redis(REDIS_URL, {
+    maxRetriesPerRequest: 3,
+    lazyConnect: true,
+  });
+  let degraded = false;
+  pub.on("error", (err) => {
+    if (!degraded)
+      logBackend(
+        "warn",
+        `redis runtime error (continuing on redis): ${err.message}`,
+      );
+  });
+
+  (async () => {
+    // Boot-only bounded retries: 250ms → 500ms → 1s. Recovery after a
+    // permanent downgrade = container restart (deliberate; no re-probe
+    // machinery for channels nobody subscribes to yet).
+    const delaysMs = [250, 500, 1000];
+    for (let attempt = 1; attempt <= delaysMs.length; attempt++) {
+      try {
+        await pub.connect();
+        await sub.connect();
+        redisPub = pub;
+        redisSub = sub;
+        activeBackend = "redis";
+        logBackend("info", "backend=redis (pub/sub ready)");
+        return;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logBackend(
+          "warn",
+          `redis connect attempt ${attempt}/${delaysMs.length} failed: ${message}`,
+        );
+        if (attempt < delaysMs.length) {
+          await new Promise((r) => setTimeout(r, delaysMs[attempt - 1]));
+        }
+      }
+    }
+    degraded = true;
+    downgradeToMemoryPermanently(
+      `connect failed after ${delaysMs.length} attempts`,
+    );
+  })();
 } else {
-  redisPub = new MockRedisStore() as any;
-  redisSub = new MockRedisStore() as any;
+  redisPub = new MockPubSubStore() as unknown as Redis;
+  redisSub = new MockPubSubStore() as unknown as Redis;
+  activeBackend = "memory";
+  logBackend(
+    "info",
+    "backend=memory (REDIS_URL not set — official single-instance v1 posture, see server/telemetry-redis.ts)",
+  );
+}
+
+export function getTelemetryBackend(): TelemetryBackend {
+  return activeBackend;
 }
 
 export { redisPub, redisSub };

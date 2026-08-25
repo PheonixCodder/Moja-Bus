@@ -21,6 +21,10 @@ export interface StorageKeyContext {
 
 export type StoragePurposeId =
   | "operator-document"
+  | "driver-license-front"
+  | "driver-license-back"
+  | "driver-selfie"
+  | "driver-medical-doc"
   | "operator-logo"
   | "operator-profile-photo"
   | "passenger-avatar"
@@ -50,70 +54,132 @@ function safeName(name: string): string {
 
 const MB = 1024 * 1024;
 
-export const STORAGE_PURPOSES: Record<StoragePurposeId, StoragePurposeConfig> = {
-  "operator-document": {
-    id: "operator-document",
-    visibility: "private",
-    iam: "operator",
-    limits: { maxBytes: 10 * MB, allowedMime: [/^application\/pdf$/, /^image\//] },
-    cacheControl: "",
-    keepVersions: true,
-    key: (ctx) =>
-      `documents/${ctx.companyId}/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "doc")}`,
-  },
-  "operator-logo": {
-    id: "operator-logo",
-    visibility: "public",
-    iam: "operator",
-    limits: { maxBytes: 2 * MB, allowedMime: [/^image\//] },
-    image: { maxDim: 512, quality: 0.9, toWebp: true },
-    cacheControl: "max-age=31536000, immutable",
-    keepVersions: false,
-    key: (ctx) => `assets/${ctx.companyId}/logo.webp`,
-  },
-  "operator-profile-photo": {
-    id: "operator-profile-photo",
-    visibility: "public",
-    iam: "operator",
-    limits: { maxBytes: 2 * MB, allowedMime: [/^image\//] },
-    image: { maxDim: 256, quality: 0.9, toWebp: true },
-    cacheControl: "max-age=31536000, immutable",
-    keepVersions: false,
-    key: (ctx) => `assets/${ctx.companyId}/staff/${ctx.staffId}.webp`,
-  },
-  "passenger-avatar": {
-    id: "passenger-avatar",
-    visibility: "public",
-    iam: "passenger",
-    limits: { maxBytes: 2 * MB, allowedMime: [/^image\//] },
-    image: { maxDim: 256, quality: 0.9, toWebp: true },
-    cacheControl: "max-age=31536000, immutable",
-    keepVersions: false,
-    key: (ctx) => `assets/users/${ctx.userId}/avatar`,
-  },
-  "blog-cover": {
-    id: "blog-cover",
-    visibility: "public",
-    iam: "admin",
-    limits: { maxBytes: 5 * MB, allowedMime: [/^image\//] },
-    image: { maxDim: 1200, quality: 0.85, toWebp: true },
-    cacheControl: "max-age=31536000, immutable",
-    keepVersions: false,
-    key: (ctx) => `assets/blog/${ctx.slug}`,
-  },
-  "blog-content": {
-    id: "blog-content",
-    visibility: "public",
-    iam: "admin",
-    limits: { maxBytes: 5 * MB, allowedMime: [/^image\//] },
-    image: { maxDim: 1600, quality: 0.85, toWebp: true },
-    cacheControl: "max-age=31536000, immutable",
-    keepVersions: true,
-    // Each inline image gets a UUID so multiple uploads per post don't collide
-    key: (ctx) =>
-      `assets/blog/${ctx.slug ?? "draft"}/content/${crypto.randomUUID()}-${ctx.fileName ? ctx.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 60) : "image"}.webp`,
-  },
-};
+export const STORAGE_PURPOSES: Record<StoragePurposeId, StoragePurposeConfig> =
+  {
+    "operator-document": {
+      id: "operator-document",
+      visibility: "private",
+      iam: "operator",
+      limits: {
+        maxBytes: 10 * MB,
+        allowedMime: [/^application\/pdf$/, /^image\//],
+      },
+      cacheControl: "",
+      keepVersions: true,
+      key: (ctx) =>
+        `documents/${ctx.companyId}/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "doc")}`,
+    },
+    "operator-logo": {
+      id: "operator-logo",
+      visibility: "public",
+      iam: "operator",
+      limits: { maxBytes: 2 * MB, allowedMime: [/^image\//] },
+      image: { maxDim: 512, quality: 0.9, toWebp: true },
+      cacheControl: "max-age=31536000, immutable",
+      keepVersions: false,
+      key: (ctx) => `assets/${ctx.companyId}/logo.webp`,
+    },
+    "operator-profile-photo": {
+      id: "operator-profile-photo",
+      visibility: "public",
+      iam: "operator",
+      limits: { maxBytes: 2 * MB, allowedMime: [/^image\//] },
+      image: { maxDim: 256, quality: 0.9, toWebp: true },
+      cacheControl: "max-age=31536000, immutable",
+      keepVersions: false,
+      key: (ctx) => `assets/${ctx.companyId}/staff/${ctx.staffId}.webp`,
+    },
+    "passenger-avatar": {
+      id: "passenger-avatar",
+      visibility: "public",
+      iam: "passenger",
+      limits: { maxBytes: 2 * MB, allowedMime: [/^image\//] },
+      image: { maxDim: 256, quality: 0.9, toWebp: true },
+      cacheControl: "max-age=31536000, immutable",
+      keepVersions: false,
+      key: (ctx) => `assets/users/${ctx.userId}/avatar`,
+    },
+
+    // Phase 15 (F-DV-05) — self-registration compliance documents. PRIVATE
+    // (licence/medical data): read back only via presigned GET embedded into
+    // verification dossiers by the server. Keys live under the registering
+    // user's namespace (iam:"passenger" enforces ctx.user.id), so uploads work
+    // before any DriverProfile/company exists.
+    "driver-license-front": {
+      id: "driver-license-front",
+      visibility: "private",
+      iam: "passenger",
+      limits: {
+        maxBytes: 10 * MB,
+        allowedMime: [/^image\//, /^application\/pdf$/],
+      },
+      image: { maxDim: 1600, quality: 0.85, toWebp: false },
+      cacheControl: "",
+      keepVersions: true,
+      key: (ctx) =>
+        `documents/drivers/${ctx.userId}/license-front/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "license")}`,
+    },
+    "driver-license-back": {
+      id: "driver-license-back",
+      visibility: "private",
+      iam: "passenger",
+      limits: {
+        maxBytes: 10 * MB,
+        allowedMime: [/^image\//, /^application\/pdf$/],
+      },
+      image: { maxDim: 1600, quality: 0.85, toWebp: false },
+      cacheControl: "",
+      keepVersions: true,
+      key: (ctx) =>
+        `documents/drivers/${ctx.userId}/license-back/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "license")}`,
+    },
+    "driver-selfie": {
+      id: "driver-selfie",
+      visibility: "private",
+      iam: "passenger",
+      limits: { maxBytes: 5 * MB, allowedMime: [/^image\//] },
+      image: { maxDim: 512, quality: 0.9, toWebp: false },
+      cacheControl: "",
+      keepVersions: true,
+      key: (ctx) =>
+        `documents/drivers/${ctx.userId}/selfie/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "selfie")}`,
+    },
+    "driver-medical-doc": {
+      id: "driver-medical-doc",
+      visibility: "private",
+      iam: "passenger",
+      limits: {
+        maxBytes: 10 * MB,
+        allowedMime: [/^image\//, /^application\/pdf$/],
+      },
+      cacheControl: "",
+      keepVersions: true,
+      key: (ctx) =>
+        `documents/drivers/${ctx.userId}/medical/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "medical")}`,
+    },
+    "blog-cover": {
+      id: "blog-cover",
+      visibility: "public",
+      iam: "admin",
+      limits: { maxBytes: 5 * MB, allowedMime: [/^image\//] },
+      image: { maxDim: 1200, quality: 0.85, toWebp: true },
+      cacheControl: "max-age=31536000, immutable",
+      keepVersions: false,
+      key: (ctx) => `assets/blog/${ctx.slug}`,
+    },
+    "blog-content": {
+      id: "blog-content",
+      visibility: "public",
+      iam: "admin",
+      limits: { maxBytes: 5 * MB, allowedMime: [/^image\//] },
+      image: { maxDim: 1600, quality: 0.85, toWebp: true },
+      cacheControl: "max-age=31536000, immutable",
+      keepVersions: true,
+      // Each inline image gets a UUID so multiple uploads per post don't collide
+      key: (ctx) =>
+        `assets/blog/${ctx.slug ?? "draft"}/content/${crypto.randomUUID()}-${ctx.fileName ? ctx.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 60) : "image"}.webp`,
+    },
+  };
 
 export function getStoragePurpose(id: string): StoragePurposeConfig {
   const purpose = STORAGE_PURPOSES[id as StoragePurposeId];

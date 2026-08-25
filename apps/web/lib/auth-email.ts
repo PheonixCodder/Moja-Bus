@@ -19,7 +19,14 @@ export async function sendAuthOtp({
   otp,
   type,
 }: AuthOtpPayload): Promise<void> {
-  console.log(`\n=== 🔐 OTP verification for ${identifier}: ${otp} ===\n`);
+  // Phase 14/16 (F-NF-16) — OTP codes are credentials; never log them in
+  // production. Dev convenience stays opt-in via LOG_OTP=1.
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env["LOG_OTP"] !== "false"
+  ) {
+    console.log(`\n=== 🔐 OTP verification for ${identifier}: ${otp} ===\n`);
+  }
 
   const novu = getNovuClient();
 
@@ -54,7 +61,9 @@ export async function sendAuthOtp({
           },
           transactionId: `operator-signup-otp-${identifier}-${Date.now()}`,
         });
-        console.log(`[NOVU] Successfully triggered operator-signup-otp for ${identifier}`);
+        console.log(
+          `[NOVU] Successfully triggered operator-signup-otp for ${identifier}`,
+        );
         return;
       }
     }

@@ -12,6 +12,10 @@ import type { TravelInsightsBucket } from "@moja/types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { SavedPassengerService } from "@/features/passenger/services/saved-passenger-service";
+import {
+  computeRefundQuote,
+  refundStatusForCancellationChannel,
+} from "@/features/payments/lib/cancellation-policy";
 import { paystackInitialize } from "@/features/payments/providers/paystack-client";
 import { toSafeDisplayNumber } from "@/lib/money";
 import { getNovuClient } from "@/lib/novu";
@@ -336,22 +340,23 @@ export const passengerRouter = createTRPCRouter({
         const novu = getNovuClient();
         if (novu) {
           try {
-            await novu
-              .trigger({
-                workflowId: "passenger-profile-updated",
-                to: {
-                  subscriberId: ctx.user.email,
-                  email: ctx.user.email,
-                },
-                payload: {
-                  email: ctx.user.email,
-                  passengerName: input.fullName || ctx.user.name || "Passenger",
-                  changedFields,
-                  phone: normalizedPhone || ctx.user.phoneNumber || undefined,
-                },
-                transactionId: `passenger-profile-updated-${ctx.user.id}-${Date.now()}`,
-              })
-              .catch(() => {});
+            await novu.trigger({
+              workflowId: "passenger-profile-updated",
+              // Phase 08 (F-NF-03) — logged-in audience keys user.id so
+              // in-app + push fire. Day-bucketed transactionId replaces
+              // Date.now() so repeat saves dedupe instead of spamming.
+              to: {
+                subscriberId: ctx.user.id,
+                email: ctx.user.email,
+              },
+              payload: {
+                email: ctx.user.email,
+                passengerName: input.fullName || ctx.user.name || "Passenger",
+                changedFields,
+                phone: normalizedPhone || ctx.user.phoneNumber || undefined,
+              },
+              transactionId: `passenger-profile-updated-${ctx.user.id}-${new Date().toISOString().slice(0, 10)}`,
+            });
           } catch (err) {
             console.error(
               "Failed to trigger passenger-profile-updated via Novu:",
@@ -397,6 +402,16 @@ export const passengerRouter = createTRPCRouter({
         });
       }
 
+      // Phase 19 (F-PS-09) — only completed trips are reviewable. Same
+      // predicate as getPendingReviews (completedAt as single source of
+      // truth): pre-departure and legacy-null rows both reject here.
+      if (!booking.completedAt) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "You can review a trip only after it has been completed.",
+        });
+      }
+
       const existingReview = await ctx.prisma.review.findUnique({
         where: { bookingId: input.bookingId },
       });
@@ -424,21 +439,29 @@ export const passengerRouter = createTRPCRouter({
         },
       });
 
-      // Update driver aggregate reputation if assigned
+      // Update driver aggregate reputation if assigned.
+      // Phase 13 semantics: only reviews WITH an explicit driverRating count
+      // toward the driver's average — no scale-mixing fallback to the overall
+      // bus rating, and untouched when no rated reviews exist yet.
       if (booking.trip?.driverId) {
         const agg = await ctx.prisma.review.aggregate({
-          where: { driverId: booking.trip.driverId },
-          _avg: { driverRating: true, rating: true },
+          where: {
+            driverId: booking.trip.driverId,
+            driverRating: { not: null },
+          },
+          _avg: { driverRating: true },
           _count: { id: true },
         });
 
-        await ctx.prisma.driverProfile.update({
-          where: { id: booking.trip.driverId },
-          data: {
-            averageRating: agg._avg.driverRating ?? agg._avg.rating ?? input.rating,
-            totalReviews: agg._count.id,
-          },
-        });
+        if ((agg._count.id ?? 0) > 0 && agg._avg.driverRating != null) {
+          await ctx.prisma.driverProfile.update({
+            where: { id: booking.trip.driverId },
+            data: {
+              averageRating: agg._avg.driverRating,
+              totalReviews: agg._count.id,
+            },
+          });
+        }
       }
 
       // Trigger passenger-review-submitted
@@ -450,23 +473,23 @@ export const passengerRouter = createTRPCRouter({
       const novu = getNovuClient();
       if (novu && ctx.user.email) {
         try {
-          await novu
-            .trigger({
-              workflowId: "passenger-review-submitted",
-              to: {
-                subscriberId: ctx.user.email,
-                email: ctx.user.email,
-              },
-              payload: {
-                email: ctx.user.email,
-                passengerName: ctx.user.name ?? "Passenger",
-                companyName: company?.name ?? "Transport Operator",
-                rating: input.rating,
-                content: input.content ?? undefined,
-              },
-              transactionId: `passenger-review-submitted-${review.id}`,
-            })
-            .catch(() => {});
+          // Phase 08 (F-NF-03) — logged-in audience keys user.id; failures
+          // surface loudly instead of a swallowed .catch.
+          await novu.trigger({
+            workflowId: "passenger-review-submitted",
+            to: {
+              subscriberId: ctx.user.id,
+              email: ctx.user.email,
+            },
+            payload: {
+              email: ctx.user.email,
+              passengerName: ctx.user.name ?? "Passenger",
+              companyName: company?.name ?? "Transport Operator",
+              rating: input.rating,
+              content: input.content ?? undefined,
+            },
+            transactionId: `passenger-review-submitted-${review.id}`,
+          });
         } catch (err) {
           console.error(
             "Failed to trigger passenger-review-submitted via Novu:",
@@ -493,6 +516,148 @@ export const passengerRouter = createTRPCRouter({
         company: { select: { id: true, name: true } },
       },
     });
+  }),
+
+  /**
+   * P2-12 — real refund preview for the cancel dialog. Uses the SAME policy
+   * function as the cancellation service, so the displayed amount is the
+   * amount actually paid (proportional seat share; convenience fee excluded).
+   */
+  getRefundQuote: protectedProcedure
+    .input(
+      z.object({
+        bookingReference: z.string().min(1),
+        channel: z.enum(["WALLET", "CASH"]),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findFirst({
+        where: {
+          bookingReference: input.bookingReference,
+          userId: ctx.user.id,
+        },
+        select: {
+          id: true,
+          status: true,
+          farePaid: true,
+          holdGroup: {
+            select: {
+              id: true,
+              pricingSnapshot: true,
+            },
+          },
+        },
+      });
+
+      if (!booking) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Booking not found",
+        });
+      }
+      if (booking.status !== "CONFIRMED") {
+        return { cancellable: false as const };
+      }
+
+      const snapshot = booking.holdGroup?.pricingSnapshot as
+        | { seatCount: number; subtotalBaseXOF: number; operatorNetXOF: number }
+        | null
+        | undefined;
+
+      const cancelledSoFar = snapshot
+        ? await ctx.prisma.booking.count({
+            where: { holdGroupId: booking.holdGroup!.id, status: "CANCELLED" },
+          })
+        : 0;
+
+      const platformCommissionBps =
+        (
+          await ctx.prisma.platformSettings.findUnique({
+            where: { id: "default" },
+          })
+        )?.defaultCommissionBps ?? 500;
+
+      const quote = computeRefundQuote({
+        farePaid: booking.farePaid,
+        pricingSnapshot: snapshot ?? null,
+        cancelledSoFar,
+        platformCommissionBps,
+      });
+
+      return {
+        cancellable: true as const,
+        channel: input.channel,
+        refundStatus: refundStatusForCancellationChannel(input.channel),
+        ...quote,
+      };
+    }),
+
+  /**
+   * P2-5 — completed trips the passenger hasn't reviewed yet. Powers the
+   * launch-time review prompt on the traveler app.
+   */
+  getPendingReviews: protectedProcedure.query(async ({ ctx }) => {
+    const reviewed = await ctx.prisma.review.findMany({
+      where: { authorId: ctx.user.id },
+      select: { tripId: true },
+    });
+    const reviewedTripIds = reviewed
+      .map((r) => r.tripId)
+      .filter((id): id is string => id !== null);
+
+    const bookings = await ctx.prisma.booking.findMany({
+      where: {
+        userId: ctx.user.id,
+        status: { in: ["CONFIRMED", "COMPLETED"] },
+        completedAt: { not: null },
+        ...(reviewedTripIds.length > 0
+          ? { tripId: { notIn: reviewedTripIds } }
+          : {}),
+      },
+      orderBy: { completedAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        bookingReference: true,
+        completedAt: true,
+        company: { select: { id: true, name: true } },
+        originTripStop: { select: { terminal: { select: { name: true } } } },
+        destinationTripStop: {
+          select: { terminal: { select: { name: true } } },
+        },
+        trip: {
+          select: {
+            departureDate: true,
+            schedule: {
+              select: {
+                route: {
+                  select: {
+                    originTerminal: {
+                      select: { cityRelation: { select: { name: true } } },
+                    },
+                    destTerminal: {
+                      select: { cityRelation: { select: { name: true } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // A review exists per BOOKING too — filter those out.
+    const unreviewedBookings = [];
+    for (const booking of bookings) {
+      const existing = await ctx.prisma.review.findFirst({
+        where: { authorId: ctx.user.id, bookingId: booking.id },
+        select: { id: true },
+      });
+      if (!existing) unreviewedBookings.push(booking);
+    }
+
+    return unreviewedBookings;
   }),
 
   getWalletBalance: protectedProcedure.query(async ({ ctx }) => {
@@ -568,6 +733,9 @@ export const passengerRouter = createTRPCRouter({
           metadata: {
             isTopUp: true,
             accountId: wallet.id,
+            // F-PS-13: bind this reference to its initiator for verify-time
+            // ownership checks (and the F-PS-05 confirmation notice).
+            userId: ctx.user.id,
           },
         },
       });
@@ -607,6 +775,7 @@ export const passengerRouter = createTRPCRouter({
             metadata: {
               isTopUp: true,
               accountId: wallet.id,
+              userId: ctx.user.id,
               authorizationUrl: initialized.authorizationUrl,
             },
           },
@@ -633,6 +802,7 @@ export const passengerRouter = createTRPCRouter({
         "@/features/payments/payment-service"
       );
       const service = new PaymentService(ctx.prisma);
-      return service.verifyTopUp(input.reference);
+      // F-PS-13: only the initiator may drive verification of a top-up ref.
+      return service.verifyTopUpForUser(input.reference, ctx.user.id);
     }),
 });

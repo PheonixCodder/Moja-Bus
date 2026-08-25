@@ -80,4 +80,34 @@ Full page UI built with mock data first — verified visually before any logic i
 - **Phase 4 (Driver App Base)**: 6 Checklist items
 - **Phase 5 (Trip Execution)**: 7 Checklist items
 - **Phase 6 (Traveler App & Reviews)**: 6 Checklist items
-- **Total Checklist Items**: 40 Milestone Deliverables
+- **Total Checklist Items (Phases 1–6)**: 40 Milestone Deliverables
+
+> **Note**: Phases 1–8 are completed and tracked in `docs/plans/driver-app-and-telemetry-deep-audit/13-phased-execution-master-plan.md`.
+
+---
+
+## Marketplace Evolution — Phases 9–15
+
+*These phases build the driver supply-side marketplace — the third side of the Moja three-sided marketplace.*
+
+### Phase 9 — Driver Preference Profile & Availability System
+New schema: `DriverServicePreference`. Driver signals employment type, city base, route experience, availability, and minimum salary. Availability toggle appears on driver profile tab.
+
+### Phase 10 — Operator Driver Marketplace (Talent Discovery)
+New page: `/dashboard/operator/drivers/marketplace`. Operators browse verified, available drivers with filters. Public driver profile cards show rating, safety score, contact, and affiliation history.
+
+### Phase 11 — Employment Offer & Counter-Offer Flow
+New schema: `DriverEmploymentOffer`. Operator sends formal offer. Driver can accept, decline, or counter with different salary/start date. On acceptance, `DriverCompanyAffiliation` is auto-created. 7-day auto-expiry. Novu notifications for all state changes.
+
+### Phase 12 — Live Driver Assignment on Dispatch Board
+Trip card driver assignment panel in Operator ERP. Conflict detection. Driver receives push notification on assignment. Relief driver & conductor role support via `TripDriverAssignment`.
+
+### Phase 13 — Driver Ratings Aggregation & Trust Score
+Background job computes `averageRating`, `safetyScore`, `totalTripsCompleted` after each trip. Safety score algorithm: starts 100, -5 per overspeed, -10 per harsh braking, +1 per 10 clean trips. Trust badges: Top Rated, Safe Driver, Veteran.
+
+### Phase 14 — Platform Admin Marketplace Controls
+Admin marketplace health panel, featured driver flag, marketplace suspension (separate from verification suspension), offer audit log.
+
+### Phase 15 — End-to-End Validation & Release QA
+Full three-sided lifecycle test: driver registers → verified → listed → operator finds → offers → driver counters → accepted → affiliation created → trip assigned → executed → review submitted → stats updated.
+

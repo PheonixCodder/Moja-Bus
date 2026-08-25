@@ -1,0 +1,52 @@
+{
+	"title": "Offres d'emploi",
+	"subtitle": "{{count}} offre(s) en attente de réponse",
+	"tab": {
+		"offers": "En attente",
+		"history": "Historique"
+	},
+	"empty": {
+		"active": "Aucune offre active",
+		"activeHint": "Complétez votre profil marketplace et restez « Disponible pour recrutement » pour être repéré par les opérateurs.",
+		"history": "Pas encore d'historique"
+	},
+	"status": {
+		"PENDING": "EN ATTENTE",
+		"COUNTERED": "NÉGOCIATION",
+		"ACCEPTED": "ACCEPTÉE",
+		"DECLINED": "REFUSÉE",
+		"EXPIRED": "EXPIRÉE",
+		"WITHDRAWN": "RETIRÉE"
+	},
+	"terms": {
+		"salary": "Salaire mensuel",
+		"monthShort": "mois",
+		"start": "Début souhaité"
+	},
+	"actions": {
+		"accept": "Accepter",
+		"counter": "Contre-offre",
+		"decline": "Refuser"
+	},
+	"counter": {
+		"title": "Envoyer une contre-offre",
+		"subtitle": "L'opérateur pourra accepter, refuser ou renégocier. Le délai de 7 jours repart de zéro.",
+		"salaryLabel": "Salaire mensuel proposé (FCFA)",
+		"dateLabel": "Date de début souhaitée (optionnel)",
+		"noteLabel": "Message à l'opérateur (optionnel)",
+		"notePlaceholder": "Disponibilités, préférences de lignes…",
+		"cancel": "Annuler",
+		"submit": "Envoyer"
+	},
+	"exclusive": {
+		"title": "Contrat exclusif actif",
+		"message": "Vous avez déjà un contrat intercity exclusif actif avec : {{companies}}. L'acceptation mettra fin automatiquement à ce contrat et l'opérateur en sera informé.",
+		"confirm": "Résilier et accepter",
+		"cancel": "Annuler"
+	},
+	"resolvedAt": "Clôturée le {{date}}",
+	"moreHidden": "offres supplémentaires non affichées",
+	"errors": {
+		"generic": "Une erreur est survenue. Veuillez réessayer."
+	}
+}

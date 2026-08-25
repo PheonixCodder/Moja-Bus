@@ -2,6 +2,12 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
+/** Phase 08 — extracted for the enqueue↔payloadSchema contract test. */
+export const operatorAccountRestoredPayloadSchema = z.object({
+  email: z.string().email(),
+  ownerName: z.string(),
+  companyName: z.string(),
+});
 
 export const operatorAccountRestoredWorkflow = workflow(
   "operator-account-restored",
@@ -34,11 +40,8 @@ export const operatorAccountRestoredWorkflow = workflow(
   },
   {
     name: "Operator Account Restored",
-    description: "Alerts transport operators when their suspended company account is reactivated",
-    payloadSchema: z.object({
-      email: z.string().email(),
-      ownerName: z.string(),
-      companyName: z.string(),
-    }),
-  }
+    description:
+      "Alerts transport operators when their suspended company account is reactivated",
+    payloadSchema: operatorAccountRestoredPayloadSchema,
+  },
 );

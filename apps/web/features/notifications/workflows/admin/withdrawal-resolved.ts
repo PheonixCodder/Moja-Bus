@@ -2,6 +2,16 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
+/** Phase 08 — extracted for the enqueue↔payloadSchema contract test. */
+export const operatorWithdrawalResolvedPayloadSchema = z.object({
+  email: z.string().email(),
+  ownerName: z.string(),
+  companyName: z.string(),
+  transactionId: z.string(),
+  amountXOF: z.number(),
+  status: z.enum(["SETTLED", "FAILED"]),
+  reason: z.string(),
+});
 
 export const operatorWithdrawalResolvedWorkflow = workflow(
   "operator-withdrawal-resolved",
@@ -10,7 +20,10 @@ export const operatorWithdrawalResolvedWorkflow = workflow(
     await step.inApp("send-in-app", async () => ({
       subject: `Withdrawal Status Updated: ${escapeHtml(payload.status)}`,
       body: `💸 Payout of ${escapeHtml(payload.amountXOF)} XOF marked as ${escapeHtml(payload.status)} by platform admin. Note: ${escapeHtml(payload.reason)}.`,
-      avatar: payload.status === "SETTLED" ? "https://avatar.vercel.sh/payout-success" : "https://avatar.vercel.sh/payout-fail",
+      avatar:
+        payload.status === "SETTLED"
+          ? "https://avatar.vercel.sh/payout-success"
+          : "https://avatar.vercel.sh/payout-fail",
       redirect: { url: "/dashboard/operator/revenue", target: "_self" },
     }));
 
@@ -32,9 +45,10 @@ export const operatorWithdrawalResolvedWorkflow = workflow(
             <p style="margin: 0 0 8px 0;">Transaction Ref: <code>${escapeHtml(payload.transactionId)}</code></p>
             <p style="margin: 0;">Admin Note: <strong>${escapeHtml(payload.reason)}</strong></p>
           </div>
-          ${isSettled 
-            ? `<p>The funds have been credited to your bank account. Depending on your bank, it may take 1-3 business days to reflect.</p>` 
-            : `<p style="color: #b91c1c;">The funds have been returned to your operator receivable account. Please verify your bank account details and submit another request.</p>`
+          ${
+            isSettled
+              ? `<p>The funds have been credited to your bank account. Depending on your bank, it may take 1-3 business days to reflect.</p>`
+              : `<p style="color: #b91c1c;">The funds have been returned to your operator receivable account. Please verify your bank account details and submit another request.</p>`
           }
         </div>
       `;
@@ -47,15 +61,8 @@ export const operatorWithdrawalResolvedWorkflow = workflow(
   },
   {
     name: "Operator Payout Resolved",
-    description: "Alerts operators when their withdrawal status is manually resolved (settled or failed) by admins",
-    payloadSchema: z.object({
-      email: z.string().email(),
-      ownerName: z.string(),
-      companyName: z.string(),
-      transactionId: z.string(),
-      amountXOF: z.number(),
-      status: z.enum(["SETTLED", "FAILED"]),
-      reason: z.string(),
-    }),
-  }
+    description:
+      "Alerts operators when their withdrawal status is manually resolved (settled or failed) by admins",
+    payloadSchema: operatorWithdrawalResolvedPayloadSchema,
+  },
 );

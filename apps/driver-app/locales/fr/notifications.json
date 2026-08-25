@@ -1,0 +1,7 @@
+{
+	"title": "Notifications",
+	"noNotifications": "Aucune notification",
+	"allCaughtUp": "Les alertes d'offres, affectations et mises à jour de vérification apparaîtront ici.",
+	"markAllRead": "Tout marquer comme lu",
+	"unreadCount": "{{count}} non lue(s)"
+}

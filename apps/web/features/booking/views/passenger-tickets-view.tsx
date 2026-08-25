@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
-  Ticket, QrCode, MapPin, Armchair, Share2, AlertTriangle, ArrowRight
+  Ticket, QrCode, MapPin, Armchair, Share2, ExternalLink, AlertTriangle, ArrowRight
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { buttonVariants } from "@moja/ui/components/ui/button";
 import { Button } from "@moja/ui/components/ui/button";
+import { Input } from "@moja/ui/components/ui/input";
+import { Label } from "@moja/ui/components/ui/label";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { useTRPC } from "@/trpc/client";
 import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-card";
@@ -47,14 +49,30 @@ function TicketSheet({
   onClose: () => void;
 }) {
   const t = useTranslations("passengerDashboard.tickets");
+  const locale = useLocale();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [refundChannel, setRefundChannel] = useState<"WALLET" | "CASH">("WALLET");
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientPhone, setRecipientPhone] = useState("");
+  // F-PS-02: passenger self-cancel refunds to the Moja wallet only.
+  const refundChannel = "WALLET" as const;
 
   const { data: ticket, isLoading, isError } = useQuery(
     trpc.booking.getTicket.queryOptions({ bookingReference }),
   );
+
+  // P2-12 — real refund quote from the same policy code the service executes.
+  const refundQuoteQuery = useQuery({
+    ...trpc.passenger.getRefundQuote.queryOptions({
+      bookingReference,
+      channel: refundChannel,
+    }),
+    enabled: isCancelModalOpen && !!ticket,
+  });
+  const quote = refundQuoteQuery.data;
 
   const cancelMutation = useMutation(
     trpc.payments.cancelBooking.mutationOptions({
@@ -69,6 +87,33 @@ function TicketSheet({
       },
     })
   );
+
+  // P2-3 👻 → wired: email the digital-ticket link to a companion.
+  const shareMutation = useMutation(
+    trpc.booking.shareTicket.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("shareSuccess", { name: recipientName }));
+        setIsShareOpen(false);
+        setRecipientName("");
+        setRecipientEmail("");
+        setRecipientPhone("");
+      },
+      onError: (err: any) => {
+        toast.error(err.message || t("shareFailed"));
+      },
+    })
+  );
+
+  const handleShareTicket = (e: React.FormEvent) => {
+    e.preventDefault();
+    shareMutation.mutate({
+      bookingReference,
+      recipientName: recipientName.trim(),
+      recipientEmail: recipientEmail.trim(),
+      ...(recipientPhone.trim() ? { recipientPhone: recipientPhone.trim() } : {}),
+      locale: locale === "en" ? "en" : "fr",
+    });
+  };
 
   const handleCancelBooking = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,13 +143,21 @@ function TicketSheet({
                 size="sm"
                 className="h-8 gap-1.5 rounded-full text-xs font-medium"
               />
+              <button
+                type="button"
+                onClick={() => setIsShareOpen(true)}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8 gap-1.5 rounded-full text-xs font-medium")}
+              >
+                <Share2 className="w-3 h-3" />
+                {t("share")}
+              </button>
               <Link
                 href={`/tickets/${encodeURIComponent(ticketToken)}`}
                 target="_blank"
                 className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8 gap-1.5 rounded-full text-xs font-medium")}
               >
-                <Share2 className="w-3 h-3" />
-                {t("share")}
+                <ExternalLink className="w-3 h-3" />
+                {t("openTicket")}
               </Link>
             </div>
           </div>
@@ -154,6 +207,74 @@ function TicketSheet({
         </SheetContent>
       </Sheet>
 
+      <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
+        <DialogContent className="max-w-md border border-border bg-white rounded-2xl p-6 shadow-xl">
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              <Share2 className="size-5 text-primary" />
+              {t("shareDialogTitle")}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
+              {t("shareDialogDesc")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleShareTicket} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="shareRecipientName">{t("recipientName")}</Label>
+              <Input
+                id="shareRecipientName"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                required
+                minLength={2}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="shareRecipientEmail">{t("recipientEmail")}</Label>
+              <Input
+                id="shareRecipientEmail"
+                type="email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="shareRecipientPhone">{t("recipientPhoneOptional")}</Label>
+              <Input
+                id="shareRecipientPhone"
+                type="tel"
+                value={recipientPhone}
+                onChange={(e) => setRecipientPhone(e.target.value)}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 h-11 rounded-xl border-slate-200 text-slate-700"
+                onClick={() => setIsShareOpen(false)}
+              >
+                {t("close")}
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold"
+                disabled={shareMutation.isPending}
+              >
+                {shareMutation.isPending ? (
+                  <Spinner className="size-4" />
+                ) : (
+                  t("send")
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="max-w-md border border-border bg-white rounded-2xl p-6 shadow-xl">
           <DialogHeader className="space-y-2">
@@ -174,52 +295,25 @@ function TicketSheet({
                   <span>{t("farePaid")}</span>
                   <span>{formatPriceXOF(ticket.farePaidXOF)}</span>
                 </div>
-                <div className="text-sm font-bold text-primary flex justify-between items-center">
-                  <span>{t("refundAmount")}</span>
-                  <span>{formatPriceXOF(ticket.farePaidXOF)}</span>
-                </div>
-                <p className="text-[11px] text-slate-500 pt-2 leading-relaxed">{t("feeNote")}</p>
+                {quote?.cancellable ? (
+                  <>
+                    <div className="text-sm font-bold text-primary flex justify-between items-center">
+                      <span>{t("refundAmount")}</span>
+                      <span>{formatPriceXOF(quote.refundAmountXOF)}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 pt-2 leading-relaxed">{t("feeNote")}</p>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      {/* Phase 38 (F-PS-12) — was hardcoded French beside t() */}
+                      {t("cancelEstimateNote")}
+                    </p>
+                  </>
+                ) : quote && !quote.cancellable ? (
+                  <p className="text-[11px] text-slate-500 pt-1">
+                    {t("notCancellable")}
+                  </p>
+                ) : null}
               </div>
             )}
-
-            <div className="space-y-2">
-              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                {t("refundMethod")}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    {
-                      id: "WALLET" as const,
-                      labelKey: "channelWallet" as const,
-                      hintKey: "channelWalletHint" as const,
-                    },
-                    {
-                      id: "CASH" as const,
-                      labelKey: "channelCash" as const,
-                      hintKey: "channelCashHint" as const,
-                    },
-                  ] as const
-                ).map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setRefundChannel(opt.id)}
-                    className={cn(
-                      "p-3 rounded-xl border text-center text-xs font-semibold transition-all",
-                      refundChannel === opt.id
-                        ? "border-error bg-error/5 text-error"
-                        : "border-slate-200 text-slate-700 hover:border-slate-300",
-                    )}
-                  >
-                    {t(opt.labelKey)}
-                    <span className="block text-[10px] text-slate-400 font-normal mt-0.5">
-                      {t(opt.hintKey)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <div className="flex gap-3 pt-2">
               <Button

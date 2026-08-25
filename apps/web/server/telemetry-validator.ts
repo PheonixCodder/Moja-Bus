@@ -1,7 +1,10 @@
 import type { DriverLocationPingInput } from "@moja/schemas";
+import { MAX_PING_ACCURACY_METERS } from "@/lib/driver-scoring";
 
 const EARTH_RADIUS_KM = 6371;
-const MAX_ACCURACY_METERS = 50;
+
+export { MAX_PING_ACCURACY_METERS };
+
 const MAX_SPEED_KMH = 200;
 const MAX_JUMP_SPEED_KMH = 220; // Teleportation filter
 
@@ -12,7 +15,7 @@ export function calculateHaversineDistanceMeters(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const toRad = (angle: number) => (angle * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
@@ -39,6 +42,15 @@ export interface ValidationResult {
 /**
  * Validates incoming driver GPS telemetry against physical constraints.
  * Inspired by Safarpay's high-precision vehicle tracking engine.
+ *
+ * Phase 28 (F-TM-07/F-TM-14 contract change): horizontal accuracy NO LONGER
+ * hard-rejects. A fix with poor accuracy is still persisted — classified as
+ * LOW_ACCURACY by derivePingAnomaly (@/lib/driver-scoring), unscored, and
+ * excluded from last-position updates and from serving as a jump-gate
+ * reference point. Urban-canyon stretches therefore keep their history
+ * instead of vanishing, while garbage fixes can never score or poison the
+ * teleport filter. This gate owns ONLY physically-impossible signals:
+ * bounds, instantaneous speed, and implausible jumps.
  */
 export function validateTelemetryPing(
   currentPing: DriverLocationPingInput,
@@ -46,7 +58,7 @@ export function validateTelemetryPing(
     latitude: number;
     longitude: number;
     timestamp: Date | string;
-  } | null
+  } | null,
 ): ValidationResult {
   // Gate 1: Latitude & Longitude bounds
   if (
@@ -55,18 +67,13 @@ export function validateTelemetryPing(
     currentPing.longitude < -180 ||
     currentPing.longitude > 180
   ) {
-    return { isValid: false, reason: "GPS coordinates out of global geographical bounds" };
-  }
-
-  // Gate 2: GPS Horizontal Accuracy Filter
-  if (currentPing.accuracyMeters > MAX_ACCURACY_METERS) {
     return {
       isValid: false,
-      reason: `Accuracy ${currentPing.accuracyMeters.toFixed(1)}m exceeds threshold (${MAX_ACCURACY_METERS}m)`,
+      reason: "GPS coordinates out of global geographical bounds",
     };
   }
 
-  // Gate 3: Instantaneous Speed Filter
+  // Gate 2: Instantaneous Speed Filter
   if (currentPing.speedKmh > MAX_SPEED_KMH) {
     return {
       isValid: false,
@@ -74,7 +81,7 @@ export function validateTelemetryPing(
     };
   }
 
-  // Gate 4: Haversine Jump Velocity Gate (if previous ping exists)
+  // Gate 3: Haversine Jump Velocity Gate (if previous ping exists)
   if (previousPing) {
     const prevTime = new Date(previousPing.timestamp).getTime();
     const currTime = new Date(currentPing.recordedAt).getTime();
@@ -84,7 +91,7 @@ export function validateTelemetryPing(
       previousPing.latitude,
       previousPing.longitude,
       currentPing.latitude,
-      currentPing.longitude
+      currentPing.longitude,
     );
 
     const calculatedSpeedKmh = (distanceMeters / elapsedSeconds) * 3.6;

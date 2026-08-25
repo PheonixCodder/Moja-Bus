@@ -1,0 +1,22 @@
+{
+  "liveHud": "Live HUD",
+  "speed": "Speed",
+  "kmh": "km/h",
+  "status": "Status",
+  "moving": "Moving",
+  "stationary": "Stationary",
+  "overspeedAlert": "OVERSPEED",
+  "overspeedMsg": "Reduce speed immediately",
+  "gpsHigh": "GPS High-Rate",
+  "gpsPower": "GPS Power-Save",
+  "reportDelay": "Report Delay",
+  "completeRun": "Complete Run",
+  "confirmComplete": "Complete This Run?",
+  "confirmCompleteMsg": "This will mark the run as finished and stop telemetry tracking.",
+  "confirm": "Complete",
+  "cancel": "Cancel",
+  "delayReported": "Delay Reported",
+  "runCompleted": "Run Completed"
+,
+  "approximateRoute": "Approximate route"
+}

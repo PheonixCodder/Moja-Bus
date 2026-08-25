@@ -2,6 +2,14 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
+/** Phase 08 — extracted for the enqueue↔payloadSchema contract test. */
+export const adminTreasuryNetworkFailurePayloadSchema = z.object({
+  email: z.string().email(),
+  companyId: z.string(),
+  amountXOF: z.number(),
+  transactionId: z.string(),
+  reason: z.string(),
+});
 
 export const adminTreasuryNetworkFailureWorkflow = workflow(
   "admin-treasury-network-failure",
@@ -43,16 +51,11 @@ export const adminTreasuryNetworkFailureWorkflow = workflow(
   },
   {
     name: "Admin Treasury Network Failure Alert",
-    description: "Alerts platform admins via email, in-app feed, and Slack when Paystack payout transfer initiation fails",
+    description:
+      "Alerts platform admins via email, in-app feed, and Slack when Paystack payout transfer initiation fails",
     preferences: {
       all: { readOnly: true },
     },
-    payloadSchema: z.object({
-      email: z.string().email(),
-      companyId: z.string(),
-      amountXOF: z.number(),
-      transactionId: z.string(),
-      reason: z.string(),
-    }),
-  }
+    payloadSchema: adminTreasuryNetworkFailurePayloadSchema,
+  },
 );

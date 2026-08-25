@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@moja/db";
-import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { enqueueTripCancelled } from "@/features/notifications/outbox/commercial";
+import { CancellationService } from "@/features/payments/services/cancellation-service";
+import { convergeDriversAfterRunEnd } from "@/lib/driver-run-state";
 
 type PrismaLike = PrismaClient;
 
@@ -66,8 +67,8 @@ export async function cancelTripWithRefunds(params: {
     );
   }
 
-  const { trip, refundResults, expiredHoldsCount, bookingsToNotify } =
-    await prisma.$transaction(async (tx) => {
+  const { trip, refundResults, expiredHoldsCount } = await prisma.$transaction(
+    async (tx) => {
       const expiredHolds = await tx.booking.updateMany({
         where: { tripId, status: "PENDING_PAYMENT" },
         data: { status: "EXPIRED", holdExpiresAt: new Date() },
@@ -99,6 +100,12 @@ export async function cancelTripWithRefunds(params: {
         where: { id: tripId },
         data: { status: "CANCELLED", cancelReason },
       });
+
+      // Phase 06 (F-DV-04) — a cancellation is the one post-departure lever
+      // (unassignDriver refuses DEPARTED), so it must also converge every
+      // driver holding currentTripId on this run (any role): clears the link
+      // and forces AVAILABLE/OFFLINE. No-op when nobody started.
+      await convergeDriversAfterRunEnd(tx as any, tripId);
 
       const bookings = await tx.booking.findMany({
         where: { tripId: trip.id, status: "CONFIRMED", checkedInAt: null },
@@ -144,6 +151,9 @@ export async function cancelTripWithRefunds(params: {
               userCompanyId: actor.companyId,
               channel,
               reason: `Trip cancelled by operator: ${cancelReason}`,
+              // P1-6: this flow already sends passenger-trip-cancelled (with
+              // the refund amount) below — suppress the per-refund notice.
+              notifyRefunded: false,
             },
             tx,
           );
@@ -211,17 +221,14 @@ export async function cancelTripWithRefunds(params: {
         }
       }
 
-      return {
-        trip,
-        refundResults,
-        expiredHoldsCount: expiredHolds.count,
-        bookingsToNotify: bookings,
-      };
-    });
-
-  if (bookingsToNotify.length > 0) {
-    try {
-      for (const booking of bookingsToNotify) {
+      // Phase 07 (F-NF-01 + F-PS-14 for this surface) — the passenger
+      // notices are enqueued INSIDE the transaction (same atomic pattern as
+      // the refund notice), so a crash after commit can no longer strand a
+      // cancelled booking without its notice. Payload now always carries the
+      // required bookingReference, an unconditional numeric refundAmountXOF,
+      // refundStatus and refundChannel so the template tells the truth for
+      // wallet credits, manual cash settlements and failed refunds alike.
+      for (const booking of bookings) {
         const email = booking.user?.email ?? null;
         if (!email) continue;
 
@@ -235,6 +242,10 @@ export async function cancelTripWithRefunds(params: {
           (r) => r.bookingReference === booking.bookingReference,
         );
         const refundSucceeded = refundResult?.success === true;
+        const bookingChannel: TripRefundChannel =
+          !booking.userId && refundChannel === "WALLET"
+            ? "CASH"
+            : refundChannel;
         const firstName =
           (booking.user?.fullName ?? booking.passengerName).split(" ")[0] ??
           "Passenger";
@@ -245,9 +256,11 @@ export async function cancelTripWithRefunds(params: {
           destinationCity: string;
           departureTime: string;
           cancelReason: string;
-          refundStatus: string;
-          refundAmountXOF?: number;
+          refundStatus: "success" | "failed";
+          refundChannel: TripRefundChannel;
+          refundAmountXOF: number;
           phone?: string;
+          bookingReference: string;
         } = {
           email,
           passengerName: booking.user?.fullName ?? booking.passengerName,
@@ -258,16 +271,16 @@ export async function cancelTripWithRefunds(params: {
           }),
           cancelReason,
           refundStatus: refundSucceeded ? "success" : "failed",
+          refundChannel: bookingChannel,
+          refundAmountXOF: refundSucceeded ? (refundResult?.amountXOF ?? 0) : 0,
+          bookingReference: booking.bookingReference,
         };
-        if (refundSucceeded) {
-          data.refundAmountXOF = refundResult?.amountXOF ?? 0;
-        }
         const phone = booking.user?.phoneNumber ?? booking.passengerPhone;
         if (phone) {
           data.phone = phone;
         }
 
-        await enqueueTripCancelled(prisma, {
+        await enqueueTripCancelled(tx, {
           bookingId: booking.id,
           email,
           subscriberId: booking.userId ?? email,
@@ -275,10 +288,14 @@ export async function cancelTripWithRefunds(params: {
           data,
         });
       }
-    } catch (err) {
-      console.error("Failed to enqueue passenger-trip-cancelled outbox:", err);
-    }
-  }
+
+      return {
+        trip,
+        refundResults,
+        expiredHoldsCount: expiredHolds.count,
+      };
+    },
+  );
 
   return {
     tripId: trip.id,

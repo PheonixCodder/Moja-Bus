@@ -63,6 +63,10 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       CHECKOUT_QUOTE_SECRET: ${CHECKOUT_QUOTE_SECRET:-}
+      # Phase 36 (F-IN-11) — telemetry dispatch-token HMAC secret. Unset =
+      # falls back to BETTER_AUTH_SECRET (works, but couples token lifetime
+      # to auth-secret rotation).
+      TELEMETRY_TOKEN_SECRET: ${TELEMETRY_TOKEN_SECRET:-}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       APP_URL: ${APP_URL}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
@@ -78,6 +82,12 @@ services:
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_PUBLIC_URL_BASE: ${S3_PUBLIC_URL_BASE:-}
+      # Phase 28 — telemetry pub/sub backend. In-memory is the official
+      # single-instance v1 posture; set REDIS_URL in .env to switch the
+      # dormant WS-gateway channels onto real Redis (boot retries 3x then
+      # downgrades loudly). Active backend visible at /api/health?full=1.
+      REDIS_URL: ${REDIS_URL:-}
+      KV_URL: ${KV_URL:-}
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
       GOOGLE_IOS_CLIENT_ID: ${GOOGLE_IOS_CLIENT_ID:-}
       GOOGLE_ANDROID_CLIENT_ID: ${GOOGLE_ANDROID_CLIENT_ID:-}
@@ -162,6 +172,11 @@ services:
       STATUS_ADDRESS: ${STATUS_ADDRESS}
       POSTHOG_ADDRESS: ${POSTHOG_ADDRESS}
       SIGNOZ_ADDRESS: ${SIGNOZ_ADDRESS}
+      # Phase 35 (D35-4) — CSP sources. POSTHOG_PUBLIC_HOST feeds connect-src;
+      # S3_PUBLIC_HOST feeds img-src (defaults to the CDN front — set it when
+      # the bucket's public base differs from cdn.mojaride.com).
+      POSTHOG_PUBLIC_HOST: ${POSTHOG_PUBLIC_HOST:-https://us.i.posthog.com}
+      S3_PUBLIC_HOST: ${S3_PUBLIC_HOST:-cdn.mojaride.com}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

@@ -1,0 +1,17 @@
+{
+  "urgentDispatch": "URGENT DISPATCH",
+  "newRunAssigned": "New Run Assigned",
+  "accept": "Accept Run",
+  "decline": "Decline",
+  "timeRemaining": "Time Remaining",
+  "route": "Route",
+  "departure": "Departure",
+  "passengers": "Passengers",
+  "vehicle": "Vehicle",
+  "runAccepted": "Run Accepted",
+  "runDeclined": "Run Declined",
+  "timedOut": "Dispatch Timed Out",
+  "departs": "Departs {{time}}",
+  "passengersCount": "{{booked}} / {{total}} Passengers",
+  "busPlate": "Bus {{plate}}"
+}

@@ -18,6 +18,7 @@ export const passengerTripGateUpdatedWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Gate Updated",
       body: `Gate for ${escapeHtml(payload.destinationCity)} (${escapeHtml(payload.departureTime)}) is now Gate ${escapeHtml(payload.gate)}.`,
+      overrides: { expo: { data: { type: "trip-gate-updated" } } },
     }));
   },
   {

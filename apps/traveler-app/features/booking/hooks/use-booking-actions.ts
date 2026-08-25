@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 
 export function useCreateHold() {
@@ -79,5 +79,24 @@ export function useSubmitReview() {
 		onSuccess: () => {
 			queryClient.invalidateQueries(trpc.passenger.getUserReviews.pathFilter());
 		},
+	});
+}
+
+/**
+ * Phase 18 (F-PS-04) — the server's own refund quote for THIS booking
+ * (per-seat, snapshot-aware). The cancel dialog renders this instead of a
+ * fare figure, matching the web parity fix.
+ */
+export function useRefundQuote(
+	bookingReference: string | undefined,
+	enabled: boolean,
+) {
+	const trpc = useTRPC();
+	return useQuery({
+		...trpc.passenger.getRefundQuote.queryOptions({
+			bookingReference: bookingReference ?? "",
+			channel: "WALLET",
+		}),
+		enabled: enabled && !!bookingReference,
 	});
 }

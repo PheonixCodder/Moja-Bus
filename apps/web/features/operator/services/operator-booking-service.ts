@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from "@moja/db";
-import { TRPCError } from "@trpc/server";
+import { parseTicketToken } from "@moja/schemas";
 import type {
   OperatorBookingDetail,
   OperatorBookingFilter,
@@ -8,13 +8,8 @@ import type {
   OperatorCheckInResult,
   PassengerBookingStatus,
 } from "@moja/types";
-import { parseTicketToken } from "@/features/operator/lib/parse-ticket-token";
-import {
-  endOfAppCalendarDay,
-  startOfAppCalendarDay,
-} from "@/lib/timezone";
-
-export { parseTicketToken };
+import { TRPCError } from "@trpc/server";
+import { endOfAppCalendarDay, startOfAppCalendarDay } from "@/lib/timezone";
 
 type ListInput = {
   filter: OperatorBookingFilter;
@@ -346,7 +341,8 @@ export class OperatorBookingService {
       paymentStatus: booking.paymentStatus,
       checkedInAt: booking.checkedInAt,
       departureTime,
-      serviceType: booking.trip.serviceType as OperatorBookingListItem["serviceType"],
+      serviceType: booking.trip
+        .serviceType as OperatorBookingListItem["serviceType"],
       originCityName:
         booking.originTripStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
       destinationCityName:
@@ -358,49 +354,50 @@ export class OperatorBookingService {
         booking.originTripStop.terminal.municipality?.name ?? null,
       destinationMunicipalityName:
         booking.destinationTripStop.terminal.municipality?.name ?? null,
-      originQuarterName:
-        booking.originTripStop.terminal.quarter?.name ?? null,
+      originQuarterName: booking.originTripStop.terminal.quarter?.name ?? null,
       destinationQuarterName:
         booking.destinationTripStop.terminal.quarter?.name ?? null,
     };
   }
 
-  private toDetail(
-    booking: {
-      id: string;
-      bookingReference: string;
-      tripId: string;
-      passengerName: string;
-      passengerPhone: string;
-      status: string;
-      paymentStatus: string;
-      checkedInAt: Date | null;
-      ticketToken: string;
-      farePaid: number;
-      issuedAt: Date | null;
-      boardingStopOrder: number;
-      dropoffStopOrder: number;
-      seat: { label: string };
-      trip: { departureDate: Date; serviceType: string; scheduleId?: string | null };
-      originTripStop: {
-        scheduledDeparture: Date | null;
-        terminal: {
-          name: string;
-          cityRelation: { name: string } | null;
-          municipality: { name: string } | null;
-          quarter: { name: string } | null;
-        };
+  private toDetail(booking: {
+    id: string;
+    bookingReference: string;
+    tripId: string;
+    passengerName: string;
+    passengerPhone: string;
+    status: string;
+    paymentStatus: string;
+    checkedInAt: Date | null;
+    ticketToken: string;
+    farePaid: number;
+    issuedAt: Date | null;
+    boardingStopOrder: number;
+    dropoffStopOrder: number;
+    seat: { label: string };
+    trip: {
+      departureDate: Date;
+      serviceType: string;
+      scheduleId?: string | null;
+    };
+    originTripStop: {
+      scheduledDeparture: Date | null;
+      terminal: {
+        name: string;
+        cityRelation: { name: string } | null;
+        municipality: { name: string } | null;
+        quarter: { name: string } | null;
       };
-      destinationTripStop: {
-        terminal: {
-          name: string;
-          cityRelation: { name: string } | null;
-          municipality: { name: string } | null;
-          quarter: { name: string } | null;
-        };
+    };
+    destinationTripStop: {
+      terminal: {
+        name: string;
+        cityRelation: { name: string } | null;
+        municipality: { name: string } | null;
+        quarter: { name: string } | null;
       };
-    },
-  ): OperatorBookingDetail {
+    };
+  }): OperatorBookingDetail {
     const departureTime =
       booking.originTripStop.scheduledDeparture ?? booking.trip.departureDate;
     return {

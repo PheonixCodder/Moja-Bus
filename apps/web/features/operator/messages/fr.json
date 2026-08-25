@@ -1,5 +1,21 @@
 {
   "operatorDashboard": {
+    "drivers": {
+      "trustBadges": {
+        "topRated": "Très bien noté",
+        "safeDriver": "Conducteur prudent",
+        "veteran": "Vétéran"
+      },
+      "analytics": {
+        "ratingTrend": "Évolution des notes — 12 mois",
+        "safetyGauge": "Score de sécurité",
+        "distribution": "Répartition des notes",
+        "noData": "Aucune note conducteur pour le moment",
+        "overspeed": "Excès de vitesse",
+        "harshBraking": "Freinage brusque",
+        "reviewsLabel": "Avis"
+      }
+    },
     "nav": {
       "overview": "Vue d'ensemble",
       "bookings": "Réservations",
@@ -17,6 +33,7 @@
         "operations": "Opérations",
         "planning": "Planification",
         "fleet": "Flotte",
+        "talent": "Recrutement",
         "financials": "Finances",
         "growth": "Croissance",
         "organization": "Organisation"
@@ -24,6 +41,8 @@
       "dispatchBoard": "Tableau de régulation",
       "buses": "Véhicules",
       "drivers": "Conducteurs",
+      "driverMarketplace": "Marketplace Chauffeurs",
+      "sentOffers": "Offres envoyées",
       "withdrawals": "Retraits",
       "promotions": "Promotions",
       "company": "Entreprise",
@@ -31,6 +50,7 @@
       "operator": "Opérateur",
       "platformAdmin": "Administrateur plateforme"
     },
+
     "overview": {
       "portalFallback": "Portail Opérateur Moja Ride",
       "quickPortal": "Portail Rapide",
@@ -717,6 +737,24 @@
       "noActiveBus": "Aucun bus actif trouvé.",
       "viewManifest": "Voir le manifeste",
       "passengerCount": "{count, plural, one {# passager} other {# passagers}}",
+      "driverRow": {
+        "primary": "Chauffeur",
+        "relief": "Suppléant",
+        "conductor": "Convoyeur"
+      },
+      "driverAssignPlaceholder": "Choisir un chauffeur…",
+      "driverSearching": "Chargement des chauffeurs…",
+      "driverNoEligible": "Aucun chauffeur éligible",
+      "licenseMismatch": "Permis {required} requis",
+      "conflictBusy": "Déjà affecté ailleurs",
+      "alreadyOnTrip": "Déjà sur ce trajet",
+      "liveAvailable": "Disponible",
+      "replaceConfirmTitle": "Remplacer le chauffeur affecté ?",
+      "replaceConfirmMessage": "{name} sera retiré de ce trajet et en sera informé.",
+      "driverAssigned": "Chauffeur affecté — notification envoyée",
+      "driverUnassignedToast": "Chauffeur retiré — notification envoyée",
+      "failedAssignDriver": "Échec de la mise à jour de l’affectation",
+      "unassignAria": "Retirer le chauffeur de ce trajet",
       "manifest": {
         "title": "Manifeste du trajet",
         "loading": "Chargement…",

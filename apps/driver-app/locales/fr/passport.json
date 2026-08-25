@@ -1,0 +1,25 @@
+{
+  "passport": "Passeport Chauffeur",
+  "careerStats": "Statistiques de CarriÃ¨re",
+  "safetyIndex": "Indice de SÃ©curitÃ©",
+  "totalTrips": "Total des Courses",
+  "rating": "Note",
+  "licenseCategory": "CatÃ©gorie de Permis",
+  "verificationStatus": "Statut de VÃ©rification",
+  "verified": "VÃ©rifiÃ©",
+  "pending": "En Attente de RÃ©vision",
+  "rejected": "RejetÃ©",
+  "signOut": "Se DÃ©connecter",
+  "signOutConfirm": "ÃŠtes-vous sÃ»r de vouloir vous dÃ©connecter ?",
+  "confirm": "DÃ©connecter",
+  "cancel": "Annuler"
+,
+  "telemetryHealth": "Santé Télémétrie",
+  "streaming": "En streaming",
+  "idleTracking": "Suivi au ralenti",
+  "offline": "Hors ligne",
+  "pingAgo": "il y a {{minutes}} min",
+  "noPingYet": "Aucun ping",
+  "queued": "En attente : {{count}}",
+  "reauthHint": "Session expirée — démarrez une course pour renouveler l'accès télémétrie."
+}

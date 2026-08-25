@@ -1,12 +1,9 @@
+import crypto from "node:crypto";
+import { ROLE_TEMPLATES, type StaffRole } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import crypto from "node:crypto";
 import { getNovuClient } from "@/lib/novu";
 import { createRateLimiter } from "@/lib/rate-limit";
-import {
-  ROLE_TEMPLATES,
-  type StaffRole,
-} from "@moja/schemas";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 const validateTokenLimiter = createRateLimiter({
@@ -59,7 +56,10 @@ export const invitationRouter = createTRPCRouter({
         });
       }
 
-      const hashedToken = crypto.createHash("sha256").update(input.token).digest("hex");
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(input.token)
+        .digest("hex");
       const invitation = await ctx.prisma.staffInvitation.findUnique({
         where: { token: hashedToken },
         select: invitationSelect,
@@ -107,12 +107,17 @@ export const invitationRouter = createTRPCRouter({
   accept: publicProcedure
     .input(z.object({ token: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      const hashedToken = crypto.createHash("sha256").update(input.token).digest("hex");
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(input.token)
+        .digest("hex");
       const invitation = await ctx.prisma.staffInvitation.findUnique({
         where: { token: hashedToken },
         include: {
           company: { select: { id: true, name: true } },
-          invitedBy: { select: { email: true } },
+          // Phase 08 (F-NF-03) — id loaded so the acceptance alert can key
+          // the inviter's user.id subscriber.
+          invitedBy: { select: { id: true, email: true } },
         },
       });
 
@@ -260,8 +265,12 @@ export const invitationRouter = createTRPCRouter({
         try {
           await novu.trigger({
             workflowId: "staff-acceptance-alert",
+            // Phase 08 (F-NF-03) — inviter is a logged-in account holder:
+            // key their user.id so in-app + push fire (mirrors admin-staff.ts).
+            // Legacy fallback keeps the raw invitee email only when no inviting
+            // user record exists (pre-auth invitation edge).
             to: {
-              subscriberId: invitation.invitedBy?.email ?? invitation.email,
+              subscriberId: invitation.invitedBy?.id ?? invitation.email,
               email: invitation.invitedBy?.email ?? invitation.email,
             },
             payload: {
@@ -271,9 +280,14 @@ export const invitationRouter = createTRPCRouter({
             },
             transactionId: `staff-acceptance-alert-${invitation.id}-${userId}`,
           });
-          console.log(`[NOVU] Triggered staff-acceptance-alert for inviter ${invitation.invitedById}`);
+          console.log(
+            `[NOVU] Triggered staff-acceptance-alert for inviter ${invitation.invitedById}`,
+          );
         } catch (err) {
-          console.error("[NOVU] Failed to trigger staff-acceptance-alert workflow:", err);
+          console.error(
+            "[NOVU] Failed to trigger staff-acceptance-alert workflow:",
+            err,
+          );
         }
       }
 

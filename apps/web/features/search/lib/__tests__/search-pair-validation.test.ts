@@ -74,6 +74,16 @@ describe("validateSearchPair", () => {
     );
   });
 
+  it("allows same municipality with different quarters", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Abidjan (Cocody - Riviera 3)", municipalityId: "m1", quarterId: "q1", level: "quarter" },
+        { id: "c1", text: "Abidjan (Cocody - Zone 4)", municipalityId: "m1", quarterId: "q2", level: "quarter" },
+      ),
+      null,
+    );
+  });
+
   it("rejects quarter vs municipality of the same municipality", () => {
     assert.equal(
       validateSearchPair(

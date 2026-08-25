@@ -2,6 +2,20 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import createNextIntlPlugin from "next-intl/plugin";
 
+// Phase 35 (F-IN-09) — first-party object-storage host, parsed at config time
+// so each environment's bucket front is honored without hardcoding it here.
+function resolveS3PublicHost(): string | null {
+  const base = process.env["S3_PUBLIC_URL_BASE"];
+  if (!base) return null;
+  try {
+    return new URL(base).hostname;
+  } catch {
+    return null;
+  }
+}
+
+const s3PublicHost = resolveS3PublicHost();
+
 const withNextIntl = createNextIntlPlugin(
   // Points to the request config — must be this exact path
   "./i18n/request.ts"
@@ -24,11 +38,16 @@ const nextConfig: NextConfig = {
     "pg",
   ],
   images: {
+    // Phase 35 (F-IN-09) — first-party hosts ONLY. The previous `hostname:"**"`
+    // let anyone bounce requests through our image optimizer (SSRF surface +
+    // free image proxying). Editor-supplied arbitrary URLs (blog MDX,
+    // admin banners, author avatars) bypass the optimizer with the
+    // `unoptimized` prop instead of widening this list.
     remotePatterns: [
       { protocol: "https", hostname: "cdn.mojaride.com" },
-      // Allow any HTTPS hostname — covers S3, external CDNs, and user-provided
-      // image URLs embedded in blog post MDX content.
-      { protocol: "https", hostname: "**" },
+      ...(s3PublicHost
+        ? [{ protocol: "https" as const, hostname: s3PublicHost }]
+        : []),
     ],
   },
   turbopack: {

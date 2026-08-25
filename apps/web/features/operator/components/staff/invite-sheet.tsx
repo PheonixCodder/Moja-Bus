@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Send } from "lucide-react";
-import { toast } from "sonner";
+import type { InvitableStaffRole } from "@moja/schemas";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
-import { Textarea } from "@moja/ui/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,17 +20,20 @@ import {
   SheetTitle,
 } from "@moja/ui/components/ui/sheet";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { Textarea } from "@moja/ui/components/ui/textarea";
+import { Send } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
+  type PermissionKey,
   ROLE_LABELS,
   ROLE_TEMPLATES,
-  type PermissionKey,
-  type StaffRole,
 } from "@/features/operator/lib/staff";
 import type { CreateInvitationInput } from "@/features/operator/lib/validations/staff";
-import { useTranslations } from "next-intl";
 import { PermissionMatrix } from "./permission-matrix";
 
-const INVITABLE_ROLES: StaffRole[] = [
+const INVITABLE_ROLES: InvitableStaffRole[] = [
   "OPERATIONS",
   "MANAGER",
   "ADMIN",
@@ -49,11 +49,11 @@ interface InviteSheetProps {
   onClose: () => void;
   onSend: (payload: CreateInvitationInput) => Promise<void>;
   grantable: PermissionKey[];
-  assignableRoles?: StaffRole[];
+  assignableRoles?: InvitableStaffRole[];
 }
 
 function seedPermissions(
-  role: StaffRole,
+  role: InvitableStaffRole,
   grantable: PermissionKey[],
 ): PermissionKey[] {
   const template = ROLE_TEMPLATES[role] ?? [];
@@ -69,23 +69,20 @@ export function InviteSheet({
   assignableRoles,
 }: InviteSheetProps) {
   const roles = useMemo(
-    () =>
-      (assignableRoles?.length ? assignableRoles : INVITABLE_ROLES).filter(
-        (r) => r !== "OWNER",
-      ),
+    () => (assignableRoles?.length ? assignableRoles : INVITABLE_ROLES),
     [assignableRoles],
   );
 
   const t = useTranslations("operatorDashboard.staff");
-  const defaultRole = (roles[0] ?? "OPERATIONS") as StaffRole;
+  const defaultRole = roles[0] ?? "OPERATIONS";
   const [form, setForm] = useState<{
     email: string;
-    role: Exclude<StaffRole, "OWNER">;
+    role: InvitableStaffRole;
     jobTitle: string;
     message: string;
   }>({
     email: "",
-    role: defaultRole === "OWNER" ? "OPERATIONS" : defaultRole,
+    role: defaultRole,
     jobTitle: "",
     message: "",
   });
@@ -101,16 +98,19 @@ export function InviteSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only reseed on open/grantable
   }, [open, grantable]);
 
-  function onRoleChange(role: Exclude<StaffRole, "OWNER">) {
+  function onRoleChange(role: InvitableStaffRole) {
     setForm((f) => ({ ...f, role }));
     setPermissions(seedPermissions(role, grantable));
   }
 
   function reset() {
-    const role =
-      defaultRole === "OWNER" ? ("OPERATIONS" as const) : defaultRole;
-    setForm({ email: "", role, jobTitle: "", message: "" });
-    setPermissions(seedPermissions(role, grantable));
+    setForm({
+      email: "",
+      role: defaultRole,
+      jobTitle: "",
+      message: "",
+    });
+    setPermissions(seedPermissions(defaultRole, grantable));
   }
 
   async function handleSend() {
@@ -151,10 +151,7 @@ export function InviteSheet({
         }
       }}
     >
-      <SheetContent
-        side="right"
-        className="flex flex-col p-0 sm:max-w-lg"
-      >
+      <SheetContent side="right" className="flex flex-col p-0 sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="text-base font-semibold">
             {t("inviteSheet.title")}
@@ -171,7 +168,9 @@ export function InviteSheet({
               id="invite-email"
               type="email"
               value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, email: e.target.value }))
+              }
               placeholder={t("inviteSheet.emailPlaceholder")}
             />
           </div>
@@ -180,9 +179,7 @@ export function InviteSheet({
             <Label>{t("inviteSheet.roleLabel")}</Label>
             <Select
               value={form.role}
-              onValueChange={(v) =>
-                onRoleChange(v as Exclude<StaffRole, "OWNER">)
-              }
+              onValueChange={(v) => onRoleChange(v as InvitableStaffRole)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -198,7 +195,9 @@ export function InviteSheet({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invite-title">{t("inviteSheet.jobTitleLabel")}</Label>
+            <Label htmlFor="invite-title">
+              {t("inviteSheet.jobTitleLabel")}
+            </Label>
             <Input
               id="invite-title"
               value={form.jobTitle}
@@ -218,7 +217,9 @@ export function InviteSheet({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invite-message">{t("inviteSheet.messageLabel")}</Label>
+            <Label htmlFor="invite-message">
+              {t("inviteSheet.messageLabel")}
+            </Label>
             <Textarea
               id="invite-message"
               value={form.message}

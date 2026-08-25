@@ -1,0 +1,20 @@
+{
+	"scanTitle": "Ticket Scanner",
+	"scanHint": "Align QR code within the frame",
+	"scanSubtitle": "Scan passenger digital ticket barcode",
+	"scanning": "Scanning...",
+	"cleared": "CLEARED",
+	"clearedMsg": "Passenger boarded successfully",
+	"doubleBoardingAlert": "DOUBLE-BOARDING DETECTED",
+	"doubleBoardingMsg": "This ticket has already been scanned",
+	"invalidTicket": "INVALID TICKET",
+	"invalidTicketMsg": "Ticket not found or tampered",
+	"tapToScan": "Tap to scan next ticket",
+	"manualEntry": "Manual Entry",
+	"labelPassenger": "Passenger",
+	"labelSeat": "Assigned Seat",
+	"labelBookingRef": "Booking Ref",
+	"confirmNext": "Confirm & Scan Next",
+	"dismissReturn": "Dismiss & Return to Camera",
+	"fallbackError": "Invalid ticket barcode or cancelled reservation."
+}

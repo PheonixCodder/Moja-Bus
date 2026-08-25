@@ -2,6 +2,12 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
+/** Phase 08 — extracted for the enqueue↔payloadSchema contract test. */
+export const staffAcceptanceAlertPayloadSchema = z.object({
+  staffName: z.string(),
+  staffEmail: z.string().email(),
+  role: z.string(),
+});
 
 export const staffAcceptanceAlertWorkflow = workflow(
   "staff-acceptance-alert",
@@ -15,11 +21,8 @@ export const staffAcceptanceAlertWorkflow = workflow(
   },
   {
     name: "Staff Invitation Accepted Alert",
-    description: "Sends an In-App notification to the inviter when a staff member accepts their invitation",
-    payloadSchema: z.object({
-      staffName: z.string(),
-      staffEmail: z.string().email(),
-      role: z.string(),
-    }),
-  }
+    description:
+      "Sends an In-App notification to the inviter when a staff member accepts their invitation",
+    payloadSchema: staffAcceptanceAlertPayloadSchema,
+  },
 );

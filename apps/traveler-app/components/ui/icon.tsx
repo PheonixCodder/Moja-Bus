@@ -4,8 +4,9 @@ import * as React from "react";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
-type IconProps = LucideProps & {
+export type IconProps = LucideProps & {
 	as: LucideIcon;
+	className?: string;
 } & React.RefAttributes<LucideIcon>;
 
 const StyledIcon = styled(function IconImpl({
@@ -13,6 +14,7 @@ const StyledIcon = styled(function IconImpl({
 	...props
 }: {
 	as: LucideIcon;
+	className?: string;
 } & LucideProps) {
 	return <IconComponent {...props} />;
 });

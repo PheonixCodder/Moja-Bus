@@ -228,7 +228,7 @@ export const discountsAdminRouter = createTRPCRouter({
             })),
             campaignId: before.id,
             campaignName: before.name,
-            reason: input.pauseReason ?? "Campaign paused by administrator",
+            pauseReason: input.pauseReason ?? "Campaign paused by administrator",
           });
         }
       }

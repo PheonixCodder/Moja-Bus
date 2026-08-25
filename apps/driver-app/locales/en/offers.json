@@ -1,0 +1,52 @@
+{
+	"title": "Job Offers",
+	"subtitle": "{{count}} offer(s) awaiting your response",
+	"tab": {
+		"offers": "Pending",
+		"history": "History"
+	},
+	"empty": {
+		"active": "No active offers",
+		"activeHint": "Complete your marketplace profile and stay \"Available for Hire\" to get discovered by operators.",
+		"history": "No history yet"
+	},
+	"status": {
+		"PENDING": "PENDING",
+		"COUNTERED": "NEGOTIATING",
+		"ACCEPTED": "ACCEPTED",
+		"DECLINED": "DECLINED",
+		"EXPIRED": "EXPIRED",
+		"WITHDRAWN": "WITHDRAWN"
+	},
+	"terms": {
+		"salary": "Monthly salary",
+		"monthShort": "mo",
+		"start": "Preferred start"
+	},
+	"actions": {
+		"accept": "Accept",
+		"counter": "Counter",
+		"decline": "Decline"
+	},
+	"counter": {
+		"title": "Send a counter-offer",
+		"subtitle": "The operator can accept, decline, or negotiate again. Response window resets to 7 days.",
+		"salaryLabel": "Proposed monthly salary (FCFA)",
+		"dateLabel": "Preferred start date (optional)",
+		"noteLabel": "Message to the operator (optional)",
+		"notePlaceholder": "Availability, route preferences…",
+		"cancel": "Cancel",
+		"submit": "Send"
+	},
+	"exclusive": {
+		"title": "Active exclusive contract",
+		"message": "You already have an active exclusive intercity contract with: {{companies}}. Accepting will automatically terminate it and the operator will be notified.",
+		"confirm": "Terminate & Accept",
+		"cancel": "Cancel"
+	},
+	"resolvedAt": "Closed on {{date}}",
+	"moreHidden": "more offers not shown",
+	"errors": {
+		"generic": "Something went wrong. Please try again."
+	}
+}

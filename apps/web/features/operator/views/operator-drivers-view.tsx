@@ -1,22 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import {
-  UserCheck,
-  Plus,
-  Search,
-  MapPin,
-  Star,
-  ShieldCheck,
-  ShieldAlert,
-  Route,
-  MoreVertical,
-  Radio,
-  ExternalLink,
-} from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { Button } from "@moja/ui/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@moja/ui/components/ui/dropdown-menu";
 import { Input } from "@moja/ui/components/ui/input";
 import {
   Select,
@@ -25,19 +21,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@moja/ui/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
-import { useTRPC } from "@/trpc/client";
-import { useDebounce } from "@/features/operator/hooks/useDebounce";
-import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
+  ExternalLink,
+  MapPin,
+  MoreVertical,
+  Plus,
+  Radio,
+  Route,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  Star,
+  UserCheck,
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import { AddDriverModal } from "@/features/operator/components/drivers/add-driver-modal";
+import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
+import { LicenseExpiryBadge } from "@/features/operator/components/drivers/license-expiry-badge";
 import { VerifyDriverDialog } from "@/features/operator/components/drivers/verify-driver-dialog";
+import { useDebounce } from "@/features/operator/hooks/useDebounce";
+import { useTRPC } from "@/trpc/client";
 
 export function OperatorDriversView() {
   const trpc = useTRPC();
@@ -45,6 +50,9 @@ export function OperatorDriversView() {
   const debouncedSearch = useDebounce(search, 300);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  // Phase 27 (F-OP-15) — server-supported filters finally reachable from the UI.
+  const [verificationFilter, setVerificationFilter] = useState<string>("ALL");
+  const [employmentFilter, setEmploymentFilter] = useState<string>("ALL");
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [verifyTarget, setVerifyTarget] = useState<{
     id: string;
@@ -53,29 +61,60 @@ export function OperatorDriversView() {
   } | null>(null);
 
   const permissionsQuery = useQuery(trpc.drivers.getPermissions.queryOptions());
-  const canManage = permissionsQuery.data?.canCreate || permissionsQuery.data?.canUpdate;
+  const canManage =
+    permissionsQuery.data?.canCreate || permissionsQuery.data?.canUpdate;
   const canVerify = permissionsQuery.data?.canVerify;
 
-  const driversQuery = useQuery(
-    trpc.drivers.listDrivers.queryOptions({
+  // Phase 13 (F-OP-04) — accumulate pagination (marketplace pattern): rosters
+  // larger than one page stay fully visible instead of silently truncated.
+  const ROSTER_PAGE_SIZE = 50;
+  const [page, setPage] = useState(1);
+  const [accumulated, setAccumulated] = useState<
+    NonNullable<typeof driversQuery.data>["items"]
+  >([]);
+  const [lastFilterKey, setLastFilterKey] = useState("");
+  const filterKey = `${debouncedSearch}|${statusFilter}|${categoryFilter}|${verificationFilter}|${employmentFilter}`;
+
+  const driversQuery = useQuery({
+    ...trpc.drivers.listDrivers.queryOptions({
       search: debouncedSearch || undefined,
       status: statusFilter !== "ALL" ? (statusFilter as any) : undefined,
-      licenseCategory: categoryFilter !== "ALL" ? (categoryFilter as any) : undefined,
-      page: 1,
-      limit: 50,
-    })
-  );
+      licenseCategory:
+        categoryFilter !== "ALL" ? (categoryFilter as any) : undefined,
+      verificationStatus:
+        verificationFilter !== "ALL" ? (verificationFilter as any) : undefined,
+      employmentType:
+        employmentFilter !== "ALL" ? (employmentFilter as any) : undefined,
+      page,
+      limit: ROSTER_PAGE_SIZE,
+    }),
+    placeholderData: (prev) => prev,
+  });
 
-  const drivers = driversQuery.data?.items ?? [];
+  // Reset accumulation when filters/search change
+  if (filterKey !== lastFilterKey && !driversQuery.isLoading) {
+    setLastFilterKey(filterKey);
+    setPage(1);
+    setAccumulated([]);
+  }
+
+  const incoming = driversQuery.data?.items ?? [];
   const total = driversQuery.data?.total ?? 0;
 
-  // Aggregate stats
-  const onDutyCount = drivers.filter((d) => d.status === "ON_DUTY" || d.status === "ON_TRIP").length;
-  const verifiedCount = drivers.filter((d) => d.verificationStatus === "VERIFIED").length;
-  const pendingCount = drivers.filter((d) => d.verificationStatus === "PENDING").length;
+  // Merge without duplicates so refetches never double rows
+  const knownIds = new Set(accumulated.map((d) => d.id));
+  const newOnes = incoming.filter((d) => !knownIds.has(d.id));
+  const drivers = page === 1 ? incoming : [...accumulated, ...newOnes];
+  const hasMore = drivers.length < total;
+
+  // P3-4 — server aggregates under the same filters; accurate beyond page 1.
+  const stats = driversQuery.data?.stats;
+  const onDutyCount = stats?.onDuty ?? 0;
+  const verifiedCount = stats?.verified ?? 0;
+  const pendingCount = stats?.pending ?? 0;
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -84,7 +123,8 @@ export function OperatorDriversView() {
             Driver Fleet Management
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Manage commercial drivers, license verifications, performance reviews, and real-time trip allocations.
+            Manage commercial drivers, license verifications, performance
+            reviews, and real-time trip allocations.
           </p>
         </div>
 
@@ -108,33 +148,49 @@ export function OperatorDriversView() {
       {/* KPI Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-          <div className="text-xs font-medium text-muted-foreground">Total Fleet Drivers</div>
+          <div className="text-xs font-medium text-muted-foreground">
+            Total Fleet Drivers
+          </div>
           <div className="text-2xl font-bold mt-1">{total}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">Active company affiliations</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Active company affiliations
+          </div>
         </div>
 
         <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-          <div className="text-xs font-medium text-muted-foreground">On Duty / Active</div>
+          <div className="text-xs font-medium text-muted-foreground">
+            On Duty / Active
+          </div>
           <div className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
             {onDutyCount}
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">Available or on trip</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Available or on trip
+          </div>
         </div>
 
         <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-          <div className="text-xs font-medium text-muted-foreground">Verified Licenses</div>
+          <div className="text-xs font-medium text-muted-foreground">
+            Verified Licenses
+          </div>
           <div className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">
             {verifiedCount}
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">Compliance cleared</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Compliance cleared
+          </div>
         </div>
 
         <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-          <div className="text-xs font-medium text-muted-foreground">Pending Verification</div>
+          <div className="text-xs font-medium text-muted-foreground">
+            Pending Verification
+          </div>
           <div className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
             {pendingCount}
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">Requires compliance review</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Requires compliance review
+          </div>
         </div>
       </div>
 
@@ -166,7 +222,50 @@ export function OperatorDriversView() {
               <SelectItem value="ON_DUTY">On Duty</SelectItem>
               <SelectItem value="ON_TRIP">On Trip</SelectItem>
               <SelectItem value="RESTING">Resting</SelectItem>
+              {/* Phase 27 (F-OP-15) — suspended drivers were previously
+                  unreachable via the roster UI. */}
+              <SelectItem value="SUSPENDED">Suspended</SelectItem>
               <SelectItem value="OFFLINE">Offline</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Phase 27 (F-OP-15) — verification + contract-type filters, both
+              already supported server-side. */}
+          <Select
+            value={verificationFilter}
+            onValueChange={(val: string | null) => {
+              if (val) setVerificationFilter(val);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Verification" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Verification</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="VERIFIED">Verified</SelectItem>
+              <SelectItem value="REJECTED">Rejected</SelectItem>
+              <SelectItem value="SUSPENDED">Suspended</SelectItem>
+              <SelectItem value="EXPIRED">Expired</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={employmentFilter}
+            onValueChange={(val: string | null) => {
+              if (val) setEmploymentFilter(val);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="Contract Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Contracts</SelectItem>
+              <SelectItem value="EXCLUSIVE_INTERCITY">
+                Exclusive Intercity
+              </SelectItem>
+              <SelectItem value="CONTRACTOR_URBAN">Contractor Urban</SelectItem>
+              <SelectItem value="HYBRID">Hybrid</SelectItem>
             </SelectContent>
           </Select>
 
@@ -199,14 +298,20 @@ export function OperatorDriversView() {
         ) : drivers.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <UserCheck className="size-10 text-muted-foreground/40 mx-auto" />
-            <div className="font-semibold text-foreground">No drivers found</div>
+            <div className="font-semibold text-foreground">
+              No drivers found
+            </div>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               {search || statusFilter !== "ALL"
                 ? "Try adjusting your search criteria or status filters."
                 : "Get started by onboarding your commercial bus drivers to assign them to trips."}
             </p>
             {canManage && (
-              <Button onClick={() => setAddModalOpen(true)} size="sm" className="mt-2">
+              <Button
+                onClick={() => setAddModalOpen(true)}
+                size="sm"
+                className="mt-2"
+              >
                 Onboard First Driver
               </Button>
             )}
@@ -215,7 +320,6 @@ export function OperatorDriversView() {
           <div className="divide-y divide-border">
             {drivers.map((driver) => {
               const affiliation = driver.companyAffiliations[0];
-              const isIntercity = affiliation?.employmentType === "EXCLUSIVE_INTERCITY";
 
               return (
                 <div
@@ -245,12 +349,21 @@ export function OperatorDriversView() {
                           {driver.user.fullName}
                         </Link>
                         <DriverStatusBadge status={driver.status} />
+                        {/* Phase 14 (F-OP-03) — licence expiry visibility */}
+                        <LicenseExpiryBadge
+                          licenseExpiryDate={driver.licenseExpiryDate}
+                        />
                       </div>
 
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-0.5">
-                        <span>{driver.user.phoneNumber || driver.user.email}</span>
+                        <span>
+                          {driver.user.phoneNumber || driver.user.email}
+                        </span>
                         <span>•</span>
-                        <span className="font-mono font-medium">Lic: {driver.licenseNumber} (Class {driver.licenseCategory})</span>
+                        <span className="font-mono font-medium">
+                          Lic: {driver.licenseNumber} (Class{" "}
+                          {driver.licenseCategory})
+                        </span>
                         <span>•</span>
                         <span className="inline-flex items-center gap-1 text-amber-500 font-semibold">
                           <Star className="size-3 fill-amber-500" />
@@ -264,7 +377,11 @@ export function OperatorDriversView() {
                   <div className="flex items-center gap-4 shrink-0">
                     <div className="text-right hidden md:block">
                       <div className="text-xs font-semibold text-foreground">
-                        {isIntercity ? "Intercity Exclusive" : "Urban Contractor"}
+                        {affiliation?.employmentType === "EXCLUSIVE_INTERCITY"
+                          ? "Intercity Exclusive"
+                          : affiliation?.employmentType === "HYBRID"
+                            ? "Hybrid (Multi-Mode)"
+                            : "Urban Contractor"}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {driver.currentTrip ? (
@@ -299,32 +416,53 @@ export function OperatorDriversView() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/operator/drivers/${driver.id}`}>
+                          <Link
+                            href={`/dashboard/operator/drivers/${driver.id}`}
+                          >
                             <ExternalLink className="size-4 mr-2" />
                             View Full Passport
                           </Link>
                         </DropdownMenuItem>
 
-                        {canVerify && driver.verificationStatus !== "VERIFIED" && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setVerifyTarget({
-                                id: driver.id,
-                                name: driver.user.fullName,
-                                license: driver.licenseNumber,
-                              })
-                            }
-                          >
-                            <ShieldCheck className="size-4 mr-2 text-emerald-500" />
-                            Verify License
-                          </DropdownMenuItem>
-                        )}
+                        {canVerify &&
+                          driver.verificationStatus !== "VERIFIED" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setVerifyTarget({
+                                  id: driver.id,
+                                  name: driver.user.fullName,
+                                  license: driver.licenseNumber,
+                                })
+                              }
+                            >
+                              <ShieldCheck className="size-4 mr-2 text-emerald-500" />
+                              Verify License
+                            </DropdownMenuItem>
+                          )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
               );
             })}
+
+            {/* Phase 13 (F-OP-04) — accumulate load-more */}
+            {hasMore && (
+              <div className="p-4 flex flex-col items-center gap-1.5 border-t border-border">
+                <Button
+                  variant="outline"
+                  disabled={driversQuery.isFetching}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  {driversQuery.isFetching
+                    ? "Loading…"
+                    : `Load more (${total - drivers.length} remaining)`}
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Showing {drivers.length} of {total} drivers
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

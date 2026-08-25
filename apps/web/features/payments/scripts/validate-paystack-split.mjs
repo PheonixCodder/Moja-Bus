@@ -27,7 +27,6 @@ async function main() {
     amount: 10000 * 100,
     currency: "XOF",
     reference,
-    channels: ["card", "mobile_money"],
     ...(subaccountCode
       ? { subaccount: subaccountCode, bearer: "account" }
       : {}),

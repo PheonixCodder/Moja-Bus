@@ -18,6 +18,7 @@ export const passengerTripBoardingWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Boarding Started",
       body: `Boarding started for ${escapeHtml(payload.destinationCity)}. ${payload.gate ? `Gate ${escapeHtml(payload.gate)}` : "Proceed to boarding terminal"}. Bus: ${payload.busPlate ?? "Assigned"}`,
+      overrides: { expo: { data: { type: "trip-boarding" } } },
     }));
   },
   {

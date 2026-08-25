@@ -291,6 +291,7 @@ export function AdminBlogView() {
                         <TableCell className="px-4 py-3">
                           {post.coverImage ? (
                             <Image
+                              unoptimized
                               src={post.coverImage}
                               alt={post.title}
                               width={64}

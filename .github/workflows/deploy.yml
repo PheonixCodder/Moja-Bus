@@ -7,10 +7,9 @@ on:
 
 jobs:
   quality-gate:
-    name: Lint & Typecheck Quality Gate
+    name: Typecheck · Test · Lint Quality Gate (F-IN-05)
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL_BUILD }}
+    # Phase 01: DATABASE_URL dropped — typecheck and the unit test suites need no live DB.
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,8 +26,24 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Policy (Phase 01): failures newly exposed by this gate are fixed here ONLY if they
+      # are test bugs; product bugs are filed into their owning remediation phase instead.
+
+      # traveler-app included per Phase 01 D7-A probe (tsc --noEmit clean 2026-08-23).
       - name: Typecheck workspace
-        run: pnpm exec turbo run typecheck --filter=!traveler-app
+        run: pnpm exec turbo run typecheck
+
+      # Blocks deploys on any failing suite, including the four suites wired in Phase 01
+      # (outbox, authorize, roles-and-permissions) after D5-A consolidation.
+      - name: Test workspace
+        run: pnpm exec turbo run test
+
+      # D8-A: lint runs on every deploy. Report-only for now (continue-on-error):
+      # pre-existing repo-wide biome debt across ~10 packages predates this phase and is
+      # tracked as a follow-up finding. Flip this step to blocking once that cleanup lands.
+      - name: Lint workspace (report-only until biome debt cleared)
+        run: pnpm exec turbo run lint
+        continue-on-error: true
 
   build-and-push:
     name: Build & Push Hardened Images

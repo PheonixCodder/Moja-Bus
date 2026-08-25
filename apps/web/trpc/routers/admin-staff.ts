@@ -20,7 +20,6 @@ import {
   UpdateAdminStatusSchema,
 } from "@/features/admin/lib/validations/admin-staff";
 import { getNovuClient } from "@/lib/novu";
-import { createRateLimiter } from "@/lib/rate-limit";
 import {
   type AdminPermissionContext,
   adminHasPermission,
@@ -33,6 +32,7 @@ import {
   canAssignAdminRole,
   canModifyAdminMember,
 } from "@/lib/permissions/admin-staff-hierarchy";
+import { createRateLimiter } from "@/lib/rate-limit";
 import {
   adminStaffProcedure,
   createTRPCRouter,
@@ -227,7 +227,7 @@ export const adminStaffRouter = createTRPCRouter({
       const invitation = await ctx.prisma.adminStaffInvitation.findUnique({
         where: { token: hashedToken },
         include: {
-          invitedBy: { select: { fullName: true, email: true } },
+          invitedBy: { select: { id: true, fullName: true, email: true } },
         },
       });
 
@@ -342,9 +342,12 @@ export const adminStaffRouter = createTRPCRouter({
       if (novu) {
         try {
           await novu.trigger({
-            workflowId: "admin-staff-acceptance-alert",
+            // P2-2: was "admin-staff-acceptance-alert" — a ghost ID that was
+            // never registered, so admin inviters never got alerted. The
+            // registered "staff-acceptance-alert" takes the same payload.
+            workflowId: "staff-acceptance-alert",
             to: {
-              subscriberId: invitation.invitedBy?.email ?? invitation.email,
+              subscriberId: invitation.invitedBy?.id ?? invitation.email,
               email: invitation.invitedBy?.email ?? invitation.email,
             },
             payload: {
@@ -355,11 +358,11 @@ export const adminStaffRouter = createTRPCRouter({
             transactionId: `admin-staff-acceptance-${invitation.id}-${userId}`,
           });
           console.log(
-            `[NOVU] Triggered admin-staff-acceptance-alert for inviter ${invitation.invitedById}`,
+            `[NOVU] Triggered staff-acceptance-alert for inviter ${invitation.invitedById}`,
           );
         } catch (err) {
           console.error(
-            "[NOVU] Failed to trigger admin-staff-acceptance-alert workflow:",
+            "[NOVU] Failed to trigger staff-acceptance-alert workflow:",
             err,
           );
         }
@@ -691,7 +694,7 @@ export const adminStaffRouter = createTRPCRouter({
       try {
         await novu.trigger({
           workflowId: "auth-otp",
-          to: { subscriberId: ctx.user.email, email: ctx.user.email },
+          to: { subscriberId: ctx.user.id, email: ctx.user.email },
           payload: {
             identifier: ctx.user.email,
             otpCode: otp,
@@ -841,7 +844,7 @@ export const adminStaffRouter = createTRPCRouter({
         ctx.prisma.adminStaffInvitation.findMany({
           where,
           include: {
-            invitedBy: { select: { fullName: true, email: true } },
+            invitedBy: { select: { id: true, fullName: true, email: true } },
             acceptedBy: { select: { fullName: true, email: true } },
           },
           orderBy: { createdAt: "desc" },
@@ -939,7 +942,7 @@ export const adminStaffRouter = createTRPCRouter({
           invitedById: ctx.user.id,
         },
         include: {
-          invitedBy: { select: { fullName: true, email: true } },
+          invitedBy: { select: { id: true, fullName: true, email: true } },
         },
       });
 
@@ -1046,7 +1049,9 @@ export const adminStaffRouter = createTRPCRouter({
 
       const invite = await ctx.prisma.adminStaffInvitation.findUnique({
         where: { id: input.invitationId },
-        include: { invitedBy: { select: { fullName: true, email: true } } },
+        include: {
+          invitedBy: { select: { id: true, fullName: true, email: true } },
+        },
       });
       if (!invite) {
         throw new TRPCError({
@@ -1087,7 +1092,9 @@ export const adminStaffRouter = createTRPCRouter({
       const updated = await ctx.prisma.adminStaffInvitation.update({
         where: { id: invite.id },
         data: { expiresAt: newExpiresAt, token: newHashedToken },
-        include: { invitedBy: { select: { fullName: true, email: true } } },
+        include: {
+          invitedBy: { select: { id: true, fullName: true, email: true } },
+        },
       });
 
       await logAdminStaffActivity(ctx.prisma, {

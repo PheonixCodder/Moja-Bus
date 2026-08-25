@@ -27,9 +27,9 @@ import {
 import { cn } from "@moja/ui/lib/utils";
 import {
   Activity,
+  Banknote,
   BarChart2,
   Briefcase,
-  Banknote,
   ChevronsUpDown,
   Coins,
   FileText,
@@ -49,6 +49,8 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
+  Store,
+  UserCheck,
   Users,
   Webhook,
 } from "lucide-react";
@@ -250,6 +252,20 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       title: t("verifications"),
       url: "/dashboard/admin/verifications",
       icon: ShieldCheck,
+    },
+    {
+      title: t("driverVerifications"),
+      url: "/dashboard/admin/drivers/verifications",
+      icon: UserCheck,
+      // Phase 25 (F-OP-09) — hub entry hidden without hub read access,
+      // mirroring the marketplace item's gating.
+      permission: "drivers:verify.read",
+    },
+    {
+      title: t("driverMarketplace"),
+      url: "/dashboard/admin/drivers/marketplace",
+      icon: Store,
+      permission: "marketplace:read",
     },
     {
       title: t("staff"),

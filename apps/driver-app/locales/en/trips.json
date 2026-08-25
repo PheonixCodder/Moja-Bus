@@ -1,0 +1,15 @@
+{
+  "myRuns": "My Runs",
+  "upcomingRuns": "Upcoming Runs",
+  "pastRuns": "Past Runs",
+  "noUpcoming": "No Upcoming Runs",
+  "noPast": "No Past Runs",
+  "noUpcomingMsg": "You have no scheduled runs. Check back later.",
+  "route": "Route",
+  "departure": "Departure",
+  "passengers": "Passengers",
+  "vehicle": "Vehicle",
+  "startRun": "Start Run",
+  "runActive": "Run Active",
+  "pullToRefresh": "Pull to refresh"
+}

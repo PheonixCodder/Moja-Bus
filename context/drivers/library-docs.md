@@ -47,3 +47,13 @@ Project-specific usage patterns and constraints for third-party libraries used a
 - **Rules**:
   - Use `@rn-primitives/dialog`, `@rn-primitives/tabs`, `@rn-primitives/avatar`, and `@rn-primitives/progress`.
   - Keep styling consistent with `@moja/theme` tokens (colors, font families, radii).
+
+---
+
+## 6. @rnmapbox/maps — validated JS/native pair (Phase 30 / F-TM-19)
+
+- **JS pin**: 10.3.5 EXACT (caret removed in both pps/driver-app and pps/traveler-app — a floating range over a hard native pin is an untested combination by definition).
+- **Native pin**: 11.18.0 via the config-plugin RNMapboxMapsVersion in both pp.json files.
+- **Status**: pair recorded from the audit's observed configuration; **release EAS build (both platforms) remains the staging leg that proves it** — a green build + map render screenshot closes F-TM-19 fully.
+- Attribution/logo must stay enabled on Mapbox-hosted styles (see driver-navigation-map.tsx / traveler-tracking-map.tsx, Phase 30).
+

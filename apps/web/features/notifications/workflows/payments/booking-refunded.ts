@@ -40,6 +40,7 @@ export const passengerBookingRefundedWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Ticket Refunded",
       body: `Booking ${escapeHtml(payload.bookingReference)} cancelled. ${escapeHtml(payload.refundAmountXOF)} XOF refunded via ${escapeHtml(payload.channel)}.`,
+      overrides: { expo: { data: { type: "booking-refunded", bookingReference: payload.bookingReference } } },
     }));
   },
   {

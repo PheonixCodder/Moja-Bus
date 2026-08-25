@@ -1,0 +1,19 @@
+{
+  "earnings": "Earnings",
+  "thisWeek": "This Week",
+  "totalEarned": "Total Earned",
+  "clockIn": "Clock In",
+  "clockOut": "Clock Out",
+  "shiftActive": "Shift Active",
+  "shiftHistory": "Shift History",
+  "cashout": "Mobile Money Cashout",
+  "cashoutDetails": "Cashout Details",
+  "noShifts": "No shift history yet",
+  "duration": "Duration",
+  "earnings_label": "Earnings",
+  "tripsCompleted": "Trips Completed",
+  "startShift": "Start New Shift",
+  "endShift": "End Shift"
+,
+  "estimationBadge": "Estimation"
+}

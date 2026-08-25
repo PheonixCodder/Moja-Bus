@@ -2,6 +2,12 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
+/** Phase 08 — extracted for the enqueue↔payloadSchema contract test. */
+export const userRoleUpdatedPayloadSchema = z.object({
+  email: z.string().email(),
+  userName: z.string(),
+  newRole: z.enum(["TRAVELER", "OPERATOR", "ADMIN"]),
+});
 
 export const userRoleUpdatedWorkflow = workflow(
   "user-role-updated",
@@ -37,14 +43,11 @@ export const userRoleUpdatedWorkflow = workflow(
   },
   {
     name: "User Privilege Updated",
-    description: "Alerts users and security logs immediately when user roles are updated by admins",
+    description:
+      "Alerts users and security logs immediately when user roles are updated by admins",
     preferences: {
       all: { readOnly: true },
     },
-    payloadSchema: z.object({
-      email: z.string().email(),
-      userName: z.string(),
-      newRole: z.enum(["TRAVELER", "OPERATOR", "ADMIN"]),
-    }),
-  }
+    payloadSchema: userRoleUpdatedPayloadSchema,
+  },
 );

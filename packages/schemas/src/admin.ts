@@ -50,6 +50,26 @@ export const adminUpdateVerificationChecklistSchema = z.object({
   permitVerified: z.boolean(),
 });
 
+export const adminListDriversForVerificationSchema = z.object({
+  search: z.string().optional(),
+  status: z
+    .enum(["ALL", "PENDING", "VERIFIED", "REJECTED", "SUSPENDED"])
+    .default("PENDING"),
+  licenseCategory: z.enum(["B", "C", "D", "E"]).optional(),
+  limit: z.number().int().min(1).max(100).default(50),
+  offset: z.number().int().min(0).default(0),
+});
+export type AdminListDriversForVerificationInput = z.infer<
+  typeof adminListDriversForVerificationSchema
+>;
+
+export const adminVerifyDriverSchema = z.object({
+  driverProfileId: z.string().cuid(),
+  action: z.enum(["APPROVE", "REJECT", "SUSPEND"]),
+  rejectionReason: z.string().optional(),
+});
+export type AdminVerifyDriverInput = z.infer<typeof adminVerifyDriverSchema>;
+
 export const adminListLedgerEntriesSchema = z.object({
   search: z.string().optional(),
   side: z.enum(["DEBIT", "CREDIT"]).optional(),
@@ -57,6 +77,3 @@ export const adminListLedgerEntriesSchema = z.object({
   limit: z.number().int().min(1).max(100).default(20),
   offset: z.number().int().min(0).default(0),
 });
-
-
-

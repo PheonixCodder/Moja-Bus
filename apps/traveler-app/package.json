@@ -8,6 +8,7 @@
 		"ios": "expo start -c --ios",
 		"web": "expo start -c --web",
 		"clean": "rm -rf .expo node_modules",
+		"test": "tsx --test __tests__/i18n-parity.test.ts",
 		"lint": "biome check --config-path=biome.jsonc app.json metro.config.js biome.jsonc nativewind-env.d.ts package.json tsconfig.json app components constants features hooks lib",
 		"typecheck": "tsc --noEmit",
 		"eas-build-pre-install": "node ./scripts/eas-build-pre-install.cjs"
@@ -51,6 +52,7 @@
 		"@rn-primitives/toggle": "^1.5.2",
 		"@rn-primitives/toggle-group": "^1.5.2",
 		"@rn-primitives/tooltip": "^1.5.2",
+		"@rnmapbox/maps": "10.3.5",
 		"@tanstack/react-query": "^5.101.1",
 		"@trpc/client": "^11.18.0",
 		"@trpc/tanstack-react-query": "^11.18.0",

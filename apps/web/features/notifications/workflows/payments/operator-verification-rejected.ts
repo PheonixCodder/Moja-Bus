@@ -1,6 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
+import { dashboardUrl } from "@/features/notifications/utils/app-url";
 
 
 export const operatorVerificationRejectedWorkflow = workflow(
@@ -17,7 +18,7 @@ export const operatorVerificationRejectedWorkflow = workflow(
             "<strong>${escapeHtml(payload.reason)}</strong>"
           </div>
           <p style="font-size: 15px; line-height: 1.5; color: #334155;">Please log in to your dashboard and re-upload valid documents under settings to retry verification.</p>
-          <a href="https://admin.mojaride.com/dashboard/operator/settings" 
+          <a href="${dashboardUrl("/dashboard/operator/settings")} 
              style="display: inline-block; background: #ef4444; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin-top: 16px; text-align: center;">
              Update Company Documents
           </a>

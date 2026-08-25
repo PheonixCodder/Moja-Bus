@@ -49,7 +49,7 @@ export class BookingConfirmationService {
       (holdGroup.holdExpiresAt !== null && holdGroup.holdExpiresAt < new Date());
 
     if (holdIsExpired) {
-      await this.rescueOrphanedPayment(holdGroup, userId);
+      await this.rescueOrphanedPayment(holdGroup);
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
@@ -280,6 +280,27 @@ export class BookingConfirmationService {
         await engine.commit(tx as any);
       }
 
+      // Phase 32 (F-PS-14) — receipt outbox row enqueues INSIDE the tx
+      // (atomic with confirmation; a crash after commit can no longer
+      // lose it). Webhook retries take the P2002 recovery path, which
+      // skips this by design — the first commit already enqueued it.
+      const { sendBookingConfirmedEmails } = await import(
+        "./booking-receipt-email"
+      );
+      await sendBookingConfirmedEmails(
+        tx,
+        {
+          holdId: holdGroup.id,
+          bookingReferences: updatedBookings.map((b) => b.bookingReference),
+          ticketTokens: updatedBookings.map((b) => b.ticketToken),
+          totalAmountXOF:
+            holdGroup.pricingSnapshot?.chargeAmountXOF ??
+            updatedBookings.reduce((sum, b) => sum + b.farePaid, 0),
+          status: "CONFIRMED",
+        },
+        userId,
+      );
+
       return updatedBookings;
     }, {
       maxWait: 5000,
@@ -313,11 +334,8 @@ export class BookingConfirmationService {
       status: "CONFIRMED",
     };
 
-    void import("./booking-receipt-email").then(({ sendBookingConfirmedEmails }) =>
-      sendBookingConfirmedEmails(this.prisma, result, userId).catch((error) => {
-        console.error("Failed to send booking receipt email:", error);
-      }),
-    );
+    // Phase 32 (F-PS-14) — receipt enqueue moved INSIDE the transaction
+    // above; the post-commit fire-and-forget copy is gone.
 
     if (exhaustedCampaignIds.length > 0) {
       void import("@/features/discounts/services/quote-service").then(
@@ -587,6 +605,24 @@ export class BookingConfirmationService {
         await engine.commit(tx as any);
       }
 
+      // Phase 32 (F-PS-14) — same in-tx receipt enqueue as the card path
+      // (wallet confirmations were equally exposed to the commit→notify
+      // crash window). P2002 recovery skips it by design, as above.
+      const { sendBookingConfirmedEmails } = await import(
+        "./booking-receipt-email"
+      );
+      await sendBookingConfirmedEmails(
+        tx,
+        {
+          holdId: holdGroup.id,
+          bookingReferences: updatedBookings.map((b) => b.bookingReference),
+          ticketTokens: updatedBookings.map((b) => b.ticketToken),
+          totalAmountXOF: totalToPay,
+          status: "CONFIRMED",
+        },
+        userId,
+      );
+
       return updatedBookings;
     }, {
       maxWait: 5000,
@@ -603,45 +639,27 @@ export class BookingConfirmationService {
         } else {
           throw error;
         }
-      } else if (error.message && error.message.includes("Insufficient funds")) {
-        // Wallet cash was already checked; ledger failure is usually underfunded promo credits.
-        const { splitPromoPaymentInstruments } = await import(
-          "@/features/discounts/services/promo-payment-split"
-        );
-        const split = splitPromoPaymentInstruments(snapshot);
-        if (split.creditAppliedXOF > 0) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message:
-              "Promo credits unavailable — contact support if this persists",
-          });
-        }
-        // C7: Send the Novu alert if the row-level solvency check failed
-        const user = await this.prisma.user.findUnique({
-          where: { id: userId },
-          select: { email: true, fullName: true },
-        });
-        if (user?.email) {
-          const novu = getNovuClient();
-          if (novu) {
-            try {
-              const walletAcctPreview = await this.accountService.getUserWallet(userId);
-              void novu.trigger({
-                workflowId: "passenger-wallet-low-balance",
-                to: { subscriberId: user.email, email: user.email },
-                payload: {
-                  email: user.email,
-                  passengerName: user.fullName ?? "Passenger",
-                  availableBalanceXOF: toSafeDisplayNumber(walletAcctPreview.availableBalance),
-                  requiredAmountXOF: Number(totalToPay),
-                },
-                transactionId: `wallet-low-balance-${holdGroupId}-${Date.now()}`,
-              }).catch(() => {});
-            } catch (e) {
-              console.error("Failed to trigger passenger-wallet-low-balance via Novu:", e);
-            }
+      } else if (
+        (error.message && error.message.includes("Insufficient funds")) ||
+        // P2-4 — the row-level pre-check throws this exact string; it used to
+        // bypass the low-balance alert entirely (silent rejection path).
+        (error.message && error.message.includes("Insufficient wallet balance"))
+      ) {
+        if (error.message && error.message.includes("Insufficient funds")) {
+          // Wallet cash was already checked; ledger failure is usually underfunded promo credits.
+          const { splitPromoPaymentInstruments } = await import(
+            "@/features/discounts/services/promo-payment-split"
+          );
+          const split = splitPromoPaymentInstruments(snapshot);
+          if (split.creditAppliedXOF > 0) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                "Promo credits unavailable — contact support if this persists",
+            });
           }
         }
+        await this.sendLowBalanceAlert(userId, holdGroup.id, totalToPay);
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Insufficient wallet balance",
@@ -659,11 +677,8 @@ export class BookingConfirmationService {
       status: "CONFIRMED",
     };
 
-    void import("./booking-receipt-email").then(({ sendBookingConfirmedEmails }) =>
-      sendBookingConfirmedEmails(this.prisma, result, userId).catch((error) => {
-        console.error("Failed to send booking receipt email:", error);
-      }),
-    );
+    // Phase 32 (F-PS-14) — receipt enqueue moved INSIDE the transaction
+    // above; the post-commit fire-and-forget copy is gone.
 
     if (exhaustedCampaignIds.length > 0) {
       void import("@/features/discounts/services/quote-service").then(
@@ -691,6 +706,44 @@ export class BookingConfirmationService {
   }
 
   /**
+   * P2-4 — shared low-balance Novu alert. Fired on BOTH rejection paths:
+   * the row-level wallet pre-check and the ledger solvency failure.
+   */
+  private async sendLowBalanceAlert(
+    userId: string,
+    holdGroupId: string,
+    totalToPay: number,
+  ) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, fullName: true },
+      });
+      if (!user?.email) return;
+      const novu = getNovuClient();
+      if (!novu) return;
+      const walletAcctPreview = await this.accountService.getUserWallet(userId);
+      void novu
+        .trigger({
+          workflowId: "passenger-wallet-low-balance",
+          to: { subscriberId: user.id, email: user.email },
+          payload: {
+            email: user.email,
+            passengerName: user.fullName ?? "Passenger",
+            availableBalanceXOF: toSafeDisplayNumber(
+              walletAcctPreview.availableBalance,
+            ),
+            requiredAmountXOF: Number(totalToPay),
+          },
+          transactionId: `wallet-low-balance-${holdGroupId}-${Date.now()}`,
+        })
+        .catch(() => {});
+    } catch (e) {
+      console.error("Failed to trigger passenger-wallet-low-balance via Novu:", e);
+    }
+  }
+
+  /**
    * Fix #2: Orphan Rescue
    * Called when a Paystack payment was captured but the booking hold has expired.
    * Credits the full captured amount to the passenger's wallet so their money is not lost.
@@ -698,14 +751,15 @@ export class BookingConfirmationService {
    */
   private async rescueOrphanedPayment(
     holdGroup: Awaited<ReturnType<typeof resolveHoldGroup>>,
-    userId?: string | null,
   ): Promise<void> {
     const payment = holdGroup.payment!;
     const amountXOF = payment.amountXOF;
     const feesXOF = payment.feesXOF ?? 0;
 
-    // Determine who to refund: passed userId, or the userId on the holdGroup itself
-    const targetUserId = userId ?? (holdGroup as any).userId ?? null;
+    // F-PS-01: always credit the hold's real owner. Never attribute rescue
+    // funds from caller-supplied identity — a leaked reference must not be
+    // able to divert a captured payment into someone else's wallet.
+    const targetUserId = holdGroup.userId ?? null;
 
     if (!targetUserId) {
       // Guest booking with no account — log for manual review, do not throw

@@ -1,12 +1,7 @@
 import { Alert01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  View,
-} from "react-native";
+import { ActivityIndicator, Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
 import { formatPriceXOF } from "../lib/format-time";
@@ -14,6 +9,10 @@ import { formatPriceXOF } from "../lib/format-time";
 type CancelDialogProps = {
 	isOpen: boolean;
 	farePaidXOF?: number;
+	/** Phase 18 (F-PS-04) — the server's quote for THIS booking; null while loading. */
+	refundAmountXOF?: number | null;
+	/** Server says this booking is no longer cancellable. */
+	notCancellable?: boolean;
 	isPending: boolean;
 	onClose: () => void;
 	onConfirm: (channel: "WALLET") => void;
@@ -22,6 +21,8 @@ type CancelDialogProps = {
 export function CancelDialog({
 	isOpen,
 	farePaidXOF,
+	refundAmountXOF,
+	notCancellable,
 	isPending,
 	onClose,
 	onConfirm,
@@ -61,49 +62,68 @@ export function CancelDialog({
 						</Text>
 					</View>
 
-					{/* Refund Breakdown */}
-					{farePaidXOF ? (
-						<View className="bg-card border-border rounded-xl border p-3.5 space-y-2 my-2">
-							<Text className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-								{t("refundSummary")}
+					{/* Refund Breakdown — Phase 18 (F-PS-04): server quote, not fare */}
+					{notCancellable ? (
+						<View className="bg-card border-border rounded-xl border p-3.5 my-2">
+							<Text className="text-muted-foreground text-xs leading-relaxed">
+								{t("notCancellable")}
 							</Text>
-							<View className="flex-row justify-between border-b border-border/40 pb-2">
-								<Text className="text-muted-foreground text-xs font-medium">{t("farePaid")}</Text>
-								<Text className="text-foreground font-bold text-xs">
-									{formatPriceXOF(farePaidXOF)}
-								</Text>
-							</View>
-							<View className="flex-row justify-between pt-1">
-								<Text className="text-foreground font-bold text-xs">{t("refundAmount")}</Text>
-								<Text className="text-primary font-black text-xs">
-									{formatPriceXOF(farePaidXOF)}
-								</Text>
-							</View>
 						</View>
-					) : null}
+					) : (
+						farePaidXOF &&
+						refundAmountXOF != null && (
+							<View className="bg-card border-border rounded-xl border p-3.5 space-y-2 my-2">
+								<Text className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+									{t("refundSummary")}
+								</Text>
+								<View className="flex-row justify-between border-b border-border/40 pb-2">
+									<Text className="text-muted-foreground text-xs font-medium">
+										{t("farePaid")}
+									</Text>
+									<Text className="text-foreground font-bold text-xs">
+										{formatPriceXOF(farePaidXOF)}
+									</Text>
+								</View>
+								<View className="flex-row justify-between pt-1">
+									<Text className="text-muted-foreground text-xs font-medium">
+										{t("refundAmount")}
+									</Text>
+									<Text className="text-primary font-black text-xs">
+										{formatPriceXOF(refundAmountXOF)}
+									</Text>
+								</View>
+							</View>
+						)
+					)}
 
 					{/* Action Buttons */}
-					<View className="flex-row gap-3 pt-2">
-						<Pressable
-							onPress={onClose}
-							disabled={isPending}
-							className="flex-1 bg-secondary border border-border py-3.5 rounded-xl items-center"
-						>
-							<Text className="text-foreground font-bold text-xs">{t("keepTicket")}</Text>
-						</Pressable>
+					{!notCancellable && (
+						<View className="flex-row gap-3 pt-2">
+							<Pressable
+								onPress={onClose}
+								disabled={isPending}
+								className="flex-1 bg-secondary border border-border py-3.5 rounded-xl items-center"
+							>
+								<Text className="text-foreground font-bold text-xs">
+									{t("keepTicket")}
+								</Text>
+							</Pressable>
 
-						<Pressable
-							onPress={() => onConfirm("WALLET")}
-							disabled={isPending}
-							className="flex-1 bg-destructive py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs opacity-100 disabled:opacity-60"
-						>
-							{isPending ? (
-								<ActivityIndicator size="small" color="#ffffff" />
-							) : (
-								<Text className="text-white font-black text-xs">{t("confirmCancel")}</Text>
-							)}
-						</Pressable>
-					</View>
+							<Pressable
+								onPress={() => onConfirm("WALLET")}
+								disabled={isPending}
+								className="flex-1 bg-destructive py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs opacity-100 disabled:opacity-60"
+							>
+								{isPending ? (
+									<ActivityIndicator size="small" color="#ffffff" />
+								) : (
+									<Text className="text-white font-black text-xs">
+										{t("confirmCancel")}
+									</Text>
+								)}
+							</Pressable>
+						</View>
+					)}
 				</View>
 			</View>
 		</Modal>

@@ -1,8 +1,4 @@
-import {
-  enqueueOutboxMessage,
-  OUTBOX_TYPES,
-  type OutboxDb,
-} from "./enqueue";
+import { enqueueOutboxMessage, OUTBOX_TYPES, type OutboxDb } from "./enqueue";
 
 type Tx = OutboxDb;
 
@@ -87,6 +83,46 @@ export async function enqueueTripCancelled(
   });
 }
 
+/**
+ * Phase 07 (F-NF-02, D3/D4) — BOTH delay paths (operator `trips.delay` and
+ * driver `reportTripDelay`) enqueue through here instead of firing Novu
+ * directly, so delay notices gain outbox durability, retry/backoff, dead-letter
+ * visibility and the enqueue↔schema contract test.
+ *
+ * D4: the transactionId buckets per UTC hour (matching the driver path's
+ * previous semantics) so an escalating delay re-notifies in a later hour but
+ * cannot spam within one.
+ */
+export async function enqueuePassengerTripDelayed(
+  db: Tx,
+  input: {
+    tripId: string;
+    bookingId: string;
+    reportedBy: "OPERATOR" | "DRIVER";
+    email: string;
+    subscriberId: string;
+    firstName?: string | undefined;
+    data: Record<string, unknown>;
+  },
+) {
+  const hourBucket = new Date().toISOString().slice(0, 13);
+  const transactionId = `passenger-trip-delayed-${input.reportedBy.toLowerCase()}-${input.tripId}-${input.bookingId}-${hourBucket}`;
+  return enqueueOutboxMessage(db, {
+    type: OUTBOX_TYPES.TRIP_DELAYED,
+    idempotencyKey: transactionId,
+    payload: {
+      workflowId: "passenger-trip-delayed",
+      subscriber: {
+        subscriberId: input.subscriberId,
+        email: input.email,
+        ...(input.firstName ? { firstName: input.firstName } : {}),
+      },
+      data: input.data,
+      transactionId,
+    },
+  });
+}
+
 export async function enqueueReferralAttributed(
   db: Tx,
   input: {
@@ -130,6 +166,39 @@ export async function enqueueReferralReward(
     idempotencyKey: transactionId,
     payload: {
       workflowId: "passenger-referral-reward",
+      subscriber: {
+        subscriberId: input.subscriberId,
+        email: input.email,
+        ...(input.firstName ? { firstName: input.firstName } : {}),
+      },
+      data: input.data,
+      transactionId,
+    },
+  });
+}
+
+/**
+ * Phase 33 (F-PS-16) — operator-initiated rebooking confirmation to the
+ * passenger. Idempotency keys on the NEW booking reference: a second
+ * rebooking of the same passenger mints a new reference and therefore a new
+ * honest notification, while retries of the same rebooking dedupe.
+ */
+export async function enqueuePassengerRebooked(
+  db: Tx,
+  input: {
+    newBookingReference: string;
+    email: string;
+    subscriberId: string;
+    firstName?: string;
+    data: Record<string, unknown>;
+  },
+) {
+  const transactionId = `passenger-rebooked-${input.newBookingReference}`;
+  return enqueueOutboxMessage(db, {
+    type: OUTBOX_TYPES.PASSENGER_REBOOKED,
+    idempotencyKey: transactionId,
+    payload: {
+      workflowId: "passenger-rebooked",
       subscriber: {
         subscriberId: input.subscriberId,
         email: input.email,

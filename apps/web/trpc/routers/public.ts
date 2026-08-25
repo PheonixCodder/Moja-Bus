@@ -1,12 +1,12 @@
 import { ChatOrPushProviderEnum } from "@novu/api/models/components";
-import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import { getNovuClient } from "@/lib/novu";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 
 export const publicRouter = createTRPCRouter({
   getNotificationToken: protectedProcedure.query(async ({ ctx }) => {
-    const secret = process.env['NOVU_SECRET_KEY'];
+    const secret = process.env["NOVU_SECRET_KEY"];
     if (!secret) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -14,7 +14,8 @@ export const publicRouter = createTRPCRouter({
       });
     }
 
-    const subscriberId = ctx.user.email;
+    // P0-3 — subscriber identity is user.id platform-wide (matches server triggers).
+    const subscriberId = ctx.user.id;
     const crypto = await import("crypto");
     const subscriberHash = crypto
       .createHmac("sha256", secret)
@@ -24,12 +25,14 @@ export const publicRouter = createTRPCRouter({
     return {
       subscriberId,
       subscriberHash,
-      appId: process.env['NEXT_PUBLIC_NOVU_APP_ID'] || "",
+      appId: process.env["NEXT_PUBLIC_NOVU_APP_ID"] || "",
     };
   }),
 
   registerPushToken: protectedProcedure
-    .input(z.object({ token: z.string(), platform: z.enum(["android", "ios"]) }))
+    .input(
+      z.object({ token: z.string(), platform: z.enum(["android", "ios"]) }),
+    )
     .mutation(async ({ ctx, input }) => {
       const novu = getNovuClient();
       if (!novu) {
@@ -39,11 +42,15 @@ export const publicRouter = createTRPCRouter({
         });
       }
 
-      const subscriberId = ctx.user.email;
+      const subscriberId = ctx.user.id;
       const providerId = ChatOrPushProviderEnum.Expo;
 
       try {
-        await novu.subscribers.credentials.update(
+        // Phase 21 (F-NF-06) — APPEND, not replace: driver + traveler apps
+        // share one user.id subscriber, so replace-semantics meant whichever
+        // app registered last silently killed the other's push. Append adds
+        // this token while keeping every other device's token intact.
+        await novu.subscribers.credentials.append(
           {
             providerId,
             credentials: { deviceTokens: [input.token] },
@@ -70,7 +77,7 @@ export const publicRouter = createTRPCRouter({
         });
       }
 
-      const subscriberId = ctx.user.email;
+      const subscriberId = ctx.user.id;
       try {
         await novu.subscribers.notifications.markAsRead({
           notificationId: input.notificationId,
@@ -112,8 +119,8 @@ export const publicRouter = createTRPCRouter({
           where: { isTerminal: true, isActive: true },
           select: {
             cityRelation: { select: { name: true } },
-              municipality: { select: { name: true } },
-              quarter: { select: { name: true } },
+            municipality: { select: { name: true } },
+            quarter: { select: { name: true } },
           },
         },
       },
@@ -171,8 +178,8 @@ export const publicRouter = createTRPCRouter({
                   name: true,
                   city: true,
                   cityRelation: { select: { id: true, name: true } },
-              municipality: { select: { name: true } },
-              quarter: { select: { name: true } },
+                  municipality: { select: { name: true } },
+                  quarter: { select: { name: true } },
                 },
               },
               destTerminal: {
@@ -180,8 +187,8 @@ export const publicRouter = createTRPCRouter({
                   name: true,
                   city: true,
                   cityRelation: { select: { id: true, name: true } },
-              municipality: { select: { name: true } },
-              quarter: { select: { name: true } },
+                  municipality: { select: { name: true } },
+                  quarter: { select: { name: true } },
                 },
               },
               schedules: {

@@ -21,6 +21,29 @@ export const STAFF_ROLES = [
 
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
+/**
+ * Phase 14 (F-DV-08) — roles that may hold an ERP staff seat via invitation
+ * or role-update. DRIVER is excluded server-side: the migration
+ * `20260822000001_phase17_driver_operator_cleanup` deleted exactly those
+ * over-provisioned rows, and this constant keeps them from resurrecting
+ * through a crafted invite. Note the distinction: OPERATIONS→DRIVER trip
+ * ASSIGNMENT stays legal (crew junction, not ERP membership).
+ */
+export const INVITABLE_STAFF_ROLES = [
+  "ADMIN",
+  "MANAGER",
+  "OPERATIONS",
+  "FINANCE",
+  "SUPPORT",
+  "TREASURY",
+  "DISPATCHER",
+  "CONDUCTOR",
+] as const;
+
+export const InvitableStaffRoleSchema = z.enum(INVITABLE_STAFF_ROLES);
+
+export type InvitableStaffRole = (typeof INVITABLE_STAFF_ROLES)[number];
+
 export const StaffRoleSchema = z.enum(STAFF_ROLES);
 
 export const PERMISSION_META = {
@@ -35,7 +58,10 @@ export const PERMISSION_META = {
   "terminals:create": { group: "Terminals", label: "Create terminals" },
   "terminals:update": { group: "Terminals", label: "Edit terminals" },
   "terminals:delete": { group: "Terminals", label: "Delete terminals" },
-  "terminals:geocapture": { group: "Terminals", label: "Geocapture terminal coordinates" },
+  "terminals:geocapture": {
+    group: "Terminals",
+    label: "Geocapture terminal coordinates",
+  },
 
   // Fleet
   "fleet:read": { group: "Fleet", label: "View buses & layouts" },
@@ -46,13 +72,22 @@ export const PERMISSION_META = {
   // Drivers
   "drivers:read": { group: "Drivers", label: "View drivers & live status" },
   "drivers:create": { group: "Drivers", label: "Add & onboard drivers" },
-  "drivers:update": { group: "Drivers", label: "Edit driver profiles & licenses" },
+  "drivers:update": {
+    group: "Drivers",
+    label: "Edit driver profiles & licenses",
+  },
   "drivers:delete": { group: "Drivers", label: "Remove driver affiliations" },
-  "drivers:verify": { group: "Drivers", label: "Verify driver licenses & compliance" },
+  "drivers:verify": {
+    group: "Drivers",
+    label: "Verify driver licenses & compliance",
+  },
   "drivers:assign": { group: "Drivers", label: "Assign drivers to trips" },
 
   // Telemetry & GPS
-  "telemetry:stream": { group: "Telemetry", label: "Broadcast live GPS telemetry" },
+  "telemetry:stream": {
+    group: "Telemetry",
+    label: "Broadcast live GPS telemetry",
+  },
 
   // Schedules
   "schedules:read": { group: "Schedules", label: "View schedules" },
@@ -76,7 +111,10 @@ export const PERMISSION_META = {
   // Revenue & withdrawals
   "revenue:view": { group: "Financials", label: "View revenue" },
   "revenue:export": { group: "Financials", label: "Export revenue data" },
-  "financials:view": { group: "Financials", label: "View financials & payouts" },
+  "financials:view": {
+    group: "Financials",
+    label: "View financials & payouts",
+  },
   "withdrawals:view": { group: "Financials", label: "View withdrawals" },
   "withdrawals:create": { group: "Financials", label: "Request withdrawals" },
 
@@ -90,7 +128,10 @@ export const PERMISSION_META = {
   "company:view": { group: "Company", label: "View company settings" },
   "company:profile:update": { group: "Company", label: "Edit company profile" },
   "company:banking:update": { group: "Company", label: "Manage bank accounts" },
-  "company:compliance:update": { group: "Company", label: "Manage compliance documents" },
+  "company:compliance:update": {
+    group: "Company",
+    label: "Manage compliance documents",
+  },
   "company:delete": { group: "Company", label: "Delete company" },
 
   // Reviews
@@ -119,8 +160,10 @@ export function getPermissionsByGroup(): Record<
   string,
   Array<{ key: PermissionKey; label: string }>
 > {
-  const groups: Record<string, Array<{ key: PermissionKey; label: string }>> =
-    {};
+  const groups: Record<
+    string,
+    Array<{ key: PermissionKey; label: string }>
+  > = {};
   for (const key of PERMISSION_KEYS) {
     const meta = PERMISSION_META[key];
     if (!groups[meta.group]) groups[meta.group] = [];
@@ -305,8 +348,26 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
 
 /** Who may assign which role labels (OWNER never via invite). */
 export const ASSIGNABLE_ROLES: Record<StaffRole, StaffRole[]> = {
-  OWNER: ["ADMIN", "MANAGER", "OPERATIONS", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR", "DRIVER"],
-  ADMIN: ["MANAGER", "FINANCE", "SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR", "DRIVER"],
+  OWNER: [
+    "ADMIN",
+    "MANAGER",
+    "OPERATIONS",
+    "FINANCE",
+    "SUPPORT",
+    "TREASURY",
+    "DISPATCHER",
+    "CONDUCTOR",
+    "DRIVER",
+  ],
+  ADMIN: [
+    "MANAGER",
+    "FINANCE",
+    "SUPPORT",
+    "TREASURY",
+    "DISPATCHER",
+    "CONDUCTOR",
+    "DRIVER",
+  ],
   MANAGER: ["SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR", "DRIVER"],
   OPERATIONS: ["DRIVER"],
   FINANCE: [],
@@ -365,7 +426,13 @@ export function getEffectivePermissions(
   role: string,
   stored: string[],
 ): PermissionKey[] {
-  return evaluateEffectivePermissions("OWNER", PERMISSION_KEYS, role, stored, ROLE_TEMPLATES);
+  return evaluateEffectivePermissions(
+    "OWNER",
+    PERMISSION_KEYS,
+    role,
+    stored,
+    ROLE_TEMPLATES,
+  );
 }
 
 export function hasPermission(
@@ -385,7 +452,13 @@ export function assertCanGrant(
   actorStored: string[],
   proposed: string[],
 ): { ok: true } | { ok: false; missing: string[] } {
-  return evaluateAssertCanGrant("OWNER", getEffectivePermissions, actorRole, actorStored, proposed);
+  return evaluateAssertCanGrant(
+    "OWNER",
+    getEffectivePermissions,
+    actorRole,
+    actorStored,
+    proposed,
+  );
 }
 
 export function isPermissionKey(value: string): value is PermissionKey {

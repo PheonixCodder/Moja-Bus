@@ -14,6 +14,15 @@ type Subscriber = {
 
 type OutboxClient = OutboxDb | PrismaClient;
 
+/**
+ * Phase 34 (D34-2b-i) — follow-up ruling on file: this module's notify family
+ * (referral attributed/reward, credit-expiring, campaign-paused/budget) is
+ * direct fire-and-forget `triggerSafe`, NOT the durable outbox. Migrating only
+ * campaign-paused would half-migrate the file; migrating all ~8 helpers is a
+ * separate scoped session (+8 outbox types + contract-harness rows). Tracked
+ * as the "discounts notify family → outbox" follow-up; do NOT cherry-pick
+ * individual helpers onto the outbox here.
+ */
 async function triggerSafe(input: {
   workflowId: string;
   to: Subscriber;
@@ -123,7 +132,7 @@ export function notifyOperatorCampaignPaused(input: {
   operatorUsers: Subscriber[];
   campaignId: string;
   campaignName: string;
-  reason: string;
+  pauseReason: string;
 }): void {
   for (const user of input.operatorUsers) {
     void triggerSafe({
@@ -132,7 +141,10 @@ export function notifyOperatorCampaignPaused(input: {
       payload: {
         campaignId: input.campaignId,
         campaignName: input.campaignName,
-        reason: input.reason,
+        // Phase 34 (F-NF-12) — key must match the workflow's payloadSchema
+        // (`pauseReason`); the old `reason` key was silently stripped by Zod,
+        // delivering the notice without its reason line.
+        pauseReason: input.pauseReason,
       },
       transactionId: `campaign-paused-${input.campaignId}-${user.userId}`,
     });

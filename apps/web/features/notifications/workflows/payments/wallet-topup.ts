@@ -38,6 +38,7 @@ export const passengerWalletTopupWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Wallet Top-Up Successful",
       body: `Deposit of ${escapeHtml(payload.amountXOF)} XOF confirmed. Funds available now.`,
+      overrides: { expo: { data: { type: "wallet-topup" } } },
     }));
   },
   {

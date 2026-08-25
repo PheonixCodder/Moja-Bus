@@ -150,6 +150,12 @@ export interface PassengerBookingSummary {
   paymentStatus: string;
   holdExpiresAt: Date | null;
   issuedAt: Date | null;
+  /**
+   * Phase 33 (F-PS-10 D4 ruling) — THE platform completion signal. Status
+   * stays CONFIRMED after arrival by design; consumers must key "done" off
+   * this field (see BookingStatus.COMPLETED schema comment).
+   */
+  completedAt: Date | null;
   totalAmountXOF: number;
   seats: PassengerBookingSeat[];
   offerId: string;

@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
 import { getPrismaClient } from "@moja/db";
+import { NextResponse } from "next/server";
+import { getTelemetryBackend } from "@/server/telemetry-redis";
 
 export const dynamic = "force-dynamic";
 
@@ -29,5 +30,10 @@ export async function GET(request: Request) {
     );
   }
 
-  return NextResponse.json({ ...livenessBody(), db: "ok" });
+  return NextResponse.json({
+    ...livenessBody(),
+    db: "ok",
+    // Phase 28 (F-TM-09) — active telemetry pub/sub backend is observable.
+    telemetryPubSub: getTelemetryBackend(),
+  });
 }

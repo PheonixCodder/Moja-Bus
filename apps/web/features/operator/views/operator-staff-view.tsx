@@ -1,38 +1,38 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { startTransition, useEffect, useState } from "react";
+import type { InvitableStaffRole, PermissionKey } from "@moja/schemas";
+import { INVITABLE_STAFF_ROLES } from "@moja/schemas";
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
   keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
+import { startTransition, useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { PermissionKey } from "@moja/schemas";
-
-import { StaffPageHeader } from "@/features/operator/components/staff/staff-page-header";
-import { StaffFiltersToolbar } from "@/features/operator/components/staff/staff-filters-toolbar";
-import { StaffMembersSection } from "@/features/operator/components/staff/staff-members-section";
-import { StaffInvitationsSection } from "@/features/operator/components/staff/staff-invitations-section";
-import { StaffActivitySection } from "@/features/operator/components/staff/staff-activity-section";
-import { InviteSheet } from "@/features/operator/components/staff/invite-sheet";
-import { RoleSheet } from "@/features/operator/components/staff/role-sheet";
 import { EditPermissionsSheet } from "@/features/operator/components/staff/edit-permissions-sheet";
-import { TransferOwnershipDialog } from "@/features/operator/components/staff/transfer-ownership-dialog";
+import { InviteSheet } from "@/features/operator/components/staff/invite-sheet";
 import { RemoveStaffDialog } from "@/features/operator/components/staff/remove-staff-dialog";
+import { RoleSheet } from "@/features/operator/components/staff/role-sheet";
+import { StaffActivitySection } from "@/features/operator/components/staff/staff-activity-section";
+import { StaffFiltersToolbar } from "@/features/operator/components/staff/staff-filters-toolbar";
+import { StaffInvitationsSection } from "@/features/operator/components/staff/staff-invitations-section";
+import { StaffMembersSection } from "@/features/operator/components/staff/staff-members-section";
+import { StaffPageHeader } from "@/features/operator/components/staff/staff-page-header";
+import { TransferOwnershipDialog } from "@/features/operator/components/staff/transfer-ownership-dialog";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import { useDebounce } from "@/features/operator/hooks/useDebounce";
-import { staffParsers } from "@/features/operator/lib/staff-search-params";
 import {
-  STATUS_CONFIG,
-  type StaffMember,
-  type StaffInvitation,
-  type StaffRole,
-  type OperatorStatus,
   type ActivityLogEntry,
+  type OperatorStatus,
+  STATUS_CONFIG,
+  type StaffInvitation,
+  type StaffMember,
+  type StaffRole,
 } from "@/features/operator/lib/staff";
+import { staffParsers } from "@/features/operator/lib/staff-search-params";
 import type { CreateInvitationInput } from "@/features/operator/lib/validations/staff";
 import { useTRPC } from "@/trpc/client";
 
@@ -61,7 +61,17 @@ export function OperatorStaffView() {
   );
   const [removeMember, setRemoveMember] = useState<StaffMember | null>(null);
 
-  const { permissions: grantable, assignableRoles, can } = useStaffPermissions();
+  const {
+    permissions: grantable,
+    assignableRoles: rawAssignable,
+    can,
+  } = useStaffPermissions();
+  // Phase 14 (F-DV-08) — ERP staff seats are INVITABLE roles only; DRIVER
+  // (crew junction) and OWNER (transfer-ownership flow) never appear here.
+  const isInvitable = (r: StaffRole): r is InvitableStaffRole =>
+    (INVITABLE_STAFF_ROLES as readonly string[]).includes(r);
+  const assignableRoles: InvitableStaffRole[] | undefined =
+    rawAssignable?.filter(isInvitable);
 
   const staffQuery = useQuery({
     ...trpc.staff.listStaff.queryOptions({
@@ -87,24 +97,27 @@ export function OperatorStaffView() {
   const members = (staffQuery.data?.members ?? []) as StaffMember[];
   const total = staffQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const invitations =
-    ((invitationsQuery.data as { invitations?: StaffInvitation[] } | undefined)
-      ?.invitations ?? []) as StaffInvitation[];
-  const activityLog =
-    ((activityQuery.data as { activities?: ActivityLogEntry[] } | undefined)
-      ?.activities ?? []) as ActivityLogEntry[];
-  const callerRole: StaffRole = myPermissionsQuery.data?.role ?? "SUPPORT";
+  const invitations = ((
+    invitationsQuery.data as { invitations?: StaffInvitation[] } | undefined
+  )?.invitations ?? []) as StaffInvitation[];
+  const activityLog = ((
+    activityQuery.data as { activities?: ActivityLogEntry[] } | undefined
+  )?.activities ?? []) as ActivityLogEntry[];
+  const callerRoleRaw: StaffRole = myPermissionsQuery.data?.role ?? "SUPPORT";
+  const callerRole: InvitableStaffRole = isInvitable(callerRoleRaw)
+    ? callerRoleRaw
+    : "SUPPORT";
   const pendingInvites = invitations.filter((i) => i.status === "PENDING");
 
-   // Deep-link: ?member=<id> opens edit-permissions sheet
-   useEffect(() => {
-     if (!memberId || members.length === 0) return;
-     if (!can("staff:update")) return;
-     const found = members.find((m) => m.id === memberId);
-     if (found && found.role !== "OWNER") {
-       setPermissionsMember(found);
-     }
-   }, [memberId, members, can]);
+  // Deep-link: ?member=<id> opens edit-permissions sheet
+  useEffect(() => {
+    if (!memberId || members.length === 0) return;
+    if (!can("staff:update")) return;
+    const found = members.find((m) => m.id === memberId);
+    if (found && found.role !== "OWNER") {
+      setPermissionsMember(found);
+    }
+  }, [memberId, members, can]);
 
   const createInviteMutation = useMutation(
     trpc.staff.createInvitation.mutationOptions({
@@ -156,9 +169,7 @@ export function OperatorStaffView() {
     trpc.staff.transferOwnership.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.staff.listStaff.pathFilter());
-        queryClient.invalidateQueries(
-          trpc.staff.getMyPermissions.pathFilter(),
-        );
+        queryClient.invalidateQueries(trpc.staff.getMyPermissions.pathFilter());
         queryClient.invalidateQueries(trpc.staff.getActivityLog.pathFilter());
       },
     }),
@@ -197,15 +208,13 @@ export function OperatorStaffView() {
       await createInviteMutation.mutateAsync(payload);
       toast.success(t("toast.invitationSent", { email: payload.email }));
     } catch (err: unknown) {
-      toast.error(
-        err instanceof Error ? err.message : t("toast.inviteFailed"),
-      );
+      toast.error(err instanceof Error ? err.message : t("toast.inviteFailed"));
     }
   }
 
   async function handleRoleSave(
     id: string,
-    nextRole: StaffRole,
+    nextRole: InvitableStaffRole,
     resetPermissions: boolean,
   ) {
     try {
@@ -252,7 +261,10 @@ export function OperatorStaffView() {
         status: nextStatus,
       });
       toast.success(
-        t("toast.statusChanged", { name: target.user.fullName ?? "", status: STATUS_CONFIG[nextStatus].label }),
+        t("toast.statusChanged", {
+          name: target.user.fullName ?? "",
+          status: STATUS_CONFIG[nextStatus].label,
+        }),
       );
     } catch (err: unknown) {
       toast.error(
@@ -269,9 +281,7 @@ export function OperatorStaffView() {
         t("toast.removed", { name: removeMember.user.fullName ?? "" }),
       );
     } catch (err: unknown) {
-      toast.error(
-        err instanceof Error ? err.message : t("toast.removeFailed"),
-      );
+      toast.error(err instanceof Error ? err.message : t("toast.removeFailed"));
     }
   }
 
@@ -333,19 +343,19 @@ export function OperatorStaffView() {
       />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
-         <StaffMembersSection
-           members={members}
-           total={total}
-           page={page}
-           totalPages={totalPages}
-           isLoading={staffQuery.isLoading}
-           isFetching={staffQuery.isFetching}
-           isError={staffQuery.isError}
-           hasActiveFilters={hasActiveFilters}
-           canInvite={can("staff:invite")}
-           canUpdate={can("staff:update")}
-           canDelete={can("staff:remove")}
-           callerRole={callerRole}
+        <StaffMembersSection
+          members={members}
+          total={total}
+          page={page}
+          totalPages={totalPages}
+          isLoading={staffQuery.isLoading}
+          isFetching={staffQuery.isFetching}
+          isError={staffQuery.isError}
+          hasActiveFilters={hasActiveFilters}
+          canInvite={can("staff:invite")}
+          canUpdate={can("staff:update")}
+          canDelete={can("staff:remove")}
+          callerRole={callerRole}
           onRetry={() => staffQuery.refetch()}
           onInvite={() => void setParams({ invite: true })}
           onPageChange={(next) => void setParams({ page: next })}

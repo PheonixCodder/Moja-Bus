@@ -2,6 +2,13 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
+/** Phase 08 — extracted for the enqueue↔payloadSchema contract test. */
+export const operatorAccountSuspendedPayloadSchema = z.object({
+  email: z.string().email(),
+  operatorName: z.string(),
+  companyName: z.string(),
+  phone: z.string().optional(),
+});
 
 export const operatorAccountSuspendedWorkflow = workflow(
   "operator-account-suspended",
@@ -23,19 +30,14 @@ export const operatorAccountSuspendedWorkflow = workflow(
         body: html,
       };
     });
-
   },
   {
     name: "Operator Account Suspended",
-    description: "Urgent notification sent to operators and managers when their company is suspended",
+    description:
+      "Urgent notification sent to operators and managers when their company is suspended",
     preferences: {
       all: { readOnly: true },
     },
-    payloadSchema: z.object({
-      email: z.string().email(),
-      operatorName: z.string(),
-      companyName: z.string(),
-      phone: z.string().optional(),
-    }),
-  }
+    payloadSchema: operatorAccountSuspendedPayloadSchema,
+  },
 );

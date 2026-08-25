@@ -114,6 +114,7 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
                 <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
                   {post.displayAuthorAvatar || post.author?.image ? (
                     <Image
+                      unoptimized
                       src={post.displayAuthorAvatar || post.author?.image || ""}
                       alt=""
                       width={40}
@@ -153,6 +154,7 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
               <div className="mb-8 rounded-xl overflow-hidden border border-slate-200 shadow-3xs">
                 <div className="aspect-[21/9] w-full relative bg-slate-100">
                   <Image
+                    unoptimized
                     src={post.coverImage}
                     alt={post.coverImageAlt || post.title}
                     fill
@@ -203,6 +205,7 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
                 <div className="shrink-0 w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
                   {post.displayAuthorAvatar || post.author?.image ? (
                     <Image
+                      unoptimized
                       src={post.displayAuthorAvatar || post.author?.image || ""}
                       alt=""
                       width={32}
@@ -242,6 +245,7 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
                       {rp.coverImage && (
                         <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-200 mb-2 relative">
                           <Image
+                            unoptimized
                             src={rp.coverImage}
                             alt=""
                             fill

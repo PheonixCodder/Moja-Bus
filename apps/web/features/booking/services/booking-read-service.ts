@@ -64,39 +64,49 @@ export class BookingReadService {
     return false;
   }
 
-  private async claimUnlinkedBookings(
-    userId: string,
-    bookingIds: string[],
-  ): Promise<void> {
-    if (bookingIds.length === 0) return;
-    await this.prisma.booking.updateMany({
-      where: { id: { in: bookingIds }, userId: null },
-      data: { userId },
-    });
-  }
+  // Phase 33 (F-PS-11 D5 ruling): claimUnlinkedBookings was DELETED — reads
+  // no longer mutate ownership. Guest checkout is dropped to roadmap; when
+  // it ships it must expose an EXPLICIT claim endpoint, not resurrect the
+  // write-on-read side effect.
 
   private async loadAccessibleBookings(userId: string) {
     const userPhone = await this.getUserPhone(userId);
 
-    const candidates = await this.prisma.booking.findMany({
-      where: {
-        status: { in: [...LIST_STATUSES] },
-        OR: [{ userId }, ...(userPhone ? [{ userId: null }] : [])],
-      },
+    // Phase 33 (F-PS-11 D5 ruling) — reads are PURE: no ownership mutation
+    // on read (the old claimUnlinkedBookings write inside GETs is gone).
+    // The unlinked candidate branch uses a MINIMAL projection — the heavy
+    // include previously hydrated EVERY unlinked row in the table on every
+    // dashboard load. Only actual phone matches get fully hydrated.
+    // Guest checkout is dropped to roadmap; when it ships it must expose an
+    // EXPLICIT claim endpoint, not resurrect this side effect.
+    const own = await this.prisma.booking.findMany({
+      where: { userId, status: { in: [...LIST_STATUSES] } },
       include: bookingInclude,
       orderBy: { createdAt: "desc" },
     });
 
-    const accessible = candidates.filter((b) =>
-      this.canAccessBooking(b, userId, userPhone),
-    );
+    if (!userPhone) return own;
 
-    const unclaimedIds = accessible
-      .filter((b) => b.userId === null)
+    const candidates = await this.prisma.booking.findMany({
+      where: { userId: null, status: { in: [...LIST_STATUSES] } },
+      select: { id: true, userId: true, passengerPhone: true },
+    });
+
+    const matchedIds = candidates
+      .filter((b) => phonesMatch(b.passengerPhone, userPhone))
       .map((b) => b.id);
-    await this.claimUnlinkedBookings(userId, unclaimedIds);
 
-    return accessible;
+    if (matchedIds.length === 0) return own;
+
+    const matched = await this.prisma.booking.findMany({
+      where: { id: { in: matchedIds } },
+      include: bookingInclude,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return [...own, ...matched].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
   }
 
   async listMyBookings(
@@ -170,10 +180,6 @@ export class BookingReadService {
       });
     }
 
-    if (!anchor.userId) {
-      await this.claimUnlinkedBookings(userId, [anchor.id]);
-    }
-
     const groupWhere = anchor.holdGroupId
       ? { holdGroupId: anchor.holdGroupId }
       : {
@@ -202,11 +208,6 @@ export class BookingReadService {
       });
     }
 
-    await this.claimUnlinkedBookings(
-      userId,
-      accessibleGroup.filter((b) => !b.userId).map((b) => b.id),
-    );
-
     return this.toSummary(accessibleGroup);
   }
 
@@ -231,10 +232,6 @@ export class BookingReadService {
       !this.canAccessBooking(booking, userId, userPhone)
     ) {
       throw new TRPCError({ code: "NOT_FOUND", message: "Ticket not found" });
-    }
-
-    if (!booking.userId) {
-      await this.claimUnlinkedBookings(userId, [booking.id]);
     }
 
     if (booking.status !== "CONFIRMED") {
@@ -303,6 +300,7 @@ export class BookingReadService {
       paymentStatus: string;
       holdExpiresAt: Date | null;
       issuedAt: Date | null;
+      completedAt: Date | null;
       farePaid: number;
       passengerName: string;
       passengerPhone: string;
@@ -391,6 +389,7 @@ export class BookingReadService {
       paymentStatus: first.paymentStatus,
       holdExpiresAt: first.holdExpiresAt,
       issuedAt: first.issuedAt,
+      completedAt: first.completedAt,
       totalAmountXOF: group.reduce((sum, b) => sum + b.farePaid, 0),
       seats: group.map((b) => ({
         bookingId: b.id,

@@ -1,38 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
+import { Button } from "@moja/ui/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
-  Radio,
-  RefreshCw,
   Bus,
-  Gauge,
-  Navigation,
-  UserCheck,
   Clock,
   Layers,
+  Radio,
+  RefreshCw,
+  UserCheck,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@moja/ui/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
-import { useTRPC } from "@/trpc/client";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
+import type { FleetVehicle } from "@/features/operator/components/fleet-live-map";
+import { useTRPC } from "@/trpc/client";
+
+// Leaflet touches `window` at module load — client-only, matching the
+// route-map-preview pattern.
+const FleetLiveMap = dynamic(
+  () => import("@/features/operator/components/fleet-live-map"),
+  { ssr: false, loading: () => <div className="size-full bg-zinc-950" /> },
+);
 
 export function OperatorFleetMapView() {
   const trpc = useTRPC();
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
+  // Ticking clock so stale-dimming updates between polls.
+  const [now, setNow] = useState(() => Date.now());
 
   const liveQuery = useQuery({
     ...trpc.drivers.getLivePositions.queryOptions(),
-    refetchInterval: 10000, // Poll every 10 seconds as backup
+    refetchInterval: 10000, // Positions refresh every 10 seconds
   });
 
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
   const activeDrivers = liveQuery.data ?? [];
-  const selectedDriver = activeDrivers.find((d) => d.id === selectedDriverId) ?? activeDrivers[0];
+  // Phase 23 (D2) — dead coordinates (>24 h) are not live fleet; hide them
+  // from both the map AND the roster so the dispatcher never chases ghosts.
+  const liveDrivers = activeDrivers.filter(
+    (v) =>
+      !v.lastPingAt ||
+      Date.now() - new Date(v.lastPingAt).getTime() <= 24 * 60 * 60 * 1000,
+  );
+  const selectedDriver =
+    liveDrivers.find((d) => d.id === selectedDriverId) ?? liveDrivers[0];
 
   return (
-    <div className="space-y-4 pb-12">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -47,7 +73,8 @@ export function OperatorFleetMapView() {
               Live Fleet Telemetry Map
             </h1>
             <p className="text-xs text-muted-foreground">
-              Real-time GPS tracking of active commercial buses and dispatched drivers.
+              Live GPS positions of active buses and dispatched drivers —
+              refreshed every 10 seconds.
             </p>
           </div>
         </div>
@@ -60,7 +87,9 @@ export function OperatorFleetMapView() {
             disabled={liveQuery.isFetching}
             className="gap-1.5"
           >
-            <RefreshCw className={`size-3.5 ${liveQuery.isFetching ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`size-3.5 ${liveQuery.isFetching ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
@@ -72,28 +101,33 @@ export function OperatorFleetMapView() {
         <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col shadow-sm">
           <div className="p-3.5 border-b border-border bg-muted/40 flex items-center justify-between">
             <span className="text-xs font-bold text-foreground">
-              Active Vehicles Online ({activeDrivers.length})
+              Active Vehicles Online ({liveDrivers.length})
             </span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-              Live Stream
+              10 s refresh
             </span>
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-border">
-            {activeDrivers.length === 0 ? (
+            {liveDrivers.length === 0 ? (
               <div className="p-8 text-center text-xs text-muted-foreground space-y-2">
                 <Bus className="size-8 text-muted-foreground/30 mx-auto" />
-                <p>No drivers or buses currently on active trips or streaming GPS.</p>
+                <p>
+                  No drivers or buses currently on active trips or streaming
+                  GPS.
+                </p>
               </div>
             ) : (
-              activeDrivers.map((driver) => {
+              liveDrivers.map((driver) => {
                 const isSelected = driver.id === selectedDriver?.id;
                 return (
                   <button
                     key={driver.id}
                     onClick={() => setSelectedDriverId(driver.id)}
                     className={`w-full p-3.5 text-left transition-colors flex items-start gap-3 ${
-                      isSelected ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/40"
+                      isSelected
+                        ? "bg-primary/5 border-l-4 border-l-primary"
+                        : "hover:bg-muted/40"
                     }`}
                   >
                     <Avatar className="size-10 shrink-0 border border-border">
@@ -118,11 +152,14 @@ export function OperatorFleetMapView() {
 
                       <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
                         <span className="font-mono font-medium">
-                          {driver.currentTrip?.bus.registrationPlate || "No bus plate"}
+                          {driver.currentTrip?.bus.registrationPlate ||
+                            "No bus plate"}
                         </span>
                         <span>•</span>
                         <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                          {driver.lastSpeedKmh ? `${Math.round(driver.lastSpeedKmh)} km/h` : "Stationary"}
+                          {driver.lastSpeedKmh
+                            ? `${Math.round(driver.lastSpeedKmh)} km/h`
+                            : "Stationary"}
                         </span>
                       </div>
                     </div>
@@ -133,90 +170,99 @@ export function OperatorFleetMapView() {
           </div>
         </div>
 
-        {/* Right Side: Map Canvas & HUD */}
-        <div className="lg:col-span-2 rounded-2xl border border-border bg-zinc-950 relative overflow-hidden flex flex-col items-center justify-center text-zinc-400 shadow-sm">
-          {/* Simulated Dark Geo Map Grid */}
-          <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
-
-          {selectedDriver && selectedDriver.lastLatitude && selectedDriver.lastLongitude ? (
-            <div className="relative z-10 w-full h-full flex flex-col justify-between p-6">
-              {/* Map Top Bar */}
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur text-white flex items-center gap-3 shadow-lg">
+        {/* Right Side: Real Map (Phase 23) + Selected-Vehicle HUD */}
+        <div className="lg:col-span-2 rounded-2xl border border-border bg-zinc-950 relative overflow-hidden flex flex-col shadow-sm">
+          {selectedDriver &&
+          selectedDriver.lastLatitude != null &&
+          selectedDriver.lastLongitude != null ? (
+            <>
+              {/* Top bar — real telemetry for the selected vehicle */}
+              <div className="absolute top-3 left-3 right-3 z-[500] flex items-center justify-between pointer-events-none">
+                <div className="pointer-events-auto p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur text-white flex items-center gap-3 shadow-lg">
                   <Bus className="size-5 text-primary" />
                   <div>
-                    <div className="text-xs text-zinc-400">Selected Vehicle</div>
+                    <div className="text-xs text-zinc-400">
+                      {selectedDriver.user.fullName}
+                    </div>
                     <div className="font-mono font-bold text-sm">
-                      {selectedDriver.currentTrip?.bus.registrationPlate || "Active Vehicle"}
+                      {selectedDriver.currentTrip?.bus.registrationPlate ||
+                        "No bus assigned"}
                     </div>
                   </div>
                 </div>
-
-                <div className="p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur text-white flex items-center gap-4 shadow-lg">
+                <div className="pointer-events-auto p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur text-white flex items-center gap-4 shadow-lg">
                   <div className="text-right">
-                    <div className="text-[10px] uppercase text-zinc-400 font-semibold">Speed</div>
+                    <div className="text-[10px] uppercase text-zinc-400 font-semibold">
+                      Speed
+                    </div>
                     <div className="text-base font-extrabold text-emerald-400 font-mono">
-                      {selectedDriver.lastSpeedKmh ? `${Math.round(selectedDriver.lastSpeedKmh)} km/h` : "0 km/h"}
+                      {selectedDriver.lastSpeedKmh
+                        ? `${Math.round(selectedDriver.lastSpeedKmh)} km/h`
+                        : "0 km/h"}
                     </div>
                   </div>
                   <div className="text-right border-l border-zinc-800 pl-3">
-                    <div className="text-[10px] uppercase text-zinc-400 font-semibold">Heading</div>
+                    <div className="text-[10px] uppercase text-zinc-400 font-semibold">
+                      Heading
+                    </div>
                     <div className="text-base font-extrabold text-cyan-400 font-mono">
-                      {selectedDriver.lastHeading ? `${Math.round(selectedDriver.lastHeading)}°` : "N/A"}
+                      {selectedDriver.lastHeading
+                        ? `${Math.round(selectedDriver.lastHeading)}°`
+                        : "—"}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Center Map Pin Radar */}
-              <div className="flex flex-col items-center justify-center my-auto">
-                <div className="relative flex items-center justify-center">
-                  <div className="size-24 rounded-full bg-primary/20 animate-ping absolute" />
-                  <div className="size-16 rounded-full bg-primary/30 flex items-center justify-center border-2 border-primary shadow-2xl relative z-10">
-                    <Navigation
-                      className="size-7 text-white transition-transform"
-                      style={{
-                        transform: `rotate(${selectedDriver.lastHeading || 0}deg)`,
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="mt-4 text-center">
-                  <div className="font-bold text-white text-base">
-                    {selectedDriver.user.fullName}
-                  </div>
-                  <div className="font-mono text-xs text-zinc-400 mt-0.5">
-                    Lat: {selectedDriver.lastLatitude.toFixed(5)}, Lng: {selectedDriver.lastLongitude.toFixed(5)}
-                  </div>
-                </div>
-              </div>
+              <FleetLiveMap
+                vehicles={liveDrivers.map((d) => ({
+                  id: d.id,
+                  fullName: d.user.fullName,
+                  plate: d.currentTrip?.bus.registrationPlate ?? null,
+                  status: d.status,
+                  latitude: d.lastLatitude ?? 0,
+                  longitude: d.lastLongitude ?? 0,
+                  heading: d.lastHeading,
+                  speedKmh: d.lastSpeedKmh,
+                  lastPingAt: d.lastPingAt,
+                }))}
+                selectedId={selectedDriver.id}
+                onSelect={(id) => setSelectedDriverId(id)}
+                now={now}
+              />
 
-              {/* Bottom HUD bar */}
-              <div className="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur flex items-center justify-between text-white shadow-lg">
+              {/* Bottom bar */}
+              <div className="absolute bottom-3 left-3 right-3 z-[500] p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur flex items-center justify-between text-white shadow-lg">
                 <div className="flex items-center gap-2 text-xs text-zinc-300">
                   <Clock className="size-4 text-zinc-400" />
-                  Last Ping:{" "}
+                  Last ping:{" "}
                   <span className="font-semibold text-white">
                     {selectedDriver.lastPingAt
                       ? new Date(selectedDriver.lastPingAt).toLocaleTimeString()
-                      : "Just now"}
+                      : "—"}
                   </span>
                 </div>
-
                 <Link href={`/dashboard/operator/drivers/${selectedDriver.id}`}>
-                  <Button size="sm" variant="secondary" className="h-8 text-xs gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 text-xs gap-1.5"
+                  >
                     <UserCheck className="size-3.5" />
                     Driver Passport
                   </Button>
                 </Link>
               </div>
-            </div>
+            </>
           ) : (
-            <div className="p-8 text-center space-y-2">
+            <div className="p-8 text-center space-y-2 h-full flex flex-col items-center justify-center">
               <Layers className="size-10 text-zinc-700 mx-auto" />
-              <div className="font-semibold text-zinc-300">Select an active vehicle</div>
+              <div className="font-semibold text-zinc-300">
+                Select an active vehicle
+              </div>
               <p className="text-xs text-zinc-500 max-w-xs">
-                Pick a driver from the left roster to focus the live tracking radar.
+                Pick a driver from the left roster to see its live position on
+                the map.
               </p>
             </div>
           )}

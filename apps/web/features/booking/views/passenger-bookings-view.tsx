@@ -46,6 +46,8 @@ export function PassengerBookingsView() {
   const [reviewBooking, setReviewBooking] =
     React.useState<PassengerBookingSummary | null>(null);
   const [rating, setRating] = React.useState(5);
+  // P3-7 — optional driver rating from the web cohort.
+  const [driverRating, setDriverRating] = React.useState<number | null>(null);
   const [reviewContent, setReviewContent] = React.useState("");
 
   const { completePayment, PaystackPaymentCancelledError } =
@@ -166,6 +168,7 @@ export function PassengerBookingsView() {
         setReviewBooking(null);
         setReviewContent("");
         setRating(5);
+        setDriverRating(null);
       },
       onError: (err) => {
         toast.error(err.message || t("toastReviewFailed"));
@@ -183,6 +186,7 @@ export function PassengerBookingsView() {
       companyId: booking.companyId,
       bookingId: firstBookingId,
       rating,
+      ...(driverRating !== null ? { driverRating } : {}),
       content: reviewContent.trim() || null,
     });
   }
@@ -201,7 +205,13 @@ export function PassengerBookingsView() {
     onExecutePayment: executePayment,
     onOpenReview: handleOpenReview,
     isReviewedFn,
-  } as const;
+    rating,
+    setRating,
+    driverRating,
+    setDriverRating,
+    reviewContent,
+    setReviewContent,
+  };
 
   return (
     <>

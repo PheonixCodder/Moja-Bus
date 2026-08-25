@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@moja/db";
+import { type Prisma, type PrismaClient } from "@moja/db";
 import type { ConfirmedBookingResult } from "@moja/types";
 import { enqueueBookingConfirmed } from "@/features/notifications/outbox/commercial";
 
@@ -7,7 +7,9 @@ import { enqueueBookingConfirmed } from "@/features/notifications/outbox/commerc
  * Prefer calling from the same transaction as confirm when a tx client is available.
  */
 export async function sendBookingConfirmedEmails(
-  prisma: PrismaClient,
+  // Phase 32 (F-PS-14) — accepts a transaction client so the outbox row can
+  // enqueue atomically with the confirmation commit.
+  prisma: PrismaClient | Prisma.TransactionClient,
   confirmed: ConfirmedBookingResult,
   userId?: string | null,
   payerEmail?: string | null,

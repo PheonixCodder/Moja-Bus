@@ -17,6 +17,8 @@ enum UserRole {
   TRAVELER
   OPERATOR
   ADMIN
+  /// Operator-added roster drivers — app-side identity only, never ERP access.
+  DRIVER
 }
 
 enum BookingStatus {
@@ -26,6 +28,12 @@ enum BookingStatus {
   REFUND_PENDING
   CANCELLED
   EXPIRED
+  /// Phase 33 (F-PS-10 D4 ruling): INTENTIONALLY UNSTAMPED. Completion
+  /// semantics platform-wide = booking.completedAt != null (Phase-19 review
+  /// gates + escrow eligibility already key on it). Stamping this value was
+  /// evaluated and REJECTED: live CONFIRMED-gated consumers (release-escrow
+  /// cron, finalizeTripArrival's own review fan-out read) would silently
+  /// break. Do NOT stamp without re-auditing every CONFIRMED consumer.
   COMPLETED
 }
 
@@ -252,6 +260,28 @@ enum LicenseCategory {
   C
   D
   E
+}
+
+enum DriverOfferStatus {
+  PENDING
+  COUNTERED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  WITHDRAWN
+}
+
+enum DriverOfferEventType {
+  SENT
+  VIEWED
+  COUNTERED_BY_DRIVER
+  COUNTERED_BY_OPERATOR
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+  EXPIRED
+  AFFILIATION_CREATED
+  EXCLUSIVE_ENDED
 }
 
 // ============================================
@@ -582,6 +612,7 @@ model Company {
   campaignOptIns    CampaignCompanyOptIn[]
   discountRedemptions DiscountRedemption[]
   driverAffiliations DriverCompanyAffiliation[]
+  employmentOffers   DriverEmploymentOffer[]
   driverShifts      DriverShift[]
 
   // Paystack transfer recipient for manual settlements
@@ -1213,6 +1244,10 @@ model BusType {
   description String?
   isActive    Boolean @default(true)
 
+  /// Minimum commercial license class required to drive buses of this type.
+  /// CI ordering: B < C < D < E. Null = no requirement (validation skipped).
+  requiredLicenseCategory LicenseCategory?
+
   // null = platform default; set = operator custom type
   companyId String?
   company   Company? @relation("CompanyBusTypes", fields: [companyId], references: [id])
@@ -1663,6 +1698,11 @@ model PlatformSettings {
 
   require2FAForWithdrawals Boolean @default(false)
 
+  // Phase 31 (F-DV-11) — documented placeholder until the pay-rate model
+  // ships (roadmap). Single DB truth so driver-facing money is identical in
+  // every environment; the earnings response flags it as a placeholder rate.
+  driverPayRateXofPerMinute Int @default(50)
+
   updatedAt DateTime @updatedAt
 
   @@map("platform_settings")
@@ -2091,6 +2131,7 @@ model Booking {
   @@index([tripId, seatId, originTripStopId, destinationTripStopId])
   @@index([userId])
   @@index([holdGroupId])
+  @@index([passengerPhone])
   @@map("booking")
 }
 
@@ -2250,6 +2291,9 @@ model DriverProfile {
   yearsOfExperience    Int                      @default(1)
   medicalClearanceDate DateTime?
   medicalDocUrl        String?
+  // Phase 15 (F-DV-05) — collected by the self-registration wizard; previously
+  // dropped on the floor (the column existed only on Operator).
+  nationalIdNumber     String?
   
   // Platform Verification
   verificationStatus   DriverVerificationStatus @default(PENDING)
@@ -2277,12 +2321,14 @@ model DriverProfile {
 
   // Relations
   companyAffiliations  DriverCompanyAffiliation[]
+  employmentOffers     DriverEmploymentOffer[]
   assignedTrips        Trip[]                   @relation("TripAssignedDriver")
   reliefTrips          Trip[]                   @relation("TripReliefDriver")
   tripAssignments      TripDriverAssignment[]
   telemetryPings       DriverLocationPing[]
   reviews              Review[]                 @relation("DriverReviews")
   shifts               DriverShift[]
+  servicePreference    DriverServicePreference?  // Marketplace listing preferences
 
   createdAt            DateTime                 @default(now())
   updatedAt            DateTime                 @updatedAt
@@ -2292,6 +2338,7 @@ model DriverProfile {
   @@index([licenseNumber])
   @@map("driver_profile")
 }
+
 
 model DriverCompanyAffiliation {
   id              String               @id @default(cuid())
@@ -2326,6 +2373,9 @@ model TripDriverAssignment {
   role            String        @default("PRIMARY") // PRIMARY | RELIEF | CONDUCTOR
   assignedAt      DateTime      @default(now())
   assignedByStaffId String?
+  // Phase 31 (F-DV-14) — server-side urgent-dispatch acknowledgement so the
+  // modal survives reinstalls/re-logins (AsyncStorage acks did not).
+  urgentDispatchAckAt DateTime?
   
   startStopOrder  Int           @default(0)
   endStopOrder    Int?
@@ -2384,6 +2434,119 @@ model DriverShift {
   @@index([companyId, startedAt])
   @@map("driver_shift")
 }
+
+// Marketplace listing preferences — one-to-one with DriverProfile
+// Created after first verification; drives the driver marketplace (Phase 9+)
+model DriverServicePreference {
+  id                  String               @id @default(cuid())
+  driverProfileId     String               @unique
+  driverProfile       DriverProfile        @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+
+  // Marketplace signal — auto-true on first preference save
+  isAvailableForHire  Boolean              @default(false)
+
+  // Employment preference (mirrors DriverEmploymentType enum)
+  preferredType       DriverEmploymentType @default(EXCLUSIVE_INTERCITY)
+
+  // Geographic base — free text, e.g. "Abidjan", "Bouaké"
+  cityBase            String?
+
+  // Route experience — e.g. ["Abidjan-Bouaké", "Abidjan-Yamoussoukro"]
+  routeExperience     String[]             @default([])
+
+  // Minimum acceptable monthly salary in CFA francs
+  // Private — never exposed on operator-facing marketplace queries
+  minMonthlyRateCFA   Int?
+
+  // Short professional bio (optional, not shown in Phase 9 UI — future)
+  bio                 String?              @db.Text
+
+  // Phase 14 admin controls (added here to avoid a second migration)
+  isFeatured          Boolean              @default(false)
+  isSuspended         Boolean              @default(false)
+
+  updatedAt           DateTime             @updatedAt
+  createdAt           DateTime             @default(now())
+
+  @@index([isAvailableForHire, preferredType])
+  @@index([cityBase])
+  @@map("driver_service_preference")
+}
+
+// Structured employment offer — the Offer Board replacing informal chat hiring.
+// current* fields hold the LATEST effective terms (after counter-offers);
+// initial* fields are immutable originals. Full negotiation history lives in
+// DriverOfferEvent (append-only audit log).
+model DriverEmploymentOffer {
+  id              String           @id @default(cuid())
+  companyId       String
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  driverProfileId String
+  driverProfile   DriverProfile    @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+
+  employmentType  DriverEmploymentType @default(EXCLUSIVE_INTERCITY)
+
+  // Immutable original proposal
+  initialSalaryCFA   Int
+  initialStartDate   DateTime?
+  initialNote        String?
+
+  // Current effective terms (latest round of negotiation)
+  currentSalaryCFA   Int
+  currentStartDate   DateTime?
+  currentNote        String?
+
+  status             DriverOfferStatus @default(PENDING)
+
+  // Rolling window — refreshed +7 days on every counter
+  expiresAt          DateTime
+
+  // Trust signals
+  firstViewedAt      DateTime?
+  respondedAt        DateTime?
+  resolvedAt         DateTime?
+
+  // Created by (operator-side actor, for audit)
+  createdById        String?
+
+  events             DriverOfferEvent[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // DB-level guarantee: one ACTIVE offer per (company, driver) pair.
+  // Enforced via partial unique index in migration SQL.
+  @@index([companyId, status])
+  @@index([driverProfileId, status])
+  @@index([expiresAt, status])
+  @@map("driver_employment_offer")
+}
+
+// Append-only audit log for offer negotiations. Every state transition writes
+// an immutable row — powers dispute resolution, timeline UI, Phase 14 admin
+// audit analytics (avg rounds-to-hire, time-to-respond).
+model DriverOfferEvent {
+  id            String                @id @default(cuid())
+  offerId       String
+  offer         DriverEmploymentOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  eventType     DriverOfferEventType
+  /// COMPANY | DRIVER | SYSTEM
+  actorType     String
+  actorUserId   String?
+
+  // Terms snapshot at the moment of this event
+  salaryCFA     Int?
+  startDate     DateTime?
+  note          String?               @db.Text
+
+  createdAt     DateTime              @default(now())
+
+  @@index([offerId, createdAt])
+  @@map("driver_offer_event")
+}
+
+
 
 // ============================================
 // ENTERPRISE BLOG SYSTEM

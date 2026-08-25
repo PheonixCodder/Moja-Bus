@@ -1,7 +1,17 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
+import { dashboardUrl } from "@/features/notifications/utils/app-url";
 
+/** Phase 08 — extracted for the enqueue↔payloadSchema contract test. */
+export const adminPayoutFailedPayloadSchema = z.object({
+  adminEmail: z.string().email(),
+  transactionId: z.string(),
+  companyName: z.string(),
+  amountXOF: z.number(),
+  errorCode: z.string(),
+  errorMessage: z.string(),
+});
 
 export const adminPayoutFailedWorkflow = workflow(
   "admin-payout-failed",
@@ -28,7 +38,7 @@ export const adminPayoutFailedWorkflow = workflow(
             <p style="margin: 0 0 8px 0;">Error Code: <code>${escapeHtml(payload.errorCode)}</code></p>
             <p style="margin: 0;">Description: <strong>${escapeHtml(payload.errorMessage)}</strong></p>
           </div>
-          <a href="https://mojaride.com/dashboard/admin/withdrawals" 
+          <a href="${dashboardUrl("/dashboard/admin/withdrawals")} 
              style="display: inline-block; background: #ef4444; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin-top: 10px;">
              Manage Withdrawals
           </a>
@@ -43,17 +53,11 @@ export const adminPayoutFailedWorkflow = workflow(
   },
   {
     name: "Admin Operator Payout Failed",
-    description: "Alerts admins immediately if a Paystack payout or manual resolution fails",
+    description:
+      "Alerts admins immediately if a Paystack payout or manual resolution fails",
     preferences: {
       all: { readOnly: true },
     },
-    payloadSchema: z.object({
-      adminEmail: z.string().email(),
-      transactionId: z.string(),
-      companyName: z.string(),
-      amountXOF: z.number(),
-      errorCode: z.string(),
-      errorMessage: z.string(),
-    }),
-  }
+    payloadSchema: adminPayoutFailedPayloadSchema,
+  },
 );

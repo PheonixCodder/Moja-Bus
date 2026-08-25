@@ -60,7 +60,9 @@ export function SearchMapView({ originName, destinationName }: SearchMapViewProp
     }
     .leaflet-control-container .leaflet-routing-container-hide { display: none; }
     .leaflet-control-zoom { display: none !important; }
-    .leaflet-attribution-flag { display: none !important; }
+    /* Phase 31 review residue (F-TM-16 class) — the attribution flag CSS
+       suppression was REMOVED: OSM's tile policy requires visible
+       "© OpenStreetMap contributors" on every public surface. */
     .leaflet-container { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     .marker-pin {
       width: 32px;
@@ -97,13 +99,16 @@ export function SearchMapView({ originName, destinationName }: SearchMapViewProp
   <div id="map"></div>
   <script>
     var map = L.map('map', {
-      zoomControl: false,
-      attributionControl: false
+      zoomControl: false
+      // Phase 31 review residue — attributionControl stays ENABLED (default):
+      // this is the highest-traffic traveler surface and raw OSM tiles carry
+      // an unambiguous visible-attribution requirement.
     }).setView([7.54, -5.55], 7);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
-      subdomains: 'abc'
+      subdomains: 'abc',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
     var originMarker = null;

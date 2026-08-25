@@ -129,6 +129,7 @@ export function AdminBannersView() {
                     {banner.imageUrl ? (
                       <div className="relative h-10 w-20 rounded-md overflow-hidden border border-slate-200">
                         <Image
+                          unoptimized
                           src={banner.imageUrl}
                           alt={banner.title}
                           fill

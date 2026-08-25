@@ -1,42 +1,31 @@
+import { expo } from "@better-auth/expo";
 import { getCsvEnv, getOptionalEnv } from "@moja/config";
-import crypto from "crypto";
 import { getPrismaClient } from "@moja/db";
 import { userRoleValues } from "@moja/schemas/auth";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { phoneNumber } from "better-auth/plugins/phone-number";
-import { expo } from "@better-auth/expo";
+import crypto from "crypto";
 
-import { sendAuthOtp, type AuthOtpType } from "./auth-email";
+import { type AuthOtpType, sendAuthOtp } from "./auth-email";
+import { buildTrustedOrigins, DEV_FALLBACK_ORIGINS } from "./trusted-origins";
 
 function collectTrustedOrigins(baseUrl: string): string[] {
-  const origins = new Set<string>([
-    new URL(baseUrl).origin,
-    ...getCsvEnv("ALLOWED_ORIGINS", process.env, [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:19006",
-      "http://127.0.0.1:3000",
-      "http://127.0.0.1:3001",
-      "http://127.0.0.1:19006",
-    ]),
-    "traveler-app://",
-    // Mobile / Expo origins — always trusted regardless of NODE_ENV
-    // so the traveler-app works against production deployments
-    "exp://",
-    "http://localhost:8081",
-    "http://127.0.0.1:8081",
-  ]);
-
-  const expoOrigin = process.env["EXPO_DEV_ORIGIN"];
-  if (expoOrigin) {
-    origins.add(expoOrigin);
-  }
-
-  return [...origins];
+  const isProd = process.env.NODE_ENV === "production";
+  return buildTrustedOrigins({
+    baseUrl,
+    // Phase 35 (F-IN-16) — production trusts EXPLICIT ALLOWED_ORIGINS only
+    // (empty fallback); the localhost defaults are dev-only.
+    explicitAllowedOrigins: getCsvEnv(
+      "ALLOWED_ORIGINS",
+      process.env,
+      isProd ? [] : [...DEV_FALLBACK_ORIGINS],
+    ),
+    isProd,
+    expoDevOrigin: process.env["EXPO_DEV_ORIGIN"],
+  });
 }
-
 
 function resolveBaseUrl(): string {
   // Use Next.js base URL, defaults to 3000
@@ -145,7 +134,10 @@ export const auth = betterAuth({
       role: {
         type: "string",
         defaultValue: "TRAVELER",
-        input: true,
+        // Phase 14/16 (F-DV-10) — the platform role is never client-writable.
+        // Privileged role changes go through admin/staff procedures with their
+        // own gates; driver placeholder accounts are created server-side.
+        input: false,
       },
     },
   },
@@ -234,27 +226,32 @@ export const auth = betterAuth({
             });
 
             // Trigger Novu Welcome (fire and forget)
-            import("@/lib/novu").then(({ getNovuClient }) => {
-              const novu = getNovuClient();
-              if (novu) {
-                const appUrl = process.env["APP_URL"] || "http://localhost:3000";
-                novu.trigger({
-                  workflowId: "operator-welcome",
-                  to: {
-                    subscriberId: user.id,
-                    email: pending.email,
-                    firstName: pending.ownerName.split(" ")[0],
-                  },
-                  payload: {
-                    email: user.email,
-                    ownerName: pending.ownerName,
-                    companyName: pending.companyName,
-                    dashboardUrl: appUrl,
-                  },
-                  transactionId: `operator-welcome-${user.id}`,
-                }).catch(console.error);
-              }
-            }).catch(console.error);
+            import("@/lib/novu")
+              .then(({ getNovuClient }) => {
+                const novu = getNovuClient();
+                if (novu) {
+                  const appUrl =
+                    process.env["APP_URL"] || "http://localhost:3000";
+                  novu
+                    .trigger({
+                      workflowId: "operator-welcome",
+                      to: {
+                        subscriberId: user.id,
+                        email: pending.email,
+                        firstName: pending.ownerName.split(" ")[0],
+                      },
+                      payload: {
+                        email: user.email,
+                        ownerName: pending.ownerName,
+                        companyName: pending.companyName,
+                        dashboardUrl: appUrl,
+                      },
+                      transactionId: `operator-welcome-${user.id}`,
+                    })
+                    .catch(console.error);
+                }
+              })
+              .catch(console.error);
           }
         },
       },
@@ -282,7 +279,8 @@ export const auth = betterAuth({
         await sendAuthOtp({ identifier: phone, otp: code, type: "sign-in" });
       },
       signUpOnVerification: {
-        getTempEmail: (phone) => `${phone.replace(/\s+/g, "")}@guest.mojaride.ci`,
+        getTempEmail: (phone) =>
+          `${phone.replace(/\s+/g, "")}@guest.mojaride.ci`,
         getTempName: (phone) => `User ${phone}`,
       },
     }),
@@ -292,6 +290,7 @@ export const auth = betterAuth({
 export function getAuthTrustedOrigins(): string[] {
   return collectTrustedOrigins(resolveBaseUrl());
 }
+
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 

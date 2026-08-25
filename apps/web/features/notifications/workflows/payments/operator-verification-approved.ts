@@ -1,6 +1,7 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
+import { dashboardUrl } from "@/features/notifications/utils/app-url";
 
 
 export const operatorVerificationApprovedWorkflow = workflow(
@@ -14,7 +15,7 @@ export const operatorVerificationApprovedWorkflow = workflow(
           <p style="font-size: 15px; line-height: 1.5; color: #334155;">Hello ${escapeHtml(payload.ownerName)},</p>
           <p style="font-size: 15px; line-height: 1.5; color: #334155;">We are excited to inform you that verification for <strong>${escapeHtml(payload.companyName)}</strong> has been approved by the Moja Ride team.</p>
           <p style="font-size: 15px; line-height: 1.5; color: #334155;">Your default bank account is verified, and your account status is set to <strong>ACTIVE</strong>. You can now setup departure schedules, sell tickets, and request self-serve withdrawals.</p>
-          <a href="https://admin.mojaride.com/dashboard/operator/revenue" 
+          <a href="${dashboardUrl("/dashboard/operator/revenue")} 
              style="display: inline-block; background: #ee237c; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin-top: 16px; text-align: center;">
              Open Revenue Dashboard
           </a>

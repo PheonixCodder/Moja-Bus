@@ -429,7 +429,7 @@ export const staffRouter = createTRPCRouter({
       try {
         await novu.trigger({
           workflowId: "auth-otp",
-          to: { subscriberId: ctx.user.email, email: ctx.user.email },
+          to: { subscriberId: ctx.user.id, email: ctx.user.email },
           payload: {
             identifier: ctx.user.email,
             otpCode: otp,

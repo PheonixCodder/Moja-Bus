@@ -246,6 +246,7 @@ export function BannerFormDialog({
             {watchImageUrl ? (
               <div className="relative aspect-[21/9] w-full rounded-lg overflow-hidden border border-slate-200 group">
                 <Image
+                  unoptimized
                   src={watchImageUrl}
                   alt={t("table.preview")}
                   fill

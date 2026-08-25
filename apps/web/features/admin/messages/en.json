@@ -3,6 +3,8 @@
     "nav": {
       "overview": "Overview",
       "verifications": "Verification Queue",
+      "driverVerifications": "Driver Verifications",
+      "driverMarketplace": "Driver Marketplace",
       "users": "Users",
       "travelers": "Travelers",
       "operators": "Operators",

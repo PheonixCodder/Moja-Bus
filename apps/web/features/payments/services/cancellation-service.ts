@@ -1,7 +1,13 @@
 import type { PrismaClient } from "@moja/db";
 import { AccountingEngine, FinancialAccountService, Prisma } from "@moja/db";
 import { TRPCError } from "@trpc/server";
-import { refundStatusForCancellationChannel } from "../lib/cancellation-policy";
+import { enqueueBookingRefunded } from "@/features/notifications/outbox/commercial";
+import {
+  isCreatableRefundChannel,
+  refundStatusForCancellationChannel,
+  computeRefundQuote,
+  type CreatableRefundChannel,
+} from "../lib/cancellation-policy";
 import { resolveHoldGroup } from "../lib/resolve-hold-group";
 import {
   assertSettlementCancellable,
@@ -17,12 +23,29 @@ export type CancelBookingInput = {
   userCompanyId?: string | undefined;
   channel: CancellationRefundChannel;
   reason?: string | undefined;
+  /**
+   * P1-6: emit the passenger-booking-refunded outbox message (default true).
+   * The operator trip-cancel path passes false — it already sends
+   * passenger-trip-cancelled with the refund amount included.
+   */
+  notifyRefunded?: boolean;
 };
 
 export class CancellationService {
   constructor(private prisma: PrismaClient) {}
 
   async cancelBooking(input: CancelBookingInput, tx?: any) {
+    // F-PS-02: PAYSTACK refunds are disabled — money never flows back out
+    // through Paystack. Wallet credit or manual settlement only.
+    if (!isCreatableRefundChannel(input.channel)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Paystack refunds are disabled — refunds are issued as Moja wallet credit or manual settlement",
+      });
+    }
+    const channel: CreatableRefundChannel = input.channel;
+
     const db = tx || this.prisma;
     const booking = await db.booking.findUnique({
       where: { bookingReference: input.bookingReference },
@@ -99,6 +122,10 @@ export class CancellationService {
     const settlement = await resolveBookingSettlement(db, holdGroup);
     assertSettlementCancellable(settlement);
 
+    // F-PS-02 sibling: fully promo-covered confirms collected no money.
+    // Cancelling releases the seat without minting a refund obligation.
+    const zeroCashSettlement = settlement.kind === "ZERO_CASH";
+
     const platformCommissionBps =
       (
         await this.prisma.platformSettings.findUnique({
@@ -106,7 +133,7 @@ export class CancellationService {
         })
       )?.defaultCommissionBps ?? 500;
 
-    const requestIdempotencyKey = `CANCEL_${booking.id}_${input.channel}`;
+    const requestIdempotencyKey = `CANCEL_${booking.id}_${channel}`;
 
     const run = async (txClient: any) => {
       await txClient.$queryRaw(
@@ -143,40 +170,52 @@ export class CancellationService {
         };
       }
 
-      const snapshot = holdGroup.pricingSnapshot;
-      let proportionalBase = lockedBooking.farePaid;
-      let proportionalOperatorNet = lockedBooking.farePaid;
-
-      if (snapshot) {
-        const cancelledSoFar = await txClient.booking.count({
-          where: { holdGroupId: holdGroup.id, status: "CANCELLED" },
+      // Zero-cash settlements mint no refund row, notice, or ledger legs —
+      // there is no money to return. paymentStatus stays untouched since no
+      // cash ever moved; the fare-sum invariant below presumes cash, so it
+      // does not run on this path either.
+      if (zeroCashSettlement) {
+        await txClient.booking.update({
+          where: { id: lockedBooking.id },
+          data: { status: "CANCELLED" },
         });
-        const isLastSeat = cancelledSoFar + 1 === snapshot.seatCount;
-        const standardBase = Math.round(
-          snapshot.subtotalBaseXOF / snapshot.seatCount,
-        );
-        const standardNet = Math.round(
-          snapshot.operatorNetXOF / snapshot.seatCount,
-        );
 
-        proportionalBase = isLastSeat
-          ? snapshot.subtotalBaseXOF - cancelledSoFar * standardBase
-          : standardBase;
+        const remainingConfirmed = await txClient.booking.count({
+          where: { holdGroupId: holdGroup.id, status: "CONFIRMED" },
+        });
+        if (remainingConfirmed === 0) {
+          await txClient.holdGroup.update({
+            where: { id: holdGroup.id },
+            data: { status: "CANCELLED" },
+          });
+        }
 
-        proportionalOperatorNet = isLastSeat
-          ? snapshot.operatorNetXOF - cancelledSoFar * standardNet
-          : standardNet;
-      } else {
-        const commission = Math.round(
-          (proportionalBase * platformCommissionBps) / 10_000,
-        );
-        proportionalOperatorNet = Math.max(0, proportionalBase - commission);
+        return { refund: null };
       }
 
-      // D2: ticket subtotal share only — convenience fee is never refunded.
-      const refundAmountXOF = Math.max(0, proportionalBase);
+      const snapshot = holdGroup.pricingSnapshot as {
+        seatCount: number;
+        subtotalBaseXOF: number;
+        operatorNetXOF: number;
+      } | null;
 
-      const refundStatus = refundStatusForCancellationChannel(input.channel);
+      const cancelledSoFar = snapshot
+        ? await txClient.booking.count({
+            where: { holdGroupId: holdGroup.id, status: "CANCELLED" },
+          })
+        : 0;
+
+      // P2-12 — quote math lives in cancellation-policy; the dialog preview
+      // uses the exact same function, so displayed amounts can never drift.
+      const { refundAmountXOF, operatorNetXOF: proportionalOperatorNet } =
+        computeRefundQuote({
+          farePaid: lockedBooking.farePaid,
+          pricingSnapshot: snapshot,
+          cancelledSoFar,
+          platformCommissionBps,
+        });
+
+      const refundStatus = refundStatusForCancellationChannel(channel);
 
       await txClient.booking.update({
         where: { id: lockedBooking.id },
@@ -194,13 +233,37 @@ export class CancellationService {
             ? { paymentId: settlement.externalPaymentId }
             : {}),
           amountXOF: refundAmountXOF,
-          channel: input.channel,
+          channel,
           status: refundStatus,
           paystackRefundId: null,
           requestIdempotencyKey,
           reason: input.reason ?? "Passenger cancellation before departure",
         },
       });
+
+      // P1-6: durable passenger notice, committed atomically with the refund.
+      // Guests are skipped — their bookings carry no account to deliver to.
+      if (
+        input.notifyRefunded !== false &&
+        lockedBooking.userId &&
+        booking.user?.email
+      ) {
+        await enqueueBookingRefunded(txClient as any, {
+          refundId: refund.id,
+          email: booking.user.email,
+          subscriberId: lockedBooking.userId,
+          ...(booking.user.fullName
+            ? { firstName: booking.user.fullName.split(" ")[0] }
+            : {}),
+          data: {
+            passengerName: booking.user.fullName ?? booking.passengerName,
+            bookingReference: lockedBooking.bookingReference,
+            refundAmountXOF,
+            channel,
+            reason: input.reason ?? "Passenger cancellation before departure",
+          },
+        });
+      }
 
 
 
@@ -215,7 +278,7 @@ export class CancellationService {
           refundAmountXOF - proportionalOperatorNet,
         );
 
-        if (input.channel === "WALLET") {
+        if (channel === "WALLET") {
           if (!lockedBooking.userId) {
             throw new TRPCError({
               code: "BAD_REQUEST",
@@ -236,7 +299,7 @@ export class CancellationService {
             idempotencyKey: `REFUND_WALLET_${lockedBooking.id}`,
             metadata: {
               refundId: refund.id,
-              proportionalBase,
+              proportionalBase: refundAmountXOF,
               proportionalOperatorNet,
               settlementKind: settlement.kind,
             },
@@ -290,9 +353,9 @@ export class CancellationService {
             idempotencyKey: `REFUND_OFFLINE_${lockedBooking.id}`,
             metadata: {
               refundId: refund.id,
-              proportionalBase,
+              proportionalBase: refundAmountXOF,
               proportionalOperatorNet,
-              channel: input.channel,
+              channel,
               settlementKind: settlement.kind,
             },
           });
@@ -410,7 +473,7 @@ export class CancellationService {
       throw err;
     }
 
-    if (result.refund.status === "PENDING_FULFILMENT") {
+    if (result.refund?.status === "PENDING_FULFILMENT") {
       await this.prisma.activityLog.create({
         data: {
           companyId: booking.companyId,
@@ -431,10 +494,12 @@ export class CancellationService {
 
     return {
       success: true as const,
-      refundId: result.refund.id,
-      amountXOF: result.refund.amountXOF,
-      channel: result.refund.channel,
-      status: result.refund.status,
+      // Zero-cash settlements mint no Refund row — the seat release IS the
+      // outcome; nothing was collected so nothing is refunded.
+      refundId: result.refund?.id ?? null,
+      amountXOF: result.refund?.amountXOF ?? 0,
+      channel: (result.refund?.channel as string | undefined) ?? channel,
+      status: result.refund?.status ?? "NO_REFUND_DUE",
     };
   }
 }

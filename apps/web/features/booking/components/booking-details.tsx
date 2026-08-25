@@ -692,13 +692,28 @@ type ActivityTabProps = {
   booking: PassengerBookingSummary;
   onOpenReview: () => void;
   isReviewed: boolean;
+  rating: number;
+  setRating: (value: number) => void;
+  driverRating: number | null;
+  setDriverRating: (value: number | null) => void;
+  reviewContent: string;
+  setReviewContent: (value: string) => void;
 };
 
-function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
+function ActivityTab({
+  booking,
+  onOpenReview,
+  isReviewed,
+  rating,
+  setRating,
+  driverRating,
+  setDriverRating,
+  reviewContent,
+  setReviewContent,
+}: ActivityTabProps) {
   const t = useTranslations("passengerDashboard.bookingDetails");
-  const [rating, setRating] = React.useState(5);
   const [hoverRating, setHoverRating] = React.useState<number | null>(null);
-  const [reviewContent, setReviewContent] = React.useState("");
+  const [hoverDriverRating, setHoverDriverRating] = React.useState<number | null>(null);
 
   const isPastOrCompleted =
     booking.status === "COMPLETED" ||
@@ -780,6 +795,49 @@ function ActivityTab({ booking, onOpenReview, isReviewed }: ActivityTabProps) {
                       );
                     })}
                   </div>
+
+                  {/* P3-7 — optional driver rating; web cohort feeds driver scores */}
+                  <div className="space-y-1.5 pt-1 border-t border-border/60">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {t("rateDriver")}{" "}
+                      <span className="text-[10px]">({t("optional")})</span>
+                    </p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const filled =
+                          (hoverDriverRating ?? driverRating ?? 0) >= star;
+                        return (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() =>
+                              setDriverRating(
+                                driverRating === star ? null : star,
+                              )
+                            }
+                            onMouseEnter={() => setHoverDriverRating(star)}
+                            onMouseLeave={() => setHoverDriverRating(null)}
+                            className="focus:outline-none"
+                          >
+                            <Star
+                              className={cn(
+                                "size-5 transition-colors",
+                                filled
+                                  ? "fill-indigo-500 text-indigo-500"
+                                  : "text-muted-foreground",
+                              )}
+                            />
+                          </button>
+                        );
+                      })}
+                      {driverRating !== null && (
+                        <span className="text-[11px] text-muted-foreground self-center ml-1.5 cursor-pointer underline" onClick={() => setDriverRating(null)}>
+                          {t("clear")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
                   <Textarea
                     value={reviewContent}
                     onChange={(e) => setReviewContent(e.target.value)}
@@ -830,6 +888,12 @@ export type BookingDetailsProps = {
   }) => void;
   onOpenReview: (booking: PassengerBookingSummary) => void;
   isReviewedFn: (booking: PassengerBookingSummary) => boolean;
+  rating: number;
+  setRating: (value: number) => void;
+  driverRating: number | null;
+  setDriverRating: (value: number | null) => void;
+  reviewContent: string;
+  setReviewContent: (value: string) => void;
 };
 
 export function BookingDetails({
@@ -840,6 +904,12 @@ export function BookingDetails({
   onExecutePayment,
   onOpenReview,
   isReviewedFn,
+  rating,
+  setRating,
+  driverRating,
+  setDriverRating,
+  reviewContent,
+  setReviewContent,
 }: BookingDetailsProps) {
   const t = useTranslations("passengerDashboard.bookingDetails");
   if (!booking) return <EmptyDetailsState />;
@@ -911,6 +981,12 @@ export function BookingDetails({
               booking={booking}
               onOpenReview={() => onOpenReview(booking)}
               isReviewed={isReviewedFn(booking)}
+              rating={rating}
+              setRating={setRating}
+              driverRating={driverRating}
+              setDriverRating={setDriverRating}
+              reviewContent={reviewContent}
+              setReviewContent={setReviewContent}
             />
           </TabsContent>
         </Tabs>

@@ -247,27 +247,55 @@ export async function rebookPassenger(
       },
     });
 
+    // Phase 33 (F-PS-16) — the rebooking notice rides the durable OUTBOX
+    // enqueued INSIDE this transaction (was a post-commit console.log stub
+    // presented as an SMS). Subscriber = the booking's account; bookings
+    // always carry userId today (F-PS-11: no guest creator exists), so a
+    // missing user/email skips honestly rather than inventing an address.
+    if (sourceBooking.userId) {
+      const recipient = await tx.user.findUnique({
+        where: { id: sourceBooking.userId },
+        select: { email: true, fullName: true },
+      });
+      const carrier = await tx.company.findUnique({
+        where: { id: companyId },
+        select: { name: true },
+      });
+      if (recipient?.email) {
+        const { enqueuePassengerRebooked } = await import(
+          "@/features/notifications/outbox/commercial"
+        );
+        await enqueuePassengerRebooked(tx, {
+          newBookingReference: newRef,
+          email: recipient.email,
+          subscriberId: sourceBooking.userId,
+          firstName: sourceBooking.passengerName.split(" ")[0] ?? "",
+          data: {
+            email: recipient.email,
+            passengerName: sourceBooking.passengerName,
+            oldBookingReference: sourceBooking.bookingReference,
+            newBookingReference: newRef,
+            companyName: carrier?.name ?? "Moja Ride",
+            departureTime: new Intl.DateTimeFormat("fr-FR", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              timeZone: "Africa/Abidjan",
+            }).format(targetTrip.departureDate),
+            seatLabel: chosenSeat?.label ?? "",
+          },
+        });
+      }
+    }
+
     return {
       newBooking,
       chosenSeat: chosenSeat!,
     };
   });
-
-  // 6. Asynchronous Notification dispatch (SMS / Novu)
-  try {
-    const { notifyRebookingSuccess } = await import("./rebooking-notifier");
-    await notifyRebookingSuccess({
-      passengerName: sourceBooking.passengerName,
-      passengerPhone: sourceBooking.passengerPhone,
-      oldBookingReference: sourceBooking.bookingReference,
-      newBookingReference: rebookingResult.newBooking.bookingReference,
-      companyName: sourceBooking.trip.schedule?.name ?? "Moja Ride",
-      departureTime: targetTrip.departureDate,
-      seatNumber: Number(rebookingResult.chosenSeat.label) || 1,
-    });
-  } catch (err) {
-    console.error("[RebookingNotifier] Failed to send rebooking notification:", err);
-  }
 
   return {
     previousBookingReference: sourceBooking.bookingReference,

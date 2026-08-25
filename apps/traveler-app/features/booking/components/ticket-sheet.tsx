@@ -149,8 +149,15 @@ export function TicketSheet({
 								{/* QR Code — encodes qrPayload URL (same as web) for operator scanners */}
 								<View className="items-center py-2">
 									<TicketQrCode payload={ticket.qrPayload || ticket.ticketToken} />
+									{/* Phase 32 (F-PS-15) — the caption shows the booking
+									    reference, NOT the raw durable bearer token: the QR
+									    itself already carries the credential, and printing
+									    it in text turned every screenshot/share into a
+									    permanent-credential leak. The token remains encoded,
+									    scannable, and intentionally shareable via the Share
+									    button — just not passively readable. */}
 									<Text className="text-muted-foreground font-mono text-sm mt-2 tracking-wider">
-										TOKEN: {ticket.ticketToken}
+										{ticket.bookingReference}
 									</Text>
 								</View>
 

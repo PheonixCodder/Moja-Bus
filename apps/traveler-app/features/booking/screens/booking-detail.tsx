@@ -1,43 +1,53 @@
+import {
+	ArrowRight01Icon,
+	Cancel01Icon,
+	CreditCardIcon,
+	Share01Icon,
+	StarIcon,
+	Ticket01Icon,
+	Wallet01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  View,
+	ActivityIndicator,
+	Alert,
+	Modal,
+	Pressable,
+	ScrollView,
+	TextInput,
+	View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
 import { BookingStatusBadge } from "@/features/booking/components/booking-status-badge";
 import { HoldCountdown } from "@/features/booking/components/hold-countdown";
-import { useGetBooking } from "@/features/booking/hooks/use-bookings";
 import {
-  useCheckoutWithWallet,
-  useCancelBooking,
-  useInitiatePayment,
-  useVerifyPayment,
+	useCancelBooking,
+	useCheckoutWithWallet,
+	useInitiatePayment,
+	useRefundQuote,
+	useShareTicket,
+	useVerifyPayment,
 } from "@/features/booking/hooks/use-booking-actions";
+import { useGetBooking } from "@/features/booking/hooks/use-bookings";
 import { PaystackWebView } from "@/features/settings/components/paystack-webview";
 import { authClient } from "@/lib/auth-client";
 import { formatLocationLabel } from "@/lib/format-location-label";
-import { formatDateWithWeekday, formatPriceXOF, formatTimeOnly } from "../lib/format-time";
 import { CancelDialog } from "../components/cancel-dialog";
 import { ReviewSheet } from "../components/review-sheet";
 import { useHoldCountdown } from "../hooks/use-hold-countdown";
 import {
-  ArrowRight01Icon,
-  Cancel01Icon,
-  CreditCardIcon,
-  StarIcon,
-  Ticket01Icon,
-  Wallet01Icon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import * as Haptics from "expo-haptics";
+	formatDateWithWeekday,
+	formatPriceXOF,
+	formatTimeOnly,
+} from "../lib/format-time";
 
 type BookingDetailViewProps = {
 	bookingReference: string;
@@ -52,8 +62,13 @@ export function BookingDetailView({
 
 	const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 	const [reviewSheetOpen, setReviewSheetOpen] = useState(false);
+	const [shareDialogOpen, setShareDialogOpen] = useState(false);
+	const [recipientName, setRecipientName] = useState("");
+	const [recipientEmail, setRecipientEmail] = useState("");
 	const [authorizationUrl, setAuthorizationUrl] = useState<string | null>(null);
-	const [paystackReference, setPaystackReference] = useState<string | null>(null);
+	const [paystackReference, setPaystackReference] = useState<string | null>(
+		null,
+	);
 	const [isVerifying, setIsVerifying] = useState(false);
 
 	const { data: session } = authClient.useSession();
@@ -66,8 +81,12 @@ export function BookingDetailView({
 
 	const checkoutWalletMutation = useCheckoutWithWallet();
 	const cancelMutation = useCancelBooking();
+	// Phase 18 (F-PS-04) — server refund quote for THIS seat's booking.
+	const seatRef = booking?.seats?.[0]?.bookingReference || bookingReference;
+	const { data: refundQuote } = useRefundQuote(seatRef, cancelDialogOpen);
 	const initiatePayment = useInitiatePayment();
 	const verifyPayment = useVerifyPayment();
+	const shareTicketMutation = useShareTicket();
 
 	const holdCountdown = useHoldCountdown(
 		booking?.status === "PENDING_PAYMENT" && booking.holdExpiresAt
@@ -76,7 +95,7 @@ export function BookingDetailView({
 	);
 	const holdExpired =
 		booking?.status === "PENDING_PAYMENT" &&
-		(!!booking.holdExpiresAt ? holdCountdown === "Expired" : true);
+		(booking.holdExpiresAt ? holdCountdown === "Expired" : true);
 
 	if (isLoading) {
 		return (
@@ -122,7 +141,11 @@ export function BookingDetailView({
 
 	const isPending = booking.status === "PENDING_PAYMENT";
 	const isConfirmed = booking.status === "CONFIRMED";
-	const isCompleted = booking.status === "COMPLETED";
+	// Phase 33 (F-PS-10 D4 ruling) — completion = completedAt, NOT status:
+	// BookingStatus.COMPLETED is intentionally never stamped (see schema
+	// comment). This is what revives the organic Review button — it gated on
+	// a value written nowhere and never rendered.
+	const isCompleted = booking.completedAt != null;
 	const canPay = isPending && !holdExpired;
 
 	const handleExecuteWalletPayment = async () => {
@@ -181,13 +204,18 @@ export function BookingDetailView({
 		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 		try {
 			await cancelMutation.mutateAsync({
-				bookingReference: booking.seats?.[0]?.bookingReference || bookingReference,
+				bookingReference: seatRef,
 				channel,
 			});
 			setCancelDialogOpen(false);
 			refetch();
 		} catch (err: any) {
-			console.error("Cancellation error:", err);
+			// Phase 18 (F-PS-04) — guest/eligibility failures surface honestly.
+			Toast.show({
+				type: "error",
+				text1: t("cancelFailed"),
+				text2: err?.message || undefined,
+			});
 		}
 	};
 
@@ -218,7 +246,9 @@ export function BookingDetailView({
 					</View>
 
 					<View className="flex-row items-center justify-between border-t border-border/40 pt-3">
-						<Text className="text-muted-foreground text-xs font-medium">{t("bookingReference")}</Text>
+						<Text className="text-muted-foreground text-xs font-medium">
+							{t("bookingReference")}
+						</Text>
 						<Text className="text-foreground font-mono font-bold text-xs">
 							{bookingReference}
 						</Text>
@@ -240,10 +270,16 @@ export function BookingDetailView({
 
 					<View className="flex-row items-center justify-between">
 						<View className="flex-1">
-							<Text className="text-foreground text-lg font-black" numberOfLines={1}>
+							<Text
+								className="text-foreground text-lg font-black"
+								numberOfLines={1}
+							>
 								{originFormatted}
 							</Text>
-							<Text className="text-muted-foreground text-xs font-medium" numberOfLines={1}>
+							<Text
+								className="text-muted-foreground text-xs font-medium"
+								numberOfLines={1}
+							>
 								{booking.originTerminalName}
 							</Text>
 							<Text className="text-primary font-bold text-xs mt-1">
@@ -255,14 +291,24 @@ export function BookingDetailView({
 						</View>
 
 						<View className="items-center px-3">
-							<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ee237c" />
+							<HugeiconsIcon
+								icon={ArrowRight01Icon}
+								size={18}
+								color="#ee237c"
+							/>
 						</View>
 
 						<View className="flex-1 items-end">
-							<Text className="text-foreground text-right text-lg font-black" numberOfLines={1}>
+							<Text
+								className="text-foreground text-right text-lg font-black"
+								numberOfLines={1}
+							>
 								{destFormatted}
 							</Text>
-							<Text className="text-muted-foreground text-right text-xs font-medium" numberOfLines={1}>
+							<Text
+								className="text-muted-foreground text-right text-xs font-medium"
+								numberOfLines={1}
+							>
 								{booking.destinationTerminalName}
 							</Text>
 							<Text className="text-primary font-bold text-xs mt-1 text-right">
@@ -307,7 +353,11 @@ export function BookingDetailView({
 						>
 							<View className="flex-row items-center gap-3">
 								<View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center border border-primary/20">
-									<HugeiconsIcon icon={Ticket01Icon} size={16} color="#ee237c" />
+									<HugeiconsIcon
+										icon={Ticket01Icon}
+										size={16}
+										color="#ee237c"
+									/>
 								</View>
 								<View>
 									<Text className="text-foreground font-bold text-xs">
@@ -338,14 +388,18 @@ export function BookingDetailView({
 					</Text>
 
 					<View className="flex-row items-center justify-between border-b border-border/40 pb-2">
-						<Text className="text-muted-foreground text-xs font-medium">{t("baseFare")}</Text>
+						<Text className="text-muted-foreground text-xs font-medium">
+							{t("baseFare")}
+						</Text>
 						<Text className="text-foreground font-bold text-xs">
 							{formatPriceXOF(booking.totalAmountXOF)}
 						</Text>
 					</View>
 
 					<View className="flex-row items-center justify-between pt-1">
-						<Text className="text-foreground font-black text-sm">{t("totalAmount")}</Text>
+						<Text className="text-foreground font-black text-sm">
+							{t("totalAmount")}
+						</Text>
 						<Text className="text-primary font-black text-base">
 							{formatPriceXOF(booking.totalAmountXOF)}
 						</Text>
@@ -369,9 +423,14 @@ export function BookingDetailView({
 									<ActivityIndicator size="small" color="#ffffff" />
 								) : (
 									<>
-										<HugeiconsIcon icon={Wallet01Icon} size={18} color="#ffffff" />
+										<HugeiconsIcon
+											icon={Wallet01Icon}
+											size={18}
+											color="#ffffff"
+										/>
 										<Text className="text-white font-black text-sm">
-											{t("payWithWallet")} ({formatPriceXOF(booking.totalAmountXOF)})
+											{t("payWithWallet")} (
+											{formatPriceXOF(booking.totalAmountXOF)})
 										</Text>
 									</>
 								)}
@@ -389,7 +448,11 @@ export function BookingDetailView({
 									<ActivityIndicator size="small" color="#ffffff" />
 								) : (
 									<>
-										<HugeiconsIcon icon={CreditCardIcon} size={18} color="#ffffff" />
+										<HugeiconsIcon
+											icon={CreditCardIcon}
+											size={18}
+											color="#ffffff"
+										/>
 										<Text className="text-white font-black text-sm">
 											{t("payWithPaystack")}
 										</Text>
@@ -412,29 +475,63 @@ export function BookingDetailView({
 
 					{isConfirmed ? (
 						<View className="space-y-2.5">
-							<Pressable
-								onPress={() => router.push(`/tracking/${booking.seats?.[0]?.bookingId || bookingReference}` as any)}
-								className="bg-emerald-600 py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs active:bg-emerald-700"
-							>
-								<View className="size-2 rounded-full bg-white animate-ping" />
-								<Text className="text-white font-bold text-xs">Track Live Bus in Realtime</Text>
-							</Pressable>
+							{/* Phase 18 (P1-5/P2-13) — live tracking ships with a real
+							    telemetry consumer; until then this stays flag-gated OFF
+							    so users are never shown simulated positions.
+							    Phase 30 (F-TM-15) — the param is the TRIP id (server
+							    truth); pushing a bookingId here resurrected a dead end
+							    the moment the flag flipped ON. */}
+							{process.env["EXPO_PUBLIC_LIVE_TRACKING_ENABLED"] === "true" && (
+								<Pressable
+									onPress={() =>
+										router.push(`/tracking/${booking.tripId}` as any)
+									}
+								>
+									<View className="size-2 rounded-full bg-white animate-ping" />
+									<Text className="text-white font-bold text-xs">
+										Track Live Bus in Realtime
+									</Text>
+								</Pressable>
+							)}
 
 							<View className="flex-row gap-3">
 								<Pressable
 									onPress={() => router.push("/(tabs)/tickets" as any)}
 									className="flex-1 bg-primary py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs"
 								>
-									<HugeiconsIcon icon={Ticket01Icon} size={16} color="#ffffff" />
-									<Text className="text-white font-bold text-xs">{t("viewTicket")}</Text>
+									<HugeiconsIcon
+										icon={Ticket01Icon}
+										size={16}
+										color="#ffffff"
+									/>
+									<Text className="text-white font-bold text-xs">
+										{t("viewTicket")}
+									</Text>
+								</Pressable>
+
+								{/* P2-3 👻 → wired: email the digital-ticket link (17C.4). */}
+								<Pressable
+									onPress={() => setShareDialogOpen(true)}
+									className="bg-muted border border-border px-4 py-3.5 rounded-xl items-center justify-center flex-row gap-1.5"
+								>
+									<HugeiconsIcon icon={Share01Icon} size={15} color="#0f172a" />
+									<Text className="text-foreground font-bold text-xs">
+										{t("shareTicket")}
+									</Text>
 								</Pressable>
 
 								<Pressable
 									onPress={() => setCancelDialogOpen(true)}
 									className="bg-destructive/10 border border-destructive/20 px-4 py-3.5 rounded-xl items-center justify-center flex-row gap-1.5"
 								>
-									<HugeiconsIcon icon={Cancel01Icon} size={16} color="#ef4444" />
-									<Text className="text-destructive font-bold text-xs">{t("cancel")}</Text>
+									<HugeiconsIcon
+										icon={Cancel01Icon}
+										size={16}
+										color="#ef4444"
+									/>
+									<Text className="text-destructive font-bold text-xs">
+										{t("cancel")}
+									</Text>
 								</Pressable>
 							</View>
 						</View>
@@ -446,7 +543,9 @@ export function BookingDetailView({
 							className="bg-primary/10 border border-primary/20 py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs"
 						>
 							<HugeiconsIcon icon={StarIcon} size={16} color="#ee237c" />
-							<Text className="text-primary font-bold text-xs">{t("reviewTrip")}</Text>
+							<Text className="text-primary font-bold text-xs">
+								{t("reviewTrip")}
+							</Text>
 						</Pressable>
 					) : null}
 				</View>
@@ -456,10 +555,104 @@ export function BookingDetailView({
 			<CancelDialog
 				isOpen={cancelDialogOpen}
 				farePaidXOF={booking.totalAmountXOF}
+				refundAmountXOF={
+					refundQuote?.cancellable ? refundQuote.refundAmountXOF : null
+				}
+				notCancellable={refundQuote ? !refundQuote.cancellable : false}
 				isPending={cancelMutation.isPending}
 				onClose={() => setCancelDialogOpen(false)}
 				onConfirm={handleConfirmCancellation}
 			/>
+
+			{/* Share Ticket Dialog (P2-3 👻 → wired, 17C.4) */}
+			<Modal
+				visible={shareDialogOpen}
+				transparent
+				animationType="fade"
+				onRequestClose={() => setShareDialogOpen(false)}
+			>
+				<Pressable
+					className="flex-1 bg-black/50 justify-center px-6"
+					onPress={() => setShareDialogOpen(false)}
+				>
+					<Pressable
+						className="bg-white rounded-2xl p-5 gap-3"
+						onPress={(e) => e.stopPropagation()}
+					>
+						<Text className="text-foreground font-black text-base">
+							{t("shareTicket")}
+						</Text>
+						<Text className="text-muted-foreground text-xs leading-4">
+							{t("shareTicketDesc")}
+						</Text>
+						<TextInput
+							value={recipientName}
+							onChangeText={setRecipientName}
+							placeholder={t("recipientName")}
+							placeholderTextColor="#94a3b8"
+							className="border border-border rounded-xl px-3 py-2.5 text-foreground text-sm"
+						/>
+						<TextInput
+							value={recipientEmail}
+							onChangeText={setRecipientEmail}
+							placeholder={t("recipientEmail")}
+							placeholderTextColor="#94a3b8"
+							autoCapitalize="none"
+							keyboardType="email-address"
+							className="border border-border rounded-xl px-3 py-2.5 text-foreground text-sm"
+						/>
+						<View className="flex-row gap-2 pt-1">
+							<Pressable
+								onPress={() => setShareDialogOpen(false)}
+								className="flex-1 border border-border rounded-xl py-2.5 items-center"
+							>
+								<Text className="text-foreground font-bold text-xs">
+									{t("cancel")}
+								</Text>
+							</Pressable>
+							<Pressable
+								disabled={
+									shareTicketMutation.isPending ||
+									recipientName.trim().length < 2 ||
+									!recipientEmail.includes("@")
+								}
+								onPress={() => {
+									shareTicketMutation.mutate(
+										{
+											bookingReference,
+											recipientName: recipientName.trim(),
+											recipientEmail: recipientEmail.trim(),
+										},
+										{
+											onSuccess: () => {
+												setShareDialogOpen(false);
+												setRecipientName("");
+												setRecipientEmail("");
+												Haptics.notificationAsync(
+													Haptics.NotificationFeedbackType.Success,
+												).catch(() => {});
+												Alert.alert(
+													t("shared", { name: recipientName.trim() }),
+												);
+											},
+											onError: () => Alert.alert(t("shareFailed")),
+										},
+									);
+								}}
+								className="flex-1 bg-primary rounded-xl py-2.5 items-center"
+							>
+								{shareTicketMutation.isPending ? (
+									<ActivityIndicator size="small" color="#ffffff" />
+								) : (
+									<Text className="text-white font-bold text-xs">
+										{t("send")}
+									</Text>
+								)}
+							</Pressable>
+						</View>
+					</Pressable>
+				</Pressable>
+			</Modal>
 
 			{/* Review Sheet Modal */}
 			<ReviewSheet

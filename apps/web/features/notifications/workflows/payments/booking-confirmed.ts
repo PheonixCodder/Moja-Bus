@@ -55,6 +55,8 @@ export const passengerBookingConfirmedWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Booking Confirmed",
       body: `Route: ${escapeHtml(payload.originCityName)} → ${escapeHtml(payload.destinationCityName)} at ${escapeHtml(payload.departureTime)}. Total: ${escapeHtml(payload.totalAmountXOF)} XOF`,
+      // Phase 21 (F-NF-05) — first reference drives the detail deep-link.
+      overrides: { expo: { data: { type: "booking-confirmed", bookingReference: payload.bookingReferences?.[0] ?? "" } } },
     }));
   },
   {

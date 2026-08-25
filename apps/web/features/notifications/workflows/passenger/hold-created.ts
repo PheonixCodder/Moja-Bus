@@ -41,6 +41,7 @@ export const passengerHoldCreatedWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Seats Held",
       body: `Seats held for ${escapeHtml(payload.destinationCity)} departing ${escapeHtml(payload.departureTime)}. Pay by ${escapeHtml(payload.expiresAt)}.`,
+      overrides: { expo: { data: { type: "hold-created" } } },
     }));
   },
   {

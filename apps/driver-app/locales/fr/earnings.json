@@ -1,0 +1,19 @@
+{
+  "earnings": "Gains",
+  "thisWeek": "Cette Semaine",
+  "totalEarned": "Total Gagné",
+  "clockIn": "Pointer l'Entrée",
+  "clockOut": "Pointer la Sortie",
+  "shiftActive": "Service Actif",
+  "shiftHistory": "Historique des Services",
+  "cashout": "Retrait Mobile Money",
+  "cashoutDetails": "Détails du Retrait",
+  "noShifts": "Aucun historique de service",
+  "duration": "Durée",
+  "earnings_label": "Gains",
+  "tripsCompleted": "Courses Effectuées",
+  "startShift": "Démarrer un Nouveau Service",
+  "endShift": "Terminer le Service"
+,
+  "estimationBadge": "Estimation"
+}

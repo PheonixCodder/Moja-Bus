@@ -1,0 +1,7 @@
+{
+	"title": "Notifications",
+	"noNotifications": "No notifications yet",
+	"allCaughtUp": "Offer alerts, assignments, and verification updates will appear here.",
+	"markAllRead": "Mark all read",
+	"unreadCount": "{{count}} unread"
+}

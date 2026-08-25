@@ -23,7 +23,6 @@ import { staffRouter } from "./staff";
 import { storageRouter } from "./storage";
 import { terminalsRouter } from "./terminals";
 import { tripsRouter } from "./trips";
-import { walletRouter } from "./wallet";
 
 export const appRouter = createTRPCRouter({
   operator: operatorRouter,
@@ -45,7 +44,6 @@ export const appRouter = createTRPCRouter({
   admin: adminRouter,
   adminStaff: adminStaffRouter,
   storage: storageRouter,
-  wallet: walletRouter,
   blog: blogRouter,
   contact: contactRouter,
   discounts: discountsRouter,

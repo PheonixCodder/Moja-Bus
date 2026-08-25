@@ -27,6 +27,7 @@ import type { RouterOutputs } from "@/trpc/client";
 import { TripStatusBadge } from "./trip-status-badge";
 import { TRIP_STATUS_CONFIG } from "@/features/operator/lib/trips/status-config";
 import { UrbanBadge } from "@/components/urban-badge";
+import { DriverAssignmentRows } from "./driver-assignment-rows";
 import {
   formatTripDate,
   formatTripTime,
@@ -202,6 +203,28 @@ export function TripCard({
               {trip.bus.internalName ? ` \u2014 ${trip.bus.internalName}` : ""}
             </p>
           ) : null}
+
+          {/* Driver / Relief / Conductor assignment rows */}
+          <DriverAssignmentRows
+            tripId={trip.id}
+            canAssign={canAssign}
+            holders={{
+              PRIMARY: trip.driver
+                ? { id: trip.driver.id, name: trip.driver.user.fullName ?? "—" }
+                : null,
+              RELIEF: trip.reliefDriver
+                ? { id: trip.reliefDriver.id, name: trip.reliefDriver.user.fullName ?? "—" }
+                : null,
+              CONDUCTOR:
+                (trip as any).driverAssignments
+                  ?.filter((a: any) => a.role === "CONDUCTOR")
+                  .map((a: any) => ({
+                    id: a.driverProfileId,
+                    name: a.driverProfile?.user?.fullName ?? "—",
+                  }))[0] ?? null,
+            }}
+          />
+
           <Button
             size="sm"
             variant="outline"

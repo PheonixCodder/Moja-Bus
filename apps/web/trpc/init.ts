@@ -1,8 +1,11 @@
 import { getPrismaClient } from "@moja/db";
+import { canOperateRuns } from "@moja/schemas";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "@/lib/auth-server";
+import { isMutationOriginAllowed } from "@/lib/mutation-origin";
+import { createRateLimiter } from "@/lib/rate-limit";
 
 export async function createContextFromHeaders(
   headers: Headers,
@@ -68,36 +71,75 @@ export const createCallerFactory = t.createCallerFactory;
  * Better Auth uses SameSite=Lax cookies for sessions. To protect tRPC mutations
  * from Cross-Site Request Forgery (CSRF), we enforce an Origin header check
  * on all state-mutating procedures.
+ *
+ * Phase 35 (F-IN-08) — policy extracted to lib/mutation-origin.ts so the
+ * matrix is unit-testable: malformed Origin → FORBIDDEN (was INTERNAL via
+ * unguarded `new URL`), explicit ALLOWED_ORIGINS honored, production pins
+ * https scheme, and the no-Origin bypass is documented there (native apps).
  */
 const csrfMiddleware = t.middleware(({ type, next, ctx }) => {
   if (type === "mutation") {
-    const origin = ctx.headers.get("origin");
-    const host = ctx.headers.get("host");
-
-    // In a browser, standard fetch/XHR sends Origin for cross-origin or POST.
-    // Allow if origin matches host, or if no origin (e.g. server-side calls or direct curl if we allow it)
-    // For strict CSRF, we require Origin to match the host or be a known trusted domain.
-    if (origin) {
-      const originUrl = new URL(origin);
-      if (originUrl.host !== host) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "CSRF check failed: Origin does not match Host.",
-        });
-      }
+    const allowed = isMutationOriginAllowed({
+      origin: ctx.headers.get("origin"),
+      host: ctx.headers.get("host"),
+    });
+    if (!allowed) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "CSRF check failed: Origin not allowed.",
+      });
     }
   }
   return next();
 });
 
-export const publicProcedure = t.procedure.use(csrfMiddleware);
+// Phase 18 (P2-15) — baseline mutation floors. Deliberately generous so no
+// legitimate flow trips them; they exist to cap flooding, not to shape
+// traffic. Tighter per-endpoint limiters stay in place on top. Windows are
+// per-instance (in-memory): exact for the single-container deployment,
+// approximate if replicas appear — swap the store for Redis then.
+const publicMutationLimiter = createRateLimiter({ windowMs: 60_000, max: 120 });
+const protectedMutationLimiter = createRateLimiter({
+  windowMs: 60_000,
+  max: 60,
+});
 
-export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
+function clientIpKey(headers: Headers): string {
+  const forwarded = headers.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim();
+  return `ip:${ip || headers.get("x-real-ip") || "unknown"}`;
+}
+
+function enforceMutationLimit(
+  type: "query" | "mutation" | "subscription",
+  key: string,
+  limiter: ReturnType<typeof createRateLimiter>,
+) {
+  if (type !== "mutation") return;
+  const result = limiter(key);
+  if (!result.ok) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: `Too many requests — retry in ${Math.ceil(result.retryAfterMs / 1000)}s.`,
+    });
+  }
+}
+
+export const publicProcedure = t.procedure
+  .use(csrfMiddleware)
+  .use(({ type, ctx, next }) => {
+    enforceMutationLimit(type, clientIpKey(ctx.headers), publicMutationLimiter);
+    return next();
+  });
+
+export const protectedProcedure = publicProcedure.use(({ ctx, type, next }) => {
   if (!ctx.user?.id) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
   }
+
+  enforceMutationLimit(type, `user:${ctx.user.id}`, protectedMutationLimiter);
 
   return next({
     ctx: {
@@ -203,6 +245,105 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   });
 });
 
-// Backwards-compatible alias for routers that referenced the older chained
-// procedure. The hardened adminProcedure already loads + blocks the profile.
 export const adminStaffProcedure = adminProcedure;
+
+/**
+ * Shared loader for every driver-facing procedure: resolves the caller's
+ * DriverProfile (per-request cache) or refuses access.
+ */
+const loadDriverProfile = protectedProcedure.use(async ({ ctx, next }) => {
+  const cacheKey = `driver:${ctx.user.id}`;
+  const cached = ctx._cache.get(cacheKey) as
+    | (Awaited<ReturnType<typeof ctx.prisma.driverProfile.findUnique>> & {
+        companyAffiliations: any[];
+      })
+    | undefined;
+
+  const driverProfile =
+    cached ??
+    (await ctx.prisma.driverProfile.findUnique({
+      where: { userId: ctx.user.id },
+      include: {
+        companyAffiliations: {
+          where: { isActive: true },
+          include: {
+            company: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                logoUrl: true,
+              },
+            },
+          },
+        },
+      },
+    }));
+
+  if (!cached && driverProfile) {
+    ctx._cache.set(cacheKey, driverProfile);
+  }
+
+  if (!driverProfile) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "Driver profile not found. Please complete driver registration first.",
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      driver: driverProfile,
+    },
+  });
+});
+
+/**
+ * Phase 06 (F-DV-04) — reads a suspended driver may still reach even though
+ * they are otherwise read-only: telemetry tokens are capability grants and
+ * urgent dispatch drives actions, so both stay sealed.
+ */
+const SUSPENDED_DENIED_READS = new Set([
+  "getTelemetryToken",
+  "getMyUrgentDispatches",
+]);
+
+/**
+ * Phase 14 (F-DV-15) — runtime policy, documented here as the single source:
+ * only VERIFIED drivers may take operational actions. PENDING / REJECTED /
+ * EXPIRED keep full read access plus the in-flight mutations that Phase 06's
+ * never-strand invariant requires once a run has started (complete, report
+ * delay) — but they cannot BEGIN operating. Marketplace suspension is a
+ * different flag and deliberately does not affect app access (F-DV-15 note).
+ */
+const NON_VERIFIED_DENIED_MUTATIONS = new Set(["startTrip", "toggleShift"]);
+
+export const driverProcedure = loadDriverProfile.use(
+  ({ ctx, type, path, next }) => {
+    const procedureName = path.split(".").pop() ?? "";
+
+    if (ctx.driver.verificationStatus === "SUSPENDED") {
+      if (type !== "query" || SUSPENDED_DENIED_READS.has(procedureName)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Your driver account is suspended — you have read-only access. Contact your operator.",
+        });
+      }
+    } else if (
+      !canOperateRuns(ctx.driver.verificationStatus) &&
+      type === "mutation" &&
+      NON_VERIFIED_DENIED_MUTATIONS.has(procedureName)
+    ) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message:
+          "Your license verification is not approved yet — runs and shifts are locked until an operator verifies your account.",
+      });
+    }
+
+    return next({ ctx });
+  },
+);

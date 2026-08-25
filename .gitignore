@@ -33,6 +33,7 @@ old
 app-example
 duolingo-clone
 traveler-app-2
+app-references/*
 
 # Migration artifacts
 packages/db/migrate-out.txt
@@ -40,4 +41,8 @@ scratch-escape.cjs
 
 # Dev geodata (large binaries — not committed)
 ivory_coast_data/ivory-coast.gpkg
-ivory_coast_data/osm-2020-02-10-v3.11_africa_ivory-coast.mbtiles
+ivory_coast_data/osm-2020-02-10-v3.11_africa_ivory-coast.mbtilesapps/web/tsc-errors.txt
+google-services.json
+moja-ride-41bbe-319a8befcc6c.json
+# OSM raster tile database — 121MB exceeds GitHub 100MB/file limit; keep local-only
+ivory_coast_data/*.mbtiles

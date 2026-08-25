@@ -1,0 +1,64 @@
+name: DB Migration Drift
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  drift-check:
+    name: Migrations reproduce schema (F-DV-01 gate)
+    runs-on: ubuntu-latest
+    services:
+      shadow:
+        image: postgis/postgis:16-3.4-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shadow
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # prisma.config.ts reads DATABASE_URL; both steps target the shadow DB.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/shadow?sslmode=disable
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Step 1 replays every committed migration into the empty shadow DB
+      # (catching SQL errors, enum-in-transaction misuse, and missing dirs).
+      # Step 2 fails if the resulting database differs from prisma/schema.prisma
+      # by ANYTHING (exit-code gate; empty diff = exit 0).
+      #
+      # CLI note (2026-08-23): this Prisma release removed --from-url /
+      # --shadow-database-url / --to-schema-datamodel; the drift is computed as
+      # datasource(replayed shadow) -> schema datamodel instead.
+      - name: Replay migrations into shadow database
+        working-directory: packages/db
+        run: pnpm exec prisma migrate deploy
+
+      - name: Diff replayed shadow against schema (exit-code gate)
+        working-directory: packages/db
+        run: |
+          pnpm exec prisma migrate diff \
+            --from-config-datasource \
+            --to-schema prisma/schema.prisma \
+            --exit-code

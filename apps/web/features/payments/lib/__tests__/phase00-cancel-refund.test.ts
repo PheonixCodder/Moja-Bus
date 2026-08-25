@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { ACCOUNT_CLASS } from "../account-classes";
 import {
   canPassengerSelfCancelWithChannel,
+  isCreatableRefundChannel,
   refundStatusForCancellationChannel,
   shouldOpenPaystackForPendingPay,
 } from "../cancellation-policy";
@@ -88,7 +89,6 @@ describe("Phase 00 settlement provenance", () => {
 describe("Phase 00 honest refund statuses (D1)", () => {
   it("wallet credit is COMPLETED without implying Paystack refund", () => {
     assert.equal(refundStatusForCancellationChannel("WALLET"), "COMPLETED");
-    assert.equal(refundStatusForCancellationChannel("PAYSTACK"), "COMPLETED");
   });
 
   it("cash remains PENDING_FULFILMENT for offline reimbursement", () => {
@@ -100,10 +100,38 @@ describe("Phase 00 honest refund statuses (D1)", () => {
 });
 
 describe("Phase 00 cancellation channel policy", () => {
-  it("allows passenger self-cancel for wallet/paystack and blocks cash", () => {
+  it("allows passenger self-cancel for wallet and blocks cash", () => {
     assert.equal(canPassengerSelfCancelWithChannel("WALLET"), true);
-    assert.equal(canPassengerSelfCancelWithChannel("PAYSTACK"), true);
     assert.equal(canPassengerSelfCancelWithChannel("CASH"), false);
+  });
+});
+
+describe("Phase 05 refund channel truthfulness (F-PS-02)", () => {
+  it("PAYSTACK is not a creatable refund channel", () => {
+    assert.equal(isCreatableRefundChannel("PAYSTACK"), false);
+    assert.equal(isCreatableRefundChannel("WALLET"), true);
+    assert.equal(isCreatableRefundChannel("CASH"), true);
+  });
+
+  it("blocks PAYSTACK from passenger self-cancel", () => {
+    assert.equal(canPassengerSelfCancelWithChannel("PAYSTACK"), false);
+  });
+});
+
+/**
+ * Mirrors the CancellationService ZERO_CASH branch: fully promo-covered
+ * confirms collected no money, so cancelling mints no refund obligation.
+ */
+function shouldMintRefundObligation(settlementKind: string) {
+  return settlementKind !== "ZERO_CASH";
+}
+
+describe("Phase 05 zero-cash settlements mint no refund obligation", () => {
+  it("skips obligation only for ZERO_CASH", () => {
+    assert.equal(shouldMintRefundObligation("ZERO_CASH"), false);
+    assert.equal(shouldMintRefundObligation("WALLET"), true);
+    assert.equal(shouldMintRefundObligation("PAYSTACK"), true);
+    assert.equal(shouldMintRefundObligation("MIXED"), true);
   });
 });
 

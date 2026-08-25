@@ -93,7 +93,8 @@ export default function RouteMapPreview({ points }: RouteMapPreviewProps) {
       zoom={7}
       style={{ height: "100%", width: "100%" }}
       zoomControl={false}
-      attributionControl={false}
+      /* Phase 30 (F-TM-16): ODbL requires visible attribution — the OSM
+         string below only renders when the control is enabled. */
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

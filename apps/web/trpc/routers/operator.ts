@@ -40,7 +40,6 @@ import { deleteStorageObject } from "@/lib/storage";
 import {
   maskBankAccountForClient,
   prepareBankAccountStorage,
-  revealBankAccountNumber,
 } from "@/lib/bank-account";
 import { logBankAccess } from "@/lib/bank-access";
 import {
@@ -351,7 +350,7 @@ export const operatorRouter = createTRPCRouter({
             await novu.trigger({
               workflowId: "admin-operator-signup-pending",
               to: {
-                subscriberId: admin.email,
+                subscriberId: admin.id,
                 email: admin.email,
               },
                payload: {
@@ -422,7 +421,7 @@ export const operatorRouter = createTRPCRouter({
             await novu.trigger({
               workflowId: "admin-operator-signup-pending",
               to: {
-                subscriberId: admin.email,
+                subscriberId: admin.id,
                 email: admin.email,
               },
                payload: {
@@ -2279,7 +2278,7 @@ const activities = canReadBookings
             await novu.trigger({
               workflowId: "operator-withdrawal-requested",
               to: {
-                subscriberId: ctx.user.email,
+                subscriberId: ctx.user.id,
                 email: ctx.user.email,
               },
               payload: {
@@ -2324,7 +2323,7 @@ const activities = canReadBookings
                   await novu.trigger({
                     workflowId: "admin-treasury-network-failure",
                     to: {
-                      subscriberId: admin.email,
+                      subscriberId: admin.id,
                       email: admin.email,
                     },
                     payload: {

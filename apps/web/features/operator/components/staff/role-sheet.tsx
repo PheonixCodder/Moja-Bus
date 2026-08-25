@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
-import { Spinner } from "@moja/ui/components/ui/spinner";
+import type { InvitableStaffRole } from "@moja/schemas";
 import { Button } from "@moja/ui/components/ui/button";
 import { Label } from "@moja/ui/components/ui/label";
 import {
@@ -20,13 +18,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@moja/ui/components/ui/sheet";
+import { Spinner } from "@moja/ui/components/ui/spinner";
+import { useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
 import {
+  getTemplatePermissions,
   PERMISSION_META,
   ROLE_LABELS,
   ROLE_TEMPLATES,
-  getTemplatePermissions,
   type StaffMember,
-  type StaffRole,
 } from "@/features/operator/lib/staff";
 import { MemberAvatar } from "./member-avatar";
 import { RoleBadge } from "./role-badge";
@@ -37,14 +37,14 @@ interface RoleSheetProps {
   onClose: () => void;
   onSave: (
     memberId: string,
-    role: StaffRole,
+    role: InvitableStaffRole,
     resetPermissions: boolean,
   ) => Promise<void>;
-  callerRole: StaffRole;
-  assignableRoles?: StaffRole[];
+  callerRole: InvitableStaffRole;
+  assignableRoles?: InvitableStaffRole[];
 }
 
-const FALLBACK_ROLES: StaffRole[] = [
+const FALLBACK_ROLES: InvitableStaffRole[] = [
   "OPERATIONS",
   "MANAGER",
   "ADMIN",
@@ -63,29 +63,32 @@ export function RoleSheet({
   assignableRoles,
 }: RoleSheetProps) {
   const roles = useMemo(
-    () =>
-      (assignableRoles?.length ? assignableRoles : FALLBACK_ROLES).filter(
-        (r) => r !== "OWNER",
-      ),
+    // Phase 14 (F-DV-08) — DRIVER can never hold an ERP staff seat; OWNER
+    // moves only through transfer-ownership. INVITABLE_ROLES already excludes
+    // both, so no runtime filter remains to drift.
+    () => (assignableRoles?.length ? assignableRoles : FALLBACK_ROLES),
     [assignableRoles],
   );
 
   const t = useTranslations("operatorDashboard.staff");
-  const [role, setRole] = useState<StaffRole>("SUPPORT");
+  const [role, setRole] = useState<InvitableStaffRole>("SUPPORT");
   const [resetPermissions, setResetPermissions] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (member) {
-      setRole(member.role === "OWNER" ? "ADMIN" : member.role);
+      // Phase 14 (F-DV-08) — legacy OWNER/DRIVER member rows coerce to ADMIN;
+      // the dropdown only ever offers INVITABLE roles.
+      setRole(
+        member.role === "OWNER" || member.role === "DRIVER"
+          ? "ADMIN"
+          : member.role,
+      );
       setResetPermissions(true);
     }
   }, [member]);
 
-  const previewKeys =
-    role === "OWNER"
-      ? getTemplatePermissions("OWNER").slice(0, 12)
-      : ROLE_TEMPLATES[role];
+  const previewKeys = ROLE_TEMPLATES[role];
 
   async function handleSave() {
     if (!member) return;
@@ -100,15 +103,10 @@ export function RoleSheet({
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent
-        side="right"
-        className="flex flex-col p-0 sm:max-w-md"
-      >
+      <SheetContent side="right" className="flex flex-col p-0 sm:max-w-md">
         <SheetHeader>
           <SheetTitle>{t("roleSheet.title")}</SheetTitle>
-          <SheetDescription>
-            {t("roleSheet.description")}
-          </SheetDescription>
+          <SheetDescription>{t("roleSheet.description")}</SheetDescription>
         </SheetHeader>
 
         {member ? (
@@ -133,7 +131,7 @@ export function RoleSheet({
                 <Label>{t("roleSheet.newRoleLabel")}</Label>
                 <Select
                   value={role}
-                  onValueChange={(v) => setRole(v as StaffRole)}
+                  onValueChange={(v) => setRole(v as InvitableStaffRole)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -158,11 +156,6 @@ export function RoleSheet({
                       {PERMISSION_META[key]?.label ?? key}
                     </li>
                   ))}
-                  {role === "OWNER" ? (
-                    <li className="text-[12px] text-muted-foreground">
-                      {t("roleSheet.allOtherActions")}
-                    </li>
-                  ) : null}
                 </ul>
                 <p className="mt-3 text-[11px] text-muted-foreground">
                   {t("roleSheet.resetNotice")}

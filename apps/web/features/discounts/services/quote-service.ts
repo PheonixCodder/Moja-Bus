@@ -1,11 +1,13 @@
 import type { Prisma, PrismaClient } from "@moja/db";
 import { TRPCError } from "@trpc/server";
+import { companyOperatorRecipients } from "@/features/notifications/company-recipients";
+import { enqueueCampaignBudgetExhausted } from "@/features/notifications/outbox/campaigns";
 import { evaluateCheckoutDiscounts } from "../engine";
-import type { QuoteResult } from "../engine/types";
 import type {
   EvalCampaign,
   EvalCoupon,
   EvalCreditLot,
+  QuoteResult,
 } from "../engine/types";
 import {
   countCompletedBookings,
@@ -37,7 +39,10 @@ async function creditHoldSelfReservations(
         const amount = r.ticketDiscountXOF + r.feeDiscountXOF;
         camp.budgetReservedXOF = Math.max(0, camp.budgetReservedXOF - amount);
         if (camp.redemptionCountGlobal != null) {
-          camp.redemptionCountGlobal = Math.max(0, camp.redemptionCountGlobal - 1);
+          camp.redemptionCountGlobal = Math.max(
+            0,
+            camp.redemptionCountGlobal - 1,
+          );
         }
         if (camp.redemptionCountForUser != null) {
           camp.redemptionCountForUser = Math.max(
@@ -199,8 +204,7 @@ export async function reserveDiscountOnHold(
 ): Promise<void> {
   const q = input.quote;
 
-  const postSub =
-    q.preDiscountSubtotalXOF - q.ticketDiscountXOF;
+  const postSub = q.preDiscountSubtotalXOF - q.ticketDiscountXOF;
 
   await tx.pricingSnapshot.updateMany({
     where: { holdGroupId: input.holdGroupId },
@@ -409,7 +413,8 @@ export async function refreezeHoldDiscounts(
         quote,
       });
     } else {
-      const preDiscountSubtotalXOF = holdGroup.baseFareXOF * holdGroup.seatCount;
+      const preDiscountSubtotalXOF =
+        holdGroup.baseFareXOF * holdGroup.seatCount;
       await tx.pricingSnapshot.updateMany({
         where: { holdGroupId: input.holdGroupId },
         data: {
@@ -589,7 +594,7 @@ export async function finalizeDiscountRedemptions(
   return { exhaustedCampaignIds: [...new Set(exhaustedCampaignIds)] };
 }
 
-/** Fire-and-forget budget exhaustion emails after a successful confirm. */
+/** Fire-and-forget budget exhaustion alerts after a successful confirm. */
 export async function notifyExhaustedCampaignBudgets(
   prisma: PrismaClient,
   campaignIds: string[],
@@ -601,11 +606,31 @@ export async function notifyExhaustedCampaignBudgets(
     select: {
       id: true,
       name: true,
+      budgetXOF: true,
       company: { select: { id: true, name: true, email: true } },
     },
   });
 
+  // Phase 22 (F-NF-07) — the audit's "console.log orphan": wiring existed but
+  // only logged to stdout. Operators now get a durable outbox notice per
+  // active operator, day-throttled (one reminder per exhausted-day; raising
+  // the budget and re-exhausting re-alerts from the next day).
   for (const c of campaigns) {
-    console.log(`[CampaignBudgetExhausted] Campaign ${c.name} (${c.id}) has reached its budget ceiling.`);
+    try {
+      const operators = await companyOperatorRecipients(
+        prisma,
+        c.company?.id ?? "",
+      );
+      for (const op of operators) {
+        await enqueueCampaignBudgetExhausted(prisma as never, {
+          campaignId: c.id,
+          to: op,
+          campaignName: c.name,
+          budgetXOF: c.budgetXOF ?? 0,
+        });
+      }
+    } catch (err) {
+      console.error("[CampaignBudgetExhausted] notify failed:", err);
+    }
   }
 }

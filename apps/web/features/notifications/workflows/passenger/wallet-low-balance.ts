@@ -18,6 +18,7 @@ export const passengerWalletLowBalanceWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Low Wallet Balance",
       body: `Insufficient balance! Booking requires ${escapeHtml(payload.requiredAmountXOF)} XOF. You have ${escapeHtml(payload.availableBalanceXOF)} XOF.`,
+      overrides: { expo: { data: { type: "wallet-low-balance" } } },
     }));
   },
   {

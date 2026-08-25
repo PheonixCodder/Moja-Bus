@@ -1,6 +1,7 @@
-{
+﻿{
+	"root": false,
 	"$schema": "https://biomejs.dev/schemas/2.3.9/schema.json",
-	"extends": ["../../biome.jsonc"],
+	"extends": ["../../biome.json"],
 	"files": {
 		"includes": [
 			"app/**",
@@ -8,7 +9,8 @@
 			"constants/**",
 			"features/**",
 			"hooks/**",
-			"lib/**"
+			"lib/**",
+			"__tests__/**"
 		]
 	}
 }

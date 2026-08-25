@@ -1,36 +1,18 @@
-import { NextResponse } from "next/server";
 import {
-  getPrismaClient,
-  FinancialAccountService,
   AccountingEngine,
+  FinancialAccountService,
+  getPrismaClient,
   Prisma,
 } from "@moja/db";
+import { NextResponse } from "next/server";
+import { assertCronAuthorized } from "@/lib/cron-auth";
 import { computeEscrowReleaseNet } from "@/lib/escrow-release";
 import { getNovuClient } from "@/lib/novu";
 
 export const runtime = "nodejs";
 
-function assertCronAuth(request: Request): NextResponse | null {
-  const secret = process.env["CRON_SECRET"];
-  const authHeader = request.headers.get("authorization");
-  // Fail closed whenever a secret is configured (all deployed envs).
-  if (secret) {
-    if (authHeader !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    return null;
-  }
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json(
-      { error: "CRON_SECRET not configured" },
-      { status: 500 },
-    );
-  }
-  return null;
-}
-
 export async function GET(request: Request) {
-  const denied = assertCronAuth(request);
+  const denied = assertCronAuthorized(request);
   if (denied) return denied;
 
   const prisma = getPrismaClient();
@@ -163,10 +145,7 @@ export async function GET(request: Request) {
         const gross = hg.farePaidSum;
         net =
           gross > 0
-            ? Math.max(
-                0,
-                Math.round((gross * (10000 - commissionBps)) / 10000),
-              )
+            ? Math.max(0, Math.round((gross * (10000 - commissionBps)) / 10000))
             : null;
         if (net !== null) fallbackCount += hg.bookingIds.length;
       }
@@ -189,8 +168,9 @@ export async function GET(request: Request) {
         continue;
       }
 
-      const operatorAcct =
-        await accountService.getOperatorReceivableAccount(hg.companyId);
+      const operatorAcct = await accountService.getOperatorReceivableAccount(
+        hg.companyId,
+      );
 
       await prisma.$transaction(async (tx) => {
         // Advisory lock per company to prevent concurrent escrow releases for the same tenant
@@ -277,8 +257,12 @@ export async function GET(request: Request) {
             novu
               .trigger({
                 workflowId: "admin-treasury-network-failure",
+                // Phase 08 (F-NF-03) — key user.id, matching operator.ts's
+                // identical treasury alert (was the email/id split). Day-
+                // bucketed transactionId replaces Date.now() so the daily
+                // cron dedupes per day instead of re-paging forever (F-IN-13).
                 to: {
-                  subscriberId: a.email,
+                  subscriberId: a.id,
                   email: a.email,
                 },
                 payload: {
@@ -288,7 +272,7 @@ export async function GET(request: Request) {
                   transactionId: "release-escrow-cron",
                   reason: `Escrow release ran with ${fallbackCount} booking(s) released via missing-snapshot fallback and ${skipped} skipped (no fares). Review pricing snapshots.`,
                 },
-                transactionId: `admin-treasury-network-failure-cron-${Date.now()}-${a.id}`,
+                transactionId: `admin-treasury-network-failure-cron-${new Date().toISOString().slice(0, 10)}-${a.id}`,
               })
               .catch(() => {}),
           ),

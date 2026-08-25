@@ -1,10 +1,11 @@
 import { getPrismaClient } from "@moja/db";
-import { PaymentService } from "@/features/payments/payment-service";
 import { buildBookingSuccessUrl } from "@/features/payments/lib/booking-success-url";
 import {
   CHECKOUT_SESSION_COOKIE,
   verifyCheckoutSession,
 } from "@/features/payments/lib/signed-access-tokens";
+import { PaymentService } from "@/features/payments/payment-service";
+import { getAppOrigin } from "@/lib/app-origin";
 
 export const runtime = "nodejs";
 
@@ -29,7 +30,10 @@ export async function GET(request: Request) {
   const localeParam = searchParams.get("locale");
 
   if (!reference) {
-    return Response.json({ message: "Missing payment reference" }, { status: 400 });
+    return Response.json(
+      { message: "Missing payment reference" },
+      { status: 400 },
+    );
   }
 
   const prisma = getPrismaClient();
@@ -49,16 +53,17 @@ export async function GET(request: Request) {
 
   const locale = session?.locale ?? localeParam ?? "en";
   const prefix = localePrefix(locale);
+  const appOrigin = getAppOrigin(new URL(request.url).origin);
 
   if (!holdGroupId || !session) {
     const failurePath = `${prefix}/dashboard/bookings?payment=failed&message=${encodeURIComponent(
       "Checkout session expired or invalid. Open your bookings to retry.",
     )}`;
-    return Response.redirect(new URL(failurePath, request.url));
+    return Response.redirect(new URL(failurePath, appOrigin));
   }
 
   try {
-    const confirmed = await paymentService.verifyAndConfirm(
+    const confirmed = await paymentService.verifyAndConfirmForUser(
       reference,
       session.userId,
     );
@@ -76,12 +81,12 @@ export async function GET(request: Request) {
         )
       : `${prefix}/dashboard/bookings?paid=1`;
 
-    return Response.redirect(new URL(redirectPath, request.url));
+    return Response.redirect(new URL(redirectPath, appOrigin));
   } catch (error) {
     console.error("Payment verify error:", error);
     const message =
       error instanceof Error ? error.message : "Payment verification failed";
     const failurePath = `${prefix}/dashboard/bookings?payment=failed&message=${encodeURIComponent(message)}`;
-    return Response.redirect(new URL(failurePath, request.url));
+    return Response.redirect(new URL(failurePath, appOrigin));
   }
 }

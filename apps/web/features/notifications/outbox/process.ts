@@ -4,6 +4,9 @@ import type { OutboxNovuPayload } from "./enqueue";
 
 const BASE_BACKOFF_MS = 30_000;
 const MAX_BACKOFF_MS = 60 * 60 * 1000;
+// Phase 18 (P2-6) — a row stuck in PROCESSING longer than this was orphaned by
+// a crash between claim and terminal write; the picker reclaims it.
+const STALE_PROCESSING_MS = 15 * 60 * 1000;
 
 function backoffMs(attempts: number): number {
   const exp = Math.min(
@@ -20,7 +23,8 @@ function parsePayload(raw: unknown): OutboxNovuPayload | null {
     typeof p.workflowId !== "string" ||
     typeof p.transactionId !== "string" ||
     !p.subscriber ||
-    typeof p.subscriber.email !== "string"
+    typeof p.subscriber.subscriberId !== "string"
+    // email is optional — phone-first drivers may be email-less
   ) {
     return null;
   }
@@ -36,7 +40,12 @@ export type ProcessOutboxResult = {
 };
 
 /**
- * Claim due PENDING/FAILED messages, deliver via Novu, mark SENT or reschedule / DEAD.
+ * Claim due PENDING/FAILED messages (plus stale PROCESSING orphans) and
+ * deliver via Novu, marking SENT or rescheduling / DEAD.
+ *
+ * Phase 18 — attempts are incremented AT CLAIM TIME so a worker that crashes
+ * mid-delivery still burns budget; without that, a poison row could crash the
+ * worker on every pass forever. Reclaims log loudly so systemic crashes surface.
  */
 export async function processOutboxBatch(
   prisma: PrismaClient,
@@ -44,11 +53,14 @@ export async function processOutboxBatch(
 ): Promise<ProcessOutboxResult> {
   const limit = opts.limit ?? 25;
   const now = new Date();
+  const staleBefore = new Date(now.getTime() - STALE_PROCESSING_MS);
 
   const due = await prisma.outboxMessage.findMany({
     where: {
-      status: { in: ["PENDING", "FAILED"] },
-      nextAttemptAt: { lte: now },
+      OR: [
+        { status: { in: ["PENDING", "FAILED"] }, nextAttemptAt: { lte: now } },
+        { status: "PROCESSING", updatedAt: { lt: staleBefore } },
+      ],
     },
     orderBy: { nextAttemptAt: "asc" },
     take: limit,
@@ -71,15 +83,30 @@ export async function processOutboxBatch(
   }
 
   for (const msg of due) {
+    if (msg.status === "PROCESSING") {
+      const staleForMs = now.getTime() - new Date(msg.updatedAt).getTime();
+      console.warn(
+        `[outbox] reclaiming stale PROCESSING message id=${msg.id} type=${msg.type} staleForMs=${Math.round(staleForMs)}`,
+      );
+    }
+
+    // Claim-time attempts increment: crash-after-claim still burns budget.
+    // The attempts-equality guard makes concurrent workers single-winner.
     const claimed = await prisma.outboxMessage.updateMany({
       where: {
         id: msg.id,
-        status: { in: ["PENDING", "FAILED"] },
+        status: { in: ["PENDING", "FAILED", "PROCESSING"] },
         attempts: msg.attempts,
       },
-      data: { status: "PROCESSING" },
+      data: {
+        status: "PROCESSING",
+        attempts: msg.attempts + 1,
+        nextAttemptAt: now,
+      },
     });
     if (claimed.count === 0) continue;
+
+    const attempts = msg.attempts + 1;
 
     const payload = parsePayload(msg.payload);
     if (!payload) {
@@ -87,7 +114,6 @@ export async function processOutboxBatch(
         where: { id: msg.id },
         data: {
           status: "DEAD",
-          attempts: msg.attempts + 1,
           lastError: "Invalid outbox payload shape",
           nextAttemptAt: now,
         },
@@ -101,7 +127,9 @@ export async function processOutboxBatch(
         workflowId: payload.workflowId,
         to: {
           subscriberId: payload.subscriber.subscriberId,
-          email: payload.subscriber.email,
+          ...(payload.subscriber.email
+            ? { email: payload.subscriber.email }
+            : {}),
           ...(payload.subscriber.firstName
             ? { firstName: payload.subscriber.firstName }
             : {}),
@@ -110,27 +138,33 @@ export async function processOutboxBatch(
         transactionId: payload.transactionId,
       });
 
+      // Phase 07 (D7) — SENT means "accepted by Novu's trigger API", NOT
+      // "rendered/delivered": Novu validates payloadSchema later, during
+      // workflow execution. Delivery truth is therefore guaranteed upstream by
+      // the enqueue↔payloadSchema contract tests
+      // (features/notifications/__tests__/payload-contracts.test.ts), not by
+      // re-checking here. Do not repurpose this status without revisiting that
+      // split of responsibility.
       await prisma.outboxMessage.update({
         where: { id: msg.id },
         data: {
           status: "SENT",
-          attempts: msg.attempts + 1,
           sentAt: new Date(),
           lastError: null,
         },
       });
       result.sent += 1;
     } catch (err) {
-      const attempts = msg.attempts + 1;
       const errorMessage =
-        err instanceof Error ? err.message.slice(0, 500) : "Novu trigger failed";
+        err instanceof Error
+          ? err.message.slice(0, 500)
+          : "Novu trigger failed";
       const dead = attempts >= msg.maxAttempts;
 
       await prisma.outboxMessage.update({
         where: { id: msg.id },
         data: {
           status: dead ? "DEAD" : "FAILED",
-          attempts,
           lastError: errorMessage,
           nextAttemptAt: new Date(Date.now() + backoffMs(attempts)),
         },
@@ -149,7 +183,18 @@ export async function processOutboxBatch(
   return result;
 }
 
-/** Re-queue a DEAD/FAILED message for ops retry. */
+/**
+ * Re-queue a DEAD/FAILED message for ops retry.
+ *
+ * Phase 34 (F-NF-11) — resets `attempts` to 0 so a DEAD row (which by
+ * definition exhausted its budget) gets a FULL fresh budget instead of dying
+ * again on its first re-attempt. Retry is an explicit human action, so a
+ * poison message cannot loop autonomously — the accepted trade-off is that
+ * repeatedly retrying a genuinely broken payload stays possible (deliberate
+ * operator judgment). Cannot race the worker claim state machine: workers
+ * only claim PENDING/FAILED/stale-PROCESSING via the attempts-equality guard;
+ * this write only touches DEAD/FAILED rows and lands them in PENDING.
+ */
 export async function retryOutboxMessage(
   prisma: PrismaClient,
   id: string,
@@ -158,6 +203,7 @@ export async function retryOutboxMessage(
     where: { id, status: { in: ["DEAD", "FAILED"] } },
     data: {
       status: "PENDING",
+      attempts: 0,
       nextAttemptAt: new Date(),
       lastError: null,
     },

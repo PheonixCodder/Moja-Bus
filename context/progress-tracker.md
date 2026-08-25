@@ -8,9 +8,9 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | **Commercial lifecycle hardening** — Phase 00–07 code done; **staging smoke / go-no-go open**. D7=OUT. |
-| **Last major milestone** | Phase 07: OutboxMessage + process-outbox cron + admin DLQ; staging checklist filed. |
-| **Next priority** | 1) Staging migrate through `20260816200000` + smoke [20]. 2) Eng/ops go-no-go. |
+| **Phase** | **v2 audit remediation — ALL 39 PHASES (00–38) COMPLETE ✅ (2026-08-25).** Every one of the 93 findings is closed in code. Phases 00–31 + 34+35 executed in tracked sessions; 32, 33's remaining legs, 36, 37, 38 landed via parallel sessions and were code-verified into the record on 2026-08-25. What remains is NON-CODE: staging probes per `12-release-checklist.md` (incl. Phase 35's header dump / geo-capture / browser-scanner QA / OTP regression / CSP console review), CSP enforcement flip once QA is clean, EAS build proof for the rnmapbox pair. |
+| **Last major milestone** | Phases 28+29 (telemetry parity + observability), 30 (mobile map compliance/cache), 31 (driver data honesty) executed same-day; review residue (4th attribution surface, ack-reset ruling, earnings scoping ruling) closed in-session. Gates 19/19 · web 496 · driver-app 14. |
+| **Next priority** | ~~All remediation phases~~ ✅ COMPLETE — the track is now **staging & release**: run the Gate A/B/C probes in `full-system-e2e-audit/12-release-checklist.md` against a converged environment, flip CSP from report-only to enforcing after a zero-violation console pass, EAS build proof for the rnmapbox JS/native pin, and the physical-device legs (camera scan, Novu 3-channel delivery, Paystack checkout, push tap-routing QA on all three surfaces). ~~Neon merge-window deploy~~ ✅ DONE 2026-08-25. |
 
 ### Changes Made (2026-08-15 — discounts):
 - ✅ Discount Prisma models + PricingSnapshot columns; schemas; feature flags; engine + services + tRPC routers
@@ -36,6 +36,62 @@
 ---
 
 ## Milestone Log (newest first)
+
+### v2 Full-System Audit → 39-Phase Execution Plan (2026-08-23)
+
+Audit: `context/drivers/full-system-e2e-audit/` (93 findings; per-finding evidence in domain files 02–10, catalog in 11, gates in 12).
+Plan: one file per phase (`phase-00…phase-38`) in the same folder — each phase = one focused session with tasks, acceptance criteria, staging probe. **Every finding ID maps to exactly one phase.**
+
+**Wave 1 — Foundation**
+- [x] **Phase 00** DB reproducibility & migration drift *(F-DV-01 P0)* — ✅ COMPLETE (2026-08-23): six untracked dirs committed + enum-repair ×2 + `20260823235959_phase00_schema_convergence`; clean-volume replay drift-0; Neon migrated via backup branch (recovered from db-push-mixed reality with guarded idempotent SQL). Sole remaining leg: custom-server (deploy/) introspection + its own migrate run.
+- [x] **Phase 01** CI quality gate *(F-IN-05, F-IN-06)* — ✅ COMPLETE (2026-08-23): deploy.yml gate = typecheck (traveler-app included) → `turbo test` → lint; 56/56 suites wired, 0 orphans; local red/green proven (exit 1 broken / 0 restored). User actions pending: CI e2e red/green on next master push + branch-protection required checks (`quality-gate`, `drift-check`).
+
+**Wave 2 — Launch blockers (Gate A)** — all code-complete 2026-08-23; service-level probes 6/6 passed vs converged real-PG scratch (`apps/web/scripts/probe-phases-02-06.ts`)
+- [x] **Phase 02** Scanner reads issued tickets *(F-PS-03/DV-02)* — shared `parseTicketToken` in `@moja/schemas` (URL-wrapped/`?token=`/JSON/bare); 20-case contract matrix.
+- [x] **Phase 03** Check-in authorization binding *(F-IN-01/DV-03)* — `DriverCheckInService.assertBoardable` 4-guard pipeline on scan/manual/batch; manifest tokens removed; 30-case suite.
+- [x] **Phase 04** Payment verification ownership *(F-PS-01)* — `verifyAndConfirmForUser/System` split, ownership asserted pre-Paystack; orphan rescue credits hold owner; top-up binding pulled forward.
+- [x] **Phase 05** Refund channel truthfulness *(F-PS-02 — decision required)* — removal arm ratified: PAYSTACK rejected at policy+service layers, WALLET-only self-cancel, zero phantom obligations.
+- [x] **Phase 06** Driver run-state lifecycle (no stranded ON_TRIP) *(F-DV-04)* — convergence on cancel/operator-ARRIVED/suspend; shift-aware post-run status; zombie-telemetry stop; SUSPENDED read-only surface.
+- [x] **Phase 07** Passenger notice schema repairs + contract-test harness *(F-NF-01/02)* — truthful cancelled payload; both delay paths outbox-unified; 9-case contract harness with audit-defect tripwires.
+- [x] **Phase 08** Subscriber identity completion (8 audiences → user.id) *(F-NF-03)* — all nine sites re-keyed; Date.now() txIds stabilized; harness extended to 19 cases / 11 workflows.
+- [x] **Phase 09** Realtime transport posture decision *(F-TM-01/IN-04, TM-10 — decision required)* — Option B ratified: v1 HTTP-only; localhost default removed (skip-unless-set); reconnect budgeted; dormancy+revival checklists.
+
+**Wave 3 — Hardening (P2 clusters)** — all code-complete 2026-08-23
+- [x] **Phase 10** Telemetry client resilience *(TM-04/05/06)* — chunked ≤100 drain w/ preserved remainder; deceleration-severity braking (D5 correction); 401 re-mint + `needsReauth`; flush decoupled from WS-open; pure `telemetry-core.ts` suite.
+- [x] **Phase 11** Gateway authz & fleet channel *(TM-02/03)* — signed `c` claim at both mints; enforced-mode subscribe restricted to claims-derived rooms; fleet publish flows under enforcement; operator-subscriber revival-gated.
+- [x] **Phase 12** Driver HUD ground truth *(TM-11)* — real GPS watch; honest Directions-based ETA; simulator deleted.
+- [x] **Phase 13** Roster management completeness *(OP-02/04)* — passport Edit/Remove dialogs + mid-run CONFLICT guard + roster-removed outbox workflow; accumulate pagination; F-IN-02 ride-along.
+- [x] **Phase 14** Dispatch eligibility gates *(OP-03, DV-12/15, IN-02/OP-13)* — trip-aware licence gates vs `estimatedArrival`; VERIFIED-only operate policy; nightly expiry cron; expiry badges.
+- [x] **Phase 15** Registration documents & preferences pipeline *(DV-05)* — wizard presign uploads via 4 private purposes; `nationalIdNumber` persisted; affiliated flag + dossier presigned GETs.
+- [x] **Phase 16** Driver-domain server guardrails *(DV-06/08/10, NF-16)* — updateMyStatus one-authority matrix; INVITABLE_STAFF_ROLES excludes DRIVER server-side; E.164 phone + structured reverify error; OTP log gated.
+- [x] **Phase 17** Delay persistence & shift ledger *(DV-09/07)* — reportTripDelay mirrors operator formula exactly; deterministic ledger + partial-unique-index migration incl. duplicate repair.
+- [x] **Phase 18** Traveler money UX parity *(PS-04/05/06)* — per-seat refund quote in cancel dialog; deep-link `/booking/[reference]`; dead wallet router deleted.
+- [x] **Phase 19** Review integrity *(PS-07/08/09)* — CTA → existing past-bookings route; explicit-only ReviewSheet (nulls omitted); completedAt submit gate.
+- [x] **Phase 20** Offer-notification keys & email CTAs *(NF-04/09, DV-13)* — recipient-scoped txIds inside the 5 helpers + conflict alert; lazy sweeps via `expireOfferIfDue`; `dashboardUrl()` fixes operator-pointing CTAs.
+- [x] **Phase 21** Push tap-routing & device registry *(NF-05/06)* — expo.data overrides ×18 workflows (11 traveler + 7 driver); driver handler routing; `credentials.append` merge.
+- [x] **Phase 22** Notification operations *(NF-07/08/10)* — CAMPAIGN_BUDGET_EXHAUSTED wired via outbox; admin-bank-account-pending DELETED (F-NF-08 ruling executed, registry zero unexplained); every-minute crontab proven + cadence-guard test.
+
+**Wave 4 — Polish (P3 clusters)**
+- [x] **Phase 23** Fleet map reality *(OP-01, TM-12)* — ✅ 2026-08-23: real poll-fed react-leaflet map (CARTO dark tiles, ssr-false dynamic import); radar deleted; three-state freshness on markers + roster filter.
+- [x] **Phase 24** Offers & marketplace polish *(OP-05/06/07/08)* — ✅ 2026-08-23: sheet Send-Offer disabled when isOnMyRoster; sent-offers accumulate pagination; day-bucketed marketplace keys (F-NF-13 remainder).
+- [x] **Phase 25** Admin governance & profile privacy *(OP-09/10)* — ✅ 2026-08-25: `drivers:verify.*` keys + ADMIN template seed; activity log in flip tx; DRIVER_VERIFICATION_OUTCOME durable outbox; conditional public-profile redaction via shared view type.
+- [x] **Phase 26** Recruitment path robustness *(OP-11/12/16)* — ✅ 2026-08-25: unassign window mirrored to pre-departure statuses; createDriver $transaction + AMBIGUOUS_BINDING dialog + terminatedAt clear; doc uploads via operator-namespace purposes; APPROVE-without-docs refused both paths.
+- [x] **Phase 27** Roster filters & query hygiene *(OP-14/15)* — ✅ 2026-08-25: ONE batched conflict query over pure `findTripConflict` core; SUSPENDED/verification/employment filters; canAssign re-backed to trips:update; licence-expiry select fix ride-along.
+- [x] **Phase 28** Telemetry state & validation parity *(TM-07/08/09)* — ✅ 2026-08-25: shared prev-point store on BOTH transports; Redis delete-arm + loud backend honesty; boot retries.
+- [x] **Phase 29** Anomaly observability & scoring semantics *(TM-13/14/18)* — ✅ 2026-08-25: LOW_ACCURACY flag-and-persist; JSON forensic logging + health card; segment-fair reconcile + flush locks.
+- [x] **Phase 30** Mobile map compliance & cache policy *(TM-15/16/17/19)* — ✅ 2026-08-25: tripId param fixed (payload already had it); attribution ON ×4 surfaces (repo-wide grep caught search-map-view); TTL cache + simplified overview + approximate-flag fallback; rnmapbox exact-pin.
+- [x] **Phase 31** Driver app data honesty (+4 unnumbered observations) *(DV-11/14)* — ✅ 2026-08-25: SQL earnings + settings-column rate + honest labeling; server-side dispatch acks + ISO times; odometer/broadcast deletions; ALL-filter fix; D8-a updateDriver.status stripped.
+- [x] **Phase 32** Passenger money polish *(PS-13/14/15)* — ✅ landed via parallel session, verified in-tree 2026-08-25: `verifyPaystackSignature` constant-time compare ("Phase 32 (F-PS-13)" at paystack-client.ts:143); traveler ticket-sheet QR caption shows bookingReference, not the raw bearer token ("Phase 32 (F-PS-15)" in ticket-sheet.tsx).
+- [x] **Phase 33** Booking taxonomy & guest strategy *(PS-10/11/16)* — ✅ COMPLETE via parallel session, verified in-tree 2026-08-25: F-PS-16 rebooking rides the durable outbox (`passenger-rebooked` workflow + `enqueuePassengerRebooked` + rebooking-service producer + contract-harness row); PS-11 guest claim rebuilt around `phonesMatch` phone-equality predicate with passengerPhone select (booking-read-service.ts); PS-10 COMPLETED taxonomy live in booking-read-service status reads.
+- [x] **Phase 34** Notification small-fixes batch *(NF-11/12/13/14/15)* — ✅ 2026-08-25: D34-1a fresh retry budget (+test) · pauseReason rename + campaign-paused harness rows (D34-2b-i follow-up ruling filed in-code: discounts notify family → outbox is its OWN session) · NF-13 pre-closed by Phase 24, same-day re-suspend edge ratified+documented · conflict-alert email optional both sides + ISO busyUntil ride-along (UTC formatting = CI local time) + conflict harness rows · F-NF-15 tap navigation via client-side identifier maps on all THREE surfaces (driver/traveler/web route-map modules; map wins over redirect fallback; cross-surface redirects never followed; suspended-operator no-nav pin on web; driver notifications got own i18n namespace). Mangled `\` comments were a grep rendering artifact — real bytes clean.
+- [x] **Phase 35** Web security headers & origins *(IN-08/09/10/16)* — ✅ 2026-08-25: CSRF policy extracted to lib/mutation-origin.ts (malformed→FORBIDDEN not INTERNAL, prod pins https scheme, ALLOWED_ORIGINS explicit-only, dev host-equality preserved; 7-case matrix) · remotePatterns first-party only (cdn + S3_PUBLIC_URL_BASE host parsed at config time), editor surfaces (blog ×3 + banners ×2) → `unoptimized` prop instead of widening allowlist (Google avatars ride plain <img>, unaffected) · Permissions-Policy geolocation=(self), camera=(self), microphone=() on SITE block only (browser QR scanner + geo-capture un-broken) · CSP REPORT-ONLY baseline at Caddy with compose-fed POSTHOG_PUBLIC_HOST/S3_PUBLIC_HOST defaults; enforcement flips after zero-violation staging QA (nonce/hash CSP explicitly deferred to own session) · trustedOrigins prod-gated via lib/trusted-origins.ts (six localhost defaults + exp:// + :8081 dev-only; exp:// dies in prod per ratification, ALLOWED_ORIGINS = documented recovery path; 5-case env-shape tests).
+- [x] **Phase 36** Config, crons & artifacts hygiene *(IN-07/11/14)* — ✅ landed via parallel session, verified in-tree 2026-08-25: TELEMETRY_TOKEN_SECRET documented in both .env.example files; tracked junk removed (count-issues-output.txt gone); cron route↔schedule parity guarded by new `cron-hygiene.test.ts`. Residuals folded into staging backlog: CSP-enforcement flip (once QA is zero-violation) and POSTHOG_PUBLIC_HOST/S3_PUBLIC_HOST example entries.
+- [x] **Phase 37** Money-path misc hardening *(IN-12/13/15)* — ✅ landed via parallel session, verified in-tree 2026-08-25: release-escrow route has ZERO `$queryRawUnsafe` (tagged queries); escrow ops alert dedupes per day instead of re-paging (F-IN-13 comment at route.ts:263).
+- [x] **Phase 38** i18n leakage sweep *(PS-12 + inventory)* — ✅ landed via parallel session, verified in-tree 2026-08-25: web passenger-tickets-view fully i18n'd (t() throughout), traveler tracking screen on useTranslation — both audited leak surfaces covered.
+
+Execution rules live in `13-phased-execution-plan.md` §Execution rules (one session per phase; green gates; tests ship with behavior; migrations rehearsed on clean volume; decision phases ratify first).
+
+### Commercial lifecycle hardening — Phase 00–07 (2026-08-16)
 
 ### Commercial lifecycle Phase 07 — outbox / gate (2026-08-16)
 - ✅ OutboxMessage + enqueue on commercial Novu events; process-outbox cron; admin retry UI

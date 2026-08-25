@@ -1,0 +1,22 @@
+{
+  "liveHud": "HUD en Direct",
+  "speed": "Vitesse",
+  "kmh": "km/h",
+  "status": "Statut",
+  "moving": "En Mouvement",
+  "stationary": "Stationnaire",
+  "overspeedAlert": "EXCÈS DE VITESSE",
+  "overspeedMsg": "Réduisez votre vitesse immédiatement",
+  "gpsHigh": "GPS Haute Fréquence",
+  "gpsPower": "GPS Économie d'Énergie",
+  "reportDelay": "Signaler un Retard",
+  "completeRun": "Terminer la Course",
+  "confirmComplete": "Terminer Cette Course ?",
+  "confirmCompleteMsg": "Cela marquera la course comme terminée et arrêtera le suivi télémétrique.",
+  "confirm": "Terminer",
+  "cancel": "Annuler",
+  "delayReported": "Retard Signalé",
+  "runCompleted": "Course Terminée"
+,
+  "approximateRoute": "Itinéraire approximatif"
+}

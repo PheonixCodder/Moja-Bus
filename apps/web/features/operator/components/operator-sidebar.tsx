@@ -23,7 +23,10 @@ import {
   Shield,
   Tag,
   UserCheck,
+  Store,
+  SendHorizonal,
 } from "lucide-react";
+
 
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -203,6 +206,23 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
     },
   ];
 
+  const talentItems: NavItem[] = [
+    {
+      id: "driver-marketplace",
+      label: t("driverMarketplace"),
+      path: "/dashboard/operator/drivers/marketplace",
+      icon: Store,
+      permissions: ["drivers:read"],
+    },
+    {
+      id: "sent-offers",
+      label: t("sentOffers"),
+      path: "/dashboard/operator/drivers/offers",
+      icon: SendHorizonal,
+      permissions: ["drivers:read"],
+    },
+  ];
+
   const financialsItems: NavItem[] = [
     {
       id: "revenue",
@@ -339,6 +359,12 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
         <NavSection
           label={t("sections.fleet")}
           items={fleetItems}
+          pathname={pathname}
+          can={can}
+        />
+        <NavSection
+          label={t("sections.talent")}
+          items={talentItems}
           pathname={pathname}
           can={can}
         />

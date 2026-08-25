@@ -6,6 +6,7 @@ import {
   assertHoldGroupActive,
   resolveHoldGroup,
 } from "./lib/resolve-hold-group";
+import { assertHoldOwnedByUser } from "@/features/booking/lib/assert-hold-ownership";
 import {
   buildPaystackReference,
   isPaystackConfigured,
@@ -201,9 +202,47 @@ export class PaymentService {
     };
   }
 
-  async verifyAndConfirm(
+  /**
+   * F-PS-01: user-driven verification. Enforces that the reference belongs to
+   * the caller's hold BEFORE any Paystack API call or payment-state mutation —
+   * otherwise a leaked/guessed reference would let one account confirm another
+   * user's bookings onto their own record, or divert an expired-hold rescue
+   * credit into their wallet.
+   */
+  async verifyAndConfirmForUser(
     reference: string,
-    userId?: string | null,
+    userId: string,
+  ): Promise<import("@moja/types").ConfirmedBookingResult> {
+    const payment = await this.prisma.externalPayment.findFirst({
+      where: { paystackReference: reference },
+      include: { holdGroup: true },
+    });
+
+    if (!payment) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Payment reference not found",
+      });
+    }
+
+    if (!payment.holdGroup) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Missing hold group ID",
+      });
+    }
+
+    assertHoldOwnedByUser(payment.holdGroup, userId);
+
+    return this.verifyAndConfirmSystem(reference);
+  }
+
+  /**
+   * System path (webhook replay, reconcile): no identity is available and
+   * ownership is not checked. Never call from a user-facing entry point.
+   */
+  async verifyAndConfirmSystem(
+    reference: string,
   ): Promise<import("@moja/types").ConfirmedBookingResult> {
     const payment = await this.prisma.externalPayment.findFirst({
       where: { paystackReference: reference },
@@ -221,10 +260,7 @@ export class PaymentService {
       if (!payment.holdGroupId) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Missing hold group ID" });
       }
-      return this.confirmationService.confirmFromPayment(
-        payment.holdGroupId,
-        userId,
-      );
+      return this.confirmationService.confirmFromPayment(payment.holdGroupId);
     }
 
     const verified = await paystackVerify(reference);
@@ -252,10 +288,39 @@ export class PaymentService {
     }
 
     await this.markPaymentSuccess(payment.id, verified);
-    return this.confirmationService.confirmFromPayment(
-      payment.holdGroupId,
-      userId,
-    );
+    return this.confirmationService.confirmFromPayment(payment.holdGroupId);
+  }
+
+  /**
+   * F-PS-13 (binding half): a top-up reference may only be verified by the
+   * user who initiated it. Rows initiated before the userId stamp existed fail
+   * closed here — the webhook path still completes them.
+   */
+  async verifyTopUpForUser(
+    reference: string,
+    userId: string,
+  ): Promise<{ success: boolean }> {
+    const payment = await this.prisma.externalPayment.findFirst({
+      where: { paystackReference: reference },
+      select: { metadata: true },
+    });
+
+    if (!payment) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Payment reference not found",
+      });
+    }
+
+    const meta = payment.metadata as { userId?: string } | null;
+    if (meta?.userId !== userId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You do not have permission to act on this payment",
+      });
+    }
+
+    return this.verifyTopUp(reference);
   }
 
   async verifyTopUp(reference: string): Promise<{ success: boolean }> {
@@ -501,7 +566,7 @@ export class PaymentService {
       try {
         const user = await this.prisma.user.findUnique({
           where: { id: meta.requestedBy },
-          select: { email: true, fullName: true, phoneNumber: true },
+          select: { id: true, email: true, fullName: true, phoneNumber: true },
         });
         const bankAccount = await this.prisma.bankAccount.findUnique({
           where: { id: meta.bankAccountId },
@@ -518,7 +583,7 @@ export class PaymentService {
               await novu.trigger({
                 workflowId: "operator-withdrawal-settled",
                 to: {
-                  subscriberId: user.email,
+                  subscriberId: user.id,
                   email: user.email,
                 },
                 payload: {
@@ -538,7 +603,7 @@ export class PaymentService {
               await novu.trigger({
                 workflowId: "operator-withdrawal-failed",
                 to: {
-                  subscriberId: user.email,
+                  subscriberId: user.id,
                   email: user.email,
                 },
                 payload: {
@@ -639,13 +704,13 @@ export class PaymentService {
         try {
           const user = await this.prisma.user.findUnique({
             where: { id: meta.userId },
-            select: { email: true, fullName: true },
+            select: { id: true, email: true, fullName: true },
           });
           if (user?.email) {
             await novu.trigger({
               workflowId: "passenger-wallet-topup",
               to: {
-                subscriberId: user.email,
+                subscriberId: user.id,
                 email: user.email,
               },
               payload: {

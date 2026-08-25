@@ -2,6 +2,13 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
+/** Phase 08 — extracted for the enqueue↔payloadSchema contract test. */
+export const passengerProfileUpdatedPayloadSchema = z.object({
+  email: z.string().email(),
+  passengerName: z.string(),
+  changedFields: z.array(z.string()),
+  phone: z.string().optional(),
+});
 
 export const passengerProfileUpdatedWorkflow = workflow(
   "passenger-profile-updated",
@@ -34,15 +41,11 @@ export const passengerProfileUpdatedWorkflow = workflow(
   },
   {
     name: "Passenger Profile Updated",
-    description: "Security warning sent when passenger profile email, phone, or name values are modified",
+    description:
+      "Security warning sent when passenger profile email, phone, or name values are modified",
     preferences: {
       all: { readOnly: true },
     },
-    payloadSchema: z.object({
-      email: z.string().email(),
-      passengerName: z.string(),
-      changedFields: z.array(z.string()),
-      phone: z.string().optional(),
-    }),
-  }
+    payloadSchema: passengerProfileUpdatedPayloadSchema,
+  },
 );

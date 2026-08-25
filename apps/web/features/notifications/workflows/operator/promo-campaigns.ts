@@ -2,6 +2,13 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
+/** Phase 34 (F-NF-12) — exported for the enqueue↔payloadSchema contract harness. */
+export const operatorCampaignPausedPayloadSchema = z.object({
+  campaignId: z.string(),
+  campaignName: z.string(),
+  pauseReason: z.string().nullable().optional(),
+});
+
 export const operatorCampaignPausedWorkflow = workflow(
   "operator-campaign-paused",
   async ({ step, payload }) => {
@@ -21,11 +28,7 @@ export const operatorCampaignPausedWorkflow = workflow(
     name: "Operator Campaign Paused",
     description: "Email operator owners when admin pauses their campaign",
     preferences: { all: { readOnly: true } },
-    payloadSchema: z.object({
-      campaignId: z.string(),
-      campaignName: z.string(),
-      pauseReason: z.string().nullable().optional(),
-    }),
+    payloadSchema: operatorCampaignPausedPayloadSchema,
   },
 );
 

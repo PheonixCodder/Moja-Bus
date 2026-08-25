@@ -15,13 +15,13 @@ import {
   verifyPaymentSchema,
 } from "@moja/schemas";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
+import { getAppOrigin } from "@/lib/app-origin";
 import { TripDetailsService } from "@/features/booking/services/trip-details-service";
 import { SeatAvailabilityService } from "@/features/booking/services/seat-availability-service";
 import { BookingHoldService } from "@/features/booking/services/booking-hold-service";
 import { BookingReadService } from "@/features/booking/services/booking-read-service";
 import { PaymentService } from "@/features/payments/payment-service";
 import { buildBookingSuccessUrl } from "@/features/payments/lib/booking-success-url";
-import { enqueueHoldCreated } from "@/features/notifications/outbox/commercial";
 import { getNovuClient } from "@/lib/novu";
 
 function withSuccessUrl(
@@ -68,84 +68,21 @@ export const bookingRouter = createTRPCRouter({
         ...(input.deviceHash !== undefined
           ? { deviceHash: input.deviceHash }
           : {}),
+        // Phase 32 (F-PS-14) — the passenger-hold-created notice now
+        // enqueues INSIDE the service transaction; this router no longer
+        // fires a post-commit best-effort copy (the old try/catch-swallow
+        // could permanently lose the notice on a crash after commit).
+        ...(ctx.user.email
+          ? {
+              notify: {
+                email: ctx.user.email,
+                subscriberId: ctx.user.id,
+                passengerName: ctx.user.name ?? "Passenger",
+                phone: ctx.user.phoneNumber ?? null,
+              },
+            }
+          : {}),
       });
-
-      // Durable outbox: passenger-hold-created
-      const email = ctx.user.email;
-      const passengerName = ctx.user.name ?? "Passenger";
-      const phone = ctx.user.phoneNumber ?? null;
-
-      if (email) {
-        try {
-          const details = await ctx.prisma.trip.findFirst({
-            where: { bookings: { some: { holdGroupId: result.holdId } } },
-            include: {
-              schedule: {
-                include: {
-                  route: {
-                    include: {
-                      originTerminal: {
-                        include: {
-                          cityRelation: true,
-                          municipality: true,
-                          quarter: true,
-                        },
-                      },
-                      destTerminal: {
-                        include: {
-                          cityRelation: true,
-                          municipality: true,
-                          quarter: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          });
-
-          if (details) {
-            const originCity =
-              details.schedule?.route.originTerminal.cityRelation?.name ??
-              "Unknown";
-            const destCity =
-              details.schedule?.route.destTerminal.cityRelation?.name ??
-              "Unknown";
-            const originMunicipality =
-              details.schedule?.route.originTerminal.municipality?.name ?? null;
-            const destMunicipality =
-              details.schedule?.route.destTerminal.municipality?.name ?? null;
-            await enqueueHoldCreated(ctx.prisma, {
-              holdId: result.holdId,
-              email,
-              subscriberId: ctx.user.id,
-              firstName: passengerName.split(" ")[0],
-              data: {
-                email,
-                passengerName,
-                originCity,
-                destinationCity: destCity,
-                originMunicipality,
-                destinationMunicipality: destMunicipality,
-                departureTime: details.departureDate.toLocaleString("en-US", {
-                  timeZone: "Africa/Abidjan",
-                }),
-                holdId: result.holdId,
-                expiresAt: result.holdExpiresAt.toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  timeZone: "Africa/Abidjan",
-                }),
-                totalAmountXOF: result.totalAmountXOF,
-                phone: phone ?? undefined,
-              },
-            });
-          }
-        } catch (err) {
-          console.error("Failed to enqueue passenger-hold-created:", err);
-        }
-      }
 
       return result;
     }),
@@ -191,7 +128,8 @@ export const bookingRouter = createTRPCRouter({
     .input(verifyPaymentSchema)
     .mutation(async ({ ctx, input }) => {
       const paymentService = new PaymentService(ctx.prisma);
-      const confirmed = await paymentService.verifyAndConfirm(
+      // F-PS-01: ownership enforced inside the service before any Paystack call.
+      const confirmed = await paymentService.verifyAndConfirmForUser(
         input.reference,
         ctx.user.id,
       );
@@ -371,6 +309,7 @@ export const bookingRouter = createTRPCRouter({
         recipientEmail: z.string().email(),
         recipientName: z.string(),
         recipientPhone: z.string().optional(),
+        locale: z.enum(["en", "fr"]).default("fr"),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -424,6 +363,9 @@ export const bookingRouter = createTRPCRouter({
               destinationMunicipality: destMunicipality,
               departureTime: booking.trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
               ticketToken: booking.ticketToken,
+              // P2-3 👻: absolute locale-prefixed link built from the canonical
+              // app origin — the old hardcoded mojaride.com link 404'd.
+              ticketUrl: `${getAppOrigin()}/${input.locale}/tickets/${booking.ticketToken}`,
               phone: input.recipientPhone || undefined,
             },
             transactionId: `passenger-ticket-shared-${booking.id}-${input.recipientEmail}`,

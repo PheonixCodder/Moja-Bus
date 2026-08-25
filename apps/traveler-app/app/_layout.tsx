@@ -1,24 +1,25 @@
 import "@/global.css";
 import "@/lib/i18n";
-import Toast from "react-native-toast-message";
 
 import { NovuProvider } from "@novu/react-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { useQuery } from "@tanstack/react-query";
 import Constants from "expo-constants";
-import { DefaultTheme, router, Stack, ThemeProvider } from "expo-router";
 import * as Linking from "expo-linking";
+import { DefaultTheme, router, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { PostHogProvider as PHProvider } from "posthog-react-native";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+import { PendingReviewPrompt } from "@/features/booking/components/pending-review-prompt";
 import { useLoadFonts } from "@/hooks/use-load-fonts";
+import { usePendingReferralApplier } from "@/hooks/use-pending-referral-applier";
 import { usePushToken } from "@/hooks/use-push-token";
 import { authClient } from "@/lib/auth-client";
+import { storePendingReferralCode } from "@/lib/pending-referral";
 import { posthog } from "@/lib/posthog";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
-import { usePendingReferralApplier } from "@/hooks/use-pending-referral-applier";
-import { storePendingReferralCode } from "@/lib/pending-referral";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
@@ -151,7 +152,9 @@ function NotificationHandler() {
 							type === "trip-boarding"
 						) {
 							if (ref) {
-								router.push(`/bookings/${ref}` as any);
+								// Phase 18 (F-PS-06) — the detail route is
+								// /booking/[reference]; /bookings/<ref> never existed.
+								router.push(`/booking/${encodeURIComponent(ref)}` as any);
 							} else {
 								router.push("/bookings");
 							}
@@ -229,6 +232,7 @@ export default function RootLayout() {
 					</Stack>
 					<Toast />
 					<PortalHost />
+					<PendingReviewPrompt />
 				</ThemeProvider>
 			</AuthenticatedNovuProvider>
 		</TRPCReactProvider>

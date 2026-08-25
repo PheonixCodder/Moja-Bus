@@ -1,0 +1,20 @@
+{
+	"scanTitle": "Lecteur de Tickets",
+	"scanHint": "Alignez le QR code dans le cadre",
+	"scanSubtitle": "Scannez le code-barres du billet numérique du passager",
+	"scanning": "Lecture en cours...",
+	"cleared": "VALIDÉ",
+	"clearedMsg": "Passager embarqué avec succès",
+	"doubleBoardingAlert": "DOUBLE EMBARQUEMENT DÉTECTÉ",
+	"doubleBoardingMsg": "Ce ticket a déjà été scanné",
+	"invalidTicket": "TICKET INVALIDE",
+	"invalidTicketMsg": "Ticket introuvable ou falsifié",
+	"tapToScan": "Appuyer pour scanner le prochain ticket",
+	"manualEntry": "Saisie Manuelle",
+	"labelPassenger": "Passager",
+	"labelSeat": "Siège attribué",
+	"labelBookingRef": "Référence",
+	"confirmNext": "Confirmer & scanner le suivant",
+	"dismissReturn": "Fermer & revenir à la caméra",
+	"fallbackError": "Code-barres de ticket invalide ou réservation annulée."
+}

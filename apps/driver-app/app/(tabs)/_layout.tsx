@@ -1,7 +1,35 @@
 import { Tabs } from "expo-router";
-import { Route, Radio, QrCode, UserCheck } from "lucide-react-native";
+import {
+	Route,
+	Radio,
+	QrCode,
+	UserCheck,
+	Coins,
+	Briefcase,
+} from "lucide-react-native";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/lib/trpc";
+import { authClient } from "@/lib/auth-client";
+
+/** Live badge: number of PENDING/COUNTERED offers awaiting the driver. */
+function usePendingOffersCount(): number {
+	const { data: session } = authClient.useSession();
+	const trpc = useTRPC();
+	const { data } = useQuery({
+		...trpc.drivers.getMyOffers.queryOptions({
+			status: "ACTIVE",
+			page: 1,
+			limit: 1,
+		}),
+		refetchInterval: 30_000,
+		enabled: !!session?.user,
+	});
+	return data?.total ?? 0;
+}
 
 export default function TabLayout() {
+	const pendingOffers = usePendingOffersCount();
+
 	return (
 		<Tabs
 			screenOptions={{
@@ -29,6 +57,19 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
+				name="offers"
+				options={{
+					title: "Offers",
+					tabBarIcon: ({ color, size }) => <Briefcase size={size} color={color} />,
+				tabBarBadge:
+					pendingOffers > 0
+						? pendingOffers > 99
+							? "99+"
+							: pendingOffers
+						: undefined,
+				}}
+			/>
+			<Tabs.Screen
 				name="live"
 				options={{
 					title: "Live Trip",
@@ -40,6 +81,13 @@ export default function TabLayout() {
 				options={{
 					title: "QR Scanner",
 					tabBarIcon: ({ color, size }) => <QrCode size={size} color={color} />,
+				}}
+			/>
+			<Tabs.Screen
+				name="earnings"
+				options={{
+					title: "Earnings",
+					tabBarIcon: ({ color, size }) => <Coins size={size} color={color} />,
 				}}
 			/>
 			<Tabs.Screen

@@ -1,8 +1,9 @@
-import { z } from "zod";
 import {
-  StaffRoleSchema,
+  InvitableStaffRoleSchema,
   PermissionListSchema,
+  StaffRoleSchema,
 } from "@moja/schemas";
+import { z } from "zod";
 
 export const OperatorStatusEnum = z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]);
 
@@ -27,9 +28,10 @@ export type GetActivityLogInput = z.infer<typeof GetActivityLogSchema>;
 
 export const UpdateRoleSchema = z.object({
   memberId: z.string().min(1),
-  role: StaffRoleSchema.refine((role) => role !== "OWNER", {
-    message: "Use transfer-ownership to assign OWNER",
-  }),
+  // Phase 14 (F-DV-08) — INVITABLE set excludes DRIVER *and* OWNER server-side:
+  // role changes never mint ERP seats for drivers, and ownership moves through
+  // the explicit transfer-ownership flow instead.
+  role: InvitableStaffRoleSchema,
   /** When true, replace member permissions with ROLE_TEMPLATES[role] */
   resetPermissions: z.boolean().default(true),
   reason: z.string().max(500).optional(),
@@ -63,9 +65,9 @@ export type TransferOwnershipInput = z.infer<typeof TransferOwnershipSchema>;
 
 export const CreateInvitationSchema = z.object({
   email: z.string().email("Please enter a valid email address").toLowerCase(),
-  role: StaffRoleSchema.refine((role) => role !== "OWNER", {
-    message: "Cannot invite a new OWNER via invitation",
-  }),
+  // Phase 14 (F-DV-08) — DRIVER cannot be invited as ERP staff; OWNER moves
+  // only through transfer-ownership. The INVITABLE enum blocks both.
+  role: InvitableStaffRoleSchema,
   permissions: PermissionListSchema.min(1, "Select at least one permission"),
   jobTitle: z.string().max(100).optional(),
   message: z.string().max(500).optional(),

@@ -1,11 +1,33 @@
 import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
+import { getAppOrigin } from "@/lib/app-origin";
 
+/**
+ * Phase 19 (F-PS-07) — payload schema extracted for the enqueue↔payloadSchema
+ * contract test. Municipality fields declared (both producers send them).
+ */
+export const passengerReviewRequestPayloadSchema = z.object({
+  email: z.string().email(),
+  passengerName: z.string(),
+  companyName: z.string(),
+  originCity: z.string(),
+  destinationCity: z.string(),
+  originMunicipality: z.string().nullable().optional(),
+  destinationMunicipality: z.string().nullable().optional(),
+  tripId: z.string(),
+  bookingReference: z.string(),
+});
 
 export const passengerReviewRequestWorkflow = workflow(
   "passenger-review-request",
   async ({ step, payload }) => {
+    // Phase 19 (F-PS-07) — the old CTA linked to a nonexistent
+    // /dashboard/tickets/{ref}/review page. It now lands on the passenger's
+    // real bookings list (past tab), reached through getAppOrigin() so the
+    // host follows the environment instead of a hardcoded default.
+    const reviewCtaUrl = `${getAppOrigin()}/dashboard/bookings?tab=past`;
+
     // 1. Email Notification
     await step.email("send-email", async () => {
       const html = `
@@ -14,7 +36,7 @@ export const passengerReviewRequestWorkflow = workflow(
           <p style="font-size: 15px; line-height: 1.5; color: #334155;">Hello ${escapeHtml(payload.passengerName)},</p>
           <p style="font-size: 15px; line-height: 1.5; color: #334155;">Thank you for riding with <strong>${escapeHtml(payload.companyName)}</strong> on your trip from <strong>${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)}</strong>.</p>
           <p style="font-size: 15px; line-height: 1.5; color: #334155; margin-bottom: 24px;">We want to ensure you had a safe and comfortable journey. Please take 30 seconds to rate your experience:</p>
-          <a href="${process.env["APP_URL"] || "https://mojaride.com"}/dashboard/tickets/${escapeHtml(payload.bookingReference)}/review" 
+          <a href="${reviewCtaUrl}"
              style="display: inline-block; background: #ee237c; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin: 16px auto;">
              Share Your Review
           </a>
@@ -32,26 +54,20 @@ export const passengerReviewRequestWorkflow = workflow(
       subject: "Leave a Review",
       body: `Welcome back! Rate your recent journey from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)} with ${escapeHtml(payload.companyName)}.`,
       avatar: "https://avatar.vercel.sh/review",
-      redirect: { url: "/dashboard/tickets", target: "_self" },
+      redirect: { url: "/dashboard/bookings?tab=past", target: "_self" },
     }));
 
     // 3. Push Notification
     await step.push("send-push", async () => ({
       subject: "Leave a Review",
       body: `Rate your ${escapeHtml(payload.companyName)} trip from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)}.`,
+      overrides: { expo: { data: { type: "review-request", bookingReference: payload.bookingReference } } },
     }));
   },
   {
     name: "Passenger Review Request",
-    description: "Triggers automatically after trip completion to request a feedback review from the traveler",
-    payloadSchema: z.object({
-      email: z.string().email(),
-      passengerName: z.string(),
-      companyName: z.string(),
-      originCity: z.string(),
-      destinationCity: z.string(),
-      tripId: z.string(),
-      bookingReference: z.string(),
-    }),
-  }
+    description:
+      "Triggers automatically after trip completion to request a feedback review from the traveler",
+    payloadSchema: passengerReviewRequestPayloadSchema,
+  },
 );

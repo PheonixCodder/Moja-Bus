@@ -1,25 +1,39 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 import { Prisma } from "@moja/db";
-import { createTRPCRouter, operatorCompanyProcedure } from "../init";
-import { requirePermission } from "@/lib/permissions/authorize";
-
 import {
   assignBusSchema,
-  delayTripSchema,
-  cancelTripSchema,
-  tripStatusEnum,
   assignDriverToTripSchema,
+  cancelTripSchema,
+  DRIVER_TURNAROUND_BUFFER_MINUTES,
+  delayTripSchema,
+  INTERCITY_TRIP_DEFAULT_MINUTES,
+  isLicenseUsableThrough,
+  licenseMeetsRequirement,
+  tripStatusEnum,
+  URBAN_TRIP_DEFAULT_MINUTES,
+  URGENT_DISPATCH_WINDOW_HOURS,
   unassignDriverFromTripSchema,
 } from "@moja/schemas";
-import { cancelTripWithRefunds } from "@/lib/cancel-trip-with-refunds";
-import { assertTripTransition } from "@/lib/trip-status";
-import { computeDestinationArrivalOffset } from "@/lib/trip-destination";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { companyOperatorRecipients } from "@/features/notifications/company-recipients";
+import { enqueuePassengerTripDelayed } from "@/features/notifications/outbox/commercial";
 import {
-  getAppRollingTripWindow,
-  getCalendarDateKey,
-} from "@/lib/timezone";
+  type DriverRecipient,
+  enqueueDriverTripAssigned,
+  enqueueDriverTripUnassigned,
+  enqueueOperatorBusAssigned,
+  enqueueOperatorDriverAssignmentConflict,
+} from "@/features/notifications/outbox/dispatch";
+import { cancelTripWithRefunds } from "@/lib/cancel-trip-with-refunds";
+import { getDriverTripConflict } from "@/lib/driver-assignment";
+import { convergeDriversAfterRunEnd } from "@/lib/driver-run-state";
 import { getNovuClient } from "@/lib/novu";
+import { requirePermission } from "@/lib/permissions/authorize";
+import { getAppRollingTripWindow, getCalendarDateKey } from "@/lib/timezone";
+import { finalizeTripArrival } from "@/lib/trip-arrival";
+import { computeDestinationArrivalOffset } from "@/lib/trip-destination";
+import { assertTripTransition } from "@/lib/trip-status";
+import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 
 /**
  * Guard against assigning a bus to overlapping active trips across any route.
@@ -65,7 +79,10 @@ async function checkBusTripConflict(
     if (overlaps) {
       const busName =
         existing.bus?.registrationPlate || existing.bus?.internalName || busId;
-      const depStr = existing.departureDate.toISOString().replace("T", " ").substring(0, 16);
+      const depStr = existing.departureDate
+        .toISOString()
+        .replace("T", " ")
+        .substring(0, 16);
       throw new TRPCError({
         code: "CONFLICT",
         message: `Bus "${busName}" is already assigned to another active trip at ${depStr} (busy until ${new Date(existingEnd).toISOString().substring(11, 16)} UTC including turnaround buffer).`,
@@ -76,7 +93,13 @@ async function checkBusTripConflict(
 
 export const tripsRouter = createTRPCRouter({
   create: operatorCompanyProcedure
-    .input(z.object({ scheduleId: z.string(), busId: z.string(), departureDate: z.string() }))
+    .input(
+      z.object({
+        scheduleId: z.string(),
+        busId: z.string(),
+        departureDate: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:create");
       const schedule = await ctx.prisma.schedule.findUnique({
@@ -86,27 +109,48 @@ export const tripsRouter = createTRPCRouter({
           scheduleWaypoints: true,
         },
       });
-      if (!schedule) throw new TRPCError({ code: "NOT_FOUND", message: "Schedule not found" });
+      if (!schedule)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Schedule not found",
+        });
 
       const bus = await ctx.prisma.bus.findFirst({
-        where: { id: input.busId, companyId: ctx.companyId, status: "ACTIVE", deletedAt: null },
+        where: {
+          id: input.busId,
+          companyId: ctx.companyId,
+          status: "ACTIVE",
+          deletedAt: null,
+        },
         include: { seats: true },
       });
-      if (!bus) throw new TRPCError({ code: "BAD_REQUEST", message: "Bus invalid or not active" });
+      if (!bus)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Bus invalid or not active",
+        });
 
       const departureTimestamp = new Date(input.departureDate);
 
       const existingTrip = await ctx.prisma.trip.findFirst({
-        where: { scheduleId: input.scheduleId, departureDate: departureTimestamp },
+        where: {
+          scheduleId: input.scheduleId,
+          departureDate: departureTimestamp,
+        },
       });
-      if (existingTrip) throw new TRPCError({ code: "CONFLICT", message: "Trip already exists for this time" });
+      if (existingTrip)
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Trip already exists for this time",
+        });
 
       // Build timing map with schedule waypoint overrides
       const timingMap = new Map(
         schedule.scheduleWaypoints?.map((sw) => [sw.routeWaypointId, sw]) ?? [],
       );
 
-      const lastRw = schedule.route.waypoints[schedule.route.waypoints.length - 1];
+      const lastRw =
+        schedule.route.waypoints[schedule.route.waypoints.length - 1];
       const destStopOrder = (lastRw?.stopOrder ?? 0) + 1;
       const fullRouteFare = await ctx.prisma.fare.findFirst({
         where: {
@@ -147,14 +191,13 @@ export const tripsRouter = createTRPCRouter({
             estimatedArrival: new Date(
               departureTimestamp.getTime() + destDepartureOffset * 60000,
             ),
-            totalSeats:
-              bus.seats.filter(
-                (s) =>
-                  s.isActive &&
-                  s.isBookable &&
-                  s.seatType !== "DRIVER_AREA" &&
-                  s.seatType !== "EMPTY_SPACE",
-              ).length,
+            totalSeats: bus.seats.filter(
+              (s) =>
+                s.isActive &&
+                s.isBookable &&
+                s.seatType !== "DRIVER_AREA" &&
+                s.seatType !== "EMPTY_SPACE",
+            ).length,
             status: "SCHEDULED",
             // Match the bulk generator (lib/trip-generator.ts): snapshot the
             // route's service type so search and tickets can filter/display it
@@ -170,7 +213,8 @@ export const tripsRouter = createTRPCRouter({
 
         const lastWaypointOrder =
           schedule.route.waypoints.length > 0
-            ? schedule.route.waypoints[schedule.route.waypoints.length - 1]!.stopOrder
+            ? schedule.route.waypoints[schedule.route.waypoints.length - 1]!
+                .stopOrder
             : 0;
         const destStopOrder = lastWaypointOrder + 1;
 
@@ -358,12 +402,33 @@ export const tripsRouter = createTRPCRouter({
                 },
               },
             },
+            driverAssignments: {
+              select: {
+                role: true,
+                driverProfileId: true,
+                driverProfile: {
+                  select: { user: { select: { fullName: true } } },
+                },
+              },
+            },
             schedule: {
               include: {
                 route: {
                   include: {
-                    originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                    destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                    originTerminal: {
+                      include: {
+                        cityRelation: true,
+                        municipality: true,
+                        quarter: true,
+                      },
+                    },
+                    destTerminal: {
+                      include: {
+                        cityRelation: true,
+                        municipality: true,
+                        quarter: true,
+                      },
+                    },
                   },
                 },
               },
@@ -496,8 +561,20 @@ export const tripsRouter = createTRPCRouter({
             include: {
               route: {
                 include: {
-                  originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                  destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  originTerminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
+                  destTerminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
                   waypoints: { orderBy: { stopOrder: "asc" } },
                 },
               },
@@ -506,7 +583,13 @@ export const tripsRouter = createTRPCRouter({
           tripStops: {
             orderBy: { stopOrder: "asc" },
             include: {
-              terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+              terminal: {
+                include: {
+                  cityRelation: true,
+                  municipality: true,
+                  quarter: true,
+                },
+              },
             },
           },
           seats: {
@@ -524,12 +607,24 @@ export const tripsRouter = createTRPCRouter({
               seat: true,
               originTripStop: {
                 include: {
-                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  terminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
                 },
               },
               destinationTripStop: {
                 include: {
-                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  terminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
                 },
               },
             },
@@ -575,8 +670,20 @@ export const tripsRouter = createTRPCRouter({
             include: {
               route: {
                 include: {
-                  originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                  destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  originTerminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
+                  destTerminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
                   waypoints: { orderBy: { stopOrder: "asc" } },
                 },
               },
@@ -585,7 +692,13 @@ export const tripsRouter = createTRPCRouter({
           tripStops: {
             orderBy: { stopOrder: "asc" },
             include: {
-              terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+              terminal: {
+                include: {
+                  cityRelation: true,
+                  municipality: true,
+                  quarter: true,
+                },
+              },
             },
           },
           bookings: {
@@ -593,12 +706,24 @@ export const tripsRouter = createTRPCRouter({
               seat: true,
               originTripStop: {
                 include: {
-                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  terminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
                 },
               },
               destinationTripStop: {
                 include: {
-                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  terminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
                 },
               },
             },
@@ -662,11 +787,7 @@ export const tripsRouter = createTRPCRouter({
       requirePermission(ctx, "trips:update");
       const { busId } = input.data;
 
-      const ALLOWED_ASSIGN = new Set([
-        "SCHEDULED",
-        "BOARDING",
-        "DELAYED",
-      ]);
+      const ALLOWED_ASSIGN = new Set(["SCHEDULED", "BOARDING", "DELAYED"]);
 
       const result = await ctx.prisma.$transaction(async (tx) => {
         await tx.$queryRaw(
@@ -712,7 +833,9 @@ export const tripsRouter = createTRPCRouter({
           });
         }
 
-        const estArrival = trip.estimatedArrival ?? new Date(trip.departureDate.getTime() + 120 * 60000);
+        const estArrival =
+          trip.estimatedArrival ??
+          new Date(trip.departureDate.getTime() + 120 * 60000);
         await checkBusTripConflict(
           tx,
           ctx.companyId,
@@ -752,14 +875,13 @@ export const tripsRouter = createTRPCRouter({
           where: { id: trip.id },
           data: {
             busId,
-            totalSeats:
-              newBus.seats.filter(
-                (s) =>
-                  s.isActive &&
-                  s.isBookable &&
-                  s.seatType !== "DRIVER_AREA" &&
-                  s.seatType !== "EMPTY_SPACE",
-              ).length,
+            totalSeats: newBus.seats.filter(
+              (s) =>
+                s.isActive &&
+                s.isBookable &&
+                s.seatType !== "DRIVER_AREA" &&
+                s.seatType !== "EMPTY_SPACE",
+            ).length,
           },
         });
 
@@ -802,28 +924,48 @@ export const tripsRouter = createTRPCRouter({
         return updated;
       });
 
-      // Trigger operator-bus-assigned to company managers
+      // P3-6 — bus-assigned notices flow through the durable outbox,
+      // keyed by user.id (was: direct Novu trigger keyed by email).
       const managers = await ctx.prisma.operator.findMany({
         where: {
           companyId: ctx.companyId,
           isActive: true,
           role: { in: ["OWNER", "MANAGER"] },
+          deletedAt: null,
         },
         include: {
-          user: { select: { email: true, fullName: true, phoneNumber: true } },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              fullName: true,
+              phoneNumber: true,
+            },
+          },
         },
       });
 
       const assignedTrip = await ctx.prisma.trip.findUnique({
         where: { id: result.id },
         include: {
-          bus: true,
+          bus: { select: { registrationPlate: true } },
           schedule: {
-            include: {
+            select: {
               route: {
-                include: {
-                  originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                  destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                select: {
+                  name: true,
+                  originTerminal: {
+                    select: {
+                      cityRelation: { select: { name: true } },
+                      name: true,
+                    },
+                  },
+                  destTerminal: {
+                    select: {
+                      cityRelation: { select: { name: true } },
+                      name: true,
+                    },
+                  },
                 },
               },
             },
@@ -831,44 +973,31 @@ export const tripsRouter = createTRPCRouter({
         },
       });
 
-      const routeName = assignedTrip?.schedule
-        ? `${assignedTrip.schedule.route.originTerminal.cityRelation?.name ?? "Unknown"} to ${assignedTrip.schedule.route.destTerminal.cityRelation?.name ?? "Unknown"}`
-        : "Unknown Route";
-      const originMunicipality = assignedTrip?.schedule?.route?.originTerminal?.municipality?.name ?? null;
-      const destMunicipality = assignedTrip?.schedule?.route?.destTerminal?.municipality?.name ?? null;
+      if (assignedTrip?.bus) {
+        const route = assignedTrip.schedule?.route as any;
+        const routeName =
+          route?.originTerminal?.cityRelation?.name &&
+          route?.destTerminal?.cityRelation?.name
+            ? `${route.originTerminal.cityRelation.name} to ${route.destTerminal.cityRelation.name}`
+            : (route?.name ?? "Unknown Route");
 
-      const novu = getNovuClient();
-      if (novu && managers.length > 0 && assignedTrip?.bus) {
-        try {
-          for (const manager of managers) {
-            if (manager.user?.email) {
-              await novu
-                .trigger({
-                  workflowId: "operator-bus-assigned",
-                  to: {
-                    subscriberId: manager.user.email,
-                    email: manager.user.email,
-                  },
-                  payload: {
-                    email: manager.user.email,
-                    staffName: manager.user.fullName ?? "Manager",
-                    busPlate: assignedTrip.bus.registrationPlate,
-                    routeName,
-                    originMunicipality,
-                    destMunicipality,
-                    departureTime: assignedTrip.departureDate.toLocaleString(
-                      "en-US",
-                      { timeZone: "Africa/Abidjan" },
-                    ),
-                    phone: manager.user.phoneNumber ?? undefined,
-                  },
-                  transactionId: `operator-bus-assigned-${assignedTrip.id}-${manager.id}`,
-                })
-                .catch(() => {});
-            }
-          }
-        } catch (err) {
-          console.error("Failed to trigger operator-bus-assigned via Novu:", err);
+        for (const manager of managers) {
+          await enqueueOperatorBusAssigned(ctx.prisma as never, {
+            payload: {
+              tripId: assignedTrip.id,
+              staffName: manager.user.fullName ?? "Manager",
+              busPlate: assignedTrip.bus.registrationPlate,
+              routeName,
+              departureDate: assignedTrip.departureDate,
+            },
+            to: {
+              subscriberId: manager.user.id,
+              ...(manager.user.email ? { email: manager.user.email } : {}),
+              ...(manager.user.fullName
+                ? { firstName: manager.user.fullName.split(" ")[0] }
+                : {}),
+            },
+          });
         }
       }
 
@@ -887,7 +1016,24 @@ export const tripsRouter = createTRPCRouter({
           companyId: ctx.companyId,
           archivedAt: null,
         },
-        include: { tripStops: true },
+        include: {
+          tripStops: true,
+          schedule: {
+            select: {
+              route: {
+                select: {
+                  name: true,
+                  originTerminal: {
+                    select: { cityRelation: { select: { name: true } } },
+                  },
+                  destTerminal: {
+                    select: { cityRelation: { select: { name: true } } },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!trip) {
@@ -899,7 +1045,8 @@ export const tripsRouter = createTRPCRouter({
       } catch (err) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: err instanceof Error ? err.message : "Invalid status transition",
+          message:
+            err instanceof Error ? err.message : "Invalid status transition",
         });
       }
 
@@ -921,7 +1068,9 @@ export const tripsRouter = createTRPCRouter({
             where: { id: stop.id },
             data: {
               scheduledArrival: stop.scheduledArrival
-                ? new Date(stop.scheduledArrival.getTime() + incremental * 60000)
+                ? new Date(
+                    stop.scheduledArrival.getTime() + incremental * 60000,
+                  )
                 : null,
               scheduledDeparture: stop.scheduledDeparture
                 ? new Date(
@@ -942,11 +1091,71 @@ export const tripsRouter = createTRPCRouter({
               locked.departureDate.getTime() + incremental * 60000,
             ),
             estimatedArrival: locked.estimatedArrival
-              ? new Date(locked.estimatedArrival.getTime() + incremental * 60000)
+              ? new Date(
+                  locked.estimatedArrival.getTime() + incremental * 60000,
+                )
               : null,
           },
         });
       });
+
+      // Phase 19 (P3-5) — a shifted departure can silently create driver
+      // double-bookings. Re-check every active assignment against the NEW
+      // window; operators are throttled-alerted (per conflict per day) so
+      // they stay in charge of any reassignment.
+      const activeAssignments = await ctx.prisma.tripDriverAssignment.findMany({
+        where: { tripId: trip.id, role: { in: ["PRIMARY", "RELIEF"] } },
+        include: {
+          driverProfile: {
+            include: { user: { select: { id: true, fullName: true } } },
+          },
+        },
+      });
+      if (activeAssignments.length > 0) {
+        const delayedRoute = (() => {
+          const r = trip.schedule?.route as any;
+          if (
+            r?.originTerminal?.cityRelation?.name &&
+            r?.destTerminal?.cityRelation?.name
+          ) {
+            return `${r.originTerminal.cityRelation.name} → ${r.destTerminal.cityRelation.name}`;
+          }
+          return r?.name ?? "ce trajet";
+        })();
+
+        for (const assignment of activeAssignments) {
+          const driverConflict = await getDriverTripConflict(
+            ctx.prisma,
+            assignment.driverProfileId,
+            {
+              departureDate: updatedTrip.departureDate,
+              estimatedArrival: updatedTrip.estimatedArrival,
+              serviceType: updatedTrip.serviceType,
+              excludeTripId: trip.id,
+            },
+          );
+          if (!driverConflict) continue;
+
+          for (const operator of await companyOperatorRecipients(
+            ctx.prisma,
+            ctx.companyId,
+          )) {
+            await enqueueOperatorDriverAssignmentConflict(ctx.prisma as never, {
+              payload: {
+                tripId: trip.id,
+                conflictTripId: driverConflict.tripId,
+                driverName:
+                  assignment.driverProfile.user.fullName ?? "Un chauffeur",
+                delayedRoute,
+                conflictRoute: driverConflict.routeName,
+                conflictCompany: driverConflict.companyName || null,
+                busyUntilIso: driverConflict.busyUntilIso,
+              },
+              to: operator,
+            });
+          }
+        }
+      }
 
       const bookings = await ctx.prisma.booking.findMany({
         where: {
@@ -954,15 +1163,34 @@ export const tripsRouter = createTRPCRouter({
           status: "CONFIRMED",
         },
         include: {
-          user: { select: { email: true, fullName: true, phoneNumber: true } },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              fullName: true,
+              phoneNumber: true,
+            },
+          },
           trip: {
             include: {
               schedule: {
                 include: {
                   route: {
                     include: {
-                      originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                      destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                      originTerminal: {
+                        include: {
+                          cityRelation: true,
+                          municipality: true,
+                          quarter: true,
+                        },
+                      },
+                      destTerminal: {
+                        include: {
+                          cityRelation: true,
+                          municipality: true,
+                          quarter: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -972,66 +1200,64 @@ export const tripsRouter = createTRPCRouter({
         },
       });
 
+      // Phase 07 (F-NF-02, D3/D4) — delay notices ride the durable outbox
+      // instead of a direct Novu trigger: payload now carries the required
+      // bookingReference, failures retry with backoff (never swallowed), and
+      // the hourly transactionId bucket lets an escalating delay re-notify.
       if (bookings.length > 0) {
-        const novu = getNovuClient();
-        if (novu) {
-          try {
-            const newDeparture = updatedTrip.departureDate;
-            for (const booking of bookings) {
-              const email =
-                booking.user?.email ??
-                (booking.passengerPhone
-                  ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
-                  : null);
-              if (email) {
-                const originCity =
-                  booking.trip.schedule?.route.originTerminal.cityRelation
-                    ?.name ?? "Unknown";
-                const destCity =
-                  booking.trip.schedule?.route.destTerminal.cityRelation?.name ??
-                  "Unknown";
-                const originMunicipality = booking.trip.schedule?.route.originTerminal.municipality?.name ?? null;
-                const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
+        const newDeparture = updatedTrip.departureDate;
+        for (const booking of bookings) {
+          const email =
+            booking.user?.email ??
+            (booking.passengerPhone
+              ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
+              : null);
+          if (!email) continue;
+          const originCity =
+            booking.trip.schedule?.route.originTerminal.cityRelation?.name ??
+            "Unknown";
+          const destCity =
+            booking.trip.schedule?.route.destTerminal.cityRelation?.name ??
+            "Unknown";
+          const originMunicipality =
+            booking.trip.schedule?.route.originTerminal.municipality?.name ??
+            null;
+          const destMunicipality =
+            booking.trip.schedule?.route.destTerminal.municipality?.name ??
+            null;
 
-                await novu
-                  .trigger({
-                    workflowId: "passenger-trip-delayed",
-                    to: {
-                      subscriberId: email,
-                      email: email,
-                    },
-                    payload: {
-                      email,
-                      passengerName:
-                        booking.user?.fullName ?? booking.passengerName,
-                      originCity,
-                      destinationCity: destCity,
-                      originMunicipality,
-                      destinationMunicipality: destMunicipality,
-                      originalTime: trip.departureDate.toLocaleString("en-US", {
-                        timeZone: "Africa/Abidjan",
-                      }),
-                      newTime: newDeparture.toLocaleString("en-US", {
-                        timeZone: "Africa/Abidjan",
-                      }),
-                      delayMinutes: updatedTrip.delayMinutes ?? delayMinutes,
-                      gate: trip.gate ?? undefined,
-                      phone:
-                        booking.user?.phoneNumber ??
-                        booking.passengerPhone ??
-                        undefined,
-                    },
-                    transactionId: `passenger-trip-delayed-${trip.id}-${booking.id}`,
-                  })
-                  .catch(() => {});
-              }
-            }
-          } catch (err) {
-            console.error(
-              "Failed to trigger passenger-trip-delayed via Novu:",
-              err,
-            );
-          }
+          await enqueuePassengerTripDelayed(ctx.prisma, {
+            tripId: trip.id,
+            bookingId: booking.id,
+            reportedBy: "OPERATOR",
+            email,
+            subscriberId: booking.user?.id ?? email,
+            firstName:
+              (booking.user?.fullName ?? booking.passengerName).split(" ")[0] ??
+              undefined,
+            data: {
+              email,
+              passengerName: booking.user?.fullName ?? booking.passengerName,
+              originCity,
+              destinationCity: destCity,
+              originMunicipality,
+              destinationMunicipality: destMunicipality,
+              originalTime: trip.departureDate.toLocaleString("en-US", {
+                timeZone: "Africa/Abidjan",
+              }),
+              newTime: newDeparture.toLocaleString("en-US", {
+                timeZone: "Africa/Abidjan",
+              }),
+              delayMinutes: updatedTrip.delayMinutes ?? delayMinutes,
+              gate: trip.gate ?? undefined,
+              phone:
+                booking.user?.phoneNumber ??
+                booking.passengerPhone ??
+                undefined,
+              bookingReference: booking.bookingReference,
+              reportedBy: "OPERATOR" as const,
+            },
+          });
         }
       }
 
@@ -1059,7 +1285,8 @@ export const tripsRouter = createTRPCRouter({
       } catch (err) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: err instanceof Error ? err.message : "Invalid status transition",
+          message:
+            err instanceof Error ? err.message : "Invalid status transition",
         });
       }
 
@@ -1084,8 +1311,13 @@ export const tripsRouter = createTRPCRouter({
       };
     }),
 
-      updateStatus: operatorCompanyProcedure
-    .input(z.object({ id: z.string(), status: z.enum(["BOARDING", "DEPARTED", "ARRIVED"]) }))
+  updateStatus: operatorCompanyProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        status: z.enum(["BOARDING", "DEPARTED", "ARRIVED"]),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:update");
       const { status } = input;
@@ -1121,7 +1353,8 @@ export const tripsRouter = createTRPCRouter({
       } catch (err) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: err instanceof Error ? err.message : "Invalid status transition",
+          message:
+            err instanceof Error ? err.message : "Invalid status transition",
         });
       }
 
@@ -1138,30 +1371,58 @@ export const tripsRouter = createTRPCRouter({
         updateData["actualDeparture"] = new Date();
       } else if (status === "ARRIVED") {
         updateData["actualArrival"] = new Date();
-        await ctx.prisma.booking.updateMany({
-          where: {
-            tripId: trip.id,
-            status: "CONFIRMED",
-            completedAt: null,
-          },
-          data: { completedAt: new Date() },
+      }
+
+      let updatedTrip;
+      if (status === "ARRIVED") {
+        // Phase 06 (F-DV-04) — operator arrival converges driver operational
+        // state exactly like drivers.completeTrip, so a dispatch-board
+        // closure never strands drivers ON_TRIP with ghost buses on the
+        // fleet map. The run physically happened: affected drivers also
+        // earn the completed-run credit (parity with completeTrip). Drivers
+        // who never started the run are untouched.
+        updatedTrip = await ctx.prisma.$transaction(async (tx) => {
+          const arrived = await tx.trip.update({
+            where: { id: trip.id },
+            data: updateData,
+          });
+
+          const runDrivers = await convergeDriversAfterRunEnd(
+            tx as any,
+            trip.id,
+          );
+          if (runDrivers.length > 0) {
+            await tx.driverProfile.updateMany({
+              where: { id: { in: runDrivers } },
+              data: { totalTripsCompleted: { increment: 1 } },
+            });
+          }
+
+          return arrived;
+        });
+      } else {
+        updatedTrip = await ctx.prisma.trip.update({
+          where: { id: trip.id },
+          data: updateData,
         });
       }
 
-      const updatedTrip = await ctx.prisma.trip.update({
-        where: { id: trip.id },
-        data: updateData,
-      });
-
       // Triggers for passenger boarding announcements and completed trip review requests
-      if (status === "BOARDING" || status === "ARRIVED") {
+      if (status === "BOARDING") {
         const bookings = await ctx.prisma.booking.findMany({
           where: {
             tripId: trip.id,
             status: "CONFIRMED",
           },
           include: {
-            user: { select: { email: true, fullName: true, phoneNumber: true } },
+            user: {
+              select: {
+                id: true,
+                email: true,
+                fullName: true,
+                phoneNumber: true,
+              },
+            },
             company: { select: { name: true } },
             trip: {
               include: {
@@ -1170,8 +1431,20 @@ export const tripsRouter = createTRPCRouter({
                   include: {
                     route: {
                       include: {
-                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        originTerminal: {
+                          include: {
+                            cityRelation: true,
+                            municipality: true,
+                            quarter: true,
+                          },
+                        },
+                        destTerminal: {
+                          include: {
+                            cityRelation: true,
+                            municipality: true,
+                            quarter: true,
+                          },
+                        },
                       },
                     },
                   },
@@ -1186,59 +1459,54 @@ export const tripsRouter = createTRPCRouter({
           if (novu) {
             try {
               for (const booking of bookings) {
-                const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
+                const email =
+                  booking.user?.email ??
+                  (booking.passengerPhone
+                    ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
+                    : null);
                 if (email) {
-                  const originCity = booking.trip.schedule?.route.originTerminal.cityRelation?.name ?? "Unknown";
-                  const destCity = booking.trip.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
-                  const originMunicipality = booking.trip.schedule?.route.originTerminal.municipality?.name ?? null;
-                  const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
-
-                  if (status === "BOARDING") {
-                    await novu.trigger({
+                  await novu
+                    .trigger({
                       workflowId: "passenger-trip-boarding",
                       to: {
-                        subscriberId: email,
+                        subscriberId: booking.user?.id ?? email,
                         email: email,
                       },
                       payload: {
                         email,
-                        passengerName: booking.user?.fullName ?? booking.passengerName,
-                        destinationCity: destCity,
-                        destinationMunicipality: destMunicipality,
+                        passengerName:
+                          booking.user?.fullName ?? booking.passengerName,
+                        destinationCity:
+                          booking.trip.schedule?.route.destTerminal.cityRelation
+                            ?.name ?? "Unknown",
+                        destinationMunicipality:
+                          booking.trip.schedule?.route.destTerminal.municipality
+                            ?.name ?? null,
                         gate: trip.gate ?? undefined,
-                        busPlate: booking.trip.bus?.registrationPlate ?? undefined,
-                        phone: booking.user?.phoneNumber ?? booking.passengerPhone ?? undefined,
+                        busPlate:
+                          booking.trip.bus?.registrationPlate ?? undefined,
+                        phone:
+                          booking.user?.phoneNumber ??
+                          booking.passengerPhone ??
+                          undefined,
                       },
                       transactionId: `passenger-trip-boarding-${trip.id}-${booking.id}`,
-                    }).catch(() => {});
-                  } else if (status === "ARRIVED") {
-                    await novu.trigger({
-                      workflowId: "passenger-review-request",
-                      to: {
-                        subscriberId: email,
-                        email: email,
-                      },
-                      payload: {
-                        email,
-                        passengerName: booking.user?.fullName ?? booking.passengerName,
-                        companyName: booking.company.name,
-                        originCity,
-                        destinationCity: destCity,
-                        originMunicipality,
-                        destinationMunicipality: destMunicipality,
-                        tripId: trip.id,
-                        bookingReference: booking.bookingReference,
-                      },
-                      transactionId: `passenger-review-request-${trip.id}-${booking.id}`,
-                    }).catch(() => {});
-                  }
+                    })
+                    .catch(() => {});
                 }
               }
             } catch (err) {
-              console.error(`Failed to trigger Novu status transition (${status}) workflow:`, err);
+              console.error(
+                `Failed to trigger Novu status transition (${status}) workflow:`,
+                err,
+              );
             }
           }
         }
+      } else if (status === "ARRIVED") {
+        // Shared with drivers.completeTrip — stamps booking.completedAt and
+        // fans out passenger-review-request (Phase 16 parity).
+        await finalizeTripArrival(ctx.prisma, trip.id);
       }
 
       return updatedTrip;
@@ -1270,7 +1538,7 @@ export const tripsRouter = createTRPCRouter({
       if (!trip) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
       }
-      
+
       const updatedTrip = await ctx.prisma.trip.update({
         where: { id: input.id },
         data: { gate: input.gate },
@@ -1283,14 +1551,27 @@ export const tripsRouter = createTRPCRouter({
             status: "CONFIRMED",
           },
           include: {
-            user: { select: { email: true, fullName: true, phoneNumber: true } },
+            user: {
+              select: {
+                id: true,
+                email: true,
+                fullName: true,
+                phoneNumber: true,
+              },
+            },
             trip: {
               include: {
                 schedule: {
                   include: {
                     route: {
                       include: {
-                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        destTerminal: {
+                          include: {
+                            cityRelation: true,
+                            municipality: true,
+                            quarter: true,
+                          },
+                        },
                       },
                     },
                   },
@@ -1305,33 +1586,53 @@ export const tripsRouter = createTRPCRouter({
           if (novu) {
             try {
               for (const booking of bookings) {
-                const email = booking.user?.email ?? (booking.passengerPhone ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci` : null);
+                const email =
+                  booking.user?.email ??
+                  (booking.passengerPhone
+                    ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
+                    : null);
                 if (email) {
-                  const destCity = booking.trip.schedule?.route.destTerminal.cityRelation?.name ?? "Unknown";
-                  const destMunicipality = booking.trip.schedule?.route.destTerminal.municipality?.name ?? null;
-                  await novu.trigger({
-                    workflowId: "passenger-trip-gate-updated",
-                    to: {
-                      subscriberId: email,
-                      email: email,
-                    },
-                    payload: {
-                      email,
-                      passengerName: booking.user?.fullName ?? booking.passengerName,
-                      destinationCity: destCity,
-                      destinationMunicipality: destMunicipality,
-                      departureTime: trip.departureDate.toLocaleString("en-US", {
-                        timeZone: "Africa/Abidjan",
-                      }),
-                      gate: input.gate,
-                      phone: booking.user?.phoneNumber ?? booking.passengerPhone ?? undefined,
-                    },
-                    transactionId: `passenger-trip-gate-updated-${trip.id}-${booking.id}`,
-                  }).catch(() => {});
+                  const destCity =
+                    booking.trip.schedule?.route.destTerminal.cityRelation
+                      ?.name ?? "Unknown";
+                  const destMunicipality =
+                    booking.trip.schedule?.route.destTerminal.municipality
+                      ?.name ?? null;
+                  await novu
+                    .trigger({
+                      workflowId: "passenger-trip-gate-updated",
+                      to: {
+                        subscriberId: booking.user?.id ?? email,
+                        email: email,
+                      },
+                      payload: {
+                        email,
+                        passengerName:
+                          booking.user?.fullName ?? booking.passengerName,
+                        destinationCity: destCity,
+                        destinationMunicipality: destMunicipality,
+                        departureTime: trip.departureDate.toLocaleString(
+                          "en-US",
+                          {
+                            timeZone: "Africa/Abidjan",
+                          },
+                        ),
+                        gate: input.gate,
+                        phone:
+                          booking.user?.phoneNumber ??
+                          booking.passengerPhone ??
+                          undefined,
+                      },
+                      transactionId: `passenger-trip-gate-updated-${trip.id}-${booking.id}`,
+                    })
+                    .catch(() => {});
                 }
               }
             } catch (err) {
-              console.error("Failed to trigger passenger-trip-gate-updated via Novu:", err);
+              console.error(
+                "Failed to trigger passenger-trip-gate-updated via Novu:",
+                err,
+              );
             }
           }
         }
@@ -1384,7 +1685,8 @@ export const tripsRouter = createTRPCRouter({
         if (activeBooking) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: "Cannot disable seat: An active booking exists for this seat on this trip.",
+            message:
+              "Cannot disable seat: An active booking exists for this seat on this trip.",
           });
         }
       }
@@ -1426,19 +1728,81 @@ export const tripsRouter = createTRPCRouter({
     .input(assignDriverToTripSchema)
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:update");
-      const { tripId, driverProfileId, role, startStopOrder, endStopOrder } = input;
+      const { tripId, driverProfileId, role, startStopOrder, endStopOrder } =
+        input;
 
       const trip = await ctx.prisma.trip.findFirst({
         where: { id: tripId, companyId: ctx.companyId, archivedAt: null },
+        include: {
+          bus: {
+            select: {
+              registrationPlate: true,
+              busType: {
+                select: { requiredLicenseCategory: true, name: true },
+              },
+            },
+          },
+          schedule: {
+            select: {
+              route: {
+                select: {
+                  name: true,
+                  distanceKm: true,
+                  originTerminal: {
+                    select: {
+                      cityRelation: { select: { name: true } },
+                      name: true,
+                    },
+                  },
+                  destTerminal: {
+                    select: {
+                      cityRelation: { select: { name: true } },
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          _count: {
+            select: { bookings: { where: { status: "CONFIRMED" } } },
+          },
+        },
       });
       if (!trip) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
       }
 
+      // Status guard — assignment only meaningful pre-departure
+      if (!["SCHEDULED", "DELAYED", "BOARDING"].includes(trip.status)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot assign drivers to a ${trip.status.toLowerCase()} trip.`,
+        });
+      }
+
+      const assignRoute = trip.schedule?.route as any;
+      const routeLabel = {
+        origin:
+          assignRoute?.originTerminal?.cityRelation?.name ??
+          assignRoute?.originTerminal?.name ??
+          assignRoute?.name ??
+          "Trajet",
+        destination:
+          assignRoute?.destTerminal?.cityRelation?.name ??
+          assignRoute?.destTerminal?.name ??
+          "—",
+      };
+
       const driver = await ctx.prisma.driverProfile.findFirst({
         where: {
           id: driverProfileId,
-          companyAffiliations: { some: { companyId: ctx.companyId, isActive: true } },
+          companyAffiliations: {
+            some: { companyId: ctx.companyId, isActive: true },
+          },
+        },
+        include: {
+          user: { select: { id: true, fullName: true, email: true } },
         },
       });
       if (!driver) {
@@ -1451,44 +1815,255 @@ export const tripsRouter = createTRPCRouter({
       if (driver.verificationStatus !== "VERIFIED") {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Cannot assign driver: Driving license compliance is not verified.",
+          message:
+            "Cannot assign driver: Driving license compliance is not verified.",
         });
       }
 
+      // License gate — CI ordering B < C < D < E vs the bus type requirement
+      const requiredLicense = trip.bus?.busType?.requiredLicenseCategory;
+      if (
+        requiredLicense &&
+        !licenseMeetsRequirement(driver.licenseCategory, requiredLicense)
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `License mismatch: this bus (${trip.bus?.busType?.name ?? "type"}) requires class ${requiredLicense}; driver holds ${driver.licenseCategory}.`,
+        });
+      }
+
+      // Phase 14 (F-OP-03) — licence must be valid THROUGH the run: a licence
+      // expiring mid-trip is exactly as unusable as an expired one.
+      const licenceThrough = trip.estimatedArrival ?? trip.departureDate;
+      if (!isLicenseUsableThrough(driver.licenseExpiryDate, licenceThrough)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot assign driver: their license expires ${driver.licenseExpiryDate ? new Date(driver.licenseExpiryDate).toISOString().slice(0, 10) : "before"} this trip ends (${licenceThrough.toISOString().slice(0, 10)}).`,
+        });
+      }
+
+      const recipient: DriverRecipient = {
+        subscriberId: driver.userId,
+        ...(driver.user.email ? { email: driver.user.email } : {}),
+        ...(driver.user.fullName
+          ? { firstName: driver.user.fullName.split(" ")[0] }
+          : {}),
+      };
+
+      // Same-trip duplicate guard — one person, one role per trip
+      const existingSameDriver =
+        await ctx.prisma.tripDriverAssignment.findFirst({
+          where: { tripId, driverProfileId },
+        });
+
       await ctx.prisma.$transaction(async (tx) => {
+        // Phase 18 (P2-8) — serialize concurrent assignments: lock the trip row,
+        // then the driver row. unassignDriver follows the SAME order; never invert.
+        await tx.$queryRaw(
+          Prisma.sql`SELECT id FROM "trip" WHERE id = ${tripId} FOR UPDATE`,
+        );
+        await tx.$queryRaw(
+          Prisma.sql`SELECT id FROM "driver_profile" WHERE id = ${driverProfileId} FOR UPDATE`,
+        );
+
+        let displacedName: string | null = null;
+        let displacedUserId: string | null = null;
+        let displacedEmail: string | null = null;
+
         if (role === "PRIMARY") {
+          if (existingSameDriver && existingSameDriver.role !== "PRIMARY") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "This driver already has a role on this trip.",
+            });
+          }
+          if (trip.driverId && trip.driverId !== driverProfileId) {
+            const displaced = await tx.driverProfile.findUnique({
+              where: { id: trip.driverId },
+              include: {
+                user: { select: { id: true, fullName: true, email: true } },
+              },
+            });
+            if (!displaced) {
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Current primary driver not found",
+              });
+            }
+            if (!input.replacePrimary) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: `PRIMARY_ASSIGNED::${displaced.user.fullName ?? "Unknown"}`,
+              });
+            }
+            displacedName = displaced.user.fullName ?? "Un chauffeur";
+            displacedUserId = displaced.userId;
+            displacedEmail = displaced.user.email ?? null;
+
+            await tx.tripDriverAssignment.deleteMany({
+              where: {
+                tripId,
+                driverProfileId: trip.driverId,
+                role: "PRIMARY",
+              },
+            });
+          }
           await tx.trip.update({
             where: { id: tripId },
             data: { driverId: driverProfileId },
           });
         } else if (role === "RELIEF") {
+          if (existingSameDriver && existingSameDriver.role !== "RELIEF") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "This driver already has a role on this trip.",
+            });
+          }
+          if (trip.reliefDriverId && trip.reliefDriverId !== driverProfileId) {
+            const displaced = await tx.driverProfile.findUnique({
+              where: { id: trip.reliefDriverId },
+              include: {
+                user: { select: { id: true, fullName: true, email: true } },
+              },
+            });
+            if (displaced) {
+              if (!input.replacePrimary) {
+                throw new TRPCError({
+                  code: "CONFLICT",
+                  message: `RELIEF_ASSIGNED::${displaced.user.fullName ?? "Unknown"}`,
+                });
+              }
+              displacedName = displaced.user.fullName ?? "Un chauffeur";
+              displacedUserId = displaced.userId;
+              displacedEmail = displaced.user.email ?? null;
+
+              await tx.tripDriverAssignment.deleteMany({
+                where: {
+                  tripId,
+                  driverProfileId: trip.reliefDriverId,
+                  role: "RELIEF",
+                },
+              });
+            }
+          }
           await tx.trip.update({
             where: { id: tripId },
             data: { reliefDriverId: driverProfileId },
           });
+        } else {
+          // CONDUCTOR — junction-only record
+          if (existingSameDriver) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "This driver already has a role on this trip.",
+            });
+          }
         }
 
-        await tx.tripDriverAssignment.upsert({
-          where: {
-            tripId_driverProfileId_role: {
+        // Double-booking engine — cross-company interval overlap w/ turnaround buffer
+        const conflict = await getDriverTripConflict(tx, driverProfileId, {
+          departureDate: trip.departureDate,
+          estimatedArrival: trip.estimatedArrival,
+          serviceType: trip.serviceType,
+          routeDistanceKm: assignRoute?.distanceKm ?? null,
+          excludeTripId: tripId,
+        });
+        if (conflict) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `Driver is already booked on "${conflict.routeName}"${conflict.companyName ? ` (${conflict.companyName})` : ""} — busy until ${conflict.busyUntilIso.substring(11, 16)} UTC including turnaround.`,
+          });
+        }
+
+        // Backstop: the partial unique indexes (one PRIMARY/RELIEF per trip)
+        // turn any race that slips past the locks into a clean conflict.
+        try {
+          await tx.tripDriverAssignment.upsert({
+            where: {
+              tripId_driverProfileId_role: {
+                tripId,
+                driverProfileId,
+                role,
+              },
+            },
+            create: {
               tripId,
               driverProfileId,
               role,
+              startStopOrder,
+              endStopOrder: endStopOrder ?? null,
+              assignedByStaffId: ctx.user.id,
             },
-          },
-          create: {
+            update: {
+              startStopOrder,
+              ...(endStopOrder !== undefined ? { endStopOrder } : {}),
+            },
+          });
+        } catch (err) {
+          if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            err.code === "P2002"
+          ) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: `Another operator just confirmed a ${role} on this trip. Reload and review before replacing them.`,
+            });
+          }
+          throw err;
+        }
+
+        // Notify the assigned driver — urgent variant inside the 2h window
+        const minutesToDeparture =
+          (new Date(trip.departureDate).getTime() - Date.now()) / 60000;
+        const urgent =
+          minutesToDeparture > 0 &&
+          minutesToDeparture <= URGENT_DISPATCH_WINDOW_HOURS * 60;
+
+        const companyName =
+          (
+            await tx.company.findUnique({
+              where: { id: ctx.companyId },
+              select: { name: true },
+            })
+          )?.name ?? "Votre opérateur";
+
+        await enqueueDriverTripAssigned(tx as never, {
+          payload: {
             tripId,
-            driverProfileId,
-            role,
-            startStopOrder,
-            endStopOrder: endStopOrder ?? null,
-            assignedByStaffId: ctx.user.id,
+            companyName,
+            busPlate: trip.bus?.registrationPlate ?? null,
+            originName: routeLabel.origin,
+            destinationName: routeLabel.destination,
+            departureDate: trip.departureDate,
+            bookedPassengers: trip._count.bookings,
+            totalSeats: trip.totalSeats,
           },
-          update: {
-            startStopOrder,
-            ...(endStopOrder !== undefined ? { endStopOrder } : {}),
-          },
+          to: recipient,
+          urgent,
         });
+
+        // Notify the displaced driver when a PRIMARY/RELIEF was replaced
+        if (displacedUserId) {
+          await enqueueDriverTripUnassigned(tx as never, {
+            payload: {
+              tripId,
+              companyName,
+              busPlate: trip.bus?.registrationPlate ?? null,
+              originName: routeLabel.origin,
+              destinationName: routeLabel.destination,
+              departureDate: trip.departureDate,
+              bookedPassengers: trip._count.bookings,
+              totalSeats: trip.totalSeats,
+            },
+            to: {
+              subscriberId: displacedUserId,
+              ...(displacedEmail ? { email: displacedEmail } : {}),
+              ...(displacedName
+                ? { firstName: displacedName.split(" ")[0] }
+                : {}),
+            },
+          });
+        }
       });
 
       return { success: true };
@@ -1500,24 +2075,137 @@ export const tripsRouter = createTRPCRouter({
       requirePermission(ctx, "trips:update");
       const { tripId, driverProfileId, role } = input;
 
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: tripId, companyId: ctx.companyId, archivedAt: null },
+        include: {
+          schedule: {
+            select: {
+              route: {
+                select: {
+                  name: true,
+                  originTerminal: {
+                    select: {
+                      cityRelation: { select: { name: true } },
+                      name: true,
+                    },
+                  },
+                  destTerminal: {
+                    select: {
+                      cityRelation: { select: { name: true } },
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          _count: { select: { bookings: { where: { status: "CONFIRMED" } } } },
+        },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      }
+
+      // Phase 06 (F-DV-04) + Phase 26 (F-OP-11) — DECISION: unassignment
+      // mirrors assignDriver's window exactly. Pre-departure mistakes stay
+      // fixable; DEPARTED runs refuse (cancellation via cancelTripWithRefunds
+      // is the single post-departure lever and converges driver state), and
+      // ARRIVED/CANCELLED runs become immutable history — manifest attribution
+      // and assignment records can no longer be rewritten after the fact.
+      // System-driven removals ride Phase 06's convergence path instead.
+      if (
+        !["SCHEDULED", "DELAYED", "BOARDING"].includes(trip.status as string)
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            trip.status === "DEPARTED"
+              ? "Cannot unassign a driver after departure. Cancel the trip instead."
+              : `Cannot unassign a driver from a ${trip.status.toLowerCase()} trip.`,
+        });
+      }
+
+      const unassignRoute = trip.schedule?.route as any;
+      const unassignRouteLabel = {
+        origin:
+          unassignRoute?.originTerminal?.cityRelation?.name ??
+          unassignRoute?.originTerminal?.name ??
+          unassignRoute?.name ??
+          "Trajet",
+        destination:
+          unassignRoute?.destTerminal?.cityRelation?.name ??
+          unassignRoute?.destTerminal?.name ??
+          "—",
+      };
+
+      const driver = await ctx.prisma.driverProfile.findUnique({
+        where: { id: driverProfileId },
+        include: {
+          user: { select: { id: true, fullName: true, email: true } },
+        },
+      });
+      if (!driver) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Driver not found" });
+      }
+
       await ctx.prisma.$transaction(async (tx) => {
-        if (role === "PRIMARY") {
+        // Phase 18 (P2-8) — same lock order as assignDriver: trip row, then
+        // driver row. Keeps unassign/replace races serialized.
+        await tx.$queryRaw(
+          Prisma.sql`SELECT id FROM "trip" WHERE id = ${tripId} FOR UPDATE`,
+        );
+        await tx.$queryRaw(
+          Prisma.sql`SELECT id FROM "driver_profile" WHERE id = ${driverProfileId} FOR UPDATE`,
+        );
+
+        const deleted = await tx.tripDriverAssignment.deleteMany({
+          where: { tripId, driverProfileId, role },
+        });
+        if (deleted.count === 0) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "This driver does not hold that role on this trip.",
+          });
+        }
+
+        if (role === "PRIMARY" && trip.driverId === driverProfileId) {
           await tx.trip.update({
             where: { id: tripId },
             data: { driverId: null },
           });
-        } else if (role === "RELIEF") {
+        } else if (
+          role === "RELIEF" &&
+          trip.reliefDriverId === driverProfileId
+        ) {
           await tx.trip.update({
             where: { id: tripId },
             data: { reliefDriverId: null },
           });
         }
 
-        await tx.tripDriverAssignment.deleteMany({
-          where: {
+        await enqueueDriverTripUnassigned(tx as never, {
+          payload: {
             tripId,
-            driverProfileId,
-            role,
+            companyName:
+              (
+                await tx.company.findUnique({
+                  where: { id: ctx.companyId },
+                  select: { name: true },
+                })
+              )?.name ?? "Votre opérateur",
+            busPlate: null,
+            originName: unassignRouteLabel.origin,
+            destinationName: unassignRouteLabel.destination,
+            departureDate: trip.departureDate,
+            bookedPassengers: trip._count.bookings,
+            totalSeats: trip.totalSeats,
+          },
+          to: {
+            subscriberId: driver.userId,
+            ...(driver.user.email ? { email: driver.user.email } : {}),
+            ...(driver.user.fullName
+              ? { firstName: driver.user.fullName.split(" ")[0] }
+              : {}),
           },
         });
       });

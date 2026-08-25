@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { getOptionalEnv, getRequiredEnv } from "@moja/config";
 import { toPaystackAmountXOF } from "../lib/pricing-resolver";
 
@@ -43,6 +44,8 @@ export async function paystackInitialize(input: {
   metadata?: Record<string, unknown>;
   callbackUrl?: string;
 }): Promise<PaystackInitializeResult> {
+  // No `channels` param — Paystack shows every method enabled on the
+  // dashboard for XOF (card, mobile money, bank transfer, ...).
   const body: Record<string, unknown> = {
     email: input.email,
     amount: toPaystackAmountXOF(input.amountXOF),
@@ -50,7 +53,6 @@ export async function paystackInitialize(input: {
     reference: input.reference,
     metadata: input.metadata,
     callback_url: input.callbackUrl,
-    channels: ["card", "mobile_money"],
   };
 
   const res = await fetch("https://api.paystack.co/transaction/initialize", {
@@ -138,14 +140,15 @@ export function verifyPaystackSignature(
   const secret = getOptionalEnv("PAYSTACK_SECRET_KEY");
   if (!secret || !signature) return false;
 
-  // Paystack uses HMAC SHA512 — use Web Crypto in edge or node crypto
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const crypto = require("node:crypto") as typeof import("node:crypto");
-  const hash = crypto
-    .createHmac("sha512", secret)
-    .update(rawBody)
-    .digest("hex");
-  return hash === signature;
+  // Paystack uses HMAC SHA512. Phase 32 (F-PS-13) — constant-time compare
+  // (house pattern from signed-access-tokens.ts); a plain `===` leaks
+  // prefix-match timing on a money-path authentication boundary.
+  const hash = createHmac("sha512", secret).update(rawBody).digest("hex");
+  const expected = Buffer.from(hash, "utf8");
+  const received = Buffer.from(signature, "utf8");
+  return (
+    expected.length === received.length && timingSafeEqual(expected, received)
+  );
 }
 
 export const PAYSTACK_RECIPIENT_CURRENCY = "XOF" as const;

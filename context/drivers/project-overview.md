@@ -1,9 +1,25 @@
 # Moja Bus Driver System & Real-Time Telemetry — Project Overview
 
 ## 1. Executive Summary & Vision
-The **Moja Bus Driver System** is an enterprise-grade extension to the Moja Bus ERP and Traveler ecosystem. It elevates drivers from simple database records into first-class platform citizens with dedicated mobile tooling, real-time telemetry streaming, carrier-grade trip execution, and portable career progression.
 
-Simultaneously, it empowers bus operators with complete operational visibility, accurate driver-trip allocation, and granular passenger review analytics.
+The **Moja Bus Driver System** is the third side of a **three-sided marketplace** that connects:
+- **Passengers** → find and book intercity bus travel
+- **Operators** → manage fleets, routes, schedules, and bookings
+- **Drivers** → find employment, execute trips, build a portable career identity
+
+Drivers are elevated from simple database records into **first-class platform citizens** with their own mobile app, a marketplace listing, a structured offer board for employment negotiation, real-time telemetry streaming, carrier-grade trip execution tools, and portable lifetime career progression.
+
+The platform replaces the **informal WhatsApp-based hiring process** used by CIV bus operators today with a structured, auditable Offer Board where operators discover verified drivers, send formal employment offers, negotiate terms (including counter-offers), and automatically create platform-recorded `DriverCompanyAffiliation` contracts upon mutual acceptance.
+
+**Architectural Decisions Locked (2026-08-21)**:
+| Decision | Choice |
+|---|---|
+| Marketplace listing | All verified drivers are **auto-listed** — no opt-in required |
+| Salary negotiation | Full **counter-offer** flow supported (driver can propose amended salary/terms) |
+| Multi-operator affiliations | Allowed — but only **one active exclusive intercity** affiliation at a time; urban drivers can be affiliated with multiple operators simultaneously |
+| Data visible to operators in marketplace | Public rating, safety score, affiliation history, contact number, name, profile photo — operators trust platform verification |
+| Offer expiry | **7 days** auto-expiry for unanswered offers |
+| Messaging | **No in-app chat** — structured Offer Board replaces WhatsApp; real communication stays on WhatsApp, platform formalizes the agreement |
 
 ---
 

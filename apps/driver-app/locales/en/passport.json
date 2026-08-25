@@ -1,0 +1,25 @@
+{
+  "passport": "Driver Passport",
+  "careerStats": "Career Statistics",
+  "safetyIndex": "Safety Index",
+  "totalTrips": "Total Trips",
+  "rating": "Rating",
+  "licenseCategory": "License Category",
+  "verificationStatus": "Verification Status",
+  "verified": "Verified",
+  "pending": "Pending Review",
+  "rejected": "Rejected",
+  "signOut": "Sign Out",
+  "signOutConfirm": "Are you sure you want to sign out?",
+  "confirm": "Sign Out",
+  "cancel": "Cancel"
+,
+  "telemetryHealth": "Telemetry Health",
+  "streaming": "Streaming",
+  "idleTracking": "Idle Tracking",
+  "offline": "Offline",
+  "pingAgo": "{{minutes}}m ago",
+  "noPingYet": "No ping yet",
+  "queued": "Queued: {{count}}",
+  "reauthHint": "Session expired - start a run to refresh telemetry access."
+}

@@ -1,0 +1,12 @@
+{
+  "manifest": "Passenger Manifest",
+  "searchPlaceholder": "Search passenger or seat...",
+  "boarded": "Boarded",
+  "notBoarded": "Not Boarded",
+  "seat": "Seat",
+  "callPassenger": "Call Passenger",
+  "manualCheckin": "Manual Check-in",
+  "totalPassengers": "Total Passengers",
+  "boardedCount": "Boarded",
+  "remaining": "Remaining"
+}

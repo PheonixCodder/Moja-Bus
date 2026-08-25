@@ -54,7 +54,13 @@
         }
       ],
       "expo-status-bar",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsVersion": "11.18.0"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

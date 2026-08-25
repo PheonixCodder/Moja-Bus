@@ -1,5 +1,21 @@
 {
   "operatorDashboard": {
+    "drivers": {
+      "trustBadges": {
+        "topRated": "Top Rated",
+        "safeDriver": "Safe Driver",
+        "veteran": "Veteran"
+      },
+      "analytics": {
+        "ratingTrend": "Rating Trend — 12 months",
+        "safetyGauge": "Safety Score",
+        "distribution": "Rating Distribution",
+        "noData": "No rated reviews yet",
+        "overspeed": "Overspeed events",
+        "harshBraking": "Harsh braking",
+        "reviewsLabel": "Reviews"
+      }
+    },
     "nav": {
       "overview": "Overview",
       "bookings": "Bookings",
@@ -17,6 +33,7 @@
         "operations": "Operations",
         "planning": "Planning",
         "fleet": "Fleet",
+        "talent": "Talent",
         "financials": "Financials",
         "growth": "Growth",
         "organization": "Organization"
@@ -24,12 +41,15 @@
       "dispatchBoard": "Dispatch Board",
       "buses": "Buses",
       "drivers": "Drivers",
+      "driverMarketplace": "Driver Marketplace",
+      "sentOffers": "Sent Offers",
       "withdrawals": "Withdrawals",
       "promotions": "Promotions",
       "company": "Company",
       "signOut": "Sign out",
       "operator": "Operator",
       "platformAdmin": "Platform Admin"
+
     },
     "overview": {
       "portalFallback": "Moja Ride Operator Portal",
@@ -717,6 +737,24 @@
       "noActiveBus": "No active bus found.",
       "viewManifest": "View Manifest",
       "passengerCount": "{count, plural, one {# passenger} other {# passengers}}",
+      "driverRow": {
+        "primary": "Driver",
+        "relief": "Relief",
+        "conductor": "Conductor"
+      },
+      "driverAssignPlaceholder": "Select driver…",
+      "driverSearching": "Loading drivers…",
+      "driverNoEligible": "No eligible drivers",
+      "licenseMismatch": "Class {required} required",
+      "conflictBusy": "Already booked",
+      "alreadyOnTrip": "On this trip",
+      "liveAvailable": "Available",
+      "replaceConfirmTitle": "Replace assigned driver?",
+      "replaceConfirmMessage": "{name} will be removed from this trip and notified.",
+      "driverAssigned": "Driver assigned — notification sent",
+      "driverUnassignedToast": "Driver unassigned — notification sent",
+      "failedAssignDriver": "Failed to update assignment",
+      "unassignAria": "Remove driver from this trip",
       "manifest": {
         "title": "Trip Manifest",
         "loading": "Loading…",

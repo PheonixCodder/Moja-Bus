@@ -11,9 +11,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "expo-router";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset } from "@/constants/theme";
+import {
+	type NotificationRouteData,
+	resolveNotificationRoute,
+} from "@/lib/notification-routes";
 
 type NotificationItem = {
 	id: string;
@@ -23,6 +28,11 @@ type NotificationItem = {
 	read?: boolean;
 	isRead?: boolean;
 	avatar?: string;
+	// Phase 34 (F-NF-15) — tap routing reads the workflow identifier, trigger
+	// payload and stored redirect off the Novu message.
+	workflow?: { identifier?: string };
+	data?: NotificationRouteData;
+	redirect?: { url?: string };
 };
 
 function timeAgo(dateString: string | Date): string {
@@ -106,6 +116,7 @@ function NotificationRow({
 
 export function NotificationsView() {
 	const insets = useSafeAreaInsets();
+	const router = useRouter();
 	const { t } = useTranslation("notifications");
 	const novu = useNovu();
 	const [markingAll, setMarkingAll] = useState(false);
@@ -177,9 +188,24 @@ export function NotificationsView() {
 
 	const renderItem = useCallback(
 		({ item }: { item: NotificationItem }) => (
-			<NotificationRow item={item} onPress={() => markOneRead(item)} />
+			<NotificationRow
+				item={item}
+				onPress={() => {
+					// Phase 34 (F-NF-15) — tap navigates (map → redirect fallback)
+					// and marks read; read-marking stays best-effort and never
+					// blocks navigation.
+					void markOneRead(item);
+					const route = resolveNotificationRoute({
+						identifier: item.workflow?.identifier,
+						data: item.data,
+						redirectUrl: item.redirect?.url,
+					});
+					// Typed-routes cast, matching the app's existing dynamic-push pattern.
+					if (route) router.push(route as any);
+				}}
+			/>
 		),
-		[markOneRead],
+		[markOneRead, router],
 	);
 
 	const renderFooter = () => {

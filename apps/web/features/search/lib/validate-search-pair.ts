@@ -67,7 +67,16 @@ export function validateSearchPair(
     !!origin.municipalityId &&
     !!destination.municipalityId &&
     origin.municipalityId === destination.municipalityId;
-  if (sameMunicipality) return "sameCity";
+  if (sameMunicipality) {
+    // Two different quartiers within the same municipality is a valid
+    // intra-municipality urban search — only block when the refinement
+    // isn't distinct enough (no quarters, or same quarter).
+    const bothHaveDistinctQuarters =
+      !!origin.quarterId &&
+      !!destination.quarterId &&
+      origin.quarterId !== destination.quarterId;
+    if (!bothHaveDistinctQuarters) return "sameCity";
+  }
 
   const bothCityLevel =
     origin.level !== "municipality" &&

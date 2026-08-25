@@ -1,26 +1,40 @@
 "use client";
 
-import Link from "next/link";
 import {
-  ArrowLeft,
-  ShieldCheck,
-  ShieldAlert,
-  Star,
-  Phone,
-  Mail,
-  Calendar,
-  Award,
-  Route,
-  Bus,
-  AlertTriangle,
-} from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { Button } from "@moja/ui/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
-import { useTRPC } from "@/trpc/client";
-import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@moja/ui/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Award,
+  Bus,
+  Calendar,
+  Mail,
+  Phone,
+  Route,
+  ShieldAlert,
+  ShieldCheck,
+  Star,
+} from "lucide-react";
+import Link from "next/link";
+import { DriverAnalyticsCharts } from "@/features/operator/components/drivers/driver-analytics-charts";
 import { DriverCareerStatsCard } from "@/features/operator/components/drivers/driver-career-stats-card";
+import { DriverRosterActions } from "@/features/operator/components/drivers/driver-roster-actions";
+import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
+import { LicenseExpiryBadge } from "@/features/operator/components/drivers/license-expiry-badge";
+import { TrustBadges } from "@/features/operator/components/drivers/trust-badges";
+import { computeTrustBadges } from "@/lib/driver-scoring";
+import { useTRPC } from "@/trpc/client";
 
 interface DriverDetailViewProps {
   driverId: string;
@@ -28,7 +42,9 @@ interface DriverDetailViewProps {
 
 export function DriverDetailView({ driverId }: DriverDetailViewProps) {
   const trpc = useTRPC();
-  const driverQuery = useQuery(trpc.drivers.getDriver.queryOptions({ id: driverId }));
+  const driverQuery = useQuery(
+    trpc.drivers.getDriver.queryOptions({ id: driverId }),
+  );
 
   if (driverQuery.isLoading) {
     return (
@@ -45,7 +61,8 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
         <AlertTriangle className="size-10 text-destructive mx-auto" />
         <div className="text-lg font-bold">Driver Not Found</div>
         <p className="text-sm text-muted-foreground">
-          The requested driver profile was not found or is no longer affiliated with your fleet.
+          The requested driver profile was not found or is no longer affiliated
+          with your fleet.
         </p>
         <Link href="/dashboard/operator/drivers">
           <Button variant="outline" className="mt-4 gap-2">
@@ -58,14 +75,17 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
   }
 
   const affiliation = driver.companyAffiliations[0];
-  const isIntercity = affiliation?.employmentType === "EXCLUSIVE_INTERCITY";
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Back Link */}
       <div>
         <Link href="/dashboard/operator/drivers">
-          <Button variant="ghost" size="sm" className="gap-2 -ml-2 text-muted-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 -ml-2 text-muted-foreground"
+          >
             <ArrowLeft className="size-4" />
             Back to Drivers Directory
           </Button>
@@ -93,6 +113,10 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
                 {driver.user.fullName}
               </h1>
               <DriverStatusBadge status={driver.status} />
+              {/* Phase 14 (F-OP-03) — licence expiry visibility */}
+              <LicenseExpiryBadge
+                licenseExpiryDate={driver.licenseExpiryDate}
+              />
               {driver.verificationStatus === "VERIFIED" ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   <ShieldCheck className="size-3.5" />
@@ -126,15 +150,49 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-end gap-3">
           <div className="p-3 rounded-xl bg-muted/60 text-right border border-border">
-            <div className="text-xs text-muted-foreground">Employment Model</div>
+            <div className="text-xs text-muted-foreground">
+              Employment Model
+            </div>
             <div className="text-sm font-bold text-foreground">
-              {isIntercity ? "Intercity Exclusive" : "Urban Contractor"}
+              {affiliation?.employmentType === "EXCLUSIVE_INTERCITY"
+                ? "Intercity Exclusive"
+                : affiliation?.employmentType === "HYBRID"
+                  ? "Hybrid (Multi-Mode)"
+                  : "Urban Contractor"}
             </div>
           </div>
+
+          {/* Phase 13 (F-OP-02) — roster lifecycle actions */}
+          <DriverRosterActions
+            driverId={driverId}
+            driverName={driver.user.fullName}
+            isActive={affiliation?.isActive ?? false}
+            isMidRun={!!driver.currentTrip}
+            defaults={{
+              licenseNumber: driver.licenseNumber ?? "",
+              licenseCategory: driver.licenseCategory ?? "D",
+              licenseExpiryDate: driver.licenseExpiryDate
+                ? new Date(driver.licenseExpiryDate).toISOString()
+                : "",
+              badgeNumber: affiliation?.badgeNumber ?? "",
+              notes: affiliation?.notes ?? "",
+            }}
+          />
         </div>
       </div>
+
+      {/* Phase 13 — Trust badges (computed on read) */}
+      {(() => {
+        const badges = computeTrustBadges({
+          averageRating: driver.averageRating,
+          totalReviews: driver.totalReviews,
+          safetyScore: driver.safetyScore,
+          totalTripsCompleted: driver.totalTripsCompleted,
+        });
+        return badges.length > 0 ? <TrustBadges badges={badges} /> : null;
+      })()}
 
       {/* Lifetime Career Stats */}
       <DriverCareerStatsCard
@@ -147,10 +205,13 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
 
       {/* Detail Tabs */}
       <Tabs defaultValue="credentials" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-4 max-w-xl">
           <TabsTrigger value="credentials">Credentials & License</TabsTrigger>
           <TabsTrigger value="trips">Trip History</TabsTrigger>
-          <TabsTrigger value="reviews">Reviews ({driver.reviews.length})</TabsTrigger>
+          <TabsTrigger value="reviews">
+            Reviews ({driver.reviews.length})
+          </TabsTrigger>
+          <TabsTrigger value="insights">Insights</TabsTrigger>
         </TabsList>
 
         {/* Credentials Tab */}
@@ -163,25 +224,33 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
               </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <div className="text-xs text-muted-foreground">License Number</div>
+                  <div className="text-xs text-muted-foreground">
+                    License Number
+                  </div>
                   <div className="font-mono font-bold text-foreground mt-0.5">
                     {driver.licenseNumber}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground">License Category</div>
+                  <div className="text-xs text-muted-foreground">
+                    License Category
+                  </div>
                   <div className="font-bold text-foreground mt-0.5">
                     Class {driver.licenseCategory} (Passenger Bus)
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground">Expiry Date</div>
+                  <div className="text-xs text-muted-foreground">
+                    Expiry Date
+                  </div>
                   <div className="font-medium text-foreground mt-0.5">
                     {new Date(driver.licenseExpiryDate).toLocaleDateString()}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground">Driving Experience</div>
+                  <div className="text-xs text-muted-foreground">
+                    Driving Experience
+                  </div>
                   <div className="font-medium text-foreground mt-0.5">
                     {driver.yearsOfExperience} Years
                   </div>
@@ -196,15 +265,21 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
               </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <div className="text-xs text-muted-foreground">Medical Clearance Date</div>
+                  <div className="text-xs text-muted-foreground">
+                    Medical Clearance Date
+                  </div>
                   <div className="font-medium text-foreground mt-0.5">
                     {driver.medicalClearanceDate
-                      ? new Date(driver.medicalClearanceDate).toLocaleDateString()
+                      ? new Date(
+                          driver.medicalClearanceDate,
+                        ).toLocaleDateString()
                       : "Pending submission"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground">Affiliated Since</div>
+                  <div className="text-xs text-muted-foreground">
+                    Affiliated Since
+                  </div>
                   <div className="font-medium text-foreground mt-0.5">
                     {affiliation?.hiredAt
                       ? new Date(affiliation.hiredAt).toLocaleDateString()
@@ -214,7 +289,9 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
               </div>
               {affiliation?.notes && (
                 <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg">
-                  <span className="font-semibold text-foreground">Operational Notes: </span>
+                  <span className="font-semibold text-foreground">
+                    Operational Notes:{" "}
+                  </span>
                   {affiliation.notes}
                 </div>
               )}
@@ -225,13 +302,17 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
         {/* Trips Tab */}
         <TabsContent value="trips" className="space-y-4">
           <div className="p-5 rounded-xl border border-border bg-card shadow-sm">
-            <h3 className="text-sm font-bold text-foreground mb-4">Assigned Trips & Completed Runs</h3>
+            <h3 className="text-sm font-bold text-foreground mb-4">
+              Assigned Trips & Completed Runs
+            </h3>
             {driver.currentTrip ? (
               <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Bus className="size-5 text-indigo-500" />
                   <div>
-                    <div className="font-bold text-sm text-foreground">Active Trip In Progress</div>
+                    <div className="font-bold text-sm text-foreground">
+                      Active Trip In Progress
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       Bus Plate: {driver.currentTrip.bus.registrationPlate}
                     </div>
@@ -252,7 +333,9 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
         {/* Reviews Tab */}
         <TabsContent value="reviews" className="space-y-4">
           <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-foreground">Passenger Ratings & Verified Feedback</h3>
+            <h3 className="text-sm font-bold text-foreground">
+              Passenger Ratings & Verified Feedback
+            </h3>
             {driver.reviews.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-xs">
                 No reviews logged for this driver yet.
@@ -274,17 +357,26 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
                     <div className="flex flex-wrap gap-2 text-xs">
                       {rev.driverRating && (
                         <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                          Driver Safety: <strong className="text-foreground">{rev.driverRating}/5</strong>
+                          Driver Safety:{" "}
+                          <strong className="text-foreground">
+                            {rev.driverRating}/5
+                          </strong>
                         </span>
                       )}
                       {rev.busRating && (
                         <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                          Vehicle: <strong className="text-foreground">{rev.busRating}/5</strong>
+                          Vehicle:{" "}
+                          <strong className="text-foreground">
+                            {rev.busRating}/5
+                          </strong>
                         </span>
                       )}
                       {rev.punctualityRating && (
                         <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                          Punctuality: <strong className="text-foreground">{rev.punctualityRating}/5</strong>
+                          Punctuality:{" "}
+                          <strong className="text-foreground">
+                            {rev.punctualityRating}/5
+                          </strong>
                         </span>
                       )}
                     </div>
@@ -299,6 +391,10 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
               </div>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-4">
+          <DriverAnalyticsCharts driverProfileId={driverId} />
         </TabsContent>
       </Tabs>
     </div>

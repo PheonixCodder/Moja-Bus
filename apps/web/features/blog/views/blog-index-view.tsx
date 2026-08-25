@@ -258,6 +258,7 @@ export function BlogIndexView() {
                     {post.coverImage ? (
                       <div className="aspect-[16/10] w-full bg-slate-100 relative overflow-hidden">
                         <Image
+                          unoptimized
                           src={post.coverImage}
                           alt={post.coverImageAlt || post.title}
                           fill

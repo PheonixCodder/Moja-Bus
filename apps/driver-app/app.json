@@ -47,6 +47,12 @@
         {
           "cameraPermission": "Allow Moja Driver to access camera for scanning passenger boarding tickets."
         }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsVersion": "11.18.0"
+        }
       ]
     ],
     "experiments": {

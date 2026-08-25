@@ -1,0 +1,12 @@
+{
+  "manifest": "Manifeste des Passagers",
+  "searchPlaceholder": "Rechercher passager ou siège...",
+  "boarded": "Embarqué",
+  "notBoarded": "Non Embarqué",
+  "seat": "Siège",
+  "callPassenger": "Appeler le Passager",
+  "manualCheckin": "Enregistrement Manuel",
+  "totalPassengers": "Total Passagers",
+  "boardedCount": "Embarqués",
+  "remaining": "Restants"
+}

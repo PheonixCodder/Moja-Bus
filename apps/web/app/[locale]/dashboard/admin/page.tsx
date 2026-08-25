@@ -30,7 +30,9 @@ export default async function AdminDashboardPage({ params, searchParams }: PageP
   await Promise.all([
     prefetch(trpc.admin.getDashboardStats.queryOptions({ from, to })),
     prefetch(trpc.admin.getRecentActivity.queryOptions()),
+    prefetch(trpc.admin.getDriverMarketplaceStats.queryOptions()),
   ]);
+
 
   return (
     <HydrateClient>

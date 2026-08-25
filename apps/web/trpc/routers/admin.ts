@@ -1,21 +1,39 @@
 import { AccountingEngine, FinancialAccountService } from "@moja/db";
 import {
   adminGetCompanySchema,
+  adminListAllOffersSchema,
   adminListCompaniesSchema,
+  adminListDriversForVerificationSchema,
   adminListLedgerEntriesSchema,
+  adminListMarketplaceDriversSchema,
   adminListOperationsSchema,
   adminListUsersSchema,
   adminRejectCompanySchema,
+  adminSetDriverMarketplaceStatusSchema,
   adminUpdateUserRoleSchema,
   adminUpdateVerificationChecklistSchema,
   adminVerifyCompanySchema,
+  adminVerifyDriverSchema,
+  MAX_FEATURED_DRIVERS,
   tripStatusEnum,
 } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { enqueueDriverVerificationOutcome } from "@/features/notifications/outbox/driver-compliance";
+import { createPresignedDownload } from "@/lib/storage";
+import {
+  enqueueDriverMarketplaceFeatured,
+  enqueueDriverMarketplaceSuspended,
+} from "@/features/notifications/outbox/marketplace-admin";
+import {
+  enqueueOperatorBankRejected,
+  enqueueOperatorBankVerified,
+} from "@/features/notifications/outbox/operator-bank";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
 import { logBankAccess } from "@/lib/bank-access";
 import { revealBankAccountNumber } from "@/lib/bank-account";
+import { suspendDriverOperationalState } from "@/lib/driver-run-state";
+import { computeTrustBadges } from "@/lib/driver-scoring";
 import { toSafeDisplayNumber } from "@/lib/money";
 import { getNovuClient } from "@/lib/novu";
 import {
@@ -380,7 +398,6 @@ export const adminRouter = createTRPCRouter({
       const decryptedAccountNumber = revealBankAccountNumber(
         pendingBank as any,
       );
-
       // Audit-log the full bank-number reveal (operator reveals are logged;
       // admin reveals must be too — see F-22).
       await logBankAccess(ctx.prisma, {
@@ -417,13 +434,14 @@ export const adminRouter = createTRPCRouter({
         }
       }
 
+      const decidedAt = new Date();
       await ctx.prisma.$transaction(async (tx) => {
         await tx.company.update({
           where: { id: input.companyId },
           data: {
             status: "ACTIVE",
             paystackTransferRecipientCode: recipientCode,
-            verifiedAt: new Date(),
+            verifiedAt: decidedAt,
             verifiedById: ctx.user.id,
             rejectionReason: null,
           },
@@ -434,10 +452,26 @@ export const adminRouter = createTRPCRouter({
           data: {
             isVerified: true,
             isDefault: true,
-            verifiedAt: new Date(),
+            verifiedAt: decidedAt,
             verifiedById: ctx.user.id,
             paystackTransferRecipientCode: recipientCode,
           },
+        });
+
+        // P2-3 (D5): durable owner notice, atomic with the verification write.
+        await enqueueOperatorBankVerified(tx as any, {
+          decidedAt,
+          bankAccountId: pendingBank.id,
+          companyName: company.name,
+          bankName: pendingBank.bankName ?? "Registered bank",
+          accountNumberLast4: (pendingBank as any).accountNumberLast4 ?? null,
+          recipients: company.operators.map((o) => ({
+            subscriberId: o.user.id,
+            ...(o.user.email ? { email: o.user.email } : {}),
+            ...(o.user.fullName
+              ? { firstName: o.user.fullName.split(" ")[0] }
+              : {}),
+          })),
         });
 
         await tx.activityLog.create({
@@ -461,7 +495,7 @@ export const adminRouter = createTRPCRouter({
             await novu.trigger({
               workflowId: "operator-verification-approved",
               to: {
-                subscriberId: ownerUser.email,
+                subscriberId: ownerUser.id,
                 email: ownerUser.email,
               },
               payload: {
@@ -490,6 +524,7 @@ export const adminRouter = createTRPCRouter({
       const company = await ctx.prisma.company.findUnique({
         where: { id: input.companyId },
         include: {
+          bankAccounts: true,
           operators: {
             where: { role: "OWNER" },
             include: {
@@ -506,6 +541,12 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
+      const rejectedBank =
+        company.bankAccounts.find((b) => !b.isVerified) ??
+        company.bankAccounts[0] ??
+        null;
+
+      const rejectedAt = new Date();
       await ctx.prisma.$transaction(async (tx) => {
         await tx.company.update({
           where: { id: input.companyId },
@@ -516,6 +557,27 @@ export const adminRouter = createTRPCRouter({
             verifiedById: null,
           },
         });
+
+        // P2-3 (D5): durable owner notice about their payout target being
+        // rejected, atomic with the verification write.
+        if (rejectedBank) {
+          await enqueueOperatorBankRejected(tx as any, {
+            decidedAt: rejectedAt,
+            bankAccountId: rejectedBank.id,
+            companyName: company.name,
+            bankName: rejectedBank.bankName ?? "Registered bank",
+            accountNumberLast4:
+              (rejectedBank as any).accountNumberLast4 ?? null,
+            reason: input.reason,
+            recipients: company.operators.map((o) => ({
+              subscriberId: o.user.id,
+              ...(o.user.email ? { email: o.user.email } : {}),
+              ...(o.user.fullName
+                ? { firstName: o.user.fullName.split(" ")[0] }
+                : {}),
+            })),
+          });
+        }
 
         await tx.activityLog.create({
           data: {
@@ -535,7 +597,7 @@ export const adminRouter = createTRPCRouter({
             await novu.trigger({
               workflowId: "operator-verification-rejected",
               to: {
-                subscriberId: ownerUser.email,
+                subscriberId: ownerUser.id,
                 email: ownerUser.email,
               },
               payload: {
@@ -699,8 +761,11 @@ export const adminRouter = createTRPCRouter({
           await novu
             .trigger({
               workflowId: "user-role-updated",
+              // Phase 08 (F-NF-03) — the affected account holder keys user.id.
+              // Event-sourced txId (user+target role) replaces Date.now() so
+              // re-applying the same role dedupes instead of never deduping.
               to: {
-                subscriberId: updatedUser.email,
+                subscriberId: updatedUser.id,
                 email: updatedUser.email,
               },
               payload: {
@@ -708,7 +773,7 @@ export const adminRouter = createTRPCRouter({
                 userName: updatedUser.fullName ?? "User",
                 newRole: input.role as any,
               },
-              transactionId: `user-role-updated-${updatedUser.id}-${Date.now()}`,
+              transactionId: `user-role-updated-${updatedUser.id}-${input.role}`,
             })
             .catch(() => {});
         } catch (err) {
@@ -777,8 +842,11 @@ export const adminRouter = createTRPCRouter({
               await novu
                 .trigger({
                   workflowId: "operator-account-suspended",
+                  // Phase 08 (F-NF-03) — every affected operator staff keys
+                  // user.id; day-bucketed txId replaces Date.now() so a
+                  // repeated suspend action dedupes per day.
                   to: {
-                    subscriberId: op.user.email,
+                    subscriberId: op.user.id,
                     email: op.user.email,
                   },
                   payload: {
@@ -787,7 +855,7 @@ export const adminRouter = createTRPCRouter({
                     companyName: company.name,
                     phone: op.user.phoneNumber ?? undefined,
                   },
-                  transactionId: `operator-account-suspended-${op.user.id}-${Date.now()}`,
+                  transactionId: `operator-account-suspended-${input.companyId}-${op.user.id}-${new Date().toISOString().slice(0, 10)}`,
                 })
                 .catch(() => {});
             }
@@ -852,8 +920,11 @@ export const adminRouter = createTRPCRouter({
               await novu
                 .trigger({
                   workflowId: "operator-account-restored",
+                  // Phase 08 (F-NF-03) — user.id keying; day-bucketed txId
+                  // replaces Date.now() so suspend/restore cycles dedupe
+                  // within a day instead of never.
                   to: {
-                    subscriberId: owner.user.email,
+                    subscriberId: owner.user.id,
                     email: owner.user.email,
                   },
                   payload: {
@@ -861,7 +932,7 @@ export const adminRouter = createTRPCRouter({
                     ownerName: owner.user.fullName ?? "Operator Owner",
                     companyName: company.name,
                   },
-                  transactionId: `operator-account-restored-${owner.user.id}-${Date.now()}`,
+                  transactionId: `operator-account-restored-${input.companyId}-${owner.user.id}-${new Date().toISOString().slice(0, 10)}`,
                 })
                 .catch(() => {});
             }
@@ -1197,8 +1268,10 @@ export const adminRouter = createTRPCRouter({
               await novu
                 .trigger({
                   workflowId: "operator-withdrawal-resolved",
+                  // Phase 08 (F-NF-03) — logged-in owners key user.id so
+                  // in-app + push fire alongside email.
                   to: {
-                    subscriberId: owner.user.email,
+                    subscriberId: owner.user.id,
                     email: owner.user.email,
                   },
                   payload: {
@@ -1233,8 +1306,10 @@ export const adminRouter = createTRPCRouter({
               await novu
                 .trigger({
                   workflowId: "admin-payout-failed",
+                  // Phase 08 (F-NF-03) — platform admins are account holders:
+                  // key user.id (same scheme as operator.ts treasury alert).
                   to: {
-                    subscriberId: admin.email,
+                    subscriberId: admin.id,
                     email: admin.email,
                   },
                   payload: {
@@ -1481,7 +1556,9 @@ export const adminRouter = createTRPCRouter({
             }),
             ...(wordCount !== undefined && { wordCount, readingTime }),
             // Handle optional nullable fields explicitly to satisfy exactOptionalPropertyTypes
-            ...("categoryId" in rest && { categoryId: rest.categoryId ?? null }),
+            ...("categoryId" in rest && {
+              categoryId: rest.categoryId ?? null,
+            }),
           } as any,
           include: { category: true, tags: true },
         }),
@@ -1958,7 +2035,9 @@ export const adminRouter = createTRPCRouter({
         subtitle: z.string().max(200).nullish(),
         badge: z.string().max(30).nullish(),
         imageUrl: z.string().url(),
-        actionType: z.enum(["SEARCH", "APP_SCREEN", "BLOG_ARTICLE", "EXTERNAL_URL"]).default("SEARCH"),
+        actionType: z
+          .enum(["SEARCH", "APP_SCREEN", "BLOG_ARTICLE", "EXTERNAL_URL"])
+          .default("SEARCH"),
         actionPayload: z.any().optional(),
         gradientColors: z.array(z.string()).default(["#ee237c", "#9333ea"]),
         isActive: z.boolean().default(true),
@@ -1982,7 +2061,9 @@ export const adminRouter = createTRPCRouter({
         subtitle: z.string().max(200).nullish(),
         badge: z.string().max(30).nullish(),
         imageUrl: z.string().url().optional(),
-        actionType: z.enum(["SEARCH", "APP_SCREEN", "BLOG_ARTICLE", "EXTERNAL_URL"]).optional(),
+        actionType: z
+          .enum(["SEARCH", "APP_SCREEN", "BLOG_ARTICLE", "EXTERNAL_URL"])
+          .optional(),
         actionPayload: z.any().optional(),
         gradientColors: z.array(z.string()).optional(),
         isActive: z.boolean().optional(),
@@ -2732,4 +2813,714 @@ export const adminRouter = createTRPCRouter({
     ]);
     return { recentCompanies, recentBookings };
   }),
+
+  listDriversForVerification: adminProcedure
+    .input(adminListDriversForVerificationSchema)
+    .query(async ({ ctx, input }) => {
+      // Phase 25 (F-OP-09) — hub visibility is permission-gated.
+      requireAdminPermission(ctx, "drivers:verify.read");
+
+      const where: any = {};
+
+      if (input.status && input.status !== "ALL") {
+        where.verificationStatus = input.status;
+      }
+
+      if (input.licenseCategory) {
+        where.licenseCategory = input.licenseCategory;
+      }
+
+      if (input.search) {
+        const searchLower = input.search.toLowerCase();
+        where.OR = [
+          { licenseNumber: { contains: searchLower, mode: "insensitive" } },
+          {
+            user: { fullName: { contains: searchLower, mode: "insensitive" } },
+          },
+          {
+            user: {
+              phoneNumber: { contains: searchLower, mode: "insensitive" },
+            },
+          },
+          { user: { email: { contains: searchLower, mode: "insensitive" } } },
+        ];
+      }
+
+      const [total, drivers, pendingCount, verifiedCount, rejectedCount] =
+        await Promise.all([
+          ctx.prisma.driverProfile.count({ where }),
+          ctx.prisma.driverProfile.findMany({
+            where,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  phoneNumber: true,
+                  email: true,
+                  image: true,
+                  createdAt: true,
+                },
+              },
+              companyAffiliations: {
+                include: {
+                  company: {
+                    select: {
+                      id: true,
+                      name: true,
+                      slug: true,
+                    },
+                  },
+                },
+              },
+              verifiedBy: {
+                select: {
+                  id: true,
+                  fullName: true,
+                },
+              },
+            },
+            orderBy: { createdAt: "desc" },
+            take: input.limit,
+            skip: input.offset,
+          }),
+          ctx.prisma.driverProfile.count({
+            where: { verificationStatus: "PENDING" },
+          }),
+          ctx.prisma.driverProfile.count({
+            where: { verificationStatus: "VERIFIED" },
+          }),
+          ctx.prisma.driverProfile.count({
+            where: { verificationStatus: "REJECTED" },
+          }),
+        ]);
+
+      // Phase 15 ride-along (2026-08-25) — compliance docs are PRIVATE
+      // storage keys since the Phase-15 pipeline; swap them for short-lived
+      // presigned GETs exactly like drivers.getDriver does, so admin dossiers
+      // render real documents instead of "missing" placeholders. Legacy
+      // absolute URLs pass through untouched; a failed presign degrades to
+      // null (placeholder) rather than blocking the hub.
+      const presignDoc = async (
+        purpose:
+          | "driver-license-front"
+          | "driver-license-back"
+          | "driver-medical-doc",
+        value: string | null,
+      ): Promise<string | null> => {
+        if (!value || !value.startsWith("documents/")) return value;
+        try {
+          const { downloadUrl } = await createPresignedDownload({
+            purpose,
+            objectKey: value,
+          });
+          return downloadUrl;
+        } catch {
+          return null;
+        }
+      };
+
+      const driversWithDossiers = await Promise.all(
+        drivers.map(async (d: any) => ({
+          ...d,
+          licenseFrontUrl: await presignDoc(
+            "driver-license-front",
+            d.licenseFrontUrl ?? null,
+          ),
+          licenseBackUrl: await presignDoc(
+            "driver-license-back",
+            d.licenseBackUrl ?? null,
+          ),
+          medicalDocUrl: await presignDoc(
+            "driver-medical-doc",
+            d.medicalDocUrl ?? null,
+          ),
+        })),
+      );
+
+      return {
+        total,
+        drivers: driversWithDossiers,
+        counts: {
+          pending: pendingCount,
+          verified: verifiedCount,
+          rejected: rejectedCount,
+        },
+      };
+    }),
+
+  verifyDriver: adminProcedure
+    .input(adminVerifyDriverSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Phase 25 (F-OP-09) — platform-wide verification flips are governed:
+      // permission-gated, activity-logged, and the DRIVER is notified (the
+      // verification dialog always claimed "Displayed to Driver" — now true).
+      requireAdminPermission(ctx, "drivers:verify.manage");
+
+      const driver = await ctx.prisma.driverProfile.findUnique({
+        where: { id: input.driverProfileId },
+        include: { user: true },
+      });
+
+      if (!driver) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Driver profile not found.",
+        });
+      }
+
+      // Phase 26 (F-OP-16) — same rule as the operator path: APPROVE with
+      // zero compliance documents is a rubber stamp. REJECT/SUSPEND remain
+      // available for document-less legacy entries.
+      if (
+        input.action === "APPROVE" &&
+        !driver.licenseFrontUrl &&
+        !driver.licenseBackUrl &&
+        !driver.medicalDocUrl
+      ) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message:
+            "Attach at least one compliance document (licence or medical) before approving this driver.",
+        });
+      }
+
+      let newStatus: any = driver.status;
+      let newVerificationStatus: any = driver.verificationStatus;
+
+      if (input.action === "APPROVE") {
+        newVerificationStatus = "VERIFIED";
+        // Phase 06 (F-DV-04) — re-approval must not stomp a live run: keep
+        // the mid-run operational state instead of forcing AVAILABLE.
+        newStatus = driver.currentTripId ? driver.status : "AVAILABLE";
+      } else if (input.action === "REJECT") {
+        newVerificationStatus = "REJECTED";
+        newStatus = "OFFLINE";
+      } else if (input.action === "SUSPEND") {
+        newVerificationStatus = "SUSPENDED";
+        newStatus = "SUSPENDED";
+      }
+
+      // Phase 06 (F-DV-04) — privilege-removing actions converge the run
+      // state atomically with the verification flip: close any open shift,
+      // clear currentTripId, park the profile. A suspended driver is no
+      // longer stranded ON_TRIP with a ghost bus on the fleet map.
+      const updated = await ctx.prisma.$transaction(async (tx) => {
+        if (input.action === "REJECT" || input.action === "SUSPEND") {
+          await suspendDriverOperationalState(
+            tx as any,
+            input.driverProfileId,
+            newStatus,
+          );
+        }
+
+        const updated = await tx.driverProfile.update({
+          where: { id: input.driverProfileId },
+          data: {
+            verificationStatus: newVerificationStatus,
+            status: newStatus,
+            verifiedAt: input.action === "APPROVE" ? new Date() : null,
+            verifiedById: input.action === "APPROVE" ? ctx.user.id : null,
+            rejectionReason:
+              input.action === "REJECT"
+                ? (input.rejectionReason ??
+                  "Document compliance requirements not met.")
+                : null,
+          },
+          include: {
+            user: true,
+          },
+        });
+
+        // Phase 25 (F-OP-09) — governance trail + durable driver notice ride
+        // the SAME transaction as the flip: a rollback can never strand a
+        // logged action or a half-sent notice (enqueue-inside-tx pattern).
+        await tx.adminStaffActivityLog.create({
+          data: {
+            userId: ctx.user.id,
+            action: `DRIVER_VERIFY_${input.action}`,
+            description: `${input.action} driver verification for ${updated.user.fullName ?? input.driverProfileId}${input.rejectionReason ? ` — reason: ${input.rejectionReason}` : ""}`,
+            metadata: {
+              driverProfileId: input.driverProfileId,
+              action: input.action,
+              reason: input.rejectionReason ?? null,
+            },
+            targetUserId: updated.userId,
+          },
+        });
+
+        if (updated.user) {
+          await enqueueDriverVerificationOutcome(tx as never, {
+            driverProfileId: input.driverProfileId,
+            kind: input.action,
+            to: {
+              subscriberId: updated.userId,
+              ...(updated.user.email ? { email: updated.user.email } : {}),
+              ...(updated.user.fullName
+                ? { firstName: updated.user.fullName.split(" ")[0] }
+                : {}),
+            },
+            driverName: updated.user.fullName ?? "Driver",
+            reason: input.rejectionReason ?? null,
+          });
+        }
+
+        return updated;
+      });
+
+      return { success: true, driver: updated };
+    }),
+
+  // ============================================================================
+  // PHASE 9 — DRIVER MARKETPLACE STATS (Admin Dashboard Widget)
+  // ============================================================================
+
+  getDriverMarketplaceStats: adminProcedure.query(async ({ ctx }) => {
+    const [totalVerified, availableForHire, pendingVerification, employed] =
+      await Promise.all([
+        // Total verified drivers on the platform
+        ctx.prisma.driverProfile.count({
+          where: { verificationStatus: "VERIFIED" },
+        }),
+        // Drivers who have opted in to the marketplace
+        ctx.prisma.driverServicePreference.count({
+          where: {
+            isAvailableForHire: true,
+            isSuspended: false,
+            driverProfile: { verificationStatus: "VERIFIED" },
+          },
+        }),
+        // Drivers awaiting verification review
+        ctx.prisma.driverProfile.count({
+          where: { verificationStatus: "PENDING" },
+        }),
+        // Drivers with at least one active affiliation
+        ctx.prisma.driverProfile.count({
+          where: {
+            verificationStatus: "VERIFIED",
+            companyAffiliations: {
+              some: { isActive: true },
+            },
+          },
+        }),
+      ]);
+
+    return { totalVerified, availableForHire, pendingVerification, employed };
+  }),
+
+  // ============================================================================
+  // PHASE 14 — DRIVER MARKETPLACE ADMIN CONTROLS
+  // ============================================================================
+
+  /**
+   * Feature / un-feature / suspend / restore a driver's marketplace listing.
+   * Suspension requires a reason (schema-enforced), writes an admin activity
+   * log entry, and notifies the driver via the durable Outbox.
+   */
+  setDriverMarketplaceStatus: adminProcedure
+    .input(adminSetDriverMarketplaceStatusSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketplace:manage");
+      const { driverProfileId, action, reason } = input;
+
+      const pref = await ctx.prisma.driverServicePreference.findUnique({
+        where: { driverProfileId },
+        include: {
+          driverProfile: {
+            include: {
+              user: { select: { id: true, fullName: true, email: true } },
+            },
+          },
+        },
+      });
+      if (!pref) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Driver has no marketplace profile (preferences not set).",
+        });
+      }
+
+      const data: { isFeatured?: boolean; isSuspended?: boolean } = {};
+      switch (action) {
+        case "FEATURE": {
+          if (pref.isFeatured) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Driver is already featured.",
+            });
+          }
+          const featuredCount = await ctx.prisma.driverServicePreference.count({
+            where: { isFeatured: true, isSuspended: false },
+          });
+          if (featuredCount >= MAX_FEATURED_DRIVERS) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Featured cap of ${MAX_FEATURED_DRIVERS} reached. Unfeature someone first.`,
+            });
+          }
+          data.isFeatured = true;
+          break;
+        }
+        case "UNFEATURE": {
+          if (!pref.isFeatured) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Driver is not currently featured.",
+            });
+          }
+          data.isFeatured = false;
+          break;
+        }
+        case "SUSPEND": {
+          if (pref.isSuspended) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Driver is already suspended from the marketplace.",
+            });
+          }
+          // Suspended drivers are excluded from marketplace queries anyway;
+          // clearing the flag frees a Featured-cap slot.
+          data.isSuspended = true;
+          data.isFeatured = false;
+          break;
+        }
+        case "RESTORE": {
+          if (!pref.isSuspended) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Driver is not suspended.",
+            });
+          }
+          data.isSuspended = false;
+          break;
+        }
+      }
+
+      const updated = await ctx.prisma.driverServicePreference.update({
+        where: { driverProfileId },
+        data,
+      });
+
+      await ctx.prisma.adminStaffActivityLog.create({
+        data: {
+          userId: ctx.user.id,
+          action: `MARKETPLACE_${action}`,
+          description: `${action} marketplace status for ${pref.driverProfile.user.fullName ?? driverProfileId}${reason ? ` — reason: ${reason}` : ""}`,
+          metadata: { driverProfileId, action, reason: reason ?? null },
+          targetUserId: pref.driverProfile.userId,
+        },
+      });
+
+      const dUser = pref.driverProfile.user;
+      const recipient = {
+        subscriberId: dUser.id,
+        ...(dUser.email ? { email: dUser.email } : {}),
+        ...(dUser.fullName ? { firstName: dUser.fullName.split(" ")[0] } : {}),
+      };
+      if (action === "FEATURE") {
+        await enqueueDriverMarketplaceFeatured(ctx.prisma as never, {
+          driverProfileId,
+          to: recipient,
+        });
+      } else if (action === "SUSPEND") {
+        await enqueueDriverMarketplaceSuspended(ctx.prisma as never, {
+          driverProfileId,
+          to: recipient,
+          reason: reason!,
+        });
+      }
+
+      return { success: true, preference: updated };
+    }),
+
+  /**
+   * Admin listing of ALL verified drivers with marketplace flags — including
+   * suspended and off-market ones (unlike the operator-facing query).
+   */
+  listMarketplaceAdminDrivers: adminProcedure
+    .input(adminListMarketplaceDriversSchema)
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketplace:read");
+      const { search, status, page, limit } = input;
+      const skip = (page - 1) * limit;
+
+      const prefFilter =
+        status === "AVAILABLE"
+          ? { isAvailableForHire: true, isSuspended: false }
+          : status === "FEATURED"
+            ? { isFeatured: true }
+            : status === "SUSPENDED"
+              ? { isSuspended: true }
+              : status === "OFF_MARKET"
+                ? { isAvailableForHire: false }
+                : undefined;
+
+      const whereClause: any = {
+        verificationStatus: "VERIFIED",
+        ...(prefFilter ? { servicePreference: prefFilter } : {}),
+        ...(search
+          ? {
+              OR: [
+                {
+                  user: {
+                    fullName: {
+                      contains: search,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                },
+                { user: { phoneNumber: { contains: search } } },
+                {
+                  licenseNumber: {
+                    contains: search,
+                    mode: "insensitive" as const,
+                  },
+                },
+              ],
+            }
+          : {}),
+      };
+
+      const [items, total, counts] = await Promise.all([
+        ctx.prisma.driverProfile.findMany({
+          where: whereClause,
+          skip,
+          take: limit,
+          orderBy: { createdAt: "desc" },
+          include: {
+            servicePreference: true,
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                image: true,
+                phoneNumber: true,
+              },
+            },
+            _count: {
+              select: { companyAffiliations: { where: { isActive: true } } },
+            },
+          },
+        }),
+        ctx.prisma.driverProfile.count({ where: whereClause }),
+        Promise.all([
+          ctx.prisma.driverServicePreference.count({
+            where: { isFeatured: true },
+          }),
+          ctx.prisma.driverServicePreference.count({
+            where: { isSuspended: true },
+          }),
+        ]),
+      ]);
+
+      return {
+        items: items.map((d: any) => ({
+          id: d.id,
+          fullName: d.user.fullName,
+          image: d.user.image,
+          phoneNumber: d.user.phoneNumber,
+          licenseCategory: d.licenseCategory,
+          averageRating: d.averageRating,
+          totalReviews: d.totalReviews,
+          safetyScore: d.safetyScore,
+          totalTripsCompleted: d.totalTripsCompleted,
+          verificationStatus: d.verificationStatus,
+          activeAffiliations: d._count.companyAffiliations,
+          preference: d.servicePreference,
+          trustBadges: computeTrustBadges({
+            averageRating: d.averageRating,
+            totalReviews: d.totalReviews,
+            safetyScore: d.safetyScore,
+            totalTripsCompleted: d.totalTripsCompleted,
+          }),
+        })),
+        total,
+        page,
+        limit,
+        counts: {
+          featured: counts[0],
+          suspended: counts[1],
+        },
+      };
+    }),
+
+  /**
+   * Marketplace health metrics for the admin strip: KPIs + offer funnel +
+   * time-to-hire + counter rate + avg first-response hours.
+   */
+  getMarketplaceHealth: adminProcedure.query(async ({ ctx }) => {
+    requireAdminPermission(ctx, "marketplace:read");
+
+    const [base, offerGroups, hireStats, counterStats] = await Promise.all([
+      ctx.prisma.$transaction([
+        ctx.prisma.driverProfile.count({
+          where: { verificationStatus: "VERIFIED" },
+        }),
+        ctx.prisma.driverServicePreference.count({
+          where: {
+            isAvailableForHire: true,
+            isSuspended: false,
+            driverProfile: { verificationStatus: "VERIFIED" },
+          },
+        }),
+        ctx.prisma.driverProfile.count({
+          where: { verificationStatus: "PENDING" },
+        }),
+        ctx.prisma.driverProfile.count({
+          where: {
+            verificationStatus: "VERIFIED",
+            companyAffiliations: { some: { isActive: true } },
+          },
+        }),
+        ctx.prisma.driverServicePreference.count({
+          where: { isFeatured: true },
+        }),
+        ctx.prisma.driverServicePreference.count({
+          where: { isSuspended: true },
+        }),
+      ]),
+      ctx.prisma.driverEmploymentOffer.groupBy({
+        by: ["status"],
+        _count: true,
+      }),
+      ctx.prisma.$queryRawUnsafe<Array<{ hours: number | null }>>(
+        `SELECT AVG(EXTRACT(EPOCH FROM ("resolvedAt" - "createdAt")) / 3600)::float AS hours
+         FROM "driver_employment_offer"
+         WHERE "status" = 'ACCEPTED' AND "resolvedAt" IS NOT NULL`,
+      ),
+      ctx.prisma.$queryRawUnsafe<
+        Array<{ countered_offers: number; total_offers: number }>
+      >(
+        `SELECT
+           (SELECT COUNT(DISTINCT "offerId") FROM "driver_offer_event"
+             WHERE "eventType" IN ('COUNTERED_BY_DRIVER','COUNTERED_BY_OPERATOR'))::int AS countered_offers,
+           (SELECT COUNT(*) FROM "driver_employment_offer")::int AS total_offers`,
+      ),
+    ]);
+
+    const funnel: Record<string, number> = {};
+    for (const g of offerGroups) funnel[g.status] = g._count;
+
+    const responseRows = await ctx.prisma.$queryRawUnsafe<
+      Array<{ hours: number | null }>
+    >(
+      `SELECT AVG(EXTRACT(EPOCH FROM ("respondedAt" - "createdAt")) / 3600)::float AS hours
+       FROM "driver_employment_offer"
+       WHERE "respondedAt" IS NOT NULL`,
+    );
+
+    const totalOffers = Number(counterStats[0]?.total_offers ?? 0);
+    const counteredOffers = Number(counterStats[0]?.countered_offers ?? 0);
+
+    return {
+      totalVerified: base[0],
+      availableForHire: base[1],
+      pendingVerification: base[2],
+      employed: base[3],
+      featured: base[4],
+      suspended: base[5],
+      maxFeatured: MAX_FEATURED_DRIVERS,
+      avgTimeToHireHours: hireStats[0]?.hours ?? null,
+      avgFirstResponseHours: responseRows[0]?.hours ?? null,
+      counterRatePct:
+        totalOffers > 0 ? Math.round((counteredOffers / totalOffers) * 100) : 0,
+      funnel: {
+        PENDING: funnel["PENDING"] ?? 0,
+        COUNTERED: funnel["COUNTERED"] ?? 0,
+        ACCEPTED: funnel["ACCEPTED"] ?? 0,
+        DECLINED: funnel["DECLINED"] ?? 0,
+        EXPIRED: funnel["EXPIRED"] ?? 0,
+        WITHDRAWN: funnel["WITHDRAWN"] ?? 0,
+      },
+    };
+  }),
+
+  /**
+   * Platform-wide offer audit log with filters and negotiation timelines.
+   */
+  listAllOffers: adminProcedure
+    .input(adminListAllOffersSchema)
+    .query(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "marketplace:read");
+      const { status, search, page, limit } = input;
+      const skip = (page - 1) * limit;
+
+      const statusWhere =
+        status === "ACTIVE"
+          ? ["PENDING", "COUNTERED"]
+          : status === "ALL"
+            ? undefined
+            : [status];
+
+      const whereClause: any = {
+        ...(statusWhere ? { status: { in: statusWhere } } : {}),
+        ...(search
+          ? {
+              OR: [
+                {
+                  company: {
+                    name: { contains: search, mode: "insensitive" as const },
+                  },
+                },
+                {
+                  driverProfile: {
+                    user: {
+                      fullName: {
+                        contains: search,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  },
+                },
+              ],
+            }
+          : {}),
+      };
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.driverEmploymentOffer.findMany({
+          where: whereClause,
+          orderBy: { updatedAt: "desc" as const },
+          skip,
+          take: limit,
+          include: {
+            company: {
+              select: { id: true, name: true, slug: true, logoUrl: true },
+            },
+            driverProfile: {
+              select: {
+                id: true,
+                licenseCategory: true,
+                user: { select: { id: true, fullName: true, image: true } },
+              },
+            },
+            events: {
+              orderBy: { createdAt: "desc" as const },
+              take: 10,
+              select: {
+                eventType: true,
+                actorType: true,
+                salaryCFA: true,
+                note: true,
+                createdAt: true,
+              },
+            },
+          },
+        }),
+        ctx.prisma.driverEmploymentOffer.count({ where: whereClause }),
+      ]);
+
+      const now = Date.now();
+      return {
+        items: items.map((o: any) => ({
+          ...o,
+          isLive:
+            (o.status === "PENDING" || o.status === "COUNTERED") &&
+            o.expiresAt.getTime() > now,
+        })),
+        total,
+        page,
+        limit,
+      };
+    }),
 });

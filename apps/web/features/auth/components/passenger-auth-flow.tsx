@@ -152,7 +152,8 @@ export function PassengerAuthFlow({
         });
 
         if (res.exists) {
-          if (res.role === "TRAVELER") {
+          // Only real ERP staff may sign in through the operator form.
+          if (res.role !== "OPERATOR" && res.role !== "ADMIN") {
             toast.error(t("operator.toastPassengerIdentifier"));
             return;
           }

@@ -17,7 +17,7 @@ export const passengerTicketSharedWorkflow = workflow(
             <p style="margin: 0 0 8px 0;">Route: <strong>${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)}</strong></p>
             <p style="margin: 0;">Departure: <strong>${escapeHtml(payload.departureTime)}</strong></p>
           </div>
-          <a href="https://mojaride.com/tickets/${escapeHtml(payload.ticketToken)}" 
+          <a href="${escapeHtml(payload.ticketUrl)}"
              style="display: inline-block; background: #ee237c; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; margin: 16px auto;">
              View Digital Ticket
           </a>
@@ -45,6 +45,8 @@ export const passengerTicketSharedWorkflow = workflow(
       destinationCity: z.string(),
       departureTime: z.string(),
       ticketToken: z.string(),
+      /** Absolute, locale-prefixed link — built at trigger time (P2-3 👻). */
+      ticketUrl: z.string().url(),
       phone: z.string().optional(),
     }),
   }

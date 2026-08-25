@@ -11,7 +11,9 @@ import { DashboardKpiCards } from "../components/dashboard/dashboard-kpi-cards";
 import { DashboardPlatformHealth } from "../components/dashboard/dashboard-platform-health";
 import { DashboardRevenueChart } from "../components/dashboard/dashboard-revenue-chart";
 import { DashboardTreasuryCards } from "../components/dashboard/dashboard-treasury-cards";
+import { AdminDriverMarketplaceWidget } from "../components/dashboard/dashboard-driver-marketplace";
 import { dashboardSearchParams } from "../lib/search-params";
+
 
 function StatsSkeleton() {
   return (
@@ -40,6 +42,10 @@ function DashboardContent() {
 
   const { data: activity } = useSuspenseQuery(
     trpc.admin.getRecentActivity.queryOptions(),
+  );
+
+  const { data: marketplaceStats } = useSuspenseQuery(
+    trpc.admin.getDriverMarketplaceStats.queryOptions(),
   );
 
   return (
@@ -74,16 +80,18 @@ function DashboardContent() {
             recentBookings={activity.recentBookings}
           />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-4">
           <DashboardPlatformHealth
             pendingOperatorsCount={stats.pendingOperatorsCount}
             activeTripsCount={stats.activeTripsCount}
           />
+          <AdminDriverMarketplaceWidget />
         </div>
       </div>
     </div>
   );
 }
+
 
 export function AdminDashboardView() {
   const t = useTranslations("adminDashboard.adminDashboardView");

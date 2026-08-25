@@ -3,6 +3,8 @@
     "nav": {
       "overview": "Aperçu",
       "verifications": "File de vérification",
+      "driverVerifications": "Vérification des chauffeurs",
+      "driverMarketplace": "Marketplace Chauffeurs",
       "users": "Utilisateurs",
       "travelers": "Voyageurs",
       "operators": "Opérateurs",

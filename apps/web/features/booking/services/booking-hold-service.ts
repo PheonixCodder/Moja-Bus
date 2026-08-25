@@ -10,6 +10,7 @@ import {
 import { generateBookingReference } from "../lib/booking-reference";
 import { holdGroupWhere } from "../lib/hold-group";
 import { isActiveBookingStatus, segmentsOverlap } from "../lib/segment-overlap";
+import { enqueueHoldCreated } from "@/features/notifications/outbox/commercial";
 import { SeatAvailabilityService } from "./seat-availability-service";
 import { TripDetailsService } from "./trip-details-service";
 
@@ -41,6 +42,19 @@ export class BookingHoldService {
       creditAmountXOF?: number | undefined;
     } | undefined;
     deviceHash?: string | undefined;
+    /**
+     * Phase 32 (F-PS-14) — when present, the passenger-hold-created outbox
+     * row enqueues INSIDE the hold transaction (atomic with the hold; a
+     * crash between commit and notify is no longer possible). Absent = no
+     * notice (e.g. non-email callers).
+     */
+    notify?: {
+      email: string;
+      subscriberId: string;
+      /** Full display name (payload) — firstName is derived for greeting. */
+      passengerName: string;
+      phone?: string | null;
+    } | undefined;
   }): Promise<BookingHoldResult> {
     const {
       verifyCheckoutQuote,
@@ -322,6 +336,80 @@ export class BookingHoldService {
           },
         });
         createdIds.push(booking.id);
+      }
+
+      // Phase 32 (F-PS-14) — durable passenger-hold-created outbox row,
+      // enqueued INSIDE the tx (was post-commit best-effort with a
+      // console.error swallow — a crash between commit and enqueue
+      // permanently lost the notice). If this insert fails the hold rolls
+      // back atomically, matching the refund-notice pattern.
+      if (input.notify?.email) {
+        const notifyTrip = await tx.trip.findFirst({
+          where: { bookings: { some: { holdGroupId: holdGroup.id } } },
+          include: {
+            schedule: {
+              include: {
+                route: {
+                  include: {
+                    originTerminal: {
+                      include: {
+                        cityRelation: true,
+                        municipality: true,
+                        quarter: true,
+                      },
+                    },
+                    destTerminal: {
+                      include: {
+                        cityRelation: true,
+                        municipality: true,
+                        quarter: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (notifyTrip) {
+          const originCity =
+            notifyTrip.schedule?.route.originTerminal.cityRelation?.name ??
+            "Unknown";
+          const destCity =
+            notifyTrip.schedule?.route.destTerminal.cityRelation?.name ??
+            "Unknown";
+          const originMunicipality =
+            notifyTrip.schedule?.route.originTerminal.municipality?.name ??
+            null;
+          const destinationMunicipality =
+            notifyTrip.schedule?.route.destTerminal.municipality?.name ?? null;
+          await enqueueHoldCreated(tx, {
+            holdId: holdGroup.id,
+            email: input.notify.email,
+            subscriberId: input.notify.subscriberId,
+            firstName: input.notify.passengerName.split(" ")[0] ?? "",
+            data: {
+              email: input.notify.email,
+              passengerName: input.notify.passengerName,
+              originCity,
+              destinationCity: destCity,
+              originMunicipality,
+              destinationMunicipality,
+              departureTime: notifyTrip.departureDate.toLocaleString("en-US", {
+                timeZone: "Africa/Abidjan",
+              }),
+              holdId: holdGroup.id,
+              expiresAt: holdExpiresAt.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                timeZone: "Africa/Abidjan",
+              }),
+              totalAmountXOF: pricing.chargeAmountXOF,
+              phone: input.notify.phone ?? undefined,
+            },
+          });
+        }
       }
 
       return {

@@ -1,0 +1,15 @@
+{
+  "myRuns": "Mes Courses",
+  "upcomingRuns": "Courses à Venir",
+  "pastRuns": "Courses Passées",
+  "noUpcoming": "Aucune Course à Venir",
+  "noPast": "Aucune Course Passée",
+  "noUpcomingMsg": "Vous n'avez aucune course planifiée. Revenez plus tard.",
+  "route": "Itinéraire",
+  "departure": "Départ",
+  "passengers": "Passagers",
+  "vehicle": "Véhicule",
+  "startRun": "Démarrer la Course",
+  "runActive": "Course Active",
+  "pullToRefresh": "Tirer pour actualiser"
+}
