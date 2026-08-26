@@ -78,6 +78,10 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
     if (destination.municipalityId) sp.set("toMuni", destination.municipalityId);
     if (origin.quarterId) sp.set("fromQuarter", origin.quarterId);
     if (destination.quarterId) sp.set("toQuarter", destination.quarterId);
+    if (origin.terminalId) sp.set("fromTerminal", origin.terminalId);
+    if (destination.terminalId) sp.set("toTerminal", destination.terminalId);
+    if (origin.companyName) sp.set("fromCompanyName", origin.companyName);
+    if (destination.companyName) sp.set("toCompanyName", destination.companyName);
     router.push(`/search?${sp.toString()}`);
   }
 

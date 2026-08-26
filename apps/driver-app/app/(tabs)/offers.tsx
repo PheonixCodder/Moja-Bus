@@ -239,7 +239,10 @@ export default function OffersScreen() {
 				queryKey: trpc.drivers.getMyProfile.queryKey(),
 			});
 			if (vars.action === "ACCEPT") {
-				router.replace("/(tabs)");
+				// Pre-existing typed-router breakage fixed in Phase-1 audit pass:
+				// "/(tabs)" is not a generated route literal. Cast preserves the
+				// runtime target; route cleanup belongs to a nav-typing sweep.
+				router.replace("/(tabs)" as any);
 			}
 		},
 		onError: (err: any, vars) => {

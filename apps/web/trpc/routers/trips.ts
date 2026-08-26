@@ -286,6 +286,7 @@ export const tripsRouter = createTRPCRouter({
           startDate: z.string().optional(),
           endDate: z.string().optional(),
           q: z.string().optional(),
+          driverProfileId: z.string().optional(),
           page: z.number().int().min(1).optional().default(1),
           pageSize: z.number().int().min(1).max(100).optional().default(50),
         })
@@ -302,11 +303,16 @@ export const tripsRouter = createTRPCRouter({
       const filters: Record<string, unknown> = {
         companyId: ctx.companyId,
         archivedAt: null,
-        departureDate: {
-          gte: startDate,
-          lte: endDate,
-        },
       };
+
+      // driverProfileId mode: full history (no rolling-window filter)
+      if (input?.driverProfileId) {
+        filters["driverAssignments"] = {
+          some: { driverProfileId: input.driverProfileId },
+        };
+      } else {
+        filters["departureDate"] = { gte: startDate, lte: endDate };
+      }
 
       if (input?.status) {
         filters["status"] = input.status;
@@ -1803,6 +1809,12 @@ export const tripsRouter = createTRPCRouter({
         },
         include: {
           user: { select: { id: true, fullName: true, email: true } },
+          // Phase 3 (3.1) — employmentType for mode-compatibility guard.
+          companyAffiliations: {
+            where: { companyId: ctx.companyId, isActive: true },
+            select: { employmentType: true },
+            take: 1,
+          },
         },
       });
       if (!driver) {
@@ -1820,26 +1832,49 @@ export const tripsRouter = createTRPCRouter({
         });
       }
 
-      // License gate — CI ordering B < C < D < E vs the bus type requirement
-      const requiredLicense = trip.bus?.busType?.requiredLicenseCategory;
-      if (
-        requiredLicense &&
-        !licenseMeetsRequirement(driver.licenseCategory, requiredLicense)
-      ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `License mismatch: this bus (${trip.bus?.busType?.name ?? "type"}) requires class ${requiredLicense}; driver holds ${driver.licenseCategory}.`,
-        });
-      }
+      // Phase 3 (F3) — CONDUCTOR gate exemption: conductors don't drive, so
+      // licence-class and mode rules don't apply. Only VERIFIED is required.
+      const isConductor = role === "CONDUCTOR";
 
-      // Phase 14 (F-OP-03) — licence must be valid THROUGH the run: a licence
-      // expiring mid-trip is exactly as unusable as an expired one.
-      const licenceThrough = trip.estimatedArrival ?? trip.departureDate;
-      if (!isLicenseUsableThrough(driver.licenseExpiryDate, licenceThrough)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Cannot assign driver: their license expires ${driver.licenseExpiryDate ? new Date(driver.licenseExpiryDate).toISOString().slice(0, 10) : "before"} this trip ends (${licenceThrough.toISOString().slice(0, 10)}).`,
-        });
+      if (!isConductor) {
+        // License gate — CI ordering B < C < D < E vs the bus type requirement
+        const requiredLicense = trip.bus?.busType?.requiredLicenseCategory;
+        if (
+          requiredLicense &&
+          !licenseMeetsRequirement(driver.licenseCategory, requiredLicense)
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `License mismatch: this bus (${trip.bus?.busType?.name ?? "type"}) requires class ${requiredLicense}; driver holds ${driver.licenseCategory}.`,
+          });
+        }
+
+        // Phase 14 (F-OP-03) — licence must be valid THROUGH the run: a licence
+        // expiring mid-trip is exactly as unusable as an expired one.
+        const licenceThrough = trip.estimatedArrival ?? trip.departureDate;
+        if (!isLicenseUsableThrough(driver.licenseExpiryDate, licenceThrough)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Cannot assign driver: their license expires ${driver.licenseExpiryDate ? new Date(driver.licenseExpiryDate).toISOString().slice(0, 10) : "before"} this trip ends (${licenceThrough.toISOString().slice(0, 10)}).`,
+          });
+        }
+
+        // Phase 3 (3.1 / D1) — mode-compatibility guard:
+        // CONTRACTOR_URBAN driver on INTERCITY trip = hard block.
+        // EXCLUSIVE_INTERCITY on URBAN = soft warn (operator sees it in the
+        // combobox but is not blocked server-side — asymmetric-permissive).
+        const employmentType =
+          driver.companyAffiliations?.[0]?.employmentType ?? null;
+        if (
+          employmentType === "CONTRACTOR_URBAN" &&
+          trip.serviceType === "INTERCITY"
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Cannot assign an urban contractor to an intercity trip. Change the driver's employment type or choose a different driver.",
+          });
+        }
       }
 
       const recipient: DriverRecipient = {

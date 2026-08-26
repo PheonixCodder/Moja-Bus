@@ -210,6 +210,39 @@ export async function enqueuePassengerRebooked(
   });
 }
 
+/**
+ * Phase 37 — post-arrival review request. Replaces the direct novu.trigger
+ * loop in finalizeTripArrival. Stable idempotency key per trip+booking;
+ * outbox process-outbox retries on transient failures.
+ */
+export async function enqueuePassengerReviewRequest(
+  db: Tx,
+  input: {
+    tripId: string;
+    bookingId: string;
+    email: string;
+    subscriberId: string;
+    firstName?: string;
+    data: Record<string, unknown>;
+  },
+) {
+  const transactionId = `passenger-review-request-${input.tripId}-${input.bookingId}`;
+  return enqueueOutboxMessage(db, {
+    type: OUTBOX_TYPES.PASSENGER_REVIEW_REQUEST,
+    idempotencyKey: transactionId,
+    payload: {
+      workflowId: "passenger-review-request",
+      subscriber: {
+        subscriberId: input.subscriberId,
+        email: input.email,
+        ...(input.firstName ? { firstName: input.firstName } : {}),
+      },
+      data: input.data,
+      transactionId,
+    },
+  });
+}
+
 export async function enqueueHoldCreated(
   db: Tx,
   input: {

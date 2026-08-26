@@ -23,6 +23,7 @@ import {
   Copy,
   CreditCard,
   ExternalLink,
+  Navigation2,
   Sparkles,
   Star,
   Ticket,
@@ -110,6 +111,7 @@ function CopyButton({ text }: { text: string }) {
 
 function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
   const t = useTranslations("passengerDashboard.bookingDetails");
+  const tc = useTranslations("passengerDashboard.tracking");
   const countdown = useHoldCountdown(
     booking.status === "PENDING_PAYMENT" ? booking.holdExpiresAt : null,
   );
@@ -122,6 +124,15 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
     ticketToken && booking.status === "CONFIRMED"
       ? `/tickets/${encodeURIComponent(ticketToken)}`
       : null;
+
+  // Phase 5 — show "Track Bus" when booking is confirmed and trip is in progress
+  const now = Date.now();
+  const isTripInProgress =
+    booking.status === "CONFIRMED" &&
+    booking.completedAt == null &&
+    booking.departureTime.getTime() <= now &&
+    booking.arrivalTime.getTime() > now;
+  const trackingHref = `/tracking/${booking.tripId}`;
 
   return (
     <ScrollArea className="h-full">
@@ -294,6 +305,19 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
             <ExternalLink className="size-3.5" />
           </Link>
         )}
+
+        {isTripInProgress && (
+          <Link
+            href={trackingHref}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "w-full gap-2 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 font-bold",
+            )}
+          >
+            <Navigation2 className="size-4" />
+            {tc("trackBus")}
+          </Link>
+        )}
       </div>
     </ScrollArea>
   );
@@ -410,7 +434,6 @@ function PaymentTab({
     }),
     staleTime: 10 * 1000,
   });
-
 
   const tripScheduleQuery = useQuery({
     ...trpc.booking.getTripDetails.queryOptions({ offerId: booking.offerId }),
@@ -634,7 +657,8 @@ function PaymentTab({
         <Button
           className="w-full gap-2 bg-primary hover:bg-primary/90 text-white font-bold"
           disabled={
-            isPaying || (!isZeroCash && paymentMethod === "WALLET" && !canPayWithWallet)
+            isPaying ||
+            (!isZeroCash && paymentMethod === "WALLET" && !canPayWithWallet)
           }
           onClick={() =>
             onExecutePayment({
@@ -713,7 +737,9 @@ function ActivityTab({
 }: ActivityTabProps) {
   const t = useTranslations("passengerDashboard.bookingDetails");
   const [hoverRating, setHoverRating] = React.useState<number | null>(null);
-  const [hoverDriverRating, setHoverDriverRating] = React.useState<number | null>(null);
+  const [hoverDriverRating, setHoverDriverRating] = React.useState<
+    number | null
+  >(null);
 
   const isPastOrCompleted =
     booking.status === "COMPLETED" ||
@@ -831,7 +857,10 @@ function ActivityTab({
                         );
                       })}
                       {driverRating !== null && (
-                        <span className="text-[11px] text-muted-foreground self-center ml-1.5 cursor-pointer underline" onClick={() => setDriverRating(null)}>
+                        <span
+                          className="text-[11px] text-muted-foreground self-center ml-1.5 cursor-pointer underline"
+                          onClick={() => setDriverRating(null)}
+                        >
                           {t("clear")}
                         </span>
                       )}

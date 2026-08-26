@@ -1,4 +1,4 @@
-export type PlaceLevel = "city" | "municipality" | "quarter";
+export type PlaceLevel = "city" | "municipality" | "quarter" | "terminal";
 
 /**
  * Level-aware geographic place. Municipality/quarter are refinements of the

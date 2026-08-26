@@ -81,9 +81,16 @@ export const PERMISSION_META = {
     group: "Drivers",
     label: "Verify driver licenses & compliance",
   },
+  // NOTE (2026-08-26 audit): DEAD KEY — no procedure enforces drivers:assign.
+  // Trip assignment gates on trips:update instead (F-OP-15 correction); kept
+  // so role templates stay shape-stable until the next permissions sweep
+  // decides retire-vs-enforce.
   "drivers:assign": { group: "Drivers", label: "Assign drivers to trips" },
 
   // Telemetry & GPS
+  // NOTE (2026-08-26 audit): catalog-only key. Telemetry ingest authorization
+  // uses short-lived dispatch tokens minted by drivers.startTrip (P1-4), not
+  // IAM keys — nothing checks telemetry:stream at runtime today.
   "telemetry:stream": {
     group: "Telemetry",
     label: "Broadcast live GPS telemetry",

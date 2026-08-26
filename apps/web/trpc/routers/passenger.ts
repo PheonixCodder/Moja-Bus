@@ -805,4 +805,171 @@ export const passengerRouter = createTRPCRouter({
       // F-PS-13: only the initiator may drive verification of a top-up ref.
       return service.verifyTopUpForUser(input.reference, ctx.user.id);
     }),
+
+  /**
+   * Phase 5 (F-TM-15) — Passenger live tracking v1.
+   *
+   * Authorization: caller must hold a CONFIRMED booking on the requested trip.
+   * Data source: DriverProfile denormalized live-position fields (updated every
+   * ~5s by telemetry flush) resolved via TripDriverAssignment.
+   *
+   * Returns trip metadata, driver position with freshness classification, and
+   * the passenger's boarding/dropoff stop context for route highlighting.
+   */
+  getTripTracking: protectedProcedure
+    .input(z.object({ tripId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const { tripId } = input;
+
+      // ── 1. Verify the caller holds a CONFIRMED booking on this trip ──────
+      const booking = await ctx.prisma.booking.findFirst({
+        where: {
+          userId: ctx.user.id,
+          tripId,
+          status: "CONFIRMED",
+        },
+        select: {
+          id: true,
+          boardingStopOrder: true,
+          dropoffStopOrder: true,
+        },
+      });
+
+      if (!booking) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have a confirmed booking for this trip.",
+        });
+      }
+
+      // ── 2. Fetch trip + driver assignment + stops ────────────────────────
+      const trip = await ctx.prisma.trip.findUnique({
+        where: { id: tripId },
+        select: {
+          id: true,
+          status: true,
+          serviceType: true,
+          tripStops: {
+            orderBy: { stopOrder: "asc" },
+            select: {
+              stopOrder: true,
+              scheduledArrival: true,
+              scheduledDeparture: true,
+              actualArrival: true,
+              actualDeparture: true,
+              isPickup: true,
+              isDropoff: true,
+              terminal: {
+                select: {
+                  name: true,
+                  cityRelation: {
+                    select: { name: true, latitude: true, longitude: true },
+                  },
+                },
+              },
+            },
+          },
+          driverAssignments: {
+            where: { role: "PRIMARY" },
+            take: 1,
+            select: {
+              driverProfileId: true,
+              driverProfile: {
+                select: {
+                  lastLatitude: true,
+                  lastLongitude: true,
+                  lastHeading: true,
+                  lastSpeedKmh: true,
+                  lastPingAt: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!trip) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Trip not found.",
+        });
+      }
+
+      const assignment = trip.driverAssignments[0];
+      const driverPosition = assignment?.driverProfile ?? null;
+
+      // ── 3. Freshness classification ──────────────────────────────────────
+      const FRESH_MS = 5 * 60 * 1000;
+      const STALE_MS = 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      let freshness: "fresh" | "stale" | "dead" = "dead";
+      if (driverPosition?.lastPingAt) {
+        const age = now - new Date(driverPosition.lastPingAt).getTime();
+        if (age <= FRESH_MS) freshness = "fresh";
+        else if (age <= STALE_MS) freshness = "stale";
+      }
+
+      // ── 4. Build stops payload ───────────────────────────────────────────
+      const stops = trip.tripStops.map((s) => ({
+        stopOrder: s.stopOrder,
+        terminalName: s.terminal.name,
+        city: s.terminal.cityRelation?.name ?? null,
+        latitude: s.terminal.cityRelation?.latitude ?? null,
+        longitude: s.terminal.cityRelation?.longitude ?? null,
+        scheduledArrival: s.scheduledArrival,
+        scheduledDeparture: s.scheduledDeparture,
+        actualArrival: s.actualArrival,
+        actualDeparture: s.actualDeparture,
+        isPickup: s.isPickup,
+        isDropoff: s.isDropoff,
+      }));
+
+      // ── 5. Approximate distance to dropoff stop ──────────────────────────
+      let distanceToDropoffKm: number | null = null;
+      if (
+        booking.dropoffStopOrder != null &&
+        driverPosition?.lastLatitude != null &&
+        driverPosition?.lastLongitude != null
+      ) {
+        const dropoffStop = trip.tripStops.find(
+          (s) => s.stopOrder === booking.dropoffStopOrder,
+        );
+        const dropoffLat = dropoffStop?.terminal.cityRelation?.latitude ?? null;
+        const dropoffLng =
+          dropoffStop?.terminal.cityRelation?.longitude ?? null;
+        if (dropoffLat != null && dropoffLng != null) {
+          // Haversine formula
+          const R = 6371;
+          const dLat =
+            ((dropoffLat - driverPosition.lastLatitude) * Math.PI) / 180;
+          const dLng =
+            ((dropoffLng - driverPosition.lastLongitude) * Math.PI) / 180;
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos((driverPosition.lastLatitude * Math.PI) / 180) *
+              Math.cos((dropoffLat * Math.PI) / 180) *
+              Math.sin(dLng / 2) ** 2;
+          distanceToDropoffKm =
+            Math.round(
+              R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 10,
+            ) / 10;
+        }
+      }
+
+      return {
+        tripId: trip.id,
+        status: trip.status,
+        serviceType: trip.serviceType,
+        lastLatitude: driverPosition?.lastLatitude ?? null,
+        lastLongitude: driverPosition?.lastLongitude ?? null,
+        lastHeading: driverPosition?.lastHeading ?? null,
+        lastSpeedKmh: driverPosition?.lastSpeedKmh ?? null,
+        lastPingAt: driverPosition?.lastPingAt ?? null,
+        freshness,
+        stops,
+        boardingStopOrder: booking.boardingStopOrder,
+        dropoffStopOrder: booking.dropoffStopOrder,
+        distanceToDropoffKm,
+      };
+    }),
 });

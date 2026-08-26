@@ -465,6 +465,26 @@
       "boardingClosed": "Boarding Closed / In Transit",
       "departsIn": "Departs in {h}h {m}m",
       "seat": "Seat {id}"
+    },
+    "tracking": {
+      "metaTitle": "Live Tracking — Moja Ride",
+      "loading": "Loading tracking…",
+      "unavailable": "Tracking unavailable",
+      "unavailableBody": "We couldn't load tracking data for this trip.",
+      "notDeparted": "Not departed yet",
+      "notDepartedBody": "The bus hasn't left yet. You'll be able to track it once it departs.",
+      "notDepartedYet": "Awaiting departure",
+      "signalLost": "GPS signal lost",
+      "signalLostBody": "We've temporarily lost the driver's position. Tracking will resume automatically.",
+      "staleWarning": "Position may be outdated — the driver's GPS hasn't updated recently.",
+      "arrived": "Trip completed",
+      "arrivedBody": "This trip has arrived at its destination.",
+      "cancelled": "Trip cancelled",
+      "cancelledBody": "This trip has been cancelled.",
+      "backToBookings": "Back to Bookings",
+      "trackBus": "Track Bus",
+      "boarding": "Board",
+      "dropoff": "Drop"
     }
   }
 }

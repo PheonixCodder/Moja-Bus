@@ -159,14 +159,14 @@ export default function RegisterStep2LicenseScreen() {
 
 			<ScrollView className="flex-1 px-5 py-6 space-y-6">
 				{/* Header Intro */}
-				<div>
+				<View>
 					<Text className="text-2xl font-black text-white tracking-tight">
 						Driving License
 					</Text>
 					<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
 						Provide your valid Ministry of Transport commercial driver credentials.
 					</Text>
-				</div>
+				</View>
 
 				{/* Category Selector */}
 				<View className="space-y-2">

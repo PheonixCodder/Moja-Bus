@@ -18,7 +18,10 @@ const citySearchResultSchema = z.object({
   isMajorHub: z.boolean(),
   municipalityId: z.string().nullable().optional(),
   quarterId: z.string().nullable().optional(),
-  level: z.enum(["city", "municipality", "quarter"]),
+  level: z.enum(["city", "municipality", "quarter", "terminal"]),
+  terminalId: z.string().nullable().optional(),
+  companyName: z.string().nullable().optional(),
+  companyId: z.string().nullable().optional(),
 });
 
 export const locationsRouter = createTRPCRouter({
@@ -64,7 +67,26 @@ export const locationsRouter = createTRPCRouter({
         take: 10,
       });
 
-      return buildSearchEntries(cities, municipalities, quarters, 10);
+      // 4. Terminal matches — operator depots promoted to bookable terminals
+      const terminals = await ctx.prisma.companyLocation.findMany({
+        where: {
+          isTerminal: true,
+          isActive: true,
+          geoCaptureStatus: "COMPLETE",
+          cityId: { not: null },
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { company: { name: { contains: q, mode: "insensitive" } } },
+          ],
+        },
+        include: {
+          cityRelation: true,
+          company: { select: { id: true, name: true, logoUrl: true } },
+        },
+        take: 10,
+      });
+
+      return buildSearchEntries(cities, municipalities, quarters, terminals, 10);
     }),
 
   getCityDetails: publicProcedure

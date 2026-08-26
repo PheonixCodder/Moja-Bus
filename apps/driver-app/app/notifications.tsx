@@ -195,7 +195,10 @@ export default function NotificationsScreen() {
 						data: item.data,
 						redirectUrl: item.redirect?.url,
 					});
-					if (route) router.push(route);
+					// Phase-1 audit fix: resolveNotificationRoute returns a plain
+					// string, but typed routes demand literals — same `as any`
+					// idiom used by every other dynamic push in the app.
+					if (route) router.push(route as any);
 				}}
 			/>
 		),

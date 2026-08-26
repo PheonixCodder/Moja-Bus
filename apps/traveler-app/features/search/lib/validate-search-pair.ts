@@ -8,7 +8,7 @@ export interface SearchPairInput {
   text: string;
   municipalityId?: string;
   quarterId?: string;
-  level?: 'city' | 'municipality' | 'quarter';
+  level?: 'city' | 'municipality' | 'quarter' | 'terminal';
 }
 
 export type PairValidationError = 'sameCity' | null;

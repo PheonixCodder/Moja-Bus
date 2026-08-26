@@ -219,13 +219,12 @@ export default function DriverProfileScreen() {
 							onValueChange={async (val) => {
 								DriverFeedback.tap();
 								try {
-									await setPreferenceMutation.mutateAsync({
-										isAvailableForHire: val,
-										preferredType: servicePreference?.preferredType ?? "EXCLUSIVE_INTERCITY",
-										cityBase: servicePreference?.cityBase ?? null,
-										routeExperience: servicePreference?.routeExperience ?? [],
-										minMonthlyRateCFA: null,
-									});
+								await setPreferenceMutation.mutateAsync({
+									isAvailableForHire: val,
+									preferredType: servicePreference?.preferredType ?? "EXCLUSIVE_INTERCITY",
+									cityBase: servicePreference?.cityBase ?? null,
+									routeExperience: servicePreference?.routeExperience ?? [],
+								});
 									DriverFeedback.successScan();
 								} catch (err: any) {
 									DriverFeedback.invalidScan();

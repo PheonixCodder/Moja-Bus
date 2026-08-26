@@ -1,5 +1,5 @@
 /**
- * Assembles autocomplete search entries from raw city/municipality/quarter
+ * Assembles autocomplete search entries from raw city/municipality/quarter/terminal
  * rows into a de-duplicated, level-tagged result list. Pure — no DB access —
  * so the exact rules (dedup key, pass-through suppression) are unit-testable.
  */
@@ -24,6 +24,15 @@ export interface SearchQuarterRow {
   municipality: { id: string; name: string; city: SearchCityRow };
 }
 
+export interface SearchTerminalRow {
+  id: string;
+  name: string;
+  cityId: string | null;
+  municipalityId: string | null;
+  quarterId: string | null;
+  company: { id: string; name: string; logoUrl: string | null };
+}
+
 export interface SearchCityEntry {
   id: string;
   name: string;
@@ -31,18 +40,22 @@ export interface SearchCityEntry {
   isMajorHub: boolean;
   municipalityId: string | null;
   quarterId: string | null;
-  level: "city" | "municipality" | "quarter";
+  level: "city" | "municipality" | "quarter" | "terminal";
+  terminalId?: string;
+  companyName?: string;
+  companyId?: string;
 }
 
 export function buildSearchEntries(
   cities: SearchCityRow[],
   municipalities: SearchMunicipalityRow[],
   quarters: SearchQuarterRow[],
+  terminals: SearchTerminalRow[],
   limit = 10,
 ): SearchCityEntry[] {
   const results = new Map<string, SearchCityEntry>();
   const entryKey = (e: SearchCityEntry) =>
-    `${e.id}|${e.municipalityId ?? ""}|${e.quarterId ?? ""}|${e.level}`;
+    `${e.id}|${e.municipalityId ?? ""}|${e.quarterId ?? ""}|${e.terminalId ?? ""}|${e.level}`;
   const add = (e: SearchCityEntry) => {
     if (!results.has(entryKey(e))) results.set(entryKey(e), e);
   };
@@ -94,5 +107,28 @@ export function buildSearchEntries(
     });
   }
 
-  return Array.from(results.values()).slice(0, limit);
+  // 4. Terminal matches — "Gare Nord (STC)" style labels
+  for (const t of terminals) {
+    if (!t.cityId) continue;
+    add({
+      id: t.cityId,
+      name: t.name,
+      hierarchyLabel: `${t.name} (${t.company.name})`,
+      isMajorHub: false,
+      municipalityId: t.municipalityId,
+      quarterId: t.quarterId,
+      level: "terminal",
+      terminalId: t.id,
+      companyName: t.company.name,
+      companyId: t.company.id,
+    });
+  }
+
+  // Interleave by name so terminals don't always sink to the bottom
+  const entries = Array.from(results.values());
+  entries.sort((a, b) =>
+    a.hierarchyLabel.localeCompare(b.hierarchyLabel, "fr", { sensitivity: "base" }),
+  );
+
+  return entries.slice(0, limit);
 }

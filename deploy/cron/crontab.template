@@ -16,6 +16,7 @@
 0 1 * * * curl -fsS -m 120 -o /dev/null -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/release-escrow
 0 2 * * * curl -fsS -m 120 -o /dev/null -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/generate-trips
 30 2 * * * curl -fsS -m 120 -o /dev/null -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/reconcile-driver-stats
+0 3 * * * curl -fsS -m 120 -o /dev/null -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/prune-telemetry
 15 2 * * * curl -fsS -m 120 -o /dev/null -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/expire-driver-licenses
 30 3 * * * curl -fsS -m 120 -o /dev/null -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/snapshot-accounts
 0 9 * * * curl -fsS -m 120 -o /dev/null -H "Authorization: Bearer __CRON_SECRET__" http://web:3000/api/cron/promo-expiry-reminders

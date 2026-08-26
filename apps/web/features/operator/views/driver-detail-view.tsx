@@ -16,17 +16,16 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowLeft,
-  Award,
   Bus,
   Calendar,
   Mail,
   Phone,
-  Route,
   ShieldAlert,
   ShieldCheck,
   Star,
 } from "lucide-react";
 import Link from "next/link";
+import { DriverDocPreview } from "@/features/driver/components/driver-doc-preview";
 import { DriverAnalyticsCharts } from "@/features/operator/components/drivers/driver-analytics-charts";
 import { DriverCareerStatsCard } from "@/features/operator/components/drivers/driver-career-stats-card";
 import { DriverRosterActions } from "@/features/operator/components/drivers/driver-roster-actions";
@@ -44,6 +43,13 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
   const trpc = useTRPC();
   const driverQuery = useQuery(
     trpc.drivers.getDriver.queryOptions({ id: driverId }),
+  );
+  const tripHistoryQuery = useQuery(
+    trpc.trips.list.queryOptions({
+      driverProfileId: driverId,
+      status: "ARRIVED",
+      pageSize: 50,
+    }),
   );
 
   if (driverQuery.isLoading) {
@@ -297,6 +303,39 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
               )}
             </div>
           </div>
+
+          {/* Phase-2 audit — compliance document inspector. Raw stored keys
+              render through on-demand presigning; operators can finally SEE
+              what they are verifying (gap #2). */}
+          <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-3">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <ShieldCheck className="size-4 text-primary" />
+              Compliance Documents
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <DriverDocPreview
+                audience="operator"
+                driverProfileId={driverId}
+                docType="driver-license-front"
+                label="Licence (Front)"
+                storedValue={driver.licenseFrontUrl ?? null}
+              />
+              <DriverDocPreview
+                audience="operator"
+                driverProfileId={driverId}
+                docType="driver-license-back"
+                label="Licence (Back)"
+                storedValue={driver.licenseBackUrl ?? null}
+              />
+              <DriverDocPreview
+                audience="operator"
+                driverProfileId={driverId}
+                docType="driver-medical-doc"
+                label="Medical Certificate"
+                storedValue={driver.medicalDocUrl ?? null}
+              />
+            </div>
+          </div>
         </TabsContent>
 
         {/* Trips Tab */}
@@ -327,6 +366,81 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
                 No active trip currently dispatched.
               </div>
             )}
+
+            {/* Trip History */}
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Completed Trips
+                </h4>
+                <span className="text-xs text-muted-foreground">
+                  {driver._count.assignedTrips} total
+                </span>
+              </div>
+              {tripHistoryQuery.isLoading ? (
+                <div className="text-xs text-muted-foreground py-4 text-center">
+                  Loading trip history...
+                </div>
+              ) : (tripHistoryQuery.data?.items.length ?? 0) === 0 ? (
+                <div className="text-xs text-muted-foreground italic py-4 text-center">
+                  No completed trips found for this driver.
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {tripHistoryQuery.data?.items.map((trip) => {
+                    const route = trip.schedule?.route;
+                    const origin =
+                      route?.originTerminal?.cityRelation?.name ??
+                      route?.originTerminal?.name ??
+                      "—";
+                    const dest =
+                      route?.destTerminal?.cityRelation?.name ??
+                      route?.destTerminal?.name ??
+                      "—";
+                    const assignment = trip.driverAssignments?.find(
+                      (a) => a.driverProfileId === driverId,
+                    );
+                    const roleLabel =
+                      assignment?.role === "PRIMARY"
+                        ? "Primary"
+                        : assignment?.role === "RELIEF"
+                          ? "Relief"
+                          : assignment?.role === "CONDUCTOR"
+                            ? "Conductor"
+                            : "";
+                    return (
+                      <div
+                        key={trip.id}
+                        className="py-3 flex items-center justify-between gap-4"
+                      >
+                        <div className="space-y-0.5 min-w-0">
+                          <div className="text-sm font-semibold text-foreground truncate">
+                            {origin} → {dest}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(trip.departureDate).toLocaleDateString(
+                              "fr-FR",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
+                            {trip.bus?.registrationPlate
+                              ? ` · ${trip.bus.registrationPlate}`
+                              : ""}
+                            {roleLabel ? ` · ${roleLabel}` : ""}
+                          </div>
+                        </div>
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                          ARRIVED
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </TabsContent>
 

@@ -2410,6 +2410,7 @@ model DriverLocationPing {
 
   createdAt       DateTime      @default(now())
 
+  @@index([recordedAt])
   @@index([tripId, recordedAt])
   @@index([driverProfileId, recordedAt])
   @@map("driver_location_ping")
@@ -2448,15 +2449,11 @@ model DriverServicePreference {
   // Employment preference (mirrors DriverEmploymentType enum)
   preferredType       DriverEmploymentType @default(EXCLUSIVE_INTERCITY)
 
-  // Geographic base — free text, e.g. "Abidjan", "Bouaké"
+  // Geographic base — hub city from CIV_CITY_HUBS enum
   cityBase            String?
 
   // Route experience — e.g. ["Abidjan-Bouaké", "Abidjan-Yamoussoukro"]
   routeExperience     String[]             @default([])
-
-  // Minimum acceptable monthly salary in CFA francs
-  // Private — never exposed on operator-facing marketplace queries
-  minMonthlyRateCFA   Int?
 
   // Short professional bio (optional, not shown in Phase 9 UI — future)
   bio                 String?              @db.Text

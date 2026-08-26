@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useQueryStates, parseAsString, parseAsFloat, parseAsInteger } from "nuqs";
-import { SlidersHorizontal, X, Users, RefreshCw } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { CIV_CITY_HUBS } from "@moja/schemas";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
-import { Slider } from "@moja/ui/components/ui/slider";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@moja/ui/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -15,19 +16,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@moja/ui/components/ui/select";
+import { Slider } from "@moja/ui/components/ui/slider";
+import { useQuery } from "@tanstack/react-query";
+import { RefreshCw, SlidersHorizontal, Users, X } from "lucide-react";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@moja/ui/components/ui/popover";
-import { useTRPC } from "@/trpc/client";
-import { CIV_CITY_HUBS } from "@moja/schemas";
-import {
-  MarketplaceDriverCard,
-  type MarketplaceDriver,
-} from "@/features/operator/components/drivers/marketplace-driver-card";
+  parseAsFloat,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs";
+import { useState } from "react";
 import { DriverPublicProfileSheet } from "@/features/operator/components/drivers/driver-public-profile-sheet";
+import {
+  type MarketplaceDriver,
+  MarketplaceDriverCard,
+} from "@/features/operator/components/drivers/marketplace-driver-card";
 import { SendOfferDialog } from "@/features/operator/components/drivers/send-offer-dialog";
+import { useTRPC } from "@/trpc/client";
 
 // ─── URL Search Params (nuqs) ─────────────────────────────────────────────────
 
@@ -48,7 +53,7 @@ function countActiveFilters(
   pt: string,
   cb: string,
   mr: number,
-  ms: number
+  ms: number,
 ) {
   return (
     (lc !== "ALL" ? 1 : 0) +
@@ -68,10 +73,12 @@ function MarketplaceEmptyState({ onClear }: { onClear: () => void }) {
         <Users className="size-8 text-slate-400" />
       </div>
       <div>
-        <p className="text-base font-bold text-slate-700">No drivers match your filters</p>
+        <p className="text-base font-bold text-slate-700">
+          No drivers match your filters
+        </p>
         <p className="text-sm text-slate-500 mt-1 max-w-sm">
-          Try widening your search area, changing the license category, or reducing the minimum
-          rating and safety score requirements.
+          Try widening your search area, changing the license category, or
+          reducing the minimum rating and safety score requirements.
         </p>
       </div>
       <Button variant="outline" size="sm" onClick={onClear} className="gap-2">
@@ -90,7 +97,11 @@ interface AdvancedFilterProps {
   onChange: (rating: number, safety: number) => void;
 }
 
-function AdvancedFilterPopover({ minRating, minSafetyScore, onChange }: AdvancedFilterProps) {
+function AdvancedFilterPopover({
+  minRating,
+  minSafetyScore,
+  onChange,
+}: AdvancedFilterProps) {
   const [localRating, setLocalRating] = useState(minRating);
   const [localSafety, setLocalSafety] = useState(minSafetyScore);
   const [open, setOpen] = useState(false);
@@ -135,8 +146,12 @@ function AdvancedFilterPopover({ minRating, minSafetyScore, onChange }: Advanced
       />
       <PopoverContent align="end" className="w-72 space-y-5 p-5">
         <div>
-          <h4 className="text-sm font-bold text-slate-800 mb-1">Advanced Filters</h4>
-          <p className="text-xs text-slate-500">Filter by driver quality metrics.</p>
+          <h4 className="text-sm font-bold text-slate-800 mb-1">
+            Advanced Filters
+          </h4>
+          <p className="text-xs text-slate-500">
+            Filter by driver quality metrics.
+          </p>
         </div>
 
         {/* Minimum Rating Slider */}
@@ -152,7 +167,9 @@ function AdvancedFilterPopover({ minRating, minSafetyScore, onChange }: Advanced
             max={5}
             step={0.5}
             value={[localRating]}
-            onValueChange={(vals) => setLocalRating(Array.isArray(vals) ? (vals[0] ?? 0) : vals)}
+            onValueChange={(vals) =>
+              setLocalRating(Array.isArray(vals) ? (vals[0] ?? 0) : vals)
+            }
             className="w-full"
           />
           <div className="flex justify-between text-[10px] text-slate-400">
@@ -165,7 +182,9 @@ function AdvancedFilterPopover({ minRating, minSafetyScore, onChange }: Advanced
         {/* Minimum Safety Score Slider */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-semibold">Minimum Safety Score</Label>
+            <Label className="text-xs font-semibold">
+              Minimum Safety Score
+            </Label>
             <span className="text-xs font-bold text-primary">
               {localSafety > 0 ? `≥ ${localSafety}` : "Any"}
             </span>
@@ -175,7 +194,9 @@ function AdvancedFilterPopover({ minRating, minSafetyScore, onChange }: Advanced
             max={100}
             step={5}
             value={[localSafety]}
-            onValueChange={(vals) => setLocalSafety(Array.isArray(vals) ? (vals[0] ?? 0) : vals)}
+            onValueChange={(vals) =>
+              setLocalSafety(Array.isArray(vals) ? (vals[0] ?? 0) : vals)
+            }
             className="w-full"
           />
           <div className="flex justify-between text-[10px] text-slate-400">
@@ -184,7 +205,6 @@ function AdvancedFilterPopover({ minRating, minSafetyScore, onChange }: Advanced
             <span>100</span>
           </div>
         </div>
-
 
         {/* Apply / Reset */}
         <div className="flex gap-2 pt-1">
@@ -212,11 +232,19 @@ export function OperatorMarketplaceView() {
   const [page, setPage] = useState(1);
   const [accumulated, setAccumulated] = useState<MarketplaceDriver[]>([]);
   const [profileSheetId, setProfileSheetId] = useState<string | null>(null);
-  const [offerTarget, setOfferTarget] = useState<MarketplaceDriver | null>(null);
+  const [offerTarget, setOfferTarget] = useState<MarketplaceDriver | null>(
+    null,
+  );
   const [lastFilters, setLastFilters] = useState("");
 
   const [params, setParams] = useQueryStates(marketplaceSearchParams);
-  const { licenseCategory, preferredType, cityBase, minRating, minSafetyScore } = params;
+  const {
+    licenseCategory,
+    preferredType,
+    cityBase,
+    minRating,
+    minSafetyScore,
+  } = params;
 
   const filterKey = `${licenseCategory}|${preferredType}|${cityBase}|${minRating}|${minSafetyScore}`;
 
@@ -225,7 +253,7 @@ export function OperatorMarketplaceView() {
     preferredType,
     cityBase,
     minRating,
-    minSafetyScore
+    minSafetyScore,
   );
 
   const resetAllFilters = () => {
@@ -241,8 +269,17 @@ export function OperatorMarketplaceView() {
   };
 
   const queryOptions = {
-    licenseCategory: licenseCategory !== "ALL" ? (licenseCategory as "B" | "C" | "D" | "E") : undefined,
-    preferredType: preferredType !== "ALL" ? (preferredType as "EXCLUSIVE_INTERCITY" | "CONTRACTOR_URBAN" | "HYBRID") : undefined,
+    licenseCategory:
+      licenseCategory !== "ALL"
+        ? (licenseCategory as "B" | "C" | "D" | "E")
+        : undefined,
+    preferredType:
+      preferredType !== "ALL"
+        ? (preferredType as
+            | "EXCLUSIVE_INTERCITY"
+            | "CONTRACTOR_URBAN"
+            | "HYBRID")
+        : undefined,
     cityBase: cityBase !== "ALL" ? cityBase : undefined,
     minRating: minRating > 0 ? minRating : undefined,
     minSafetyScore: minSafetyScore > 0 ? minSafetyScore : undefined,
@@ -280,11 +317,17 @@ export function OperatorMarketplaceView() {
             Driver Marketplace
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Browse {total > 0 ? `${total} ` : ""}verified, available commercial drivers.
+            Browse {total > 0 ? `${total} ` : ""}verified, available commercial
+            drivers.
           </p>
         </div>
         {activeFilterCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={resetAllFilters} className="gap-2 text-xs">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetAllFilters}
+            className="gap-2 text-xs"
+          >
             <X className="size-3.5" />
             Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
           </Button>
@@ -326,7 +369,9 @@ export function OperatorMarketplaceView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Types</SelectItem>
-            <SelectItem value="EXCLUSIVE_INTERCITY">Exclusive Intercity</SelectItem>
+            <SelectItem value="EXCLUSIVE_INTERCITY">
+              Exclusive Intercity
+            </SelectItem>
             <SelectItem value="CONTRACTOR_URBAN">Urban Contractor</SelectItem>
             <SelectItem value="HYBRID">Hybrid</SelectItem>
           </SelectContent>
@@ -365,30 +410,34 @@ export function OperatorMarketplaceView() {
 
         {/* Result count */}
         <div className="ml-auto text-xs text-muted-foreground">
-          {isLoading ? "Loading..." : `${total} driver${total !== 1 ? "s" : ""} found`}
+          {isLoading
+            ? "Loading..."
+            : `${total} driver${total !== 1 ? "s" : ""} found`}
         </div>
       </div>
 
       {/* Driver Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {isLoading
-          ? // Skeletons while loading
-            Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-64 rounded-2xl border border-border bg-card animate-pulse"
-              />
-            ))
-          : isEmpty
-          ? <MarketplaceEmptyState onClear={resetAllFilters} />
-          : displayDrivers.map((driver) => (
-              <MarketplaceDriverCard
-                key={driver.id}
-                driver={driver}
-                onViewProfile={(id) => setProfileSheetId(id)}
-                onSendOffer={(d) => setOfferTarget(d)}
-              />
-            ))}
+        {isLoading ? (
+          // Skeletons while loading
+          Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-64 rounded-2xl border border-border bg-card animate-pulse"
+            />
+          ))
+        ) : isEmpty ? (
+          <MarketplaceEmptyState onClear={resetAllFilters} />
+        ) : (
+          displayDrivers.map((driver) => (
+            <MarketplaceDriverCard
+              key={driver.id}
+              driver={driver}
+              onViewProfile={(id) => setProfileSheetId(id)}
+              onSendOffer={(d) => setOfferTarget(d)}
+            />
+          ))
+        )}
       </div>
 
       {/* Load More */}
@@ -428,6 +477,7 @@ export function OperatorMarketplaceView() {
       <SendOfferDialog
         driverProfileId={offerTarget?.id ?? null}
         driverName={offerTarget?.user.fullName ?? "this driver"}
+        licenseCategory={offerTarget?.licenseCategory}
         open={!!offerTarget}
         onOpenChange={(open) => {
           if (!open) setOfferTarget(null);

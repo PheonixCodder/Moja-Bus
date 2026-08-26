@@ -186,6 +186,46 @@ export default function RegisterStatusScreen() {
 							</Text>
 						</TouchableOpacity>
 					</View>
+				) : verificationStatus === "EXPIRED" ? (
+					/* EXPIRED STATE — licence document has expired; driver must
+					   re-upload and contact operator for re-verification. */
+					<View className="items-center text-center space-y-5">
+						<View className="size-20 rounded-3xl bg-orange-500/10 border-2 border-orange-500/30 items-center justify-center shadow-xl shadow-orange-500/20">
+							<ShieldAlert size={40} color="#f97316" />
+						</View>
+
+						<View>
+							<Text className="text-2xl font-black text-white text-center">
+								Licence Expiree
+							</Text>
+							<Text className="text-xs text-orange-400 font-semibold text-center mt-1">
+								Documents de conduite expires
+							</Text>
+							<Text className="text-xs text-zinc-400 text-center mt-2 max-w-xs leading-relaxed">
+								Votre permis de conduire a expire. Mettez a jour vos documents et contactez votre operateur pour la re-verification.
+							</Text>
+						</View>
+
+						<TouchableOpacity
+							onPress={() => router.replace("/(auth)/register")}
+							className="w-full bg-orange-600 active:bg-orange-700 h-13 rounded-2xl items-center justify-center flex-row gap-2 shadow-lg shadow-orange-600/30"
+						>
+							<RotateCw size={18} color="#ffffff" />
+							<Text className="text-white font-bold text-sm">
+								Re-upload Documents
+							</Text>
+						</TouchableOpacity>
+
+						<TouchableOpacity
+							onPress={handleContactSupport}
+							className="w-full bg-zinc-900 border border-zinc-800 h-13 rounded-2xl items-center justify-center flex-row gap-2"
+						>
+							<Phone size={18} color="#ffffff" />
+							<Text className="text-white font-bold text-sm">
+								Contact Carrier Dispatch Desk
+							</Text>
+						</TouchableOpacity>
+					</View>
 				) : (
 					/* PENDING STATE */
 					<View className="items-center text-center space-y-5">

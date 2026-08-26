@@ -421,19 +421,14 @@ export type CivCityHub = (typeof CIV_CITY_HUBS)[number];
 export const setServicePreferenceSchema = z.object({
   isAvailableForHire: z.boolean(),
   preferredType: DriverEmploymentTypeSchema,
-  cityBase: z.string().trim().max(100).optional().nullable(),
+  cityBase: z
+    .enum(CIV_CITY_HUBS as unknown as [string, ...string[]])
+    .optional()
+    .nullable(),
   routeExperience: z
     .array(z.string().trim().max(100))
     .max(20, "Maximum 20 route entries")
     .default([]),
-  // Private — stored but never returned on operator-facing queries
-  minMonthlyRateCFA: z
-    .number()
-    .int()
-    .min(0)
-    .max(10_000_000)
-    .optional()
-    .nullable(),
 });
 export type SetServicePreferenceInput = z.infer<
   typeof setServicePreferenceSchema
@@ -468,6 +463,8 @@ export const MAX_ACTIVE_SENT_OFFERS_PER_COMPANY = 25;
 export const MAX_ACTIVE_RECEIVED_OFFERS_PER_DRIVER = 20;
 /** Rolling negotiation window refreshed on every counter-offer. */
 export const OFFER_EXPIRY_DAYS = 7;
+/** Phase 3 (3.4) — maximum counter-offer rounds before the offer locks. */
+export const MAX_COUNTER_ROUNDS = 6;
 
 const salaryCFASchema = z
   .number()

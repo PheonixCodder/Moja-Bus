@@ -475,24 +475,25 @@ export function BookingDetailView({
 
 					{isConfirmed ? (
 						<View className="space-y-2.5">
-							{/* Phase 18 (P1-5/P2-13) — live tracking ships with a real
-							    telemetry consumer; until then this stays flag-gated OFF
-							    so users are never shown simulated positions.
-							    Phase 30 (F-TM-15) — the param is the TRIP id (server
-							    truth); pushing a bookingId here resurrected a dead end
-							    the moment the flag flipped ON. */}
-							{process.env["EXPO_PUBLIC_LIVE_TRACKING_ENABLED"] === "true" && (
-								<Pressable
-									onPress={() =>
-										router.push(`/tracking/${booking.tripId}` as any)
-									}
-								>
-									<View className="size-2 rounded-full bg-white animate-ping" />
-									<Text className="text-white font-bold text-xs">
-										Track Live Bus in Realtime
-									</Text>
-								</Pressable>
-							)}
+							{/* Phase 5 (F-TM-15) — live tracking is now available.
+							    Show "Track Bus" button when the trip is in progress
+							    (departure passed, not yet completed). The param is the
+							    TRIP id (server truth). */}
+							{booking.completedAt == null &&
+								booking.departureTime.getTime() <= Date.now() &&
+								booking.arrivalTime.getTime() > Date.now() && (
+									<Pressable
+										onPress={() =>
+											router.push(`/tracking/${booking.tripId}` as any)
+										}
+										className="bg-primary/20 border border-primary/30 py-3 rounded-xl items-center justify-center flex-row gap-2"
+									>
+										<View className="size-2 rounded-full bg-primary animate-ping" />
+										<Text className="text-primary font-bold text-xs">
+											Track Live Bus
+										</Text>
+									</Pressable>
+								)}
 
 							<View className="flex-row gap-3">
 								<Pressable

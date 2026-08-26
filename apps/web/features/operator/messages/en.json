@@ -749,6 +749,7 @@
       "conflictBusy": "Already booked",
       "alreadyOnTrip": "On this trip",
       "liveAvailable": "Available",
+      "modeMismatch": "Mode mismatch",
       "replaceConfirmTitle": "Replace assigned driver?",
       "replaceConfirmMessage": "{name} will be removed from this trip and notified.",
       "driverAssigned": "Driver assigned — notification sent",

@@ -465,6 +465,26 @@
       "boardingClosed": "Embarquement fermé / en transit",
       "departsIn": "Départ dans {h}h {m}m",
       "seat": "Siège {id}"
+    },
+    "tracking": {
+      "metaTitle": "Suivi en direct — Moja Ride",
+      "loading": "Chargement du suivi…",
+      "unavailable": "Suivi indisponible",
+      "unavailableBody": "Impossible de charger les données de suivi pour ce voyage.",
+      "notDeparted": "Pas encore parti",
+      "notDepartedBody": "Le bus n'est pas encore parti. Vous pourrez le suivre une fois en route.",
+      "notDepartedYet": "En attente de départ",
+      "signalLost": "Signal GPS perdu",
+      "signalLostBody": "La position du chauffeur est temporairement indisponible. Le suivi reprendra automatiquement.",
+      "staleWarning": "Position peut-être obsolète — le GPS du chauffeur n'a pas été mis à jour récemment.",
+      "arrived": "Trajet terminé",
+      "arrivedBody": "Ce voyage est arrivé à destination.",
+      "cancelled": "Voyage annulé",
+      "cancelledBody": "Ce voyage a été annulé.",
+      "backToBookings": "Retour aux réservations",
+      "trackBus": "Suivre le bus",
+      "boarding": "Embar.",
+      "dropoff": "Desc."
     }
   }
 }

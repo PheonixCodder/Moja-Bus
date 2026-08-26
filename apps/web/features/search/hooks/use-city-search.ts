@@ -11,7 +11,10 @@ export type CitySearchResult = {
   isMajorHub: boolean;
   municipalityId?: string;
   quarterId?: string;
-  level?: "city" | "municipality" | "quarter";
+  level?: "city" | "municipality" | "quarter" | "terminal";
+  terminalId?: string;
+  companyName?: string;
+  companyId?: string;
 };
 
 export function useCitySearch(query: string, delayMs = 250) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { MapPin } from "lucide-react";
+import { MapPin, Bus } from "lucide-react";
 import { Input } from "@moja/ui/components/ui/input";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { useCitySearch } from "../hooks/use-city-search";
@@ -12,7 +12,10 @@ export interface CityValue {
   text: string;
   municipalityId?: string;
   quarterId?: string;
-  level?: "city" | "municipality" | "quarter";
+  level?: "city" | "municipality" | "quarter" | "terminal";
+  terminalId?: string;
+  companyName?: string;
+  companyId?: string;
 }
 
 interface CityAutocompleteFieldProps {
@@ -78,7 +81,7 @@ export function CityAutocompleteField({
           {cities.length > 0 ? (
             cities.map((city) => (
               <button
-                key={`${city.id}|${city.municipalityId ?? ""}|${city.quarterId ?? ""}|${city.level ?? "city"}`}
+                key={`${city.id}|${city.municipalityId ?? ""}|${city.quarterId ?? ""}|${city.terminalId ?? ""}|${city.level ?? "city"}`}
                 type="button"
                 onClick={() => {
                   onChange({
@@ -87,17 +90,29 @@ export function CityAutocompleteField({
                     ...(city.municipalityId ? { municipalityId: city.municipalityId } : {}),
                     ...(city.quarterId ? { quarterId: city.quarterId } : {}),
                     ...(city.level ? { level: city.level } : {}),
+                    ...(city.terminalId ? { terminalId: city.terminalId } : {}),
+                    ...(city.companyName ? { companyName: city.companyName } : {}),
+                    ...(city.companyId ? { companyId: city.companyId } : {}),
                   });
                   setIsOpen(false);
                 }}
                 className="w-full text-left px-4 py-3 hover:bg-pink-50 transition-colors flex items-center gap-2 font-medium"
               >
-                <MapPin className="h-4 w-4 text-[#ee237c]" />
-                <div>
+                {city.level === "terminal" ? (
+                  <Bus className="h-4 w-4 text-[#ee237c]" />
+                ) : (
+                  <MapPin className="h-4 w-4 text-[#ee237c]" />
+                )}
+                <div className="flex-1 min-w-0">
                   <span>{city.hierarchyLabel ?? city.name}</span>
                   {city.isMajorHub && (
                     <Badge className="ml-2 bg-pink-100 text-pink-700 hover:bg-pink-100 text-[10px]">
                       {t("majorHub")}
+                    </Badge>
+                  )}
+                  {city.level === "terminal" && city.companyName && (
+                    <Badge className="ml-2 bg-slate-100 text-slate-600 hover:bg-slate-100 text-[10px]">
+                      {city.companyName}
                     </Badge>
                   )}
                 </div>

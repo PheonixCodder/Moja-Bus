@@ -187,6 +187,10 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
     toMuni: string;
     fromQuarter: string;
     toQuarter: string;
+    fromTerminal: string;
+    toTerminal: string;
+    fromCompanyName: string;
+    toCompanyName: string;
     date: string;
     passengers: number;
   }) => {
@@ -201,6 +205,10 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
       toMuni: criteria.toMuni,
       fromQuarter: criteria.fromQuarter,
       toQuarter: criteria.toQuarter,
+      fromTerminal: criteria.fromTerminal,
+      toTerminal: criteria.toTerminal,
+      fromCompanyName: criteria.fromCompanyName,
+      toCompanyName: criteria.toCompanyName,
       date: criteria.date,
       passengers: criteria.passengers,
       page: 1,
@@ -330,6 +338,10 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
             initialToMuni={params.toMuni}
             initialFromQuarter={params.fromQuarter}
             initialToQuarter={params.toQuarter}
+            initialFromTerminal={params.fromTerminal}
+            initialToTerminal={params.toTerminal}
+            initialFromCompanyName={params.fromCompanyName}
+            initialToCompanyName={params.toCompanyName}
             initialDate={params.date}
             initialPassengers={params.passengers}
             onSearch={handleSearch}
@@ -361,7 +373,7 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
         {!searchEnabled ? (
           /* Pre-search empty state */
           <SearchEmptyState
-            onQuickSearch={(c) => handleSearch({ ...c, fromMuni: "", toMuni: "", fromQuarter: "", toQuarter: "", passengers: params.passengers })}
+            onQuickSearch={(c) => handleSearch({ ...c, fromMuni: "", toMuni: "", fromQuarter: "", toQuarter: "", fromTerminal: "", toTerminal: "", fromCompanyName: "", toCompanyName: "", passengers: params.passengers })}
           />
         ) : (
           <>

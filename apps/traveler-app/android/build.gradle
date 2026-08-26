@@ -17,10 +17,31 @@ allprojects {
     google()
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
+    // @rnmapbox/maps native artifacts live on Mapbox's private Maven repo.
+    // Auth via MAPBOX_DOWNLOADS_TOKEN (downloads:read) — provided by EAS env
+    // or local gradle.properties. Token must NEVER be committed here.
+    maven {
+      url 'https://api.mapbox.com/downloads/v2/releases/maven'
+      authentication {
+        basic(BasicAuthentication)
+      }
+      credentials {
+        username = 'mapbox'
+        password = project.properties['MAPBOX_DOWNLOADS_TOKEN']
+          ?: System.getenv('MAPBOX_DOWNLOADS_TOKEN')
+          ?: ''
+      }
+    }
   }
 }
 
 subprojects {
+  // Windows-only path redirection (MAX_PATH workarounds). EAS/Linux builders
+  // must take the stock RN layout or codegen headers (e.g. rnreanimated
+  // Props.h) and PCH paths break under the mangled C:/b/... staging dirs.
+  if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+    return
+  }
   // Redirect all subproject build dirs to android/build/<name>.
   // Keeps codegen out of deep pnpm virtual-store paths (Windows MAX_PATH).
   // NOTE: React Native autolinking still hardcodes <package>/android/build/...

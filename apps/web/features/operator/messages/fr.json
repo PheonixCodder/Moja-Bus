@@ -749,6 +749,7 @@
       "conflictBusy": "Déjà affecté ailleurs",
       "alreadyOnTrip": "Déjà sur ce trajet",
       "liveAvailable": "Disponible",
+      "modeMismatch": "Incompatibilité de mode",
       "replaceConfirmTitle": "Remplacer le chauffeur affecté ?",
       "replaceConfirmMessage": "{name} sera retiré de ce trajet et en sera informé.",
       "driverAssigned": "Chauffeur affecté — notification envoyée",

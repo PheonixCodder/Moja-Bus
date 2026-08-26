@@ -24,18 +24,17 @@ import {
   User,
   XCircle,
 } from "lucide-react";
+import { DriverDocPreview } from "@/features/driver/components/driver-doc-preview";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 
 /**
- * Phase 15 (F-DV-05) — only http(s) document URLs render in an <img>.
- * Pre-pipeline registrations stored device-local `file://` URIs; those show
- * the "missing" placeholder with a re-upload prompt instead of broken images.
+ * Phase 15 (F-DV-05) legacy note: pre-pipeline registrations stored
+ * device-local `file://` URIs; those render as "missing" placeholders via
+ * <DriverDocPreview>. Phase-2 audit: URLs are minted on demand per view —
+ * baked-in presigned links expired before a reviewer opened the dossier.
  */
-function renderableDoc(url?: string | null): string | null {
-  return url && /^https?:\/\//.test(url) ? url : null;
-}
 
 interface DriverVerificationDialogProps {
   driver: any | null;
@@ -191,56 +190,36 @@ export function DriverVerificationDialog({
             </div>
           </div>
 
-          {/* Document Previews — Phase 15: legacy device URIs render as "missing" */}
+          {/* Document Previews — Phase-2 audit: on-demand presigned rendering
+              via <DriverDocPreview>; the medical certificate now previews too
+              (it always gated approval but was never visible). */}
 
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-slate-900">
               Submitted Documents
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* License Front */}
-              <div className="border rounded-xl p-3 bg-slate-50 space-y-2">
-                <span className="text-xs font-semibold text-slate-600">
-                  License (Front)
-                </span>
-                {renderableDoc(driver.licenseFrontUrl) ? (
-                  <div className="h-44 rounded-lg bg-slate-900 overflow-hidden flex items-center justify-center">
-                    <img
-                      src={renderableDoc(driver.licenseFrontUrl)!}
-                      alt="License Front"
-                      className="size-full object-contain"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-44 rounded-lg bg-slate-200/70 border border-dashed flex items-center justify-center text-xs text-slate-500">
-                    {driver.licenseFrontUrl
-                      ? "Legacy device URI — ask the driver to re-upload"
-                      : "No Front Photo Provided"}
-                  </div>
-                )}
-              </div>
-
-              {/* License Back */}
-              <div className="border rounded-xl p-3 bg-slate-50 space-y-2">
-                <span className="text-xs font-semibold text-slate-600">
-                  License (Back)
-                </span>
-                {renderableDoc(driver.licenseBackUrl) ? (
-                  <div className="h-44 rounded-lg bg-slate-900 overflow-hidden flex items-center justify-center">
-                    <img
-                      src={renderableDoc(driver.licenseBackUrl)!}
-                      alt="License Back"
-                      className="size-full object-contain"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-44 rounded-lg bg-slate-200/70 border border-dashed flex items-center justify-center text-xs text-slate-500">
-                    {driver.licenseBackUrl
-                      ? "Legacy device URI — ask the driver to re-upload"
-                      : "No Back Photo Provided"}
-                  </div>
-                )}
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <DriverDocPreview
+                audience="admin"
+                driverProfileId={driver.id}
+                docType="driver-license-front"
+                label="License (Front)"
+                storedValue={driver.licenseFrontUrl ?? null}
+              />
+              <DriverDocPreview
+                audience="admin"
+                driverProfileId={driver.id}
+                docType="driver-license-back"
+                label="License (Back)"
+                storedValue={driver.licenseBackUrl ?? null}
+              />
+              <DriverDocPreview
+                audience="admin"
+                driverProfileId={driver.id}
+                docType="driver-medical-doc"
+                label="Medical Certificate"
+                storedValue={driver.medicalDocUrl ?? null}
+              />
             </div>
           </div>
 

@@ -77,7 +77,7 @@ describe("buildSearchEntries — pass-through suppression", () => {
       isPassThrough: true,
       city: cityMatch,
     };
-    const entries = buildSearchEntries([cityMatch], [passThroughMuni], []);
+    const entries = buildSearchEntries([cityMatch], [passThroughMuni], [], []);
     assert.equal(entries.length, 1);
     assert.equal(entries[0]?.level, "city");
     assert.equal(entries[0]?.name, "Yamoussoukro");
@@ -93,7 +93,7 @@ describe("buildSearchEntries — pass-through suppression", () => {
       isPassThrough: true,
       city: city("Korhogo", true),
     };
-    const entries = buildSearchEntries([], [passThroughMuni], []);
+    const entries = buildSearchEntries([], [passThroughMuni], [], []);
     assert.equal(entries.length, 1);
     assert.equal(entries[0]?.level, "municipality");
     assert.equal(entries[0]?.hierarchyLabel, "Korhogo (Korhogo)");
@@ -108,7 +108,7 @@ describe("buildSearchEntries — pass-through suppression", () => {
       isPassThrough: false,
       city: abidjan,
     };
-    const entries = buildSearchEntries([abidjan], [cocody], []);
+    const entries = buildSearchEntries([abidjan], [cocody], [], []);
     assert.deepEqual(
       entries.map((e) => e.hierarchyLabel),
       ["Abidjan", "Abidjan (Cocody)"],
@@ -124,7 +124,7 @@ describe("buildSearchEntries — de-dupe by full (city, muni, quarter, level) ke
       name: "Riviera 3",
       municipality: { id: "m-Cocody", name: "Cocody", city: abidjan },
     };
-    const entries = buildSearchEntries([], [], [q, q]);
+    const entries = buildSearchEntries([], [], [q, q], []);
     assert.equal(entries.length, 1);
     assert.equal(entries[0]?.level, "quarter");
     assert.equal(entries[0]?.hierarchyLabel, "Abidjan (Cocody - Riviera 3)");
@@ -142,7 +142,7 @@ describe("buildSearchEntries — de-dupe by full (city, muni, quarter, level) ke
       name: "Riviera 3",
       municipality: { id: "m-Cocody", name: "Cocody", city: abidjan },
     };
-    const entries = buildSearchEntries([], [], [q1, q2]);
+    const entries = buildSearchEntries([], [], [q1, q2], []);
     assert.equal(entries.length, 2);
     assert.deepEqual(entries.map((e) => e.hierarchyLabel).sort(), [
       "Abidjan (Cocody - Riviera 2)",
@@ -157,7 +157,7 @@ describe("buildSearchEntries — de-dupe by full (city, muni, quarter, level) ke
       name: "Riviera 3",
       municipality: { id: "m-Cocody", name: "Cocody", city: abidjan },
     };
-    const entries = buildSearchEntries([abidjan], [], [riviera]);
+    const entries = buildSearchEntries([abidjan], [], [riviera], []);
     assert.equal(entries.length, 2);
     assert.deepEqual(
       entries.map((e) => e.level),
@@ -188,7 +188,7 @@ describe("buildSearchEntries — full seeded dataset", () => {
   });
 
   it("a blank query yields no rows", () => {
-    assert.equal(buildSearchEntries([], [], []).length, 0);
+    assert.equal(buildSearchEntries([], [], [], []).length, 0);
   });
 });
 
@@ -227,7 +227,7 @@ describe("buildSearchEntries — full 188-city dataset", () => {
           },
         ],
         [],
-        10,
+        [],
       );
       assert.equal(entries.length, 1, `city ${c.name} should yield 1 row`);
       assert.equal(
@@ -245,7 +245,7 @@ describe("buildSearchEntries — full 188-city dataset", () => {
       allCities,
       allMunicipalities,
       allQuarters,
-      10,
+      [],
     );
     for (const e of entries) {
       if (e.level !== "municipality") continue;
@@ -276,7 +276,7 @@ describe("buildSearchEntries — full 188-city dataset", () => {
         },
       })),
     );
-    const entries = buildSearchEntries([abidjan], munis, quarters, 100);
+    const entries = buildSearchEntries([abidjan], munis, quarters, [], 100);
     const keys = entries.map(
       (e) =>
         `${e.id}|${e.municipalityId ?? ""}|${e.quarterId ?? ""}|${e.level}`,

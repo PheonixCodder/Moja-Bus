@@ -111,7 +111,6 @@ export default function DriverPreferencesScreen() {
 				preferredType,
 				cityBase: cityBase.trim() || null,
 				routeExperience,
-				minMonthlyRateCFA: null,
 			});
 			router.replace("/(tabs)/trips");
 		} catch (err: any) {
@@ -129,7 +128,6 @@ export default function DriverPreferencesScreen() {
 				preferredType: "EXCLUSIVE_INTERCITY",
 				cityBase: null,
 				routeExperience: [],
-				minMonthlyRateCFA: null,
 			});
 		} catch {
 			// Ignore skip errors — proceed anyway
@@ -240,7 +238,7 @@ export default function DriverPreferencesScreen() {
 						</Text>
 					</View>
 
-					{/* Quick-select hub chips */}
+					{/* Hub chips only — no free-text input */}
 					<View className="flex-row flex-wrap gap-2">
 						{CIV_CITY_HUBS.map((city) => (
 							<TouchableOpacity
@@ -264,18 +262,6 @@ export default function DriverPreferencesScreen() {
 								</Text>
 							</TouchableOpacity>
 						))}
-					</View>
-
-					{/* Manual city input if not in list */}
-					<View className="flex-row items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 h-11 mt-1">
-						<MapPin size={16} color="#52525b" />
-						<TextInput
-							className="flex-1 ml-2.5 text-white text-sm"
-							placeholder={isEn ? "Other city..." : "Autre ville..."}
-							placeholderTextColor="#52525b"
-							value={cityBase}
-							onChangeText={setCityBase}
-						/>
 					</View>
 				</View>
 

@@ -201,5 +201,20 @@
   "trackingTitle": "Bus Tracking",
   "trackingComingSoon": "Live tracking is coming soon",
   "trackingBody": "Your company already tracks this vehicle in real time on the operations side. Passenger live tracking will be enabled soon.",
-  "refLabel": "Ref. {{tripId}}"
+  "refLabel": "Ref. {{tripId}}",
+  "trackingLoading": "Loading tracking…",
+  "trackingUnavailable": "Tracking unavailable",
+  "trackingUnavailableBody": "We couldn't load tracking data for this trip.",
+  "trackingNotDeparted": "Not departed yet",
+  "trackingNotDepartedBody": "The bus hasn't left yet. You'll be able to track it once it departs.",
+  "trackingSignalLost": "GPS signal lost",
+  "trackingSignalLostBody": "We've temporarily lost the driver's position. Tracking will resume automatically.",
+  "trackingStale": "Position may be outdated",
+  "trackingArrived": "Trip completed",
+  "trackingArrivedBody": "This trip has arrived at its destination.",
+  "trackingCancelled": "Trip cancelled",
+  "trackingCancelledBody": "This trip has been cancelled.",
+  "board": "Board",
+  "drop": "Drop",
+  "approx": "approx"
 }

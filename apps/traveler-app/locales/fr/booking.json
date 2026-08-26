@@ -201,5 +201,20 @@
   "trackingTitle": "Suivi du bus",
   "trackingComingSoon": "Le suivi en direct arrive bientôt",
   "trackingBody": "Votre compagnie suit déjà ce véhicule en temps réel côté exploitation. Le suivi passager en direct sera activé prochainement.",
-  "refLabel": "Réf. {{tripId}}"
+  "refLabel": "Réf. {{tripId}}",
+  "trackingLoading": "Chargement du suivi…",
+  "trackingUnavailable": "Suivi indisponible",
+  "trackingUnavailableBody": "Impossible de charger les données de suivi pour ce voyage.",
+  "trackingNotDeparted": "Pas encore parti",
+  "trackingNotDepartedBody": "Le bus n'est pas encore parti. Vous pourrez le suivre une fois en route.",
+  "trackingSignalLost": "Signal GPS perdu",
+  "trackingSignalLostBody": "La position du chauffeur est temporairement indisponible. Le suivi reprendra automatiquement.",
+  "trackingStale": "Position peut-être obsolète",
+  "trackingArrived": "Trajet terminé",
+  "trackingArrivedBody": "Ce voyage est arrivé à destination.",
+  "trackingCancelled": "Voyage annulé",
+  "trackingCancelledBody": "Ce voyage a été annulé.",
+  "board": "Embar.",
+  "drop": "Desc.",
+  "approx": "env."
 }

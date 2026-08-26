@@ -3,7 +3,7 @@ import { View, Text, TextInput, Modal, FlatList, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { Search01Icon, Cancel01Icon, Location01Icon, Navigation01Icon } from '@hugeicons/core-free-icons';
+import { Search01Icon, Cancel01Icon, Location01Icon, Navigation01Icon, Bus01Icon } from '@hugeicons/core-free-icons';
 import { Colors } from '@moja/theme/tokens';
 import { useSearchCities } from '../hooks/use-search-cities';
 import type { CityValue } from '../types';
@@ -106,22 +106,38 @@ export function CitySearchField({
                   municipalityId: item.municipalityId ?? undefined,
                   quarterId: item.quarterId ?? undefined,
                   level: item.level,
+                  terminalId: item.terminalId ?? undefined,
+                  companyName: item.companyName ?? undefined,
+                  companyId: item.companyId ?? undefined,
                 });
                 onClose();
               }}
             >
               <View className="w-9 h-9 rounded-2xl bg-pink-50 border border-pink-100 items-center justify-center mr-3">
-                <HugeiconsIcon icon={Location01Icon} size={18} color="#ee237c" />
+                {item.level === 'terminal' ? (
+                  <HugeiconsIcon icon={Bus01Icon} size={18} color="#ee237c" />
+                ) : (
+                  <HugeiconsIcon icon={Location01Icon} size={18} color="#ee237c" />
+                )}
               </View>
               <View className="flex-1">
                 <Text className="text-base text-slate-900 font-extrabold">
                   {item.hierarchyLabel ?? item.name}
                 </Text>
-                {item.level ? (
-                  <Text className="text-xs font-bold text-slate-400 capitalize mt-0.5">
-                    {item.level}
-                  </Text>
-                ) : null}
+                <View className="flex-row items-center gap-1.5 mt-0.5">
+                  {item.level ? (
+                    <Text className="text-xs font-bold text-slate-400 capitalize">
+                      {item.level}
+                    </Text>
+                  ) : null}
+                  {item.level === 'terminal' && item.companyName ? (
+                    <View className="bg-slate-100 rounded-full px-2 py-0.5">
+                      <Text className="text-[10px] font-bold text-slate-500">
+                        {item.companyName}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
               </View>
               {item.isMajorHub && (
                 <View className="bg-pink-50 border border-pink-200 px-2.5 py-1 rounded-full">

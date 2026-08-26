@@ -4,8 +4,8 @@ import {
   // Phase 25 (F-OP-10) — response view typing for the public profile.
   type DriverEmploymentType,
   type DriverVerificationStatus,
-  driverBatchSyncCheckInsSchema,
   driverAcknowledgeUrgentDispatchSchema,
+  driverBatchSyncCheckInsSchema,
   driverCheckInPassengerSchema,
   driverCompleteTripSchema,
   driverGetMyTripsSchema,
@@ -28,6 +28,7 @@ import {
   listSentOffersSchema,
   MAX_ACTIVE_RECEIVED_OFFERS_PER_DRIVER,
   MAX_ACTIVE_SENT_OFFERS_PER_COMPANY,
+  MAX_COUNTER_ROUNDS,
   markMyOffersSeenSchema,
   OFFER_EXPIRY_DAYS,
   respondToCounterOfferSchema,
@@ -43,6 +44,8 @@ import {
 } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { driverPresignDocSchema } from "@/features/driver/lib/driver-doc-access";
+import { mintDriverDocUrl } from "@/features/driver/lib/driver-doc-mint";
 import { DriverCheckInService } from "@/features/driver/services/driver-check-in-service";
 import { companyOperatorRecipients } from "@/features/notifications/company-recipients";
 import { enqueuePassengerTripDelayed } from "@/features/notifications/outbox/commercial";
@@ -67,15 +70,15 @@ import {
   type TripConflictCandidate,
 } from "@/lib/driver-assignment";
 import {
-  resolvePostRunStatus,
-  suspendDriverOperationalState,
-} from "@/lib/driver-run-state";
-import {
   DEFAULT_DRIVER_PAY_RATE_XOF_PER_MINUTE,
   earningsFromMinutes,
   mondayStartUtc,
   utcMidnight,
 } from "@/lib/driver-earnings";
+import {
+  resolvePostRunStatus,
+  suspendDriverOperationalState,
+} from "@/lib/driver-run-state";
 import { computeTrustBadges } from "@/lib/driver-scoring";
 import { getNovuClient } from "@/lib/novu";
 import {
@@ -83,7 +86,6 @@ import {
   requirePermission,
 } from "@/lib/permissions/authorize";
 import { getPhoneValidationError, toE164 } from "@/lib/phone/phone-number";
-import { createPresignedDownload } from "@/lib/storage";
 import { mintTelemetryDispatchTokenWithCompany } from "@/lib/telemetry-token";
 import { finalizeTripArrival } from "@/lib/trip-arrival";
 import {
@@ -270,31 +272,50 @@ async function resolveAcceptance(
     }
   }
 
-  // 2. Create or reactivate the affiliation (re-hire safe)
-  await tx.driverCompanyAffiliation.upsert({
-    where: {
-      driverProfileId_companyId: {
+  // 2. Create or reactivate the affiliation (re-hire safe).
+  //    P2002 → CONFLICT: the partial unique index on one-active-exclusive
+  //    can fire if two concurrent acceptances race past the conflict sweep
+  //    above. Map to a user-facing CONFLICT so the client can retry.
+  try {
+    await tx.driverCompanyAffiliation.upsert({
+      where: {
+        driverProfileId_companyId: {
+          driverProfileId: driver.id,
+          companyId: offer.companyId,
+        },
+      },
+      create: {
         driverProfileId: driver.id,
         companyId: offer.companyId,
+        employmentType: offer.employmentType as never,
+        isActive: true,
+        isVerified: false,
+        hiredAt: now,
+        notes: `Via Moja offer ${offer.id}`,
       },
-    },
-    create: {
-      driverProfileId: driver.id,
-      companyId: offer.companyId,
-      employmentType: offer.employmentType as never,
-      isActive: true,
-      isVerified: false,
-      hiredAt: now,
-      notes: `Via Moja offer ${offer.id}`,
-    },
-    update: {
-      employmentType: offer.employmentType as never,
-      isActive: true,
-      terminatedAt: null,
-      hiredAt: now,
-      notes: `Re-hired via Moja offer ${offer.id}`,
-    },
-  });
+      update: {
+        employmentType: offer.employmentType as never,
+        isActive: true,
+        terminatedAt: null,
+        hiredAt: now,
+        notes: `Re-hired via Moja offer ${offer.id}`,
+      },
+    });
+  } catch (err: unknown) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      String((err as { code: unknown }).code) === "P2002"
+    ) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message:
+          "A concurrent affiliation change was detected. Please try again.",
+      });
+    }
+    throw err;
+  }
 
   // 3. Resolve the offer
   await tx.driverEmploymentOffer.update({
@@ -585,43 +606,28 @@ export const driversRouter = createTRPCRouter({
         });
       }
 
-      // Phase 15 (F-DV-05) — compliance docs are PRIVATE storage objects.
-      // Swap stored keys for short-lived presigned GETs so verification
-      // dossiers render real documents. Legacy values (device URIs / http
-      // links) pass through untouched and the UI shows them as missing.
-      const presignDoc = async (
-        purpose:
-          | "driver-license-front"
-          | "driver-license-back"
-          | "driver-medical-doc",
-        value: string | null,
-      ): Promise<string | null> => {
-        if (!value || !value.startsWith("documents/")) return value;
-        try {
-          const { downloadUrl } = await createPresignedDownload({
-            purpose,
-            objectKey: value,
-          });
-          return downloadUrl;
-        } catch {
-          return null;
-        }
-      };
+      // Phase-2 audit (driver-system-complete-audit/20): raw stored keys flow
+      // to the client; rendering goes through <DriverDocPreview> ->
+      // drivers.presignDoc for on-demand 5-min URLs. Baked-in presigned URLs
+      // expired faster than review sessions and cost N signings per keystroke
+      // in list queries.
+      return driver;
+    }),
 
-      const [licenseFrontUrl, licenseBackUrl, medicalDocUrl] =
-        await Promise.all([
-          presignDoc("driver-license-front", driver.licenseFrontUrl),
-          presignDoc("driver-license-back", driver.licenseBackUrl),
-          presignDoc("driver-medical-doc", driver.medicalDocUrl),
-        ]);
-
-      return {
-        ...driver,
-        licenseFrontUrl,
-        licenseBackUrl,
-        medicalDocUrl,
-        nationalIdNumber: driver.nationalIdNumber,
-      };
+  /**
+   * Phase-2 audit — mints a short-lived GET URL for ONE of a driver's private
+   * compliance documents (see features/driver/lib/driver-doc-access.ts for
+   * the authorization model). Operators are scoped to ACTIVE-affiliation
+   * drivers; the namespace guard proves the key belongs to that driver.
+   */
+  presignDoc: operatorCompanyProcedure
+    .input(driverPresignDocSchema)
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "drivers:read");
+      return mintDriverDocUrl(ctx.prisma, {
+        ...input,
+        viewerCompanyId: ctx.companyId,
+      });
     }),
 
   createDriver: operatorCompanyProcedure
@@ -759,32 +765,52 @@ export const driversRouter = createTRPCRouter({
 
         // Create or update company affiliation. Rehire branch also clears the
         // stale termination markers (F-OP-12).
-        const affiliation = await tx.driverCompanyAffiliation.upsert({
-          where: {
-            driverProfileId_companyId: {
+        // P2002 → CONFLICT: partial unique index on one-active-exclusive
+        // fires if this driver already holds an active exclusive affiliation
+        // with another company and the operator tries to add them as exclusive.
+        let affiliation;
+        try {
+          affiliation = await tx.driverCompanyAffiliation.upsert({
+            where: {
+              driverProfileId_companyId: {
+                driverProfileId: driverProfile.id,
+                companyId: ctx.companyId,
+              },
+            },
+            create: {
               driverProfileId: driverProfile.id,
               companyId: ctx.companyId,
+              employmentType: input.employmentType,
+              badgeNumber: input.badgeNumber ?? null,
+              notes: input.notes ?? null,
+              isActive: true,
+              isVerified: false,
             },
-          },
-          create: {
-            driverProfileId: driverProfile.id,
-            companyId: ctx.companyId,
-            employmentType: input.employmentType,
-            badgeNumber: input.badgeNumber ?? null,
-            notes: input.notes ?? null,
-            isActive: true,
-            isVerified: false,
-          },
-          update: {
-            employmentType: input.employmentType,
-            terminatedAt: null,
-            ...(input.badgeNumber !== undefined
-              ? { badgeNumber: input.badgeNumber }
-              : {}),
-            ...(input.notes !== undefined ? { notes: input.notes } : {}),
-            isActive: true,
-          },
-        });
+            update: {
+              employmentType: input.employmentType,
+              terminatedAt: null,
+              ...(input.badgeNumber !== undefined
+                ? { badgeNumber: input.badgeNumber }
+                : {}),
+              ...(input.notes !== undefined ? { notes: input.notes } : {}),
+              isActive: true,
+            },
+          });
+        } catch (err: unknown) {
+          if (
+            err &&
+            typeof err === "object" &&
+            "code" in err &&
+            String((err as { code: unknown }).code) === "P2002"
+          ) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "This driver already holds an active exclusive affiliation with another operator. Terminate the existing affiliation first or choose a different employment type.",
+            });
+          }
+          throw err;
+        }
 
         return { driverProfile, affiliation };
       });
@@ -831,57 +857,128 @@ export const driversRouter = createTRPCRouter({
         });
       }
 
-      const updateData: any = {};
-      if (input.licenseNumber) updateData.licenseNumber = input.licenseNumber;
-      if (input.licenseCategory)
-        updateData.licenseCategory = input.licenseCategory;
-      if (input.licenseExpiryDate)
-        updateData.licenseExpiryDate = input.licenseExpiryDate;
-      if (input.licenseFrontUrl !== undefined)
-        updateData.licenseFrontUrl = input.licenseFrontUrl;
-      if (input.licenseBackUrl !== undefined)
-        updateData.licenseBackUrl = input.licenseBackUrl;
-      if (input.yearsOfExperience !== undefined)
-        updateData.yearsOfExperience = input.yearsOfExperience;
-      if (input.medicalClearanceDate !== undefined)
-        updateData.medicalClearanceDate = input.medicalClearanceDate;
-      if (input.medicalDocUrl !== undefined)
-        updateData.medicalDocUrl = input.medicalDocUrl;
-      // Phase 31 (D8-a) — `status` is NO LONGER operator-writable here: the
-      // only UI caller never sent it, and a generic write bypassed the
-      // Phase-06 run-state convergence matrix (e.g. hand-setting SUSPENDED
-      // or ON_TRIP without clearing currentTripId). Driver state changes flow
-      // through their dedicated surfaces (dispatch board, verification flow,
-      // driver self-service matrix).
-
-      const updated = await ctx.prisma.driverProfile.update({
-        where: { id: input.id },
-        data: updateData,
-      });
-
-      if (
-        input.employmentType ||
-        input.badgeNumber !== undefined ||
-        input.notes !== undefined
-      ) {
-        await ctx.prisma.driverCompanyAffiliation.update({
-          where: {
-            driverProfileId_companyId: {
-              driverProfileId: input.id,
-              companyId: ctx.companyId,
-            },
-          },
-          data: {
-            ...(input.employmentType
-              ? { employmentType: input.employmentType }
-              : {}),
-            ...(input.badgeNumber !== undefined
-              ? { badgeNumber: input.badgeNumber }
-              : {}),
-            ...(input.notes !== undefined ? { notes: input.notes } : {}),
+      // Phase-2 audit (D3b): document replacements are audit-logged and never
+      // demote verification status. Update + log share ONE transaction so a
+      // crash can never strand a doc swap without its audit row.
+      const updated = await ctx.prisma.$transaction(async (tx) => {
+        const before = await tx.driverProfile.findUnique({
+          where: { id: input.id },
+          select: {
+            licenseFrontUrl: true,
+            licenseBackUrl: true,
+            medicalDocUrl: true,
+            user: { select: { id: true, fullName: true } },
           },
         });
-      }
+        if (!before) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Driver profile not found.",
+          });
+        }
+
+        const updateData: any = {};
+        if (input.licenseNumber) updateData.licenseNumber = input.licenseNumber;
+        if (input.licenseCategory)
+          updateData.licenseCategory = input.licenseCategory;
+        if (input.licenseExpiryDate)
+          updateData.licenseExpiryDate = input.licenseExpiryDate;
+        if (input.licenseFrontUrl !== undefined)
+          updateData.licenseFrontUrl = input.licenseFrontUrl;
+        if (input.licenseBackUrl !== undefined)
+          updateData.licenseBackUrl = input.licenseBackUrl;
+        if (input.yearsOfExperience !== undefined)
+          updateData.yearsOfExperience = input.yearsOfExperience;
+        if (input.medicalClearanceDate !== undefined)
+          updateData.medicalClearanceDate = input.medicalClearanceDate;
+        if (input.medicalDocUrl !== undefined)
+          updateData.medicalDocUrl = input.medicalDocUrl;
+        // Phase 31 (D8-a) — `status` is NO LONGER operator-writable here: the
+        // only UI caller never sent it, and a generic write bypassed the
+        // Phase-06 run-state convergence matrix (e.g. hand-setting SUSPENDED
+        // or ON_TRIP without clearing currentTripId). Driver state changes flow
+        // through their dedicated surfaces (dispatch board, verification flow,
+        // driver self-service matrix).
+
+        const updated = await tx.driverProfile.update({
+          where: { id: input.id },
+          data: updateData,
+        });
+
+        if (
+          input.employmentType ||
+          input.badgeNumber !== undefined ||
+          input.notes !== undefined
+        ) {
+          // Phase 3 (3.2 / F4-b): when flipping to EXCLUSIVE_INTERCITY,
+          // terminate any other active exclusive affiliations first (same
+          // rule as resolveAcceptance). Prevents the DB index from rejecting
+          // the write and gives displaced operators proper notification.
+          if (input.employmentType === "EXCLUSIVE_INTERCITY") {
+            const conflicts = await tx.driverCompanyAffiliation.findMany({
+              where: {
+                driverProfileId: input.id,
+                isActive: true,
+                employmentType: "EXCLUSIVE_INTERCITY",
+                companyId: { not: ctx.companyId },
+              },
+              include: { company: { select: { name: true } } },
+            });
+            for (const conflict of conflicts) {
+              await tx.driverCompanyAffiliation.update({
+                where: { id: conflict.id },
+                data: { isActive: false, terminatedAt: new Date() },
+              });
+            }
+          }
+
+          await tx.driverCompanyAffiliation.update({
+            where: {
+              driverProfileId_companyId: {
+                driverProfileId: input.id,
+                companyId: ctx.companyId,
+              },
+            },
+            data: {
+              ...(input.employmentType
+                ? { employmentType: input.employmentType }
+                : {}),
+              ...(input.badgeNumber !== undefined
+                ? { badgeNumber: input.badgeNumber }
+                : {}),
+              ...(input.notes !== undefined ? { notes: input.notes } : {}),
+            },
+          });
+        }
+
+        const DOC_FIELDS = [
+          ["licenseFrontUrl", "driver-license-front"],
+          ["licenseBackUrl", "driver-license-back"],
+          ["medicalDocUrl", "driver-medical-doc"],
+        ] as const;
+        const replacedDocTypes = DOC_FIELDS.filter(([field]) => {
+          const next = input[field];
+          return next !== undefined && next !== before[field];
+        }).map(([, docType]) => docType);
+
+        if (replacedDocTypes.length > 0) {
+          await tx.activityLog.create({
+            data: {
+              companyId: ctx.companyId,
+              userId: ctx.user.id,
+              action: "DRIVER_DOCS_REPLACED",
+              description: `Replaced ${replacedDocTypes.join(", ")} for ${before.user.fullName ?? input.id}`,
+              metadata: {
+                driverProfileId: input.id,
+                replacedDocTypes,
+              },
+              targetUserId: before.user.id,
+            },
+          });
+        }
+
+        return updated;
+      });
 
       return updated;
     }),
@@ -1895,6 +1992,16 @@ export const driversRouter = createTRPCRouter({
             totalTripsCompleted: { increment: 1 },
           },
         }),
+        // Phase 3 (3.3) — increment shift-level trip counter so the driver
+        // app earnings screen shows the correct per-shift trip count.
+        ...(openShift
+          ? [
+              ctx.prisma.driverShift.update({
+                where: { id: openShift.id },
+                data: { tripsCompleted: { increment: 1 } },
+              }),
+            ]
+          : []),
       ]);
 
       // Phase 16 — P0-2 parity with operator arrival: stamp booking.completedAt
@@ -2361,8 +2468,14 @@ export const driversRouter = createTRPCRouter({
     });
 
     return {
-      todayEarningsXof: earningsFromMinutes(totals.today_minutes, rateXofPerMinute),
-      weekEarningsXof: earningsFromMinutes(totals.week_minutes, rateXofPerMinute),
+      todayEarningsXof: earningsFromMinutes(
+        totals.today_minutes,
+        rateXofPerMinute,
+      ),
+      weekEarningsXof: earningsFromMinutes(
+        totals.week_minutes,
+        rateXofPerMinute,
+      ),
       // Phase 31 D5 — the UI labels these as an ESTIMATE while the pay-rate
       // model (roadmap) has not replaced this flat per-minute placeholder.
       rateXofPerMinute,
@@ -2421,6 +2534,10 @@ export const driversRouter = createTRPCRouter({
   setServicePreference: driverProcedure
     .input(setServicePreferenceSchema)
     .mutation(async ({ ctx, input }) => {
+      const normalizedRoutes = [
+        ...new Set(input.routeExperience.map((r) => r.trim()).filter(Boolean)),
+      ];
+
       const preference = await ctx.prisma.driverServicePreference.upsert({
         where: { driverProfileId: ctx.driver.id },
         create: {
@@ -2428,15 +2545,13 @@ export const driversRouter = createTRPCRouter({
           isAvailableForHire: input.isAvailableForHire,
           preferredType: input.preferredType,
           cityBase: input.cityBase ?? null,
-          routeExperience: input.routeExperience,
-          minMonthlyRateCFA: input.minMonthlyRateCFA ?? null,
+          routeExperience: normalizedRoutes,
         },
         update: {
           isAvailableForHire: input.isAvailableForHire,
           preferredType: input.preferredType,
           cityBase: input.cityBase ?? null,
-          routeExperience: input.routeExperience,
-          minMonthlyRateCFA: input.minMonthlyRateCFA ?? null,
+          routeExperience: normalizedRoutes,
         },
       });
       return { success: true, preference };
@@ -3123,6 +3238,13 @@ export const driversRouter = createTRPCRouter({
             averageRating: true,
             safetyScore: true,
             status: true,
+            // Phase 3 (3.1) — employmentType from the active affiliation for
+            // mode-compatibility signal in the dispatch combobox.
+            companyAffiliations: {
+              where: { companyId: ctx.companyId, isActive: true },
+              select: { employmentType: true },
+              take: 1,
+            },
             user: {
               select: {
                 id: true,
@@ -3167,7 +3289,9 @@ export const driversRouter = createTRPCRouter({
                 driverProfileId: { in: rosterIds },
                 tripId: { not: trip.id },
                 trip: {
-                  status: { in: ["SCHEDULED", "BOARDING", "DEPARTED", "DELAYED"] },
+                  status: {
+                    in: ["SCHEDULED", "BOARDING", "DEPARTED", "DELAYED"],
+                  },
                   archivedAt: null,
                   departureDate: {
                     gte: new Date(targetInterval.startMs - 16 * 60 * 60 * 1000),
@@ -3233,12 +3357,29 @@ export const driversRouter = createTRPCRouter({
         conflictsByDriver.set(row.driverProfileId, list);
       }
 
+      // Phase 3 (3.1) — mode compatibility: INTERCITY trips need
+      // EXCLUSIVE_INTERCITY or HYBRID drivers; URBAN trips need
+      // CONTRACTOR_URBAN or HYBRID. CONTRACTOR_URBAN on INTERCITY is a hard
+      // mismatch; EXCLUSIVE_INTERCITY on URBAN is a soft mismatch (warn).
+      function isModeCompatible(
+        employmentType: string | undefined,
+        serviceType: string,
+      ): boolean {
+        if (!employmentType || employmentType === "HYBRID") return true;
+        if (serviceType === "INTERCITY")
+          return employmentType === "EXCLUSIVE_INTERCITY";
+        return employmentType === "CONTRACTOR_URBAN";
+      }
+
       const items = await Promise.all(
         drivers.map(async (d: any) => {
           const conflict = findTripConflict(
             targetInterval,
             conflictsByDriver.get(d.id) ?? [],
           );
+          // Phase 3 (3.1) — extract employmentType from the nested affiliation
+          const employmentType =
+            d.companyAffiliations?.[0]?.employmentType ?? undefined;
           return {
             driverProfileId: d.id,
             fullName: d.user.fullName,
@@ -3250,6 +3391,9 @@ export const driversRouter = createTRPCRouter({
             safetyScore: d.safetyScore,
             liveStatus: d.status,
             requiredLicense,
+            employmentType,
+            // Phase 3 (3.1) — soft signal: greys out mismatched candidates
+            modeOk: isModeCompatible(employmentType, trip.serviceType),
             // Phase 14 (F-OP-03) — class fit AND licence valid through the run.
             licenseOk:
               licenseMeetsRequirement(d.licenseCategory, requiredLicense) &&
@@ -3265,9 +3409,17 @@ export const driversRouter = createTRPCRouter({
 
       return {
         items: items.sort((a: any, b: any) => {
-          // Eligible & licensed first; then by rating
-          const aOk = a.licenseOk && !a.conflict && a.rolesOnTrip.length === 0;
-          const bOk = b.licenseOk && !b.conflict && b.rolesOnTrip.length === 0;
+          // Eligible & licensed & mode-matched first; then by rating
+          const aOk =
+            a.licenseOk &&
+            a.modeOk &&
+            !a.conflict &&
+            a.rolesOnTrip.length === 0;
+          const bOk =
+            b.licenseOk &&
+            b.modeOk &&
+            !b.conflict &&
+            b.rolesOnTrip.length === 0;
           if (aOk !== bOk) return aOk ? -1 : 1;
           return b.averageRating - a.averageRating;
         }),
@@ -3514,6 +3666,20 @@ export const driversRouter = createTRPCRouter({
         }
 
         // COUNTER — updates effective terms, refreshes the rolling 7-day window
+        // Phase 3 (3.4) — cap negotiation rounds to prevent infinite haggling.
+        const counterEventCount = await tx.driverOfferEvent.count({
+          where: {
+            offerId: offer.id,
+            eventType: { in: ["COUNTERED_BY_DRIVER", "COUNTERED_BY_OPERATOR"] },
+          },
+        });
+        if (counterEventCount >= MAX_COUNTER_ROUNDS) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Maximum negotiation rounds (${MAX_COUNTER_ROUNDS}) reached. Accept, decline, or withdraw.`,
+          });
+        }
+
         if (!input.counterSalaryCFA) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -3745,6 +3911,20 @@ export const driversRouter = createTRPCRouter({
         }
 
         // COUNTER_BACK
+        // Phase 3 (3.4) — cap negotiation rounds (same guard as driver side).
+        const opCounterEventCount = await tx.driverOfferEvent.count({
+          where: {
+            offerId: offer.id,
+            eventType: { in: ["COUNTERED_BY_DRIVER", "COUNTERED_BY_OPERATOR"] },
+          },
+        });
+        if (opCounterEventCount >= MAX_COUNTER_ROUNDS) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Maximum negotiation rounds (${MAX_COUNTER_ROUNDS}) reached. Accept, decline, or withdraw.`,
+          });
+        }
+
         if (!input.newSalaryCFA) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -3827,9 +4007,11 @@ export const driversRouter = createTRPCRouter({
         }
 
         const now = new Date();
+        // Phase 3 (3.4) — WITHDRAWN is operator-initiated, not a response.
+        // Only resolvedAt is set; respondedAt stays as-is (null or last response).
         await tx.driverEmploymentOffer.update({
           where: { id: offer.id },
-          data: { status: "WITHDRAWN", resolvedAt: now, respondedAt: now },
+          data: { status: "WITHDRAWN", resolvedAt: now },
         });
         await tx.driverOfferEvent.create({
           data: {

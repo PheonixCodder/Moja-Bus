@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import {
@@ -34,9 +34,26 @@ import {
 } from "lucide-react";
 import { DriverVerificationDialog } from "../components/drivers/driver-verification-dialog";
 
+/** Local 300ms debounce — keeps keystrokes from firing full queue fetches. */
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
+}
+
 export function AdminDriverVerificationsView() {
   const trpc = useTRPC();
+  // Phase-2 audit (gap #4 / F6): the old fixed limit:50/offset:0 silently
+  // truncated the queue past 50 rows. Accumulating load-more (roster/marketplace
+  // pattern) keeps every pending application reachable; search is debounced so
+  // keystrokes stop firing full fetches.
+  const PAGE_SIZE = 50;
+
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [statusFilter, setStatusFilter] = useState<
     "ALL" | "PENDING" | "VERIFIED" | "REJECTED" | "SUSPENDED"
   >("PENDING");
@@ -46,17 +63,38 @@ export function AdminDriverVerificationsView() {
   const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const [offset, setOffset] = useState(0);
+  const [accumulated, setAccumulated] = useState<
+    NonNullable<typeof data>["drivers"]
+  >([]);
+  const [lastFilterKey, setLastFilterKey] = useState("");
+  const filterKey = `${debouncedSearch.trim()}|${statusFilter}|${categoryFilter}`;
+
   const { data, isLoading } = useQuery(
     trpc.admin.listDriversForVerification.queryOptions({
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       status: statusFilter,
       licenseCategory: categoryFilter === "ALL" ? undefined : categoryFilter,
-      limit: 50,
-      offset: 0,
+      limit: PAGE_SIZE,
+      offset,
     })
   );
 
-  const drivers = data?.drivers ?? [];
+  // Reset accumulation when any filter changes (same guarded render-time
+  // reset as the operator roster view).
+  if (filterKey !== lastFilterKey && !isLoading) {
+    setLastFilterKey(filterKey);
+    setOffset(0);
+    setAccumulated([]);
+  }
+
+  const incoming = data?.drivers ?? [];
+  const total = data?.total ?? 0;
+  const knownIds = new Set(accumulated.map((d) => d.id));
+  const freshRows = incoming.filter((d) => !knownIds.has(d.id));
+  const drivers = offset === 0 ? incoming : [...accumulated, ...freshRows];
+  const hasMore = drivers.length < total;
+
   const counts = data?.counts ?? { pending: 0, verified: 0, rejected: 0 };
 
   const handleOpenDossier = (driver: any) => {
@@ -315,6 +353,25 @@ export function AdminDriverVerificationsView() {
             )}
           </TableBody>
         </Table>
+
+        {/* Phase-2 audit — accumulate load-more */}
+        {hasMore && (
+          <div className="p-4 border-t border-slate-100 flex flex-col items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+              onClick={() => setOffset((o) => o + PAGE_SIZE)}
+            >
+              {isLoading
+                ? "Loading…"
+                : `Load more (${total - drivers.length} remaining)`}
+            </Button>
+            <span className="text-xs text-slate-400">
+              Showing {drivers.length} of {total}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Interactive Dossier Modal */}

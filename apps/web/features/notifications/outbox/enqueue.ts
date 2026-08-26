@@ -74,6 +74,8 @@ export const OUTBOX_TYPES = {
   CAMPAIGN_BUDGET_EXHAUSTED: "CAMPAIGN_BUDGET_EXHAUSTED",
   // Phase 33 (F-PS-16) — operator rebooking confirmation to the passenger
   PASSENGER_REBOOKED: "PASSENGER_REBOOKED",
+  // Phase 37 — post-arrival review request (outbox-migrated)
+  PASSENGER_REVIEW_REQUEST: "PASSENGER_REVIEW_REQUEST",
 } as const;
 
 export type OutboxType = (typeof OUTBOX_TYPES)[keyof typeof OUTBOX_TYPES];

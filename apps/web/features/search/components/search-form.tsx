@@ -30,6 +30,10 @@ interface SearchFormProps {
   initialToMuni: string;
   initialFromQuarter: string;
   initialToQuarter: string;
+  initialFromTerminal: string;
+  initialToTerminal: string;
+  initialFromCompanyName: string;
+  initialToCompanyName: string;
   initialDate: string;
   initialPassengers: number;
   onSearch: (criteria: {
@@ -39,6 +43,10 @@ interface SearchFormProps {
     toMuni: string;
     fromQuarter: string;
     toQuarter: string;
+    fromTerminal: string;
+    toTerminal: string;
+    fromCompanyName: string;
+    toCompanyName: string;
     date: string;
     passengers: number;
   }) => void;
@@ -59,6 +67,10 @@ export const SearchForm = memo(function SearchForm({
   initialToMuni,
   initialFromQuarter,
   initialToQuarter,
+  initialFromTerminal,
+  initialToTerminal,
+  initialFromCompanyName,
+  initialToCompanyName,
   initialDate,
   initialPassengers,
   onSearch,
@@ -71,11 +83,18 @@ export const SearchForm = memo(function SearchForm({
       ? {
           municipalityId: initialFromMuni,
           quarterId: initialFromQuarter,
-          level: "quarter",
+          level: "quarter" as const,
         }
       : initialFromMuni
-        ? { municipalityId: initialFromMuni, level: "municipality" }
+        ? { municipalityId: initialFromMuni, level: "municipality" as const }
         : {}),
+    ...(initialFromTerminal
+      ? {
+          terminalId: initialFromTerminal,
+          level: "terminal" as const,
+          ...(initialFromCompanyName ? { companyName: initialFromCompanyName } : {}),
+        }
+      : {}),
   });
   const [destination, setDestination] = useState<CityValue>({
     id: initialToId,
@@ -84,11 +103,18 @@ export const SearchForm = memo(function SearchForm({
       ? {
           municipalityId: initialToMuni,
           quarterId: initialToQuarter,
-          level: "quarter",
+          level: "quarter" as const,
         }
       : initialToMuni
-        ? { municipalityId: initialToMuni, level: "municipality" }
+        ? { municipalityId: initialToMuni, level: "municipality" as const }
         : {}),
+    ...(initialToTerminal
+      ? {
+          terminalId: initialToTerminal,
+          level: "terminal" as const,
+          ...(initialToCompanyName ? { companyName: initialToCompanyName } : {}),
+        }
+      : {}),
   });
   const [date, setDate] = useState(initialDate || todayISO());
   const [passengers, setPassengers] = useState(initialPassengers);
@@ -113,6 +139,16 @@ export const SearchForm = memo(function SearchForm({
 
   useEffect(() => {
     if (!originCity) return;
+
+    // Terminal deep-link: use the stored terminal name + company
+    if (initialFromTerminal) {
+      const label = initialFromCompanyName
+        ? `${initialFromTerminal} (${initialFromCompanyName})`
+        : initialFromTerminal;
+      setOrigin((prev) => ({ ...prev, id: originCity.id, text: label }));
+      return;
+    }
+
     const label =
       originLabel && (originLabel.municipalityName || originLabel.quarterName)
         ? [
@@ -127,10 +163,20 @@ export const SearchForm = memo(function SearchForm({
             .join(" ")
         : originCity.name;
     setOrigin((prev) => ({ ...prev, id: originCity.id, text: label }));
-  }, [originCity, originLabel]);
+  }, [originCity, originLabel, initialFromTerminal, initialFromCompanyName]);
 
   useEffect(() => {
     if (!destCity) return;
+
+    // Terminal deep-link: use the stored terminal name + company
+    if (initialToTerminal) {
+      const label = initialToCompanyName
+        ? `${initialToTerminal} (${initialToCompanyName})`
+        : initialToTerminal;
+      setDestination((prev) => ({ ...prev, id: destCity.id, text: label }));
+      return;
+    }
+
     const label =
       destLabel && (destLabel.municipalityName || destLabel.quarterName)
         ? [
@@ -145,7 +191,7 @@ export const SearchForm = memo(function SearchForm({
             .join(" ")
         : destCity.name;
     setDestination((prev) => ({ ...prev, id: destCity.id, text: label }));
-  }, [destCity, destLabel]);
+  }, [destCity, destLabel, initialToTerminal, initialToCompanyName]);
 
   function handleSwap() {
     const swappedOrigin: CityValue = { ...destination };
@@ -181,6 +227,10 @@ export const SearchForm = memo(function SearchForm({
       toMuni: destination.municipalityId ?? "",
       fromQuarter: origin.quarterId ?? "",
       toQuarter: destination.quarterId ?? "",
+      fromTerminal: origin.terminalId ?? "",
+      toTerminal: destination.terminalId ?? "",
+      fromCompanyName: origin.companyName ?? "",
+      toCompanyName: destination.companyName ?? "",
       date,
       passengers,
     });

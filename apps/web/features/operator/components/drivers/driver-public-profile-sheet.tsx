@@ -399,6 +399,7 @@ export function DriverPublicProfileSheet({
       <SendOfferDialog
         driverProfileId={driverProfileId}
         driverName={driver?.user.fullName ?? "this driver"}
+        licenseCategory={driver?.licenseCategory}
         open={offerDialogOpen}
         onOpenChange={setOfferDialogOpen}
       />

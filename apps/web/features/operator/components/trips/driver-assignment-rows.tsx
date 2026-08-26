@@ -1,27 +1,28 @@
 "use client";
 
-import {
-  UserCheck,
-  Users,
-  ClipboardCheck,
-  X,
-  AlertTriangle,
-  ShieldAlert,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import { cn } from "@moja/ui/lib/utils";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
 import {
   Combobox,
-  ComboboxInput,
   ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
   ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
 } from "@moja/ui/components/ui/combobox";
-import { useTRPC } from "@/trpc/client";
+import { cn } from "@moja/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  ClipboardCheck,
+  CircleOff,
+  ShieldAlert,
+  UserCheck,
+  Users,
+  X,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 type Role = "PRIMARY" | "RELIEF" | "CONDUCTOR";
 
@@ -34,8 +35,16 @@ const ROLE_CONFIG: Record<
   Role,
   { icon: typeof UserCheck; labelKey: string; accent: string }
 > = {
-  PRIMARY: { icon: UserCheck, labelKey: "driverRow.primary", accent: "text-primary" },
-  RELIEF: { icon: Users, labelKey: "driverRow.relief", accent: "text-blue-500" },
+  PRIMARY: {
+    icon: UserCheck,
+    labelKey: "driverRow.primary",
+    accent: "text-primary",
+  },
+  RELIEF: {
+    icon: Users,
+    labelKey: "driverRow.relief",
+    accent: "text-blue-500",
+  },
   CONDUCTOR: {
     icon: ClipboardCheck,
     labelKey: "driverRow.conductor",
@@ -133,7 +142,9 @@ export function DriverAssignmentRows({
       driverProfileId,
       role,
       startStopOrder: 0,
-      ...(occupant && occupant.id !== driverProfileId ? { replacePrimary: true } : {}),
+      ...(occupant && occupant.id !== driverProfileId
+        ? { replacePrimary: true }
+        : {}),
     });
   };
 
@@ -201,19 +212,27 @@ export function DriverAssignmentRows({
                     <ComboboxList>
                       {drivers.map((d) => {
                         const ineligible =
-                          !d.licenseOk || !!d.conflict || d.rolesOnTrip.length > 0;
+                          !d.licenseOk ||
+                          !!d.conflict ||
+                          d.rolesOnTrip.length > 0;
                         let reason = "";
                         if (!d.licenseOk)
                           reason = t("licenseMismatch", {
                             required: d.requiredLicense ?? "—",
                           });
                         else if (d.conflict) reason = t("conflictBusy");
-                        else if (d.rolesOnTrip.length > 0) reason = t("alreadyOnTrip");
+                        else if (d.rolesOnTrip.length > 0)
+                          reason = t("alreadyOnTrip");
+                        // Phase 3 (3.1) — mode mismatch is a soft signal (warning),
+                        // not a hard disable. Operator sees the flag but can still assign.
+                        const modeMismatch = !d.modeOk;
 
                         return (
                           <ComboboxItem
                             key={d.driverProfileId}
-                            value={ineligible ? "__disabled__" : d.driverProfileId}
+                            value={
+                              ineligible ? "__disabled__" : d.driverProfileId
+                            }
                             disabled={ineligible}
                             className="text-xs"
                           >
@@ -225,14 +244,24 @@ export function DriverAssignmentRows({
                                     {t("liveAvailable")}
                                   </span>
                                 )}
+                                {modeMismatch && (
+                                  <span className="rounded bg-amber-50 px-1 font-semibold text-amber-700">
+                                    {t("modeMismatch")}
+                                  </span>
+                                )}
                                 {!d.licenseOk && (
                                   <ShieldAlert className="size-3 text-rose-500" />
                                 )}
                                 {d.conflict && (
                                   <AlertTriangle className="size-3 text-amber-500" />
                                 )}
+                                {modeMismatch && (
+                                  <CircleOff className="size-3 text-amber-500" />
+                                )}
                                 {reason && (
-                                  <span className="max-w-[150px] truncate">{reason}</span>
+                                  <span className="max-w-[150px] truncate">
+                                    {reason}
+                                  </span>
                                 )}
                               </span>
                             </span>

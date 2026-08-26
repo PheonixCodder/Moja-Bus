@@ -20,7 +20,6 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { enqueueDriverVerificationOutcome } from "@/features/notifications/outbox/driver-compliance";
-import { createPresignedDownload } from "@/lib/storage";
 import {
   enqueueDriverMarketplaceFeatured,
   enqueueDriverMarketplaceSuspended,
@@ -41,6 +40,8 @@ import {
   requireAdminPermission,
 } from "@/lib/permissions/admin-authorize";
 import { adminProcedure, createTRPCRouter } from "../init";
+import { driverPresignDocSchema } from "@/features/driver/lib/driver-doc-access";
+import { mintDriverDocUrl } from "@/features/driver/lib/driver-doc-mint";
 
 function slugify(text: string): string {
   return text
@@ -2895,52 +2896,14 @@ export const adminRouter = createTRPCRouter({
           }),
         ]);
 
-      // Phase 15 ride-along (2026-08-25) — compliance docs are PRIVATE
-      // storage keys since the Phase-15 pipeline; swap them for short-lived
-      // presigned GETs exactly like drivers.getDriver does, so admin dossiers
-      // render real documents instead of "missing" placeholders. Legacy
-      // absolute URLs pass through untouched; a failed presign degrades to
-      // null (placeholder) rather than blocking the hub.
-      const presignDoc = async (
-        purpose:
-          | "driver-license-front"
-          | "driver-license-back"
-          | "driver-medical-doc",
-        value: string | null,
-      ): Promise<string | null> => {
-        if (!value || !value.startsWith("documents/")) return value;
-        try {
-          const { downloadUrl } = await createPresignedDownload({
-            purpose,
-            objectKey: value,
-          });
-          return downloadUrl;
-        } catch {
-          return null;
-        }
-      };
-
-      const driversWithDossiers = await Promise.all(
-        drivers.map(async (d: any) => ({
-          ...d,
-          licenseFrontUrl: await presignDoc(
-            "driver-license-front",
-            d.licenseFrontUrl ?? null,
-          ),
-          licenseBackUrl: await presignDoc(
-            "driver-license-back",
-            d.licenseBackUrl ?? null,
-          ),
-          medicalDocUrl: await presignDoc(
-            "driver-medical-doc",
-            d.medicalDocUrl ?? null,
-          ),
-        })),
-      );
-
+      // Phase-2 audit (driver-system-complete-audit/20): raw stored keys flow
+      // to the client — the dossier dialog mints on-demand URLs via
+      // admin.presignDoc through <DriverDocPreview>. This list previously
+      // ran up to 150 signings per keystroke-triggered fetch and handed out
+      // 5-minute URLs that expired before an operator opened the dossier.
       return {
         total,
-        drivers: driversWithDossiers,
+        drivers,
         counts: {
           pending: pendingCount,
           verified: verifiedCount,
@@ -3069,6 +3032,18 @@ export const adminRouter = createTRPCRouter({
       });
 
       return { success: true, driver: updated };
+    }),
+
+  /**
+   * Phase-2 audit — admin twin of drivers.presignDoc: platform-wide document
+   * access for verification dossiers. Same namespace guard; gated by the
+   * hub-read key so any admin who can see the dossier can render its docs.
+   */
+  presignDoc: adminProcedure
+    .input(driverPresignDocSchema)
+    .mutation(async ({ ctx, input }) => {
+      requireAdminPermission(ctx, "drivers:verify.read");
+      return mintDriverDocUrl(ctx.prisma, input);
     }),
 
   // ============================================================================

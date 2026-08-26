@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@moja/ui/components/ui/select";
 import { Textarea } from "@moja/ui/components/ui/textarea";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, UserMinus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,6 +37,32 @@ import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 
 const LICENSE_CATEGORIES = ["B", "C", "D", "E"] as const;
+
+/**
+ * Phase-2 audit (D3/C) — document replacement slots. Until driver self-service
+ * ships (Phase 7), this is the ONLY remediation path anywhere in the product
+ * for an unreadable/expired compliance document. Replacements flow through the
+ * private storage purposes and are audit-logged server-side (DRIVER_DOCS_REPLACED).
+ */
+const DOC_SLOTS = [
+  {
+    field: "licenseFrontUrl",
+    purpose: "driver-license-front",
+    label: "Licence photo (front)",
+  },
+  {
+    field: "licenseBackUrl",
+    purpose: "driver-license-back",
+    label: "Licence photo (back)",
+  },
+  {
+    field: "medicalDocUrl",
+    purpose: "driver-medical-doc",
+    label: "Medical certificate",
+  },
+] as const;
+
+type DocSlotField = (typeof DOC_SLOTS)[number]["field"];
 
 interface DriverRosterActionsProps {
   driverId: string;
@@ -67,6 +93,7 @@ export function DriverRosterActions({
 }: DriverRosterActionsProps) {
   const trpc = useTRPC();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
   const [form, setForm] = useState({
@@ -78,14 +105,52 @@ export function DriverRosterActions({
     badgeNumber: defaults.badgeNumber,
     notes: defaults.notes,
   });
+  const [docSlots, setDocSlots] = useState<
+    Partial<Record<DocSlotField, { key: string; name: string }>>
+  >({});
+  const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
 
   const permsQuery = useQuery(trpc.drivers.getPermissions.queryOptions());
+
+  const presignUpload = useMutation(trpc.storage.presignUpload.mutationOptions());
+
+  const uploadDoc = async (field: DocSlotField, file: File) => {
+    const slotMeta = DOC_SLOTS.find((s) => s.field === field)!;
+    setUploadingSlot(field);
+    try {
+      const contentType = file.type || "application/octet-stream";
+      const { uploadUrl, objectKey } = await presignUpload.mutateAsync({
+        purpose: slotMeta.purpose,
+        fileName: file.name,
+        contentType,
+        fileSize: file.size,
+      });
+      const put = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": contentType },
+      });
+      if (!put.ok) {
+        throw new Error(`Storage rejected the upload (${put.status})`);
+      }
+      setDocSlots((prev) => ({
+        ...prev,
+        [field]: { key: objectKey, name: file.name },
+      }));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Document upload failed");
+    } finally {
+      setUploadingSlot(null);
+    }
+  };
 
   const updateMutation = useMutation(
     trpc.drivers.updateDriver.mutationOptions({
       onSuccess: () => {
         toast.success("Driver updated", { description: driverName });
         setEditOpen(false);
+        setDocSlots({});
+        queryClient.invalidateQueries(trpc.drivers.getDriver.pathFilter());
         router.refresh();
       },
       onError: (err) => toast.error(err.message || "Failed to update driver"),
@@ -126,6 +191,16 @@ export function DriverRosterActions({
         ? { badgeNumber: form.badgeNumber.trim() }
         : { badgeNumber: undefined }),
       notes: form.notes,
+      // Only replaced docs travel — absent fields keep their stored values.
+      ...(docSlots.licenseFrontUrl
+        ? { licenseFrontUrl: docSlots.licenseFrontUrl.key }
+        : {}),
+      ...(docSlots.licenseBackUrl
+        ? { licenseBackUrl: docSlots.licenseBackUrl.key }
+        : {}),
+      ...(docSlots.medicalDocUrl
+        ? { medicalDocUrl: docSlots.medicalDocUrl.key }
+        : {}),
     });
   };
 
@@ -136,7 +211,10 @@ export function DriverRosterActions({
           variant="outline"
           size="sm"
           className="gap-2"
-          onClick={() => setEditOpen(true)}
+          onClick={() => {
+            setDocSlots({});
+            setEditOpen(true);
+          }}
         >
           <Pencil className="size-3.5" />
           Edit
@@ -235,6 +313,53 @@ export function DriverRosterActions({
                   setForm((f) => ({ ...f, notes: e.target.value }))
                 }
               />
+            </div>
+
+            {/* Phase-2 audit — document replacement slots (audit-logged
+                server-side; verification status is intentionally kept). */}
+            <div className="grid gap-1.5">
+              <Label>Compliance documents (optional replacements)</Label>
+              <div className="grid gap-2">
+                {DOC_SLOTS.map((slotMeta) => {
+                  const slot = docSlots[slotMeta.field];
+                  const inputId = `doc-replace-${slotMeta.field}`;
+                  return (
+                    <div key={slotMeta.field} className="flex items-center">
+                      <input
+                        id={inputId}
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void uploadDoc(slotMeta.field, file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start font-normal"
+                        disabled={uploadingSlot !== null}
+                        onClick={() =>
+                          document.getElementById(inputId)?.click()
+                        }
+                      >
+                        {uploadingSlot === slotMeta.field
+                          ? "Uploading…"
+                          : slot
+                            ? `✓ ${slot.name}`
+                            : slotMeta.label}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Replacements are audit-logged; verification status does not
+                change.
+              </p>
             </div>
           </div>
           <DialogFooter>

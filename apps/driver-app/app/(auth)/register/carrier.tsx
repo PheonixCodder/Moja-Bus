@@ -122,14 +122,14 @@ export default function RegisterStep4CarrierScreen() {
 
 			<ScrollView className="flex-1 px-5 py-6 space-y-6">
 				{/* Header Intro */}
-				<div>
+				<View>
 					<Text className="text-2xl font-black text-white tracking-tight">
 						Carrier Affiliation
 					</Text>
 					<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
 						Connect your driver passport to your commercial bus carrier or transport company.
 					</Text>
-				</div>
+				</View>
 
 				{/* Employment Type Choice */}
 				<View className="space-y-2.5">

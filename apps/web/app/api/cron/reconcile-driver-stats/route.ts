@@ -44,6 +44,9 @@ export async function GET(request: Request) {
     // (Phase 29 ride-along: converted to tagged templates per F-IN-12 while
     // this file was being rewritten semantically. The old separate lifetime
     // query died with F-TM-18's dead variable — daily rows sum to it.)
+    const pingCutoff = new Date();
+    pingCutoff.setDate(pingCutoff.getDate() - 181);
+
     const dayRows: Array<{ driver: string; day: Date; pen: string | number }> =
       await prisma.$queryRaw`
         SELECT p."driverProfileId" AS driver,
@@ -55,6 +58,7 @@ export async function GET(request: Request) {
         FROM "driver_location_ping" p
         WHERE p."isAnomaly" = true
           AND p."anomalyReason" IN ('OVERSPEED','HARSH_BRAKING')
+          AND p."recordedAt" >= ${pingCutoff}
         GROUP BY 1, 2
       `;
 
@@ -163,16 +167,18 @@ export async function GET(request: Request) {
     }> = await prisma.$queryRaw`
       SELECT a."driverProfileId" AS driver,
              t."id" AS trip_id,
-             EXISTS (
-               SELECT 1 FROM "driver_location_ping" p
-               WHERE p."tripId" = t."id"
-             ) AS has_pings,
-             EXISTS (
-               SELECT 1 FROM "driver_location_ping" p
-               WHERE p."tripId" = t."id"
-                 AND p."isAnomaly" = true
-                 AND p."anomalyReason" IN ('OVERSPEED','HARSH_BRAKING')
-             ) AS dirty
+      EXISTS (
+                SELECT 1 FROM "driver_location_ping" p
+                WHERE p."tripId" = t."id"
+                  AND p."recordedAt" >= ${pingCutoff}
+              ) AS has_pings,
+              EXISTS (
+                SELECT 1 FROM "driver_location_ping" p
+                WHERE p."tripId" = t."id"
+                  AND p."isAnomaly" = true
+                  AND p."anomalyReason" IN ('OVERSPEED','HARSH_BRAKING')
+                  AND p."recordedAt" >= ${pingCutoff}
+              ) AS dirty
       FROM "trip_driver_assignment" a
       JOIN "trip" t ON t."id" = a."tripId"
       WHERE t."status" = 'ARRIVED'

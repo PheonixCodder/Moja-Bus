@@ -15,6 +15,14 @@ Living catalog of components for the Driver ERP and Mobile Application. Match ex
 | `DriverCareerStatsCard` | `apps/web/features/operator/components/drivers/driver-career-stats-card.tsx` | Lifetime KPI cards (Rating, Trips, Distance Km, Safety Score) |
 | `LiveFleetMap` | `apps/web/features/operator/components/drivers/live-fleet-map.tsx` | Mapbox / Leaflet interactive fleet map with live moving bus markers |
 
+### Shared driver-domain components (cross-surface)
+
+| Component Name | File Path | Description & Classes |
+| :--- | :--- | :--- |
+| `DriverDocPreview` | `apps/web/features/driver/components/driver-doc-preview.tsx` | THE compliance-document renderer (operator + admin). On-demand presigned URLs via `drivers.presignDoc`/`admin.presignDoc`; image + inline-PDF; legacy https passthrough; `file://` re-upload placeholder. Props: `{audience, driverProfileId, docType, label, storedValue}`. Match this before building any new document viewer |
+| `driver-doc-access.ts` (lib) | `apps/web/features/driver/lib/driver-doc-access.ts` | PURE contracts: doc-type enum, key-segment map, namespace guard (`driverDocKeyMatches`), presign zod schema. Server-only-free by design |
+| `driver-doc-mint.ts` (lib) | `apps/web/features/driver/lib/driver-doc-mint.ts` | Server-side mint core (`mintDriverDocUrl`): affiliation scoping + namespace guard + 5-min presigned GET |
+
 ---
 
 ## 2. Driver Mobile App Components (`apps/driver-app/components`)
