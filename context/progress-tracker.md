@@ -37,6 +37,17 @@
 
 ## Milestone Log (newest first)
 
+### Sales cutoff — departed trips no longer bookable (2026-08-26)
+
+- **Bug:** the entire passenger funnel had no `now` comparison — search listed already-departed trips on today's date (and any past date via URL), and trip-details/seat-map/createHold accepted them via direct link. Status hygiene doesn't cover it: auto-generated trips nobody flipped stay SCHEDULED forever.
+- **Ruling:** 30-minute sales cutoff — a trip is bookable iff `departureTime >= now + 30min` (last possible 15-min hold expires at/before departure). User-confirmed product decision.
+- **Enforcement (one shared rule, two choke points):**
+  - NEW `apps/web/features/booking/lib/sales-cutoff.ts` (`SALES_CUTOFF_MINUTES=30`, `isPastSalesCutoff`, `salesCutoffInstant`).
+  - `buildTripWhere(..., now?)` clamps EVERY lower bound (plain branch + per-window MORNING/LATE_NIGHT ranges; fully-closed windows collapse to an impossible condition). `findTrips`/`findTripsInWindow` pass server `now` ⇒ search + cheapestByDate strip covered; past `?date=` URLs return zero rows for free. Builder stays pure when `now` omitted.
+  - `TripDetailsService.getTripDetails` throws BAD_REQUEST "Sales for this trip have closed" past the cutoff ⇒ one guard covers details + seat map + createHold.
+  - Zero UI changes needed (date strip already renders/disables null-price cells; form picker blocks past dates).
+- **Tests:** new `features/booking/lib/__tests__/sales-cutoff.test.ts` (+6, registered in package.json test list); `search-where.test.ts` +7 fixed-`now` clamp cases. Web suite 570/570 green; web tsc --noEmit clean.
+
 ### v2 Full-System Audit → 39-Phase Execution Plan (2026-08-23)
 
 Audit: `context/drivers/full-system-e2e-audit/` (93 findings; per-finding evidence in domain files 02–10, catalog in 11, gates in 12).

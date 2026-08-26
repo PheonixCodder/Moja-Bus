@@ -2,6 +2,7 @@ import type { Prisma, PrismaClient } from "@moja/db";
 import type { GeoPlace } from "../lib/places";
 import type { SearchFilters } from "../services/search-service";
 import { abidjanDayBounds } from "../lib/abidjan-time";
+import { salesCutoffInstant } from "@/features/booking/lib/sales-cutoff";
 
 export type TripWhereFilters = Pick<
   SearchFilters,
@@ -57,6 +58,13 @@ function departureHourRanges(
  * Builds a TripWhereInput from geo/date constraints plus the SQL-expressible
  * filters. Fare-derived filters (maxPrice, isExpress) are intentionally not
  * here — they depend on segment stop-order resolution and stay in JS.
+ *
+ * `now` applies the shared sales cutoff (features/booking/lib/sales-cutoff.ts):
+ * every lower bound used for the queried window is clamped up to
+ * now + SALES_CUTOFF_MINUTES so already-departed departures can never match,
+ * including inside the departure-window (MORNING/LATE_NIGHT/…) branches which
+ * carry their own absolute ranges. Omitted = no clamping (pure builder; unit
+ * tests pin exact windows). A fully-past window yields gte > lte → zero rows.
  */
 export function buildTripWhere(
   originPlace: GeoPlace,
@@ -64,6 +72,7 @@ export function buildTripWhere(
   start: Date,
   end: Date,
   filters: TripWhereFilters,
+  now?: Date,
 ): Prisma.TripWhereInput {
   const where: Prisma.TripWhereInput = {
     // BOARDING matches trip-details bookable set (P2-11): seats may remain
@@ -71,6 +80,11 @@ export function buildTripWhere(
     status: { in: ["SCHEDULED", "DELAYED", "BOARDING"] },
     schedule: { isActive: true },
   };
+
+  const cutoff = now ? salesCutoffInstant(now) : null;
+  const effectiveStart =
+    cutoff && cutoff.getTime() > start.getTime() ? cutoff : start;
+
 
   if (filters.operators && filters.operators.length > 0) {
     where.companyId = { in: filters.operators };
@@ -103,18 +117,31 @@ export function buildTripWhere(
     const hourBranches: Prisma.TripStopWhereInput[] = [];
     for (const window of filters.departureTime) {
       for (const range of departureHourRanges(window, start)) {
+        const gte = range.gte < effectiveStart ? effectiveStart : range.gte;
+        if (range.lt <= gte) continue; // window fully closed by the cutoff
         hourBranches.push({
           ...originStopWhere,
-          scheduledDeparture: { gte: range.gte, lt: range.lt },
+          scheduledDeparture: { gte, lt: range.lt },
         });
       }
     }
-    where.tripStops = { some: { OR: hourBranches } };
+    if (hourBranches.length === 0) {
+      // Every selected window closed before the cutoff — force an impossible
+      // condition rather than an empty OR (whose matching behavior is subtle).
+      where.tripStops = {
+        some: {
+          ...originStopWhere,
+          scheduledDeparture: { gte: effectiveStart, lt: effectiveStart },
+        },
+      };
+    } else {
+      where.tripStops = { some: { OR: hourBranches } };
+    }
   } else {
     where.tripStops = {
       some: {
         ...originStopWhere,
-        scheduledDeparture: { gte: start, lte: end },
+        scheduledDeparture: { gte: effectiveStart, lte: end },
       },
     };
   }
@@ -190,6 +217,7 @@ export class TripSearchReadRepository {
         startOfDay,
         endOfDay,
         filters,
+        new Date(),
       ),
       include: this.tripInclude,
     });
@@ -217,6 +245,7 @@ export class TripSearchReadRepository {
           departureTime: [],
           seatClass: undefined,
         },
+        new Date(),
       ),
       include: {
         tripStops: {

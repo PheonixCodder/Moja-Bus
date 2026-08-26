@@ -1,5 +1,25 @@
 # Memory
 
+**Session:** Sales-cutoff fix — departed trips no longer bookable anywhere in the passenger funnel (done, 2026-08-26)
+**Date:** 2026-08-26
+
+## Summary
+Found and fixed the "already-departed trips still render as bookable" bug. Root cause: nothing in the passenger pipeline compared departure against `now` — search constrained only to the calendar day (`buildTripWhere`), and `TripDetailsService.getTripDetails` checked schedule-active + status but never time; `createHold`/seat-map both delegate there. Status hygiene can't be relied on (auto-generated trips stay SCHEDULED forever if nobody flips them).
+
+## Completed Work
+- **30-minute sales cutoff — user-confirmed ruling:** a trip is bookable iff `departureTime >= now + 30min`. Rationale: boarding starts early, and the last possible 15-min hold expires at/before departure so payment can't land on a departed bus.
+- **One shared rule, two choke points:**
+  - NEW `apps/web/features/booking/lib/sales-cutoff.ts`: `SALES_CUTOFF_MINUTES=30`, `isPastSalesCutoff(departure, now?)`, `salesCutoffInstant(now?)` — pure, injectable clock.
+  - `buildTripWhere(..., now?: Date)` clamps EVERY lower bound up to the cutoff — including the departure-window branches (MORNING/LATE_NIGHT carry their own absolute hour ranges; a naive `start` clamp would have leaked this morning's departures through them). All-windows-closed collapses to an impossible gte==lt condition instead of an empty OR. `findTrips`/`findTripsInWindow` pass server now ⇒ search + cheapestByDate covered; past `?date=` URLs yield zero rows automatically. Builder stays pure when `now` omitted (existing tests unchanged).
+  - `TripDetailsService.getTripDetails` throws BAD_REQUEST "Sales for this trip have closed" past cutoff ⇒ one guard covers trip-details page, seat map AND createHold (no transaction changes).
+  - Zero UI changes needed — date strip already renders "—"/disables null-price cells, form date picker already blocks past dates.
+- **Tests:** new `sales-cutoff.test.ts` (+6, registered in apps/web/package.json test list); `search-where.test.ts` +7 fixed-now cases (clamp, boundary parity, MORNING collapse, LATE_NIGHT sub-range drops, past-date impossible range). **Web suite 570/570 green; web tsc --noEmit exit 0.**
+- Boundary semantics kept consistent everywhere: departure exactly AT the cutoff instant is still bookable.
+
+---
+
+## Prior sessions (newest below this line)
+
 **Session:** Ivory Coast geography import (M0) + GPS capture-link terminal workflow (M1+M2+M3+M4+M5 done, M6 verification next) + portable geo seed document (done) + capture-approval button fix (done) + **OSM Nominatim reverse geocoding for the capture flow (done, 2026-08-06)** + foundation SQL cleanup (done) + **Admin Staff section + Vercel build unblock (done, 2026-08-07) + full staff-permissions re-audit for BOTH operator + admin systems (docs finalized, 2026-08-07)**
 **Date:** 2026-08-07
 

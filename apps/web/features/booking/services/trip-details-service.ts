@@ -4,6 +4,7 @@ import type { Amenity, TripDetails } from "@moja/types";
 import { buildOfferId, parseOfferId } from "@moja/types";
 import { TripSearchReadRepository } from "@/features/search/repositories/search-read-repository";
 import { matchSegmentFare } from "@/features/search/lib/segment-fare-match";
+import { isPastSalesCutoff } from "../lib/sales-cutoff";
 import { isActiveBookingStatus, segmentsOverlap } from "../lib/segment-overlap";
 
 const BOOKABLE_TRIP_STATUSES = ["SCHEDULED", "DELAYED", "BOARDING"] as const;
@@ -76,6 +77,18 @@ export class TripDetailsService {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Journey segment not found for this offer",
+      });
+    }
+
+    // Shared sales cutoff — one guard covers trip details, the seat map
+    // (SeatAvailabilityService delegates here) and createHold, so a direct
+    // link can never hold or pay for a departure that has already closed.
+    // Mirrors the SQL clamp in buildTripWhere (same boundary: departure
+    // exactly at the cutoff is still bookable).
+    if (isPastSalesCutoff(originStop.scheduledDeparture)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Sales for this trip have closed",
       });
     }
 
