@@ -2,7 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
-import { type StaffRole, ROLE_LABELS, ROLE_COLORS } from "@/features/operator/lib/staff";
+import {
+  type StaffRole,
+  ROLE_LABELS,
+  ROLE_COLORS,
+} from "@/features/operator/lib/staff";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component

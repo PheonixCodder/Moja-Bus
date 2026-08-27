@@ -73,7 +73,9 @@ function createMockPrisma(config: {
       // Tripwire: ownership checks must never mutate a payment they reject.
       update: async () => {
         calls.externalPaymentUpdate++;
-        throw new Error("externalPayment.update must not run during a rejected verify");
+        throw new Error(
+          "externalPayment.update must not run during a rejected verify",
+        );
       },
     },
     holdGroup: {

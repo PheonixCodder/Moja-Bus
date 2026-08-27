@@ -35,9 +35,7 @@ export function ScheduleDeleteDialog({
             <AlertCircle className="size-4" />
             {t("delete.title")}
           </DialogTitle>
-          <DialogDescription>
-            {t("delete.warningText")}
-          </DialogDescription>
+          <DialogDescription>{t("delete.warningText")}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={pending}>

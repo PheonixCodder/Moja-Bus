@@ -25,7 +25,9 @@ interface BlogIndexPageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps) {
+export default async function BlogIndexPage({
+  searchParams,
+}: BlogIndexPageProps) {
   const params = blogParamsCache.parse(await searchParams);
 
   const offset = (params["page"] - 1) * 9;
@@ -41,7 +43,7 @@ export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps
         searchQuery: params["q"] || undefined,
         limit: 9,
         offset,
-      })
+      }),
     ),
   ]);
 

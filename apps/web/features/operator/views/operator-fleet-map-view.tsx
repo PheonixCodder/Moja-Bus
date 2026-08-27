@@ -6,7 +6,7 @@ import {
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
 import { Button } from "@moja/ui/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Bus,
@@ -15,12 +15,15 @@ import {
   Radio,
   RefreshCw,
   UserCheck,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
 import type { FleetVehicle } from "@/features/operator/components/fleet-live-map";
+import { useGatewaySubscription } from "@/lib/gateway-subscription";
 import { useTRPC } from "@/trpc/client";
 
 // Leaflet touches `window` at module load — client-only, matching the
@@ -32,13 +35,55 @@ const FleetLiveMap = dynamic(
 
 export function OperatorFleetMapView() {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
   // Ticking clock so stale-dimming updates between polls.
   const [now, setNow] = useState(() => Date.now());
 
+  const tokenQuery = useQuery(
+    trpc.operator.getGatewaySubscriptionToken.queryOptions(),
+  );
+
+  const livePositionsOptions = trpc.drivers.getLivePositions.queryOptions();
+  const livePositionsKey = trpc.drivers.getLivePositions.queryKey();
+
   const liveQuery = useQuery({
-    ...trpc.drivers.getLivePositions.queryOptions(),
-    refetchInterval: 10000, // Positions refresh every 10 seconds
+    ...livePositionsOptions,
+    refetchInterval: 10000, // Positions refresh every 10 seconds as structural fallback
+  });
+
+  const { isConnected } = useGatewaySubscription({
+    token: tokenQuery.data?.token,
+    room: tokenQuery.data?.companyId
+      ? `company:${tokenQuery.data.companyId}`
+      : null,
+    enabled: !!tokenQuery.data?.token,
+    onMessage: (data: {
+      driverProfileId: string;
+      tripId?: string;
+      latitude: number;
+      longitude: number;
+      speedKmh?: number | null;
+      heading?: number | null;
+      recordedAt: string | Date;
+    }) => {
+      queryClient.setQueryData(livePositionsKey, (old: any) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((driver) => {
+          if (driver.id === data.driverProfileId) {
+            return {
+              ...driver,
+              lastLatitude: data.latitude,
+              lastLongitude: data.longitude,
+              lastHeading: data.heading ?? driver.lastHeading,
+              lastSpeedKmh: data.speedKmh ?? driver.lastSpeedKmh,
+              lastPingAt: data.recordedAt,
+            };
+          }
+          return driver;
+        });
+      });
+    },
   });
 
   useEffect(() => {
@@ -68,13 +113,28 @@ export function OperatorFleetMapView() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-              <Radio className="size-5 text-emerald-500 animate-pulse" />
-              Live Fleet Telemetry Map
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+                <Radio className="size-5 text-emerald-500 animate-pulse" />
+                Live Fleet Telemetry Map
+              </h1>
+              {isConnected ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                  <Wifi className="size-3" />
+                  Live Push Connected
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 bg-muted px-2 py-0.5 rounded-full">
+                  <WifiOff className="size-3" />
+                  10s Sync Active
+                </span>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               Live GPS positions of active buses and dispatched drivers —
-              refreshed every 10 seconds.
+              {isConnected
+                ? " real-time WebSocket push with 10s fallback."
+                : " refreshed every 10 seconds."}
             </p>
           </div>
         </div>

@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const operatorWelcomeWorkflow = workflow(
   "operator-welcome",
   async ({ step, payload }) => {
@@ -45,12 +44,13 @@ export const operatorWelcomeWorkflow = workflow(
   },
   {
     name: "Operator Welcome Onboarding",
-    description: "Welcome onboarding sequence for newly registered transport operators",
+    description:
+      "Welcome onboarding sequence for newly registered transport operators",
     payloadSchema: z.object({
       email: z.string().email(),
       ownerName: z.string(),
       companyName: z.string(),
       dashboardUrl: z.string().url(),
     }),
-  }
+  },
 );

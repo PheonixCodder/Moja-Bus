@@ -186,7 +186,8 @@ export function ScheduleEditDrawer({
     ? buildStopsFromRoute(schedule.route as never)
     : [];
   const stopName = (order: number) =>
-    stops.find((s) => s.order === order)?.name ?? t("editDrawer.stopName", { order });
+    stops.find((s) => s.order === order)?.name ??
+    t("editDrawer.stopName", { order });
 
   async function handleAddException() {
     if (!schedule || !exceptionDate) {
@@ -217,7 +218,9 @@ export function ScheduleEditDrawer({
       toast.success(t("editDrawer.exceptionAdded"));
       await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t("editDrawer.exceptionAddFailed"));
+      toast.error(
+        err instanceof Error ? err.message : t("editDrawer.exceptionAddFailed"),
+      );
     }
   }
 
@@ -229,7 +232,9 @@ export function ScheduleEditDrawer({
       await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : t("editDrawer.exceptionRemoveFailed"),
+        err instanceof Error
+          ? err.message
+          : t("editDrawer.exceptionRemoveFailed"),
       );
     }
   }
@@ -283,7 +288,11 @@ export function ScheduleEditDrawer({
       await queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
       onOpenChange(false);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t("editDrawer.scheduleUpdateFailed"));
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : t("editDrawer.scheduleUpdateFailed"),
+      );
     } finally {
       setEditSaving(false);
     }
@@ -355,9 +364,7 @@ export function ScheduleEditDrawer({
       open={open}
       onOpenChange={(next) => {
         if (!next && isDirty()) {
-          if (
-            !window.confirm(t("editDrawer.unsavedChanges"))
-          ) {
+          if (!window.confirm(t("editDrawer.unsavedChanges"))) {
             return;
           }
         }
@@ -367,7 +374,12 @@ export function ScheduleEditDrawer({
       <DrawerContent className="max-h-[92vh] flex flex-col">
         <DrawerHeader className="border-b border-border py-4 shrink-0">
           <DrawerTitle className="text-base font-bold tracking-tight">
-            {t("editDrawer.title", { name: schedule?.name ?? schedule?.route?.name ?? t("editDrawer.scheduleName") })}
+            {t("editDrawer.title", {
+              name:
+                schedule?.name ??
+                schedule?.route?.name ??
+                t("editDrawer.scheduleName"),
+            })}
           </DrawerTitle>
           <DrawerDescription className="text-xs">
             {t("editDrawer.description")}
@@ -388,7 +400,7 @@ export function ScheduleEditDrawer({
 
           <div className="space-y-3.5">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
-                {t("editDrawer.basicInfo")}
+              {t("editDrawer.basicInfo")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5 sm:col-span-2">
@@ -412,7 +424,9 @@ export function ScheduleEditDrawer({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">{t("editDrawer.preferredBus")}</Label>
+              <Label className="text-xs font-semibold">
+                {t("editDrawer.preferredBus")}
+              </Label>
               <Combobox
                 items={activeBuses.map((b) => ({
                   value: b.id,
@@ -625,7 +639,9 @@ export function ScheduleEditDrawer({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">{t("editDrawer.date")}</Label>
+                <Label className="text-xs font-semibold">
+                  {t("editDrawer.date")}
+                </Label>
                 <DatePicker
                   value={exceptionDate}
                   onChange={(date) => {
@@ -642,12 +658,17 @@ export function ScheduleEditDrawer({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">{t("editDrawer.type")}</Label>
+                <Label className="text-xs font-semibold">
+                  {t("editDrawer.type")}
+                </Label>
                 <Select
                   value={exceptionType}
                   onValueChange={(val) =>
                     setExceptionType(
-                      (val ?? "CANCELLED") as "CANCELLED" | "EXTRA_SERVICE" | "MODIFIED",
+                      (val ?? "CANCELLED") as
+                        | "CANCELLED"
+                        | "EXTRA_SERVICE"
+                        | "MODIFIED",
                     )
                   }
                 >
@@ -655,9 +676,15 @@ export function ScheduleEditDrawer({
                     <SelectValue placeholder={t("editDrawer.selectType")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CANCELLED">{t("editDrawer.typeCancelled")}</SelectItem>
-                    <SelectItem value="MODIFIED">{t("editDrawer.typeModified")}</SelectItem>
-                    <SelectItem value="EXTRA_SERVICE">{t("editDrawer.typeExtraService")}</SelectItem>
+                    <SelectItem value="CANCELLED">
+                      {t("editDrawer.typeCancelled")}
+                    </SelectItem>
+                    <SelectItem value="MODIFIED">
+                      {t("editDrawer.typeModified")}
+                    </SelectItem>
+                    <SelectItem value="EXTRA_SERVICE">
+                      {t("editDrawer.typeExtraService")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -674,28 +701,50 @@ export function ScheduleEditDrawer({
                 </div>
               )}
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">{t("editDrawer.reason")}</Label>
+                <Label className="text-xs font-semibold">
+                  {t("editDrawer.reason")}
+                </Label>
                 <Select
                   value={exceptionReason}
-                  onValueChange={(val) => setExceptionReason(val ?? "OPERATIONAL")}
+                  onValueChange={(val) =>
+                    setExceptionReason(val ?? "OPERATIONAL")
+                  }
                 >
                   <SelectTrigger className="h-9 text-xs">
                     <SelectValue placeholder={t("editDrawer.selectReason")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="OPERATIONAL">{t("editDrawer.reasonOperational")}</SelectItem>
-                    <SelectItem value="HOLIDAY_NATIONAL">{t("editDrawer.reasonNationalHoliday")}</SelectItem>
-                    <SelectItem value="HOLIDAY_ISLAMIC">{t("editDrawer.reasonIslamicHoliday")}</SelectItem>
-                    <SelectItem value="HOLIDAY_CHRISTIAN">{t("editDrawer.reasonChristianHoliday")}</SelectItem>
-                    <SelectItem value="WEATHER">{t("editDrawer.reasonWeather")}</SelectItem>
-                    <SelectItem value="MAINTENANCE">{t("editDrawer.reasonMaintenance")}</SelectItem>
-                    <SelectItem value="STRIKE">{t("editDrawer.reasonStrike")}</SelectItem>
-                    <SelectItem value="OTHER">{t("editDrawer.reasonOther")}</SelectItem>
+                    <SelectItem value="OPERATIONAL">
+                      {t("editDrawer.reasonOperational")}
+                    </SelectItem>
+                    <SelectItem value="HOLIDAY_NATIONAL">
+                      {t("editDrawer.reasonNationalHoliday")}
+                    </SelectItem>
+                    <SelectItem value="HOLIDAY_ISLAMIC">
+                      {t("editDrawer.reasonIslamicHoliday")}
+                    </SelectItem>
+                    <SelectItem value="HOLIDAY_CHRISTIAN">
+                      {t("editDrawer.reasonChristianHoliday")}
+                    </SelectItem>
+                    <SelectItem value="WEATHER">
+                      {t("editDrawer.reasonWeather")}
+                    </SelectItem>
+                    <SelectItem value="MAINTENANCE">
+                      {t("editDrawer.reasonMaintenance")}
+                    </SelectItem>
+                    <SelectItem value="STRIKE">
+                      {t("editDrawer.reasonStrike")}
+                    </SelectItem>
+                    <SelectItem value="OTHER">
+                      {t("editDrawer.reasonOther")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">{t("editDrawer.notes")}</Label>
+                <Label className="text-xs font-semibold">
+                  {t("editDrawer.notes")}
+                </Label>
                 <Input
                   value={exceptionNotes}
                   onChange={(e) => setExceptionNotes(e.target.value)}
@@ -716,61 +765,66 @@ export function ScheduleEditDrawer({
           </div>
 
           <div className="space-y-3.5">
-<h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
-               {t("editDrawer.fareMatrix")}
-             </h3>
-             {editFares.length === 0 ? (
-               <p className="text-xs text-muted-foreground">
-                 {t("editDrawer.noFares")}
-               </p>
-             ) : (
-               <div className="border border-border rounded-md overflow-hidden bg-card">
-                 <div className="grid bg-slate-50 border-b border-border px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                   <div
-                     className="grid gap-2"
-                     style={{ gridTemplateColumns: "1fr 1fr auto" }}
-                   >
-                     <span>{t("editDrawer.from")}</span>
-                     <span>{t("editDrawer.to")}</span>
-                     <span className="w-32 text-right">{t("editDrawer.price")}</span>
-                   </div>
-                 </div>
-                 <div className="divide-y divide-border">
-                   {editFares.map((f) => (
-                     <div
-                       key={f.id}
-                       className="grid gap-2 px-4 py-2.5 items-center hover:bg-slate-50/50"
-                       style={{ gridTemplateColumns: "1fr 1fr auto" }}
-                     >
-                       <span className="text-xs font-semibold text-foreground">
-                         {stopName(f.fromStopOrder)}
-                       </span>
-                       <span className="text-xs font-semibold text-foreground">
-                         {stopName(f.toStopOrder)}
-                       </span>
-                       <div className="w-32 flex flex-col gap-1 items-end">
-                         <Input
-                           type="number"
-                           min={0}
-                           value={f.priceXOF}
-                           onChange={(e) =>
-                             handleFarePriceChange(f.id, e.target.value)
-                           }
-                           className="h-8 text-xs font-mono text-right"
-                           aria-label={t("editDrawer.priceAria", { fromName: stopName(f.fromStopOrder), toName: stopName(f.toStopOrder) })}
-                         />
-                           {savingFareIds.has(f.id) && (
-                           <span className="text-[10px] text-muted-foreground">
-                             {tc("saving")}
-                           </span>
-                         )}
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-               </div>
-             )}
-           </div>
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">
+              {t("editDrawer.fareMatrix")}
+            </h3>
+            {editFares.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                {t("editDrawer.noFares")}
+              </p>
+            ) : (
+              <div className="border border-border rounded-md overflow-hidden bg-card">
+                <div className="grid bg-slate-50 border-b border-border px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <div
+                    className="grid gap-2"
+                    style={{ gridTemplateColumns: "1fr 1fr auto" }}
+                  >
+                    <span>{t("editDrawer.from")}</span>
+                    <span>{t("editDrawer.to")}</span>
+                    <span className="w-32 text-right">
+                      {t("editDrawer.price")}
+                    </span>
+                  </div>
+                </div>
+                <div className="divide-y divide-border">
+                  {editFares.map((f) => (
+                    <div
+                      key={f.id}
+                      className="grid gap-2 px-4 py-2.5 items-center hover:bg-slate-50/50"
+                      style={{ gridTemplateColumns: "1fr 1fr auto" }}
+                    >
+                      <span className="text-xs font-semibold text-foreground">
+                        {stopName(f.fromStopOrder)}
+                      </span>
+                      <span className="text-xs font-semibold text-foreground">
+                        {stopName(f.toStopOrder)}
+                      </span>
+                      <div className="w-32 flex flex-col gap-1 items-end">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={f.priceXOF}
+                          onChange={(e) =>
+                            handleFarePriceChange(f.id, e.target.value)
+                          }
+                          className="h-8 text-xs font-mono text-right"
+                          aria-label={t("editDrawer.priceAria", {
+                            fromName: stopName(f.fromStopOrder),
+                            toName: stopName(f.toStopOrder),
+                          })}
+                        />
+                        {savingFareIds.has(f.id) && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {tc("saving")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </form>
 
         <DrawerFooter className="border-t border-border py-4 shrink-0 flex-row justify-between bg-card">

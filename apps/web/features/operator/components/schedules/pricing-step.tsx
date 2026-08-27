@@ -23,24 +23,12 @@ export function PricingStep({
   const t = useTranslations("operatorDashboard.schedules");
 
   function getFare(from: number, to: number): FareDraft | undefined {
-    return fares.find(
-      (f) =>
-        f.fromStopOrder === from &&
-        f.toStopOrder === to,
-    );
+    return fares.find((f) => f.fromStopOrder === from && f.toStopOrder === to);
   }
 
-  function upsertFare(
-    from: number,
-    to: number,
-    patch: Partial<FareDraft>,
-  ) {
+  function upsertFare(from: number, to: number, patch: Partial<FareDraft>) {
     const existing = fares.filter(
-      (f) =>
-        !(
-          f.fromStopOrder === from &&
-          f.toStopOrder === to
-        ),
+      (f) => !(f.fromStopOrder === from && f.toStopOrder === to),
     );
     const prev = getFare(from, to);
     const next: FareDraft = {
@@ -99,13 +87,16 @@ export function PricingStep({
 
   const lastOrder = stops[stops.length - 1]!.order;
   const hasFullRoute = fares.some(
-    (f) => f.fromStopOrder === 0 && f.toStopOrder === lastOrder && f.priceXOF > 0,
+    (f) =>
+      f.fromStopOrder === 0 && f.toStopOrder === lastOrder && f.priceXOF > 0,
   );
 
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-foreground">{t("wizard.segmentPricingTitle")}</h3>
+        <h3 className="text-sm font-bold text-foreground">
+          {t("wizard.segmentPricingTitle")}
+        </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
           {t("wizard.segmentPricingDesc")}
         </p>
@@ -156,7 +147,9 @@ export function PricingStep({
                   <p className="text-xs font-semibold text-foreground truncate">
                     {from.name}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">{formatCityWithMuni(from.city, from.municipality)}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {formatCityWithMuni(from.city, from.municipality)}
+                  </p>
                 </div>
                 <div className="min-w-0 flex items-center gap-1.5">
                   <ArrowRight className="size-3 text-muted-foreground/40 shrink-0" />
@@ -164,7 +157,9 @@ export function PricingStep({
                     <p className="text-xs font-semibold text-foreground truncate">
                       {to.name}
                     </p>
-                    <p className="text-[11px] text-muted-foreground">{formatCityWithMuni(to.city, to.municipality)}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {formatCityWithMuni(to.city, to.municipality)}
+                    </p>
                   </div>
                 </div>
                 <div className="w-20 flex items-center gap-1">
@@ -175,7 +170,10 @@ export function PricingStep({
                       placeholder="30"
                       value={fare?.durationMinutes || ""}
                       onChange={(e) => {
-                        const parsed = parseInt(e.target.value.replace(/\D/g, ""), 10);
+                        const parsed = parseInt(
+                          e.target.value.replace(/\D/g, ""),
+                          10,
+                        );
                         upsertFare(from.order, to.order, {
                           durationMinutes: Number.isNaN(parsed) ? 1 : parsed,
                         });
@@ -201,13 +199,17 @@ export function PricingStep({
                         10,
                       );
                       upsertFare(from.order, to.order, {
-                        durationMinutes: fare?.durationMinutes ?? (adj ? 1 : computedDur),
+                        durationMinutes:
+                          fare?.durationMinutes ?? (adj ? 1 : computedDur),
                         type: fare?.type ?? "FIXED",
                         priceXOF: Number.isNaN(parsed) ? 0 : parsed,
                       });
                     }}
                     className="h-8 text-sm text-right font-mono"
-                    aria-label={t("wizard.fareAria", { fromName: from.name, toName: to.name })}
+                    aria-label={t("wizard.fareAria", {
+                      fromName: from.name,
+                      toName: to.name,
+                    })}
                   />
                 </div>
               </div>

@@ -3,16 +3,18 @@
 import { buttonVariants } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { cn } from "@moja/ui/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import L from "leaflet";
 import {
   ArrowLeft,
+  Check,
   CircleOff,
   Clock,
   MapPin,
   Navigation,
   Signal,
   SignalLow,
+  Wifi,
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -24,6 +26,7 @@ import {
   Popup,
   TileLayer,
 } from "react-leaflet";
+import { useGatewaySubscription } from "@/lib/gateway-subscription";
 import { useTRPC } from "@/trpc/client";
 
 // Fix Leaflet default icon paths broken by bundlers
@@ -174,6 +177,7 @@ export function PassengerTrackingView({
 }: PassengerTrackingViewProps) {
   const t = useTranslations("passengerDashboard.tracking");
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   // Pause polling when browser tab is hidden
   const [isActive, setIsActive] = useState(true);
@@ -187,11 +191,106 @@ export function PassengerTrackingView({
       document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
-  const { data, isLoading, error } = useQuery({
-    ...trpc.passenger.getTripTracking.queryOptions(
+  const trackingOptions = trpc.passenger.getTripTracking.queryOptions(
+    { tripId },
+    { enabled: !!tripId },
+  );
+  const trackingKey = trpc.passenger.getTripTracking.queryKey({ tripId });
+
+  const tokenQuery = useQuery(
+    trpc.passenger.getTrackingToken.queryOptions(
       { tripId },
       { enabled: !!tripId },
     ),
+  );
+
+  const { isConnected } = useGatewaySubscription({
+    token: tokenQuery.data?.token,
+    room: tripId ? `trip:${tripId}` : null,
+    enabled: !!tokenQuery.data?.token,
+    onMessage: (data: {
+      driverProfileId?: string;
+      tripId: string;
+      latitude?: number;
+      longitude?: number;
+      speedKmh?: number | null;
+      heading?: number | null;
+      recordedAt?: string | Date;
+      action?: "ARRIVAL" | "DEPARTURE";
+      tripStopId?: string;
+      stopOrder?: number;
+      timestamp?: string;
+    }) => {
+      queryClient.setQueryData(trackingKey, (old: any) => {
+        if (!old) return old;
+
+        // Phase 7 (Gap #10) — Handle real-time stop progress updates
+        if (data.action && (data.tripStopId || data.stopOrder != null)) {
+          const updatedStops = (old.stops || []).map((s: any) => {
+            if (
+              s.id === data.tripStopId ||
+              (data.stopOrder != null && s.stopOrder === data.stopOrder)
+            ) {
+              return {
+                ...s,
+                ...(data.action === "ARRIVAL"
+                  ? { actualArrival: data.timestamp ? new Date(data.timestamp) : new Date() }
+                  : { actualDeparture: data.timestamp ? new Date(data.timestamp) : new Date() }),
+              };
+            }
+            return s;
+          });
+          return {
+            ...old,
+            stops: updatedStops,
+          };
+        }
+
+        // Recalculate distanceToDropoffKm if dropoff coordinates exist
+        let distanceToDropoffKm = old.distanceToDropoffKm;
+        if (
+          old.dropoffStopOrder != null &&
+          data.latitude != null &&
+          data.longitude != null &&
+          Array.isArray(old.stops)
+        ) {
+          const dropoffStop = old.stops.find(
+            (s: any) => s.stopOrder === old.dropoffStopOrder,
+          );
+          if (dropoffStop?.latitude != null && dropoffStop?.longitude != null) {
+            const R = 6371;
+            const dLat =
+              ((dropoffStop.latitude - data.latitude) * Math.PI) / 180;
+            const dLng =
+              ((dropoffStop.longitude - data.longitude) * Math.PI) / 180;
+            const a =
+              Math.sin(dLat / 2) ** 2 +
+              Math.cos((data.latitude * Math.PI) / 180) *
+                Math.cos((dropoffStop.latitude * Math.PI) / 180) *
+                Math.sin(dLng / 2) ** 2;
+            distanceToDropoffKm =
+              Math.round(
+                R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 10,
+              ) / 10;
+          }
+        }
+
+        return {
+          ...old,
+          lastLatitude: data.latitude ?? old.lastLatitude,
+          lastLongitude: data.longitude ?? old.lastLongitude,
+          lastHeading: data.heading ?? old.lastHeading,
+          lastSpeedKmh: data.speedKmh ?? old.lastSpeedKmh,
+          lastPingAt: data.recordedAt ?? old.lastPingAt,
+          freshness: "fresh",
+          distanceToDropoffKm,
+        };
+      });
+    },
+  });
+
+  const { data, isLoading, error } = useQuery({
+    ...trackingOptions,
     refetchInterval: isActive ? POLL_INTERVAL_MS : false,
   });
 
@@ -329,28 +428,36 @@ export function PassengerTrackingView({
           <ArrowLeft className="size-3.5" />
           {t("backToBookings")}
         </Link>
-        <div className="flex items-center gap-1.5">
-          <Signal
-            className={cn(
-              "size-3",
-              data.freshness === "fresh"
-                ? "text-emerald-500"
-                : "text-amber-500",
-            )}
-          />
-          <span className="text-[10px] text-muted-foreground tabular-nums">
-            {data.lastPingAt
-              ? new Date(data.lastPingAt).toLocaleTimeString()
-              : "—"}
-          </span>
-          {data.lastSpeedKmh != null && (
-            <>
-              <span className="text-muted-foreground">·</span>
-              <span className="text-[10px] text-muted-foreground tabular-nums">
-                {Math.round(data.lastSpeedKmh)} km/h
-              </span>
-            </>
+        <div className="flex items-center gap-2">
+          {isConnected && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+              <Wifi className="size-2.5" />
+              Live
+            </span>
           )}
+          <div className="flex items-center gap-1.5">
+            <Signal
+              className={cn(
+                "size-3",
+                data.freshness === "fresh"
+                  ? "text-emerald-500"
+                  : "text-amber-500",
+              )}
+            />
+            <span className="text-[10px] text-muted-foreground tabular-nums">
+              {data.lastPingAt
+                ? new Date(data.lastPingAt).toLocaleTimeString()
+                : "—"}
+            </span>
+            {data.lastSpeedKmh != null && (
+              <>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  {Math.round(data.lastSpeedKmh)} km/h
+                </span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -376,6 +483,62 @@ export function PassengerTrackingView({
           dropoffStopOrder={data.dropoffStopOrder}
         />
       </div>
+
+      {/* Phase 7 (Gap #10) — Live Stop Progression Strip */}
+      {data.stops && data.stops.length > 0 && (
+        <div className="bg-background/95 backdrop-blur border-t px-4 py-2.5 overflow-x-auto">
+          <div className="flex items-center gap-2.5 min-w-max">
+            {data.stops.map((stop: any, idx: number) => {
+              const isDeparted = stop.actualDeparture != null;
+              const isArrived = stop.actualArrival != null && !isDeparted;
+              const isBoarding = stop.stopOrder === data.boardingStopOrder;
+              const isDropoff = stop.stopOrder === data.dropoffStopOrder;
+
+              return (
+                <div
+                  key={stop.id || idx}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs border transition-colors",
+                    isDeparted
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
+                      : isArrived
+                      ? "bg-amber-500/15 border-amber-500/40 text-amber-800 dark:text-amber-300 font-medium"
+                      : "bg-muted/40 border-border/50 text-muted-foreground",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "size-1.5 rounded-full",
+                      isDeparted
+                        ? "bg-emerald-500"
+                        : isArrived
+                        ? "bg-amber-500 animate-pulse"
+                        : "bg-muted-foreground/50",
+                    )}
+                  />
+                  <span>{stop.name || `Stop #${idx + 1}`}</span>
+                  {isBoarding && (
+                    <span className="text-[9px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold px-1 rounded">
+                      Board
+                    </span>
+                  )}
+                  {isDropoff && (
+                    <span className="text-[9px] bg-primary/20 text-primary font-bold px-1 rounded">
+                      Alight
+                    </span>
+                  )}
+                  {isDeparted && <Check className="size-3 text-emerald-600 dark:text-emerald-400" />}
+                  {isArrived && (
+                    <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold">
+                      At Station
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Bottom info */}
       <div className="flex items-center justify-between px-4 py-2 border-t bg-muted/30 text-xs text-muted-foreground">

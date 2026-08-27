@@ -84,7 +84,9 @@ export function BookingCheckoutForm({
     buildInitialAssignments(selectedSeatIds, selectedLabels),
   );
 
-  const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "WALLET">("PAYSTACK");
+  const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "WALLET">(
+    "PAYSTACK",
+  );
   const [promoCode, setPromoCode] = useState("");
   const [appliedCode, setAppliedCode] = useState<string | undefined>(undefined);
 
@@ -147,8 +149,12 @@ export function BookingCheckoutForm({
     );
   }, [isLoggedIn, defaultSavedId, savedPassengers]);
 
-  const createHoldMutation = useMutation(trpc.booking.createHold.mutationOptions());
-  const releaseHoldMutation = useMutation(trpc.booking.releaseHold.mutationOptions());
+  const createHoldMutation = useMutation(
+    trpc.booking.createHold.mutationOptions(),
+  );
+  const releaseHoldMutation = useMutation(
+    trpc.booking.releaseHold.mutationOptions(),
+  );
   const {
     completePayment,
     isPending: isPaymentPending,
@@ -213,13 +219,11 @@ export function BookingCheckoutForm({
   const totalAmount = payableResolved.payableXOF;
   const isZeroCash = totalAmount === 0;
   const walletAvailable = walletBalance?.availableBalance ?? 0;
-  const canPayWithWallet = isLoggedIn && (isZeroCash || walletAvailable >= totalAmount);
+  const canPayWithWallet =
+    isLoggedIn && (isZeroCash || walletAvailable >= totalAmount);
   const isSubmitting = createHoldMutation.isPending || isPaymentPending;
 
-  function updateAssignment(
-    seatId: string,
-    patch: Partial<SeatAssignment>,
-  ) {
+  function updateAssignment(seatId: string, patch: Partial<SeatAssignment>) {
     setAssignments((prev) =>
       prev.map((row) => (row.seatId === seatId ? { ...row, ...patch } : row)),
     );
@@ -320,7 +324,8 @@ export function BookingCheckoutForm({
     }
 
     const firstPassenger = assignments[0];
-    const customerEmail = session?.user?.email ?? `guest-${Date.now()}@mojaride.com`;
+    const customerEmail =
+      session?.user?.email ?? `guest-${Date.now()}@mojaride.com`;
 
     try {
       const confirmed = await completePayment({
@@ -366,17 +371,37 @@ export function BookingCheckoutForm({
           {tripDetails.companyName}
         </p>
         <p className="text-base font-bold text-slate-900">
-          {formatLocationLabel({ cityName: tripDetails.originCityName, municipalityName: tripDetails.originMunicipalityName, quarterName: tripDetails.originQuarterName, isUrban: tripDetails.serviceType === "URBAN" })} → {formatLocationLabel({ cityName: tripDetails.destinationCityName, municipalityName: tripDetails.destinationMunicipalityName, quarterName: tripDetails.destinationQuarterName, isUrban: tripDetails.serviceType === "URBAN" })}
+          {formatLocationLabel({
+            cityName: tripDetails.originCityName,
+            municipalityName: tripDetails.originMunicipalityName,
+            quarterName: tripDetails.originQuarterName,
+            isUrban: tripDetails.serviceType === "URBAN",
+          })}{" "}
+          →{" "}
+          {formatLocationLabel({
+            cityName: tripDetails.destinationCityName,
+            municipalityName: tripDetails.destinationMunicipalityName,
+            quarterName: tripDetails.destinationQuarterName,
+            isUrban: tripDetails.serviceType === "URBAN",
+          })}
         </p>
         <p className="text-xs text-muted-foreground">
-          {formatLocationLabel({ cityName: tripDetails.originCityName, municipalityName: tripDetails.originMunicipalityName, quarterName: tripDetails.originQuarterName, isUrban: tripDetails.serviceType === "URBAN" })} · {new Date(tripDetails.departureTime).toLocaleDateString(locale, {
+          {formatLocationLabel({
+            cityName: tripDetails.originCityName,
+            municipalityName: tripDetails.originMunicipalityName,
+            quarterName: tripDetails.originQuarterName,
+            isUrban: tripDetails.serviceType === "URBAN",
+          })}{" "}
+          ·{" "}
+          {new Date(tripDetails.departureTime).toLocaleDateString(locale, {
             weekday: "short",
             month: "short",
             day: "numeric",
           })}
         </p>
         <p className="text-xs font-semibold text-slate-700">
-          {tBooking("checkout.seatsLabel")} {selectedLabels.join(", ")} ({selectedSeatIds.length})
+          {tBooking("checkout.seatsLabel")} {selectedLabels.join(", ")} (
+          {selectedSeatIds.length})
         </p>
         <div className="space-y-1 pt-1 text-sm text-slate-700">
           <div className="flex justify-between">
@@ -414,7 +439,10 @@ export function BookingCheckoutForm({
         </div>
 
         <div className="space-y-2 border-t border-slate-200 pt-3">
-          <Label htmlFor="promo-code" className="text-xs font-semibold text-slate-700">
+          <Label
+            htmlFor="promo-code"
+            className="text-xs font-semibold text-slate-700"
+          >
             {t("promoCode")}
           </Label>
           <div className="flex gap-2">
@@ -444,7 +472,9 @@ export function BookingCheckoutForm({
                 type="button"
                 variant="outline"
                 className="h-9"
-                disabled={!promoCode.trim() || isSubmitting || pricingQuery.isFetching}
+                disabled={
+                  !promoCode.trim() || isSubmitting || pricingQuery.isFetching
+                }
                 onClick={() => setAppliedCode(promoCode.trim().toUpperCase())}
               >
                 {t("apply")}
@@ -481,18 +511,22 @@ export function BookingCheckoutForm({
           ) : null}
         </div>
         <p className="text-[11px] text-muted-foreground">
-          {paymentMethod === "WALLET" 
-            ? "Service convenience fees waived for paying with internal wallet balance." 
+          {paymentMethod === "WALLET"
+            ? "Service convenience fees waived for paying with internal wallet balance."
             : "Prices are tax-inclusive. Service fee supports secure card and mobile money checkout."}
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label className="text-base">{tBooking("checkout.passengersPerSeat")}</Label>
+          <Label className="text-base">
+            {tBooking("checkout.passengersPerSeat")}
+          </Label>
           {isLoggedIn && savedPassengers.length > 0 ? (
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">{tBooking("checkout.applyToAll")}</span>
+              <span className="text-muted-foreground">
+                {tBooking("checkout.applyToAll")}
+              </span>
               <select
                 className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
                 defaultValue=""
@@ -517,7 +551,10 @@ export function BookingCheckoutForm({
 
         {!isLoggedIn ? (
           <p className="text-xs text-muted-foreground">
-            <Link href="/login" className="text-[#ee237c] font-semibold hover:underline">
+            <Link
+              href="/login"
+              className="text-[#ee237c] font-semibold hover:underline"
+            >
               {tBooking("checkout.signInToUseSaved")}
             </Link>{" "}
             {tBooking("checkout.signInToUseSavedSuffix")}
@@ -555,15 +592,21 @@ export function BookingCheckoutForm({
                         {p.label ? ` — ${p.label}` : ""}
                       </option>
                     ))}
-                    <option value="manual">{tBooking("checkout.enterManually")}</option>
+                    <option value="manual">
+                      {tBooking("checkout.enterManually")}
+                    </option>
                   </select>
                 </div>
               ) : null}
 
-              {row.mode === "manual" || !isLoggedIn || savedPassengers.length === 0 ? (
+              {row.mode === "manual" ||
+              !isLoggedIn ||
+              savedPassengers.length === 0 ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label htmlFor={`name-${row.seatId}`}>{tBooking("checkout.fullName")}</Label>
+                    <Label htmlFor={`name-${row.seatId}`}>
+                      {tBooking("checkout.fullName")}
+                    </Label>
                     <Input
                       id={`name-${row.seatId}`}
                       value={row.passengerName}
@@ -577,7 +620,9 @@ export function BookingCheckoutForm({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor={`phone-${row.seatId}`}>{tBooking("checkout.phoneNumber")}</Label>
+                    <Label htmlFor={`phone-${row.seatId}`}>
+                      {tBooking("checkout.phoneNumber")}
+                    </Label>
                     <PhoneInput
                       id={`phone-${row.seatId}`}
                       value={row.passengerPhone}
@@ -629,7 +674,9 @@ export function BookingCheckoutForm({
         ) : (
           <>
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-slate-800">{tBooking("checkout.paymentOptions")}</p>
+              <p className="text-sm font-semibold text-slate-800">
+                {tBooking("checkout.paymentOptions")}
+              </p>
               <p className="text-xs text-slate-500">
                 {tBooking("checkout.paymentOptionsDesc")}
               </p>
@@ -648,8 +695,12 @@ export function BookingCheckoutForm({
               >
                 <CreditCard className="size-5 shrink-0" />
                 <div>
-                  <p className="text-xs font-bold font-sans">{tBooking("checkout.cardMobileMoney")}</p>
-                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">{tBooking("checkout.payViaPaystack")}</p>
+                  <p className="text-xs font-bold font-sans">
+                    {tBooking("checkout.cardMobileMoney")}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">
+                    {tBooking("checkout.payViaPaystack")}
+                  </p>
                 </div>
               </button>
 
@@ -666,7 +717,9 @@ export function BookingCheckoutForm({
               >
                 <Wallet className="size-5 shrink-0" />
                 <div>
-                  <p className="text-xs font-bold font-sans">{tBooking("checkout.mojaWalletBalance")}</p>
+                  <p className="text-xs font-bold font-sans">
+                    {tBooking("checkout.mojaWalletBalance")}
+                  </p>
                   <p className="text-[10px] text-slate-500 font-sans mt-0.5">
                     {isLoggedIn
                       ? `Available: ${formatPriceXOF(walletAvailable)} · Due: ${formatPriceXOF(totalAmount)}`
@@ -679,7 +732,8 @@ export function BookingCheckoutForm({
             {/* Info alerts */}
             {paymentMethod === "WALLET" ? (
               <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800 leading-relaxed">
-                <strong>{tBooking("checkout.walletBenefitTitle")}</strong>: {tBooking("checkout.walletBenefitDesc")}
+                <strong>{tBooking("checkout.walletBenefitTitle")}</strong>:{" "}
+                {tBooking("checkout.walletBenefitDesc")}
               </div>
             ) : null}
 
@@ -711,7 +765,12 @@ export function BookingCheckoutForm({
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          disabled={isSubmitting}
+        >
           {tBooking("checkout.backToSeats")}
         </Button>
         <Button

@@ -115,7 +115,13 @@ interface StatCardProps {
   sub?: string;
 }
 
-function StatCard({ label, value, icon: Icon, iconClassName, sub }: StatCardProps) {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  iconClassName,
+  sub,
+}: StatCardProps) {
   return (
     <Card className="border-border bg-card shadow-none">
       <CardContent className="p-4 flex items-start justify-between gap-3">
@@ -154,9 +160,18 @@ interface BusCardProps {
   canDelete: boolean;
 }
 
-function BusCard({ bus, onEdit, onDelete, onViewMap, canEdit, canDelete }: BusCardProps) {
+function BusCard({
+  bus,
+  onEdit,
+  onDelete,
+  onViewMap,
+  canEdit,
+  canDelete,
+}: BusCardProps) {
   const t = useTranslations("operatorDashboard.fleet");
-  const status = STATUS_CONFIG[bus.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.INACTIVE;
+  const status =
+    STATUS_CONFIG[bus.status as keyof typeof STATUS_CONFIG] ??
+    STATUS_CONFIG.INACTIVE;
 
   return (
     <Card className="group/bus-card border-border bg-card shadow-none hover:border-primary/30 hover:shadow-sm transition-all duration-200">
@@ -193,7 +208,7 @@ function BusCard({ bus, onEdit, onDelete, onViewMap, canEdit, canDelete }: BusCa
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-md bg-muted/50 px-2.5 py-1.5">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-{t("busCard.type")}
+              {t("busCard.type")}
             </p>
             <p className="text-xs font-medium text-foreground/90 truncate mt-0.5">
               {bus.busType.name}
@@ -211,8 +226,12 @@ function BusCard({ bus, onEdit, onDelete, onViewMap, canEdit, canDelete }: BusCa
 
         {bus.notes && (
           <div className="rounded-md bg-amber-50/60 border border-amber-200/60 px-2.5 py-1.5">
-            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">{t("busCard.notes")}</p>
-            <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">{bus.notes}</p>
+            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">
+              {t("busCard.notes")}
+            </p>
+            <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">
+              {bus.notes}
+            </p>
           </div>
         )}
 
@@ -227,7 +246,9 @@ function BusCard({ bus, onEdit, onDelete, onViewMap, canEdit, canDelete }: BusCa
               {t("busCard.seats")}
             </span>
             {bus.manufactureYear && (
-              <span className="text-muted-foreground/70">· {bus.manufactureYear}</span>
+              <span className="text-muted-foreground/70">
+                · {bus.manufactureYear}
+              </span>
             )}
           </span>
 
@@ -280,7 +301,12 @@ interface LayoutCardProps {
   canDelete: boolean;
 }
 
-function CustomLayoutCard({ layout, onDelete, onPreview, canDelete }: LayoutCardProps) {
+function CustomLayoutCard({
+  layout,
+  onDelete,
+  onPreview,
+  canDelete,
+}: LayoutCardProps) {
   const t = useTranslations("operatorDashboard.fleet");
   const busCount = layout._count.buses;
 
@@ -293,7 +319,9 @@ function CustomLayoutCard({ layout, onDelete, onPreview, canDelete }: LayoutCard
               <Layers className="size-3.5 text-primary" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-foreground truncate">{layout.name}</p>
+              <p className="text-sm font-bold text-foreground truncate">
+                {layout.name}
+              </p>
               <p className="text-[11px] text-muted-foreground truncate">
                 {layout.busType.name}
               </p>
@@ -334,11 +362,11 @@ function CustomLayoutCard({ layout, onDelete, onPreview, canDelete }: LayoutCard
         {/* Bus usage */}
         <div className="text-[11px] text-muted-foreground">
           {busCount === 0 ? (
-            <span className="text-muted-foreground/60">{t("layouts.notAssigned")}</span>
-          ) : (
-            <span>
-              {t("layouts.usedBy", { count: busCount })}
+            <span className="text-muted-foreground/60">
+              {t("layouts.notAssigned")}
             </span>
+          ) : (
+            <span>{t("layouts.usedBy", { count: busCount })}</span>
           )}
         </div>
 
@@ -360,7 +388,11 @@ function CustomLayoutCard({ layout, onDelete, onPreview, canDelete }: LayoutCard
               className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
               onClick={() => onDelete(layout)}
               disabled={busCount > 0}
-              title={busCount > 0 ? t("layouts.layoutDeleteTooltip", { count: busCount }) : t("layouts.deleteLayout")}
+              title={
+                busCount > 0
+                  ? t("layouts.layoutDeleteTooltip", { count: busCount })
+                  : t("layouts.deleteLayout")
+              }
             >
               <Trash2 className="size-3.5" />
             </Button>
@@ -375,7 +407,10 @@ function CustomLayoutCard({ layout, onDelete, onPreview, canDelete }: LayoutCard
 // Platform Default Layout Card
 // ──────────────────────────────────────────────
 
-type PlatformLayout = Omit<RouterOutputs["fleet"]["getLayoutTemplates"][number], "_count">;
+type PlatformLayout = Omit<
+  RouterOutputs["fleet"]["getLayoutTemplates"][number],
+  "_count"
+>;
 
 interface PlatformLayoutCardProps {
   layout: PlatformLayout;
@@ -424,7 +459,9 @@ function PlatformLayoutCard({ layout }: PlatformLayoutCardProps) {
             </span>
           )}
         </div>
-        <p className="text-[10px] text-muted-foreground/60">{t("layouts.platformReadOnly")}</p>
+        <p className="text-[10px] text-muted-foreground/60">
+          {t("layouts.platformReadOnly")}
+        </p>
       </CardContent>
     </Card>
   );
@@ -443,7 +480,12 @@ function LayoutPreviewCanvas({
 }: {
   rows: number;
   cols: number;
-  seatTemplates: { row: number; col: number; seatType: string; label: string }[];
+  seatTemplates: {
+    row: number;
+    col: number;
+    seatType: string;
+    label: string;
+  }[];
 }) {
   const t = useTranslations("operatorDashboard.fleet");
   const colHeaders = Array.from({ length: cols }, (_, i) =>
@@ -465,7 +507,12 @@ function LayoutPreviewCanvas({
         >
           <div />
           {colHeaders.map((h) => (
-            <div key={h} className="text-center text-[10px] font-semibold text-muted-foreground">{h}</div>
+            <div
+              key={h}
+              className="text-center text-[10px] font-semibold text-muted-foreground"
+            >
+              {h}
+            </div>
           ))}
         </div>
         {grid.map((row, rIdx) => (
@@ -479,7 +526,12 @@ function LayoutPreviewCanvas({
             </div>
             {row.map((seat, cIdx) => {
               if (!seat) {
-                return <div key={cIdx} className="h-9 w-10 rounded-md border border-transparent" />;
+                return (
+                  <div
+                    key={cIdx}
+                    className="h-9 w-10 rounded-md border border-transparent"
+                  />
+                );
               }
               const isEmpty = seat.seatType === "EMPTY_SPACE";
               const isDriver = seat.seatType === "DRIVER_AREA";
@@ -488,12 +540,20 @@ function LayoutPreviewCanvas({
                   key={cIdx}
                   className={cn(
                     "h-9 w-10 rounded-md border text-[10px] font-semibold flex flex-col items-center justify-center",
-                    isDriver && "bg-foreground/80 border-transparent text-background",
-                    !isDriver && !isEmpty && "bg-card border-border text-foreground",
-                    isEmpty && "border-dashed border-border/60 bg-muted/20 opacity-40",
+                    isDriver &&
+                      "bg-foreground/80 border-transparent text-background",
+                    !isDriver &&
+                      !isEmpty &&
+                      "bg-card border-border text-foreground",
+                    isEmpty &&
+                      "border-dashed border-border/60 bg-muted/20 opacity-40",
                   )}
                 >
-                  {isDriver ? <Gauge className="size-3.5" /> : isEmpty ? null : <span>{seat.label}</span>}
+                  {isDriver ? (
+                    <Gauge className="size-3.5" />
+                  ) : isEmpty ? null : (
+                    <span>{seat.label}</span>
+                  )}
                 </div>
               );
             })}
@@ -534,7 +594,9 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
   const platformLayouts = allLayouts.filter((l) => !l.companyId);
 
   const [builderOpen, setBuilderOpen] = useState(false);
-  const [deletingLayout, setDeletingLayout] = useState<CustomLayout | null>(null);
+  const [deletingLayout, setDeletingLayout] = useState<CustomLayout | null>(
+    null,
+  );
   const [previewLayout, setPreviewLayout] = useState<CustomLayout | null>(null);
 
   const deleteMutation = useMutation(
@@ -547,9 +609,15 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
       { id: deletingLayout.id },
       {
         onSuccess: () => {
-          toast.success(t("layouts.deleteLayoutSuccess", { name: deletingLayout.name }));
-          queryClient.invalidateQueries(trpc.fleet.getCustomLayouts.pathFilter());
-          queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
+          toast.success(
+            t("layouts.deleteLayoutSuccess", { name: deletingLayout.name }),
+          );
+          queryClient.invalidateQueries(
+            trpc.fleet.getCustomLayouts.pathFilter(),
+          );
+          queryClient.invalidateQueries(
+            trpc.fleet.getLayoutTemplates.pathFilter(),
+          );
           setDeletingLayout(null);
         },
         onError: (err) => {
@@ -663,7 +731,9 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               {t("layouts.deleteLayoutTitle")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs">
-              {t("layouts.deleteLayoutDesc", { name: deletingLayout?.name ?? "" })}
+              {t("layouts.deleteLayoutDesc", {
+                name: deletingLayout?.name ?? "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2">
@@ -681,7 +751,9 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? <Spinner className="size-3.5 mr-1.5" /> : null}
+              {deleteMutation.isPending ? (
+                <Spinner className="size-3.5 mr-1.5" />
+              ) : null}
               {tc("delete")}
             </Button>
           </DialogFooter>
@@ -691,7 +763,9 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
       {/* Preview Drawer */}
       <Drawer
         open={!!previewLayout}
-        onOpenChange={(o) => { if (!o) setPreviewLayout(null); }}
+        onOpenChange={(o) => {
+          if (!o) setPreviewLayout(null);
+        }}
         direction="right"
       >
         <DrawerContent className="bg-background border-l border-border sm:max-w-xl w-full">
@@ -705,7 +779,12 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
                   {previewLayout?.name}
                 </DrawerTitle>
                 <DrawerDescription className="text-xs text-muted-foreground">
-                  {previewLayout?.busType.name} · {t("layouts.preview.rowsAndCols", { rows: previewLayout?.rows ?? 0, columns: previewLayout?.columns ?? 0 })} · {previewLayout?.totalSeats} {t("busCard.seats")}
+                  {previewLayout?.busType.name} ·{" "}
+                  {t("layouts.preview.rowsAndCols", {
+                    rows: previewLayout?.rows ?? 0,
+                    columns: previewLayout?.columns ?? 0,
+                  })}{" "}
+                  · {previewLayout?.totalSeats} {t("busCard.seats")}
                 </DrawerDescription>
               </div>
             </div>
@@ -752,7 +831,9 @@ function SeatMapFetcher({ busId }: { busId: string }) {
   return (
     <>
       <div className="mb-4 rounded-lg border border-primary/15 bg-primary/5 px-4 py-3">
-        <p className="text-xs text-primary font-semibold">{t("seatMap.interactiveTitle")}</p>
+        <p className="text-xs text-primary font-semibold">
+          {t("seatMap.interactiveTitle")}
+        </p>
         <p className="text-[11px] text-muted-foreground mt-0.5">
           {t("seatMap.interactiveDescription")}
         </p>
@@ -773,21 +854,23 @@ function SeatMapFetcher({ busId }: { busId: string }) {
 // ──────────────────────────────────────────────
 
 export function OperatorFleetView() {
-   const t = useTranslations("operatorDashboard.fleet");
-   const tc = useTranslations("common");
-   const { can } = useStaffPermissions();
- 
-   if (!can("fleet:read")) {
-     return <AccessDeniedCard permission="fleet:read" />;
-   }
- 
-   const searchParams = useSearchParams();
-   const router = useRouter();
-   const queryClient = useQueryClient();
-   const trpc = useTRPC();
+  const t = useTranslations("operatorDashboard.fleet");
+  const tc = useTranslations("common");
+  const { can } = useStaffPermissions();
+
+  if (!can("fleet:read")) {
+    return <AccessDeniedCard permission="fleet:read" />;
+  }
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
   const { data } = useSuspenseQuery(trpc.fleet.getBuses.queryOptions());
-  const { data: busTypes } = useSuspenseQuery(trpc.fleet.getBusTypes.queryOptions());
+  const { data: busTypes } = useSuspenseQuery(
+    trpc.fleet.getBusTypes.queryOptions(),
+  );
   const buses = data.buses;
   const stats = data.stats;
 
@@ -956,7 +1039,11 @@ export function OperatorFleetView() {
           {/* ── KPI Stats ── */}
           {stats && (
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-              <StatCard label={t("kpi.totalVehicles")} value={stats.total} icon={BusFront} />
+              <StatCard
+                label={t("kpi.totalVehicles")}
+                value={stats.total}
+                icon={BusFront}
+              />
               <StatCard
                 label={t("kpi.active")}
                 value={stats.active}
@@ -1019,24 +1106,34 @@ export function OperatorFleetView() {
                       statusFilter === "ALL"
                         ? t("allStatuses")
                         : statusFilter === "ACTIVE"
-                        ? t("status.ACTIVE")
-                        : statusFilter === "MAINTENANCE"
-                        ? t("status.MAINTENANCE")
-                        : statusFilter === "INACTIVE"
-                        ? t("status.INACTIVE")
-                        : statusFilter === "RETIRED"
-                        ? t("status.RETIRED")
-                        : ""
+                          ? t("status.ACTIVE")
+                          : statusFilter === "MAINTENANCE"
+                            ? t("status.MAINTENANCE")
+                            : statusFilter === "INACTIVE"
+                              ? t("status.INACTIVE")
+                              : statusFilter === "RETIRED"
+                                ? t("status.RETIRED")
+                                : ""
                     }
                   />
                   <ComboboxContent className="bg-popover border-border text-xs">
                     <ComboboxEmpty>{t("noStatusFound")}</ComboboxEmpty>
                     <ComboboxList>
-                      <ComboboxItem value="ALL">{t("allStatuses")}</ComboboxItem>
-                      <ComboboxItem value="ACTIVE">{t("status.ACTIVE")}</ComboboxItem>
-                      <ComboboxItem value="MAINTENANCE">{t("status.MAINTENANCE")}</ComboboxItem>
-                      <ComboboxItem value="INACTIVE">{t("status.INACTIVE")}</ComboboxItem>
-                      <ComboboxItem value="RETIRED">{t("status.RETIRED")}</ComboboxItem>
+                      <ComboboxItem value="ALL">
+                        {t("allStatuses")}
+                      </ComboboxItem>
+                      <ComboboxItem value="ACTIVE">
+                        {t("status.ACTIVE")}
+                      </ComboboxItem>
+                      <ComboboxItem value="MAINTENANCE">
+                        {t("status.MAINTENANCE")}
+                      </ComboboxItem>
+                      <ComboboxItem value="INACTIVE">
+                        {t("status.INACTIVE")}
+                      </ComboboxItem>
+                      <ComboboxItem value="RETIRED">
+                        {t("status.RETIRED")}
+                      </ComboboxItem>
                     </ComboboxList>
                   </ComboboxContent>
                 </Combobox>
@@ -1058,7 +1155,9 @@ export function OperatorFleetView() {
                 </EmptyMedia>
                 <EmptyHeader>
                   <EmptyTitle>
-                    {search || statusFilter !== "ALL" ? t("empty.noResultsTitle") : t("empty.emptyTitle")}
+                    {search || statusFilter !== "ALL"
+                      ? t("empty.noResultsTitle")
+                      : t("empty.emptyTitle")}
                   </EmptyTitle>
                   <EmptyDescription>
                     {search || statusFilter !== "ALL"
@@ -1128,7 +1227,9 @@ export function OperatorFleetView() {
               {t("deleteVehicle.title")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs">
-              {t("deleteVehicle.description", { plate: deletingBus?.registrationPlate ?? "" })}
+              {t("deleteVehicle.description", {
+                plate: deletingBus?.registrationPlate ?? "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2 sm:flex-row">
@@ -1146,7 +1247,9 @@ export function OperatorFleetView() {
               onClick={handleDelete}
               disabled={deleteBusMutation.isPending}
             >
-              {deleteBusMutation.isPending ? <Spinner className="size-3.5 mr-1.5" /> : null}
+              {deleteBusMutation.isPending ? (
+                <Spinner className="size-3.5 mr-1.5" />
+              ) : null}
               {tc("delete")}
             </Button>
           </DialogFooter>
@@ -1217,7 +1320,9 @@ export function OperatorFleetView() {
         onOpenChange={setBusTypeDialogOpen}
         onSuccess={() => {
           queryClient.invalidateQueries(trpc.fleet.getBusTypes.pathFilter());
-          queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
+          queryClient.invalidateQueries(
+            trpc.fleet.getLayoutTemplates.pathFilter(),
+          );
         }}
       />
     </div>

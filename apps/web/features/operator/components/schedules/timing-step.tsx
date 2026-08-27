@@ -46,7 +46,9 @@ export function TimingStep({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-foreground">{t("wizard.stopsTitle")}</h3>
+        <h3 className="text-sm font-bold text-foreground">
+          {t("wizard.stopsTitle")}
+        </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
           {t("wizard.stopsDesc")}
         </p>
@@ -95,10 +97,7 @@ export function TimingStep({
                         e.target.value.replace(/\D/g, ""),
                         10,
                       );
-                      upsertDwell(
-                        s.order,
-                        Number.isNaN(parsed) ? 0 : parsed,
-                      );
+                      upsertDwell(s.order, Number.isNaN(parsed) ? 0 : parsed);
                     }}
                     className="h-8 text-sm text-right font-mono w-20"
                   />

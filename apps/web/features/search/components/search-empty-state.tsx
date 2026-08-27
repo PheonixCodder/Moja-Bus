@@ -22,7 +22,9 @@ interface SearchEmptyStateProps {
   onQuickSearch: (criteria: { from: string; to: string; date: string }) => void;
 }
 
-export const SearchEmptyState = memo(function SearchEmptyState({ onQuickSearch }: SearchEmptyStateProps) {
+export const SearchEmptyState = memo(function SearchEmptyState({
+  onQuickSearch,
+}: SearchEmptyStateProps) {
   const t = useTranslations("search");
   const today = new Date();
   const todayStr = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, "0")}-${String(today.getUTCDate()).padStart(2, "0")}`;

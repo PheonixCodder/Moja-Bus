@@ -66,7 +66,9 @@ export function StaffMembersSection({
         <span>
           {t("title", { total })}
           {isFetching ? (
-            <span className="ml-2 text-muted-foreground/50">{t("loading")}</span>
+            <span className="ml-2 text-muted-foreground/50">
+              {t("loading")}
+            </span>
           ) : null}
         </span>
       </h2>
@@ -143,19 +145,19 @@ export function StaffMembersSection({
                   </div>
                 ))
               : members.map((member, idx) => (
-                   <StaffMemberRow
-                     key={member.id}
-                     member={member}
-                     isLast={idx === members.length - 1}
-                     callerRole={callerRole}
-                     canUpdate={canUpdate}
-                     canDelete={canDelete}
-                     onEditRole={onEditRole}
-                     onEditPermissions={onEditPermissions}
-                     onStatusChange={onStatusChange}
-                     onTransfer={onTransfer}
-                     onRemove={onRemove}
-                   />
+                  <StaffMemberRow
+                    key={member.id}
+                    member={member}
+                    isLast={idx === members.length - 1}
+                    callerRole={callerRole}
+                    canUpdate={canUpdate}
+                    canDelete={canDelete}
+                    onEditRole={onEditRole}
+                    onEditPermissions={onEditPermissions}
+                    onStatusChange={onStatusChange}
+                    onTransfer={onTransfer}
+                    onRemove={onRemove}
+                  />
                 ))}
           </div>
 

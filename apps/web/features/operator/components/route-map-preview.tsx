@@ -90,47 +90,47 @@ export default function RouteMapPreview({ points }: RouteMapPreviewProps) {
       />
       <MapContainer
         center={center}
-      zoom={7}
-      style={{ height: "100%", width: "100%" }}
-      zoomControl={false}
-      /* Phase 30 (F-TM-16): ODbL requires visible attribution — the OSM
+        zoom={7}
+        style={{ height: "100%", width: "100%" }}
+        zoomControl={false}
+        /* Phase 30 (F-TM-16): ODbL requires visible attribution — the OSM
          string below only renders when the control is enabled. */
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      />
-
-      {/* Route polyline */}
-      {polyline.length > 1 && (
-        <Polyline
-          positions={polyline}
-          pathOptions={{
-            color: "#ee237c",
-            weight: 2.5,
-            opacity: 0.75,
-            dashArray: "6 4",
-          }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
-      )}
 
-      {/* Stop markers */}
-      {validPoints.map((p, i) => {
-        const isEndpoint = i === 0 || i === validPoints.length - 1;
-        return (
-          <Marker
-            key={p.id}
-            position={[p.latitude, p.longitude]}
-            icon={createBrandedIcon(isEndpoint)}
-          >
-            <Popup className="text-xs">
-              <strong>{p.name}</strong>
-              <br />
-              {p.cityName}
-            </Popup>
-          </Marker>
-        );
-      })}
+        {/* Route polyline */}
+        {polyline.length > 1 && (
+          <Polyline
+            positions={polyline}
+            pathOptions={{
+              color: "#ee237c",
+              weight: 2.5,
+              opacity: 0.75,
+              dashArray: "6 4",
+            }}
+          />
+        )}
+
+        {/* Stop markers */}
+        {validPoints.map((p, i) => {
+          const isEndpoint = i === 0 || i === validPoints.length - 1;
+          return (
+            <Marker
+              key={p.id}
+              position={[p.latitude, p.longitude]}
+              icon={createBrandedIcon(isEndpoint)}
+            >
+              <Popup className="text-xs">
+                <strong>{p.name}</strong>
+                <br />
+                {p.cityName}
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </>
   );

@@ -18,7 +18,7 @@ const s3PublicHost = resolveS3PublicHost();
 
 const withNextIntl = createNextIntlPlugin(
   // Points to the request config — must be this exact path
-  "./i18n/request.ts"
+  "./i18n/request.ts",
 );
 
 const nextConfig: NextConfig = {
@@ -32,11 +32,7 @@ const nextConfig: NextConfig = {
   // Kept external (not bundled). better-auth is required dynamically by the
   // app; the Prisma driver adapter + pg are loaded via createRequire in
   // @moja/db, so they must stay as real node_modules at runtime.
-  serverExternalPackages: [
-    "better-auth",
-    "@prisma/adapter-pg",
-    "pg",
-  ],
+  serverExternalPackages: ["better-auth", "@prisma/adapter-pg", "pg"],
   images: {
     // Phase 35 (F-IN-09) — first-party hosts ONLY. The previous `hostname:"**"`
     // let anyone bounce requests through our image optimizer (SSRF surface +

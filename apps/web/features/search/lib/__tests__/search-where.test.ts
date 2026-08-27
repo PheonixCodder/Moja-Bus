@@ -147,7 +147,14 @@ describe("buildTripWhere", () => {
     const nowMidDay = new Date("2026-08-02T14:00:00.000Z");
 
     test("plain branch lower bound clamps up to now + 30min", () => {
-      const w = buildTripWhere(origin, destination, start, end, noFilters, nowMidDay);
+      const w = buildTripWhere(
+        origin,
+        destination,
+        start,
+        end,
+        noFilters,
+        nowMidDay,
+      );
       assert.deepEqual(w.tripStops, {
         some: {
           terminal: { cityId: "cityA" },
@@ -170,17 +177,24 @@ describe("buildTripWhere", () => {
         noFilters,
         new Date("2026-08-01T23:30:00.000Z"), // cutoff == Aug 2 00:00 == start
       );
-      assert.deepEqual(
-        (w.tripStops as any).some.scheduledDeparture,
-        { gte: start, lte: end },
-      );
+      assert.deepEqual((w.tripStops as any).some.scheduledDeparture, {
+        gte: start,
+        lte: end,
+      });
     });
 
     test("MORNING filter fully in the past collapses to an impossible condition", () => {
-      const w = buildTripWhere(origin, destination, start, end, {
-        ...noFilters,
-        departureTime: ["MORNING"],
-      }, nowMidDay);
+      const w = buildTripWhere(
+        origin,
+        destination,
+        start,
+        end,
+        {
+          ...noFilters,
+          departureTime: ["MORNING"],
+        },
+        nowMidDay,
+      );
       assert.deepEqual(w.tripStops, {
         some: {
           terminal: { cityId: "cityA" },
@@ -194,10 +208,17 @@ describe("buildTripWhere", () => {
     });
 
     test("LATE_NIGHT early-morning sub-range dropped, evening sub-range kept", () => {
-      const w = buildTripWhere(origin, destination, start, end, {
-        ...noFilters,
-        departureTime: ["LATE_NIGHT"],
-      }, new Date("2026-08-02T06:00:00.000Z")); // cutoff 06:30
+      const w = buildTripWhere(
+        origin,
+        destination,
+        start,
+        end,
+        {
+          ...noFilters,
+          departureTime: ["LATE_NIGHT"],
+        },
+        new Date("2026-08-02T06:00:00.000Z"),
+      ); // cutoff 06:30
       assert.deepEqual(w.tripStops, {
         some: {
           OR: [
@@ -215,10 +236,17 @@ describe("buildTripWhere", () => {
     });
 
     test("LATE_NIGHT at 23:30 drops both sub-ranges (23:45 departs inside cutoff)", () => {
-      const w = buildTripWhere(origin, destination, start, end, {
-        ...noFilters,
-        departureTime: ["LATE_NIGHT"],
-      }, new Date("2026-08-02T23:30:00.000Z")); // cutoff Aug 3 00:00
+      const w = buildTripWhere(
+        origin,
+        destination,
+        start,
+        end,
+        {
+          ...noFilters,
+          departureTime: ["LATE_NIGHT"],
+        },
+        new Date("2026-08-02T23:30:00.000Z"),
+      ); // cutoff Aug 3 00:00
       assert.deepEqual(w.tripStops, {
         some: {
           terminal: { cityId: "cityA" },
@@ -234,21 +262,35 @@ describe("buildTripWhere", () => {
     test("future date unaffected by now", () => {
       const futureStart = new Date("2026-08-10T00:00:00.000Z");
       const futureEnd = new Date("2026-08-10T23:59:59.999Z");
-      const w = buildTripWhere(origin, destination, futureStart, futureEnd, noFilters, nowMidDay);
-      assert.deepEqual(
-        (w.tripStops as any).some.scheduledDeparture,
-        { gte: futureStart, lte: futureEnd },
+      const w = buildTripWhere(
+        origin,
+        destination,
+        futureStart,
+        futureEnd,
+        noFilters,
+        nowMidDay,
       );
+      assert.deepEqual((w.tripStops as any).some.scheduledDeparture, {
+        gte: futureStart,
+        lte: futureEnd,
+      });
     });
 
     test("fully-past searched date yields an impossible range -> zero rows", () => {
       const pastStart = new Date("2026-08-01T00:00:00.000Z");
       const pastEnd = new Date("2026-08-01T23:59:59.999Z");
-      const w = buildTripWhere(origin, destination, pastStart, pastEnd, noFilters, nowMidDay);
-      assert.deepEqual(
-        (w.tripStops as any).some.scheduledDeparture,
-        { gte: new Date("2026-08-02T14:30:00.000Z"), lte: pastEnd },
+      const w = buildTripWhere(
+        origin,
+        destination,
+        pastStart,
+        pastEnd,
+        noFilters,
+        nowMidDay,
       );
+      assert.deepEqual((w.tripStops as any).some.scheduledDeparture, {
+        gte: new Date("2026-08-02T14:30:00.000Z"),
+        lte: pastEnd,
+      });
       assert.ok(
         (w.tripStops as any).some.scheduledDeparture.gte >
           (w.tripStops as any).some.scheduledDeparture.lte,

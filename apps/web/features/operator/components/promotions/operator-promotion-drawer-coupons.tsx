@@ -1,6 +1,9 @@
 "use client";
 
-import { CampaignCouponsPanel, type CouponRow } from "@/features/discounts/components/campaign-coupons-panel";
+import {
+  CampaignCouponsPanel,
+  type CouponRow,
+} from "@/features/discounts/components/campaign-coupons-panel";
 
 interface OperatorPromotionDrawerCouponsProps {
   coupons: CouponRow[];

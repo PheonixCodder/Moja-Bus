@@ -911,7 +911,8 @@ export function LayoutBuilderSheet({
                   <div>
                     <p className="text-sm font-bold text-foreground">{name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {selectedBusType?.name} · {t("step3.gridSummary", { rows, cols })}
+                      {selectedBusType?.name} ·{" "}
+                      {t("step3.gridSummary", { rows, cols })}
                     </p>
                   </div>
                   <div className="shrink-0 rounded-lg bg-primary/10 border border-primary/20 px-3 py-1.5 text-center">

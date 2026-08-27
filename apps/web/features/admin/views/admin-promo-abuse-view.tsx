@@ -117,7 +117,9 @@ export function AdminPromoAbuseView() {
           <div key={type} className="inline-flex items-center gap-1">
             <button
               type="button"
-              onClick={() => setEventType(eventType === type ? undefined : type)}
+              onClick={() =>
+                setEventType(eventType === type ? undefined : type)
+              }
               className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
                 eventType === type
                   ? "bg-slate-900 text-white"
@@ -136,17 +138,30 @@ export function AdminPromoAbuseView() {
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/60">
-              <TableHead className="font-semibold text-slate-600">{t("when")}</TableHead>
-              <TableHead className="font-semibold text-slate-600">{t("type")}</TableHead>
-              <TableHead className="font-semibold text-slate-600">{t("user")}</TableHead>
-              <TableHead className="font-semibold text-slate-600">{t("details")}</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">{t("actions")}</TableHead>
+              <TableHead className="font-semibold text-slate-600">
+                {t("when")}
+              </TableHead>
+              <TableHead className="font-semibold text-slate-600">
+                {t("type")}
+              </TableHead>
+              <TableHead className="font-semibold text-slate-600">
+                {t("user")}
+              </TableHead>
+              <TableHead className="font-semibold text-slate-600">
+                {t("details")}
+              </TableHead>
+              <TableHead className="text-right font-semibold text-slate-600">
+                {t("actions")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {listQuery.isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-12 text-center text-sm text-slate-400">
+                <TableCell
+                  colSpan={5}
+                  className="py-12 text-center text-sm text-slate-400"
+                >
                   {t("loading")}
                 </TableCell>
               </TableRow>
@@ -158,7 +173,9 @@ export function AdminPromoAbuseView() {
                       <ShieldAlert className="size-6 text-emerald-500" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-700">{t("emptyTitle")}</p>
+                      <p className="text-sm font-semibold text-slate-700">
+                        {t("emptyTitle")}
+                      </p>
                       <p className="mt-0.5 text-xs text-slate-400">
                         {t("emptyDesc")}
                       </p>
@@ -169,9 +186,14 @@ export function AdminPromoAbuseView() {
             ) : (
               items.map((item) => {
                 const isKnownType = item.eventType in EVENT_CONFIG;
-                const config = isKnownType ? EVENT_CONFIG[item.eventType as EventTypeFilter] : null;
+                const config = isKnownType
+                  ? EVENT_CONFIG[item.eventType as EventTypeFilter]
+                  : null;
                 return (
-                  <TableRow key={item.id} className={item.reviewed ? "opacity-60" : ""}>
+                  <TableRow
+                    key={item.id}
+                    className={item.reviewed ? "opacity-60" : ""}
+                  >
                     <TableCell className="whitespace-nowrap text-sm text-slate-500">
                       {format(new Date(item.createdAt), "dd MMM yyyy")}
                       <br />
@@ -184,7 +206,9 @@ export function AdminPromoAbuseView() {
                         <span
                           className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${config.color}`}
                         >
-                          {t(`events.${item.eventType as EventTypeFilter}.label`)}
+                          {t(
+                            `events.${item.eventType as EventTypeFilter}.label`,
+                          )}
                         </span>
                       ) : (
                         <Badge variant="secondary">{item.eventType}</Badge>
@@ -199,7 +223,9 @@ export function AdminPromoAbuseView() {
                           >
                             {item.user.fullName}
                           </Link>
-                          <p className="text-xs text-slate-500">{item.user.email}</p>
+                          <p className="text-xs text-slate-500">
+                            {item.user.email}
+                          </p>
                         </div>
                       ) : item.userId ? (
                         <Link
@@ -217,7 +243,9 @@ export function AdminPromoAbuseView() {
                       {item.campaign && (
                         <p className="mt-1 text-xs text-slate-500">
                           {t("campaign")}{" "}
-                          <span className="font-medium text-slate-700">{item.campaign.name}</span>{" "}
+                          <span className="font-medium text-slate-700">
+                            {item.campaign.name}
+                          </span>{" "}
                           <span
                             className={`text-[10px] font-semibold uppercase ${
                               item.campaign.status === "ACTIVE"
@@ -232,25 +260,26 @@ export function AdminPromoAbuseView() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex flex-wrap justify-end gap-1.5">
-                        {item.campaignId && item.campaign?.status === "ACTIVE" && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            disabled={pauseMutation.isPending}
-                            onClick={() =>
-                              pauseMutation.mutate({
-                                id: item.campaignId!,
-                                status: "PAUSED",
-                                pauseReason: `Paused from abuse queue (${item.eventType})`,
-                              })
-                            }
-                            className="border-slate-200 text-slate-700 hover:bg-slate-50"
-                          >
-                            <ShieldOff className="size-3.5" />
-                            {t("pauseCampaign")}
-                          </Button>
-                        )}
+                        {item.campaignId &&
+                          item.campaign?.status === "ACTIVE" && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={pauseMutation.isPending}
+                              onClick={() =>
+                                pauseMutation.mutate({
+                                  id: item.campaignId!,
+                                  status: "PAUSED",
+                                  pauseReason: `Paused from abuse queue (${item.eventType})`,
+                                })
+                              }
+                              className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                            >
+                              <ShieldOff className="size-3.5" />
+                              {t("pauseCampaign")}
+                            </Button>
+                          )}
                         {item.reviewed ? (
                           <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-emerald-700">
                             <CheckCheck className="size-3.5" />

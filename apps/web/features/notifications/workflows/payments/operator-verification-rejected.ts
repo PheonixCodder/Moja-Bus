@@ -3,7 +3,6 @@ import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 import { dashboardUrl } from "@/features/notifications/utils/app-url";
 
-
 export const operatorVerificationRejectedWorkflow = workflow(
   "operator-verification-rejected",
   async ({ step, payload }) => {
@@ -41,7 +40,8 @@ export const operatorVerificationRejectedWorkflow = workflow(
   },
   {
     name: "Operator Verification Rejected",
-    description: "Sends document rejection notice explaining issues to the operator company",
+    description:
+      "Sends document rejection notice explaining issues to the operator company",
     preferences: {
       all: { readOnly: true },
     },
@@ -51,5 +51,5 @@ export const operatorVerificationRejectedWorkflow = workflow(
       companyName: z.string(),
       reason: z.string(),
     }),
-  }
+  },
 );

@@ -8,7 +8,8 @@ import { type Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Trip Audit | Admin",
-  description: "Deep-dive audit view for a single trip — manifest, occupancy, and reviews.",
+  description:
+    "Deep-dive audit view for a single trip — manifest, occupancy, and reviews.",
 };
 
 interface PageProps {
@@ -16,7 +17,10 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export default async function AdminTripAuditPage({ params, searchParams }: PageProps) {
+export default async function AdminTripAuditPage({
+  params,
+  searchParams,
+}: PageProps) {
   const t = await getTranslations("adminDashboard.pages.tripAudit");
   const { tripId } = await params;
   await searchParams.then((p) => tripAuditSearchParamsCache.parse(p));

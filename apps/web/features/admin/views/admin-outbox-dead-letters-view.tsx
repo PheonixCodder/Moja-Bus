@@ -21,7 +21,9 @@ export function AdminOutboxDeadLettersView() {
   );
 
   const invalidate = () =>
-    queryClient.invalidateQueries(trpc.payments.listOutboxMessages.pathFilter());
+    queryClient.invalidateQueries(
+      trpc.payments.listOutboxMessages.pathFilter(),
+    );
 
   const retryMutation = useMutation(
     trpc.payments.retryOutboxMessage.mutationOptions({
@@ -39,20 +41,14 @@ export function AdminOutboxDeadLettersView() {
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-slate-500">
-          {t("description")}
-        </p>
+        <h1 className="text-lg font-semibold text-slate-900">{t("title")}</h1>
+        <p className="text-sm text-slate-500">{t("description")}</p>
       </div>
       <Card className="divide-y overflow-hidden">
         {listQuery.isLoading ? (
           <p className="p-4 text-sm text-slate-500">{t("loading")}</p>
         ) : items.length === 0 ? (
-          <p className="p-4 text-sm text-slate-500">
-            {t("empty")}
-          </p>
+          <p className="p-4 text-sm text-slate-500">{t("empty")}</p>
         ) : (
           items.map((m) => (
             <div
@@ -71,7 +67,9 @@ export function AdminOutboxDeadLettersView() {
                   {new Date(m.updatedAt).toLocaleString()}
                 </p>
                 {m.lastError ? (
-                  <p className="text-xs text-red-600 break-words">{m.lastError}</p>
+                  <p className="text-xs text-red-600 break-words">
+                    {m.lastError}
+                  </p>
                 ) : null}
               </div>
               <Button

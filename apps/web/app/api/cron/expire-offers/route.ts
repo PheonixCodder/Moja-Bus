@@ -80,7 +80,10 @@ export async function GET(request: Request) {
           counterpartyName: offer.company.name,
         });
 
-        const operatorRecipients = await companyOperatorRecipients(tx, offer.companyId);
+        const operatorRecipients = await companyOperatorRecipients(
+          tx,
+          offer.companyId,
+        );
         for (const to of operatorRecipients) {
           await enqueueOfferExpired(tx as never, {
             offerId: offer.id,
@@ -118,7 +121,9 @@ export async function GET(request: Request) {
     for (const offer of soonOffers) {
       const hoursLeft = Math.max(
         1,
-        Math.ceil((offer.expiresAt.getTime() - now.getTime()) / (60 * 60 * 1000)),
+        Math.ceil(
+          (offer.expiresAt.getTime() - now.getTime()) / (60 * 60 * 1000),
+        ),
       );
       const dUser = offer.driverProfile.user;
       await enqueueOfferExpiringSoon(prisma as never, {
@@ -127,13 +132,18 @@ export async function GET(request: Request) {
         to: {
           subscriberId: dUser.id,
           ...(dUser.email ? { email: dUser.email } : {}),
-          ...(dUser.fullName ? { firstName: dUser.fullName.split(" ")[0] } : {}),
+          ...(dUser.fullName
+            ? { firstName: dUser.fullName.split(" ")[0] }
+            : {}),
         },
         counterpartyName: offer.company.name,
         hoursLeft,
       });
 
-      const operatorRecipients = await companyOperatorRecipients(prisma, offer.companyId);
+      const operatorRecipients = await companyOperatorRecipients(
+        prisma,
+        offer.companyId,
+      );
       for (const to of operatorRecipients) {
         await enqueueOfferExpiringSoon(prisma as never, {
           offerId: offer.id,
@@ -153,6 +163,9 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("expire-offers cron failed:", error);
-    return NextResponse.json({ error: "expire-offers failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "expire-offers failed" },
+      { status: 500 },
+    );
   }
 }

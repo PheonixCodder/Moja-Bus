@@ -50,7 +50,9 @@ export function appendPromoLedgerEntries(input: {
 
   if (creditApplied > 0) {
     if (!input.accounts.promoCreditsUserId) {
-      throw new Error("Promo credits applied but passenger promo account missing");
+      throw new Error(
+        "Promo credits applied but passenger promo account missing",
+      );
     }
     input.engine.addDebit({
       accountId: input.accounts.promoCreditsUserId,

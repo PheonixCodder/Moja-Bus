@@ -47,7 +47,9 @@ export function PassengerReferralsView() {
         setCodeInput("");
         await Promise.all([
           queryClient.invalidateQueries(trpc.discounts.myReferral.pathFilter()),
-          queryClient.invalidateQueries(trpc.discounts.listMyInvitees.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discounts.listMyInvitees.pathFilter(),
+          ),
         ]);
       },
       onError: (err) => toast.error(err.message),
@@ -118,7 +120,9 @@ export function PassengerReferralsView() {
             <Gift className="size-5" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-base font-semibold text-slate-900">{t("yourCode")}</h2>
+            <h2 className="text-base font-semibold text-slate-900">
+              {t("yourCode")}
+            </h2>
             <p className="text-sm text-slate-500">{t("yourCodeHint")}</p>
           </div>
         </div>
@@ -132,7 +136,11 @@ export function PassengerReferralsView() {
             disabled={!programActive}
             onClick={() => void copyCode()}
           >
-            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Copy className="size-4" />
+            )}
             {t("copyCode")}
           </Button>
           <Button
@@ -209,13 +217,19 @@ export function PassengerReferralsView() {
             <TableBody>
               {inviteesQuery.isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="py-8 text-center text-sm text-slate-500">
+                  <TableCell
+                    colSpan={3}
+                    className="py-8 text-center text-sm text-slate-500"
+                  >
                     …
                   </TableCell>
                 </TableRow>
               ) : (inviteesQuery.data?.items.length ?? 0) === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="py-8 text-center text-sm text-slate-500">
+                  <TableCell
+                    colSpan={3}
+                    className="py-8 text-center text-sm text-slate-500"
+                  >
                     {t("inviteesEmpty")}
                   </TableCell>
                 </TableRow>
@@ -240,7 +254,9 @@ export function PassengerReferralsView() {
       </Card>
 
       <Card className="space-y-3 p-6">
-        <h2 className="text-base font-semibold text-slate-900">{t("haveCode")}</h2>
+        <h2 className="text-base font-semibold text-slate-900">
+          {t("haveCode")}
+        </h2>
         <p className="text-sm text-slate-500">{t("haveCodeHint")}</p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input

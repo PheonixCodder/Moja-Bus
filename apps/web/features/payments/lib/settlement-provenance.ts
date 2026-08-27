@@ -55,7 +55,10 @@ export async function resolveBookingSettlement(
   const snapshot = holdGroup.pricingSnapshot;
   const charge = snapshot?.chargeAmountXOF ?? null;
   const allConfirmed = holdGroup.bookings.every(
-    (b) => b.status === "CONFIRMED" || b.status === "CANCELLED" || b.status === "REFUND_PENDING",
+    (b) =>
+      b.status === "CONFIRMED" ||
+      b.status === "CANCELLED" ||
+      b.status === "REFUND_PENDING",
   );
   const hasConfirmed = holdGroup.bookings.some((b) => b.status === "CONFIRMED");
 
@@ -89,7 +92,9 @@ export async function resolveBookingSettlement(
   };
 }
 
-export function assertSettlementCancellable(settlement: BookingSettlement): void {
+export function assertSettlementCancellable(
+  settlement: BookingSettlement,
+): void {
   if (!settlement.cancellable) {
     throw new TRPCError({
       code: "BAD_REQUEST",

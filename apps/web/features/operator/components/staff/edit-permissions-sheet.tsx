@@ -65,10 +65,7 @@ export function EditPermissionsSheet({
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent
-        side="right"
-        className="flex flex-col p-0 sm:max-w-lg"
-      >
+      <SheetContent side="right" className="flex flex-col p-0 sm:max-w-lg">
         <SheetHeader>
           <SheetTitle>{t("editPermissionsSheet.title")}</SheetTitle>
           <SheetDescription>
@@ -112,7 +109,11 @@ export function EditPermissionsSheet({
                 {t("cancel")}
               </Button>
               <Button className="flex-1" onClick={handleSave} disabled={saving}>
-                {saving ? <Spinner className="size-4" /> : t("editPermissionsSheet.save")}
+                {saving ? (
+                  <Spinner className="size-4" />
+                ) : (
+                  t("editPermissionsSheet.save")
+                )}
               </Button>
             </SheetFooter>
           </>

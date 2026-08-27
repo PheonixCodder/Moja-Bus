@@ -36,7 +36,11 @@ function resolvePermissions(pathname: string): PermissionKey[] | undefined {
   return undefined;
 }
 
-export function OperatorRouteGuard({ children }: { children: React.ReactNode }) {
+export function OperatorRouteGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const { can, role } = useStaffPermissions();
 

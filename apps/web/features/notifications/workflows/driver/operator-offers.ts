@@ -7,7 +7,10 @@ const basePayload = z.object({
   email: z.string().optional(),
 });
 
-const OPERATOR_REDIRECT = { url: "/dashboard/operator/drivers/offers", target: "_self" as const };
+const OPERATOR_REDIRECT = {
+  url: "/dashboard/operator/drivers/offers",
+  target: "_self" as const,
+};
 
 /**
  * Operator — driver sent a counter-offer.
@@ -22,7 +25,7 @@ export const operatorOfferCounteredWorkflow = workflow(
       redirect: OPERATOR_REDIRECT,
     }));
     await step.email("send-email", async () => {
- return {
+      return {
         subject: `Contre-offre de ${escapeHtml(payload.driverName)} — ${payload.counterSalaryCFA} FCFA/mois`,
         body: `<div style="font-family: Arial, sans-serif; max-width:480px; margin:0 auto; border:1px solid #e2e8f0; border-radius:12px; padding:24px; color:#1e293b;"><h2 style="color:#0081F1; margin-top:0;">Contre-offre reçue</h2><p><strong>${escapeHtml(payload.driverName)}</strong> a proposé <strong>${payload.counterSalaryCFA} FCFA/mois</strong>${payload.counterStartDate ? ` avec un début le <strong>${escapeHtml(payload.counterStartDate)}</strong>` : ""}.</p>${payload.note ? `<p style="font-style:italic;color:#64748b;">« ${escapeHtml(payload.note)} »</p>` : ""}<p style="font-size:13px;color:#64748b;">Acceptez, déclinez ou renégociez depuis votre tableau de bord opérateur.</p></div>`,
       };
@@ -37,7 +40,7 @@ export const operatorOfferCounteredWorkflow = workflow(
       counterStartDate: z.string().nullable().optional(),
       note: z.string().nullable().optional(),
     }),
-  }
+  },
 );
 
 /**
@@ -53,7 +56,7 @@ export const operatorOfferAcceptedWorkflow = workflow(
       redirect: { url: "/dashboard/operator/drivers", target: "_self" },
     }));
     await step.email("send-email", async () => {
- return {
+      return {
         subject: `${escapeHtml(payload.driverName)} a accepté votre offre d'emploi`,
         body: `<div style="font-family: Arial, sans-serif; max-width:480px; margin:0 auto; border:1px solid #e2e8f0; border-radius:12px; padding:24px; color:#1e293b;"><h2 style="color:#059669; margin-top:0;">Offre acceptée</h2><p><strong>${escapeHtml(payload.driverName)}</strong> a accepté votre offre : <strong>${payload.salaryCFA} FCFA/mois</strong> (${escapeHtml(payload.employmentType)}).</p><p style="font-size:13px;color:#64748b;">Le chauffeur apparaît désormais dans votre liste de chauffeurs. Vous pouvez l'affecter aux trajets.</p></div>`,
       };
@@ -67,7 +70,7 @@ export const operatorOfferAcceptedWorkflow = workflow(
       salaryCFA: z.string(),
       employmentType: z.string(),
     }),
-  }
+  },
 );
 
 /**
@@ -83,7 +86,7 @@ export const operatorOfferDeclinedWorkflow = workflow(
       redirect: OPERATOR_REDIRECT,
     }));
     await step.email("send-email", async () => {
- return {
+      return {
         subject: `${escapeHtml(payload.driverName)} a décliné votre offre`,
         body: `<div style="font-family: Arial, sans-serif; max-width:480px; margin:0 auto; padding:24px;"><p><strong>${escapeHtml(payload.driverName)}</strong> a décliné votre offre d'emploi.</p>${payload.note ? `<p style="color:#64748b;"><em>« ${escapeHtml(payload.note)} »</em></p>` : ""}</div>`,
       };
@@ -96,7 +99,7 @@ export const operatorOfferDeclinedWorkflow = workflow(
       driverName: z.string(),
       note: z.string().nullable().optional(),
     }),
-  }
+  },
 );
 
 /**
@@ -112,7 +115,7 @@ export const operatorOfferExpiringSoonWorkflow = workflow(
       redirect: OPERATOR_REDIRECT,
     }));
     await step.email("send-email", async () => {
- return {
+      return {
         subject: `⏰ L'offre à ${escapeHtml(payload.counterpartyName)} expire bientôt`,
         body: `<div style="font-family: Arial, sans-serif; max-width:480px; margin:0 auto; padding:24px;"><p>Votre offre à <strong>${escapeHtml(payload.counterpartyName)}</strong> expire dans <strong>${payload.hoursLeft} heures</strong>.</p></div>`,
       };
@@ -125,7 +128,7 @@ export const operatorOfferExpiringSoonWorkflow = workflow(
       counterpartyName: z.string(),
       hoursLeft: z.number().int(),
     }),
-  }
+  },
 );
 
 /**
@@ -141,7 +144,7 @@ export const operatorOfferExpiredWorkflow = workflow(
       redirect: OPERATOR_REDIRECT,
     }));
     await step.email("send-email", async () => {
- return {
+      return {
         subject: `L'offre à ${escapeHtml(payload.counterpartyName)} a expiré`,
         body: `<div style="font-family: Arial, sans-serif; max-width:480px; margin:0 auto; padding:24px;"><p>Votre offre à <strong>${escapeHtml(payload.counterpartyName)}</strong> a expiré sans réponse après 7 jours.</p></div>`,
       };
@@ -153,7 +156,7 @@ export const operatorOfferExpiredWorkflow = workflow(
     payloadSchema: basePayload.extend({
       counterpartyName: z.string(),
     }),
-  }
+  },
 );
 
 /**
@@ -170,7 +173,7 @@ export const driverAffiliationEndedWorkflow = workflow(
       redirect: { url: "/dashboard/operator/drivers", target: "_self" },
     }));
     await step.email("send-email", async () => {
- return {
+      return {
         subject: `Contrat exclusif terminé — ${escapeHtml(payload.driverName)}`,
         body: `<div style="font-family: Arial, sans-serif; max-width:480px; margin:0 auto; padding:24px;"><h2 style="color:#dc2626;">Fin de contrat exclusif</h2><p><strong>${escapeHtml(payload.driverName)}</strong> a accepté un contrat exclusif auprès de <strong>${escapeHtml(payload.newCompanyName)}</strong>. Son affiliation exclusive chez vous est terminée conformément à la règle « un seul contrat intercity exclusif actif ».</p></div>`,
       };
@@ -178,10 +181,11 @@ export const driverAffiliationEndedWorkflow = workflow(
   },
   {
     name: "Driver Affiliation Ended",
-    description: "Exclusive affiliation auto-terminated because the driver accepted an exclusive offer elsewhere",
+    description:
+      "Exclusive affiliation auto-terminated because the driver accepted an exclusive offer elsewhere",
     payloadSchema: basePayload.extend({
       driverName: z.string(),
       newCompanyName: z.string(),
     }),
-  }
+  },
 );

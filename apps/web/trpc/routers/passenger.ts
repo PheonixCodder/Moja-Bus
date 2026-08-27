@@ -20,6 +20,7 @@ import { paystackInitialize } from "@/features/payments/providers/paystack-clien
 import { toSafeDisplayNumber } from "@/lib/money";
 import { getNovuClient } from "@/lib/novu";
 import { getPhoneValidationError, toE164 } from "@/lib/phone/phone-number";
+import { mintPassengerTrackingToken } from "@/lib/telemetry-token";
 import { getCalendarDateKey, getZonedDateParts } from "@/lib/timezone";
 import { createTRPCRouter, protectedProcedure } from "../init";
 
@@ -970,6 +971,35 @@ export const passengerRouter = createTRPCRouter({
         boardingStopOrder: booking.boardingStopOrder,
         dropoffStopOrder: booking.dropoffStopOrder,
         distanceToDropoffKm,
+      };
+    }),
+
+  getTrackingToken: protectedProcedure
+    .input(z.object({ tripId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const { tripId } = input;
+
+      const booking = await ctx.prisma.booking.findFirst({
+        where: {
+          userId: ctx.user.id,
+          tripId,
+          status: "CONFIRMED",
+        },
+        select: { id: true },
+      });
+
+      if (!booking) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have a confirmed booking for this trip.",
+        });
+      }
+
+      const token = mintPassengerTrackingToken(ctx.user.id, tripId);
+      return {
+        token,
+        tripId,
+        expiresAt: Date.now() + 15 * 60 * 1000,
       };
     }),
 });

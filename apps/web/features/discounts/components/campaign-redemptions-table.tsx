@@ -55,13 +55,19 @@ export function CampaignRedemptionsTable({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={5} className="py-8 text-center text-sm text-slate-500">
+              <TableCell
+                colSpan={5}
+                className="py-8 text-center text-sm text-slate-500"
+              >
                 {t("loading")}
               </TableCell>
             </TableRow>
           ) : items.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="py-8 text-center text-sm text-slate-500">
+              <TableCell
+                colSpan={5}
+                className="py-8 text-center text-sm text-slate-500"
+              >
                 {emptyHint}
               </TableCell>
             </TableRow>
@@ -83,7 +89,9 @@ export function CampaignRedemptionsTable({
                       </div>
                     </div>
                   ) : (
-                    <span className="text-sm text-slate-400">{t("guestUnknown")}</span>
+                    <span className="text-sm text-slate-400">
+                      {t("guestUnknown")}
+                    </span>
                   )}
                 </TableCell>
                 <TableCell className="font-mono text-xs">

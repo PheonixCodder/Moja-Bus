@@ -14,7 +14,6 @@ import { DashboardTreasuryCards } from "../components/dashboard/dashboard-treasu
 import { AdminDriverMarketplaceWidget } from "../components/dashboard/dashboard-driver-marketplace";
 import { dashboardSearchParams } from "../lib/search-params";
 
-
 function StatsSkeleton() {
   return (
     <div className="space-y-6">
@@ -91,7 +90,6 @@ function DashboardContent() {
     </div>
   );
 }
-
 
 export function AdminDashboardView() {
   const t = useTranslations("adminDashboard.adminDashboardView");

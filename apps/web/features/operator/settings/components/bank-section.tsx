@@ -2,9 +2,21 @@
 
 import { useTranslations } from "next-intl";
 import { useBankAccounts } from "../api/use-bank-accounts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
-import { Landmark, ArrowRight, ShieldCheck, AlertCircle, Clock } from "lucide-react";
+import {
+  Landmark,
+  ArrowRight,
+  ShieldCheck,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
 import { Badge } from "@moja/ui/components/ui/badge";
 
 interface BankSectionProps {
@@ -14,7 +26,8 @@ interface BankSectionProps {
 export function BankSection({ onManage }: BankSectionProps) {
   const t = useTranslations("operatorDashboard.settings.banking");
   const { data: bankAccounts } = useBankAccounts();
-  const defaultAccount = bankAccounts?.find(a => a.isDefault) || bankAccounts?.[0];
+  const defaultAccount =
+    bankAccounts?.find((a) => a.isDefault) || bankAccounts?.[0];
 
   return (
     <Card className="flex flex-col h-full">
@@ -39,23 +52,33 @@ export function BankSection({ onManage }: BankSectionProps) {
                 <div>
                   <p className="font-semibold">{defaultAccount.bankName}</p>
                   <p className="text-sm text-muted-foreground font-mono mt-1">
-                    •••• •••• {defaultAccount.accountNumber?.slice(-4) || "****"}
+                    •••• ••••{" "}
+                    {defaultAccount.accountNumber?.slice(-4) || "****"}
                   </p>
                 </div>
                 {defaultAccount.isVerified ? (
-                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-green-500/10 text-green-600 border-green-200"
+                  >
                     <ShieldCheck className="w-3 h-3 mr-1" /> {t("verified")}
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-amber-500/10 text-amber-600 border-amber-200"
+                  >
                     <Clock className="w-3 h-3 mr-1" /> {t("pending")}
                   </Badge>
                 )}
               </div>
-              
+
               <div className="pt-3 border-t grid grid-cols-2 text-sm gap-2">
                 <div className="text-muted-foreground">{t("accountName")}</div>
-                <div className="font-medium truncate" title={defaultAccount.accountName || ""}>
+                <div
+                  className="font-medium truncate"
+                  title={defaultAccount.accountName || ""}
+                >
                   {defaultAccount.accountName}
                 </div>
               </div>
@@ -74,7 +97,12 @@ export function BankSection({ onManage }: BankSectionProps) {
             <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
               {t("noPayoutAccountDesc")}
             </p>
-            <Button variant="link" size="sm" className="mt-2" onClick={onManage}>
+            <Button
+              variant="link"
+              size="sm"
+              className="mt-2"
+              onClick={onManage}
+            >
               {t("addAccount")}
             </Button>
           </div>

@@ -68,7 +68,14 @@ export const passengerTripDelayedWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Trip Delayed",
       body: `${escapeHtml(payload.originCity)} → ${escapeHtml(payload.destinationCity)} delayed by ${escapeHtml(payload.delayMinutes)}m. New departure: ${escapeHtml(payload.newTime)}`,
-      overrides: { expo: { data: { type: "trip-delayed", bookingReference: payload.bookingReference } } },
+      overrides: {
+        expo: {
+          data: {
+            type: "trip-delayed",
+            bookingReference: payload.bookingReference,
+          },
+        },
+      },
     }));
   },
   {

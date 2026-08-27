@@ -164,7 +164,10 @@ describe("phoneErrorMessage", () => {
   });
 
   it("maps INVALID_COUNTRY to the unknown-code message", () => {
-    assert.equal(phoneErrorMessage(t, err("INVALID_COUNTRY")), "invalid-country");
+    assert.equal(
+      phoneErrorMessage(t, err("INVALID_COUNTRY")),
+      "invalid-country",
+    );
   });
 
   it("maps NOT_A_NUMBER to the not-a-number message", () => {

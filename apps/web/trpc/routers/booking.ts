@@ -96,10 +96,9 @@ export const bookingRouter = createTRPCRouter({
       const { assertHoldOwnedByUser } = await import(
         "@/features/booking/lib/assert-hold-ownership"
       );
-      const {
-        checkoutSessionCookieValue,
-        signCheckoutSession,
-      } = await import("@/features/payments/lib/signed-access-tokens");
+      const { checkoutSessionCookieValue, signCheckoutSession } = await import(
+        "@/features/payments/lib/signed-access-tokens"
+      );
       const holdGroup = await resolveHoldGroup(ctx.prisma, input.holdId);
       assertHoldOwnedByUser(holdGroup, ctx.user.id);
 
@@ -233,7 +232,7 @@ export const bookingRouter = createTRPCRouter({
       z.object({
         holdId: z.string(),
         locale: z.enum(["en", "fr"]).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { resolveHoldGroup } = await import(
@@ -310,11 +309,14 @@ export const bookingRouter = createTRPCRouter({
         recipientName: z.string(),
         recipientPhone: z.string().optional(),
         locale: z.enum(["en", "fr"]).default("fr"),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const booking = await ctx.prisma.booking.findFirst({
-        where: { bookingReference: input.bookingReference, userId: ctx.user.id },
+        where: {
+          bookingReference: input.bookingReference,
+          userId: ctx.user.id,
+        },
         include: {
           originTripStop: {
             include: {
@@ -339,39 +341,51 @@ export const bookingRouter = createTRPCRouter({
         });
       }
 
-      const originCity = booking.originTripStop?.terminal.cityRelation?.name ?? "Unknown";
-      const destCity = booking.destinationTripStop?.terminal.cityRelation?.name ?? "Unknown";
-      const originMunicipality = booking.originTripStop?.terminal.municipality?.name ?? null;
-      const destMunicipality = booking.destinationTripStop?.terminal.municipality?.name ?? null;
+      const originCity =
+        booking.originTripStop?.terminal.cityRelation?.name ?? "Unknown";
+      const destCity =
+        booking.destinationTripStop?.terminal.cityRelation?.name ?? "Unknown";
+      const originMunicipality =
+        booking.originTripStop?.terminal.municipality?.name ?? null;
+      const destMunicipality =
+        booking.destinationTripStop?.terminal.municipality?.name ?? null;
 
       const novu = getNovuClient();
       if (novu) {
         try {
-          await novu.trigger({
-            workflowId: "passenger-ticket-shared",
-            to: {
-              subscriberId: input.recipientEmail,
-              email: input.recipientEmail,
-            },
-            payload: {
-              email: input.recipientEmail,
-              passengerName: input.recipientName,
-              senderName: ctx.user.name ?? "A friend",
-              originCity,
-              destinationCity: destCity,
-              originMunicipality,
-              destinationMunicipality: destMunicipality,
-              departureTime: booking.trip.departureDate.toLocaleString("en-US", { timeZone: "UTC" }),
-              ticketToken: booking.ticketToken,
-              // P2-3 👻: absolute locale-prefixed link built from the canonical
-              // app origin — the old hardcoded mojaride.com link 404'd.
-              ticketUrl: `${getAppOrigin()}/${input.locale}/tickets/${booking.ticketToken}`,
-              phone: input.recipientPhone || undefined,
-            },
-            transactionId: `passenger-ticket-shared-${booking.id}-${input.recipientEmail}`,
-          }).catch(() => {});
+          await novu
+            .trigger({
+              workflowId: "passenger-ticket-shared",
+              to: {
+                subscriberId: input.recipientEmail,
+                email: input.recipientEmail,
+              },
+              payload: {
+                email: input.recipientEmail,
+                passengerName: input.recipientName,
+                senderName: ctx.user.name ?? "A friend",
+                originCity,
+                destinationCity: destCity,
+                originMunicipality,
+                destinationMunicipality: destMunicipality,
+                departureTime: booking.trip.departureDate.toLocaleString(
+                  "en-US",
+                  { timeZone: "UTC" },
+                ),
+                ticketToken: booking.ticketToken,
+                // P2-3 👻: absolute locale-prefixed link built from the canonical
+                // app origin — the old hardcoded mojaride.com link 404'd.
+                ticketUrl: `${getAppOrigin()}/${input.locale}/tickets/${booking.ticketToken}`,
+                phone: input.recipientPhone || undefined,
+              },
+              transactionId: `passenger-ticket-shared-${booking.id}-${input.recipientEmail}`,
+            })
+            .catch(() => {});
         } catch (err) {
-          console.error("Failed to trigger passenger-ticket-shared via Novu:", err);
+          console.error(
+            "Failed to trigger passenger-ticket-shared via Novu:",
+            err,
+          );
         }
       }
 

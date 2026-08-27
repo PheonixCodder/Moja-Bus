@@ -127,7 +127,9 @@ export function buildSearchEntries(
   // Interleave by name so terminals don't always sink to the bottom
   const entries = Array.from(results.values());
   entries.sort((a, b) =>
-    a.hierarchyLabel.localeCompare(b.hierarchyLabel, "fr", { sensitivity: "base" }),
+    a.hierarchyLabel.localeCompare(b.hierarchyLabel, "fr", {
+      sensitivity: "base",
+    }),
   );
 
   return entries.slice(0, limit);

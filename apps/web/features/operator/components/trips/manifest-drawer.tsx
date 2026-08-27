@@ -82,7 +82,9 @@ export function ManifestDrawer({
   const [bulkCancelOpen, setBulkCancelOpen] = useState(false);
   const [bulkReason, setBulkReason] = useState("");
   const [bulkChannel, setBulkChannel] = useState<"WALLET" | "CASH">("WALLET");
-  const [tripRefundChannel, setTripRefundChannel] = useState<"WALLET" | "CASH">("WALLET");
+  const [tripRefundChannel, setTripRefundChannel] = useState<"WALLET" | "CASH">(
+    "WALLET",
+  );
 
   const {
     data: trip,
@@ -125,7 +127,10 @@ export function ManifestDrawer({
         toast.info(t("alreadyCheckedInToast", { name: result.passengerName }));
       } else {
         toast.success(
-          t("checkedInToast", { name: result.passengerName, seat: result.seatLabel }),
+          t("checkedInToast", {
+            name: result.passengerName,
+            seat: result.seatLabel,
+          }),
         );
       }
     },
@@ -164,12 +169,9 @@ export function ManifestDrawer({
     ...trpc.trips.cancel.mutationOptions(),
     onSuccess: (result) => {
       invalidateTripData();
-      const failed =
-        result.refundResults?.filter((r) => !r.success) ?? [];
+      const failed = result.refundResults?.filter((r) => !r.success) ?? [];
       if (failed.length > 0) {
-        toast.warning(
-          t("tripCancelledRefunds", { count: failed.length }),
-        );
+        toast.warning(t("tripCancelledRefunds", { count: failed.length }));
       } else {
         toast.success(t("tripCancelled"));
       }
@@ -248,7 +250,10 @@ export function ManifestDrawer({
     try {
       const res = await bulkCheckInMutation.mutateAsync({ tripId: trip.id });
       toast.success(
-        t("bulkCheckInResult", { count: res.checkedIn, already: res.alreadyCheckedIn }),
+        t("bulkCheckInResult", {
+          count: res.checkedIn,
+          already: res.alreadyCheckedIn,
+        }),
       );
       setSelectedIds(new Set());
     } catch (err: any) {
@@ -308,13 +313,13 @@ export function ManifestDrawer({
               </DrawerTitle>
               <DrawerDescription className="text-xs text-muted-foreground">
                 {trip
-                    ? `${
-                        trip.schedule?.route?.originTerminal?.cityRelation
-                          ?.name ?? tRoot("origin")
-                      } \u2192 ${
-                        trip.schedule?.route?.destTerminal?.cityRelation?.name ??
-                        tRoot("dest")
-                      } \u00b7 ${formatTripDate(trip.departureDate)}`
+                  ? `${
+                      trip.schedule?.route?.originTerminal?.cityRelation
+                        ?.name ?? tRoot("origin")
+                    } \u2192 ${
+                      trip.schedule?.route?.destTerminal?.cityRelation?.name ??
+                      tRoot("dest")
+                    } \u00b7 ${formatTripDate(trip.departureDate)}`
                   : t("loading")}
               </DrawerDescription>
             </div>
@@ -350,9 +355,13 @@ export function ManifestDrawer({
               <div className="border border-border rounded-md p-3 space-y-2 bg-slate-50/50">
                 <div className="flex items-center gap-2">
                   <Calendar className="size-3.5 text-muted-foreground" />
-                  <span className="text-xs">{formatTripDate(trip.departureDate)}</span>
+                  <span className="text-xs">
+                    {formatTripDate(trip.departureDate)}
+                  </span>
                   <Clock className="size-3.5 text-muted-foreground ml-2" />
-                  <span className="text-xs">{formatTripTime(trip.departureDate)}</span>
+                  <span className="text-xs">
+                    {formatTripTime(trip.departureDate)}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-semibold">
@@ -532,43 +541,48 @@ export function ManifestDrawer({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        {t("confirmedPassengers", { count: confirmedBookings.length })}
+                        {t("confirmedPassengers", {
+                          count: confirmedBookings.length,
+                        })}
                       </h4>
                       <span className="text-[11px] font-semibold text-muted-foreground">
-                        {t("checkedInProgress", { checkedIn: checkedInCount, confirmed: confirmedBookings.length })}
+                        {t("checkedInProgress", {
+                          checkedIn: checkedInCount,
+                          confirmed: confirmedBookings.length,
+                        })}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                       {canCheckIn && pendingCheckIns.length > 0 ? (
-                         <Button
-                           size="sm"
-                           variant="outline"
-                           className="h-7 text-[11px] px-2"
-                           onClick={() => void handleCheckInAll()}
-                           disabled={bulkCheckInMutation.isPending}
-                         >
-                           {bulkCheckInMutation.isPending ? (
-                             <Spinner className="size-3" />
-                           ) : (
-                             t("checkInAll", { count: pendingCheckIns.length })
-                           )}
-                         </Button>
-                       ) : null}
-                       {selectedIds.size > 0 ? (
-                         <span className="text-[11px] font-semibold text-muted-foreground">
-                           {t("selected", { count: selectedIds.size })}
-                         </span>
-                       ) : null}
-                       {canCancel && selectedIds.size > 0 && !bulkCancelOpen ? (
-                         <Button
-                           size="sm"
-                           variant="destructive"
-                           className="h-7 text-[11px] px-2"
-                           onClick={() => setBulkCancelOpen(true)}
-                         >
-                           {t("cancelSelected")}
-                         </Button>
-                       ) : null}
+                      {canCheckIn && pendingCheckIns.length > 0 ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-[11px] px-2"
+                          onClick={() => void handleCheckInAll()}
+                          disabled={bulkCheckInMutation.isPending}
+                        >
+                          {bulkCheckInMutation.isPending ? (
+                            <Spinner className="size-3" />
+                          ) : (
+                            t("checkInAll", { count: pendingCheckIns.length })
+                          )}
+                        </Button>
+                      ) : null}
+                      {selectedIds.size > 0 ? (
+                        <span className="text-[11px] font-semibold text-muted-foreground">
+                          {t("selected", { count: selectedIds.size })}
+                        </span>
+                      ) : null}
+                      {canCancel && selectedIds.size > 0 && !bulkCancelOpen ? (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="h-7 text-[11px] px-2"
+                          onClick={() => setBulkCancelOpen(true)}
+                        >
+                          {t("cancelSelected")}
+                        </Button>
+                      ) : null}
                       {selectedIds.size > 0 ? (
                         <Button
                           size="sm"
@@ -623,7 +637,9 @@ export function ManifestDrawer({
                             {bulkCancelMutation.isPending ? (
                               <Spinner className="size-3" />
                             ) : (
-                              t("confirmCancelLabel", { count: selectedIds.size })
+                              t("confirmCancelLabel", {
+                                count: selectedIds.size,
+                              })
                             )}
                           </Button>
                           <Button
@@ -654,7 +670,9 @@ export function ManifestDrawer({
                             aria-label={`${t("checkIn")}: ${b.passengerName}`}
                           />
                           <div>
-                            <p className="text-xs font-semibold">{b.passengerName}</p>
+                            <p className="text-xs font-semibold">
+                              {b.passengerName}
+                            </p>
                             {b.passengerPhone ? (
                               <p className="text-[11px] text-muted-foreground">
                                 {b.passengerPhone}
@@ -686,7 +704,8 @@ export function ManifestDrawer({
                               variant="outline"
                               className="h-7 text-[11px] px-2"
                               disabled={
-                                checkingInId === b.id || checkInMutation.isPending
+                                checkingInId === b.id ||
+                                checkInMutation.isPending
                               }
                               onClick={() => void handleManualCheckIn(b.id)}
                             >
@@ -718,7 +737,9 @@ export function ManifestDrawer({
                           className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 border-b border-border last:border-b-0 items-center opacity-60"
                         >
                           <div>
-                            <p className="text-xs font-semibold">{b.passengerName}</p>
+                            <p className="text-xs font-semibold">
+                              {b.passengerName}
+                            </p>
                             {b.passengerPhone ? (
                               <p className="text-[11px] text-muted-foreground">
                                 {b.passengerPhone}
@@ -743,215 +764,215 @@ export function ManifestDrawer({
             ) : null}
 
             {view === "passengers" ? (
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                {t("actionsTitle")}
-              </h4>
-              <div className="flex flex-col gap-2">
-                {canCheckIn && confirmedBookings.length > 0 ? (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setScannerOpen(true)}
-                    disabled={actionLoading}
-                    className="w-full"
-                  >
-                    <ScanLine className="size-4 mr-2" />
-                    {t("scanTicket")}
-                  </Button>
-                ) : null}
-                {canUpdate && actions?.canBoard ? (
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      updateStatusMutation.mutate({
-                        id: trip.id,
-                        status: "BOARDING",
-                      })
-                    }
-                    disabled={actionLoading || !trip.busId}
-                    className="w-full"
-                  >
-                    <CheckCircle2 className="size-4 mr-2" />
-                    {t("startBoarding")}
-                  </Button>
-                ) : null}
-                {canUpdate && actions?.canDepart ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      updateStatusMutation.mutate({
-                        id: trip.id,
-                        status: "DEPARTED",
-                      })
-                    }
-                    disabled={actionLoading}
-                    className="w-full"
-                  >
-                    {t("markDeparted")}
-                  </Button>
-                ) : null}
-                {canUpdate && actions?.canArrive ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      updateStatusMutation.mutate({
-                        id: trip.id,
-                        status: "ARRIVED",
-                      })
-                    }
-                    disabled={actionLoading}
-                    className="w-full"
-                  >
-                    {t("markArrived")}
-                  </Button>
-                ) : null}
-                {canUpdate && actions?.canDelay ? (
-                  showDelayForm ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min={1}
-                        placeholder={t("delayMinutesPlaceholder")}
-                        value={delayMinutes}
-                        onChange={(e) => setDelayMinutes(e.target.value)}
-                        className="h-8 text-sm"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          const mins = parseInt(delayMinutes, 10);
-                          if (isNaN(mins) || mins <= 0) {
-                            toast.error(t("invalidDelay"));
-                            return;
-                          }
-                          delayMutation.mutate({
-                            id: trip.id,
-                            data: { delayMinutes: mins },
-                          });
-                        }}
-                        disabled={actionLoading}
-                      >
-                        {t("log")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setShowDelayForm(false)}
-                      >
-                        {t("cancelDelay")}
-                      </Button>
-                    </div>
-                  ) : (
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {t("actionsTitle")}
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {canCheckIn && confirmedBookings.length > 0 ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setScannerOpen(true)}
+                      disabled={actionLoading}
+                      className="w-full"
+                    >
+                      <ScanLine className="size-4 mr-2" />
+                      {t("scanTicket")}
+                    </Button>
+                  ) : null}
+                  {canUpdate && actions?.canBoard ? (
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        updateStatusMutation.mutate({
+                          id: trip.id,
+                          status: "BOARDING",
+                        })
+                      }
+                      disabled={actionLoading || !trip.busId}
+                      className="w-full"
+                    >
+                      <CheckCircle2 className="size-4 mr-2" />
+                      {t("startBoarding")}
+                    </Button>
+                  ) : null}
+                  {canUpdate && actions?.canDepart ? (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setShowDelayForm(true)}
-                      className="w-full text-amber-600 border-amber-200"
+                      onClick={() =>
+                        updateStatusMutation.mutate({
+                          id: trip.id,
+                          status: "DEPARTED",
+                        })
+                      }
+                      disabled={actionLoading}
+                      className="w-full"
                     >
-                      <AlertTriangle className="size-4 mr-2" />
-                      {t("logDelay")}
+                      {t("markDeparted")}
                     </Button>
-                  )
-                ) : null}
-                {canCancel && actions?.canCancel ? (
-                  showCancelForm ? (
-                    <div className="space-y-2">
-                      {checkedInCount > 0 ? (
-                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md p-2">
-                          {t("tripCancelBlockedCheckedIn", {
-                            count: checkedInCount,
-                          })}
-                        </p>
-                      ) : (
-                        <>
-                          <Input
-                            placeholder={t("cancelReasonPlaceholder")}
-                            aria-label={t("cancelReasonPlaceholder")}
-                            value={cancelReason}
-                            onChange={(e) => setCancelReason(e.target.value)}
-                            className="text-sm"
-                          />
-                          <div className="grid grid-cols-2 gap-1">
-                            {(
-                              [
-                                ["WALLET", t("refundWallet")],
-                                ["CASH", t("refundCash")],
-                              ] as const
-                            ).map(([id, label]) => (
-                              <button
-                                key={id}
-                                type="button"
-                                onClick={() => setTripRefundChannel(id)}
-                                className={`rounded-md border px-1.5 py-1 text-[10px] font-semibold ${
-                                  tripRefundChannel === id
-                                    ? "border-destructive bg-destructive/10 text-destructive"
-                                    : "border-border text-muted-foreground"
-                                }`}
-                              >
-                                {label}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => {
-                                if (!cancelReason.trim()) {
-                                  toast.error(t("cancelReasonRequired"));
-                                  return;
-                                }
-                                cancelMutation.mutate({
-                                  id: trip.id,
-                                  data: {
-                                    cancelReason: cancelReason.trim(),
-                                    refundChannel: tripRefundChannel,
-                                  },
-                                });
-                              }}
-                              disabled={actionLoading || !cancelReason.trim()}
-                              className="flex-1"
-                            >
-                              {t("confirmCancelLabel", { count: 1 })}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setShowCancelForm(false)}
-                            >
-                              {t("back")}
-                            </Button>
-                          </div>
-                        </>
-                      )}
-                      {checkedInCount > 0 ? (
+                  ) : null}
+                  {canUpdate && actions?.canArrive ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateStatusMutation.mutate({
+                          id: trip.id,
+                          status: "ARRIVED",
+                        })
+                      }
+                      disabled={actionLoading}
+                      className="w-full"
+                    >
+                      {t("markArrived")}
+                    </Button>
+                  ) : null}
+                  {canUpdate && actions?.canDelay ? (
+                    showDelayForm ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder={t("delayMinutesPlaceholder")}
+                          value={delayMinutes}
+                          onChange={(e) => setDelayMinutes(e.target.value)}
+                          className="h-8 text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const mins = parseInt(delayMinutes, 10);
+                            if (isNaN(mins) || mins <= 0) {
+                              toast.error(t("invalidDelay"));
+                              return;
+                            }
+                            delayMutation.mutate({
+                              id: trip.id,
+                              data: { delayMinutes: mins },
+                            });
+                          }}
+                          disabled={actionLoading}
+                        >
+                          {t("log")}
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setShowCancelForm(false)}
+                          onClick={() => setShowDelayForm(false)}
                         >
-                          {t("back")}
+                          {t("cancelDelay")}
                         </Button>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setShowCancelForm(true)}
-                      className="w-full text-destructive border-destructive/20"
-                    >
-                      <XCircle className="size-4 mr-2" />
-                      {t("cancelTrip")}
-                    </Button>
-                  )
-                ) : null}
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowDelayForm(true)}
+                        className="w-full text-amber-600 border-amber-200"
+                      >
+                        <AlertTriangle className="size-4 mr-2" />
+                        {t("logDelay")}
+                      </Button>
+                    )
+                  ) : null}
+                  {canCancel && actions?.canCancel ? (
+                    showCancelForm ? (
+                      <div className="space-y-2">
+                        {checkedInCount > 0 ? (
+                          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md p-2">
+                            {t("tripCancelBlockedCheckedIn", {
+                              count: checkedInCount,
+                            })}
+                          </p>
+                        ) : (
+                          <>
+                            <Input
+                              placeholder={t("cancelReasonPlaceholder")}
+                              aria-label={t("cancelReasonPlaceholder")}
+                              value={cancelReason}
+                              onChange={(e) => setCancelReason(e.target.value)}
+                              className="text-sm"
+                            />
+                            <div className="grid grid-cols-2 gap-1">
+                              {(
+                                [
+                                  ["WALLET", t("refundWallet")],
+                                  ["CASH", t("refundCash")],
+                                ] as const
+                              ).map(([id, label]) => (
+                                <button
+                                  key={id}
+                                  type="button"
+                                  onClick={() => setTripRefundChannel(id)}
+                                  className={`rounded-md border px-1.5 py-1 text-[10px] font-semibold ${
+                                    tripRefundChannel === id
+                                      ? "border-destructive bg-destructive/10 text-destructive"
+                                      : "border-border text-muted-foreground"
+                                  }`}
+                                >
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  if (!cancelReason.trim()) {
+                                    toast.error(t("cancelReasonRequired"));
+                                    return;
+                                  }
+                                  cancelMutation.mutate({
+                                    id: trip.id,
+                                    data: {
+                                      cancelReason: cancelReason.trim(),
+                                      refundChannel: tripRefundChannel,
+                                    },
+                                  });
+                                }}
+                                disabled={actionLoading || !cancelReason.trim()}
+                                className="flex-1"
+                              >
+                                {t("confirmCancelLabel", { count: 1 })}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setShowCancelForm(false)}
+                              >
+                                {t("back")}
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                        {checkedInCount > 0 ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setShowCancelForm(false)}
+                          >
+                            {t("back")}
+                          </Button>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowCancelForm(true)}
+                        className="w-full text-destructive border-destructive/20"
+                      >
+                        <XCircle className="size-4 mr-2" />
+                        {t("cancelTrip")}
+                      </Button>
+                    )
+                  ) : null}
+                </div>
               </div>
-            </div>
             ) : null}
           </div>
         ) : null}

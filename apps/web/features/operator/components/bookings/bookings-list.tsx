@@ -61,7 +61,9 @@ export function BookingsList({
     <div className="space-y-3">
       <p className="text-xs text-text-muted">
         {t("results", { total: data.total })}
-        {pageCount > 1 ? ` · ${t("pagination.pageOf", { page, total: pageCount })}` : ""}
+        {pageCount > 1
+          ? ` · ${t("pagination.pageOf", { page, total: pageCount })}`
+          : ""}
       </p>
       {data.items.map((booking) => (
         <BookingRow

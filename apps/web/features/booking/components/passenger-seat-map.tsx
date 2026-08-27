@@ -32,7 +32,8 @@ const STATUS_STYLES: Record<
     clickable: false,
   },
   SOLD: {
-    className: "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed",
+    className:
+      "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed",
     clickable: false,
   },
   BLOCKED: {
@@ -40,8 +41,7 @@ const STATUS_STYLES: Record<
     clickable: false,
   },
   DRIVER: {
-    className:
-      "border-slate-300 bg-slate-800 text-white cursor-not-allowed",
+    className: "border-slate-300 bg-slate-800 text-white cursor-not-allowed",
     clickable: false,
   },
   EMPTY: {
@@ -117,11 +117,26 @@ export function PassengerSeatMap({
         ) : null}
 
         <div className="flex flex-wrap justify-center gap-3 mb-4 text-[11px] text-muted-foreground">
-          <LegendDot className="border-emerald-200 bg-emerald-50" label={t("available")} />
-          <LegendDot className="border-pink-300 bg-pink-100" label={t("selected")} />
-          <LegendDot className="border-slate-200 bg-slate-100" label={t("sold")} />
-          <LegendDot className="border-amber-200 bg-amber-50" label={t("held")} />
-          <LegendDot className="border-slate-200 bg-slate-50" label={t("blocked")} />
+          <LegendDot
+            className="border-emerald-200 bg-emerald-50"
+            label={t("available")}
+          />
+          <LegendDot
+            className="border-pink-300 bg-pink-100"
+            label={t("selected")}
+          />
+          <LegendDot
+            className="border-slate-200 bg-slate-100"
+            label={t("sold")}
+          />
+          <LegendDot
+            className="border-amber-200 bg-amber-50"
+            label={t("held")}
+          />
+          <LegendDot
+            className="border-slate-200 bg-slate-50"
+            label={t("blocked")}
+          />
         </div>
 
         <div className="inline-block rounded-xl border border-border bg-muted/30 p-4">
@@ -144,7 +159,9 @@ export function PassengerSeatMap({
             <div
               key={rowIdx}
               className="grid gap-1.5 mb-1.5"
-              style={{ gridTemplateColumns: `1.5rem repeat(${columns}, 2.5rem)` }}
+              style={{
+                gridTemplateColumns: `1.5rem repeat(${columns}, 2.5rem)`,
+              }}
             >
               <div className="flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
                 {rowIdx + 1}
@@ -212,13 +229,7 @@ export function PassengerSeatMap({
   );
 }
 
-function LegendDot({
-  className,
-  label,
-}: {
-  className: string;
-  label: string;
-}) {
+function LegendDot({ className, label }: { className: string; label: string }) {
   return (
     <div className="flex items-center gap-1.5">
       <div className={cn("size-3.5 rounded-[4px] border", className)} />

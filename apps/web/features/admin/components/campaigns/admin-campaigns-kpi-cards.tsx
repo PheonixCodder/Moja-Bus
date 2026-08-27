@@ -28,7 +28,9 @@ export function AdminCampaignsKpiCards({
           <Megaphone className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">{t("activeCampaigns")}</p>
+          <p className="text-xs font-medium text-slate-500">
+            {t("activeCampaigns")}
+          </p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : activeCampaigns}
           </p>
@@ -40,7 +42,9 @@ export function AdminCampaignsKpiCards({
           <CheckCircle2 className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">{t("confirmedRedemptions")}</p>
+          <p className="text-xs font-medium text-slate-500">
+            {t("confirmedRedemptions")}
+          </p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : confirmedRedemptions.toLocaleString()}
           </p>
@@ -52,9 +56,13 @@ export function AdminCampaignsKpiCards({
           <Tag className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">{t("ticketDiscounts")}</p>
+          <p className="text-xs font-medium text-slate-500">
+            {t("ticketDiscounts")}
+          </p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
-            {isLoading ? "—" : (
+            {isLoading ? (
+              "—"
+            ) : (
               <>
                 {ticketDiscountXOF.toLocaleString()}{" "}
                 <span className="text-xs font-medium text-slate-400">XOF</span>
@@ -69,9 +77,13 @@ export function AdminCampaignsKpiCards({
           <Coins className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">{t("platformExpense")}</p>
+          <p className="text-xs font-medium text-slate-500">
+            {t("platformExpense")}
+          </p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
-            {isLoading ? "—" : (
+            {isLoading ? (
+              "—"
+            ) : (
               <>
                 {platformExpenseXOF.toLocaleString()}{" "}
                 <span className="text-xs font-medium text-slate-400">XOF</span>

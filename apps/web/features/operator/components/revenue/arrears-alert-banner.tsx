@@ -5,10 +5,14 @@ import { AlertTriangle } from "lucide-react";
 import { formatXOF } from "../../lib/currency";
 import { toSafeDisplayNumber } from "@/lib/money";
 
-export function ArrearsAlertBanner({ availableBalance }: { availableBalance: string | number }) {
+export function ArrearsAlertBanner({
+  availableBalance,
+}: {
+  availableBalance: string | number;
+}) {
   const t = useTranslations("operatorDashboard.revenue.arrears");
   const balance = toSafeDisplayNumber(availableBalance);
-  
+
   if (balance >= 0) return null;
 
   return (
@@ -20,9 +24,7 @@ export function ArrearsAlertBanner({ availableBalance }: { availableBalance: str
         <h3 className="text-sm font-semibold text-red-800">
           {t("title", { balance: formatXOF(balance) })}
         </h3>
-        <p className="text-sm text-red-700 mt-1">
-          {t("description")}
-        </p>
+        <p className="text-sm text-red-700 mt-1">{t("description")}</p>
       </div>
     </div>
   );

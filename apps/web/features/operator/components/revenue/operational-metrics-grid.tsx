@@ -8,8 +8,10 @@ export function OperationalMetricsGrid({ kpis }: { kpis: any }) {
   const t = useTranslations("operatorDashboard.revenue.metrics");
   return (
     <div className="bg-white rounded-xl border shadow-sm p-6 h-full">
-      <h3 className="text-sm font-semibold text-slate-900 mb-4">{t("title")}</h3>
-      
+      <h3 className="text-sm font-semibold text-slate-900 mb-4">
+        {t("title")}
+      </h3>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1 p-3 bg-slate-50 rounded-lg border border-slate-100">
           <div className="flex items-center text-slate-500 mb-1">

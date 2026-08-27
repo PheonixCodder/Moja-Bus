@@ -8,7 +8,9 @@ import { AdminPromoCreditsCard } from "../components/admin-promo-credits-card";
 
 export function AdminReferralsView() {
   const trpc = useTRPC();
-  const summaryQuery = useQuery(trpc.discountsAdmin.marketingSummary.queryOptions());
+  const summaryQuery = useQuery(
+    trpc.discountsAdmin.marketingSummary.queryOptions(),
+  );
   const funnel = summaryQuery.data?.referralFunnel ?? {};
 
   return (

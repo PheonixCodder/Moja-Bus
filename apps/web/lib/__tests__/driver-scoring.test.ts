@@ -41,7 +41,10 @@ describe("derivePingAnomaly", () => {
   it("NULL accuracy means unknown — falls through to normal classification", () => {
     const r = derivePingAnomaly({ speedKmh: 130, accuracyMeters: null });
     assert.equal(r.anomalyReason, "OVERSPEED");
-    const clean = derivePingAnomaly({ speedKmh: 50, accuracyMeters: undefined });
+    const clean = derivePingAnomaly({
+      speedKmh: 50,
+      accuracyMeters: undefined,
+    });
     assert.equal(clean.isAnomaly, false);
   });
 

@@ -16,7 +16,9 @@ export function ScheduleSuccessBanner({
     <div className="border border-primary/20 bg-primary/5 rounded-md p-4 flex items-start gap-3">
       <CheckCircle2 className="size-5 text-primary shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-foreground">{t("successBanner.schedulePublished")}</p>
+        <p className="text-sm font-bold text-foreground">
+          {t("successBanner.schedulePublished")}
+        </p>
         <p className="text-xs text-muted-foreground mt-0.5">
           {t("successBanner.tripsGenerated", { count: tripsCreated })}
         </p>

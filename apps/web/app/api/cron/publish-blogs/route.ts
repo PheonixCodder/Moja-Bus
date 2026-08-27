@@ -59,7 +59,7 @@ export async function GET(request: Request) {
     console.error("Failed to execute publish-blogs cron:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

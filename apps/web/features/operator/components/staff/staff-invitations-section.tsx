@@ -29,9 +29,7 @@ export function StaffInvitationsSection({
         <div className="flex items-center justify-center rounded-xl border border-dashed border-border bg-card py-8 text-center shadow-sm">
           <div>
             <Mail className="h-7 w-7 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-[13px] text-muted-foreground">
-              {t("empty")}
-            </p>
+            <p className="text-[13px] text-muted-foreground">{t("empty")}</p>
           </div>
         </div>
       ) : (

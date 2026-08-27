@@ -6,7 +6,13 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslations, useLocale } from "next-intl";
 import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
 
 interface LedgerEntryItem {
@@ -21,7 +27,9 @@ interface WalletQuickDepositProps {
   recentTransactions: LedgerEntryItem[];
 }
 
-export function WalletQuickDeposit({ recentTransactions }: WalletQuickDepositProps) {
+export function WalletQuickDeposit({
+  recentTransactions,
+}: WalletQuickDepositProps) {
   const t = useTranslations("passengerDashboard.wallet");
   const locale = useLocale();
   const trpc = useTRPC();
@@ -36,7 +44,7 @@ export function WalletQuickDeposit({ recentTransactions }: WalletQuickDepositPro
       onError: (err) => {
         toast.error(err.message || t("initFailed"));
       },
-    })
+    }),
   );
 
   const handleDeposit = (e: React.FormEvent) => {
@@ -52,7 +60,9 @@ export function WalletQuickDeposit({ recentTransactions }: WalletQuickDepositPro
   return (
     <Card className="border-border bg-card shadow-xs">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-bold text-foreground">{t("hubTitle")}</CardTitle>
+        <CardTitle className="text-sm font-bold text-foreground">
+          {t("hubTitle")}
+        </CardTitle>
         <CardDescription className="text-[10px] text-muted-foreground">
           {t("hubDescription")}
         </CardDescription>
@@ -92,11 +102,16 @@ export function WalletQuickDeposit({ recentTransactions }: WalletQuickDepositPro
                 const amountNum = Math.abs(Number(entry.amount));
                 const isDeposit =
                   entry.side === "DEBIT" ||
-                  (entry.description?.toLowerCase().includes("topup") ?? false) ||
-                  (entry.description?.toLowerCase().includes("deposit") ?? false);
+                  (entry.description?.toLowerCase().includes("topup") ??
+                    false) ||
+                  (entry.description?.toLowerCase().includes("deposit") ??
+                    false);
 
                 return (
-                  <div key={entry.id} className="flex items-center justify-between text-xs">
+                  <div
+                    key={entry.id}
+                    className="flex items-center justify-between text-xs"
+                  >
                     <div className="flex items-center gap-1.5 min-w-0">
                       {isDeposit ? (
                         <ArrowDownLeft className="size-3 text-emerald-500 shrink-0" />
@@ -104,7 +119,8 @@ export function WalletQuickDeposit({ recentTransactions }: WalletQuickDepositPro
                         <ArrowUpRight className="size-3 text-amber-500 shrink-0" />
                       )}
                       <span className="text-[10px] text-muted-foreground truncate">
-                        {entry.description || (isDeposit ? t("walletDeposit") : t("ticketPayment"))}
+                        {entry.description ||
+                          (isDeposit ? t("walletDeposit") : t("ticketPayment"))}
                       </span>
                     </div>
                     <span
@@ -112,7 +128,8 @@ export function WalletQuickDeposit({ recentTransactions }: WalletQuickDepositPro
                         isDeposit ? "text-emerald-600" : "text-foreground"
                       }`}
                     >
-                      {isDeposit ? "+" : "-"}{amountNum.toLocaleString(locale)} XOF
+                      {isDeposit ? "+" : "-"}
+                      {amountNum.toLocaleString(locale)} XOF
                     </span>
                   </div>
                 );

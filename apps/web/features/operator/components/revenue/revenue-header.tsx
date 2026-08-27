@@ -58,13 +58,13 @@ export function RevenueHeader() {
 
       <div className="flex items-center gap-3">
         <Popover>
-          <PopoverTrigger 
+          <PopoverTrigger
             render={
               <Button
                 variant="outline"
                 className={cn(
                   "w-[260px] justify-start text-left font-normal bg-white",
-                  !from && "text-muted-foreground"
+                  !from && "text-muted-foreground",
                 )}
               />
             }
@@ -142,7 +142,7 @@ export function RevenueHeader() {
             {t("export")}
           </Button>
         ) : null}
-       </div>
+      </div>
     </div>
   );
 }

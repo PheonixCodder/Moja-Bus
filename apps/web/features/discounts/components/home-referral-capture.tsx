@@ -2,7 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { storePendingReferralCode, referralInvitePath } from "@/features/discounts/lib/pending-referral";
+import {
+  storePendingReferralCode,
+  referralInvitePath,
+} from "@/features/discounts/lib/pending-referral";
 
 /**
  * Captures legacy `/?ref=CODE` links and sends users to `/r/CODE`.

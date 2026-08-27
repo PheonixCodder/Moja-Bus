@@ -27,11 +27,19 @@ function StatChip({ label, value, subLabel, color, icon }: StatCard) {
   };
 
   return (
-    <div className={`flex items-start gap-3 rounded-xl border p-4 ${colorMap[color]}`}>
+    <div
+      className={`flex items-start gap-3 rounded-xl border p-4 ${colorMap[color]}`}
+    >
       <div className="mt-0.5 shrink-0">{icon}</div>
       <div className="min-w-0">
-        <p className="text-xs font-semibold uppercase tracking-wide opacity-70 truncate">{label}</p>
-        <p className={`text-2xl font-bold font-mono mt-0.5 ${numColorMap[color]}`}>{value}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide opacity-70 truncate">
+          {label}
+        </p>
+        <p
+          className={`text-2xl font-bold font-mono mt-0.5 ${numColorMap[color]}`}
+        >
+          {value}
+        </p>
         {subLabel && (
           <p className="text-xs opacity-60 mt-0.5 truncate">{subLabel}</p>
         )}
@@ -43,15 +51,19 @@ function StatChip({ label, value, subLabel, color, icon }: StatCard) {
 export function AdminDriverMarketplaceWidget() {
   const trpc = useTRPC();
   const { data: stats } = useSuspenseQuery(
-    trpc.admin.getDriverMarketplaceStats.queryOptions()
+    trpc.admin.getDriverMarketplaceStats.queryOptions(),
   );
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-slate-800">Driver Marketplace</h3>
-          <p className="text-xs text-slate-500 mt-0.5">Supply-side health — verified driver pool</p>
+          <h3 className="text-sm font-bold text-slate-800">
+            Driver Marketplace
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Supply-side health — verified driver pool
+          </p>
         </div>
         <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-1">
           <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />

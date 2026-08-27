@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 const OTP_SUBJECTS: Record<string, string> = {
   "sign-in": "Your Moja Ride verification code",
   "email-verification": "Verify your Moja Ride account",
@@ -12,11 +11,16 @@ const OTP_SUBJECTS: Record<string, string> = {
 };
 
 const OTP_INTROS: Record<string, string> = {
-  "sign-in": "Use the verification code below to sign in to your Moja Ride account:",
-  "email-verification": "Welcome to Moja Ride! Use the verification code below to verify your email and activate your account:",
-  "change-email": "Use the verification code below to confirm your new email address:",
-  "transfer-ownership": "Use the verification code below to confirm and authorize the business ownership transfer:",
-  "withdrawal-2fa": "Use the verification code below to confirm and authorize your withdrawal request:",
+  "sign-in":
+    "Use the verification code below to sign in to your Moja Ride account:",
+  "email-verification":
+    "Welcome to Moja Ride! Use the verification code below to verify your email and activate your account:",
+  "change-email":
+    "Use the verification code below to confirm your new email address:",
+  "transfer-ownership":
+    "Use the verification code below to confirm and authorize the business ownership transfer:",
+  "withdrawal-2fa":
+    "Use the verification code below to confirm and authorize your withdrawal request:",
 };
 
 export const authOtpWorkflow = workflow(
@@ -25,8 +29,10 @@ export const authOtpWorkflow = workflow(
     await step.email(
       "send-email",
       async () => {
-        const subject = OTP_SUBJECTS[payload.type] || "Your Moja Ride verification code";
-        const intro = OTP_INTROS[payload.type] || "Use the verification code below:";
+        const subject =
+          OTP_SUBJECTS[payload.type] || "Your Moja Ride verification code";
+        const intro =
+          OTP_INTROS[payload.type] || "Use the verification code below:";
 
         const html = `
           <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; color: #1e293b;">
@@ -46,7 +52,7 @@ export const authOtpWorkflow = workflow(
       },
       {
         skip: () => !payload.email,
-      }
+      },
     );
 
     await step.sms(
@@ -56,12 +62,13 @@ export const authOtpWorkflow = workflow(
       }),
       {
         skip: () => !payload.phone,
-      }
+      },
     );
   },
   {
     name: "Unified Auth OTP",
-    description: "Multi-channel verification OTP flow for passengers and general auth operations",
+    description:
+      "Multi-channel verification OTP flow for passengers and general auth operations",
     preferences: {
       all: { readOnly: true },
     },
@@ -71,5 +78,5 @@ export const authOtpWorkflow = workflow(
       type: z.string(),
       phone: z.string().optional(),
     }),
-  }
+  },
 );

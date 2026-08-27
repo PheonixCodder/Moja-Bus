@@ -69,9 +69,6 @@ describe("bookingSummaryGroupKey", () => {
       issuedAt,
     });
 
-    assert.equal(
-      key,
-      `trip-1:+2250700000000:${issuedAt.toISOString()}`,
-    );
+    assert.equal(key, `trip-1:+2250700000000:${issuedAt.toISOString()}`);
   });
 });

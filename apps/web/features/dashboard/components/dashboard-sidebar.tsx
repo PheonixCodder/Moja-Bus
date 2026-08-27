@@ -16,13 +16,18 @@ import {
   Gift,
   EllipsisVertical,
   CircleUser,
-  LifeBuoy
+  LifeBuoy,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { cn } from "@moja/ui/lib/utils";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
-import { Card, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,19 +93,33 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     : "?";
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-sidebar-border bg-sidebar"
+    >
       {/* Header section matches best-dashboard-setup exactly */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="default" render={
-              <Link prefetch={false} href="/dashboard" className="flex items-center gap-2">
-                <BusFront className="size-4 text-primary" />
-                <span className="font-semibold text-base tracking-tight text-sidebar-foreground">
-                  {tNav("appName")}<span className="text-primary font-bold">{tNav("appSuffix")}</span>
-                </span>
-              </Link>
-            } tooltip={`${tNav("appName")} ${tNav("appSuffix")}`} />
+            <SidebarMenuButton
+              size="default"
+              render={
+                <Link
+                  prefetch={false}
+                  href="/dashboard"
+                  className="flex items-center gap-2"
+                >
+                  <BusFront className="size-4 text-primary" />
+                  <span className="font-semibold text-base tracking-tight text-sidebar-foreground">
+                    {tNav("appName")}
+                    <span className="text-primary font-bold">
+                      {tNav("appSuffix")}
+                    </span>
+                  </span>
+                </Link>
+              }
+              tooltip={`${tNav("appName")} ${tNav("appSuffix")}`}
+            />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -175,7 +194,8 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         <Card className="overflow-hidden shadow-none border border-sidebar-border bg-sidebar group-data-[collapsible=icon]:hidden mx-2">
           <CardHeader className="min-w-0 p-3">
             <CardTitle className="truncate text-xs font-semibold text-sidebar-foreground flex items-center gap-1.5">
-              <LifeBuoy className="size-3.5 text-primary" /> {tNav("needSupport")}
+              <LifeBuoy className="size-3.5 text-primary" />{" "}
+              {tNav("needSupport")}
             </CardTitle>
             <CardDescription className="line-clamp-2 text-[10px] text-muted-foreground leading-normal mt-1">
               {tNav("supportEmail", { email: "support@mojaride.com" })}
@@ -202,7 +222,9 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                         {user?.name ?? tNav("guestUser")}
                       </span>
                       <span className="truncate text-muted-foreground text-xs">
-                        {user?.email ?? user?.phoneNumber ?? tNav("noContactDetails")}
+                        {user?.email ??
+                          user?.phoneNumber ??
+                          tNav("noContactDetails")}
                       </span>
                     </div>
                     <EllipsisVertical className="ml-auto size-4 shrink-0 group-data-[collapsible=icon]:hidden text-muted-foreground" />
@@ -239,7 +261,10 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                 <DropdownMenuGroup>
                   <DropdownMenuItem
                     render={
-                      <Link href="/dashboard/settings" className="flex w-full items-center gap-2">
+                      <Link
+                        href="/dashboard/settings"
+                        className="flex w-full items-center gap-2"
+                      >
                         <CircleUser className="size-4 text-muted-foreground" />
                         {tNav("accountSettings")}
                       </Link>
@@ -247,7 +272,10 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                   />
                   <DropdownMenuItem
                     render={
-                      <Link href="/dashboard/wallet" className="flex w-full items-center gap-2">
+                      <Link
+                        href="/dashboard/wallet"
+                        className="flex w-full items-center gap-2"
+                      >
                         <Wallet className="size-4 text-muted-foreground" />
                         {tNav("walletLedger")}
                       </Link>

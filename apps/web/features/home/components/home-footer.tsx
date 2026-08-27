@@ -26,7 +26,11 @@ const companyLinks = [
 const socials = [
   { icon: Globe, href: "https://mojaride.com", label: "Website" },
   { icon: Mail, href: "mailto:support@mojaride.com", label: "Email" },
-  { icon: Camera, href: "https://www.instagram.com/mojaride", label: "Instagram" },
+  {
+    icon: Camera,
+    href: "https://www.instagram.com/mojaride",
+    label: "Instagram",
+  },
 ] as const;
 
 export async function HomeFooter() {
@@ -38,7 +42,10 @@ export async function HomeFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           {/* Brand */}
           <div className="col-span-1">
-            <Link href="/" className="text-2xl font-bold text-[#ee237c] block mb-5">
+            <Link
+              href="/"
+              className="text-2xl font-bold text-[#ee237c] block mb-5"
+            >
               Moja Ride
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed mb-8">
@@ -51,7 +58,9 @@ export async function HomeFooter() {
                   href={href}
                   aria-label={label}
                   target={href.startsWith("http") ? "_blank" : undefined}
-                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                  rel={
+                    href.startsWith("http") ? "noopener noreferrer" : undefined
+                  }
                   className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-[#ee237c] hover:bg-[#ee237c] hover:text-white transition-all"
                 >
                   <Icon className="h-4 w-4" />

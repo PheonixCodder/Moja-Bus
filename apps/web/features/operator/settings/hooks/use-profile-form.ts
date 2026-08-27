@@ -26,7 +26,9 @@ export function useProfileForm(initialData: CompanyInitialData) {
   return useForm<SettingsCompanyFormValues>({
     // TS2719: zodResolver and react-hook-form ship duplicate Resolver types in
     // this pnpm layout. Casting to the same concrete type is the correct fix.
-    resolver: zodResolver(settingsCompanySchema) as Resolver<SettingsCompanyFormValues>,
+    resolver: zodResolver(
+      settingsCompanySchema,
+    ) as Resolver<SettingsCompanyFormValues>,
     defaultValues: {
       name: initialData.name ?? "",
       slug: initialData.slug ?? "",
@@ -34,7 +36,9 @@ export function useProfileForm(initialData: CompanyInitialData) {
       website: initialData.website ?? "",
       taxId: initialData.taxId ?? "",
       registrationNumber: initialData.registrationNumber ?? "",
-      businessType: (initialData.businessType as SettingsCompanyFormValues["businessType"]) ?? "OTHER",
+      businessType:
+        (initialData.businessType as SettingsCompanyFormValues["businessType"]) ??
+        "OTHER",
       estimatedStaffSize: initialData.estimatedStaffSize ?? undefined,
       yearEstablished: initialData.yearEstablished ?? undefined,
       email: initialData.email ?? "",

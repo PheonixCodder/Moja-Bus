@@ -27,11 +27,14 @@ import {
   SendHorizonal,
 } from "lucide-react";
 
-
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { cn } from "@moja/ui/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,8 +90,7 @@ interface NavSectionProps {
 function NavSection({ label, items, pathname, can }: NavSectionProps) {
   const visible = items.filter(
     (item) =>
-      !item.permissions?.length ||
-      item.permissions.some((key) => can(key)),
+      !item.permissions?.length || item.permissions.some((key) => can(key)),
   );
 
   if (visible.length === 0) return null;
@@ -136,12 +138,20 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
   const trpc = useTRPC();
   const { can } = useStaffPermissions();
 
-  const { data } = useSuspenseQuery(trpc.operator.getShellContext.queryOptions());
+  const { data } = useSuspenseQuery(
+    trpc.operator.getShellContext.queryOptions(),
+  );
   const status = data?.company?.status;
   const statusPresentation = getCompanyStatusPresentation(status);
 
   const operationsItems: NavItem[] = [
-    { id: "overview", label: t("overview"), path: "/dashboard/operator", icon: Gauge, permissions: ["trips:read", "bookings:read", "company:view"] },
+    {
+      id: "overview",
+      label: t("overview"),
+      path: "/dashboard/operator",
+      icon: Gauge,
+      permissions: ["trips:read", "bookings:read", "company:view"],
+    },
     {
       id: "dispatch-board",
       label: t("dispatchBoard"),
@@ -269,11 +279,11 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
 
   const userInitials = user?.name
     ? user.name
-    .split(" ")
-    .map((part: string) => part[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
+        .split(" ")
+        .map((part: string) => part[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "OP";
 
   return (
@@ -432,19 +442,19 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                 className="w-56 border-border bg-popover"
               >
                 <div className="px-2 py-1.5">
-                   <p className="truncate text-xs font-medium text-popover-foreground">
-                     {user?.name}
-                   </p>
-                   {user?.role === "ADMIN" ? (
-                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-500/10 rounded px-1.5 py-0.5 mt-0.5">
-                       <Shield className="size-3" />
-                       {t("platformAdmin")}
-                     </span>
-                   ) : null}
-                   <p className="truncate text-xs text-muted-foreground">
-                     {user?.email}
-                   </p>
-                 </div>
+                  <p className="truncate text-xs font-medium text-popover-foreground">
+                    {user?.name}
+                  </p>
+                  {user?.role === "ADMIN" ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-500/10 rounded px-1.5 py-0.5 mt-0.5">
+                      <Shield className="size-3" />
+                      {t("platformAdmin")}
+                    </span>
+                  ) : null}
+                  <p className="truncate text-xs text-muted-foreground">
+                    {user?.email}
+                  </p>
+                </div>
                 <DropdownMenuSeparator className="bg-border" />
                 {can("company:view") ? (
                   <DropdownMenuItem

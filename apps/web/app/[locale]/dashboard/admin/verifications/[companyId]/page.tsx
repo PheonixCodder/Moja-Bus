@@ -26,12 +26,8 @@ export default async function VerificationDetailsPage({
 
   // Prefetch data in parallel
   await Promise.all([
-    prefetch(
-      trpc.admin.getCompanyForVerification.queryOptions({ companyId })
-    ),
-    prefetch(
-      trpc.payments.listBanks.queryOptions({})
-    ),
+    prefetch(trpc.admin.getCompanyForVerification.queryOptions({ companyId })),
+    prefetch(trpc.payments.listBanks.queryOptions({})),
   ]);
 
   return (
@@ -39,7 +35,11 @@ export default async function VerificationDetailsPage({
       <DashboardHeader
         breadcrumbs={[
           { label: "Admin", tKey: "overview.breadcrumb.admin" },
-          { label: "Verification Queue", tKey: "nav.verifications", href: "/dashboard/admin/verifications" },
+          {
+            label: "Verification Queue",
+            tKey: "nav.verifications",
+            href: "/dashboard/admin/verifications",
+          },
           { label: t("title"), tKey: "overview.breadcrumb.operatorDetails" },
         ]}
       />

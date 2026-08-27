@@ -13,7 +13,10 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "operatorDashboard.bookings" });
+  const t = await getTranslations({
+    locale,
+    namespace: "operatorDashboard.bookings",
+  });
   return { title: t("metaTitle"), description: t("metaDescription") };
 }
 
@@ -23,7 +26,9 @@ type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function OperatorBookingsPage({ searchParams }: PageProps) {
+export default async function OperatorBookingsPage({
+  searchParams,
+}: PageProps) {
   const params = await bookingListParamsCache.parse(searchParams);
   await prefetch(
     trpc.operator.listBookings.queryOptions({

@@ -3,7 +3,6 @@ import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 import { dashboardUrl } from "@/features/notifications/utils/app-url";
 
-
 export const operatorVerificationApprovedWorkflow = workflow(
   "operator-verification-approved",
   async ({ step, payload }) => {
@@ -38,11 +37,12 @@ export const operatorVerificationApprovedWorkflow = workflow(
   },
   {
     name: "Operator Verification Approved",
-    description: "Sends welcoming activation details when an admin verifies the company documents and default bank accounts",
+    description:
+      "Sends welcoming activation details when an admin verifies the company documents and default bank accounts",
     payloadSchema: z.object({
       email: z.string().email(),
       ownerName: z.string(),
       companyName: z.string(),
     }),
-  }
+  },
 );

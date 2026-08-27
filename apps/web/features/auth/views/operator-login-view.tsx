@@ -18,7 +18,10 @@ export function OperatorLoginView({ errorCode }: OperatorLoginViewProps) {
       <div className="absolute top-5 flex w-full justify-end px-10 left-0">
         <div className="text-muted-foreground text-sm">
           {t("loginPassengerLink")}{" "}
-          <Link href="/login" className="text-foreground font-semibold hover:underline">
+          <Link
+            href="/login"
+            className="text-foreground font-semibold hover:underline"
+          >
             {t("loginPassengerPortal")}
           </Link>
         </div>

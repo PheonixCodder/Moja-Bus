@@ -15,9 +15,7 @@ export function buildBookingSuccessUrl(
     refs: confirmed.bookingReferences.join(","),
     pt: presentationTokens.join(","),
     total: String(confirmed.totalAmountXOF),
-    passengers: String(
-      passengerCount ?? confirmed.bookingReferences.length,
-    ),
+    passengers: String(passengerCount ?? confirmed.bookingReferences.length),
   });
 
   const path = `/book/${encodeURIComponent(offerId)}/success?${params.toString()}`;

@@ -79,7 +79,14 @@ export const passengerTripCancelledWorkflow = workflow(
           ? `${escapeHtml(payload.refundAmountXOF)} XOF refunded${payload.refundChannel === "CASH" ? " (manual settlement)" : " to wallet"}.`
           : "Refund will be processed by our team."
       }`,
-      overrides: { expo: { data: { type: "trip-cancelled", bookingReference: payload.bookingReference } } },
+      overrides: {
+        expo: {
+          data: {
+            type: "trip-cancelled",
+            bookingReference: payload.bookingReference,
+          },
+        },
+      },
     }));
   },
   {

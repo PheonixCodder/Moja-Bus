@@ -35,12 +35,14 @@ export class BookingHoldService {
     passengers: SeatPassengerInput[];
     userId?: string | null;
     quoteId: string;
-    discount?: {
-      code?: string | undefined;
-      autoApply?: boolean | undefined;
-      useCredits?: boolean | undefined;
-      creditAmountXOF?: number | undefined;
-    } | undefined;
+    discount?:
+      | {
+          code?: string | undefined;
+          autoApply?: boolean | undefined;
+          useCredits?: boolean | undefined;
+          creditAmountXOF?: number | undefined;
+        }
+      | undefined;
     deviceHash?: string | undefined;
     /**
      * Phase 32 (F-PS-14) — when present, the passenger-hold-created outbox
@@ -48,18 +50,19 @@ export class BookingHoldService {
      * crash between commit and notify is no longer possible). Absent = no
      * notice (e.g. non-email callers).
      */
-    notify?: {
-      email: string;
-      subscriberId: string;
-      /** Full display name (payload) — firstName is derived for greeting. */
-      passengerName: string;
-      phone?: string | null;
-    } | undefined;
+    notify?:
+      | {
+          email: string;
+          subscriberId: string;
+          /** Full display name (payload) — firstName is derived for greeting. */
+          passengerName: string;
+          phone?: string | null;
+        }
+      | undefined;
   }): Promise<BookingHoldResult> {
-    const {
-      verifyCheckoutQuote,
-      quoteMatchesHoldInput,
-    } = await import("@/features/payments/lib/checkout-quote");
+    const { verifyCheckoutQuote, quoteMatchesHoldInput } = await import(
+      "@/features/payments/lib/checkout-quote"
+    );
     const signedQuote = verifyCheckoutQuote(input.quoteId);
     if (
       !quoteMatchesHoldInput(signedQuote, {
@@ -72,7 +75,8 @@ export class BookingHoldService {
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Checkout quote does not match this hold. Refresh pricing and try again.",
+        message:
+          "Checkout quote does not match this hold. Refresh pricing and try again.",
       });
     }
 
@@ -186,9 +190,10 @@ export class BookingHoldService {
       tiers,
     });
 
-    const { quoteCheckoutDiscounts, reserveDiscountOnHold: freezeDiscountOnHold } = await import(
-      "@/features/discounts/services/quote-service"
-    );
+    const {
+      quoteCheckoutDiscounts,
+      reserveDiscountOnHold: freezeDiscountOnHold,
+    } = await import("@/features/discounts/services/quote-service");
     const discountQuote = await quoteCheckoutDiscounts(this.prisma, {
       offerCompanyId: details.companyId,
       routeId: trip.schedule?.routeId ?? null,

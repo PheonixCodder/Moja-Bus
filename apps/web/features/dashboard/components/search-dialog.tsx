@@ -3,7 +3,15 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Search, CalendarDays, Ticket, Wallet, Users, Settings, LayoutDashboard } from "lucide-react";
+import {
+  Search,
+  CalendarDays,
+  Ticket,
+  Wallet,
+  Users,
+  Settings,
+  LayoutDashboard,
+} from "lucide-react";
 
 import { Button } from "@moja/ui/components/ui/button";
 import {
@@ -29,12 +37,42 @@ export function SearchDialog() {
   const router = useRouter();
 
   const passengerSearchItems: SearchItem[] = [
-    { id: "dashboard", title: t("dashboard"), url: "/dashboard", icon: LayoutDashboard },
-    { id: "bookings", title: t("bookings"), url: "/dashboard/bookings", icon: CalendarDays },
-    { id: "tickets", title: t("tickets"), url: "/dashboard/tickets", icon: Ticket },
-    { id: "wallet", title: t("wallet"), url: "/dashboard/wallet", icon: Wallet },
-    { id: "passengers", title: t("passengers"), url: "/dashboard/passengers", icon: Users },
-    { id: "settings", title: t("settings"), url: "/dashboard/settings", icon: Settings },
+    {
+      id: "dashboard",
+      title: t("dashboard"),
+      url: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      id: "bookings",
+      title: t("bookings"),
+      url: "/dashboard/bookings",
+      icon: CalendarDays,
+    },
+    {
+      id: "tickets",
+      title: t("tickets"),
+      url: "/dashboard/tickets",
+      icon: Ticket,
+    },
+    {
+      id: "wallet",
+      title: t("wallet"),
+      url: "/dashboard/wallet",
+      icon: Wallet,
+    },
+    {
+      id: "passengers",
+      title: t("passengers"),
+      url: "/dashboard/passengers",
+      icon: Users,
+    },
+    {
+      id: "settings",
+      title: t("settings"),
+      url: "/dashboard/settings",
+      icon: Settings,
+    },
   ];
 
   React.useEffect(() => {

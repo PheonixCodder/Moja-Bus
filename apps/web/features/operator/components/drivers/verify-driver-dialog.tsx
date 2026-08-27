@@ -42,7 +42,7 @@ export function VerifyDriverDialog({
       toast.success(
         vars.verificationStatus === "VERIFIED"
           ? "Driver verified and cleared for trip dispatch"
-          : "Driver verification updated"
+          : "Driver verification updated",
       );
       queryClient.invalidateQueries(trpc.drivers.listDrivers.pathFilter());
       queryClient.invalidateQueries(trpc.drivers.getDriver.pathFilter());
@@ -81,9 +81,13 @@ export function VerifyDriverDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold">Driver Compliance Verification</DialogTitle>
+          <DialogTitle className="text-lg font-bold">
+            Driver Compliance Verification
+          </DialogTitle>
           <DialogDescription>
-            Verify commercial driving credentials for <span className="font-semibold text-foreground">{driverName}</span> (License: <span className="font-mono">{licenseNumber}</span>).
+            Verify commercial driving credentials for{" "}
+            <span className="font-semibold text-foreground">{driverName}</span>{" "}
+            (License: <span className="font-mono">{licenseNumber}</span>).
           </DialogDescription>
         </DialogHeader>
 
@@ -114,16 +118,23 @@ export function VerifyDriverDialog({
             </div>
           )}
           <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg space-y-1">
-            <p className="font-semibold text-foreground">Compliance Verification Checklist:</p>
+            <p className="font-semibold text-foreground">
+              Compliance Verification Checklist:
+            </p>
             <ul className="list-disc list-inside space-y-0.5">
               <li>License is valid and not expired.</li>
-              <li>Category Class matches commercial passenger coach standards (Class D/E).</li>
+              <li>
+                Category Class matches commercial passenger coach standards
+                (Class D/E).
+              </li>
               <li>Identity matches verified national records.</li>
             </ul>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="rejectionReason">Rejection / Suspension Reason (If rejecting)</Label>
+            <Label htmlFor="rejectionReason">
+              Rejection / Suspension Reason (If rejecting)
+            </Label>
             <Textarea
               id="rejectionReason"
               placeholder="State reason for rejecting compliance verification..."

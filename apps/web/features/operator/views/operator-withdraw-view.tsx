@@ -3,7 +3,13 @@
 import { useTranslations } from "next-intl";
 import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
 import { Wallet, Info, AlertCircle, History } from "lucide-react";
 import { toast } from "sonner";
@@ -33,16 +39,18 @@ export function OperatorWithdrawView() {
   // Stable per-attempt nonce sent to the server so a duplicate request
   // (double-click before the button disables, network retry) is treated as
   // exactly-once instead of initiating a second payout.
-  const [withdrawNonce, setWithdrawNonce] = useState<string>(() => crypto.randomUUID());
+  const [withdrawNonce, setWithdrawNonce] = useState<string>(() =>
+    crypto.randomUUID(),
+  );
 
   const [currentPageParam, setCurrentPageParam] = useQueryState(
     "withdrawPage",
-    parseAsInteger.withDefault(1)
+    parseAsInteger.withDefault(1),
   );
 
   // Withdrawal controls (F-18): whether 2FA is required + the frequency window.
   const { data: withdrawalControls } = useSuspenseQuery(
-    trpc.operator.getWithdrawalControls.queryOptions()
+    trpc.operator.getWithdrawalControls.queryOptions(),
   );
   const require2FA = Boolean(withdrawalControls?.require2FA);
   const frequencyHours = withdrawalControls?.frequencyHours ?? 0;
@@ -56,16 +64,15 @@ export function OperatorWithdrawView() {
 
   // Query live balances
   const { data: snapshot, refetch } = useSuspenseQuery(
-    trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" })
+    trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" }),
   );
 
   const { data: settings } = useSuspenseQuery(
-    trpc.operator.getSettings.queryOptions()
+    trpc.operator.getSettings.queryOptions(),
   );
 
   const bankAccounts = settings.company.bankAccounts ?? [];
-  const defaultBank =
-    bankAccounts.find((b) => b.isDefault) ?? bankAccounts[0];
+  const defaultBank = bankAccounts.find((b) => b.isDefault) ?? bankAccounts[0];
   const bankVerified = Boolean(
     defaultBank?.isVerified && defaultBank?.paystackTransferRecipientCode,
   );
@@ -75,7 +82,7 @@ export function OperatorWithdrawView() {
     trpc.operator.listWithdrawals.queryOptions({
       limit: pageSize,
       offset: currentPage * pageSize,
-    })
+    }),
   );
 
   const withdrawMutation = useMutation(
@@ -95,7 +102,7 @@ export function OperatorWithdrawView() {
         // Allow a genuine retry after a failure with a new nonce.
         setWithdrawNonce(crypto.randomUUID());
       },
-    })
+    }),
   );
 
   // Requests a withdrawal 2FA code (F-18).
@@ -108,7 +115,7 @@ export function OperatorWithdrawView() {
       onError: (err: any) => {
         toast.error(err.message || t("toast.codeFailed"));
       },
-    })
+    }),
   );
 
   const availableBalance = toXOFBigInt(snapshot.liveAvailableBalance);
@@ -153,9 +160,7 @@ export function OperatorWithdrawView() {
           <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
           <div className="flex-1 text-sm text-amber-900">
             <p className="font-semibold">{t("bankNotVerifiedTitle")}</p>
-            <p className="text-amber-800 mt-0.5">
-              {t("bankNotVerifiedDesc")}
-            </p>
+            <p className="text-amber-800 mt-0.5">{t("bankNotVerifiedDesc")}</p>
           </div>
           <Button
             variant="outline"
@@ -174,9 +179,7 @@ export function OperatorWithdrawView() {
           <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
           <div className="flex-1 text-sm text-amber-900">
             <p className="font-semibold">{t("reconcilingTitle")}</p>
-            <p className="text-amber-800 mt-0.5">
-              {t("reconcilingDesc")}
-            </p>
+            <p className="text-amber-800 mt-0.5">{t("reconcilingDesc")}</p>
           </div>
         </div>
       ) : null}
@@ -197,7 +200,9 @@ export function OperatorWithdrawView() {
                 maximumFractionDigits: 0,
               }).format(availableBalance)}
             </div>
-            <p className="text-xs text-emerald-600/80 mt-1">{t("readyForWithdrawal")}</p>
+            <p className="text-xs text-emerald-600/80 mt-1">
+              {t("readyForWithdrawal")}
+            </p>
           </CardContent>
         </Card>
 
@@ -216,7 +221,9 @@ export function OperatorWithdrawView() {
                 maximumFractionDigits: 0,
               }).format(escrowBalance)}
             </div>
-            <p className="text-xs text-slate-500 mt-1">{t("escrowDescription")}</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {t("escrowDescription")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -225,9 +232,7 @@ export function OperatorWithdrawView() {
         <Card>
           <CardHeader>
             <CardTitle>{t("requestPayout")}</CardTitle>
-            <CardDescription>
-              {t("requestPayoutDesc")}
-            </CardDescription>
+            <CardDescription>{t("requestPayoutDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-w-md">
             <div className="space-y-2">
@@ -241,9 +246,13 @@ export function OperatorWithdrawView() {
                   onChange={(e) => setAmountXOF(e.target.value)}
                   min="0"
                   max={toSafeDisplayNumber(availableBalance)}
-                  disabled={withdrawMutation.isPending || availableBalance <= 0n}
+                  disabled={
+                    withdrawMutation.isPending || availableBalance <= 0n
+                  }
                 />
-                <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">XOF</span>
+                <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">
+                  XOF
+                </span>
               </div>
               {availableBalance > 0 && (
                 <p className="text-xs text-muted-foreground">
@@ -252,7 +261,7 @@ export function OperatorWithdrawView() {
                       style: "currency",
                       currency: "XOF",
                       maximumFractionDigits: 0,
-                    }).format(availableBalance)
+                    }).format(availableBalance),
                   })}
                 </p>
               )}
@@ -275,74 +284,76 @@ export function OperatorWithdrawView() {
                   <Button
                     type="button"
                     variant="outline"
-                  onClick={() => challengeMutation.mutate({})}
-                  disabled={challengeMutation.isPending || withdrawMutation.isPending}
-                >
-                  {challengeMutation.isPending
-                    ? t("sending")
-                    : challengeSent
-                      ? t("resendCode")
-                      : t("sendCode")}
-                </Button>
+                    onClick={() => challengeMutation.mutate({})}
+                    disabled={
+                      challengeMutation.isPending || withdrawMutation.isPending
+                    }
+                  >
+                    {challengeMutation.isPending
+                      ? t("sending")
+                      : challengeSent
+                        ? t("resendCode")
+                        : t("sendCode")}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("codeDescription")}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {t("codeDescription")}
-              </p>
-            </div>
-          ) : null}
+            ) : null}
 
-          <Button
-            className="w-full"
-            onClick={handleWithdraw}
-            disabled={
-              withdrawMutation.isPending ||
-              availableBalance <= 0n ||
-              !amountXOF ||
-              !bankVerified ||
-              (require2FA && !twoFactorCode.trim())
-            }
-          >
-            {withdrawMutation.isPending ? (
-              <>
-                <Spinner className="mr-2 size-3.5 text-white" />
-                {t("processing")}
-              </>
-            ) : (
-              t("request")
-            )}
-          </Button>
+            <Button
+              className="w-full"
+              onClick={handleWithdraw}
+              disabled={
+                withdrawMutation.isPending ||
+                availableBalance <= 0n ||
+                !amountXOF ||
+                !bankVerified ||
+                (require2FA && !twoFactorCode.trim())
+              }
+            >
+              {withdrawMutation.isPending ? (
+                <>
+                  <Spinner className="mr-2 size-3.5 text-white" />
+                  {t("processing")}
+                </>
+              ) : (
+                t("request")
+              )}
+            </Button>
 
-          <div className="rounded-lg bg-amber-50 p-4 border border-amber-100 mt-4">
-            <div className="flex gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-              <div className="space-y-1 text-sm text-amber-800">
-                <p className="font-medium">{t("withdrawRules")}</p>
-                <ul className="list-disc pl-4 space-y-1 text-amber-700/90 text-xs">
-                  <li>{t("minAmountRule")}</li>
-                  {frequencyHours > 0 ? (
-                    <li>{t("frequencyRule", { frequencyHours })}</li>
-                  ) : null}
-                  {require2FA ? (
-                    <li>{t("codeRequiredRule")}</li>
-                  ) : null}
-                  <li>{t("feeRule")}</li>
-                  <li>{t("settlementRule")}</li>
-                  <li className="font-semibold text-amber-900 mt-2">
-                    {t("warningRule")}
-                  </li>
-                </ul>
+            <div className="rounded-lg bg-amber-50 p-4 border border-amber-100 mt-4">
+              <div className="flex gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                <div className="space-y-1 text-sm text-amber-800">
+                  <p className="font-medium">{t("withdrawRules")}</p>
+                  <ul className="list-disc pl-4 space-y-1 text-amber-700/90 text-xs">
+                    <li>{t("minAmountRule")}</li>
+                    {frequencyHours > 0 ? (
+                      <li>{t("frequencyRule", { frequencyHours })}</li>
+                    ) : null}
+                    {require2FA ? <li>{t("codeRequiredRule")}</li> : null}
+                    <li>{t("feeRule")}</li>
+                    <li>{t("settlementRule")}</li>
+                    <li className="font-semibold text-amber-900 mt-2">
+                      {t("warningRule")}
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
           </CardContent>
         </Card>
       ) : null}
 
-       {/* Withdrawal History Card */}
+      {/* Withdrawal History Card */}
       <Card className="border border-border bg-white rounded-lg shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <CardTitle className="text-base font-bold text-slate-900">{t("history")}</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-900">
+              {t("history")}
+            </CardTitle>
             <CardDescription className="text-xs text-slate-500">
               {t("historyDescription")}
             </CardDescription>
@@ -363,20 +374,35 @@ export function OperatorWithdrawView() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50 hover:bg-slate-50">
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("columns.dateId")}</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("columns.transferDetails")}</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">{t("columns.status")}</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("columns.grossPayout")}</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("columns.paystackFee")}</TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">{t("columns.netSettled")}</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                        {t("columns.dateId")}
+                      </TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                        {t("columns.transferDetails")}
+                      </TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                        {t("columns.status")}
+                      </TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                        {t("columns.grossPayout")}
+                      </TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                        {t("columns.paystackFee")}
+                      </TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                        {t("columns.netSettled")}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {withdrawals.items.map((tx) => {
                       const metadata = (tx.metadata as any) || {};
-                      const fee = metadata.fee !== undefined ? Number(metadata.fee) : 100;
+                      const fee =
+                        metadata.fee !== undefined ? Number(metadata.fee) : 100;
                       // The gross amount is the debit from the operator account
-                      const grossAmount = toSafeDisplayNumber(tx.entries[0]?.amount);
+                      const grossAmount = toSafeDisplayNumber(
+                        tx.entries[0]?.amount,
+                      );
                       const netAmount = Math.max(0, grossAmount - fee);
 
                       let statusBadge = (
@@ -390,7 +416,10 @@ export function OperatorWithdrawView() {
                             {t("statusBadge.settled")}
                           </Badge>
                         );
-                      } else if (tx.status === "FAILED" || tx.status === "REVERSED") {
+                      } else if (
+                        tx.status === "FAILED" ||
+                        tx.status === "REVERSED"
+                      ) {
                         statusBadge = (
                           <Badge className="bg-red-50 text-red-700 border-red-200">
                             {t("statusBadge.failed")}
@@ -403,21 +432,28 @@ export function OperatorWithdrawView() {
                           <TableCell className="px-4 py-3">
                             <div className="space-y-0.5">
                               <div className="text-xs font-medium text-slate-900">
-                                {new Date(tx.createdAt).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })}
+                                {new Date(tx.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  },
+                                )}
                               </div>
                               <div className="text-[10px] font-mono text-slate-400">
-                                {t("txLabel", { id: tx.id.slice(-8).toUpperCase() })}
+                                {t("txLabel", {
+                                  id: tx.id.slice(-8).toUpperCase(),
+                                })}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="px-4 py-3">
                             <div className="space-y-0.5">
                               <div className="text-xs text-slate-700 font-medium">
-                                {t("paystackCode", { code: tx.externalPaymentId || t("na") })}
+                                {t("paystackCode", {
+                                  code: tx.externalPaymentId || t("na"),
+                                })}
                               </div>
                               {metadata.bankAccountId && (
                                 <div className="text-[10px] text-slate-500">
@@ -426,7 +462,9 @@ export function OperatorWithdrawView() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="px-4 py-3">{statusBadge}</TableCell>
+                          <TableCell className="px-4 py-3">
+                            {statusBadge}
+                          </TableCell>
                           <TableCell className="px-4 py-3 text-right text-xs font-semibold text-slate-900">
                             {grossAmount.toLocaleString()} XOF
                           </TableCell>
@@ -449,8 +487,11 @@ export function OperatorWithdrawView() {
                   <span className="text-slate-500 font-medium">
                     {t("pagination", {
                       start: currentPage * pageSize + 1,
-                      end: Math.min((currentPage + 1) * pageSize, withdrawals.total),
-                      total: withdrawals.total
+                      end: Math.min(
+                        (currentPage + 1) * pageSize,
+                        withdrawals.total,
+                      ),
+                      total: withdrawals.total,
                     })}
                   </span>
                   <div className="flex gap-2">
@@ -466,7 +507,9 @@ export function OperatorWithdrawView() {
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={currentPageParam * pageSize >= withdrawals.total}
+                      disabled={
+                        currentPageParam * pageSize >= withdrawals.total
+                      }
                       onClick={() => setCurrentPageParam((p) => p + 1)}
                       className="h-8 text-xs font-semibold"
                     >

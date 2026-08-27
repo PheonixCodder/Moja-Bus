@@ -27,11 +27,14 @@ export function AccessDeniedCard({
       </div>
 
       <div className="space-y-2 max-w-md">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">{displayTitle}</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          {displayTitle}
+        </h2>
         <p className="text-sm text-muted-foreground">{displayDesc}</p>
         {permission && (
           <p className="text-xs font-mono text-muted-foreground/70 pt-2">
-            {t("requiredPermission")} <span className="text-destructive font-semibold">{permission}</span>
+            {t("requiredPermission")}{" "}
+            <span className="text-destructive font-semibold">{permission}</span>
           </p>
         )}
       </div>

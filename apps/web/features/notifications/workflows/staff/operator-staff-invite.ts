@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const operatorStaffInviteWorkflow = workflow(
   "operator-staff-invite",
   async ({ step, payload }) => {
@@ -52,5 +51,5 @@ export const operatorStaffInviteWorkflow = workflow(
       expiresAt: z.string(),
       message: z.string().nullable().optional(),
     }),
-  }
+  },
 );

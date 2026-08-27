@@ -10,12 +10,22 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
-import { Code2, FileSpreadsheet, Pause, Play, SlidersHorizontal, X } from "lucide-react";
+import {
+  Code2,
+  FileSpreadsheet,
+  Pause,
+  Play,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { OperatorPromotionDrawerCoupons } from "./operator-promotion-drawer-coupons";
 import { OperatorPromotionDrawerSettings } from "./operator-promotion-drawer-settings";
 import { OperatorPromotionDrawerRedemptions } from "./operator-promotion-drawer-redemptions";
 import type { CouponRow } from "@/features/discounts/components/campaign-coupons-panel";
-import type { RouteOption, ScopeOption } from "@/features/discounts/components/campaign-settings-editor";
+import type {
+  RouteOption,
+  ScopeOption,
+} from "@/features/discounts/components/campaign-settings-editor";
 import { useTranslations } from "next-intl";
 
 export type PromoDrawerTab = "codes" | "settings" | "redemptions";
@@ -60,7 +70,9 @@ interface OperatorPromotionDrawerProps {
   isSavingSettings: boolean;
 }
 
-function statusVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
+function statusVariant(
+  status: string,
+): "default" | "secondary" | "outline" | "destructive" {
   if (status === "ACTIVE") return "default";
   if (status === "PAUSED") return "secondary";
   return "outline";
@@ -108,17 +120,25 @@ export function OperatorPromotionDrawer({
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
                   <DrawerTitle className="text-xl font-bold tracking-tight text-slate-900">
-                    {isDetailLoading ? t("loading") : campaign?.name ?? t("promotion")}
+                    {isDetailLoading
+                      ? t("loading")
+                      : (campaign?.name ?? t("promotion"))}
                   </DrawerTitle>
                   {campaign && (
-                    <Badge variant={statusVariant(campaign.status)} className="capitalize">
+                    <Badge
+                      variant={statusVariant(campaign.status)}
+                      className="capitalize"
+                    >
                       {campaign.status.toLowerCase()}
                     </Badge>
                   )}
                 </div>
                 <DrawerDescription className="text-xs text-slate-500">
                   {campaign
-                    ? t("descWithCounts", { codes: campaign._count?.coupons ?? 0, redemptions: campaign._count?.redemptions ?? 0 })
+                    ? t("descWithCounts", {
+                        codes: campaign._count?.coupons ?? 0,
+                        redemptions: campaign._count?.redemptions ?? 0,
+                      })
                     : t("descDefault")}
                 </DrawerDescription>
               </div>
@@ -151,7 +171,12 @@ export function OperatorPromotionDrawer({
                   </Button>
                 )}
                 <DrawerClose asChild>
-                  <Button type="button" size="sm" variant="ghost" className="size-8 p-0 text-slate-500">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="size-8 p-0 text-slate-500"
+                  >
                     <X className="size-4" />
                     <span className="sr-only">{tc("close")}</span>
                   </Button>
@@ -163,9 +188,21 @@ export function OperatorPromotionDrawer({
             <div className="mt-4 flex items-center gap-1 border-b border-slate-200/80 -mb-4">
               {(
                 [
-                  { id: "codes" as const, label: t("tabCodes", { count: coupons.length }), icon: Code2 },
-                  { id: "settings" as const, label: t("tabSettings"), icon: SlidersHorizontal },
-                  { id: "redemptions" as const, label: t("tabRedemptions", { count: redemptionsTotal }), icon: FileSpreadsheet },
+                  {
+                    id: "codes" as const,
+                    label: t("tabCodes", { count: coupons.length }),
+                    icon: Code2,
+                  },
+                  {
+                    id: "settings" as const,
+                    label: t("tabSettings"),
+                    icon: SlidersHorizontal,
+                  },
+                  {
+                    id: "redemptions" as const,
+                    label: t("tabRedemptions", { count: redemptionsTotal }),
+                    icon: FileSpreadsheet,
+                  },
                 ] as const
               ).map(({ id, label, icon: Icon }) => (
                 <button
@@ -211,8 +248,12 @@ export function OperatorPromotionDrawer({
                 routeOptions={routes}
                 scheduleOptions={schedules}
                 tripOptions={trips}
-                onRouteIdsChange={(routeIds) => onScopeChange({ routeIds, scheduleIds: [] })}
-                onScheduleIdsChange={(scheduleIds) => onScopeChange({ routeIds: [], scheduleIds })}
+                onRouteIdsChange={(routeIds) =>
+                  onScopeChange({ routeIds, scheduleIds: [] })
+                }
+                onScheduleIdsChange={(scheduleIds) =>
+                  onScopeChange({ routeIds: [], scheduleIds })
+                }
                 onSave={onSaveSettings}
                 isSaving={isSavingSettings}
               />

@@ -25,7 +25,7 @@ export const searchParamsSchema = {
   toMuni: parseAsString.withDefault(""),
   fromQuarter: parseAsString.withDefault(""),
   toQuarter: parseAsString.withDefault(""),
-   fromTerminal: parseAsString.withDefault(""),
+  fromTerminal: parseAsString.withDefault(""),
   toTerminal: parseAsString.withDefault(""),
   fromTerminalName: parseAsString.withDefault(""),
   toTerminalName: parseAsString.withDefault(""),
@@ -38,9 +38,16 @@ export const searchParamsSchema = {
   operators: parseAsArrayOf(parseAsString),
   amenities: parseAsArrayOf(parseAsString),
   departureTime: parseAsArrayOf(
-    parseAsStringLiteral(["MORNING", "AFTERNOON", "EVENING", "LATE_NIGHT"] as const),
+    parseAsStringLiteral([
+      "MORNING",
+      "AFTERNOON",
+      "EVENING",
+      "LATE_NIGHT",
+    ] as const),
   ),
-  seatClass: parseAsArrayOf(parseAsStringLiteral(["ECONOMY", "STANDARD", "VIP"] as const)),
+  seatClass: parseAsArrayOf(
+    parseAsStringLiteral(["ECONOMY", "STANDARD", "VIP"] as const),
+  ),
   isExpress: parseAsArrayOf(parseAsStringLiteral(["true"] as const)),
   maxPrice: parseAsInteger,
 

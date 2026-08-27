@@ -1,21 +1,21 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 function findCountKeys(obj, currentPath, results) {
-  currentPath = currentPath || '';
+  currentPath = currentPath || "";
   results = results || [];
   for (const [key, value] of Object.entries(obj)) {
-    const fullPath = currentPath ? currentPath + '.' + key : key;
-    if (typeof value === 'string' && value.includes('{count}')) {
+    const fullPath = currentPath ? currentPath + "." + key : key;
+    if (typeof value === "string" && value.includes("{count}")) {
       results.push({ path: fullPath, value: value });
-    } else if (typeof value === 'object' && value !== null) {
+    } else if (typeof value === "object" && value !== null) {
       findCountKeys(value, fullPath, results);
     }
   }
   return results;
 }
 
-const en = require('../messages/en.json');
+const en = require("../messages/en.json");
 const countKeys = findCountKeys(en);
 
 function findJsTsFiles(dir, results) {
@@ -23,19 +23,28 @@ function findJsTsFiles(dir, results) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory() && !entry.name.includes('node_modules') && !entry.name.includes('.next') && !entry.name.includes('dist') && !entry.name.includes('scratch')) {
+    if (
+      entry.isDirectory() &&
+      !entry.name.includes("node_modules") &&
+      !entry.name.includes(".next") &&
+      !entry.name.includes("dist") &&
+      !entry.name.includes("scratch")
+    ) {
       findJsTsFiles(fullPath, results);
-    } else if (entry.isFile() && (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts'))) {
+    } else if (
+      entry.isFile() &&
+      (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))
+    ) {
       results.push(fullPath);
     }
   }
   return results;
 }
 
-const files = findJsTsFiles('.');
+const files = findJsTsFiles(".");
 
 function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 const issues = [];
@@ -47,16 +56,18 @@ for (const keyInfo of countKeys) {
   for (const file of files) {
     let content;
     try {
-      content = fs.readFileSync(file, 'utf8');
+      content = fs.readFileSync(file, "utf8");
     } catch (e) {
       continue;
     }
 
-    const lines = content.split('\n');
+    const lines = content.split("\n");
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      const tCallMatch = line.match(new RegExp('t\\s*\\(\\s*[`"\x27]' + keyRegex + '[`"\x27]'));
+      const tCallMatch = line.match(
+        new RegExp('t\\s*\\(\\s*[`"\x27]' + keyRegex + '[`"\x27]'),
+      );
       if (!tCallMatch) continue;
 
       // Check if this t() call has a count parameter
@@ -65,10 +76,10 @@ for (const keyInfo of countKeys) {
       let parenDepth = 0;
       let startParen = -1;
       for (let j = 0; j < line.length; j++) {
-        if (line[j] === '(') {
+        if (line[j] === "(") {
           if (parenDepth === 0) startParen = j;
           parenDepth++;
-        } else if (line[j] === ')') {
+        } else if (line[j] === ")") {
           parenDepth--;
         }
       }
@@ -76,8 +87,10 @@ for (const keyInfo of countKeys) {
       // If the call spans multiple lines, collect them
       if (parenDepth > 0) {
         for (let k = i + 1; k < lines.length && k < i + 10; k++) {
-          fullCall += '\n' + lines[k];
-          parenDepth = (lines[k].match(/\(/g) || []).length - (lines[k].match(/\)/g) || []).length;
+          fullCall += "\n" + lines[k];
+          parenDepth =
+            (lines[k].match(/\(/g) || []).length -
+            (lines[k].match(/\)/g) || []).length;
           if (parenDepth <= 0) break;
         }
       }
@@ -92,7 +105,7 @@ for (const keyInfo of countKeys) {
           file: file,
           lineNum: i + 1,
           lineContent: line.trim().substring(0, 150),
-          fullCall: fullCall.trim().substring(0, 300)
+          fullCall: fullCall.trim().substring(0, 300),
         });
       }
     }
@@ -101,17 +114,19 @@ for (const keyInfo of countKeys) {
 
 // Deduplicate by key+file+line
 const seen = new Set();
-const uniqueIssues = issues.filter(issue => {
-  const sig = issue.key + '|' + issue.file + '|' + issue.lineNum;
+const uniqueIssues = issues.filter((issue) => {
+  const sig = issue.key + "|" + issue.file + "|" + issue.lineNum;
   if (seen.has(sig)) return false;
   seen.add(sig);
   return true;
 });
 
-console.log('=== ISSUES: Keys with {count} placeholder but no count parameter passed ===');
-console.log('Total such keys:', countKeys.length);
-console.log('Total issues found:', uniqueIssues.length);
-console.log('');
+console.log(
+  "=== ISSUES: Keys with {count} placeholder but no count parameter passed ===",
+);
+console.log("Total such keys:", countKeys.length);
+console.log("Total issues found:", uniqueIssues.length);
+console.log("");
 
 // Group by key
 const grouped = {};
@@ -121,12 +136,12 @@ for (const issue of uniqueIssues) {
 }
 
 for (const [key, group] of Object.entries(grouped)) {
-  console.log('--- Key: ' + key + ' ---');
-  console.log('  Message value: ' + group[0].messageValue);
-  console.log('  Occurrences: ' + group.length);
+  console.log("--- Key: " + key + " ---");
+  console.log("  Message value: " + group[0].messageValue);
+  console.log("  Occurrences: " + group.length);
   for (const issue of group) {
-    console.log('  ' + issue.file + ':' + issue.lineNum);
-    console.log('    ' + issue.lineContent.substring(0, 120));
+    console.log("  " + issue.file + ":" + issue.lineNum);
+    console.log("    " + issue.lineContent.substring(0, 120));
   }
-  console.log('');
+  console.log("");
 }

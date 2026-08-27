@@ -23,7 +23,9 @@ export default async function AdminSettingsPage() {
         <nav className="flex items-center gap-1 text-xs text-text-muted">
           <span>{t("breadcrumbAdmin")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">{t("breadcrumbSettings")}</span>
+          <span className="text-text-primary font-medium">
+            {t("breadcrumbSettings")}
+          </span>
         </nav>
       </header>
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

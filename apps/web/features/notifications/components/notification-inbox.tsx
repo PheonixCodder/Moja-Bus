@@ -9,7 +9,7 @@ export function NotificationInbox() {
   const { data, isLoading, error } = useQuery(
     trpc.public.getNotificationToken.queryOptions(undefined, {
       staleTime: Infinity,
-    })
+    }),
   );
 
   if (isLoading || error || !data?.appId || !data?.subscriberHash) {
@@ -24,10 +24,12 @@ export function NotificationInbox() {
         subscriberHash={data.subscriberHash}
         appearance={{
           elements: {
-            bellIcon: "text-slate-600 hover:text-slate-900 transition-colors size-5",
-            bellContainer: "relative p-2 rounded-full hover:bg-slate-100 transition-all",
+            bellIcon:
+              "text-slate-600 hover:text-slate-900 transition-colors size-5",
+            bellContainer:
+              "relative p-2 rounded-full hover:bg-slate-100 transition-all",
             inbox__popoverContent: "z-[9999]!",
-          }
+          },
         }}
       />
     </div>

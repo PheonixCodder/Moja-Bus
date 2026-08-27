@@ -10,7 +10,8 @@ export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   return {
     title: "Driver Fleet Management | Moja Operator",
-    description: "Manage commercial drivers, license verifications, and real-time trip allocations.",
+    description:
+      "Manage commercial drivers, license verifications, and real-time trip allocations.",
   };
 }
 

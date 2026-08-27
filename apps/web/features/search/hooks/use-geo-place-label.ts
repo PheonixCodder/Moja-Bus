@@ -14,7 +14,11 @@ interface GeoPlaceKey {
  * search can render the full hierarchy label (e.g. "Abidjan (Cocody - Riviera 3)")
  * instead of just the plain city name.
  */
-export function useGeoPlaceLabel({ cityId, municipalityId, quarterId }: GeoPlaceKey) {
+export function useGeoPlaceLabel({
+  cityId,
+  municipalityId,
+  quarterId,
+}: GeoPlaceKey) {
   const trpc = useTRPC();
   const enabled = !!cityId || !!municipalityId || !!quarterId;
   return useQuery({

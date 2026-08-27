@@ -265,8 +265,6 @@ export class CancellationService {
         });
       }
 
-
-
       if (refundAmountXOF > 0 || proportionalOperatorNet > 0) {
         const accountService = new FinancialAccountService(txClient as any);
         const opAcct = await accountService.getOperatorReceivableAccount(

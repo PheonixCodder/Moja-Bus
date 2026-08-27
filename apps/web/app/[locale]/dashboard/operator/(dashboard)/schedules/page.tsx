@@ -8,7 +8,10 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "operatorDashboard.schedules" });
+  const t = await getTranslations({
+    locale,
+    namespace: "operatorDashboard.schedules",
+  });
   return { title: t("metaTitle"), description: t("metaDescription") };
 }
 

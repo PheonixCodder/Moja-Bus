@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const operatorSignupOtpWorkflow = workflow(
   "operator-signup-otp",
   async ({ step, payload }) => {
@@ -27,7 +26,8 @@ export const operatorSignupOtpWorkflow = workflow(
   },
   {
     name: "Operator Signup Verification OTP",
-    description: "Sends email verification code to operator during registration Phase 1",
+    description:
+      "Sends email verification code to operator during registration Phase 1",
     preferences: {
       all: { readOnly: true },
     },
@@ -37,5 +37,5 @@ export const operatorSignupOtpWorkflow = workflow(
       companyName: z.string(),
       ownerName: z.string(),
     }),
-  }
+  },
 );

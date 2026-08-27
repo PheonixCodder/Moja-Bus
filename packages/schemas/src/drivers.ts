@@ -44,6 +44,15 @@ export const LICENSE_CATEGORIES = ["B", "C", "D", "E"] as const;
 export type LicenseCategory = (typeof LICENSE_CATEGORIES)[number];
 export const LicenseCategorySchema = z.enum(LICENSE_CATEGORIES);
 
+export const DRIVER_PAY_MODELS = [
+  "HOURLY",
+  "PER_TRIP",
+  "MONTHLY_SALARY",
+] as const;
+export type DriverPayModel = (typeof DRIVER_PAY_MODELS)[number];
+export const DriverPayModelSchema = z.enum(DRIVER_PAY_MODELS);
+
+
 // ============================================
 // OPERATOR CRUD SCHEMAS
 // ============================================
@@ -93,6 +102,8 @@ export const createDriverSchema = z.object({
   medicalClearanceDate: z.coerce.date().optional(),
   medicalDocUrl: driverDocReferenceSchema.optional(),
   employmentType: DriverEmploymentTypeSchema.default("EXCLUSIVE_INTERCITY"),
+  payModel: DriverPayModelSchema.default("HOURLY"),
+  payRateXOF: z.number().int().min(0).optional(),
   badgeNumber: z.string().max(50).optional(),
   notes: z.string().max(500).optional(),
   /**
@@ -119,6 +130,8 @@ export const updateDriverSchema = z.object({
   // Phase-06 run-state convergence matrix. State transitions go through
   // their dedicated surfaces.
   employmentType: DriverEmploymentTypeSchema.optional(),
+  payModel: DriverPayModelSchema.optional(),
+  payRateXOF: z.number().int().min(0).optional(),
   badgeNumber: z.string().max(50).optional(),
   notes: z.string().max(500).optional(),
 });
@@ -398,6 +411,26 @@ export type DriverAcknowledgeUrgentDispatchInput = z.infer<
   typeof driverAcknowledgeUrgentDispatchSchema
 >;
 
+/**
+ * Phase 7 (Gap #10) — Stop-execution schemas for waypoint arrive/depart tracking.
+ */
+export const driverRecordStopArrivalSchema = z.object({
+  tripId: z.string().cuid(),
+  tripStopId: z.string().cuid(),
+});
+export type DriverRecordStopArrivalInput = z.infer<
+  typeof driverRecordStopArrivalSchema
+>;
+
+export const driverRecordStopDepartureSchema = z.object({
+  tripId: z.string().cuid(),
+  tripStopId: z.string().cuid(),
+});
+export type DriverRecordStopDepartureInput = z.infer<
+  typeof driverRecordStopDepartureSchema
+>;
+
+
 // ============================================
 // PHASE 9 — MARKETPLACE PREFERENCE SCHEMAS
 // ============================================
@@ -445,6 +478,7 @@ export const listMarketplaceDriversSchema = z.object({
   licenseCategory: LicenseCategorySchema.optional(),
   preferredType: DriverEmploymentTypeSchema.optional(),
   cityBase: z.string().trim().optional(),
+  corridor: z.string().trim().optional(),
   minRating: z.number().min(1).max(5).optional(),
   minSafetyScore: z.number().int().min(0).max(100).optional(),
   page: z.number().int().min(1).default(1),

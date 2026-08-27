@@ -7,11 +7,11 @@ type SettingsContext = {
 };
 
 type SettingKey =
-    | "default_commission_bps"
-    | "default_convenience_fee_bps"
-    | "min_withdrawal_amount"
-    | "withdrawal_frequency_hours"
-    | "require_2fa_for_withdrawals";
+  | "default_commission_bps"
+  | "default_convenience_fee_bps"
+  | "min_withdrawal_amount"
+  | "withdrawal_frequency_hours"
+  | "require_2fa_for_withdrawals";
 
 const FIELD_MAP: Record<SettingKey, string> = {
   default_commission_bps: "defaultCommissionBps",
@@ -22,16 +22,22 @@ const FIELD_MAP: Record<SettingKey, string> = {
 };
 
 export class PlatformSettingsManager {
-  constructor(private prisma: PrismaClient, private userId: string) {}
+  constructor(
+    private prisma: PrismaClient,
+    private userId: string,
+  ) {}
 
   async setSetting(
-      key: SettingKey,
-      value: number | boolean,
-      metadata: { setBy: string; changeReason: string }
+    key: SettingKey,
+    value: number | boolean,
+    metadata: { setBy: string; changeReason: string },
   ): Promise<void> {
     const field = FIELD_MAP[key];
     if (!field) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: `Invalid setting key: ${key}` });
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Invalid setting key: ${key}`,
+      });
     }
 
     this.validateSettingValue(key, value);
@@ -56,8 +62,12 @@ export class PlatformSettingsManager {
     ]);
   }
 
-  private async getCurrentValue(key: SettingKey): Promise<number | boolean | null> {
-    const settings = await this.prisma.platformSettings.findUnique({ where: { id: "default" } });
+  private async getCurrentValue(
+    key: SettingKey,
+  ): Promise<number | boolean | null> {
+    const settings = await this.prisma.platformSettings.findUnique({
+      where: { id: "default" },
+    });
     if (!settings) return null;
     const field = FIELD_MAP[key];
     return (settings as any)[field] ?? null;
@@ -67,27 +77,42 @@ export class PlatformSettingsManager {
     switch (key) {
       case "default_commission_bps":
         if (typeof value !== "number" || value < 100 || value > 1500) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Commission rate must be between 1% and 15%" });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Commission rate must be between 1% and 15%",
+          });
         }
         break;
       case "default_convenience_fee_bps":
         if (typeof value !== "number" || value < 0 || value > 1000) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Convenience fee rate must be between 0% and 10%" });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Convenience fee rate must be between 0% and 10%",
+          });
         }
         break;
       case "min_withdrawal_amount":
         if (typeof value !== "number" || value < 1000 || value > 100000) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Minimum withdrawal must be between 1,000 and 100,000 XOF" });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Minimum withdrawal must be between 1,000 and 100,000 XOF",
+          });
         }
         break;
       case "withdrawal_frequency_hours":
         if (typeof value !== "number" || value < 1 || value > 168) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Withdrawal frequency must be between 1 and 168 hours" });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Withdrawal frequency must be between 1 and 168 hours",
+          });
         }
         break;
       case "require_2fa_for_withdrawals":
         if (typeof value !== "boolean") {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "This setting must be true or false" });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "This setting must be true or false",
+          });
         }
         break;
     }
@@ -97,12 +122,16 @@ export class PlatformSettingsManager {
     return this.prisma.platformSettingsAudit.findMany({
       take: limit,
       orderBy: { createdAt: "desc" },
-      include: { changedByUser: { select: { id: true, email: true, role: true } } },
+      include: {
+        changedByUser: { select: { id: true, email: true, role: true } },
+      },
     });
   }
 }
 
-export function createSettingsManager(ctx: SettingsContext): PlatformSettingsManager {
+export function createSettingsManager(
+  ctx: SettingsContext,
+): PlatformSettingsManager {
   return new PlatformSettingsManager(ctx.prisma, ctx.user.id);
 }
 

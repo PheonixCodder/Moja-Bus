@@ -42,7 +42,12 @@
   }
 
   /* When printing from a Sheet drawer modal, hide the main application background layout */
-  body:has([data-slot="sheet-content"]) > *:not([data-base-ui-portal], [data-slot="sheet-portal"], [data-slot="sheet-content"]) {
+  body:has([data-slot="sheet-content"])
+  > *:not(
+    [data-base-ui-portal],
+    [data-slot="sheet-portal"],
+    [data-slot="sheet-content"]
+  ) {
     display: none !important;
   }
 

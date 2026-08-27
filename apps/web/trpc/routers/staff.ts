@@ -3,14 +3,8 @@ import { z } from "zod";
 import crypto from "node:crypto";
 import { getNovuClient } from "@/lib/novu";
 import type { PrismaClient, Prisma } from "@moja/db";
-import {
-  ROLE_TEMPLATES,
-  type StaffRole,
-} from "@moja/schemas";
-import {
-  createTRPCRouter,
-  operatorCompanyProcedure,
-} from "../init";
+import { ROLE_TEMPLATES, type StaffRole } from "@moja/schemas";
+import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 import {
   requirePermission,
   requireCanGrant,
@@ -95,7 +89,10 @@ async function getTargetStaff(ctx: Ctx, memberId: string) {
     },
   });
   if (!target) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Staff member not found." });
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Staff member not found.",
+    });
   }
   return target;
 }
@@ -182,8 +179,12 @@ export const staffRouter = createTRPCRouter({
             phone: m.user.phoneNumber,
           },
           personalPhone: callerIsPrivileged ? m.personalPhone : null,
-          emergencyContactName: callerIsPrivileged ? m.emergencyContactName : null,
-          emergencyContactPhone: callerIsPrivileged ? m.emergencyContactPhone : null,
+          emergencyContactName: callerIsPrivileged
+            ? m.emergencyContactName
+            : null,
+          emergencyContactPhone: callerIsPrivileged
+            ? m.emergencyContactPhone
+            : null,
           nationalIdNumber: callerIsPrivileged ? m.nationalIdNumber : null,
           nationalIdType: callerIsPrivileged ? m.nationalIdType : null,
           dateOfBirth: callerIsPrivileged ? m.dateOfBirth : null,
@@ -245,14 +246,21 @@ export const staffRouter = createTRPCRouter({
       const target = await getTargetStaff(ctx, input.memberId);
       assertCanModifyTarget(ctx, target.role);
 
-      if (!canAssignRole(ctx.operator.role, input.role) && ctx.user.role !== "ADMIN") {
+      if (
+        !canAssignRole(ctx.operator.role, input.role) &&
+        ctx.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: `Cannot assign ${input.role} role.`,
         });
       }
 
-      if (input.role === "ADMIN" && ctx.operator.role !== "OWNER" && ctx.user.role !== "ADMIN") {
+      if (
+        input.role === "ADMIN" &&
+        ctx.operator.role !== "OWNER" &&
+        ctx.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only company owners can assign ADMIN roles.",
@@ -299,20 +307,20 @@ export const staffRouter = createTRPCRouter({
       const target = await getTargetStaff(ctx, input.memberId);
       assertCanModifyTarget(ctx, target.role);
 
-       if (input.status === "SUSPENDED" && target.role === "OWNER") {
-         throw new TRPCError({
-           code: "FORBIDDEN",
-           message: "Cannot suspend the company owner.",
-         });
-       }
+      if (input.status === "SUSPENDED" && target.role === "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Cannot suspend the company owner.",
+        });
+      }
 
-       if (input.status === "SUSPENDED") {
-         await ctx.prisma.session.deleteMany({
-           where: { userId: target.userId },
-         });
-       }
+      if (input.status === "SUSPENDED") {
+        await ctx.prisma.session.deleteMany({
+          where: { userId: target.userId },
+        });
+      }
 
-       const updated = await ctx.prisma.operator.update({
+      const updated = await ctx.prisma.operator.update({
         where: { id: target.id },
         data: {
           status: input.status,
@@ -352,19 +360,19 @@ export const staffRouter = createTRPCRouter({
         });
       }
 
-       await ctx.prisma.$transaction(async (tx) => {
-         await tx.operator.update({
-           where: { id: target.id },
-           data: {
-             deletedAt: new Date(),
-             isActive: false,
-             status: "INACTIVE",
-           },
-         });
+      await ctx.prisma.$transaction(async (tx) => {
+        await tx.operator.update({
+          where: { id: target.id },
+          data: {
+            deletedAt: new Date(),
+            isActive: false,
+            status: "INACTIVE",
+          },
+        });
 
-         await tx.session.deleteMany({
-           where: { userId: target.userId },
-         });
+        await tx.session.deleteMany({
+          where: { userId: target.userId },
+        });
 
         await tx.activityLog.create({
           data: {
@@ -396,7 +404,8 @@ export const staffRouter = createTRPCRouter({
     if (recentOtp) {
       throw new TRPCError({
         code: "TOO_MANY_REQUESTS",
-        message: "Please wait 2 minutes before requesting another verification code.",
+        message:
+          "Please wait 2 minutes before requesting another verification code.",
       });
     }
 
@@ -478,17 +487,29 @@ export const staffRouter = createTRPCRouter({
         });
       }
 
-      const hashedInputOtp = crypto.createHash("sha256").update(input.otp).digest("hex");
+      const hashedInputOtp = crypto
+        .createHash("sha256")
+        .update(input.otp)
+        .digest("hex");
       if (record.value !== hashedInputOtp) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid verification code." });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid verification code.",
+        });
       }
 
       const target = await getTargetStaff(ctx, input.memberId);
       if (target.role === "OWNER") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Target is already the owner." });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Target is already the owner.",
+        });
       }
       if (target.status !== "ACTIVE") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Target must be an active member." });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Target must be an active member.",
+        });
       }
 
       const currentOwner = await ctx.prisma.operator.findFirst({
@@ -501,7 +522,10 @@ export const staffRouter = createTRPCRouter({
         include: { user: { select: { fullName: true } } },
       });
       if (!currentOwner) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Current owner record not found." });
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Current owner record not found.",
+        });
       }
 
       await ctx.prisma.$transaction([
@@ -552,7 +576,9 @@ export const staffRouter = createTRPCRouter({
   listInvitations: operatorCompanyProcedure
     .input(
       z.object({
-        status: z.enum(["PENDING", "ACCEPTED", "CANCELLED", "EXPIRED"]).optional(),
+        status: z
+          .enum(["PENDING", "ACCEPTED", "CANCELLED", "EXPIRED"])
+          .optional(),
         limit: z.number().int().min(1).max(100).default(20),
         offset: z.number().int().min(0).default(0),
       }),
@@ -583,7 +609,10 @@ export const staffRouter = createTRPCRouter({
           isExpired: inv.expiresAt < new Date(),
           daysUntilExpiry:
             inv.status === "PENDING"
-              ? Math.ceil((inv.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+              ? Math.ceil(
+                  (inv.expiresAt.getTime() - Date.now()) /
+                    (1000 * 60 * 60 * 24),
+                )
               : null,
         })),
         total,
@@ -597,14 +626,21 @@ export const staffRouter = createTRPCRouter({
       requirePermission(ctx, "staff:invite");
       requireCanGrant(ctx, input.permissions);
 
-      if (!canAssignRole(ctx.operator.role, input.role) && ctx.user.role !== "ADMIN") {
+      if (
+        !canAssignRole(ctx.operator.role, input.role) &&
+        ctx.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: `Cannot invite staff with ${input.role} role.`,
         });
       }
 
-      if (input.role === "ADMIN" && ctx.operator.role !== "OWNER" && ctx.user.role !== "ADMIN") {
+      if (
+        input.role === "ADMIN" &&
+        ctx.operator.role !== "OWNER" &&
+        ctx.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only company owners can invite ADMIN staff.",
@@ -657,8 +693,13 @@ export const staffRouter = createTRPCRouter({
       }
 
       const rawToken = crypto.randomBytes(32).toString("hex");
-      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-      const expiresAt = new Date(Date.now() + input.expiryDays * 24 * 60 * 60 * 1000);
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(rawToken)
+        .digest("hex");
+      const expiresAt = new Date(
+        Date.now() + input.expiryDays * 24 * 60 * 60 * 1000,
+      );
 
       const invitation = await ctx.prisma.staffInvitation.create({
         data: {
@@ -693,13 +734,16 @@ export const staffRouter = createTRPCRouter({
 
       const appUrl = process.env["APP_URL"] || "http://localhost:3000";
       const inviteUrl = `${appUrl}/invite?token=${rawToken}`;
-      const expiresAtFormatted = invitation.expiresAt.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const expiresAtFormatted = invitation.expiresAt.toLocaleDateString(
+        "en-US",
+        {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+      );
 
       const novu = getNovuClient();
       if (novu) {
@@ -749,7 +793,10 @@ export const staffRouter = createTRPCRouter({
         include: { invitedBy: { select: { fullName: true } } },
       });
       if (!invite) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Invitation not found." });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invitation not found.",
+        });
       }
       if (invite.status !== "PENDING") {
         throw new TRPCError({
@@ -766,7 +813,8 @@ export const staffRouter = createTRPCRouter({
       if (!canCancel) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Can only cancel invitations you sent or have admin privileges.",
+          message:
+            "Can only cancel invitations you sent or have admin privileges.",
         });
       }
 
@@ -803,7 +851,10 @@ export const staffRouter = createTRPCRouter({
         },
       });
       if (!invite) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Invitation not found." });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invitation not found.",
+        });
       }
       if (invite.status !== "PENDING") {
         throw new TRPCError({
@@ -820,7 +871,8 @@ export const staffRouter = createTRPCRouter({
       if (!canResend) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Can only resend invitations you sent or have admin privileges.",
+          message:
+            "Can only resend invitations you sent or have admin privileges.",
         });
       }
 
@@ -842,7 +894,10 @@ export const staffRouter = createTRPCRouter({
         ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         : invite.expiresAt;
       const newRawToken = crypto.randomBytes(32).toString("hex");
-      const newHashedToken = crypto.createHash("sha256").update(newRawToken).digest("hex");
+      const newHashedToken = crypto
+        .createHash("sha256")
+        .update(newRawToken)
+        .digest("hex");
 
       const updated = await ctx.prisma.staffInvitation.update({
         where: { id: invite.id },

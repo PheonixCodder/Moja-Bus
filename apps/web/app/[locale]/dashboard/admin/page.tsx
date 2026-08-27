@@ -12,9 +12,14 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "adminDashboard.overview" });
+  const t = await getTranslations({
+    locale,
+    namespace: "adminDashboard.overview",
+  });
 
   return {
     title: t("metaTitle"),
@@ -22,9 +27,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function AdminDashboardPage({ params, searchParams }: PageProps) {
+export default async function AdminDashboardPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "adminDashboard.overview" });
+  const t = await getTranslations({
+    locale,
+    namespace: "adminDashboard.overview",
+  });
   const { from, to } = dashboardSearchParamsCache.parse(await searchParams);
 
   await Promise.all([
@@ -32,7 +43,6 @@ export default async function AdminDashboardPage({ params, searchParams }: PageP
     prefetch(trpc.admin.getRecentActivity.queryOptions()),
     prefetch(trpc.admin.getDriverMarketplaceStats.queryOptions()),
   ]);
-
 
   return (
     <HydrateClient>
@@ -42,7 +52,9 @@ export default async function AdminDashboardPage({ params, searchParams }: PageP
         <nav className="flex items-center gap-1 text-xs text-text-muted">
           <span>{t("breadcrumb.admin")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">{t("breadcrumb.overview")}</span>
+          <span className="text-text-primary font-medium">
+            {t("breadcrumb.overview")}
+          </span>
         </nav>
       </header>
 

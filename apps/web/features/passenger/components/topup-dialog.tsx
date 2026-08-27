@@ -21,7 +21,12 @@ interface TopupDialogProps {
   isPending: boolean;
 }
 
-export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: TopupDialogProps) {
+export function TopupDialog({
+  isOpen,
+  onClose,
+  onSubmitTopup,
+  isPending,
+}: TopupDialogProps) {
   const t = useTranslations("passengerDashboard.wallet");
   const [topupAmount, setTopupAmount] = useState("");
 
@@ -41,7 +46,9 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md border border-border bg-white rounded-2xl p-6 shadow-xl">
         <DialogHeader className="space-y-1">
-          <DialogTitle className="text-xl font-extrabold text-slate-900 tracking-tight">{t("topupDialogTitle")}</DialogTitle>
+          <DialogTitle className="text-xl font-extrabold text-slate-900 tracking-tight">
+            {t("topupDialogTitle")}
+          </DialogTitle>
           <DialogDescription className="text-xs text-slate-500 leading-relaxed">
             {t("topupDialogDesc")}
           </DialogDescription>
@@ -60,8 +67,8 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
                   variant="outline"
                   onClick={() => handlePresetSelect(amount)}
                   className={`h-9 text-xs font-bold rounded-xl border-slate-200 hover:border-primary hover:text-primary transition-colors ${
-                    topupAmount === amount.toString() 
-                      ? "border-primary text-primary bg-primary/5" 
+                    topupAmount === amount.toString()
+                      ? "border-primary text-primary bg-primary/5"
                       : ""
                   }`}
                 >
@@ -85,7 +92,9 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
                 required
                 className="pr-12 rounded-xl border-slate-200 h-10 text-sm focus-visible:ring-primary"
               />
-              <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">XOF</span>
+              <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">
+                XOF
+              </span>
             </div>
           </div>
 

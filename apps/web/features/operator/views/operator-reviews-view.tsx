@@ -2,7 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Star, MessageCircle, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -91,9 +95,7 @@ export function OperatorReviewsView() {
         <h1 className="text-xl font-bold tracking-tight text-foreground">
           {t("title")}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {t("description")}
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">{t("description")}</p>
       </div>
 
       {/* Summary banner */}
@@ -113,7 +115,9 @@ export function OperatorReviewsView() {
             const pct = total > 0 ? (count / total) * 100 : 0;
             return (
               <div key={star} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-3">{star}</span>
+                <span className="text-xs text-muted-foreground w-3">
+                  {star}
+                </span>
                 <Star className="size-3 fill-amber-400 text-amber-400" />
                 <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
                   <div
@@ -121,7 +125,9 @@ export function OperatorReviewsView() {
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground w-4">{count}</span>
+                <span className="text-xs text-muted-foreground w-4">
+                  {count}
+                </span>
               </div>
             );
           })}
@@ -142,14 +148,16 @@ export function OperatorReviewsView() {
       ) : (
         <div className="space-y-3">
           {reviews.map((review) => {
-            const route =
-              review.booking?.trip?.schedule?.route;
+            const route = review.booking?.trip?.schedule?.route;
             const origin =
               route?.originTerminal?.cityRelation?.name ?? t("origin");
             const dest =
               route?.destTerminal?.cityRelation?.name ?? t("destination");
             const departure = review.booking?.trip?.departureDate
-              ? format(new Date(review.booking.trip.departureDate), "MMM d, yyyy")
+              ? format(
+                  new Date(review.booking.trip.departureDate),
+                  "MMM d, yyyy",
+                )
               : null;
             const isEditing = editingId === review.id;
 
@@ -167,7 +175,9 @@ export function OperatorReviewsView() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground">
-                        {review.author?.fullName ?? review.author?.email ?? t("passenger")}
+                        {review.author?.fullName ??
+                          review.author?.email ??
+                          t("passenger")}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {origin} → {dest}
@@ -193,12 +203,14 @@ export function OperatorReviewsView() {
                 <div className="flex flex-wrap gap-2 pt-1 text-xs">
                   {review.driver && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 font-medium">
-                      Driver: {review.driver.user.fullName} {review.driverRating ? `(${review.driverRating}★)` : ""}
+                      Driver: {review.driver.user.fullName}{" "}
+                      {review.driverRating ? `(${review.driverRating}★)` : ""}
                     </span>
                   )}
                   {review.bus && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 font-medium">
-                      Bus: {review.bus.registrationPlate} {review.busRating ? `(${review.busRating}★)` : ""}
+                      Bus: {review.bus.registrationPlate}{" "}
+                      {review.busRating ? `(${review.busRating}★)` : ""}
                     </span>
                   )}
                   {review.punctualityRating && (
@@ -252,13 +264,11 @@ export function OperatorReviewsView() {
                           disabled={respondMutation.isPending || !draft.trim()}
                           className="flex-1"
                         >
-                          {respondMutation.isPending ? (
-                            t("publishing")
-                          ) : review.response ? (
-                            t("updateResponse")
-                          ) : (
-                            t("submitResponse")
-                          )}
+                          {respondMutation.isPending
+                            ? t("publishing")
+                            : review.response
+                              ? t("updateResponse")
+                              : t("submitResponse")}
                         </Button>
                         <Button
                           size="sm"

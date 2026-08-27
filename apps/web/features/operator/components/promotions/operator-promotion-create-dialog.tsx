@@ -61,8 +61,12 @@ export function OperatorPromotionCreateDialog({
     onCreate({
       name: name.trim(),
       benefitType,
-      ...(benefitType === "PERCENT_OFF" ? { percentBps: Math.round(Number(percentOff) * 100) } : {}),
-      ...(benefitType === "FIXED_AMOUNT_OFF" ? { amountXOF: Number(amountXOF) } : {}),
+      ...(benefitType === "PERCENT_OFF"
+        ? { percentBps: Math.round(Number(percentOff) * 100) }
+        : {}),
+      ...(benefitType === "FIXED_AMOUNT_OFF"
+        ? { amountXOF: Number(amountXOF) }
+        : {}),
     });
   }
 
@@ -104,8 +108,16 @@ export function OperatorPromotionCreateDialog({
                 <div className="grid grid-cols-2 gap-2">
                   {(
                     [
-                      { value: "PERCENT_OFF", label: t("percentOff"), desc: t("percentOffDesc") },
-                      { value: "FIXED_AMOUNT_OFF", label: t("fixedXOF"), desc: t("fixedXOFDesc") },
+                      {
+                        value: "PERCENT_OFF",
+                        label: t("percentOff"),
+                        desc: t("percentOffDesc"),
+                      },
+                      {
+                        value: "FIXED_AMOUNT_OFF",
+                        label: t("fixedXOF"),
+                        desc: t("fixedXOFDesc"),
+                      },
                     ] as { value: BenefitType; label: string; desc: string }[]
                   ).map((opt) => (
                     <button
@@ -119,7 +131,9 @@ export function OperatorPromotionCreateDialog({
                       }`}
                     >
                       <p className="font-semibold">{opt.label}</p>
-                      <p className={`text-[11px] ${benefitType === opt.value ? "text-slate-300" : "text-slate-400"}`}>
+                      <p
+                        className={`text-[11px] ${benefitType === opt.value ? "text-slate-300" : "text-slate-400"}`}
+                      >
                         {opt.desc}
                       </p>
                     </button>
@@ -128,10 +142,18 @@ export function OperatorPromotionCreateDialog({
               </div>
 
               <div className="flex justify-end gap-2 pt-1">
-                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleOpenChange(false)}
+                >
                   {t("cancel")}
                 </Button>
-                <Button type="button" disabled={!name.trim()} onClick={() => setStep(2)}>
+                <Button
+                  type="button"
+                  disabled={!name.trim()}
+                  onClick={() => setStep(2)}
+                >
                   {t("next")}
                 </Button>
               </div>
@@ -185,11 +207,19 @@ export function OperatorPromotionCreateDialog({
               </p>
 
               <div className="flex justify-between gap-2 pt-1">
-                <Button type="button" variant="ghost" onClick={() => setStep(1)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setStep(1)}
+                >
                   {t("back")}
                 </Button>
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleOpenChange(false)}
+                  >
                     {t("cancel")}
                   </Button>
                   <Button

@@ -95,14 +95,8 @@ describe("getBookingsForSegment", () => {
   const segmentBC = { originOrder: 1, destinationOrder: 2 };
 
   it("counts A-C bookings on both segments", () => {
-    assert.equal(
-      getBookingsForSegment(bookings, segmentAB).length,
-      5,
-    );
-    assert.equal(
-      getBookingsForSegment(bookings, segmentBC).length,
-      3,
-    );
+    assert.equal(getBookingsForSegment(bookings, segmentAB).length, 5);
+    assert.equal(getBookingsForSegment(bookings, segmentBC).length, 3);
   });
 
   it("excludes expired holds", () => {

@@ -33,9 +33,19 @@ function getFilesWithKey(keyLastSegment) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const e of entries) {
       const fp = path.join(dir, e.name);
-      if (e.isDirectory() && !e.name.includes("node_modules") && !e.name.includes(".next") && !e.name !== "scripts" && !e.name.includes("scratch") && !e.name.includes("dist")) {
+      if (
+        e.isDirectory() &&
+        !e.name.includes("node_modules") &&
+        !e.name.includes(".next") &&
+        !e.name !== "scripts" &&
+        !e.name.includes("scratch") &&
+        !e.name.includes("dist")
+      ) {
         walk(fp);
-      } else if (e.isFile() && (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))) {
+      } else if (
+        e.isFile() &&
+        (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))
+      ) {
         results.push(fp);
       }
     }
@@ -50,16 +60,51 @@ const allIssues = [];
 
 // Specific keys known to have {count} issues
 const specificKeys = [
-  "pendingOperators", "pendingOperatorsPlural", "activeTrips", "activeTripsPlural",
-  "results", "tripCount", "seats", "passengerCount", "intermediateStops",
-  "applyFilters", "totalFor", "seatsLeft", "seatsAvailable", "stops", "stopsPlural",
-  "bookingsDesc", "pendingVerificationsDesc", "bookingsDesc", "tripsGenerated",
-  "tripsGenerated_plural", "daysPerWeek", "daysPerWeek_plural", "extendSuccess",
-  "extendFallback", "retireConfirm", "scheduleRetired", "retireFailed",
-  "deleteFailed", "deleteSuccess", "bookings", "bookingsDesc",
-  "bookingsCurrent", "tripCount", "pendingHolds", "selected", "bulkCheckInResult",
-  "bulkCancelResult", "exported", "refundsCount", "confirmedPassengers",
-  "checkInAll", "tripsNext14", "seatCount", "guest", "guests"
+  "pendingOperators",
+  "pendingOperatorsPlural",
+  "activeTrips",
+  "activeTripsPlural",
+  "results",
+  "tripCount",
+  "seats",
+  "passengerCount",
+  "intermediateStops",
+  "applyFilters",
+  "totalFor",
+  "seatsLeft",
+  "seatsAvailable",
+  "stops",
+  "stopsPlural",
+  "bookingsDesc",
+  "pendingVerificationsDesc",
+  "bookingsDesc",
+  "tripsGenerated",
+  "tripsGenerated_plural",
+  "daysPerWeek",
+  "daysPerWeek_plural",
+  "extendSuccess",
+  "extendFallback",
+  "retireConfirm",
+  "scheduleRetired",
+  "retireFailed",
+  "deleteFailed",
+  "deleteSuccess",
+  "bookings",
+  "bookingsDesc",
+  "bookingsCurrent",
+  "tripCount",
+  "pendingHolds",
+  "selected",
+  "bulkCheckInResult",
+  "bulkCancelResult",
+  "exported",
+  "refundsCount",
+  "confirmedPassengers",
+  "checkInAll",
+  "tripsNext14",
+  "seatCount",
+  "guest",
+  "guests",
 ];
 
 // Instead of trying to detect programmatically, do a targeted search
@@ -69,9 +114,19 @@ function walk(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const e of entries) {
     const fp = path.join(dir, e.name);
-    if (e.isDirectory() && !e.name.includes("node_modules") && !e.name.includes(".next") && !e.name.includes("dist") && !e.name.includes("scratch") && !e.name !== "scripts") {
+    if (
+      e.isDirectory() &&
+      !e.name.includes("node_modules") &&
+      !e.name.includes(".next") &&
+      !e.name.includes("dist") &&
+      !e.name.includes("scratch") &&
+      !e.name !== "scripts"
+    ) {
       walk(fp);
-    } else if (e.isFile() && (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))) {
+    } else if (
+      e.isFile() &&
+      (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))
+    ) {
       allTsxFiles.push(fp);
     }
   }
@@ -85,7 +140,9 @@ const knownIssues = [
 
 // Check specific issue: booking-details.tsx t("seats") with ICU plural
 const bookingDetails = "features/booking/components/booking-details.tsx";
-const seatsKey = countKeys.find((k) => k.path.includes("seats") && k.value.includes("{count, plural"));
+const seatsKey = countKeys.find(
+  (k) => k.path.includes("seats") && k.value.includes("{count, plural"),
+);
 if (seatsKey) {
   console.log("Key with ICU plural: " + seatsKey.path);
   console.log("  Template: " + seatsKey.value.substring(0, 100));
@@ -100,7 +157,9 @@ if (resultsKey) {
 }
 
 // Check operator trips - tripCount with plural
-const operatorTrips = countKeys.filter((k) => k.path.includes("trips") && k.path.includes("tripCount"));
+const operatorTrips = countKeys.filter(
+  (k) => k.path.includes("trips") && k.path.includes("tripCount"),
+);
 for (const k of operatorTrips) {
   console.log("\nKey: " + k.path);
   console.log("  Template: " + k.value.substring(0, 100));
@@ -115,7 +174,13 @@ for (const k of icuPlural) {
 
 // Print all keys with simple {count} (non-plural)
 console.log("\n=== ALL SIMPLE {count} KEYS ===");
-const simpleCount = countKeys.filter((k) => k.value.includes("{count}") && !k.value.includes("{count, plural") && !k.value.includes("{count}.") && !k.value.includes("{count, plural"));
+const simpleCount = countKeys.filter(
+  (k) =>
+    k.value.includes("{count}") &&
+    !k.value.includes("{count, plural") &&
+    !k.value.includes("{count}.") &&
+    !k.value.includes("{count, plural"),
+);
 // Actually all count keys already include {count}
 // Let me just check which ones don't have ICU plural format
 const simpleOnly = countKeys.filter((k) => !k.value.includes("{count, plural"));

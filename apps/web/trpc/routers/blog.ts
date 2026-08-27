@@ -6,14 +6,16 @@ import { Prisma } from "@moja/db";
 export const blogRouter = createTRPCRouter({
   // --- PUBLIC ENDPOINTS ---
   getPublishedPosts: publicProcedure
-    .input(z.object({
-      limit: z.number().default(20),
-      cursor: z.string().nullish(),
-      offset: z.number().int().min(0).optional(),
-      categorySlug: z.string().optional(),
-      tagSlug: z.string().optional(),
-      searchQuery: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        limit: z.number().default(20),
+        cursor: z.string().nullish(),
+        offset: z.number().int().min(0).optional(),
+        categorySlug: z.string().optional(),
+        tagSlug: z.string().optional(),
+        searchQuery: z.string().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const where: Prisma.BlogPostWhereInput = {
         status: "PUBLISHED",
@@ -106,7 +108,11 @@ export const blogRouter = createTRPCRouter({
         },
       });
 
-      if (!post || post.deletedAt || (post.status !== "PUBLISHED" && ctx.user?.role !== "ADMIN")) {
+      if (
+        !post ||
+        post.deletedAt ||
+        (post.status !== "PUBLISHED" && ctx.user?.role !== "ADMIN")
+      ) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
@@ -124,11 +130,21 @@ export const blogRouter = createTRPCRouter({
     }),
 
   trackEvent: publicProcedure
-    .input(z.object({
-      postId: z.string(),
-      eventType: z.enum(["VIEW", "READ_25", "READ_50", "READ_75", "READ_100", "CTA_CLICK", "SHARE"]),
-      metadata: z.record(z.string(), z.any()).optional(),
-    }))
+    .input(
+      z.object({
+        postId: z.string(),
+        eventType: z.enum([
+          "VIEW",
+          "READ_25",
+          "READ_50",
+          "READ_75",
+          "READ_100",
+          "CTA_CLICK",
+          "SHARE",
+        ]),
+        metadata: z.record(z.string(), z.any()).optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       // Validate that target post exists and is active (Abuse Prevention)
       const post = await ctx.prisma.blogPost.findUnique({
@@ -186,13 +202,8 @@ export const blogRouter = createTRPCRouter({
     return ctx.prisma.promoBanner.findMany({
       where: {
         isActive: true,
-        OR: [
-          { startDate: null },
-          { startDate: { lte: now } },
-        ],
-        AND: [
-          { OR: [{ endDate: null }, { endDate: { gte: now } }] },
-        ],
+        OR: [{ startDate: null }, { startDate: { lte: now } }],
+        AND: [{ OR: [{ endDate: null }, { endDate: { gte: now } }] }],
       },
       orderBy: { sortOrder: "asc" },
     });

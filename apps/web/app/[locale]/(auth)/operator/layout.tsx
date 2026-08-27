@@ -21,9 +21,7 @@ export default async function OperatorAuthLayout({
           <div className="space-y-2">
             <Command className="size-10 text-white" />
             <h1 className="font-bold text-3xl tracking-tight">{t("title")}</h1>
-            <p className="text-sm opacity-90 max-w-md">
-              {t("subtitle")}
-            </p>
+            <p className="text-sm opacity-90 max-w-md">{t("subtitle")}</p>
           </div>
 
           <div className="flex gap-6 pt-10 border-t border-white/20">
@@ -44,9 +42,7 @@ export default async function OperatorAuthLayout({
         </div>
 
         {/* Left Form Column */}
-        <div className="relative order-1 flex h-full">
-          {children}
-        </div>
+        <div className="relative order-1 flex h-full">{children}</div>
       </div>
     </main>
   );

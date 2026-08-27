@@ -55,7 +55,10 @@ export function feeDiscountForCampaign(
     );
   }
   if (campaign.benefitType === "FIXED_AMOUNT_OFF") {
-    const remaining = Math.max(0, (campaign.amountXOF ?? 0) - ticketDiscountXOF);
+    const remaining = Math.max(
+      0,
+      (campaign.amountXOF ?? 0) - ticketDiscountXOF,
+    );
     return Math.min(convenienceFeeXOF, remaining);
   }
   return 0;

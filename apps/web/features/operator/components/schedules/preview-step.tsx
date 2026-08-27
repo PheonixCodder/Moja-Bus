@@ -38,7 +38,7 @@ export function PreviewStep({
       saturday: days.saturday,
       sunday: days.sunday,
       validFrom: validFromDate,
-      validUntil: validUntil ? parseLocalDate(validUntil) ?? null : null,
+      validUntil: validUntil ? (parseLocalDate(validUntil) ?? null) : null,
     },
     daysCount: 14,
   });
@@ -67,7 +67,9 @@ export function PreviewStep({
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-sm font-bold text-foreground">{t("wizard.reviewTitle")}</h3>
+        <h3 className="text-sm font-bold text-foreground">
+          {t("wizard.reviewTitle")}
+        </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
           {t("wizard.reviewDesc")}
         </p>
@@ -84,7 +86,9 @@ export function PreviewStep({
           <p className="text-sm font-bold text-foreground truncate">
             {routeName || "—"}
           </p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">{t("wizard.route")}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {t("wizard.route")}
+          </p>
         </div>
         <div className="rounded-md border border-border bg-slate-50/50 p-3 text-center">
           <p className="text-2xl font-bold text-foreground">{totalFares}</p>

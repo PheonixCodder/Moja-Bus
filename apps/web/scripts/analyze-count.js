@@ -23,9 +23,19 @@ function findJsTsFiles(dir, results) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory() && !entry.name.includes("node_modules") && !entry.name.includes(".next") && !entry.name.includes("dist") && !entry.name.includes("scratch") && !entry.name.includes("scripts")) {
+    if (
+      entry.isDirectory() &&
+      !entry.name.includes("node_modules") &&
+      !entry.name.includes(".next") &&
+      !entry.name.includes("dist") &&
+      !entry.name.includes("scratch") &&
+      !entry.name.includes("scripts")
+    ) {
       findJsTsFiles(fullPath, results);
-    } else if (entry.isFile() && (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))) {
+    } else if (
+      entry.isFile() &&
+      (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))
+    ) {
       results.push(fullPath);
     }
   }
@@ -56,7 +66,9 @@ for (const keyInfo of countKeys) {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      const tCallMatch = line.match(new RegExp("t\\s*\\(\\s*[\"'\x60]" + escapedKey + "[\"'\x60]"));
+      const tCallMatch = line.match(
+        new RegExp("t\\s*\\(\\s*[\"'\x60]" + escapedKey + "[\"'\x60]"),
+      );
       if (!tCallMatch) continue;
 
       // Check if count param is present in this call (check next 5 lines for multi-line calls)
@@ -88,7 +100,9 @@ const uniqueIssues = issues.filter((issue) => {
   return true;
 });
 
-console.log("=== ISSUES: Keys with {count} placeholder but no count parameter passed ===");
+console.log(
+  "=== ISSUES: Keys with {count} placeholder but no count parameter passed ===",
+);
 console.log("Total keys with {count}:", countKeys.length);
 console.log("Total issues found:", uniqueIssues.length);
 console.log("");

@@ -1,10 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import {
-  abidjanDateKey,
-  abidjanDayBounds,
-  abidjanHour,
-} from "../abidjan-time";
+import { abidjanDateKey, abidjanDayBounds, abidjanHour } from "../abidjan-time";
 
 describe("abidjan-time", () => {
   it("day bounds for a calendar key are full UTC day (Abidjan=UTC)", () => {

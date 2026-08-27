@@ -9,7 +9,8 @@ export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   return {
     title: `Driver Passport #${id} | Moja Operator`,
-    description: "Detailed driver passport, verified license documents, and trip performance analytics.",
+    description:
+      "Detailed driver passport, verified license documents, and trip performance analytics.",
   };
 }
 

@@ -33,7 +33,9 @@ interface StoredFilters {
 
 function persistFilters(filters: StoredFilters) {
   if (typeof window === "undefined") return;
-  try { sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters)); } catch {}
+  try {
+    sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+  } catch {}
 }
 
 function restoreFilters(): StoredFilters | null {
@@ -41,7 +43,9 @@ function restoreFilters(): StoredFilters | null {
   try {
     const raw = sessionStorage.getItem(FILTER_STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 type SearchOffer = RouterOutputs["search"]["search"]["offers"][number];
@@ -62,13 +66,15 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
   });
 
   const [localFilters, setLocalFilters] = useState<StoredFilters>(() => {
-    return restoreFilters() ?? {
-      operators: [],
-      amenities: [],
-      departureTime: [],
-      seatClass: [],
-      isExpress: false,
-    };
+    return (
+      restoreFilters() ?? {
+        operators: [],
+        amenities: [],
+        departureTime: [],
+        seatClass: [],
+        isExpress: false,
+      }
+    );
   });
 
   const searchEnabled = !!params.from && !!params.to && !!params.date;
@@ -99,7 +105,11 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // ─── Search query ─────────────────────────────────────────────────────────
-  const { data: results, isLoading, isFetching } = useQuery({
+  const {
+    data: results,
+    isLoading,
+    isFetching,
+  } = useQuery({
     ...trpc.search.search.queryOptions({
       originCityId: params.from,
       destinationCityId: params.to,
@@ -109,10 +119,18 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
       destinationQuarterId: params.toQuarter || undefined,
       date: params.date,
       passengers: params.passengers,
-      operators: localFilters.operators.length > 0 ? localFilters.operators : undefined,
-      amenities: localFilters.amenities.length > 0 ? localFilters.amenities : undefined,
-      departureTime: localFilters.departureTime.length > 0 ? localFilters.departureTime : undefined,
-      seatClass: localFilters.seatClass.length > 0 ? localFilters.seatClass as ("ECONOMY" | "STANDARD" | "VIP")[] : undefined,
+      operators:
+        localFilters.operators.length > 0 ? localFilters.operators : undefined,
+      amenities:
+        localFilters.amenities.length > 0 ? localFilters.amenities : undefined,
+      departureTime:
+        localFilters.departureTime.length > 0
+          ? localFilters.departureTime
+          : undefined,
+      seatClass:
+        localFilters.seatClass.length > 0
+          ? (localFilters.seatClass as ("ECONOMY" | "STANDARD" | "VIP")[])
+          : undefined,
       maxPrice: localFilters.maxPrice ?? undefined,
       isExpress: localFilters.isExpress ? ["true"] : undefined,
       sort: params.sort,
@@ -159,14 +177,17 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
         return [...prev, ...fresh];
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results]);
 
   // ─── Active operators (derived from results) ──────────────────────────────
   const activeOperators = allOffers.length
     ? Array.from(
         new Map(
-          allOffers.map((o) => [o.companyId, { id: o.companyId, name: o.companyName }]),
+          allOffers.map((o) => [
+            o.companyId,
+            { id: o.companyId, name: o.companyName },
+          ]),
         ).values(),
       )
     : [];
@@ -180,97 +201,121 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
     (localFilters.isExpress ? 1 : 0);
 
   // ─── Handlers (memoized) ────────────────────────────────────────────────
-  const handleSearch = useCallback((criteria: {
-    from: string;
-    to: string;
-    fromMuni: string;
-    toMuni: string;
-    fromQuarter: string;
-    toQuarter: string;
-    fromTerminal: string;
-    toTerminal: string;
-    fromTerminalName: string;
-    toTerminalName: string;
-    fromCompanyName: string;
-    toCompanyName: string;
-    date: string;
-    passengers: number;
-  }) => {
-    const cleared = { operators: [], amenities: [], departureTime: [], seatClass: [], isExpress: false };
-    setLocalFilters(cleared);
-    persistFilters(cleared);
+  const handleSearch = useCallback(
+    (criteria: {
+      from: string;
+      to: string;
+      fromMuni: string;
+      toMuni: string;
+      fromQuarter: string;
+      toQuarter: string;
+      fromTerminal: string;
+      toTerminal: string;
+      fromTerminalName: string;
+      toTerminalName: string;
+      fromCompanyName: string;
+      toCompanyName: string;
+      date: string;
+      passengers: number;
+    }) => {
+      const cleared = {
+        operators: [],
+        amenities: [],
+        departureTime: [],
+        seatClass: [],
+        isExpress: false,
+      };
+      setLocalFilters(cleared);
+      persistFilters(cleared);
 
-    void setParams({
-      from: criteria.from,
-      to: criteria.to,
-      fromMuni: criteria.fromMuni,
-      toMuni: criteria.toMuni,
-      fromQuarter: criteria.fromQuarter,
-      toQuarter: criteria.toQuarter,
-      fromTerminal: criteria.fromTerminal,
-      toTerminal: criteria.toTerminal,
-      fromTerminalName: criteria.fromTerminalName,
-      toTerminalName: criteria.toTerminalName,
-      fromCompanyName: criteria.fromCompanyName,
-      toCompanyName: criteria.toCompanyName,
-      date: criteria.date,
-      passengers: criteria.passengers,
-      page: 1,
-      bookingOfferId: null,
-    });
-  }, [setParams]);
+      void setParams({
+        from: criteria.from,
+        to: criteria.to,
+        fromMuni: criteria.fromMuni,
+        toMuni: criteria.toMuni,
+        fromQuarter: criteria.fromQuarter,
+        toQuarter: criteria.toQuarter,
+        fromTerminal: criteria.fromTerminal,
+        toTerminal: criteria.toTerminal,
+        fromTerminalName: criteria.fromTerminalName,
+        toTerminalName: criteria.toTerminalName,
+        fromCompanyName: criteria.fromCompanyName,
+        toCompanyName: criteria.toCompanyName,
+        date: criteria.date,
+        passengers: criteria.passengers,
+        page: 1,
+        bookingOfferId: null,
+      });
+    },
+    [setParams],
+  );
 
-  const handleDateSelect = useCallback((date: string) => {
-    void setParams({ date, page: 1 });
-  }, [setParams]);
+  const handleDateSelect = useCallback(
+    (date: string) => {
+      void setParams({ date, page: 1 });
+    },
+    [setParams],
+  );
 
-  const handleToggleOperator = useCallback((id: string) => {
-    setLocalFilters((prev) => {
-      const operators = prev.operators.includes(id)
-        ? prev.operators.filter((o) => o !== id)
-        : [...prev.operators, id];
-      const next = { ...prev, operators };
-      persistFilters(next);
-      return next;
-    });
-    setParams((prev) => ({ ...prev, page: 1 }));
-  }, [setParams]);
+  const handleToggleOperator = useCallback(
+    (id: string) => {
+      setLocalFilters((prev) => {
+        const operators = prev.operators.includes(id)
+          ? prev.operators.filter((o) => o !== id)
+          : [...prev.operators, id];
+        const next = { ...prev, operators };
+        persistFilters(next);
+        return next;
+      });
+      setParams((prev) => ({ ...prev, page: 1 }));
+    },
+    [setParams],
+  );
 
-  const handleToggleAmenity = useCallback((id: string) => {
-    setLocalFilters((prev) => {
-      const amenities = prev.amenities.includes(id)
-        ? prev.amenities.filter((a) => a !== id)
-        : [...prev.amenities, id];
-      const next = { ...prev, amenities };
-      persistFilters(next);
-      return next;
-    });
-    setParams((prev) => ({ ...prev, page: 1 }));
-  }, [setParams]);
+  const handleToggleAmenity = useCallback(
+    (id: string) => {
+      setLocalFilters((prev) => {
+        const amenities = prev.amenities.includes(id)
+          ? prev.amenities.filter((a) => a !== id)
+          : [...prev.amenities, id];
+        const next = { ...prev, amenities };
+        persistFilters(next);
+        return next;
+      });
+      setParams((prev) => ({ ...prev, page: 1 }));
+    },
+    [setParams],
+  );
 
-  const handleToggleTime = useCallback((id: TimeFilterId) => {
-    setLocalFilters((prev) => {
-      const departureTime = prev.departureTime.includes(id)
-        ? prev.departureTime.filter((t) => t !== id)
-        : [...prev.departureTime, id];
-      const next = { ...prev, departureTime };
-      persistFilters(next);
-      return next;
-    });
-    setParams((prev) => ({ ...prev, page: 1 }));
-  }, [setParams]);
+  const handleToggleTime = useCallback(
+    (id: TimeFilterId) => {
+      setLocalFilters((prev) => {
+        const departureTime = prev.departureTime.includes(id)
+          ? prev.departureTime.filter((t) => t !== id)
+          : [...prev.departureTime, id];
+        const next = { ...prev, departureTime };
+        persistFilters(next);
+        return next;
+      });
+      setParams((prev) => ({ ...prev, page: 1 }));
+    },
+    [setParams],
+  );
 
-  const handleToggleSeatClass = useCallback((id: SeatClassFilter) => {
-    setLocalFilters((prev) => {
-      const seatClass = prev.seatClass.includes(id)
-        ? prev.seatClass.filter((s) => s !== id)
-        : [...prev.seatClass, id];
-      const next = { ...prev, seatClass };
-      persistFilters(next);
-      return next;
-    });
-    setParams((prev) => ({ ...prev, page: 1 }));
-  }, [setParams]);
+  const handleToggleSeatClass = useCallback(
+    (id: SeatClassFilter) => {
+      setLocalFilters((prev) => {
+        const seatClass = prev.seatClass.includes(id)
+          ? prev.seatClass.filter((s) => s !== id)
+          : [...prev.seatClass, id];
+        const next = { ...prev, seatClass };
+        persistFilters(next);
+        return next;
+      });
+      setParams((prev) => ({ ...prev, page: 1 }));
+    },
+    [setParams],
+  );
 
   const handleToggleExpress = useCallback(() => {
     setLocalFilters((prev) => {
@@ -282,52 +327,63 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
   }, [setParams]);
 
   const handleClearFilters = useCallback(() => {
-    const cleared: StoredFilters = { operators: [], amenities: [], departureTime: [], seatClass: [], isExpress: false };
+    const cleared: StoredFilters = {
+      operators: [],
+      amenities: [],
+      departureTime: [],
+      seatClass: [],
+      isExpress: false,
+    };
     setLocalFilters(cleared);
     persistFilters(cleared);
     setParams((prev) => ({ ...prev, sort: "BEST", page: 1 }));
   }, [setParams]);
 
-  const handleSortChange = useCallback((sort: string) => {
-    void setParams({ sort: sort as SearchSortOption, page: 1 });
-  }, [setParams]);
+  const handleSortChange = useCallback(
+    (sort: string) => {
+      void setParams({ sort: sort as SearchSortOption, page: 1 });
+    },
+    [setParams],
+  );
 
   const handleLoadMore = useCallback(() => {
     setParams((prev) => ({ ...prev, page: prev.page + 1 }));
   }, [setParams]);
 
-  const filterProps = useMemo(() => ({
-    operators: localFilters.operators,
-    amenities: localFilters.amenities,
-    departureTime: localFilters.departureTime,
-    seatClass: localFilters.seatClass,
-    isExpress: localFilters.isExpress,
-    activeOperators,
-    onToggleOperator: handleToggleOperator,
-    onToggleAmenity: handleToggleAmenity,
-    onToggleTime: handleToggleTime,
-    onToggleSeatClass: handleToggleSeatClass,
-    onToggleExpress: handleToggleExpress,
-    onClear: handleClearFilters,
-  }), [
-    localFilters.operators,
-    localFilters.amenities,
-    localFilters.departureTime,
-    localFilters.seatClass,
-    localFilters.isExpress,
-    activeOperators,
-    handleToggleOperator,
-    handleToggleAmenity,
-    handleToggleTime,
-    handleToggleSeatClass,
-    handleToggleExpress,
-    handleClearFilters,
-  ]);
+  const filterProps = useMemo(
+    () => ({
+      operators: localFilters.operators,
+      amenities: localFilters.amenities,
+      departureTime: localFilters.departureTime,
+      seatClass: localFilters.seatClass,
+      isExpress: localFilters.isExpress,
+      activeOperators,
+      onToggleOperator: handleToggleOperator,
+      onToggleAmenity: handleToggleAmenity,
+      onToggleTime: handleToggleTime,
+      onToggleSeatClass: handleToggleSeatClass,
+      onToggleExpress: handleToggleExpress,
+      onClear: handleClearFilters,
+    }),
+    [
+      localFilters.operators,
+      localFilters.amenities,
+      localFilters.departureTime,
+      localFilters.seatClass,
+      localFilters.isExpress,
+      activeOperators,
+      handleToggleOperator,
+      handleToggleAmenity,
+      handleToggleTime,
+      handleToggleSeatClass,
+      handleToggleExpress,
+      handleClearFilters,
+    ],
+  );
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-white text-slate-800 antialiased font-sans">
-
       {/* ── CONTAINER 1: Hero zone (rose-50 bg) ─────────────────────────── */}
       <div className="bg-rose-50 pt-20">
         {/* Fixed sticky nav — same as home page */}
@@ -359,7 +415,10 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
           <SearchDateStrip
             from={params.from}
             to={params.to}
-            {...(params.fromMuni || params.toMuni || params.fromQuarter || params.toQuarter
+            {...(params.fromMuni ||
+            params.toMuni ||
+            params.fromQuarter ||
+            params.toQuarter
               ? {
                   fromMuni: params.fromMuni,
                   toMuni: params.toMuni,
@@ -375,11 +434,25 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
 
       {/* ── CONTAINER 2: Results zone (white bg) ────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
-
         {!searchEnabled ? (
           /* Pre-search empty state */
           <SearchEmptyState
-            onQuickSearch={(c) => handleSearch({ ...c, fromMuni: "", toMuni: "", fromQuarter: "", toQuarter: "", fromTerminal: "", toTerminal: "", fromTerminalName: "", toTerminalName: "", fromCompanyName: "", toCompanyName: "", passengers: params.passengers })}
+            onQuickSearch={(c) =>
+              handleSearch({
+                ...c,
+                fromMuni: "",
+                toMuni: "",
+                fromQuarter: "",
+                toQuarter: "",
+                fromTerminal: "",
+                toTerminal: "",
+                fromTerminalName: "",
+                toTerminalName: "",
+                fromCompanyName: "",
+                toCompanyName: "",
+                passengers: params.passengers,
+              })
+            }
           />
         ) : (
           <>
@@ -393,7 +466,6 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
 
             {/* ── CONTAINER 4: Filters + Results (flex row) ──────────── */}
             <div className="flex gap-6 mt-5 items-start">
-
               {/* Left: Filters sidebar (desktop only) */}
               <SearchFiltersSidebar
                 {...filterProps}

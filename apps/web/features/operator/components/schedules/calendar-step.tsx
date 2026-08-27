@@ -61,7 +61,9 @@ export function CalendarStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-sm font-bold text-foreground">{t("wizard.calendarTitle")}</h3>
+        <h3 className="text-sm font-bold text-foreground">
+          {t("wizard.calendarTitle")}
+        </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
           {t("wizard.calendarDesc")}
         </p>
@@ -69,7 +71,11 @@ export function CalendarStep({
 
       <div className="space-y-2">
         <Label className="text-xs font-semibold">{t("wizard.runsOn")}</Label>
-        <div className="flex flex-wrap gap-2" role="group" aria-label={t("wizard.runsOn")}>
+        <div
+          className="flex flex-wrap gap-2"
+          role="group"
+          aria-label={t("wizard.runsOn")}
+        >
           {DAYS.map((d) => {
             const active = config.days[d.key];
             return (
@@ -102,15 +108,15 @@ export function CalendarStep({
       <div className="flex w-full max-w-sm flex-col gap-2">
         <DepartureTimesEditor
           times={config.departureTimes}
-          onChange={(departureTimes) =>
-            onChange({ ...config, departureTimes })
-          }
+          onChange={(departureTimes) => onChange({ ...config, departureTimes })}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-xs font-semibold">{t("wizard.validFrom")}</Label>
+          <Label className="text-xs font-semibold">
+            {t("wizard.validFrom")}
+          </Label>
           <Popover>
             <PopoverTrigger
               render={
@@ -205,7 +211,9 @@ export function CalendarStep({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs font-semibold">{t("wizard.preferredBus")}</Label>
+        <Label className="text-xs font-semibold">
+          {t("wizard.preferredBus")}
+        </Label>
         <Combobox
           items={activeBuses.map((b) => ({
             value: b.id,

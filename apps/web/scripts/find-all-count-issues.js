@@ -7,10 +7,21 @@ function walk(dir, files) {
   for (const e of entries) {
     const fp = path.join(dir, e.name);
     if (e.isDirectory()) {
-      if (!e.name.includes("node_modules") && !e.name.includes(".next") && !e.name.includes("dist") && !e.name.includes("scratch") && !e.name.includes("scripts") && e.name !== "scripts" && e.name !== ".git") {
+      if (
+        !e.name.includes("node_modules") &&
+        !e.name.includes(".next") &&
+        !e.name.includes("dist") &&
+        !e.name.includes("scratch") &&
+        !e.name.includes("scripts") &&
+        e.name !== "scripts" &&
+        e.name !== ".git"
+      ) {
         walk(fp, files);
       }
-    } else if (e.isFile() && (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))) {
+    } else if (
+      e.isFile() &&
+      (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))
+    ) {
       files.push(fp);
     }
   }
@@ -73,7 +84,9 @@ for (const file of files) {
 
     // Find t("key") calls - simple keys
     // Match: t("key") or t('key') or t(`key`)
-    const simpleTCall = line.match(/t\s*\(\s*["'`]([a-zA-Z_][a-zA-Z0-9_]*)["'`]\s*\)/);
+    const simpleTCall = line.match(
+      /t\s*\(\s*["'`]([a-zA-Z_][a-zA-Z0-9_]*)["'`]\s*\)/,
+    );
     if (simpleTCall) {
       const keyName = simpleTCall[1];
       if (!currentNamespace) continue;
@@ -84,7 +97,13 @@ for (const file of files) {
             let context = lines[i];
             for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
               context += "\n" + lines[j];
-              if (lines[j].includes(")") && !lines[j].includes("||") && !lines[j].includes("&&") && !lines[j].includes("?")) break;
+              if (
+                lines[j].includes(")") &&
+                !lines[j].includes("||") &&
+                !lines[j].includes("&&") &&
+                !lines[j].includes("?")
+              )
+                break;
             }
             const hasCount = /count\s*:/.test(context);
             if (!hasCount) {
@@ -103,7 +122,9 @@ for (const file of files) {
     }
 
     // Find t("key", { ... }) calls - check for count parameter
-    const tCallWithArgs = line.match(/t\s*\(\s*["'`]([a-zA-Z_][a-zA-Z0-9_]*)["'`]\s*,\s*\{/);
+    const tCallWithArgs = line.match(
+      /t\s*\(\s*["'`]([a-zA-Z_][a-zA-Z0-9_]*)["'`]\s*,\s*\{/,
+    );
     if (tCallWithArgs) {
       const keyName = tCallWithArgs[1];
       if (!currentNamespace) continue;
@@ -114,7 +135,13 @@ for (const file of files) {
             let context = lines[i];
             for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
               context += "\n" + lines[j];
-              if (lines[j].includes(")") && !lines[j].includes("||") && !lines[j].includes("&&") && !lines[j].includes("?")) break;
+              if (
+                lines[j].includes(")") &&
+                !lines[j].includes("||") &&
+                !lines[j].includes("&&") &&
+                !lines[j].includes("?")
+              )
+                break;
             }
             // If no count found, this could be an issue but less likely
             // since they're already using the second arg pattern
@@ -135,7 +162,9 @@ const uniqueIssues = allIssues.filter((issue) => {
   return true;
 });
 
-uniqueIssues.sort((a, b) => a.file.localeCompare(b.file) || a.lineNum - b.lineNum);
+uniqueIssues.sort(
+  (a, b) => a.file.localeCompare(b.file) || a.lineNum - b.lineNum,
+);
 
 console.log("=== {count} keys without count parameter ===");
 console.log("Total issues:", uniqueIssues.length);

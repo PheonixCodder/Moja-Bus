@@ -63,7 +63,10 @@ export const discountsOperatorRouter = createTRPCRouter({
         },
       });
       if (!campaign) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
       return campaign;
     }),
@@ -113,7 +116,10 @@ export const discountsOperatorRouter = createTRPCRouter({
         where: { id, companyId: ctx.companyId },
       });
       if (!existing) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
       if (existing.pausedByAdminAt) {
         throw new TRPCError({
@@ -147,7 +153,10 @@ export const discountsOperatorRouter = createTRPCRouter({
         where: { id: input.id, companyId: ctx.companyId },
       });
       if (!existing) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
       if (existing.pausedByAdminAt && input.status === "ACTIVE") {
         throw new TRPCError({
@@ -169,7 +178,10 @@ export const discountsOperatorRouter = createTRPCRouter({
         where: { id: input.campaignId, companyId: ctx.companyId },
       });
       if (!campaign) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
       return ctx.prisma.couponCode.create({
         data: omitUndefined(input as Record<string, unknown>) as {
@@ -188,7 +200,10 @@ export const discountsOperatorRouter = createTRPCRouter({
         select: { id: true },
       });
       if (!campaign) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
       const { bulkCreateCouponCodes } = await import(
         "@/features/discounts/services/bulk-coupon-create"
@@ -246,7 +261,10 @@ export const discountsOperatorRouter = createTRPCRouter({
         },
       });
       if (!campaign) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
       return ctx.prisma.campaignCompanyOptIn.upsert({
         where: {

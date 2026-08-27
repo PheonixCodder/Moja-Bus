@@ -22,7 +22,7 @@ export default async function ContentAnalyticsPage({
   await prefetch(
     trpc.admin.getBlogAnalytics.queryOptions({
       period: period as "7d" | "30d" | "90d" | "all",
-    })
+    }),
   );
 
   return (

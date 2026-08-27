@@ -11,7 +11,10 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "operatorDashboard.revenue" });
+  const t = await getTranslations({
+    locale,
+    namespace: "operatorDashboard.revenue",
+  });
   return { title: t("metaTitle") };
 }
 
@@ -20,26 +23,34 @@ export default async function OperatorRevenuePage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { from, to, tab, page, txType } = revenueSearchParamsCache.parse(await searchParams);
+  const { from, to, tab, page, txType } = revenueSearchParamsCache.parse(
+    await searchParams,
+  );
 
   // Prefetch main KPIs and balances
   await Promise.all([
-    prefetch(trpc.operator.getRevenueAnalytics.queryOptions({ 
-      from: from.toISOString(), 
-      to: to.toISOString() 
-    })),
-    prefetch(trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" })),
+    prefetch(
+      trpc.operator.getRevenueAnalytics.queryOptions({
+        from: from.toISOString(),
+        to: to.toISOString(),
+      }),
+    ),
+    prefetch(
+      trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" }),
+    ),
   ]);
 
   // If we are on the ledger tab, prefetch the ledger
   if (tab === "ledger") {
-    await prefetch(trpc.operator.getLedgerEntries.queryOptions({
-      from: from.toISOString(),
-      to: to.toISOString(),
-      type: txType,
-      page,
-      limit: 10,
-    }));
+    await prefetch(
+      trpc.operator.getLedgerEntries.queryOptions({
+        from: from.toISOString(),
+        to: to.toISOString(),
+        type: txType,
+        page,
+        limit: 10,
+      }),
+    );
   }
 
   return (
@@ -52,7 +63,7 @@ export default async function OperatorRevenuePage({
                 <Skeleton className="h-8 w-48" />
                 <Skeleton className="h-4 w-96" />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Skeleton className="h-32 w-full rounded-xl" />
                 <Skeleton className="h-32 w-full rounded-xl" />

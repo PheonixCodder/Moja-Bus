@@ -50,7 +50,10 @@ export function StaffInvitationCard({
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Clock className="h-3 w-3" />
           <span>
-            {t("sentBy", { name: invitation.invitedBy.fullName ?? "", date: format(new Date(createdAt), "MMM d, HH:mm") })}
+            {t("sentBy", {
+              name: invitation.invitedBy.fullName ?? "",
+              date: format(new Date(createdAt), "MMM d, HH:mm"),
+            })}
           </span>
         </div>
         <div

@@ -15,7 +15,16 @@ import { format } from "date-fns";
 import { useStorageUpload } from "@/lib/storage-client";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@moja/ui/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@moja/ui/components/ui/alert-dialog";
 
 interface DocumentsDrawerProps {
   isOpen: boolean;
@@ -44,11 +53,12 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
 
   // We use useQuery so it doesn't suspend the whole app when drawer is mounted but closed
   const { data: settings } = useCompanySettings();
-  
+
   const addDocumentMutation = useMutation(
     trpc.operator.addDocument.mutationOptions({
-      onSuccess: () => queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
-    })
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
   );
 
   const deleteDocumentMutation = useMutation(
@@ -65,8 +75,10 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
             ...old,
             company: {
               ...old.company,
-              documents: old.company.documents.filter((doc: any) => doc.id !== variables.id)
-            }
+              documents: old.company.documents.filter(
+                (doc: any) => doc.id !== variables.id,
+              ),
+            },
           };
         });
 
@@ -74,24 +86,35 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
       },
       onError: (err, variables, context) => {
         if (context?.previousSettings) {
-          queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
+          queryClient.setQueryData(
+            trpc.operator.getSettings.queryKey(),
+            context.previousSettings,
+          );
         }
       },
-      onSettled: () => queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
-    })
+      onSettled: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
   );
 
-  const presignDownloadMutation = useMutation(trpc.storage.presignDownload.mutationOptions());
+  const presignDownloadMutation = useMutation(
+    trpc.storage.presignDownload.mutationOptions(),
+  );
 
   const { upload: uploadDocument } = useStorageUpload("operator-document");
 
   const [uploadingDocType, setUploadingDocType] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [docExpiryDates, setDocExpiryDates] = useState<Record<string, string>>({});
-  
+  const [docExpiryDates, setDocExpiryDates] = useState<Record<string, string>>(
+    {},
+  );
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleDocumentUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: string,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -100,9 +123,16 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
       return;
     }
 
-    const validTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+    const validTypes = [
+      "application/pdf",
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+    ];
     if (!validTypes.includes(file.type)) {
-      toast.error("Invalid file format. Please upload a PDF, PNG, or JPEG file.");
+      toast.error(
+        "Invalid file format. Please upload a PDF, PNG, or JPEG file.",
+      );
       return;
     }
 
@@ -121,7 +151,9 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
         objectKey,
         fileSize: file.size,
         mimeType: file.type || "application/pdf",
-        expiresAt: docExpiryDates[type] ? new Date(docExpiryDates[type]).toISOString() : undefined,
+        expiresAt: docExpiryDates[type]
+          ? new Date(docExpiryDates[type]).toISOString()
+          : undefined,
       });
 
       toast.success(t("toast.uploaded"));
@@ -146,12 +178,12 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
   };
 
   const handleViewDocument = async (id: string, objectKey: string) => {
-    const newWindow = window.open('about:blank', '_blank');
+    const newWindow = window.open("about:blank", "_blank");
     if (!newWindow) {
       toast.error("Please allow popups to view documents");
       return;
     }
-    
+
     try {
       toast.loading("Generating secure link...", { id: "view-doc" });
       const { downloadUrl } = await presignDownloadMutation.mutateAsync({
@@ -160,7 +192,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
         objectKey,
       });
       toast.dismiss("view-doc");
-      
+
       if (downloadUrl) {
         newWindow.location.href = downloadUrl;
       } else {
@@ -242,20 +274,39 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                           )}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] text-muted-foreground truncate">
-                          <span>{uploaded.mimeType === "application/pdf" ? "PDF" : "IMG"}</span>
+                          <span>
+                            {uploaded.mimeType === "application/pdf"
+                              ? "PDF"
+                              : "IMG"}
+                          </span>
                           <span>•</span>
                           <span>
-                            {t("uploadedOn", { date: format(new Date(uploaded.createdAt), "PPP") })}
+                            {t("uploadedOn", {
+                              date: format(new Date(uploaded.createdAt), "PPP"),
+                            })}
                           </span>
                           {uploaded.expiresAt && (
                             <>
                               <span>•</span>
-                              <span className={cn(
-                                "truncate",
-                                new Date(uploaded.expiresAt) < new Date() ? "text-red-500 font-bold" :
-                                new Date(uploaded.expiresAt) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? "text-amber-500 font-bold" : ""
-                              )}>
-                                {t("expiresOnDate", { date: format(new Date(uploaded.expiresAt), "PPP") })}
+                              <span
+                                className={cn(
+                                  "truncate",
+                                  new Date(uploaded.expiresAt) < new Date()
+                                    ? "text-red-500 font-bold"
+                                    : new Date(uploaded.expiresAt) <
+                                        new Date(
+                                          Date.now() + 30 * 24 * 60 * 60 * 1000,
+                                        )
+                                      ? "text-amber-500 font-bold"
+                                      : "",
+                                )}
+                              >
+                                {t("expiresOnDate", {
+                                  date: format(
+                                    new Date(uploaded.expiresAt),
+                                    "PPP",
+                                  ),
+                                })}
                               </span>
                             </>
                           )}
@@ -265,7 +316,9 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                       <div className="flex items-center gap-2 shrink-0 pl-2">
                         <button
                           type="button"
-                          onClick={() => handleViewDocument(uploaded.id, uploaded.objectKey!)}
+                          onClick={() =>
+                            handleViewDocument(uploaded.id, uploaded.objectKey!)
+                          }
                           className="inline-flex items-center justify-center w-7 h-7 border border-border hover:bg-slate-50 rounded text-muted-foreground transition-colors shrink-0"
                           title={t("viewDocument")}
                         >
@@ -303,17 +356,34 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                         />
                       </Label>
                       <div className="mt-2 space-y-1 w-full max-w-[200px] mx-auto text-left">
-                        <Label htmlFor={`expiry-${slot.key}`} className="text-[10px] text-muted-foreground ml-1">{t("expiresOn")}</Label>
+                        <Label
+                          htmlFor={`expiry-${slot.key}`}
+                          className="text-[10px] text-muted-foreground ml-1"
+                        >
+                          {t("expiresOn")}
+                        </Label>
                         <DatePicker
                           value={docExpiryDates[slot.key] || ""}
                           onChange={(date) => {
                             if (date) {
                               const yyyy = date.getFullYear();
-                              const mm = String(date.getMonth() + 1).padStart(2, "0");
-                              const dd = String(date.getDate()).padStart(2, "0");
-                              setDocExpiryDates(prev => ({ ...prev, [slot.key]: `${yyyy}-${mm}-${dd}` }));
+                              const mm = String(date.getMonth() + 1).padStart(
+                                2,
+                                "0",
+                              );
+                              const dd = String(date.getDate()).padStart(
+                                2,
+                                "0",
+                              );
+                              setDocExpiryDates((prev) => ({
+                                ...prev,
+                                [slot.key]: `${yyyy}-${mm}-${dd}`,
+                              }));
                             } else {
-                              setDocExpiryDates(prev => ({ ...prev, [slot.key]: "" }));
+                              setDocExpiryDates((prev) => ({
+                                ...prev,
+                                [slot.key]: "",
+                              }));
                             }
                           }}
                           placeholder={t("selectExpiry")}
@@ -329,7 +399,10 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
         </div>
       </ActionDrawer>
 
-      <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
+      <AlertDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 mb-4">
@@ -342,8 +415,14 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("dialog.cancel")}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmDelete} disabled={deleteDocumentMutation.isPending}>
-              {deleteDocumentMutation.isPending ? "Deleting..." : t("dialog.confirm")}
+            <AlertDialogAction
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteDocumentMutation.isPending}
+            >
+              {deleteDocumentMutation.isPending
+                ? "Deleting..."
+                : t("dialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

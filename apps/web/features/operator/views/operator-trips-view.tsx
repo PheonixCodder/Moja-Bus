@@ -43,18 +43,43 @@ export function OperatorTripsView() {
   const STATUS_CHIPS: { status: TripStatus; label: string; dot: string }[] =
     useMemo(
       () => [
-        { status: "SCHEDULED", label: t("status.SCHEDULED"), dot: "bg-blue-500" },
-        { status: "BOARDING", label: t("status.BOARDING"), dot: "bg-green-500" },
+        {
+          status: "SCHEDULED",
+          label: t("status.SCHEDULED"),
+          dot: "bg-blue-500",
+        },
+        {
+          status: "BOARDING",
+          label: t("status.BOARDING"),
+          dot: "bg-green-500",
+        },
         { status: "DELAYED", label: t("status.DELAYED"), dot: "bg-amber-500" },
-        { status: "DEPARTED", label: t("status.DEPARTED"), dot: "bg-violet-500" },
+        {
+          status: "DEPARTED",
+          label: t("status.DEPARTED"),
+          dot: "bg-violet-500",
+        },
         { status: "ARRIVED", label: t("status.ARRIVED"), dot: "bg-teal-500" },
-        { status: "CANCELLED", label: t("status.CANCELLED"), dot: "bg-red-500" },
+        {
+          status: "CANCELLED",
+          label: t("status.CANCELLED"),
+          dot: "bg-red-500",
+        },
       ],
       [t],
     );
 
   const [params, setParams] = useQueryStates(tripListParsers);
-  const { q, status, serviceType, scheduleId, manifest, page, startDate, endDate } = params;
+  const {
+    q,
+    status,
+    serviceType,
+    scheduleId,
+    manifest,
+    page,
+    startDate,
+    endDate,
+  } = params;
   const debouncedQ = useDebounce(q, 300);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -144,7 +169,10 @@ export function OperatorTripsView() {
               key={chip.status}
               type="button"
               onClick={() =>
-                void setParams({ status: active ? "ALL" : chip.status, page: 1 })
+                void setParams({
+                  status: active ? "ALL" : chip.status,
+                  page: 1,
+                })
               }
               className={cn(
                 "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
@@ -161,7 +189,11 @@ export function OperatorTripsView() {
         })}
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[11px] text-muted-foreground">
-            {t("totalInfo", { total: listData.total, page: listData.page, pageCount: listData.pageCount })}
+            {t("totalInfo", {
+              total: listData.total,
+              page: listData.page,
+              pageCount: listData.pageCount,
+            })}
           </span>
           <Button
             variant="ghost"
@@ -170,9 +202,7 @@ export function OperatorTripsView() {
             onClick={() => handleRefresh()}
             disabled={refreshing}
           >
-            <RefreshCw
-              className={cn("size-3", refreshing && "animate-spin")}
-            />
+            <RefreshCw className={cn("size-3", refreshing && "animate-spin")} />
             {t("refresh")}
           </Button>
         </div>
@@ -181,15 +211,11 @@ export function OperatorTripsView() {
       <div className="px-5 py-3 border-b border-border shrink-0">
         <TripsToolbar
           status={status}
-          onStatusChange={(value) =>
-            void setParams({ status: value, page: 1 })
-          }
+          onStatusChange={(value) => void setParams({ status: value, page: 1 })}
           query={q}
           onQueryChange={(value) => void setParams({ q: value, page: 1 })}
           scheduleLabel={scheduleLabel}
-          onClearSchedule={() =>
-            void setParams({ scheduleId: "", page: 1 })
-          }
+          onClearSchedule={() => void setParams({ scheduleId: "", page: 1 })}
           startDate={startDate}
           endDate={endDate}
           onStartDateChange={(value) =>
@@ -242,9 +268,7 @@ export function OperatorTripsView() {
                       trip={trip}
                       buses={buses}
                       canUpdate={canUpdate && canReadFleet}
-                      onViewManifest={(id) =>
-                        void setParams({ manifest: id })
-                      }
+                      onViewManifest={(id) => void setParams({ manifest: id })}
                     />
                   ))}
                 </div>

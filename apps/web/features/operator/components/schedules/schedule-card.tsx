@@ -123,14 +123,20 @@ export function ScheduleCard({
             href={`/dashboard/operator/trips?scheduleId=${schedule.id}`}
             className="text-[11px] text-muted-foreground hover:text-primary ml-auto"
           >
-            {t("upcomingAndTotal", { upcoming: schedule.futureTripsInWindow ?? 0, total: schedule._count?.trips ?? 0 })}
+            {t("upcomingAndTotal", {
+              upcoming: schedule.futureTripsInWindow ?? 0,
+              total: schedule._count?.trips ?? 0,
+            })}
           </Link>
         </div>
 
         {!schedule.preferredBus || schedule.preferredBus.status !== "ACTIVE" ? (
           <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-md px-2 py-1.5">
             {schedule.preferredBus
-              ? t("busInactiveWarning", { plate: schedule.preferredBus.registrationPlate, status: schedule.preferredBus.status.toLowerCase() })
+              ? t("busInactiveWarning", {
+                  plate: schedule.preferredBus.registrationPlate,
+                  status: schedule.preferredBus.status.toLowerCase(),
+                })
               : t("noBusWarning")}
           </p>
         ) : null}

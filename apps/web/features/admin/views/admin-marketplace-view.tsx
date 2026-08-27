@@ -25,7 +25,11 @@ import { Input } from "@moja/ui/components/ui/input";
 import { Textarea } from "@moja/ui/components/ui/textarea";
 import { Label } from "@moja/ui/components/ui/label";
 import { Badge } from "@moja/ui/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import {
   Dialog,
@@ -35,7 +39,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@moja/ui/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@moja/ui/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -116,7 +125,9 @@ function SuspendDialog({
     ...trpc.admin.setDriverMarketplaceStatus.mutationOptions(),
     onSuccess: () => {
       toast.success("Driver suspended and notified");
-      queryClient.invalidateQueries({ predicate: (q: any) => String(q.queryHash).includes("admin.") });
+      queryClient.invalidateQueries({
+        predicate: (q: any) => String(q.queryHash).includes("admin."),
+      });
       setReason("");
       onClose();
     },
@@ -146,7 +157,11 @@ function SuspendDialog({
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={mutation.isPending}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={mutation.isPending}
+          >
             Cancel
           </Button>
           <Button
@@ -177,13 +192,18 @@ function OfferAuditRow({ offer }: { offer: any }) {
 
   return (
     <>
-      <TableRow className="cursor-pointer" onClick={() => setExpanded((e) => !e)}>
+      <TableRow
+        className="cursor-pointer"
+        onClick={() => setExpanded((e) => !e)}
+      >
         <TableCell>
           <div className="flex items-center gap-2 min-w-0">
             <Avatar className="size-7 border border-slate-100">
               <AvatarImage src={offer.driverProfile.user.image ?? undefined} />
               <AvatarFallback className="text-[9px]">
-                {(offer.driverProfile.user.fullName ?? "DR").slice(0, 2).toUpperCase()}
+                {(offer.driverProfile.user.fullName ?? "DR")
+                  .slice(0, 2)
+                  .toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
@@ -205,7 +225,10 @@ function OfferAuditRow({ offer }: { offer: any }) {
           )}
         </TableCell>
         <TableCell>
-          <Badge variant="outline" className={cn("text-[10px]", OFFER_STATUS_BADGES[offer.status])}>
+          <Badge
+            variant="outline"
+            className={cn("text-[10px]", OFFER_STATUS_BADGES[offer.status])}
+          >
             {offer.status}
           </Badge>
         </TableCell>
@@ -213,7 +236,9 @@ function OfferAuditRow({ offer }: { offer: any }) {
           {format(new Date(offer.createdAt), "dd MMM HH:mm")}
         </TableCell>
         <TableCell className="text-xs text-slate-500">
-          {offer.respondedAt ? format(new Date(offer.respondedAt), "dd MMM HH:mm") : "—"}
+          {offer.respondedAt
+            ? format(new Date(offer.respondedAt), "dd MMM HH:mm")
+            : "—"}
         </TableCell>
         <TableCell className="w-8">
           {expanded ? (
@@ -242,7 +267,9 @@ function OfferAuditRow({ offer }: { offer: any }) {
                         ` · ${ev.salaryCFA.toLocaleString("fr-FR")} FCFA`}
                     </span>
                     {ev.note && (
-                      <p className="text-slate-500 italic mt-0.5">“{ev.note}”</p>
+                      <p className="text-slate-500 italic mt-0.5">
+                        “{ev.note}”
+                      </p>
                     )}
                   </div>
                 </div>
@@ -257,7 +284,12 @@ function OfferAuditRow({ offer }: { offer: any }) {
 
 // ─── Main View ───────────────────────────────────────────────────────────────
 
-type DriverFilter = "ALL" | "AVAILABLE" | "FEATURED" | "SUSPENDED" | "OFF_MARKET";
+type DriverFilter =
+  | "ALL"
+  | "AVAILABLE"
+  | "FEATURED"
+  | "SUSPENDED"
+  | "OFF_MARKET";
 
 export function AdminMarketplaceView() {
   const trpc = useTRPC();
@@ -270,7 +302,10 @@ export function AdminMarketplaceView() {
   const [driverTab, setDriverTab] = useState<DriverFilter>("ALL");
   const [driverSearch, setDriverSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [suspendTarget, setSuspendTarget] = useState<{ id: string; name: string } | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const driversQuery = useQuery({
     ...trpc.admin.listMarketplaceAdminDrivers.queryOptions({
@@ -312,7 +347,7 @@ export function AdminMarketplaceView() {
             ? "Driver removed from featured"
             : vars.action === "RESTORE"
               ? "Driver restored to the marketplace"
-              : "Suspension updated"
+              : "Suspension updated",
       );
       invalidateMarketplace();
     },
@@ -326,8 +361,14 @@ export function AdminMarketplaceView() {
   const DRIVER_FILTERS: Array<{ value: DriverFilter; label: string }> = [
     { value: "ALL", label: "All Verified" },
     { value: "AVAILABLE", label: "Available" },
-    { value: "FEATURED", label: `Featured${health ? ` (${health.featured}/${health.maxFeatured})` : ""}` },
-    { value: "SUSPENDED", label: `Suspended${health ? ` (${health.suspended})` : ""}` },
+    {
+      value: "FEATURED",
+      label: `Featured${health ? ` (${health.featured}/${health.maxFeatured})` : ""}`,
+    },
+    {
+      value: "SUSPENDED",
+      label: `Suspended${health ? ` (${health.suspended})` : ""}`,
+    },
     { value: "OFF_MARKET", label: "Off Market" },
   ];
 
@@ -339,9 +380,12 @@ export function AdminMarketplaceView() {
           <Store className="size-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Driver Marketplace Control</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">
+            Driver Marketplace Control
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Platform-wide marketplace health, featuring, suspensions, and the full employment-offer audit log.
+            Platform-wide marketplace health, featuring, suspensions, and the
+            full employment-offer audit log.
           </p>
         </div>
       </div>
@@ -356,16 +400,36 @@ export function AdminMarketplaceView() {
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <KpiCard label="Verified Drivers" value={health.totalVerified} icon={Users} accent="text-blue-500" />
-            <KpiCard label="Available" value={health.availableForHire} icon={Eye} accent="text-emerald-500" />
+            <KpiCard
+              label="Verified Drivers"
+              value={health.totalVerified}
+              icon={Users}
+              accent="text-blue-500"
+            />
+            <KpiCard
+              label="Available"
+              value={health.availableForHire}
+              icon={Eye}
+              accent="text-emerald-500"
+            />
             <KpiCard
               label="Featured"
               value={`${health.featured}/${health.maxFeatured}`}
               icon={Sparkles}
               accent="text-amber-500"
             />
-            <KpiCard label="Suspended" value={health.suspended} icon={Ban} accent="text-rose-500" />
-            <KpiCard label="Employed" value={health.employed} icon={Briefcase} accent="text-violet-500" />
+            <KpiCard
+              label="Suspended"
+              value={health.suspended}
+              icon={Ban}
+              accent="text-rose-500"
+            />
+            <KpiCard
+              label="Employed"
+              value={health.employed}
+              icon={Briefcase}
+              accent="text-violet-500"
+            />
             <KpiCard
               label="Avg Time-to-Hire"
               value={
@@ -385,7 +449,10 @@ export function AdminMarketplaceView() {
               Offer Funnel
             </span>
             {Object.entries(health.funnel).map(([status, count]) => (
-              <span key={status} className="inline-flex items-center gap-1.5 text-xs">
+              <span
+                key={status}
+                className="inline-flex items-center gap-1.5 text-xs"
+              >
                 <span
                   className={cn(
                     "size-2 rounded-full",
@@ -398,7 +465,9 @@ export function AdminMarketplaceView() {
                   )}
                 />
                 <span className="font-semibold">{count}</span>
-                <span className="text-slate-400 capitalize">{status.toLowerCase()}</span>
+                <span className="text-slate-400 capitalize">
+                  {status.toLowerCase()}
+                </span>
               </span>
             ))}
             <span className="ml-auto text-[11px] text-slate-400">
@@ -471,9 +540,7 @@ export function AdminMarketplaceView() {
                 {driversQuery.isLoading &&
                   [...Array(5)].map((_, i) => (
                     <TableRow key={i}>
-                      {[
-                        ...Array(5),
-                      ].map((_, j) => (
+                      {[...Array(5)].map((_, j) => (
                         <TableCell key={j}>
                           <Skeleton className="h-5 w-24" />
                         </TableCell>
@@ -482,7 +549,10 @@ export function AdminMarketplaceView() {
                   ))}
                 {!driversQuery.isLoading && drivers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10 text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={5}
+                      className="text-center py-10 text-sm text-muted-foreground"
+                    >
                       No drivers match this filter.
                     </TableCell>
                   </TableRow>
@@ -501,7 +571,9 @@ export function AdminMarketplaceView() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold truncate">{d.fullName ?? "—"}</p>
+                            <p className="text-xs font-semibold truncate">
+                              {d.fullName ?? "—"}
+                            </p>
                             <p className="text-[10px] text-slate-400">
                               Class {d.licenseCategory} ·{" "}
                               <span className="inline-flex items-center gap-0.5">
@@ -516,22 +588,34 @@ export function AdminMarketplaceView() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {pref?.isFeatured && (
-                            <Badge className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 text-[10px]" variant="outline">
+                            <Badge
+                              className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 text-[10px]"
+                              variant="outline"
+                            >
                               <Sparkles className="size-2.5 mr-0.5" /> Featured
                             </Badge>
                           )}
                           {pref?.isSuspended && (
-                            <Badge className="bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-50 text-[10px]" variant="outline">
+                            <Badge
+                              className="bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-50 text-[10px]"
+                              variant="outline"
+                            >
                               <Ban className="size-2.5 mr-0.5" /> Suspended
                             </Badge>
                           )}
                           {isLive && !pref?.isFeatured && (
-                            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50 text-[10px]" variant="outline">
+                            <Badge
+                              className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50 text-[10px]"
+                              variant="outline"
+                            >
                               Available
                             </Badge>
                           )}
                           {!pref?.isAvailableForHire && !pref?.isSuspended && (
-                            <Badge variant="outline" className="text-[10px] text-slate-400">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] text-slate-400"
+                            >
                               Off market
                             </Badge>
                           )}
@@ -626,8 +710,13 @@ export function AdminMarketplaceView() {
           {/* Load more */}
           {(driversQuery.data?.total ?? 0) > page * 20 && (
             <div className="flex justify-center">
-              <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>
-                Load more ({(driversQuery.data?.total ?? 0) - page * 20} remaining)
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Load more ({(driversQuery.data?.total ?? 0) - page * 20}{" "}
+                remaining)
               </Button>
             </div>
           )}
@@ -636,22 +725,29 @@ export function AdminMarketplaceView() {
         {/* ── OFFERS AUDIT TAB ── */}
         <TabsContent value="offers" className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            {["ALL", "ACTIVE", "PENDING", "COUNTERED", "ACCEPTED", "DECLINED", "EXPIRED", "WITHDRAWN"].map(
-              (s) => (
-                <button
-                  key={s}
-                  onClick={() => setOfferStatus(s)}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-[11px] font-semibold border transition-colors capitalize",
-                    offerStatus === s
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300",
-                  )}
-                >
-                  {s.toLowerCase()}
-                </button>
-              ),
-            )}
+            {[
+              "ALL",
+              "ACTIVE",
+              "PENDING",
+              "COUNTERED",
+              "ACCEPTED",
+              "DECLINED",
+              "EXPIRED",
+              "WITHDRAWN",
+            ].map((s) => (
+              <button
+                key={s}
+                onClick={() => setOfferStatus(s)}
+                className={cn(
+                  "rounded-full px-3 py-1 text-[11px] font-semibold border transition-colors capitalize",
+                  offerStatus === s
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300",
+                )}
+              >
+                {s.toLowerCase()}
+              </button>
+            ))}
             <div className="relative ml-auto w-full sm:w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
               <Input
@@ -678,7 +774,10 @@ export function AdminMarketplaceView() {
               <TableBody>
                 {offers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-10 text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-10 text-sm text-muted-foreground"
+                    >
                       No offers found.
                     </TableCell>
                   </TableRow>
@@ -692,8 +791,10 @@ export function AdminMarketplaceView() {
         </TabsContent>
       </Tabs>
 
-      <SuspendDialog target={suspendTarget} onClose={() => setSuspendTarget(null)} />
-
+      <SuspendDialog
+        target={suspendTarget}
+        onClose={() => setSuspendTarget(null)}
+      />
     </div>
   );
 }

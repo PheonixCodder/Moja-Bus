@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const passengerTicketSharedWorkflow = workflow(
   "passenger-ticket-shared",
   async ({ step, payload }) => {
@@ -29,11 +28,11 @@ export const passengerTicketSharedWorkflow = workflow(
         body: html,
       };
     });
-
   },
   {
     name: "Passenger Ticket Shared",
-    description: "Sends digital ticket URLs to guests or friends when shared by the booking owner",
+    description:
+      "Sends digital ticket URLs to guests or friends when shared by the booking owner",
     preferences: {
       all: { readOnly: true },
     },
@@ -49,5 +48,5 @@ export const passengerTicketSharedWorkflow = workflow(
       ticketUrl: z.string().url(),
       phone: z.string().optional(),
     }),
-  }
+  },
 );

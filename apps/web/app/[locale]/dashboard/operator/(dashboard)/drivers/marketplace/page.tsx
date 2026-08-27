@@ -15,7 +15,7 @@ export default async function DriverMarketplacePage() {
     trpc.drivers.listMarketplaceDrivers.queryOptions({
       page: 1,
       limit: 18,
-    })
+    }),
   );
 
   return (

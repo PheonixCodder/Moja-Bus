@@ -9,7 +9,10 @@ import {
 } from "@moja/ui/components/ui/sheet";
 import { Button } from "@moja/ui/components/ui/button";
 import { SlidersHorizontal } from "lucide-react";
-import { FiltersContent, type FiltersSidebarSharedProps } from "./search-filters-sidebar";
+import {
+  FiltersContent,
+  type FiltersSidebarSharedProps,
+} from "./search-filters-sidebar";
 
 interface SearchMobileFiltersProps extends FiltersSidebarSharedProps {
   open: boolean;

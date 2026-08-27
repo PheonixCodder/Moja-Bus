@@ -24,7 +24,7 @@ export default async function AdminWithdrawalsPage({
       trpc.admin.getWithdrawalStats.queryOptions({
         from: parsed.from || undefined,
         to: parsed.to || undefined,
-      })
+      }),
     ),
     prefetch(
       trpc.admin.listAllWithdrawals.queryOptions({
@@ -33,7 +33,7 @@ export default async function AdminWithdrawalsPage({
         status: parsed.status === "ALL" ? undefined : parsed.status,
         from: parsed.from || undefined,
         to: parsed.to || undefined,
-      })
+      }),
     ),
   ]);
 

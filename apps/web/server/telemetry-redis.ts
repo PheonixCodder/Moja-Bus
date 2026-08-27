@@ -23,16 +23,31 @@ const REDIS_URL = process.env["REDIS_URL"] || process.env["KV_URL"];
 
 class MockPubSubStore {
   private subscribers: Map<string, Set<(message: string) => void>> = new Map();
+  private patternSubscribers: Map<
+    string,
+    Set<(pattern: string, channel: string, message: string) => void>
+  > = new Map();
 
   async publish(channel: string, message: string): Promise<number> {
+    let count = 0;
     const listeners = this.subscribers.get(channel);
     if (listeners) {
       listeners.forEach((cb) => {
         cb(message);
       });
-      return listeners.size;
+      count += listeners.size;
     }
-    return 0;
+    this.patternSubscribers.forEach((cbs, pattern) => {
+      if (
+        pattern === "trip:*:telemetry" &&
+        channel.startsWith("trip:") &&
+        channel.endsWith(":telemetry")
+      ) {
+        cbs.forEach((cb) => cb(pattern, channel, message));
+        count += cbs.size;
+      }
+    });
+    return count;
   }
 
   subscribe(channel: string, cb: (message: string) => void) {
@@ -40,6 +55,18 @@ class MockPubSubStore {
     if (!set) {
       set = new Set();
       this.subscribers.set(channel, set);
+    }
+    set.add(cb);
+  }
+
+  psubscribe(
+    pattern: string,
+    cb: (pattern: string, channel: string, message: string) => void,
+  ) {
+    let set = this.patternSubscribers.get(pattern);
+    if (!set) {
+      set = new Set();
+      this.patternSubscribers.set(pattern, set);
     }
     set.add(cb);
   }
@@ -134,6 +161,35 @@ if (REDIS_URL) {
 
 export function getTelemetryBackend(): TelemetryBackend {
   return activeBackend;
+}
+
+export function setupTripTelemetryRelay(
+  onTripMessage: (tripId: string, payload: string) => void,
+) {
+  if (redisSub instanceof Redis) {
+    redisSub.psubscribe("trip:*:telemetry").catch((err) => {
+      logBackend(
+        "warn",
+        `failed to psubscribe to trip telemetry: ${err.message}`,
+      );
+    });
+    redisSub.on("pmessage", (_pattern, channel, message) => {
+      const match = channel.match(/^trip:(.+):telemetry$/);
+      if (match && match[1]) {
+        onTripMessage(match[1], message);
+      }
+    });
+  } else if (redisSub && typeof (redisSub as any).psubscribe === "function") {
+    (redisSub as MockPubSubStore).psubscribe(
+      "trip:*:telemetry",
+      (_pattern, channel, message) => {
+        const match = channel.match(/^trip:(.+):telemetry$/);
+        if (match && match[1]) {
+          onTripMessage(match[1], message);
+        }
+      },
+    );
+  }
 }
 
 export { redisPub, redisSub };

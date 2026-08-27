@@ -174,7 +174,8 @@ export function useAuth() {
       if (err && typeof err === "object") {
         const code = err.code;
         if (code === "TOO_MANY_ATTEMPTS") {
-          message = "Too many attempts. Please request a new code or try again later.";
+          message =
+            "Too many attempts. Please request a new code or try again later.";
         } else if (code === "INVALID_OTP") {
           message = "Invalid verification code. Please check and try again.";
         } else if (code === "OTP_EXPIRED") {

@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Pencil, Plus, Trash2, Search, UserRound, Mail, Phone, Tag } from "lucide-react";
+import {
+  Pencil,
+  Plus,
+  Trash2,
+  Search,
+  UserRound,
+  Mail,
+  Phone,
+  Tag,
+} from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
@@ -211,12 +220,18 @@ export function SavedPassengersView() {
               <div className="w-12 h-12 bg-bg-base rounded-full flex items-center justify-center text-text-muted border border-border">
                 <UserRound className="w-6 h-6" />
               </div>
-              <p className="font-semibold text-text-primary">{t("noPassengers")}</p>
+              <p className="font-semibold text-text-primary">
+                {t("noPassengers")}
+              </p>
               <p className="text-xs text-text-secondary max-w-[280px]">
                 {searchQuery ? t("emptySearch") : t("noPassengersSubtitle")}
               </p>
               {!searchQuery && (
-                <Button onClick={openCreate} variant="outline" className="mt-2 rounded-xl text-xs font-bold">
+                <Button
+                  onClick={openCreate}
+                  variant="outline"
+                  className="mt-2 rounded-xl text-xs font-bold"
+                >
                   {t("addTraveler")}
                 </Button>
               )}
@@ -226,26 +241,41 @@ export function SavedPassengersView() {
               <Table>
                 <TableHeader className="bg-bg-base">
                   <TableRow className="border-b border-border/80 hover:bg-transparent">
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">{t("colPassenger")}</TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">{t("colContact")}</TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">{t("colLabel")}</TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6 text-right">{t("colActions")}</TableHead>
+                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">
+                      {t("colPassenger")}
+                    </TableHead>
+                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">
+                      {t("colContact")}
+                    </TableHead>
+                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">
+                      {t("colLabel")}
+                    </TableHead>
+                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6 text-right">
+                      {t("colActions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPassengers.map((passenger) => (
-                    <TableRow key={passenger.id} className="border-b border-border/50 hover:bg-bg-base/30 transition-colors">
-                      
+                    <TableRow
+                      key={passenger.id}
+                      className="border-b border-border/50 hover:bg-bg-base/30 transition-colors"
+                    >
                       <TableCell className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border ${getAvatarColor(passenger.fullName)}`}>
+                          <div
+                            className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border ${getAvatarColor(passenger.fullName)}`}
+                          >
                             {getInitials(passenger.fullName)}
                           </div>
                           <div className="space-y-0.5">
                             <span className="font-bold text-xs text-text-primary flex items-center gap-2">
                               {passenger.fullName}
                               {passenger.isSelf && (
-                                <Badge variant="outline" className="text-primary border-pink-200 bg-pink-50/50 text-[9px] font-extrabold h-4 px-1.5 py-0">
+                                <Badge
+                                  variant="outline"
+                                  className="text-primary border-pink-200 bg-pink-50/50 text-[9px] font-extrabold h-4 px-1.5 py-0"
+                                >
                                   {t("meBadge")}
                                 </Badge>
                               )}
@@ -263,7 +293,9 @@ export function SavedPassengersView() {
                           {passenger.email && (
                             <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
                               <Mail className="size-3 text-text-muted shrink-0" />
-                              <span className="truncate max-w-[180px]">{passenger.email}</span>
+                              <span className="truncate max-w-[180px]">
+                                {passenger.email}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -271,12 +303,17 @@ export function SavedPassengersView() {
 
                       <TableCell className="px-6 py-4">
                         {passenger.label ? (
-                          <Badge variant="secondary" className="bg-bg-base text-text-primary border border-border text-[10px] font-extrabold py-0.5 px-2 rounded-md gap-1">
+                          <Badge
+                            variant="secondary"
+                            className="bg-bg-base text-text-primary border border-border text-[10px] font-extrabold py-0.5 px-2 rounded-md gap-1"
+                          >
                             <Tag className="size-2.5 text-text-muted" />
                             {passenger.label}
                           </Badge>
                         ) : (
-                          <span className="text-xs text-text-muted font-medium">&mdash;</span>
+                          <span className="text-xs text-text-muted font-medium">
+                            &mdash;
+                          </span>
                         )}
                       </TableCell>
 
@@ -299,7 +336,9 @@ export function SavedPassengersView() {
                               size="sm"
                               className="h-8 text-xs font-semibold rounded-lg border-border text-red-600 hover:text-red-700 hover:bg-red-50/30"
                               disabled={deleteMutation.isPending}
-                              onClick={() => deleteMutation.mutate({ id: passenger.id })}
+                              onClick={() =>
+                                deleteMutation.mutate({ id: passenger.id })
+                              }
                             >
                               <Trash2 className="size-3 mr-1" />
                               {t("delete")}
@@ -307,7 +346,6 @@ export function SavedPassengersView() {
                           )}
                         </div>
                       </TableCell>
-
                     </TableRow>
                   ))}
                 </TableBody>
@@ -330,7 +368,12 @@ export function SavedPassengersView() {
 
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="sp-name" className="text-xs font-bold text-slate-600">{t("fullName")}</Label>
+              <Label
+                htmlFor="sp-name"
+                className="text-xs font-bold text-slate-600"
+              >
+                {t("fullName")}
+              </Label>
               <Input
                 id="sp-name"
                 value={form.fullName}
@@ -343,19 +386,27 @@ export function SavedPassengersView() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="sp-phone" className="text-xs font-bold text-slate-600">{t("phone")}</Label>
+              <Label
+                htmlFor="sp-phone"
+                className="text-xs font-bold text-slate-600"
+              >
+                {t("phone")}
+              </Label>
               <PhoneInput
                 id="sp-phone"
                 value={form.phone}
-                onChange={(val) =>
-                  setForm((f) => ({ ...f, phone: val || "" }))
-                }
+                onChange={(val) => setForm((f) => ({ ...f, phone: val || "" }))}
                 required
                 className="rounded-xl border-slate-200 h-10 text-sm focus-visible:ring-primary"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="sp-email" className="text-xs font-bold text-slate-600">{t("emailOptional")}</Label>
+              <Label
+                htmlFor="sp-email"
+                className="text-xs font-bold text-slate-600"
+              >
+                {t("emailOptional")}
+              </Label>
               <Input
                 id="sp-email"
                 type="email"
@@ -368,7 +419,12 @@ export function SavedPassengersView() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="sp-label" className="text-xs font-bold text-slate-600">{t("labelOptional")}</Label>
+              <Label
+                htmlFor="sp-label"
+                className="text-xs font-bold text-slate-600"
+              >
+                {t("labelOptional")}
+              </Label>
               <Input
                 id="sp-label"
                 value={form.label}
@@ -379,7 +435,7 @@ export function SavedPassengersView() {
                 className="rounded-xl border-slate-200 h-10 text-sm focus-visible:ring-primary"
               />
             </div>
-            
+
             <DialogFooter className="pt-3 gap-2 sm:gap-0">
               <Button
                 type="button"
@@ -395,7 +451,11 @@ export function SavedPassengersView() {
                 disabled={isSaving}
                 className="bg-primary hover:bg-primary/95 text-white h-10 rounded-xl font-bold shadow-sm"
               >
-                {isSaving ? <Spinner className="size-4 text-white" /> : t("saveButton")}
+                {isSaving ? (
+                  <Spinner className="size-4 text-white" />
+                ) : (
+                  t("saveButton")
+                )}
               </Button>
             </DialogFooter>
           </form>

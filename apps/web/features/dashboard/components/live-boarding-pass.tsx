@@ -65,14 +65,16 @@ export function LiveBoardingPass({
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Calendar className="size-3.5 text-muted-foreground" />{" "}
-              {formatDateWithWeekday(departureTime)} · {new Date(departureTime).toLocaleTimeString(locale, {
+              {formatDateWithWeekday(departureTime)} ·{" "}
+              {new Date(departureTime).toLocaleTimeString(locale, {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
-              <Armchair className="size-3.5 text-muted-foreground" /> {t("seat", { id: seatId })}
+              <Armchair className="size-3.5 text-muted-foreground" />{" "}
+              {t("seat", { id: seatId })}
             </span>
           </div>
         </div>

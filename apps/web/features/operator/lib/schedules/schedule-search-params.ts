@@ -21,9 +21,13 @@ export const scheduleListParsers = {
     "updated_desc",
   ]).withDefault("departureTime_asc"),
   new: parseAsBoolean.withDefault(false),
-  step: parseAsStringEnum(["Route", "Stops", "Calendar", "Pricing", "Preview"]).withDefault(
+  step: parseAsStringEnum([
     "Route",
-  ),
+    "Stops",
+    "Calendar",
+    "Pricing",
+    "Preview",
+  ]).withDefault("Route"),
   routePick: parseAsString.withDefault(""),
   edit: parseAsString.withDefault(""),
 };
@@ -52,7 +56,9 @@ export function formatTime(t: string) {
   return `${h12}:${m ?? "00"} ${ampm}`;
 }
 
-export function parseLocalDate(dateStr: string | null | undefined): Date | undefined {
+export function parseLocalDate(
+  dateStr: string | null | undefined,
+): Date | undefined {
   if (!dateStr) return undefined;
   const parts = dateStr.split("T")[0]?.split("-");
   if (!parts || parts.length !== 3) return undefined;

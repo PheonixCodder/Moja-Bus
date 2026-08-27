@@ -37,10 +37,13 @@ export function BookingRow({
               {booking.passengerName}
             </h3>
             <p className="text-xs text-text-secondary mt-0.5">
-              {booking.originCityName} → {booking.destinationCityName} · {t("card.seat", { seat: booking.seatLabel })}
+              {booking.originCityName} → {booking.destinationCityName} ·{" "}
+              {t("card.seat", { seat: booking.seatLabel })}
             </p>
             <p className="text-xs text-text-muted mt-0.5">
-              {formatDateWithWeekday(booking.departureTime)} · {formatDepartureTime(booking.departureTime)} · {booking.passengerPhone}
+              {formatDateWithWeekday(booking.departureTime)} ·{" "}
+              {formatDepartureTime(booking.departureTime)} ·{" "}
+              {booking.passengerPhone}
             </p>
           </div>
           <CheckInBadge booking={booking} />
@@ -60,7 +63,7 @@ export function BookingRow({
             href={`/dashboard/operator/trips?manifest=${encodeURIComponent(booking.tripId)}`}
             className={cn(
               buttonVariants({ size: "sm", variant: "outline" }),
-              "gap-1.5"
+              "gap-1.5",
             )}
           >
             <Radio className="size-3.5" />

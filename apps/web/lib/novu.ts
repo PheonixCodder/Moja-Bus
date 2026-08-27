@@ -10,10 +10,10 @@ let _client: Novu | null = null;
 export function getNovuClient(): Novu | null {
   const secret = process.env["NOVU_SECRET_KEY"];
   if (!secret) return null;
-  
+
   if (!_client) {
     _client = new Novu({ secretKey: secret });
   }
-  
+
   return _client;
 }

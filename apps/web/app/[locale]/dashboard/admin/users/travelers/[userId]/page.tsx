@@ -18,7 +18,11 @@ export default async function TravelerProfilePage({
       <DashboardHeader
         breadcrumbs={[
           { label: "Admin", tKey: "overview.breadcrumb.admin" },
-          { label: "Travelers", tKey: "nav.travelers", href: "/dashboard/admin/users/travelers" },
+          {
+            label: "Travelers",
+            tKey: "nav.travelers",
+            href: "/dashboard/admin/users/travelers",
+          },
           { label: "Profile", tKey: "overview.breadcrumb.profile" },
         ]}
       />

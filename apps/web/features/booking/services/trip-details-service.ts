@@ -34,7 +34,13 @@ export class TripDetailsService {
         },
         tripStops: {
           include: {
-            terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+            terminal: {
+              include: {
+                cityRelation: true,
+                municipality: true,
+                quarter: true,
+              },
+            },
           },
           orderBy: { stopOrder: "asc" },
         },
@@ -69,9 +75,7 @@ export class TripDetailsService {
     }
 
     const originStop = trip.tripStops.find((s) => s.id === originTripStopId);
-    const destStop = trip.tripStops.find(
-      (s) => s.id === destinationTripStopId,
-    );
+    const destStop = trip.tripStops.find((s) => s.id === destinationTripStopId);
 
     if (!originStop || !destStop || !originStop.scheduledDeparture) {
       throw new TRPCError({
@@ -132,7 +136,10 @@ export class TripDetailsService {
     ]);
     const occupiedSeats = occupancy.get(trip.id) ?? 0;
     const totalSeats = trip.seats.filter(
-      (s) => s.seat.isBookable && s.seat.seatType !== "DRIVER_AREA" && s.seat.seatType !== "EMPTY_SPACE",
+      (s) =>
+        s.seat.isBookable &&
+        s.seat.seatType !== "DRIVER_AREA" &&
+        s.seat.seatType !== "EMPTY_SPACE",
     ).length;
     const remainingSeats = Math.max(0, totalSeats - occupiedSeats);
 
@@ -168,20 +175,15 @@ export class TripDetailsService {
       companyLogoUrl: trip.company.logoUrl,
       originTerminalId: originStop.terminal.id,
       originTerminalName: originStop.terminal.name,
-      originCityName:
-        originStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
-      originMunicipalityName:
-        originStop.terminal.municipality?.name ?? null,
-      originQuarterName:
-        originStop.terminal.quarter?.name ?? null,
+      originCityName: originStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
+      originMunicipalityName: originStop.terminal.municipality?.name ?? null,
+      originQuarterName: originStop.terminal.quarter?.name ?? null,
       destinationTerminalId: destStop.terminal.id,
       destinationTerminalName: destStop.terminal.name,
       destinationCityName:
         destStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
-      destinationMunicipalityName:
-        destStop.terminal.municipality?.name ?? null,
-      destinationQuarterName:
-        destStop.terminal.quarter?.name ?? null,
+      destinationMunicipalityName: destStop.terminal.municipality?.name ?? null,
+      destinationQuarterName: destStop.terminal.quarter?.name ?? null,
       originTripStopId: originStop.id,
       destinationTripStopId: destStop.id,
       boardingStopOrder,

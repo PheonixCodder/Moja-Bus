@@ -25,15 +25,26 @@ export function AdminCampaignsView() {
   const queryClient = useQueryClient();
 
   // URL Query State with nuqs
-  const [search, setSearch] = useQueryState("search", parseAsString.withDefault(""));
-  const [statusFilter, setStatusFilter] = useQueryState("status", parseAsString.withDefault("ALL"));
+  const [search, setSearch] = useQueryState(
+    "search",
+    parseAsString.withDefault(""),
+  );
+  const [statusFilter, setStatusFilter] = useQueryState(
+    "status",
+    parseAsString.withDefault("ALL"),
+  );
   const [selectedCampaignId, setSelectedCampaignId] = useQueryState(
     "campaignId",
     parseAsString.withOptions({ history: "push" }),
   );
   const [activeTab, setActiveTab] = useQueryState(
     "tab",
-    parseAsStringEnum<CampaignDrawerTab>(["performance", "codes", "settings", "redemptions"])
+    parseAsStringEnum<CampaignDrawerTab>([
+      "performance",
+      "codes",
+      "settings",
+      "redemptions",
+    ])
       .withDefault("performance")
       .withOptions({ history: "replace" }),
   );
@@ -54,12 +65,16 @@ export function AdminCampaignsView() {
     }),
   );
 
-  const summaryQuery = useQuery(trpc.discountsAdmin.marketingSummary.queryOptions());
+  const summaryQuery = useQuery(
+    trpc.discountsAdmin.marketingSummary.queryOptions(),
+  );
   const summary = summaryQuery.data;
 
   // Selected campaign queries (only active when campaignId is present)
   const campaignDetailQuery = useQuery({
-    ...trpc.discountsAdmin.getCampaign.queryOptions({ id: selectedCampaignId ?? "" }),
+    ...trpc.discountsAdmin.getCampaign.queryOptions({
+      id: selectedCampaignId ?? "",
+    }),
     enabled: Boolean(selectedCampaignId),
   });
 
@@ -71,7 +86,9 @@ export function AdminCampaignsView() {
   }, [campaignDetailQuery.data]);
 
   const performanceQuery = useQuery({
-    ...trpc.discountsAdmin.campaignPerformance.queryOptions({ campaignId: selectedCampaignId ?? "" }),
+    ...trpc.discountsAdmin.campaignPerformance.queryOptions({
+      campaignId: selectedCampaignId ?? "",
+    }),
     enabled: Boolean(selectedCampaignId),
   });
 
@@ -87,9 +104,14 @@ export function AdminCampaignsView() {
   });
 
   // Scope queries for settings editor
-  const routesQuery = useQuery(trpc.admin.listRoutes.queryOptions({ page: 1, pageSize: 100 }));
+  const routesQuery = useQuery(
+    trpc.admin.listRoutes.queryOptions({ page: 1, pageSize: 100 }),
+  );
   const schedulesQuery = useQuery({
-    ...trpc.discountsAdmin.listScopeSchedules.queryOptions({ routeIds: scopeRouteIds, limit: 100 }),
+    ...trpc.discountsAdmin.listScopeSchedules.queryOptions({
+      routeIds: scopeRouteIds,
+      limit: 100,
+    }),
     enabled: Boolean(selectedCampaignId),
   });
   const tripsQuery = useQuery({
@@ -99,7 +121,9 @@ export function AdminCampaignsView() {
       daysAhead: 60,
       limit: 100,
     }),
-    enabled: Boolean(selectedCampaignId) && (scopeScheduleIds.length > 0 || scopeRouteIds.length > 0),
+    enabled:
+      Boolean(selectedCampaignId) &&
+      (scopeScheduleIds.length > 0 || scopeRouteIds.length > 0),
   });
 
   // Mutations
@@ -108,7 +132,9 @@ export function AdminCampaignsView() {
       onSuccess: async (campaign) => {
         toast.success("Campaign created — add coupon codes, then activate!");
         setCreateOpen(false);
-        await queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter());
+        await queryClient.invalidateQueries(
+          trpc.discountsAdmin.listCampaigns.pathFilter(),
+        );
         setSelectedCampaignId(campaign.id);
         setActiveTab("codes");
       },
@@ -121,9 +147,15 @@ export function AdminCampaignsView() {
       onSuccess: async () => {
         toast.success("Campaign status updated");
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsAdmin.listCampaigns.pathFilter(),
+          ),
           selectedCampaignId
-            ? queryClient.invalidateQueries(trpc.discountsAdmin.getCampaign.queryFilter({ id: selectedCampaignId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -136,9 +168,15 @@ export function AdminCampaignsView() {
       onSuccess: async () => {
         toast.success("Coupon created successfully");
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsAdmin.listCampaigns.pathFilter(),
+          ),
           selectedCampaignId
-            ? queryClient.invalidateQueries(trpc.discountsAdmin.getCampaign.queryFilter({ id: selectedCampaignId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -151,9 +189,15 @@ export function AdminCampaignsView() {
       onSuccess: async (result) => {
         toast.success(`Created ${result.codes.length} coupon codes`);
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsAdmin.listCampaigns.pathFilter(),
+          ),
           selectedCampaignId
-            ? queryClient.invalidateQueries(trpc.discountsAdmin.getCampaign.queryFilter({ id: selectedCampaignId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -166,9 +210,15 @@ export function AdminCampaignsView() {
       onSuccess: async () => {
         toast.success("Coupon code deactivated");
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsAdmin.listCampaigns.pathFilter(),
+          ),
           selectedCampaignId
-            ? queryClient.invalidateQueries(trpc.discountsAdmin.getCampaign.queryFilter({ id: selectedCampaignId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -181,9 +231,15 @@ export function AdminCampaignsView() {
       onSuccess: async () => {
         toast.success("Campaign settings saved");
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsAdmin.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsAdmin.listCampaigns.pathFilter(),
+          ),
           selectedCampaignId
-            ? queryClient.invalidateQueries(trpc.discountsAdmin.getCampaign.queryFilter({ id: selectedCampaignId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsAdmin.getCampaign.queryFilter({
+                  id: selectedCampaignId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -194,7 +250,9 @@ export function AdminCampaignsView() {
   const notifyMutation = useMutation(
     trpc.discountsAdmin.notifyOptedInCampaign.mutationOptions({
       onSuccess: (data) =>
-        toast.success(`Notified ${data.attempted} passengers (${data.skippedNoNovu} skipped without Novu)`),
+        toast.success(
+          `Notified ${data.attempted} passengers (${data.skippedNoNovu} skipped without Novu)`,
+        ),
       onError: (err) => toast.error(err.message),
     }),
   );
@@ -202,7 +260,10 @@ export function AdminCampaignsView() {
   const exportMutation = useMutation({
     mutationFn: async (input: { campaignId?: string }) => {
       return queryClient.fetchQuery(
-        trpc.discountsAdmin.exportRedemptionsCsv.queryOptions({ campaignId: input.campaignId, limit: 1000 }),
+        trpc.discountsAdmin.exportRedemptionsCsv.queryOptions({
+          campaignId: input.campaignId,
+          limit: 1000,
+        }),
       );
     },
     onSuccess: (data) => {
@@ -317,7 +378,10 @@ export function AdminCampaignsView() {
         isNotifyPending={notifyMutation.isPending}
         onCreateCoupon={async (code) => {
           if (!selectedCampaignId) return;
-          await couponMutation.mutateAsync({ campaignId: selectedCampaignId, code });
+          await couponMutation.mutateAsync({
+            campaignId: selectedCampaignId,
+            code,
+          });
         }}
         onBulkCreateCoupons={async (params) => {
           if (!selectedCampaignId) return;

@@ -25,7 +25,11 @@ import { AdminCampaignDrawerCoupons } from "./admin-campaign-drawer-coupons";
 import { AdminCampaignDrawerSettings } from "./admin-campaign-drawer-settings";
 import { AdminCampaignDrawerRedemptions } from "./admin-campaign-drawer-redemptions";
 
-export type CampaignDrawerTab = "performance" | "codes" | "settings" | "redemptions";
+export type CampaignDrawerTab =
+  | "performance"
+  | "codes"
+  | "settings"
+  | "redemptions";
 
 interface AdminCampaignDrawerProps {
   campaignId: string | null;
@@ -54,14 +58,22 @@ interface AdminCampaignDrawerProps {
   onScopeChange: (scope: { routeIds: string[]; scheduleIds: string[] }) => void;
 
   // Action mutations
-  onStatusChange: (id: string, status: "ACTIVE" | "PAUSED", pauseReason?: string) => void;
+  onStatusChange: (
+    id: string,
+    status: "ACTIVE" | "PAUSED",
+    pauseReason?: string,
+  ) => void;
   isStatusPending: boolean;
   onNotifyPassengers: (id: string) => void;
   isNotifyPending: boolean;
 
   // Coupon mutations
   onCreateCoupon: (code: string) => Promise<void>;
-  onBulkCreateCoupons: (params: { prefix: string; count: number; maxRedemptions?: number }) => Promise<void>;
+  onBulkCreateCoupons: (params: {
+    prefix: string;
+    count: number;
+    maxRedemptions?: number;
+  }) => Promise<void>;
   onDeactivateCoupon: (id: string) => Promise<void>;
 
   // Settings mutation
@@ -73,7 +85,9 @@ interface AdminCampaignDrawerProps {
   isExportingCsv: boolean;
 }
 
-function statusVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
+function statusVariant(
+  status: string,
+): "default" | "secondary" | "outline" | "destructive" {
   if (status === "ACTIVE") return "default";
   if (status === "PAUSED") return "secondary";
   if (status === "EXHAUSTED" || status === "EXPIRED") return "destructive";
@@ -124,17 +138,25 @@ export function AdminCampaignDrawer({
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
                   <DrawerTitle className="text-xl font-bold tracking-tight text-slate-900">
-                    {isDetailLoading ? t("loading") : campaign?.name || t("defaultTitle")}
+                    {isDetailLoading
+                      ? t("loading")
+                      : campaign?.name || t("defaultTitle")}
                   </DrawerTitle>
                   {campaign && (
-                    <Badge variant={statusVariant(campaign.status)} className="capitalize">
+                    <Badge
+                      variant={statusVariant(campaign.status)}
+                      className="capitalize"
+                    >
                       {campaign.status.toLowerCase()}
                     </Badge>
                   )}
                 </div>
                 <DrawerDescription className="text-xs text-slate-500">
                   {campaign
-                    ? t("description", { id: campaign.id, group: campaign.stackGroup || "PROMO" })
+                    ? t("description", {
+                        id: campaign.id,
+                        group: campaign.stackGroup || "PROMO",
+                      })
                     : t("defaultDescription")}
                 </DrawerDescription>
               </div>
@@ -158,7 +180,13 @@ export function AdminCampaignDrawer({
                       size="sm"
                       variant="outline"
                       disabled={isStatusPending}
-                      onClick={() => onStatusChange(campaign.id, "PAUSED", "Paused from campaign drawer")}
+                      onClick={() =>
+                        onStatusChange(
+                          campaign.id,
+                          "PAUSED",
+                          "Paused from campaign drawer",
+                        )
+                      }
                       className="gap-1.5 text-xs font-medium text-amber-700 border-amber-200 hover:bg-amber-50"
                     >
                       <Pause className="size-3.5" />
@@ -182,7 +210,12 @@ export function AdminCampaignDrawer({
                 )}
 
                 <DrawerClose asChild>
-                  <Button type="button" size="sm" variant="ghost" className="size-8 p-0 text-slate-500">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="size-8 p-0 text-slate-500"
+                  >
                     <X className="size-4" />
                     <span className="sr-only">{t("close")}</span>
                   </Button>
@@ -278,8 +311,12 @@ export function AdminCampaignDrawer({
                 scheduleOptions={schedules}
                 tripOptions={trips}
                 showHybrid
-                onRouteIdsChange={(routeIds) => onScopeChange({ routeIds, scheduleIds: [] })}
-                onScheduleIdsChange={(scheduleIds) => onScopeChange({ routeIds: [], scheduleIds })}
+                onRouteIdsChange={(routeIds) =>
+                  onScopeChange({ routeIds, scheduleIds: [] })
+                }
+                onScheduleIdsChange={(scheduleIds) =>
+                  onScopeChange({ routeIds: [], scheduleIds })
+                }
                 onSave={onSaveSettings}
                 isSaving={isSavingSettings}
               />

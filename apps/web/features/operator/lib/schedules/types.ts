@@ -45,7 +45,13 @@ export type CalendarConfig = {
   preferredBusId: string;
 };
 
-export const WIZARD_STEPS = ["Route", "Stops", "Calendar", "Pricing", "Preview"] as const;
+export const WIZARD_STEPS = [
+  "Route",
+  "Stops",
+  "Calendar",
+  "Pricing",
+  "Preview",
+] as const;
 export type WizardStep = (typeof WIZARD_STEPS)[number];
 
 export function buildStopsFromRoute(route: RouteDetail): StopLabel[] {
@@ -70,9 +76,7 @@ export function buildStopsFromRoute(route: RouteDetail): StopLabel[] {
     }));
 
   const lastWp =
-    intermediate.length > 0
-      ? intermediate[intermediate.length - 1]!.order
-      : 0;
+    intermediate.length > 0 ? intermediate[intermediate.length - 1]!.order : 0;
   const destination: StopLabel = {
     order: lastWp + 1,
     name: route.destTerminal?.name ?? "Destination",

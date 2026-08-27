@@ -15,10 +15,14 @@ export default async function AdminDriverMarketplacePage() {
       status: "ALL",
       page: 1,
       limit: 20,
-    })
+    }),
   );
   prefetch(
-    trpc.admin.listAllOffers.queryOptions({ status: "ALL", page: 1, limit: 15 })
+    trpc.admin.listAllOffers.queryOptions({
+      status: "ALL",
+      page: 1,
+      limit: 15,
+    }),
   );
 
   return (

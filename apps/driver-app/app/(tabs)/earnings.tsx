@@ -210,6 +210,45 @@ export default function DriverEarningsScreen() {
 					</TouchableOpacity>
 				</View>
 
+				{/* Phase 7 (Gap #17a) — Carrier Compensation Breakdown */}
+				{earnings?.byCompany && earnings.byCompany.length > 0 && (
+					<View className="space-y-3 pt-2">
+						<Text className="text-xs font-bold text-zinc-400 uppercase">
+							Carrier Compensation Breakdown
+						</Text>
+						{earnings.byCompany.map((comp: any) => (
+							<View
+								key={comp.companyId}
+								className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-2"
+							>
+								<View className="flex-row items-center justify-between">
+									<View className="flex-row items-center gap-2.5">
+										<View className="size-8 rounded-lg bg-zinc-950 border border-zinc-800 items-center justify-center">
+											<Building2 size={16} color="#e11d48" />
+										</View>
+										<View>
+											<Text className="text-sm font-bold text-white">
+												{comp.companyName}
+											</Text>
+											<Text className="text-[10px] text-zinc-400">
+												{comp.employmentType?.replace("_", " ")} • {comp.rateDescription}
+											</Text>
+										</View>
+									</View>
+									<View className="items-end">
+										<Text className="text-sm font-bold font-mono text-emerald-400">
+											{comp.weekEarningsXof.toLocaleString()} XOF
+										</Text>
+										<Text className="text-[10px] text-zinc-500">
+											{comp.weekMinutes}m this week
+										</Text>
+									</View>
+								</View>
+							</View>
+						))}
+					</View>
+				)}
+
 				{/* Shift Ledger History */}
 				<View className="space-y-3 pt-2">
 					<Text className="text-xs font-bold text-zinc-400 uppercase">

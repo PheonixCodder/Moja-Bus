@@ -112,7 +112,9 @@ export function DriverRosterActions({
 
   const permsQuery = useQuery(trpc.drivers.getPermissions.queryOptions());
 
-  const presignUpload = useMutation(trpc.storage.presignUpload.mutationOptions());
+  const presignUpload = useMutation(
+    trpc.storage.presignUpload.mutationOptions(),
+  );
 
   const uploadDoc = async (field: DocSlotField, file: File) => {
     const slotMeta = DOC_SLOTS.find((s) => s.field === field)!;
@@ -138,7 +140,9 @@ export function DriverRosterActions({
         [field]: { key: objectKey, name: file.name },
       }));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Document upload failed");
+      toast.error(
+        err instanceof Error ? err.message : "Document upload failed",
+      );
     } finally {
       setUploadingSlot(null);
     }

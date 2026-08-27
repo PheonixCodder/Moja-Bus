@@ -8,16 +8,16 @@ const city = (id: string) => ({ id, text: "Abidjan", level: "city" as const });
 describe("validateSearchPair", () => {
   it("rejects identical unresolved names", () => {
     assert.equal(
-      validateSearchPair({ id: "", text: "Abidjan" }, { id: "", text: "Abidjan" }),
+      validateSearchPair(
+        { id: "", text: "Abidjan" },
+        { id: "", text: "Abidjan" },
+      ),
       "sameCity",
     );
   });
 
   it("allows identical text when ids resolve to different cities", () => {
-    assert.equal(
-      validateSearchPair(city("c1"), city("c2")),
-      null,
-    );
+    assert.equal(validateSearchPair(city("c1"), city("c2")), null);
   });
 
   it("rejects same city at city level on both sides", () => {
@@ -26,20 +26,25 @@ describe("validateSearchPair", () => {
 
   it("allows same city with one-sided municipality refinement", () => {
     assert.equal(
-      validateSearchPair(
-        city("c1"),
-        { id: "c1", text: "Abidjan (Cocody)", municipalityId: "m1", level: "municipality" },
-      ),
+      validateSearchPair(city("c1"), {
+        id: "c1",
+        text: "Abidjan (Cocody)",
+        municipalityId: "m1",
+        level: "municipality",
+      }),
       null,
     );
   });
 
   it("allows same city with one-sided quarter refinement", () => {
     assert.equal(
-      validateSearchPair(
-        city("c1"),
-        { id: "c1", text: "Abidjan (Cocody - Riviera 3)", municipalityId: "m1", quarterId: "q1", level: "quarter" },
-      ),
+      validateSearchPair(city("c1"), {
+        id: "c1",
+        text: "Abidjan (Cocody - Riviera 3)",
+        municipalityId: "m1",
+        quarterId: "q1",
+        level: "quarter",
+      }),
       null,
     );
   });
@@ -47,8 +52,18 @@ describe("validateSearchPair", () => {
   it("allows same city with different municipalities", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Abidjan (Cocody)", municipalityId: "m1", level: "municipality" },
-        { id: "c1", text: "Abidjan (Yopougon)", municipalityId: "m2", level: "municipality" },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody)",
+          municipalityId: "m1",
+          level: "municipality",
+        },
+        {
+          id: "c1",
+          text: "Abidjan (Yopougon)",
+          municipalityId: "m2",
+          level: "municipality",
+        },
       ),
       null,
     );
@@ -57,8 +72,18 @@ describe("validateSearchPair", () => {
   it("rejects same city with the same municipality", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Abidjan (Cocody)", municipalityId: "m1", level: "municipality" },
-        { id: "c1", text: "Abidjan (Cocody)", municipalityId: "m1", level: "municipality" },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody)",
+          municipalityId: "m1",
+          level: "municipality",
+        },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody)",
+          municipalityId: "m1",
+          level: "municipality",
+        },
       ),
       "sameCity",
     );
@@ -67,8 +92,20 @@ describe("validateSearchPair", () => {
   it("rejects same city with the same quarter", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Abidjan (Cocody - Riviera 3)", municipalityId: "m1", quarterId: "q1", level: "quarter" },
-        { id: "c1", text: "Abidjan (Cocody - Riviera 3)", municipalityId: "m1", quarterId: "q1", level: "quarter" },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody - Riviera 3)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "quarter",
+        },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody - Riviera 3)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "quarter",
+        },
       ),
       "sameCity",
     );
@@ -77,8 +114,20 @@ describe("validateSearchPair", () => {
   it("allows same municipality with different quarters", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Abidjan (Cocody - Riviera 3)", municipalityId: "m1", quarterId: "q1", level: "quarter" },
-        { id: "c1", text: "Abidjan (Cocody - Zone 4)", municipalityId: "m1", quarterId: "q2", level: "quarter" },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody - Riviera 3)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "quarter",
+        },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody - Zone 4)",
+          municipalityId: "m1",
+          quarterId: "q2",
+          level: "quarter",
+        },
       ),
       null,
     );
@@ -87,8 +136,19 @@ describe("validateSearchPair", () => {
   it("rejects quarter vs municipality of the same municipality", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Abidjan (Cocody - Riviera 3)", municipalityId: "m1", quarterId: "q1", level: "quarter" },
-        { id: "c1", text: "Abidjan (Cocody)", municipalityId: "m1", level: "municipality" },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody - Riviera 3)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "quarter",
+        },
+        {
+          id: "c1",
+          text: "Abidjan (Cocody)",
+          municipalityId: "m1",
+          level: "municipality",
+        },
       ),
       "sameCity",
     );
@@ -162,8 +222,22 @@ describe("validateSearchPair", () => {
     // Terminal B: Gare de Pinasse Vridi Ako (city=Abidjan, muni=Port-Bouët, quarter=Vridi Gare)
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Quai Vridi Ako (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
-        { id: "c1", text: "Gare de Pinasse Vridi Ako (Ako)", municipalityId: "m1", quarterId: "q2", level: "terminal", terminalId: "t2" },
+        {
+          id: "c1",
+          text: "Quai Vridi Ako (Ako)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "terminal",
+          terminalId: "t1",
+        },
+        {
+          id: "c1",
+          text: "Gare de Pinasse Vridi Ako (Ako)",
+          municipalityId: "m1",
+          quarterId: "q2",
+          level: "terminal",
+          terminalId: "t2",
+        },
       ),
       null,
     );
@@ -172,8 +246,22 @@ describe("validateSearchPair", () => {
   it("allows two different terminals in the same city with different municipalities", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Terminal A (Co)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
-        { id: "c1", text: "Terminal B (Co)", municipalityId: "m2", quarterId: "q2", level: "terminal", terminalId: "t2" },
+        {
+          id: "c1",
+          text: "Terminal A (Co)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "terminal",
+          terminalId: "t1",
+        },
+        {
+          id: "c1",
+          text: "Terminal B (Co)",
+          municipalityId: "m2",
+          quarterId: "q2",
+          level: "terminal",
+          terminalId: "t2",
+        },
       ),
       null,
     );
@@ -182,8 +270,19 @@ describe("validateSearchPair", () => {
   it("allows two terminals in the same city with one-sided municipality refinement", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", level: "terminal", terminalId: "t1" },
-        { id: "c1", text: "Terminal B (Ako)", level: "terminal", terminalId: "t2" },
+        {
+          id: "c1",
+          text: "Terminal A (Ako)",
+          municipalityId: "m1",
+          level: "terminal",
+          terminalId: "t1",
+        },
+        {
+          id: "c1",
+          text: "Terminal B (Ako)",
+          level: "terminal",
+          terminalId: "t2",
+        },
       ),
       null,
     );
@@ -192,8 +291,22 @@ describe("validateSearchPair", () => {
   it("rejects two terminals with the same terminalId (same terminal)", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Quai Vridi Ako (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
-        { id: "c1", text: "Quai Vridi Ako (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+        {
+          id: "c1",
+          text: "Quai Vridi Ako (Ako)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "terminal",
+          terminalId: "t1",
+        },
+        {
+          id: "c1",
+          text: "Quai Vridi Ako (Ako)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "terminal",
+          terminalId: "t1",
+        },
       ),
       "sameCity",
     );
@@ -202,8 +315,22 @@ describe("validateSearchPair", () => {
   it("rejects two terminals in the same city with same municipality and same quarter", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
-        { id: "c1", text: "Terminal B (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t2" },
+        {
+          id: "c1",
+          text: "Terminal A (Ako)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "terminal",
+          terminalId: "t1",
+        },
+        {
+          id: "c1",
+          text: "Terminal B (Ako)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "terminal",
+          terminalId: "t2",
+        },
       ),
       "sameCity",
     );
@@ -212,7 +339,14 @@ describe("validateSearchPair", () => {
   it("allows a terminal paired with a city in the same city", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+        {
+          id: "c1",
+          text: "Terminal A (Ako)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "terminal",
+          terminalId: "t1",
+        },
         { id: "c1", text: "Abidjan", level: "city" },
       ),
       null,
@@ -222,8 +356,20 @@ describe("validateSearchPair", () => {
   it("allows a terminal paired with a municipality in the same city", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
-        { id: "c1", text: "Abidjan (Bacquipag)", municipalityId: "m2", level: "municipality" },
+        {
+          id: "c1",
+          text: "Terminal A (Ako)",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "terminal",
+          terminalId: "t1",
+        },
+        {
+          id: "c1",
+          text: "Abidjan (Bacquipag)",
+          municipalityId: "m2",
+          level: "municipality",
+        },
       ),
       null,
     );
@@ -232,8 +378,20 @@ describe("validateSearchPair", () => {
   it("allows two terminals in different cities", () => {
     assert.equal(
       validateSearchPair(
-        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", level: "terminal", terminalId: "t1" },
-        { id: "c2", text: "Terminal B (STC)", municipalityId: "m3", level: "terminal", terminalId: "t2" },
+        {
+          id: "c1",
+          text: "Terminal A (Ako)",
+          municipalityId: "m1",
+          level: "terminal",
+          terminalId: "t1",
+        },
+        {
+          id: "c2",
+          text: "Terminal B (STC)",
+          municipalityId: "m3",
+          level: "terminal",
+          terminalId: "t2",
+        },
       ),
       null,
     );
@@ -253,10 +411,7 @@ describe("isUrban", () => {
 
   it("is intercity when cities differ", () => {
     assert.equal(
-      isUrban(
-        { cityId: "c1", level: "city" },
-        { cityId: "c2", level: "city" },
-      ),
+      isUrban({ cityId: "c1", level: "city" }, { cityId: "c2", level: "city" }),
       false,
     );
   });
@@ -267,36 +422,69 @@ describe("placeMatchesTerminal", () => {
 
   it("matches a city-level place by city only", () => {
     assert.equal(
-      placeMatchesTerminal({ cityId: "c1", level: "city" }, { cityId: "c1", municipalityId: "m9", quarterId: "q9" }),
+      placeMatchesTerminal(
+        { cityId: "c1", level: "city" },
+        { cityId: "c1", municipalityId: "m9", quarterId: "q9" },
+      ),
       true,
     );
   });
 
   it("narrows at municipality level", () => {
     assert.equal(
-      placeMatchesTerminal({ cityId: "c1", municipalityId: "m1", level: "municipality" }, terminal),
+      placeMatchesTerminal(
+        { cityId: "c1", municipalityId: "m1", level: "municipality" },
+        terminal,
+      ),
       true,
     );
     assert.equal(
-      placeMatchesTerminal({ cityId: "c1", municipalityId: "m2", level: "municipality" }, terminal),
+      placeMatchesTerminal(
+        { cityId: "c1", municipalityId: "m2", level: "municipality" },
+        terminal,
+      ),
       false,
     );
   });
 
   it("narrows at quarter level", () => {
     assert.equal(
-      placeMatchesTerminal({ cityId: "c1", municipalityId: "m1", quarterId: "q1", level: "quarter" }, terminal),
+      placeMatchesTerminal(
+        {
+          cityId: "c1",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "quarter",
+        },
+        terminal,
+      ),
       true,
     );
     assert.equal(
-      placeMatchesTerminal({ cityId: "c1", municipalityId: "m1", quarterId: "q2", level: "quarter" }, terminal),
+      placeMatchesTerminal(
+        {
+          cityId: "c1",
+          municipalityId: "m1",
+          quarterId: "q2",
+          level: "quarter",
+        },
+        terminal,
+      ),
       false,
     );
   });
 
   it("rejects a different city even when refinement matches", () => {
     assert.equal(
-      placeMatchesTerminal({ cityId: "c2", municipalityId: "m1", quarterId: "q1", level: "quarter" }, terminal),
+      placeMatchesTerminal(
+        {
+          cityId: "c2",
+          municipalityId: "m1",
+          quarterId: "q1",
+          level: "quarter",
+        },
+        terminal,
+      ),
       false,
     );
   });

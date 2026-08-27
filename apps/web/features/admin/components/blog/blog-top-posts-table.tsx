@@ -36,9 +36,7 @@ export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
     <Card>
       <CardHeader>
         <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>
-          {t("description")}
-        </CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="px-0 pt-0">
         <Table>

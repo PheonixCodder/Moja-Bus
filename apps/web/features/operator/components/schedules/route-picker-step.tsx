@@ -38,7 +38,10 @@ export function RoutePickerStep({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="schedule-name" className="text-sm font-bold text-foreground">
+        <Label
+          htmlFor="schedule-name"
+          className="text-sm font-bold text-foreground"
+        >
           {t("wizard.scheduleName")}
         </Label>
         <Input
@@ -51,7 +54,9 @@ export function RoutePickerStep({
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-foreground">{t("wizard.selectRoute")}</h3>
+        <h3 className="text-sm font-bold text-foreground">
+          {t("wizard.selectRoute")}
+        </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
           {t("wizard.onlyActiveRoutes")}
         </p>
@@ -117,11 +122,11 @@ export function RoutePickerStep({
                     {r.destTerminal?.cityRelation?.name ?? r.destTerminal?.city}
                   </span>
                 </div>
-{r.distanceKm ? (
-                   <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
-                     {r.distanceKm} km
-                   </p>
-                 ) : null}
+                {r.distanceKm ? (
+                  <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                    {r.distanceKm} km
+                  </p>
+                ) : null}
               </button>
             );
           })}

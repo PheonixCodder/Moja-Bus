@@ -5,7 +5,13 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCompanySettings } from "../api/use-company-settings";
 import { cn } from "@moja/ui/lib/utils";
-import { Building2, UserCircle, Landmark, ShieldCheck, Bell } from "lucide-react";
+import {
+  Building2,
+  UserCircle,
+  Landmark,
+  ShieldCheck,
+  Bell,
+} from "lucide-react";
 
 export function SettingsSidebar() {
   const t = useTranslations("operatorDashboard.settings.nav");
@@ -23,7 +29,10 @@ export function SettingsSidebar() {
       shortTitle: t("companyShort"),
       href: "/dashboard/operator/settings/company",
       icon: Building2,
-      show: role === "OWNER" || perms.includes("company:view") || perms.includes("company:profile:update"),
+      show:
+        role === "OWNER" ||
+        perms.includes("company:view") ||
+        perms.includes("company:profile:update"),
     },
     {
       title: t("personal"),
@@ -37,14 +46,20 @@ export function SettingsSidebar() {
       shortTitle: t("bankingShort"),
       href: "/dashboard/operator/settings/banking",
       icon: Landmark,
-      show: role === "OWNER" || perms.includes("financials:view") || perms.includes("company:banking:update"),
+      show:
+        role === "OWNER" ||
+        perms.includes("financials:view") ||
+        perms.includes("company:banking:update"),
     },
     {
       title: t("compliance"),
       shortTitle: t("complianceShort"),
       href: "/dashboard/operator/settings/compliance",
       icon: ShieldCheck,
-      show: role === "OWNER" || perms.includes("company:view") || perms.includes("company:compliance:update"),
+      show:
+        role === "OWNER" ||
+        perms.includes("company:view") ||
+        perms.includes("company:compliance:update"),
     },
     {
       title: t("notifications"),
@@ -78,7 +93,7 @@ export function SettingsSidebar() {
                   "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-colors border",
                   isActive
                     ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border-transparent"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border-transparent",
                 )}
               >
                 <item.icon className="w-3.5 h-3.5 shrink-0" />
@@ -108,7 +123,7 @@ export function SettingsSidebar() {
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               <item.icon className="w-4 h-4 shrink-0" />

@@ -13,30 +13,34 @@ describe("pricing-resolver", () => {
   });
 
   it("selects matching distance tier", () => {
-    const bps = resolveCommissionBps(150, [
-      {
-        id: "1",
-        label: "Short",
-        minDistanceKm: 0,
-        maxDistanceKm: 100,
-        commissionBps: 400,
-        sortOrder: 0,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: "2",
-        label: "Medium",
-        minDistanceKm: 100,
-        maxDistanceKm: 250,
-        commissionBps: 500,
-        sortOrder: 1,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ], 600);
+    const bps = resolveCommissionBps(
+      150,
+      [
+        {
+          id: "1",
+          label: "Short",
+          minDistanceKm: 0,
+          maxDistanceKm: 100,
+          commissionBps: 400,
+          sortOrder: 0,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: "2",
+          label: "Medium",
+          minDistanceKm: 100,
+          maxDistanceKm: 250,
+          commissionBps: 500,
+          sortOrder: 1,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      600,
+    );
     assert.equal(bps, 500);
   });
 

@@ -4,7 +4,14 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CheckCircle2, GripVertical, X, MapPin, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {
+  CheckCircle2,
+  GripVertical,
+  X,
+  MapPin,
+  ArrowUpRight,
+  ArrowDownRight,
+} from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { Input } from "@moja/ui/components/ui/input";
 import { Badge } from "@moja/ui/components/ui/badge";
@@ -129,7 +136,8 @@ export function SortableWaypoint({
                   {waypoint.terminal.name}
                 </p>
                 <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                  {waypoint.terminal.cityRelation?.name ?? waypoint.terminal.city}
+                  {waypoint.terminal.cityRelation?.name ??
+                    waypoint.terminal.city}
                 </p>
               </div>
 
@@ -171,8 +179,8 @@ export function SortableWaypoint({
 
             {/* Metrics row: Distance */}
             <div className="flex items-center gap-3 flex-wrap pt-1 border-t border-border/50 text-[11px]">
-              {!isOrigin && (
-                editingDistance ? (
+              {!isOrigin &&
+                (editingDistance ? (
                   <div className="flex items-center gap-1">
                     <MapPin className="size-3 text-muted-foreground" />
                     <Input
@@ -189,7 +197,9 @@ export function SortableWaypoint({
                       }}
                       autoFocus
                     />
-                    <span className="text-[10px] text-muted-foreground">km</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      km
+                    </span>
                     <Button
                       size="icon"
                       variant="ghost"
@@ -203,7 +213,9 @@ export function SortableWaypoint({
                   <button
                     type="button"
                     onClick={() => {
-                      setDistanceInput(waypoint.distanceFromOriginKm?.toString() ?? "");
+                      setDistanceInput(
+                        waypoint.distanceFromOriginKm?.toString() ?? "",
+                      );
                       setEditingDistance(true);
                     }}
                     className="inline-flex items-center gap-1 font-medium text-muted-foreground hover:text-foreground transition-colors group/dist"
@@ -215,8 +227,7 @@ export function SortableWaypoint({
                         : t("addDistance")}
                     </span>
                   </button>
-                )
-              )}
+                ))}
             </div>
           </div>
 

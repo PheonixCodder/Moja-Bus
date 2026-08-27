@@ -19,17 +19,27 @@ const bookingInclude = {
       serviceType: true,
       tripStops: {
         include: {
-          terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+          terminal: {
+            include: { cityRelation: true, municipality: true, quarter: true },
+          },
         },
         orderBy: { stopOrder: "asc" },
       },
     },
   },
   originTripStop: {
-    include: { terminal: { include: { cityRelation: true, municipality: true, quarter: true } } },
+    include: {
+      terminal: {
+        include: { cityRelation: true, municipality: true, quarter: true },
+      },
+    },
   },
   destinationTripStop: {
-    include: { terminal: { include: { cityRelation: true, municipality: true, quarter: true } } },
+    include: {
+      terminal: {
+        include: { cityRelation: true, municipality: true, quarter: true },
+      },
+    },
   },
 } as const;
 
@@ -127,9 +137,7 @@ export class BookingReadService {
       groups.set(key, list);
     }
 
-    let summaries = [...groups.values()].map((group) =>
-      this.toSummary(group),
-    );
+    let summaries = [...groups.values()].map((group) => this.toSummary(group));
 
     summaries = summaries.filter((item) => {
       if (filter === "pending") {
@@ -137,7 +145,8 @@ export class BookingReadService {
       }
       if (filter === "upcoming") {
         return (
-          item.status === "CONFIRMED" && item.departureTime.getTime() >= now.getTime()
+          item.status === "CONFIRMED" &&
+          item.departureTime.getTime() >= now.getTime()
         );
       }
       // past
@@ -145,7 +154,8 @@ export class BookingReadService {
         item.status === "COMPLETED" ||
         item.status === "CANCELLED" ||
         item.status === "EXPIRED" ||
-        (item.status === "CONFIRMED" && item.departureTime.getTime() < now.getTime())
+        (item.status === "CONFIRMED" &&
+          item.departureTime.getTime() < now.getTime())
       );
     });
 
@@ -170,10 +180,7 @@ export class BookingReadService {
       include: bookingInclude,
     });
 
-    if (
-      !anchor ||
-      !this.canAccessBooking(anchor, userId, userPhone)
-    ) {
+    if (!anchor || !this.canAccessBooking(anchor, userId, userPhone)) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Booking not found",
@@ -227,10 +234,7 @@ export class BookingReadService {
           include: bookingInclude,
         });
 
-    if (
-      !booking ||
-      !this.canAccessBooking(booking, userId, userPhone)
-    ) {
+    if (!booking || !this.canAccessBooking(booking, userId, userPhone)) {
       throw new TRPCError({ code: "NOT_FOUND", message: "Ticket not found" });
     }
 
@@ -313,16 +317,35 @@ export class BookingReadService {
         tripStops: Array<{
           stopOrder: number;
           id: string;
-          terminal: { name: string; cityRelation: { name: string } | null; latitude: number | null; longitude: number | null };
+          terminal: {
+            name: string;
+            cityRelation: { name: string } | null;
+            latitude: number | null;
+            longitude: number | null;
+          };
         }>;
       };
       originTripStop: {
         scheduledDeparture: Date | null;
-        terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null; latitude: number | null; longitude: number | null };
+        terminal: {
+          name: string;
+          cityRelation: { name: string } | null;
+          municipality: { name: string } | null;
+          quarter: { name: string } | null;
+          latitude: number | null;
+          longitude: number | null;
+        };
       };
       destinationTripStop: {
         scheduledArrival: Date | null;
-        terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null; latitude: number | null; longitude: number | null };
+        terminal: {
+          name: string;
+          cityRelation: { name: string } | null;
+          municipality: { name: string } | null;
+          quarter: { name: string } | null;
+          latitude: number | null;
+          longitude: number | null;
+        };
       };
     }>,
   ): PassengerBookingSummary {
@@ -370,8 +393,7 @@ export class BookingReadService {
         first.originTripStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
       originMunicipalityName:
         first.originTripStop.terminal.municipality?.name ?? null,
-      originQuarterName:
-        first.originTripStop.terminal.quarter?.name ?? null,
+      originQuarterName: first.originTripStop.terminal.quarter?.name ?? null,
       destinationTerminalName: first.destinationTripStop.terminal.name,
       destinationCityName:
         first.destinationTripStop.terminal.cityRelation?.name ??
@@ -382,7 +404,8 @@ export class BookingReadService {
         first.destinationTripStop.terminal.quarter?.name ?? null,
       departureTime,
       arrivalTime,
-      serviceType: first.trip.serviceType as PassengerBookingSummary["serviceType"],
+      serviceType: first.trip
+        .serviceType as PassengerBookingSummary["serviceType"],
       passengerName: displayName,
       passengerPhone: first.passengerPhone,
       status: first.status as PassengerBookingSummary["status"],
@@ -408,12 +431,18 @@ export class BookingReadService {
       originCoordinates:
         first.originTripStop.terminal.longitude != null &&
         first.originTripStop.terminal.latitude != null
-          ? [first.originTripStop.terminal.longitude, first.originTripStop.terminal.latitude]
+          ? [
+              first.originTripStop.terminal.longitude,
+              first.originTripStop.terminal.latitude,
+            ]
           : null,
       destinationCoordinates:
         first.destinationTripStop.terminal.longitude != null &&
         first.destinationTripStop.terminal.latitude != null
-          ? [first.destinationTripStop.terminal.longitude, first.destinationTripStop.terminal.latitude]
+          ? [
+              first.destinationTripStop.terminal.longitude,
+              first.destinationTripStop.terminal.latitude,
+            ]
           : null,
       stops,
     };
@@ -429,11 +458,21 @@ export class BookingReadService {
     trip: { serviceType: string };
     originTripStop: {
       scheduledDeparture: Date | null;
-      terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null };
+      terminal: {
+        name: string;
+        cityRelation: { name: string } | null;
+        municipality: { name: string } | null;
+        quarter: { name: string } | null;
+      };
     };
     destinationTripStop: {
       scheduledArrival: Date | null;
-      terminal: { name: string; cityRelation: { name: string } | null; municipality: { name: string } | null; quarter: { name: string } | null };
+      terminal: {
+        name: string;
+        cityRelation: { name: string } | null;
+        municipality: { name: string } | null;
+        quarter: { name: string } | null;
+      };
     };
   }): DigitalTicketDTO {
     const baseUrl =
@@ -452,8 +491,7 @@ export class BookingReadService {
         booking.originTripStop.terminal.cityRelation?.name ?? "Côte d'Ivoire",
       originMunicipalityName:
         booking.originTripStop.terminal.municipality?.name ?? null,
-      originQuarterName:
-        booking.originTripStop.terminal.quarter?.name ?? null,
+      originQuarterName: booking.originTripStop.terminal.quarter?.name ?? null,
       destinationTerminalName: booking.destinationTripStop.terminal.name,
       destinationCityName:
         booking.destinationTripStop.terminal.cityRelation?.name ??
@@ -462,10 +500,8 @@ export class BookingReadService {
         booking.destinationTripStop.terminal.municipality?.name ?? null,
       destinationQuarterName:
         booking.destinationTripStop.terminal.quarter?.name ?? null,
-      departureTime:
-        booking.originTripStop.scheduledDeparture ?? new Date(),
-      arrivalTime:
-        booking.destinationTripStop.scheduledArrival ?? new Date(),
+      departureTime: booking.originTripStop.scheduledDeparture ?? new Date(),
+      arrivalTime: booking.destinationTripStop.scheduledArrival ?? new Date(),
       serviceType: booking.trip.serviceType as DigitalTicketDTO["serviceType"],
       farePaidXOF: booking.farePaid,
       qrPayload: `${baseUrl}/tickets/${encodeURIComponent(booking.ticketToken)}`,

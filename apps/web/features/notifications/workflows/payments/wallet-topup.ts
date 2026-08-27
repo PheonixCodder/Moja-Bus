@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const passengerWalletTopupWorkflow = workflow(
   "passenger-wallet-topup",
   async ({ step, payload }) => {
@@ -43,7 +42,8 @@ export const passengerWalletTopupWorkflow = workflow(
   },
   {
     name: "Passenger Wallet Top-Up Successful",
-    description: "Sends deposit invoice receipt and topbar success notification",
+    description:
+      "Sends deposit invoice receipt and topbar success notification",
     payloadSchema: z.object({
       email: z.string().email(),
       passengerName: z.string(),
@@ -51,5 +51,5 @@ export const passengerWalletTopupWorkflow = workflow(
       transactionId: z.string(),
       paymentMethod: z.string(),
     }),
-  }
+  },
 );

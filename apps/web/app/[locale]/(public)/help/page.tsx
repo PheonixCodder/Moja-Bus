@@ -24,7 +24,9 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <span className="font-semibold text-slate-800 text-base">{q}</span>
         <ChevronDown className="h-5 w-5 text-slate-400 group-open:rotate-180 transition-transform shrink-0" />
       </summary>
-      <div className="pb-5 text-slate-500 leading-relaxed text-sm pr-8">{a}</div>
+      <div className="pb-5 text-slate-500 leading-relaxed text-sm pr-8">
+        {a}
+      </div>
     </details>
   );
 }
@@ -57,12 +59,11 @@ export default async function HelpPage({ params }: Props) {
       {/* FAQ Sections */}
       <div className="max-w-3xl mx-auto px-6 md:px-8 py-16 space-y-16">
         {faqs.map((cat) => (
-          <section
-            key={cat.category}
-            id={cat.id}
-          >
+          <section key={cat.category} id={cat.id}>
             <div className="flex items-center gap-3 mb-6">
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${cat.color}`}>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold ${cat.color}`}
+              >
                 {cat.category}
               </span>
             </div>

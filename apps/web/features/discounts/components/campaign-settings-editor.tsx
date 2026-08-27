@@ -108,19 +108,41 @@ export function CampaignSettingsEditor({
 }: Props) {
   const t = useTranslations("discounts.campaignSettings");
   const [description, setDescription] = useState(campaign.description ?? "");
-  const [startsAt, setStartsAt] = useState<Date | undefined>(toDate(campaign.startsAt));
-  const [endsAt, setEndsAt] = useState<Date | undefined>(toDate(campaign.endsAt));
-  const [budgetXOF, setBudgetXOF] = useState(campaign.budgetXOF?.toString() ?? "");
-  const [maxGlobal, setMaxGlobal] = useState(campaign.maxRedemptionsGlobal?.toString() ?? "");
-  const [maxUser, setMaxUser] = useState(campaign.maxRedemptionsPerUser?.toString() ?? "");
-  const [maxPhone, setMaxPhone] = useState(campaign.maxRedemptionsPerPhone?.toString() ?? "");
-  const [maxDiscount, setMaxDiscount] = useState(campaign.maxDiscountPerBookingXOF?.toString() ?? "");
-  const [minSpend, setMinSpend] = useState(campaign.minSubtotalXOF?.toString() ?? "");
-  const [firstBookingOnly, setFirstBookingOnly] = useState(campaign.firstBookingOnly);
+  const [startsAt, setStartsAt] = useState<Date | undefined>(
+    toDate(campaign.startsAt),
+  );
+  const [endsAt, setEndsAt] = useState<Date | undefined>(
+    toDate(campaign.endsAt),
+  );
+  const [budgetXOF, setBudgetXOF] = useState(
+    campaign.budgetXOF?.toString() ?? "",
+  );
+  const [maxGlobal, setMaxGlobal] = useState(
+    campaign.maxRedemptionsGlobal?.toString() ?? "",
+  );
+  const [maxUser, setMaxUser] = useState(
+    campaign.maxRedemptionsPerUser?.toString() ?? "",
+  );
+  const [maxPhone, setMaxPhone] = useState(
+    campaign.maxRedemptionsPerPhone?.toString() ?? "",
+  );
+  const [maxDiscount, setMaxDiscount] = useState(
+    campaign.maxDiscountPerBookingXOF?.toString() ?? "",
+  );
+  const [minSpend, setMinSpend] = useState(
+    campaign.minSubtotalXOF?.toString() ?? "",
+  );
+  const [firstBookingOnly, setFirstBookingOnly] = useState(
+    campaign.firstBookingOnly,
+  );
   const [newUserOnly, setNewUserOnly] = useState(campaign.newUserOnly);
   const [isAutoApply, setIsAutoApply] = useState(campaign.isAutoApply);
-  const [allowCombineWithCredit, setAllowCombineWithCredit] = useState(campaign.allowCombineWithCredit);
-  const [requireOperatorOptIn, setRequireOperatorOptIn] = useState(campaign.requireOperatorOptIn);
+  const [allowCombineWithCredit, setAllowCombineWithCredit] = useState(
+    campaign.allowCombineWithCredit,
+  );
+  const [requireOperatorOptIn, setRequireOperatorOptIn] = useState(
+    campaign.requireOperatorOptIn,
+  );
   const [hybrid, setHybrid] = useState(campaign.fundingType === "HYBRID");
   const [platformSharePct, setPlatformSharePct] = useState(
     String(Math.round((campaign.platformShareBps ?? 0) / 100)),
@@ -152,7 +174,9 @@ export function CampaignSettingsEditor({
     setAllowCombineWithCredit(campaign.allowCombineWithCredit);
     setRequireOperatorOptIn(campaign.requireOperatorOptIn);
     setHybrid(campaign.fundingType === "HYBRID");
-    setPlatformSharePct(String(Math.round((campaign.platformShareBps ?? 0) / 100)));
+    setPlatformSharePct(
+      String(Math.round((campaign.platformShareBps ?? 0) / 100)),
+    );
     setRouteIds(campaign.routeScopes?.map((s) => s.routeId) ?? []);
     setScheduleIds(campaign.scheduleScopes?.map((s) => s.scheduleId) ?? []);
     setTripIds(campaign.tripScopes?.map((s) => s.tripId) ?? []);
@@ -179,12 +203,18 @@ export function CampaignSettingsEditor({
   }
 
   function toggleRoute(id: string) {
-    updateRouteIds(routeIds.includes(id) ? routeIds.filter((x) => x !== id) : [...routeIds, id]);
+    updateRouteIds(
+      routeIds.includes(id)
+        ? routeIds.filter((x) => x !== id)
+        : [...routeIds, id],
+    );
   }
 
   function toggleSchedule(id: string) {
     updateScheduleIds(
-      scheduleIds.includes(id) ? scheduleIds.filter((x) => x !== id) : [...scheduleIds, id],
+      scheduleIds.includes(id)
+        ? scheduleIds.filter((x) => x !== id)
+        : [...scheduleIds, id],
     );
   }
 
@@ -201,7 +231,10 @@ export function CampaignSettingsEditor({
       {/* Description */}
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5">
-          <Label htmlFor="camp-desc" className="text-sm font-medium text-slate-700">
+          <Label
+            htmlFor="camp-desc"
+            className="text-sm font-medium text-slate-700"
+          >
             {t("description")}{" "}
             <span className="font-normal text-slate-400">{t("internal")}</span>
           </Label>
@@ -219,7 +252,9 @@ export function CampaignSettingsEditor({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-slate-700">{t("starts")}</Label>
+            <Label className="text-sm font-medium text-slate-700">
+              {t("starts")}
+            </Label>
             <InfoTooltip content="The exact date and time when passengers can start applying this promotion at checkout." />
           </div>
           <DateTimePicker
@@ -230,7 +265,9 @@ export function CampaignSettingsEditor({
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-slate-700">{t("ends")}</Label>
+            <Label className="text-sm font-medium text-slate-700">
+              {t("ends")}
+            </Label>
             <InfoTooltip content="Optional expiration cutoff. After this time, codes will be rejected at checkout." />
           </div>
           <DateTimePicker
@@ -248,7 +285,10 @@ export function CampaignSettingsEditor({
             {t("firstBookingOnly")}
             <InfoTooltip content="Restricts redemption strictly to travelers making their very first ticket purchase on Moja Ride." />
           </span>
-          <Switch checked={firstBookingOnly} onCheckedChange={setFirstBookingOnly} />
+          <Switch
+            checked={firstBookingOnly}
+            onCheckedChange={setFirstBookingOnly}
+          />
         </label>
 
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
@@ -272,15 +312,16 @@ export function CampaignSettingsEditor({
             {t("stackWithPromoCredits")}
             <InfoTooltip content="When enabled, passengers can use both this discount code and their earned referral promo credits on the same booking." />
           </span>
-          <Switch checked={allowCombineWithCredit} onCheckedChange={setAllowCombineWithCredit} />
+          <Switch
+            checked={allowCombineWithCredit}
+            onCheckedChange={setAllowCombineWithCredit}
+          />
         </label>
       </div>
 
       {/* Advanced settings — collapsed by default */}
       <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-        <CollapsibleTrigger
-          className="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
-        >
+        <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100">
           <Settings2 className="size-4 text-slate-400" />
           {t("advancedLimitsFunding")}
           <ChevronDown
@@ -420,7 +461,10 @@ export function CampaignSettingsEditor({
                     {t("requireOperatorOptInDesc")}
                   </p>
                 </div>
-                <Switch checked={requireOperatorOptIn} onCheckedChange={setRequireOperatorOptIn} />
+                <Switch
+                  checked={requireOperatorOptIn}
+                  onCheckedChange={setRequireOperatorOptIn}
+                />
               </label>
             )}
 
@@ -480,9 +524,7 @@ export function CampaignSettingsEditor({
           </div>
           <div className="h-px flex-1 bg-slate-100" />
         </div>
-        <p className="text-xs text-slate-500">
-          {t("targetingScopeDesc")}
-        </p>
+        <p className="text-xs text-slate-500">{t("targetingScopeDesc")}</p>
 
         {/* Routes */}
         <div className="space-y-1.5">

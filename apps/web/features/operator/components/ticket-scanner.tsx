@@ -88,32 +88,34 @@ export function TicketScanner({
     }
   }, []);
 
-  const handleDecoded = useCallback(async (raw: string) => {
-    if (disabled || processingRef.current) return;
+  const handleDecoded = useCallback(
+    async (raw: string) => {
+      if (disabled || processingRef.current) return;
 
-    const now = Date.now();
-    const last = lastScanRef.current;
-    if (last && last.value === raw && now - last.at < SCAN_DEBOUNCE_MS) {
-      return;
-    }
-    lastScanRef.current = { value: raw, at: now };
+      const now = Date.now();
+      const last = lastScanRef.current;
+      if (last && last.value === raw && now - last.at < SCAN_DEBOUNCE_MS) {
+        return;
+      }
+      lastScanRef.current = { value: raw, at: now };
 
-    setProcessing(true);
-    processingRef.current = true;
-    setError(null);
-    try {
-      const result = await onScanRef.current(raw);
-      setLastResult(result);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Check-in failed.";
-      setError(message);
-      setLastResult(null);
-    } finally {
-      setProcessing(false);
-      processingRef.current = false;
-    }
-  }, [disabled]);
+      setProcessing(true);
+      processingRef.current = true;
+      setError(null);
+      try {
+        const result = await onScanRef.current(raw);
+        setLastResult(result);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Check-in failed.";
+        setError(message);
+        setLastResult(null);
+      } finally {
+        setProcessing(false);
+        processingRef.current = false;
+      }
+    },
+    [disabled],
+  );
 
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,7 +218,9 @@ export function TicketScanner({
             <ScanLine className="size-5" />
             {title}
           </DialogTitle>
-          <DialogDescription className="text-xs text-text-muted">{description}</DialogDescription>
+          <DialogDescription className="text-xs text-text-muted">
+            {description}
+          </DialogDescription>
         </DialogHeader>
 
         {/* Tab switcher */}
@@ -228,7 +232,7 @@ export function TicketScanner({
               "px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200",
               mode === "scan"
                 ? "bg-white text-primary border border-slate-200/40 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900",
             )}
           >
             {t("cameraScan")}
@@ -240,7 +244,7 @@ export function TicketScanner({
               "px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200",
               mode === "manual"
                 ? "bg-white text-primary border border-slate-200/40 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900",
             )}
           >
             {t("enterManually")}
@@ -251,7 +255,10 @@ export function TicketScanner({
           {mode === "manual" ? (
             <form onSubmit={handleManualSubmit} className="space-y-4 pt-1">
               <div className="space-y-1.5">
-                <Label htmlFor="manual-token" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <Label
+                  htmlFor="manual-token"
+                  className="text-[10px] font-bold text-slate-500 uppercase tracking-wider"
+                >
                   {t("ticketTokenLabel")}
                 </Label>
                 <div className="relative">
@@ -304,7 +311,9 @@ export function TicketScanner({
           ) : null}
 
           {error ? (
-            <p className="text-xs text-destructive font-medium bg-red-50 border border-red-100 p-2.5 rounded-lg">{error}</p>
+            <p className="text-xs text-destructive font-medium bg-red-50 border border-red-100 p-2.5 rounded-lg">
+              {error}
+            </p>
           ) : null}
 
           {lastResult ? (
@@ -322,10 +331,15 @@ export function TicketScanner({
                   : t("checkedInSuccess")}
               </p>
               <p className="mt-1 text-xs">
-                {t("passengerSeat", { passengerName: lastResult.passengerName, seatLabel: lastResult.seatLabel })}
+                {t("passengerSeat", {
+                  passengerName: lastResult.passengerName,
+                  seatLabel: lastResult.seatLabel,
+                })}
               </p>
               <p className="text-[10px] opacity-80 mt-0.5">
-                {t("refLabel", { bookingReference: lastResult.bookingReference })}
+                {t("refLabel", {
+                  bookingReference: lastResult.bookingReference,
+                })}
               </p>
             </div>
           ) : null}

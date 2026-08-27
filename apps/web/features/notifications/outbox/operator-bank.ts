@@ -1,8 +1,4 @@
-import {
-  enqueueOutboxMessage,
-  OUTBOX_TYPES,
-  type OutboxDb,
-} from "./enqueue";
+import { enqueueOutboxMessage, OUTBOX_TYPES, type OutboxDb } from "./enqueue";
 
 type BankRecipient = {
   subscriberId: string;

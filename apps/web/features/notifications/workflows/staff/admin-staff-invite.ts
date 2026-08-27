@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const adminStaffInviteWorkflow = workflow(
   "admin-staff-invite",
   async ({ step, payload }) => {
@@ -42,7 +41,8 @@ export const adminStaffInviteWorkflow = workflow(
   },
   {
     name: "Admin Staff Invitation",
-    description: "Invites a new platform administrator to join the Moja Ride admin team",
+    description:
+      "Invites a new platform administrator to join the Moja Ride admin team",
     payloadSchema: z.object({
       email: z.string().email(),
       inviterName: z.string(),
@@ -52,5 +52,5 @@ export const adminStaffInviteWorkflow = workflow(
       expiresAt: z.string(),
       message: z.string().nullable().optional(),
     }),
-  }
+  },
 );

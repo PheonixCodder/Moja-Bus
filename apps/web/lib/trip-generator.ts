@@ -196,14 +196,13 @@ export async function generateTripsForSchedule(
             estimatedArrival: new Date(
               departureTimestamp.getTime() + destDepartureOffset * 60000,
             ),
-            totalSeats:
-              bus.seats.filter(
-                (s) =>
-                  s.isActive &&
-                  s.isBookable &&
-                  s.seatType !== "DRIVER_AREA" &&
-                  s.seatType !== "EMPTY_SPACE",
-              ).length,
+            totalSeats: bus.seats.filter(
+              (s) =>
+                s.isActive &&
+                s.isBookable &&
+                s.seatType !== "DRIVER_AREA" &&
+                s.seatType !== "EMPTY_SPACE",
+            ).length,
             status: "SCHEDULED",
             // Phase 1: snapshot the route's service type so search and
             // tickets can filter/display it without joining geometry
@@ -216,7 +215,7 @@ export async function generateTripsForSchedule(
           },
         });
 
-const lastWaypointOrder =
+        const lastWaypointOrder =
           route.waypoints.length > 0
             ? route.waypoints[route.waypoints.length - 1]!.stopOrder
             : 0;

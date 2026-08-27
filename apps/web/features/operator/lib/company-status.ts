@@ -127,7 +127,10 @@ export function getBankVerificationState(
 }
 
 export function getCompanyProfileState(
-  company: { registrationNumber?: string | null; taxId?: string | null } | null | undefined,
+  company:
+    | { registrationNumber?: string | null; taxId?: string | null }
+    | null
+    | undefined,
 ): "missing" | "complete" {
   if (!company) return "missing";
   if (company.registrationNumber && company.taxId) return "complete";

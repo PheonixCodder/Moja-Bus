@@ -30,8 +30,12 @@ export function OperatorPromotionOptInsCard({
 
   if (campaigns.length === 0) return null;
 
-  function benefitLabel(item: { benefitType: string; percentBps?: number | null }) {
-    if (item.benefitType === "PERCENT_OFF") return tTable("percentOff", { percent: (item.percentBps ?? 0) / 100 });
+  function benefitLabel(item: {
+    benefitType: string;
+    percentBps?: number | null;
+  }) {
+    if (item.benefitType === "PERCENT_OFF")
+      return tTable("percentOff", { percent: (item.percentBps ?? 0) / 100 });
     return item.benefitType;
   }
 
@@ -42,9 +46,7 @@ export function OperatorPromotionOptInsCard({
           <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
           <InfoTooltip content={t("tooltip")} />
         </div>
-        <p className="mt-0.5 text-xs text-slate-500">
-          {t("description")}
-        </p>
+        <p className="mt-0.5 text-xs text-slate-500">{t("description")}</p>
       </div>
       <ul className="space-y-2">
         {campaigns.map((c) => {
@@ -56,14 +58,23 @@ export function OperatorPromotionOptInsCard({
               className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex items-start gap-3">
-                {isOptedIn && <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-500" />}
+                {isOptedIn && (
+                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-500" />
+                )}
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{c.name}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {c.name}
+                  </p>
                   <p className="mt-0.5 text-xs text-slate-500">
-                    {benefitLabel(c)}{" "}
-                    ·{" "}
-                    <span className={`font-medium ${isOptedIn ? "text-emerald-600" : "text-slate-500"}`}>
-                      {isOptedIn ? t("optedIn") : optInStatus === "OPTED_OUT" ? t("optedOut") : t("invited")}
+                    {benefitLabel(c)} ·{" "}
+                    <span
+                      className={`font-medium ${isOptedIn ? "text-emerald-600" : "text-slate-500"}`}
+                    >
+                      {isOptedIn
+                        ? t("optedIn")
+                        : optInStatus === "OPTED_OUT"
+                          ? t("optedOut")
+                          : t("invited")}
                     </span>
                   </p>
                 </div>

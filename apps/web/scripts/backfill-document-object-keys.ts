@@ -53,7 +53,9 @@ async function main() {
   for (const doc of docs) {
     const objectKey = deriveObjectKey(doc.fileUrl);
     if (!objectKey) {
-      console.warn(`[skip] could not derive key for ${doc.id} (${doc.fileUrl})`);
+      console.warn(
+        `[skip] could not derive key for ${doc.id} (${doc.fileUrl})`,
+      );
       continue;
     }
     await prisma.companyDocument.update({

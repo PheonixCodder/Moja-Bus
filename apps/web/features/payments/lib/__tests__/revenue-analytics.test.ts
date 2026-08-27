@@ -25,7 +25,15 @@ function row(opts: {
 describe("aggregateRevenueRows", () => {
   it("aggregates a single row correctly", () => {
     const result = aggregateRevenueRows([
-      row({ day: "2025-01-15T05:00:00Z", originCity: "Abidjan", destCity: "Bouake", net: 1000n, gross: 1500n, bookingsCount: 2n, tripsCount: 1n }),
+      row({
+        day: "2025-01-15T05:00:00Z",
+        originCity: "Abidjan",
+        destCity: "Bouake",
+        net: 1000n,
+        gross: 1500n,
+        bookingsCount: 2n,
+        tripsCount: 1n,
+      }),
     ]);
 
     assert.equal(result.grossRevenueXOF, 1500);
@@ -37,8 +45,24 @@ describe("aggregateRevenueRows", () => {
 
   it("aggregates rows across multiple days", () => {
     const result = aggregateRevenueRows([
-      row({ day: "2025-01-15T05:00:00Z", originCity: "Abidjan", destCity: "Bouake", net: 1000n, gross: 1500n, bookingsCount: 2n, tripsCount: 1n }),
-      row({ day: "2025-01-16T05:00:00Z", originCity: "Abidjan", destCity: "Bouake", net: 2000n, gross: 3000n, bookingsCount: 3n, tripsCount: 1n }),
+      row({
+        day: "2025-01-15T05:00:00Z",
+        originCity: "Abidjan",
+        destCity: "Bouake",
+        net: 1000n,
+        gross: 1500n,
+        bookingsCount: 2n,
+        tripsCount: 1n,
+      }),
+      row({
+        day: "2025-01-16T05:00:00Z",
+        originCity: "Abidjan",
+        destCity: "Bouake",
+        net: 2000n,
+        gross: 3000n,
+        bookingsCount: 3n,
+        tripsCount: 1n,
+      }),
     ]);
 
     assert.equal(result.netRevenueXOF, 3000);
@@ -49,8 +73,24 @@ describe("aggregateRevenueRows", () => {
 
   it("merges rows with same date and route", () => {
     const result = aggregateRevenueRows([
-      row({ day: "2025-01-15T05:00:00Z", originCity: "Abidjan", destCity: "Bouake", net: 1000n, gross: 1500n, bookingsCount: 2n, tripsCount: 1n }),
-      row({ day: "2025-01-15T07:00:00Z", originCity: "Abidjan", destCity: "Bouake", net: 500n, gross: 750n, bookingsCount: 1n, tripsCount: 1n }),
+      row({
+        day: "2025-01-15T05:00:00Z",
+        originCity: "Abidjan",
+        destCity: "Bouake",
+        net: 1000n,
+        gross: 1500n,
+        bookingsCount: 2n,
+        tripsCount: 1n,
+      }),
+      row({
+        day: "2025-01-15T07:00:00Z",
+        originCity: "Abidjan",
+        destCity: "Bouake",
+        net: 500n,
+        gross: 750n,
+        bookingsCount: 1n,
+        tripsCount: 1n,
+      }),
     ]);
 
     assert.equal(result.timeSeriesMap.size, 1);
@@ -61,7 +101,15 @@ describe("aggregateRevenueRows", () => {
 
   it("handles archived/schedule-less trips where origin or dest city is null (regression A7a)", () => {
     const result = aggregateRevenueRows([
-      row({ day: "2025-01-15T05:00:00Z", originCity: null, destCity: null, net: 1000n, gross: 1500n, bookingsCount: 2n, tripsCount: 1n }),
+      row({
+        day: "2025-01-15T05:00:00Z",
+        originCity: null,
+        destCity: null,
+        net: 1000n,
+        gross: 1500n,
+        bookingsCount: 2n,
+        tripsCount: 1n,
+      }),
     ]);
 
     assert.equal(result.grossRevenueXOF, 1500);
@@ -83,7 +131,15 @@ describe("aggregateRevenueRows", () => {
 
   it("produces route entries with correct structure", () => {
     const result = aggregateRevenueRows([
-      row({ day: "2025-01-15T05:00:00Z", originCity: "Abidjan", destCity: "Bouake", net: 1000n, gross: 1500n, bookingsCount: 2n, tripsCount: 1n }),
+      row({
+        day: "2025-01-15T05:00:00Z",
+        originCity: "Abidjan",
+        destCity: "Bouake",
+        net: 1000n,
+        gross: 1500n,
+        bookingsCount: 2n,
+        tripsCount: 1n,
+      }),
     ]);
 
     const routeEntry = Array.from(result.routeMap.values())[0]!;
@@ -96,8 +152,24 @@ describe("aggregateRevenueRows", () => {
 
   it("handles partial null cities (origin only)", () => {
     const result = aggregateRevenueRows([
-      row({ day: "2025-01-15T05:00:00Z", originCity: "Abidjan", destCity: null, net: 500n, gross: 750n, bookingsCount: 1n, tripsCount: 1n }),
-      row({ day: "2025-01-15T05:00:00Z", originCity: null, destCity: "Bouake", net: 500n, gross: 750n, bookingsCount: 1n, tripsCount: 1n }),
+      row({
+        day: "2025-01-15T05:00:00Z",
+        originCity: "Abidjan",
+        destCity: null,
+        net: 500n,
+        gross: 750n,
+        bookingsCount: 1n,
+        tripsCount: 1n,
+      }),
+      row({
+        day: "2025-01-15T05:00:00Z",
+        originCity: null,
+        destCity: "Bouake",
+        net: 500n,
+        gross: 750n,
+        bookingsCount: 1n,
+        tripsCount: 1n,
+      }),
     ]);
 
     assert.equal(result.routeMap.size, 2);

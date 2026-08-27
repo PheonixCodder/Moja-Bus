@@ -89,10 +89,7 @@ export function RoleSheet({
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent
-        side="right"
-        className="flex flex-col p-0 sm:max-w-md"
-      >
+      <SheetContent side="right" className="flex flex-col p-0 sm:max-w-md">
         <SheetHeader>
           <SheetTitle>{t("roleSheet.title")}</SheetTitle>
           <SheetDescription>{t("roleSheet.description")}</SheetDescription>

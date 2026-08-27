@@ -51,7 +51,9 @@ export function BusCard({
   onViewMap,
 }: BusCardProps) {
   const t = useTranslations("operatorDashboard.fleet");
-  const statusKey = (bus.status in STATUS_STYLE ? bus.status : "INACTIVE") as keyof typeof STATUS_STYLE;
+  const statusKey = (
+    bus.status in STATUS_STYLE ? bus.status : "INACTIVE"
+  ) as keyof typeof STATUS_STYLE;
   const statusStyle = STATUS_STYLE[statusKey];
   const seatClass = bus.seatClass ?? "STANDARD";
 
@@ -71,7 +73,10 @@ export function BusCard({
                 </p>
                 <Badge
                   variant="outline"
-                  className={cn("text-[9px] uppercase px-1.5 py-0 h-3.5", CLASS_BADGES[seatClass as keyof typeof CLASS_BADGES])}
+                  className={cn(
+                    "text-[9px] uppercase px-1.5 py-0 h-3.5",
+                    CLASS_BADGES[seatClass as keyof typeof CLASS_BADGES],
+                  )}
                 >
                   {seatClass}
                 </Badge>
@@ -117,8 +122,12 @@ export function BusCard({
         {/* Notes */}
         {bus.notes && (
           <div className="rounded-md bg-amber-50/60 border border-amber-200/60 px-2.5 py-1.5">
-            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">{t("busCard.notes")}</p>
-            <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">{bus.notes}</p>
+            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">
+              {t("busCard.notes")}
+            </p>
+            <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">
+              {bus.notes}
+            </p>
           </div>
         )}
 

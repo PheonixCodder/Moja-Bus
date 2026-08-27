@@ -21,7 +21,12 @@ interface SearchSortBarProps {
   onSortChange: (sort: string) => void;
 }
 
-export const SearchSortBar = memo(function SearchSortBar({ total, sort, isLoading, onSortChange }: SearchSortBarProps) {
+export const SearchSortBar = memo(function SearchSortBar({
+  total,
+  sort,
+  isLoading,
+  onSortChange,
+}: SearchSortBarProps) {
   const t = useTranslations("search");
 
   const SORT_LABELS: Record<string, string> = {
@@ -54,7 +59,8 @@ export const SearchSortBar = memo(function SearchSortBar({ total, sort, isLoadin
           {t("sort.label")}
         </span>
         {SORT_KEYS.map((key) => {
-          const isActive = sort === key || (sort === "BEST" && key === "CHEAPEST");
+          const isActive =
+            sort === key || (sort === "BEST" && key === "CHEAPEST");
           return (
             <button
               key={key}

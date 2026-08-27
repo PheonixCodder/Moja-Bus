@@ -46,12 +46,8 @@ export function AdminPromoCreditsCard() {
   return (
     <Card className="space-y-4 p-4">
       <div>
-        <h2 className="text-sm font-semibold text-slate-900">
-          {t("title")}
-        </h2>
-        <p className="text-xs text-slate-500">
-          {t("description")}
-        </p>
+        <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
+        <p className="text-xs text-slate-500">{t("description")}</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

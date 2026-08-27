@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const passengerBookingConfirmedWorkflow = workflow(
   "passenger-booking-confirmed",
   async ({ step, payload }) => {
@@ -56,12 +55,20 @@ export const passengerBookingConfirmedWorkflow = workflow(
       subject: "Booking Confirmed",
       body: `Route: ${escapeHtml(payload.originCityName)} → ${escapeHtml(payload.destinationCityName)} at ${escapeHtml(payload.departureTime)}. Total: ${escapeHtml(payload.totalAmountXOF)} XOF`,
       // Phase 21 (F-NF-05) — first reference drives the detail deep-link.
-      overrides: { expo: { data: { type: "booking-confirmed", bookingReference: payload.bookingReferences?.[0] ?? "" } } },
+      overrides: {
+        expo: {
+          data: {
+            type: "booking-confirmed",
+            bookingReference: payload.bookingReferences?.[0] ?? "",
+          },
+        },
+      },
     }));
   },
   {
     name: "Passenger Booking Confirmed",
-    description: "Sends multi-channel ticket confirmation and receipt immediately after checkout",
+    description:
+      "Sends multi-channel ticket confirmation and receipt immediately after checkout",
     preferences: {
       all: { readOnly: true },
     },
@@ -82,5 +89,5 @@ export const passengerBookingConfirmedWorkflow = workflow(
       convenienceFeeXOF: z.number().optional(),
       hasDiscount: z.boolean().optional(),
     }),
-  }
+  },
 );

@@ -11,6 +11,4 @@
 console.log(
   "reencrypt-bank-accounts: implement batch read/decrypt/encrypt when production data exists.",
 );
-console.log(
-  "See apps/web/docs/bank-encryption.md for the rotation procedure.",
-);
+console.log("See apps/web/docs/bank-encryption.md for the rotation procedure.");

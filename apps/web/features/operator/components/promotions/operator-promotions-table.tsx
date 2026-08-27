@@ -26,7 +26,9 @@ export interface PromoListItem {
   _count: { redemptions: number; coupons: number };
 }
 
-function statusVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
+function statusVariant(
+  status: string,
+): "default" | "secondary" | "outline" | "destructive" {
   if (status === "ACTIVE") return "default";
   if (status === "PAUSED") return "secondary";
   return "outline";
@@ -53,9 +55,15 @@ export function OperatorPromotionsTable({
 }: OperatorPromotionsTableProps) {
   const t = useTranslations("operatorDashboard.promotions.table");
 
-  function benefitLabel(item: { benefitType: string; percentBps?: number | null; amountXOF?: number | null }) {
-    if (item.benefitType === "PERCENT_OFF") return t("percentOff", { percent: (item.percentBps ?? 0) / 100 });
-    if (item.benefitType === "FIXED_AMOUNT_OFF") return t("fixedOff", { amount: item.amountXOF?.toLocaleString() ?? 0 });
+  function benefitLabel(item: {
+    benefitType: string;
+    percentBps?: number | null;
+    amountXOF?: number | null;
+  }) {
+    if (item.benefitType === "PERCENT_OFF")
+      return t("percentOff", { percent: (item.percentBps ?? 0) / 100 });
+    if (item.benefitType === "FIXED_AMOUNT_OFF")
+      return t("fixedOff", { amount: item.amountXOF?.toLocaleString() ?? 0 });
     return item.benefitType;
   }
 
@@ -64,18 +72,33 @@ export function OperatorPromotionsTable({
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50/60">
-            <TableHead className="font-semibold text-slate-600">{t("promotion")}</TableHead>
-            <TableHead className="font-semibold text-slate-600">{t("benefit")}</TableHead>
-            <TableHead className="font-semibold text-slate-600">{t("status")}</TableHead>
-            <TableHead className="font-semibold text-slate-600">{t("usage")}</TableHead>
-            <TableHead className="font-semibold text-slate-600">{t("created")}</TableHead>
-            <TableHead className="text-right font-semibold text-slate-600">{t("actions")}</TableHead>
+            <TableHead className="font-semibold text-slate-600">
+              {t("promotion")}
+            </TableHead>
+            <TableHead className="font-semibold text-slate-600">
+              {t("benefit")}
+            </TableHead>
+            <TableHead className="font-semibold text-slate-600">
+              {t("status")}
+            </TableHead>
+            <TableHead className="font-semibold text-slate-600">
+              {t("usage")}
+            </TableHead>
+            <TableHead className="font-semibold text-slate-600">
+              {t("created")}
+            </TableHead>
+            <TableHead className="text-right font-semibold text-slate-600">
+              {t("actions")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-12 text-center text-sm text-slate-400">
+              <TableCell
+                colSpan={6}
+                className="py-12 text-center text-sm text-slate-400"
+              >
                 {t("loading")}
               </TableCell>
             </TableRow>
@@ -87,7 +110,9 @@ export function OperatorPromotionsTable({
                     <Tag className="size-6 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">{t("emptyTitle")}</p>
+                    <p className="text-sm font-semibold text-slate-700">
+                      {t("emptyTitle")}
+                    </p>
                     <p className="mt-0.5 text-xs text-slate-400">
                       {t("emptyDesc")}
                     </p>
@@ -103,7 +128,11 @@ export function OperatorPromotionsTable({
             items.map((item) => (
               <TableRow
                 key={item.id}
-                className={selectedPromoId === item.id ? "bg-slate-50" : "hover:bg-slate-50/50"}
+                className={
+                  selectedPromoId === item.id
+                    ? "bg-slate-50"
+                    : "hover:bg-slate-50/50"
+                }
               >
                 <TableCell>
                   <div className="font-medium text-slate-900">{item.name}</div>
@@ -114,14 +143,21 @@ export function OperatorPromotionsTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={statusVariant(item.status)} className="capitalize">
+                  <Badge
+                    variant={statusVariant(item.status)}
+                    className="capitalize"
+                  >
                     {item.status.toLowerCase()}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-sm text-slate-600">
-                  <span className="font-semibold tabular-nums">{t("usesCount", { count: item._count.redemptions })}</span>
+                  <span className="font-semibold tabular-nums">
+                    {t("usesCount", { count: item._count.redemptions })}
+                  </span>
                   <span className="text-slate-400"> · </span>
-                  <span className="tabular-nums">{t("codesCount", { count: item._count.coupons })}</span>
+                  <span className="tabular-nums">
+                    {t("codesCount", { count: item._count.coupons })}
+                  </span>
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-sm text-slate-500">
                   {format(new Date(item.createdAt), "dd MMM yyyy")}
@@ -131,7 +167,9 @@ export function OperatorPromotionsTable({
                     <Button
                       type="button"
                       size="sm"
-                      variant={selectedPromoId === item.id ? "default" : "outline"}
+                      variant={
+                        selectedPromoId === item.id ? "default" : "outline"
+                      }
                       onClick={() => onSelectPromo(item.id)}
                     >
                       {t("manage")}

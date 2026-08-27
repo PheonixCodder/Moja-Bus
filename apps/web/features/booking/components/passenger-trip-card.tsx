@@ -23,8 +23,9 @@ function StatusBadge({ booking }: { booking: PassengerBookingSummary }) {
   );
 
   if (booking.status === "PENDING_PAYMENT") {
-    const label = countdown?.label
-      ?? (booking.holdExpiresAt
+    const label =
+      countdown?.label ??
+      (booking.holdExpiresAt
         ? `Pay by ${formatDepartureTime(booking.holdExpiresAt)}`
         : "Awaiting payment");
 
@@ -117,7 +118,14 @@ export function PassengerTripCard({
             <p className="text-xs font-semibold text-slate-600 mt-0.5 truncate">
               {booking.originTerminalName}
             </p>
-            <p className="text-[10px] text-slate-400">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</p>
+            <p className="text-[10px] text-slate-400">
+              {formatLocationLabel({
+                cityName: booking.originCityName,
+                municipalityName: booking.originMunicipalityName,
+                quarterName: booking.originQuarterName,
+                isUrban: booking.serviceType === "URBAN",
+              })}
+            </p>
           </div>
 
           <div className="sm:col-span-3 flex flex-col items-center px-2">
@@ -147,7 +155,12 @@ export function PassengerTripCard({
               {booking.destinationTerminalName}
             </p>
             <p className="text-[10px] text-slate-400">
-              {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
+              {formatLocationLabel({
+                cityName: booking.destinationCityName,
+                municipalityName: booking.destinationMunicipalityName,
+                quarterName: booking.destinationQuarterName,
+                isUrban: booking.serviceType === "URBAN",
+              })}
             </p>
           </div>
         </div>
@@ -171,7 +184,9 @@ export function PassengerTripCard({
                 <p className="text-sm font-semibold text-slate-800">
                   {booking.passengerName}
                 </p>
-                <p className="text-xs text-slate-500">{booking.passengerPhone}</p>
+                <p className="text-xs text-slate-500">
+                  {booking.passengerPhone}
+                </p>
               </>
             )}
           </div>

@@ -13,7 +13,16 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { useStorageUpload } from "@/lib/storage-client";
 import { cn } from "@moja/ui/lib/utils";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@moja/ui/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@moja/ui/components/ui/alert-dialog";
 import { HealthScore } from "../health-score";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
@@ -40,11 +49,12 @@ export function ComplianceView() {
   const canManageCompliance = can("company:compliance:update");
 
   const { data: settings } = useCompanySettings();
-  
+
   const addDocumentMutation = useMutation(
     trpc.operator.addDocument.mutationOptions({
-      onSuccess: () => queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
-    })
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
   );
 
   const deleteDocumentMutation = useMutation(
@@ -61,8 +71,10 @@ export function ComplianceView() {
             ...old,
             company: {
               ...old.company,
-              documents: old.company.documents.filter((doc: any) => doc.id !== variables.id)
-            }
+              documents: old.company.documents.filter(
+                (doc: any) => doc.id !== variables.id,
+              ),
+            },
           };
         });
 
@@ -70,25 +82,36 @@ export function ComplianceView() {
       },
       onError: (err, variables, context) => {
         if (context?.previousSettings) {
-          queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
+          queryClient.setQueryData(
+            trpc.operator.getSettings.queryKey(),
+            context.previousSettings,
+          );
         }
       },
-      onSettled: () => queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
-    })
+      onSettled: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
   );
 
-  const presignDownloadMutation = useMutation(trpc.storage.presignDownload.mutationOptions());
+  const presignDownloadMutation = useMutation(
+    trpc.storage.presignDownload.mutationOptions(),
+  );
 
   const { upload: uploadDocument } = useStorageUpload("operator-document");
 
   const [uploadingDocType, setUploadingDocType] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [docExpiryDates, setDocExpiryDates] = useState<Record<string, string>>({});
-  
+  const [docExpiryDates, setDocExpiryDates] = useState<Record<string, string>>(
+    {},
+  );
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingIsApproved, setDeletingIsApproved] = useState(false);
 
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleDocumentUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: string,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -97,9 +120,16 @@ export function ComplianceView() {
       return;
     }
 
-    const validTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+    const validTypes = [
+      "application/pdf",
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+    ];
     if (!validTypes.includes(file.type)) {
-      toast.error("Invalid file format. Please upload a PDF, PNG, or JPEG file.");
+      toast.error(
+        "Invalid file format. Please upload a PDF, PNG, or JPEG file.",
+      );
       return;
     }
 
@@ -118,7 +148,9 @@ export function ComplianceView() {
         objectKey,
         fileSize: file.size,
         mimeType: file.type || "application/pdf",
-        expiresAt: docExpiryDates[type] ? new Date(docExpiryDates[type]).toISOString() : undefined,
+        expiresAt: docExpiryDates[type]
+          ? new Date(docExpiryDates[type]).toISOString()
+          : undefined,
       });
 
       toast.success(t("toast.uploaded"));
@@ -149,12 +181,12 @@ export function ComplianceView() {
   };
 
   const handleViewDocument = async (id: string, objectKey: string) => {
-    const newWindow = window.open('about:blank', '_blank');
+    const newWindow = window.open("about:blank", "_blank");
     if (!newWindow) {
       toast.error("Please allow popups to view documents");
       return;
     }
-    
+
     try {
       toast.loading("Generating secure link...", { id: "view-doc" });
       const { downloadUrl } = await presignDownloadMutation.mutateAsync({
@@ -163,7 +195,7 @@ export function ComplianceView() {
         objectKey,
       });
       toast.dismiss("view-doc");
-      
+
       if (downloadUrl) {
         newWindow.location.href = downloadUrl;
       } else {
@@ -183,9 +215,7 @@ export function ComplianceView() {
     <div className="max-w-5xl space-y-8">
       <div>
         <h3 className="text-lg font-medium">{t("title")}</h3>
-        <p className="text-sm text-muted-foreground">
-          {t("description")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       <div className="bg-card border border-border rounded-xl p-6">
@@ -202,7 +232,9 @@ export function ComplianceView() {
               key={slot.key}
               className={cn(
                 "border rounded-xl p-5 flex flex-col justify-between bg-card transition-colors",
-                uploaded?.status === "REJECTED" ? "border-red-200 bg-red-50/30" : "border-border"
+                uploaded?.status === "REJECTED"
+                  ? "border-red-200 bg-red-50/30"
+                  : "border-border",
               )}
             >
               <div className="space-y-1">
@@ -218,8 +250,13 @@ export function ComplianceView() {
                 <div className="mt-3 p-3 bg-red-100/50 rounded-lg text-sm text-red-800 flex gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
                   <div>
-                    <p className="font-semibold text-xs text-red-900 mb-0.5">{t("documentRejectedDesc")}</p>
-                    <p className="text-xs">{uploaded.notes || "No specific reason provided. Please upload a clearer copy."}</p>
+                    <p className="font-semibold text-xs text-red-900 mb-0.5">
+                      {t("documentRejectedDesc")}
+                    </p>
+                    <p className="text-xs">
+                      {uploaded.notes ||
+                        "No specific reason provided. Please upload a clearer copy."}
+                    </p>
                   </div>
                 </div>
               )}
@@ -256,20 +293,39 @@ export function ComplianceView() {
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <span>{uploaded.mimeType === "application/pdf" ? "PDF" : "IMG"}</span>
+                        <span>
+                          {uploaded.mimeType === "application/pdf"
+                            ? "PDF"
+                            : "IMG"}
+                        </span>
                         <span>•</span>
                         <span>
-                          {t("uploadedOn", { date: format(new Date(uploaded.createdAt), "PPP") })}
+                          {t("uploadedOn", {
+                            date: format(new Date(uploaded.createdAt), "PPP"),
+                          })}
                         </span>
                         {uploaded.expiresAt && (
                           <>
                             <span>•</span>
-                            <span className={cn(
-                              "truncate",
-                              new Date(uploaded.expiresAt) < new Date() ? "text-red-500 font-bold" :
-                              new Date(uploaded.expiresAt) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? "text-amber-500 font-bold" : ""
-                            )}>
-                              {t("expiresOnDate", { date: format(new Date(uploaded.expiresAt), "PPP") })}
+                            <span
+                              className={cn(
+                                "truncate",
+                                new Date(uploaded.expiresAt) < new Date()
+                                  ? "text-red-500 font-bold"
+                                  : new Date(uploaded.expiresAt) <
+                                      new Date(
+                                        Date.now() + 30 * 24 * 60 * 60 * 1000,
+                                      )
+                                    ? "text-amber-500 font-bold"
+                                    : "",
+                              )}
+                            >
+                              {t("expiresOnDate", {
+                                date: format(
+                                  new Date(uploaded.expiresAt),
+                                  "PPP",
+                                ),
+                              })}
                             </span>
                           </>
                         )}
@@ -280,7 +336,9 @@ export function ComplianceView() {
                       <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 sm:pl-2 border-t sm:border-t-0 border-border/40 w-full sm:w-auto justify-end">
                         <button
                           type="button"
-                          onClick={() => handleViewDocument(uploaded.id, uploaded.objectKey!)}
+                          onClick={() =>
+                            handleViewDocument(uploaded.id, uploaded.objectKey!)
+                          }
                           className="inline-flex items-center justify-center w-8 h-8 border border-border hover:bg-slate-50 rounded-md text-muted-foreground transition-colors shrink-0 shadow-sm"
                           title={t("viewDocument")}
                         >
@@ -319,17 +377,31 @@ export function ComplianceView() {
                       />
                     </Label>
                     <div className="mt-3 space-y-1.5 w-full">
-                      <Label htmlFor={`expiry-${slot.key}`} className="text-xs text-muted-foreground">{t("expiresOn")}</Label>
+                      <Label
+                        htmlFor={`expiry-${slot.key}`}
+                        className="text-xs text-muted-foreground"
+                      >
+                        {t("expiresOn")}
+                      </Label>
                       <DatePicker
                         value={docExpiryDates[slot.key] || ""}
                         onChange={(date) => {
                           if (date) {
                             const yyyy = date.getFullYear();
-                            const mm = String(date.getMonth() + 1).padStart(2, "0");
+                            const mm = String(date.getMonth() + 1).padStart(
+                              2,
+                              "0",
+                            );
                             const dd = String(date.getDate()).padStart(2, "0");
-                            setDocExpiryDates(prev => ({ ...prev, [slot.key]: `${yyyy}-${mm}-${dd}` }));
+                            setDocExpiryDates((prev) => ({
+                              ...prev,
+                              [slot.key]: `${yyyy}-${mm}-${dd}`,
+                            }));
                           } else {
-                            setDocExpiryDates(prev => ({ ...prev, [slot.key]: "" }));
+                            setDocExpiryDates((prev) => ({
+                              ...prev,
+                              [slot.key]: "",
+                            }));
                           }
                         }}
                         placeholder={t("selectExpiry")}
@@ -344,7 +416,10 @@ export function ComplianceView() {
         })}
       </div>
 
-      <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
+      <AlertDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-amber-100 mb-4">
@@ -352,15 +427,21 @@ export function ComplianceView() {
             </div>
             <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {deletingIsApproved 
+              {deletingIsApproved
                 ? "This document is currently APPROVED. If you delete it to upload a new one, your compliance score will drop until the new document is reviewed by an admin. Are you sure?"
                 : t("dialog.deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("dialog.cancel")}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmDelete} disabled={deleteDocumentMutation.isPending}>
-              {deleteDocumentMutation.isPending ? "Deleting..." : t("dialog.confirm")}
+            <AlertDialogAction
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteDocumentMutation.isPending}
+            >
+              {deleteDocumentMutation.isPending
+                ? "Deleting..."
+                : t("dialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -9,7 +9,8 @@ export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   return {
     title: "Live Fleet Telemetry Map | Moja Operator",
-    description: "Real-time live map tracking of dispatched buses and driver locations.",
+    description:
+      "Real-time live map tracking of dispatched buses and driver locations.",
   };
 }
 

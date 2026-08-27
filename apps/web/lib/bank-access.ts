@@ -17,8 +17,9 @@ export async function logBankAccess(
   prisma: PrismaClient,
   input: LogBankAccessInput,
 ) {
-  const delegate = (prisma as PrismaClient & { bankAccessLog?: { create: unknown } })
-    .bankAccessLog;
+  const delegate = (
+    prisma as PrismaClient & { bankAccessLog?: { create: unknown } }
+  ).bankAccessLog;
 
   if (!delegate?.create) {
     console.warn(

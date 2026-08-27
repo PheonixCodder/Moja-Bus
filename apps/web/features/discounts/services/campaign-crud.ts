@@ -24,7 +24,10 @@ export async function replaceCampaignScopes(
   }
   if (scopes?.scheduleIds?.length) {
     await tx.campaignScheduleScope.createMany({
-      data: scopes.scheduleIds.map((scheduleId) => ({ campaignId, scheduleId })),
+      data: scopes.scheduleIds.map((scheduleId) => ({
+        campaignId,
+        scheduleId,
+      })),
       skipDuplicates: true,
     });
   }

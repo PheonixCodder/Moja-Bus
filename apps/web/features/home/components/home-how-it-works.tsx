@@ -1,5 +1,11 @@
 import { getTranslations } from "next-intl/server";
-import { Search, SlidersHorizontal, Armchair, Wallet, QrCode } from "lucide-react";
+import {
+  Search,
+  SlidersHorizontal,
+  Armchair,
+  Wallet,
+  QrCode,
+} from "lucide-react";
 
 const STEP_ICONS = [
   { key: "search", number: "01", icon: Search },
@@ -29,7 +35,9 @@ export async function HomeHowItWorks() {
             }}
           >
             {t.rich("title", {
-              span: (chunks) => <span className="text-[#ee237c]">{chunks}</span>,
+              span: (chunks) => (
+                <span className="text-[#ee237c]">{chunks}</span>
+              ),
             })}
           </h2>
           <p className="text-slate-500 text-sm leading-relaxed">
@@ -41,12 +49,15 @@ export async function HomeHowItWorks() {
         <div className="relative grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-6">
           {/* Vertical connector line (mobile only) */}
           <div className="absolute left-[39px] top-10 bottom-10 w-0.5 border-l-2 border-dashed border-slate-100 z-0 md:hidden" />
-          
+
           {/* Horizontal connector line (desktop only) */}
           <div className="absolute top-[54px] left-[10%] right-[10%] h-0.5 border-t-2 border-dashed border-slate-100 z-0 hidden md:block" />
 
           {STEP_ICONS.map(({ key, number, icon: Icon }) => (
-            <div key={key} className="relative flex flex-row md:flex-col items-start md:items-center gap-6 md:gap-0 group z-10">
+            <div
+              key={key}
+              className="relative flex flex-row md:flex-col items-start md:items-center gap-6 md:gap-0 group z-10"
+            >
               {/* Circle & Background Number Container */}
               <div className="relative shrink-0 md:mb-6">
                 {/* Large background step number */}

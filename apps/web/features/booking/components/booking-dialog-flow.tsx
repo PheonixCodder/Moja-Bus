@@ -95,7 +95,9 @@ export function BookingDialogFlow({
 
         {isSoldOut ? (
           <section className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-            <p className="text-slate-700 font-semibold">{t("dialog.soldOut")}</p>
+            <p className="text-slate-700 font-semibold">
+              {t("dialog.soldOut")}
+            </p>
             <Button onClick={onClose} className={cn(buttonVariants(), "mt-4")}>
               {t("dialog.searchOther")}
             </Button>
@@ -147,9 +149,7 @@ export function BookingDialogFlow({
                 await refetchSeats();
               }}
               onConfirmed={(result) => {
-                router.push(
-                  result.successUrl ?? "/dashboard/bookings?paid=1",
-                );
+                router.push(result.successUrl ?? "/dashboard/bookings?paid=1");
               }}
             />
           </section>

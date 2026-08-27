@@ -64,11 +64,21 @@ export default async function BecomeAPartnerPage() {
   ] as const;
 
   const steps = [
-    { num: "01", icon: Building2, titleKey: "step1Title", descKey: "step1Desc" },
+    {
+      num: "01",
+      icon: Building2,
+      titleKey: "step1Title",
+      descKey: "step1Desc",
+    },
     { num: "02", icon: FileText, titleKey: "step2Title", descKey: "step2Desc" },
     { num: "03", icon: Banknote, titleKey: "step3Title", descKey: "step3Desc" },
     { num: "04", icon: Users2, titleKey: "step4Title", descKey: "step4Desc" },
-    { num: "05", icon: ShieldCheck, titleKey: "step5Title", descKey: "step5Desc" },
+    {
+      num: "05",
+      icon: ShieldCheck,
+      titleKey: "step5Title",
+      descKey: "step5Desc",
+    },
   ] as const;
 
   const checklistKeys = [

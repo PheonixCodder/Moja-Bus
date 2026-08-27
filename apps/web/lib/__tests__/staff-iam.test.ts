@@ -27,7 +27,11 @@ describe("staff IAM — effective permissions", () => {
 
 describe("staff IAM — grant subset rule", () => {
   it("OWNER may grant any catalog key", () => {
-    const result = assertCanGrant("OWNER", [], ["staff:invite", "revenue:view"]);
+    const result = assertCanGrant(
+      "OWNER",
+      [],
+      ["staff:invite", "revenue:view"],
+    );
     assert.equal(result.ok, true);
   });
 

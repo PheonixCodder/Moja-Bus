@@ -125,8 +125,7 @@ export function signCheckoutSession(input: {
 
 export function checkoutSessionCookieValue(token: string): string {
   const maxAge = Math.floor(CHECKOUT_SESSION_TTL_MS / 1000);
-  const secure =
-    process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   return `${CHECKOUT_SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
 }
 

@@ -42,9 +42,7 @@ export function PublicPageShell({
       </div>
 
       {/* Content body */}
-      <div className="bg-white">
-        {children}
-      </div>
+      <div className="bg-white">{children}</div>
     </div>
   );
 }

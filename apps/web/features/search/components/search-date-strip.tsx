@@ -7,7 +7,20 @@ import { useCheapestByDate } from "../hooks/use-cheapest-by-date";
 import { formatPriceXOF } from "../lib/format";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 interface SearchDateStripProps {
   from: string;
@@ -30,12 +43,29 @@ function todayUTCString(): string {
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
 }
 
-export const SearchDateStrip = memo(function SearchDateStrip({ from, to, fromMuni, toMuni, fromQuarter, toQuarter, selectedDate, onSelectDate }: SearchDateStripProps) {
+export const SearchDateStrip = memo(function SearchDateStrip({
+  from,
+  to,
+  fromMuni,
+  toMuni,
+  fromQuarter,
+  toQuarter,
+  selectedDate,
+  onSelectDate,
+}: SearchDateStripProps) {
   const t = useTranslations("search");
   const effectiveCenter = selectedDate || todayUTCString();
   const hasRoute = !!from && !!to;
 
-  const { data: cheapestData, isLoading } = useCheapestByDate(from, to, effectiveCenter, fromMuni, toMuni, fromQuarter, toQuarter);
+  const { data: cheapestData, isLoading } = useCheapestByDate(
+    from,
+    to,
+    effectiveCenter,
+    fromMuni,
+    toMuni,
+    fromQuarter,
+    toQuarter,
+  );
 
   // Generate 7 dates centered on effectiveCenter
   const centerDate = parseUTCDate(effectiveCenter);
@@ -66,7 +96,8 @@ export const SearchDateStrip = memo(function SearchDateStrip({ from, to, fromMun
           const priceEntry = cheapestData?.find((d) => d.date === dateStr);
           const priceXOF = hasRoute ? (priceEntry?.priceXOF ?? null) : null;
           const hasTrips = priceXOF !== null;
-          const isCheapest = hasTrips && priceXOF === minPrice && allPrices.length > 1;
+          const isCheapest =
+            hasTrips && priceXOF === minPrice && allPrices.length > 1;
           // A day is selectable if it has trips, OR it's the currently selected date
           const isSelectable = hasTrips || isSelected || !hasRoute;
 
@@ -98,7 +129,11 @@ export const SearchDateStrip = memo(function SearchDateStrip({ from, to, fromMun
               <span
                 className={cn(
                   "text-[11px] font-semibold uppercase tracking-wide mb-0.5",
-                  isSelected ? "text-rose-100" : isSelectable ? "text-slate-400" : "text-slate-300",
+                  isSelected
+                    ? "text-rose-100"
+                    : isSelectable
+                      ? "text-slate-400"
+                      : "text-slate-300",
                 )}
               >
                 {weekday}
@@ -108,7 +143,11 @@ export const SearchDateStrip = memo(function SearchDateStrip({ from, to, fromMun
               <span
                 className={cn(
                   "text-xl sm:text-2xl font-bold leading-none mb-1",
-                  isSelected ? "text-white" : isSelectable ? "text-slate-800" : "text-slate-300",
+                  isSelected
+                    ? "text-white"
+                    : isSelectable
+                      ? "text-slate-800"
+                      : "text-slate-300",
                 )}
               >
                 {dayNum}
@@ -118,7 +157,11 @@ export const SearchDateStrip = memo(function SearchDateStrip({ from, to, fromMun
               <span
                 className={cn(
                   "text-[10px] font-medium mb-1.5",
-                  isSelected ? "text-rose-100" : isSelectable ? "text-slate-400" : "text-slate-300",
+                  isSelected
+                    ? "text-rose-100"
+                    : isSelectable
+                      ? "text-slate-400"
+                      : "text-slate-300",
                 )}
               >
                 {month}

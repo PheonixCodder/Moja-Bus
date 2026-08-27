@@ -173,7 +173,9 @@ function StopsTimeline({
               )}
               {hasDeparture && (
                 <span className="text-[10px] font-bold text-slate-700">
-                  <span className="font-semibold text-slate-400">{t("depLabel")}</span>{" "}
+                  <span className="font-semibold text-slate-400">
+                    {t("depLabel")}
+                  </span>{" "}
                   {formatDepartureTime(stop.scheduledDeparture!)}
                 </span>
               )}
@@ -191,7 +193,9 @@ function StopsTimeline({
                 <div className="relative w-px flex-1 bg-slate-200">
                   {legMinutes !== null && (
                     <span className="absolute left-2 top-1/2 -translate-y-1/2 whitespace-nowrap bg-white px-1 text-[9px] font-semibold text-slate-400">
-                      {t("legDuration", { time: formatTripDuration(legMinutes) })}
+                      {t("legDuration", {
+                        time: formatTripDuration(legMinutes),
+                      })}
                     </span>
                   )}
                 </div>
@@ -203,9 +207,7 @@ function StopsTimeline({
                 <p className="truncate text-xs font-bold text-slate-700">
                   {stop.terminalName}
                 </p>
-                {isFirst && (
-                  <StopTag tone="emerald">{t("boarding")}</StopTag>
-                )}
+                {isFirst && <StopTag tone="emerald">{t("boarding")}</StopTag>}
                 {isLast && <StopTag tone="slate">{t("alight")}</StopTag>}
                 {!isFirst && !isLast && stop.isPickup && (
                   <StopTag tone="emerald">{t("pickup")}</StopTag>
@@ -230,18 +232,13 @@ function StopsTimeline({
   );
 }
 
-function StopsMap({
-  stops,
-}: {
-  stops: NonNullable<TripSummaryData["stops"]>;
-}) {
+function StopsMap({ stops }: { stops: NonNullable<TripSummaryData["stops"]> }) {
   const t = useTranslations("booking.tripSummary");
   const [showMap, setShowMap] = useState(false);
 
   const points: RouteMapPoint[] = stops
     .filter(
-      (s) =>
-        typeof s.latitude === "number" && typeof s.longitude === "number",
+      (s) => typeof s.latitude === "number" && typeof s.longitude === "number",
     )
     .map((s) => ({
       id: s.id,
@@ -315,7 +312,19 @@ export function TripSummaryCard({
                 {trip.busTypeName}
               </p>
               <p className="text-xs text-slate-500 mt-0.5">
-                {formatLocationLabel({ cityName: trip.originCityName, municipalityName: trip.originMunicipalityName, quarterName: trip.originQuarterName, isUrban: trip.serviceType === "URBAN" })} → {formatLocationLabel({ cityName: trip.destinationCityName, municipalityName: trip.destinationMunicipalityName, quarterName: trip.destinationQuarterName, isUrban: trip.serviceType === "URBAN" })}
+                {formatLocationLabel({
+                  cityName: trip.originCityName,
+                  municipalityName: trip.originMunicipalityName,
+                  quarterName: trip.originQuarterName,
+                  isUrban: trip.serviceType === "URBAN",
+                })}{" "}
+                →{" "}
+                {formatLocationLabel({
+                  cityName: trip.destinationCityName,
+                  municipalityName: trip.destinationMunicipalityName,
+                  quarterName: trip.destinationQuarterName,
+                  isUrban: trip.serviceType === "URBAN",
+                })}
               </p>
             </div>
           </div>
@@ -332,7 +341,12 @@ export function TripSummaryCard({
                 {trip.originTerminalName}
               </p>
               <span className="text-[10px] font-semibold text-slate-400">
-                {formatLocationLabel({ cityName: trip.originCityName, municipalityName: trip.originMunicipalityName, quarterName: trip.originQuarterName, isUrban: trip.serviceType === "URBAN" })}
+                {formatLocationLabel({
+                  cityName: trip.originCityName,
+                  municipalityName: trip.originMunicipalityName,
+                  quarterName: trip.originQuarterName,
+                  isUrban: trip.serviceType === "URBAN",
+                })}
               </span>
             </div>
 
@@ -363,7 +377,12 @@ export function TripSummaryCard({
                 {trip.destinationTerminalName}
               </p>
               <span className="text-[10px] font-semibold text-slate-400">
-                {formatLocationLabel({ cityName: trip.destinationCityName, municipalityName: trip.destinationMunicipalityName, quarterName: trip.destinationQuarterName, isUrban: trip.serviceType === "URBAN" })}
+                {formatLocationLabel({
+                  cityName: trip.destinationCityName,
+                  municipalityName: trip.destinationMunicipalityName,
+                  quarterName: trip.destinationQuarterName,
+                  isUrban: trip.serviceType === "URBAN",
+                })}
               </span>
             </div>
           </div>
@@ -381,7 +400,10 @@ export function TripSummaryCard({
             </span>
             {seatCount > 1 && (
               <p className="text-[10px] text-slate-500 mt-0.5">
-                {t("seatsMultiplier", { price: formatPriceXOF(trip.priceXOF), count: seatCount })}
+                {t("seatsMultiplier", {
+                  price: formatPriceXOF(trip.priceXOF),
+                  count: seatCount,
+                })}
               </p>
             )}
           </div>

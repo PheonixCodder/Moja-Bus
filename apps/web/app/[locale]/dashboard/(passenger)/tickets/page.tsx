@@ -9,7 +9,10 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "passengerDashboard.tickets" });
+  const t = await getTranslations({
+    locale,
+    namespace: "passengerDashboard.tickets",
+  });
   return { title: t("metaTitle") };
 }
 

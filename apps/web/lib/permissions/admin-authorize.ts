@@ -26,16 +26,24 @@ export type AdminPermissionContext = {
 export function getAdminEffectivePermissionsFn(
   adminStaff: AuthzAdminStaff,
 ): AdminPermissionKey[] {
-  return getAdminEffectivePermissions(adminStaff.role, adminStaff.permissions ?? []);
+  return getAdminEffectivePermissions(
+    adminStaff.role,
+    adminStaff.permissions ?? [],
+  );
 }
 
 export function adminHasPermission(
   ctx: AdminPermissionContext,
   key: AdminPermissionKey,
 ): boolean {
-  if (ctx.user.role === "ADMIN" && ctx.adminStaff.role === "SUPER_ADMIN") return true;
+  if (ctx.user.role === "ADMIN" && ctx.adminStaff.role === "SUPER_ADMIN")
+    return true;
   if (ctx.adminStaff.status === "SUSPENDED") return false;
-  return hasAdminPermission(ctx.adminStaff.role, ctx.adminStaff.permissions ?? [], key);
+  return hasAdminPermission(
+    ctx.adminStaff.role,
+    ctx.adminStaff.permissions ?? [],
+    key,
+  );
 }
 
 export function requireAdminPermission(
@@ -74,7 +82,8 @@ export function requireAdminCanGrant(
   ctx: AdminPermissionContext,
   proposed: string[],
 ): void {
-  if (ctx.user.role === "ADMIN" && ctx.adminStaff.role === "SUPER_ADMIN") return;
+  if (ctx.user.role === "ADMIN" && ctx.adminStaff.role === "SUPER_ADMIN")
+    return;
   const result = assertAdminCanGrant(
     ctx.adminStaff.role,
     ctx.adminStaff.permissions ?? [],
@@ -89,7 +98,8 @@ export function requireAdminCanGrant(
 }
 
 export function requireSuperAdmin(ctx: AdminPermissionContext): void {
-  if (ctx.user.role === "ADMIN" && ctx.adminStaff.role === "SUPER_ADMIN") return;
+  if (ctx.user.role === "ADMIN" && ctx.adminStaff.role === "SUPER_ADMIN")
+    return;
   throw new TRPCError({
     code: "FORBIDDEN",
     message: "Only Super Admins can perform this action",

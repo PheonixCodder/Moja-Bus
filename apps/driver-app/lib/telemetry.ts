@@ -241,8 +241,27 @@ export async function sendTelemetryPing(
 		lastPingTimestamp > 0 &&
 		shouldFlagHarshBraking(lastSpeedKmh, speedKmh, timeDeltaSec);
 
-	// Adaptive frequency mode
-	const adaptiveMode = speedKmh < 5 ? "STATIONARY" : "HIGH_RATE";
+	// Phase 7 (Gap #22) — Adaptive frequency mode & battery/bandwidth throttle
+	// Stationary (< 5 km/h): 30-second throttle cadence
+	// In-Motion (>= 5 km/h): 5-second high-fidelity streaming
+	const adaptiveMode: "STATIONARY" | "HIGH_RATE" =
+		speedKmh < 5 ? "STATIONARY" : "HIGH_RATE";
+
+	const isThrottledStationary =
+		adaptiveMode === "STATIONARY" &&
+		lastPingTimestamp > 0 &&
+		now - lastPingTimestamp < 28_000 &&
+		!isOverspeed &&
+		!isHarshBraking;
+
+	if (isThrottledStationary) {
+		activeTelemetryHealth = {
+			...activeTelemetryHealth,
+			lastSpeedKmh: speedKmh,
+			adaptiveMode: "STATIONARY",
+		};
+		return;
+	}
 
 	activeTelemetryHealth = {
 		...activeTelemetryHealth,

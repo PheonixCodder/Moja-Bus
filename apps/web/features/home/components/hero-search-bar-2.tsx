@@ -5,11 +5,18 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Plane, Calendar, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
-import { CityAutocompleteField, type CityValue } from "@/features/search/components/city-autocomplete-field";
+import {
+  CityAutocompleteField,
+  type CityValue,
+} from "@/features/search/components/city-autocomplete-field";
 import { validateSearchPair } from "@/features/search/lib/validate-search-pair";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@moja/ui/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@moja/ui/components/ui/popover";
 import { Calendar as CalendarComponent } from "@moja/ui/components/ui/calendar";
 import { TrustBar } from "@/features/home/components/trustbar";
 import {
@@ -24,7 +31,7 @@ const todayISO = () => new Date().toISOString().split("T")[0]!;
 
 function parseLocalDate(dateStr: string) {
   if (!dateStr) return undefined;
-  const [y, m, d] = dateStr.split('-');
+  const [y, m, d] = dateStr.split("-");
   return new Date(Number(y), Number(m) - 1, Number(d));
 }
 
@@ -35,18 +42,23 @@ export interface HeroSearchBarProps {
   className?: string;
 }
 
-export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarProps = {}) {
+export function HeroSearchBar({
+  showTrustBar = true,
+  className,
+}: HeroSearchBarProps = {}) {
   const router = useRouter();
   const t = useTranslations("landing.hero");
 
   const [origin, setOrigin] = useState<CityValue>({ id: "", text: "" });
-  const [destination, setDestination] = useState<CityValue>({ id: "", text: "" });
+  const [destination, setDestination] = useState<CityValue>({
+    id: "",
+    text: "",
+  });
 
   const [date, setDate] = useState(todayISO());
   const [travelers, setTravelers] = useState(1);
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -75,15 +87,18 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
       passengers: String(travelers),
     });
     if (origin.municipalityId) sp.set("fromMuni", origin.municipalityId);
-    if (destination.municipalityId) sp.set("toMuni", destination.municipalityId);
+    if (destination.municipalityId)
+      sp.set("toMuni", destination.municipalityId);
     if (origin.quarterId) sp.set("fromQuarter", origin.quarterId);
     if (destination.quarterId) sp.set("toQuarter", destination.quarterId);
     if (origin.terminalId) sp.set("fromTerminal", origin.terminalId);
     if (origin.terminalName) sp.set("fromTerminalName", origin.terminalName);
     if (destination.terminalId) sp.set("toTerminal", destination.terminalId);
-    if (destination.terminalName) sp.set("toTerminalName", destination.terminalName);
+    if (destination.terminalName)
+      sp.set("toTerminalName", destination.terminalName);
     if (origin.companyName) sp.set("fromCompanyName", origin.companyName);
-    if (destination.companyName) sp.set("toCompanyName", destination.companyName);
+    if (destination.companyName)
+      sp.set("toCompanyName", destination.companyName);
     router.push(`/search?${sp.toString()}`);
   }
 
@@ -93,7 +108,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
         <div className="flex flex-col md:flex-row gap-4 items-end">
           {/* From */}
           <div className="flex-1 w-full">
-            <label className="block text-sm font-bold text-slate-900 mb-2">{t("from")}</label>
+            <label className="block text-sm font-bold text-slate-900 mb-2">
+              {t("from")}
+            </label>
             <CityAutocompleteField
               placeholder={t("departurePlaceholder")}
               value={origin}
@@ -105,7 +122,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
 
           {/* To */}
           <div className="flex-1 w-full">
-            <label className="block text-sm font-bold text-slate-900 mb-2">{t("to")}</label>
+            <label className="block text-sm font-bold text-slate-900 mb-2">
+              {t("to")}
+            </label>
             <CityAutocompleteField
               placeholder={t("destinationPlaceholder")}
               value={destination}
@@ -117,7 +136,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
 
           {/* Date */}
           <div className="w-full md:w-[220px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">{t("date")}</label>
+            <label className="block text-sm font-bold text-slate-900 mb-2">
+              {t("date")}
+            </label>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger
                 render={
@@ -143,7 +164,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
                       setIsCalendarOpen(false);
                     }
                   }}
-                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                  disabled={(d) =>
+                    d < new Date(new Date().setHours(0, 0, 0, 0))
+                  }
                 />
               </PopoverContent>
             </Popover>
@@ -151,7 +174,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
 
           {/* Passengers */}
           <div className="w-full md:w-[130px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">{t("passengers")}</label>
+            <label className="block text-sm font-bold text-slate-900 mb-2">
+              {t("passengers")}
+            </label>
             <Select
               value={String(travelers)}
               onValueChange={(val) => setTravelers(Number(val))}
@@ -162,7 +187,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
               <SelectContent>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                   <SelectItem className={"h-12!"} key={n} value={String(n)}>
-                    {n === 1 ? t("guest", { count: n }) : t("guests", { count: n })}
+                    {n === 1
+                      ? t("guest", { count: n })
+                      : t("guests", { count: n })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -183,7 +210,9 @@ export function HeroSearchBar({ showTrustBar = true, className }: HeroSearchBarP
 
         {/* Popular destinations */}
         <div className="flex flex-wrap items-center gap-2 mt-5">
-          <span className="text-xs text-slate-500 font-medium">{t("popular")}</span>
+          <span className="text-xs text-slate-500 font-medium">
+            {t("popular")}
+          </span>
           {POPULAR.map((dest) => (
             <button
               key={dest}

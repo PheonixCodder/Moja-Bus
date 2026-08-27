@@ -50,6 +50,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner-ws
       args:
         DATABASE_URL: ${DATABASE_URL_BUILD}
         NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: ${NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY}

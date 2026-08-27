@@ -23,11 +23,13 @@ import {
 } from "@moja/schemas";
 import { WebSocket, WebSocketServer } from "ws";
 import { logTelemetryEvent } from "../lib/telemetry-observability";
+import { telemetryThrottle } from "../lib/telemetry-throttle";
 import {
   isRoomAllowedForClaims,
   isTelemetryAuthEnforced,
   type TelemetryDispatchClaims,
-  verifyTelemetryDispatchToken,
+  type TelemetryTokenClaims,
+  verifyAnyTelemetryToken,
 } from "../lib/telemetry-token";
 import { queueTelemetryPing } from "./telemetry-flush";
 import {
@@ -35,7 +37,7 @@ import {
   fetchPreviousPoint,
   type PreviousPoint,
 } from "./telemetry-prev-point";
-import { redisPub } from "./telemetry-redis";
+import { redisPub, setupTripTelemetryRelay } from "./telemetry-redis";
 import { validateTelemetryPing } from "./telemetry-validator";
 
 interface ExtendedWebSocket extends WebSocket {
@@ -43,8 +45,10 @@ interface ExtendedWebSocket extends WebSocket {
   userId?: string;
   driverProfileId?: string;
   companyId?: string;
+  role?: "driver" | "operator" | "passenger";
   /** Set when the connection was authenticated via dispatch token (P1-4). */
   dispatchClaims?: TelemetryDispatchClaims;
+  authClaims?: TelemetryTokenClaims;
   subscribedRooms: Set<string>;
   lastPing?: PreviousPoint | null;
 }
@@ -52,9 +56,18 @@ interface ExtendedWebSocket extends WebSocket {
 class TelemetryWebSocketGateway {
   private wss: WebSocketServer;
   private clients: Set<ExtendedWebSocket> = new Set();
+  private lastBroadcastByRoom: Map<
+    string,
+    { recordedAt: string | Date; driverProfileId: string }
+  > = new Map();
 
   constructor() {
     this.wss = new WebSocketServer({ noServer: true });
+
+    // Phase 6 (D5) — Relay cross-instance and HTTP-ingested trip pings to local connected WS clients
+    setupTripTelemetryRelay((tripId, payload) => {
+      this.broadcastToRoom(`trip:${tripId}`, payload);
+    });
 
     this.wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
       const extWs = ws as ExtendedWebSocket;
@@ -67,38 +80,56 @@ class TelemetryWebSocketGateway {
       const companyId = query["companyId"] as string | undefined;
       const driverId = query["driverId"] as string | undefined;
 
-      // Phase 16 (P1-4) — under enforcement the upgrade already verified the
-      // dispatch token; identity and room binding come from signed claims,
+      // Phase 16 & Phase 6 — under enforcement the upgrade already verified the
+      // token; identity, role, and room binding come from signed claims,
       // never from client-supplied query params.
       if (isTelemetryAuthEnforced()) {
         const rawToken = query["token"];
-        const claims = verifyTelemetryDispatchToken(
-          Array.isArray(rawToken) ? rawToken[0] : (rawToken ?? null),
-        );
+        const tokenStr = Array.isArray(rawToken)
+          ? rawToken[0]
+          : (rawToken ?? null);
+        const claims = verifyAnyTelemetryToken(tokenStr);
         if (!claims) {
           ws.close(4401, "Unauthorized");
           return;
         }
-        extWs.dispatchClaims = claims;
-        extWs.driverProfileId = claims.d;
-        // Phase 11 (F-TM-02) — fleet-channel attribution now comes from the
-        // signed claim, not client query params, so `operator:{c}:fleet`
-        // actually publishes under enforcement.
-        if (claims.c) {
+
+        extWs.authClaims = claims;
+
+        if ("role" in claims && claims.role === "operator") {
+          extWs.role = "operator";
+          extWs.userId = claims.sub;
           extWs.companyId = claims.c;
+          this.joinRoom(extWs, `company:${claims.c}`);
+        } else if ("role" in claims && claims.role === "passenger") {
+          extWs.role = "passenger";
+          extWs.userId = claims.u;
+          this.joinRoom(extWs, `trip:${claims.t}`);
+        } else {
+          // Driver
+          extWs.role = "driver";
+          extWs.dispatchClaims = claims as TelemetryDispatchClaims;
+          extWs.driverProfileId = claims.d;
+          if (claims.c) {
+            extWs.companyId = claims.c;
+            this.joinRoom(extWs, `company:${claims.c}`);
+          }
+          if (claims.t) {
+            this.joinRoom(extWs, `trip:${claims.t}`);
+          }
         }
       } else {
-        if (driverId) extWs.driverProfileId = driverId;
-        if (companyId) extWs.companyId = companyId;
-      }
-
-      // Auto-subscribe if requested in query params
-      const boundTripId = extWs.dispatchClaims?.t ?? tripId;
-      if (boundTripId) {
-        this.joinRoom(extWs, `trip:${boundTripId}`);
-      }
-      if (extWs.companyId) {
-        this.joinRoom(extWs, `company:${extWs.companyId}`);
+        if (driverId) {
+          extWs.driverProfileId = driverId;
+          extWs.role = "driver";
+        }
+        if (companyId) {
+          extWs.companyId = companyId;
+          this.joinRoom(extWs, `company:${companyId}`);
+        }
+        if (tripId) {
+          this.joinRoom(extWs, `trip:${tripId}`);
+        }
       }
 
       // Phase 28 (F-TM-07) — seed the jump-gate cache from the SHARED store
@@ -150,14 +181,37 @@ class TelemetryWebSocketGateway {
   }
 
   public handleUpgrade(req: IncomingMessage, socket: Socket, head: Buffer) {
+    // Phase 6 (D8 / Issue B) — IP rate limit on WS upgrade before HMAC or handshake
+    const ip =
+      (req.headers["x-forwarded-for"] as string | undefined)
+        ?.split(",")[0]
+        ?.trim() ||
+      req.socket.remoteAddress ||
+      "unknown";
+
+    const ipGate = telemetryThrottle.ipGate(ip);
+    if (!ipGate.ok) {
+      logTelemetryEvent(
+        "telemetry_throttled",
+        { tier: "ip_ws_upgrade", ip, retryAfterMs: ipGate.retryAfterMs },
+        "warn",
+      );
+      socket.write(
+        `HTTP/1.1 429 Too Many Requests\r\nRetry-After: ${Math.ceil(ipGate.retryAfterMs / 1000)}\r\n\r\n`,
+      );
+      socket.destroy();
+      return;
+    }
+
     const { query } = parse(req.url || "", true);
 
-    // Phase 16 (P1-4) — reject unauthenticated upgrades before the handshake.
+    // Phase 16 & Phase 6 — reject unauthenticated upgrades before the handshake.
     if (isTelemetryAuthEnforced()) {
       const rawToken = query["token"];
-      const claims = verifyTelemetryDispatchToken(
-        Array.isArray(rawToken) ? rawToken[0] : (rawToken ?? null),
-      );
+      const tokenStr = Array.isArray(rawToken)
+        ? rawToken[0]
+        : (rawToken ?? null);
+      const claims = verifyAnyTelemetryToken(tokenStr);
       if (!claims) {
         socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
         socket.destroy();
@@ -186,14 +240,12 @@ class TelemetryWebSocketGateway {
 
         case "subscribe":
           if (parsed.room) {
-            // Phase 11 (F-TM-03 ≡ F-IN-03) — enforced connections may only
-            // join the room their own token derives (`trip:${claims.t}`);
-            // everything else is explicitly rejected, never joined silently.
-            // Company rooms are granted server-side from claims, never by
-            // client request.
+            // Phase 11 & Phase 6 — enforced connections may only join authorized rooms.
+            // Company rooms are granted server-side from claims, never by client request.
+            const claims = ws.authClaims ?? ws.dispatchClaims;
             if (
-              ws.dispatchClaims &&
-              !isRoomAllowedForClaims(parsed.room, ws.dispatchClaims)
+              isTelemetryAuthEnforced() &&
+              !isRoomAllowedForClaims(parsed.room, claims)
             ) {
               ws.send(
                 JSON.stringify({
@@ -218,6 +270,15 @@ class TelemetryWebSocketGateway {
           break;
 
         case "telemetry:ping":
+          if (ws.role === "operator" || ws.role === "passenger") {
+            ws.send(
+              JSON.stringify({
+                event: "telemetry:rejected",
+                reason: "UNAUTHORIZED_SENDER",
+              }),
+            );
+            break;
+          }
           this.processTelemetryFrame(ws, parsed.data);
           break;
 
@@ -354,7 +415,27 @@ class TelemetryWebSocketGateway {
     ws.subscribedRooms.delete(room);
   }
 
-  private broadcastToRoom(room: string, message: string) {
+  public broadcastToRoom(room: string, message: string) {
+    try {
+      const parsed = JSON.parse(message);
+      if (parsed.data?.recordedAt && parsed.data?.driverProfileId) {
+        const key = `${room}:${parsed.data.driverProfileId}`;
+        const last = this.lastBroadcastByRoom.get(key);
+        const rec = String(parsed.data.recordedAt);
+        if (last && String(last.recordedAt) === rec) {
+          return; // Dedup frame
+        }
+        this.lastBroadcastByRoom.set(key, {
+          recordedAt: parsed.data.recordedAt,
+          driverProfileId: parsed.data.driverProfileId,
+        });
+        if (this.lastBroadcastByRoom.size > 5000) {
+          const firstKey = this.lastBroadcastByRoom.keys().next().value;
+          if (firstKey) this.lastBroadcastByRoom.delete(firstKey);
+        }
+      }
+    } catch {}
+
     this.clients.forEach((client) => {
       if (
         client.readyState === WebSocket.OPEN &&

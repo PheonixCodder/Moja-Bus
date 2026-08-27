@@ -147,7 +147,9 @@ export function evaluateCheckoutDiscounts(
         need = Math.min(need, input.creditAmountXOF);
       }
       const lots = input.creditLots
-        .filter((l) => l.status === "ACTIVE" || l.status === "PARTIALLY_REDEEMED")
+        .filter(
+          (l) => l.status === "ACTIVE" || l.status === "PARTIALLY_REDEEMED",
+        )
         .filter(
           (l) =>
             !l.expiresAt || l.expiresAt.getTime() >= input.ctx.now.getTime(),

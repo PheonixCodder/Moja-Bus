@@ -5,9 +5,7 @@ import type { EvalCampaign, EvalCoupon, EvalCreditLot } from "../engine/types";
 const FINALIZED_ONLY = { status: "FINALIZED" as const };
 
 type CampaignRow = Awaited<
-  ReturnType<
-    PrismaClient["discountCampaign"]["findMany"]
-  >
+  ReturnType<PrismaClient["discountCampaign"]["findMany"]>
 >[number] & {
   routeScopes?: Array<{ routeId: string }>;
   scheduleScopes?: Array<{ scheduleId: string }>;
@@ -79,10 +77,7 @@ export async function loadActiveCampaignsForCheckout(
   const rows = await prisma.discountCampaign.findMany({
     where: {
       status: "ACTIVE",
-      OR: [
-        { companyId: null },
-        { companyId: input.companyId },
-      ],
+      OR: [{ companyId: null }, { companyId: input.companyId }],
       AND: [
         { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
         { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },

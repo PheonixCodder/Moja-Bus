@@ -18,8 +18,20 @@ import {
 } from "@moja/ui/components/ui/table";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@moja/ui/components/ui/select";
-import { ChevronLeft, ChevronRight, ArrowDownRight, ArrowUpRight, Download } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@moja/ui/components/ui/select";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowDownRight,
+  ArrowUpRight,
+  Download,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -27,9 +39,12 @@ export function TransactionLedgerTable() {
   const t = useTranslations("operatorDashboard.revenue");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const [{ from, to, page, txType }, setParams] = useQueryStates(revenueParsers, {
-    shallow: false,
-  });
+  const [{ from, to, page, txType }, setParams] = useQueryStates(
+    revenueParsers,
+    {
+      shallow: false,
+    },
+  );
 
   const { data } = useSuspenseQuery(
     trpc.operator.getLedgerEntries.queryOptions({
@@ -38,7 +53,7 @@ export function TransactionLedgerTable() {
       type: txType,
       page,
       limit: 10,
-    })
+    }),
   );
 
   const formatSourceType = (type: string) => {
@@ -61,7 +76,9 @@ export function TransactionLedgerTable() {
   return (
     <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
       <div className="p-4 border-b flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-slate-900">{t("ledger.title")}</h3>
+        <h3 className="text-sm font-semibold text-slate-900">
+          {t("ledger.title")}
+        </h3>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -84,7 +101,9 @@ export function TransactionLedgerTable() {
                 a.download = "ledger-export.csv";
                 a.click();
                 URL.revokeObjectURL(url);
-                toast.success(t("ledger.exportSuccess", { count: result.count }));
+                toast.success(
+                  t("ledger.exportSuccess", { count: result.count }),
+                );
               } catch (err: unknown) {
                 toast.error(
                   err instanceof Error ? err.message : t("ledger.exportError"),
@@ -95,8 +114,8 @@ export function TransactionLedgerTable() {
             <Download className="size-3.5" />
             {t("export")}
           </Button>
-          <Select 
-            value={txType} 
+          <Select
+            value={txType}
             onValueChange={(val) => setParams({ txType: val, page: 1 })}
           >
             <SelectTrigger className="w-[180px]">
@@ -104,9 +123,15 @@ export function TransactionLedgerTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">{t("ledger.filter.all")}</SelectItem>
-              <SelectItem value="TICKET_SALE">{t("ledger.filter.ticketSales")}</SelectItem>
-              <SelectItem value="WITHDRAWAL">{t("ledger.filter.withdrawals")}</SelectItem>
-              <SelectItem value="REFUND">{t("ledger.filter.refunds")}</SelectItem>
+              <SelectItem value="TICKET_SALE">
+                {t("ledger.filter.ticketSales")}
+              </SelectItem>
+              <SelectItem value="WITHDRAWAL">
+                {t("ledger.filter.withdrawals")}
+              </SelectItem>
+              <SelectItem value="REFUND">
+                {t("ledger.filter.refunds")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -119,13 +144,18 @@ export function TransactionLedgerTable() {
             <TableHead>{t("ledger.columns.type")}</TableHead>
             <TableHead>{t("ledger.columns.description")}</TableHead>
             <TableHead>{t("ledger.columns.status")}</TableHead>
-            <TableHead className="text-right">{t("ledger.columns.amount")}</TableHead>
+            <TableHead className="text-right">
+              {t("ledger.columns.amount")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.entries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="h-32 text-center text-slate-500">
+              <TableCell
+                colSpan={5}
+                className="h-32 text-center text-slate-500"
+              >
                 {t("ledger.empty")}
               </TableCell>
             </TableRow>
@@ -144,14 +174,24 @@ export function TransactionLedgerTable() {
                   {entry.description || "-"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={entry.status === "POSTED" || entry.status === "SETTLED" ? "default" : "secondary"}>
+                  <Badge
+                    variant={
+                      entry.status === "POSTED" || entry.status === "SETTLED"
+                        ? "default"
+                        : "secondary"
+                    }
+                  >
                     {entry.status}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className={`flex items-center justify-end font-medium ${
-                    entry.entryType === "CREDIT" ? "text-emerald-600" : "text-slate-900"
-                  }`}>
+                  <div
+                    className={`flex items-center justify-end font-medium ${
+                      entry.entryType === "CREDIT"
+                        ? "text-emerald-600"
+                        : "text-slate-900"
+                    }`}
+                  >
                     {entry.entryType === "CREDIT" ? (
                       <ArrowDownRight className="mr-1 h-3 w-3" />
                     ) : (
@@ -169,7 +209,10 @@ export function TransactionLedgerTable() {
       {/* Pagination controls */}
       <div className="p-4 border-t flex items-center justify-between bg-slate-50/50 text-sm">
         <div className="text-slate-500">
-          {t("ledger.pagination", { page: data.meta.page, totalPages: data.meta.totalPages || 1 })}
+          {t("ledger.pagination", {
+            page: data.meta.page,
+            totalPages: data.meta.totalPages || 1,
+          })}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -183,7 +226,9 @@ export function TransactionLedgerTable() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setParams({ page: Math.min(data.meta.totalPages, page + 1) })}
+            onClick={() =>
+              setParams({ page: Math.min(data.meta.totalPages, page + 1) })
+            }
             disabled={page >= data.meta.totalPages}
           >
             <ChevronRight className="h-4 w-4" />

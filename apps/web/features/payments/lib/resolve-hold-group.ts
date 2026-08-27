@@ -134,7 +134,9 @@ export function assertHoldGroupActive(holdGroup: ResolvedHoldGroup): void {
     });
   }
 
-  const pending = holdGroup.bookings.every((b) => b.status === "PENDING_PAYMENT");
+  const pending = holdGroup.bookings.every(
+    (b) => b.status === "PENDING_PAYMENT",
+  );
   if (!pending) {
     throw new TRPCError({
       code: "BAD_REQUEST",

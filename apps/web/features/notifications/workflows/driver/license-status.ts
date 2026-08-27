@@ -45,5 +45,5 @@ export const driverLicenseStatusWorkflow = workflow(
     description:
       "Warns 30 days before a driver's license expires and notifies on expiry",
     payloadSchema: driverLicenseStatusPayloadSchema,
-  }
+  },
 );

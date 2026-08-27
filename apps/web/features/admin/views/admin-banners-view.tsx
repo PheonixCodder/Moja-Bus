@@ -22,11 +22,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@moja/ui/components/ui/dropdown-menu";
-import { Search, Plus, MoreHorizontal, Edit, Trash2, Image as ImageIcon } from "lucide-react";
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Image as ImageIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { BannerFormDialog, type PromoBanner } from "../components/content/banner-form-dialog";
+import {
+  BannerFormDialog,
+  type PromoBanner,
+} from "../components/content/banner-form-dialog";
 
 export function AdminBannersView() {
   const t = useTranslations("adminDashboard.banners");
@@ -35,7 +45,9 @@ export function AdminBannersView() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedBanner, setSelectedBanner] = useState<PromoBanner | null>(null);
+  const [selectedBanner, setSelectedBanner] = useState<PromoBanner | null>(
+    null,
+  );
 
   const { data: bannerData, isLoading } = useQuery(
     trpc.admin.listBanners.queryOptions({ search, page, limit: 20 }),
@@ -48,7 +60,9 @@ export function AdminBannersView() {
     try {
       await updateMutation.mutateAsync({ id: banner.id, isActive: active });
       await queryClient.invalidateQueries();
-      toast.success(active ? t("toast.bannerActivated") : t("toast.bannerDeactivated"));
+      toast.success(
+        active ? t("toast.bannerActivated") : t("toast.bannerDeactivated"),
+      );
     } catch {
       toast.error(t("toast.statusUpdateFailed"));
     }
@@ -89,7 +103,10 @@ export function AdminBannersView() {
             className="pl-9 text-xs"
           />
         </div>
-        <Button onClick={handleCreateNew} className="bg-rose-600 hover:bg-rose-700 text-white text-xs gap-1.5 w-full sm:w-auto">
+        <Button
+          onClick={handleCreateNew}
+          className="bg-rose-600 hover:bg-rose-700 text-white text-xs gap-1.5 w-full sm:w-auto"
+        >
           <Plus className="size-4" />
           {t("newBanner")}
         </Button>
@@ -104,21 +121,31 @@ export function AdminBannersView() {
               <TableHead>{t("table.titleAndSubtitle")}</TableHead>
               <TableHead>{t("table.badge")}</TableHead>
               <TableHead>{t("table.actionTarget")}</TableHead>
-              <TableHead className="w-24 text-center">{t("table.status")}</TableHead>
-              <TableHead className="w-16 text-center">{t("table.order")}</TableHead>
+              <TableHead className="w-24 text-center">
+                {t("table.status")}
+              </TableHead>
+              <TableHead className="w-16 text-center">
+                {t("table.order")}
+              </TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-xs text-slate-400">
+                <TableCell
+                  colSpan={7}
+                  className="h-32 text-center text-xs text-slate-400"
+                >
                   {t("table.loading")}
                 </TableCell>
               </TableRow>
             ) : bannerData?.items?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-xs text-slate-400">
+                <TableCell
+                  colSpan={7}
+                  className="h-32 text-center text-xs text-slate-400"
+                >
                   {t("table.empty")}
                 </TableCell>
               </TableRow>
@@ -143,7 +170,9 @@ export function AdminBannersView() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="font-bold text-xs text-slate-900">{banner.title}</div>
+                    <div className="font-bold text-xs text-slate-900">
+                      {banner.title}
+                    </div>
                     {banner.subtitle && (
                       <div className="text-[11px] text-slate-500 line-clamp-1">
                         {banner.subtitle}
@@ -167,7 +196,9 @@ export function AdminBannersView() {
                   <TableCell className="text-center">
                     <Switch
                       checked={banner.isActive}
-                      onCheckedChange={(val) => handleToggleActive(banner as PromoBanner, val)}
+                      onCheckedChange={(val) =>
+                        handleToggleActive(banner as PromoBanner, val)
+                      }
                     />
                   </TableCell>
                   <TableCell className="text-center text-xs font-mono font-semibold">
@@ -181,7 +212,10 @@ export function AdminBannersView() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(banner as PromoBanner)} className="gap-2 text-xs">
+                        <DropdownMenuItem
+                          onClick={() => handleEdit(banner as PromoBanner)}
+                          className="gap-2 text-xs"
+                        >
                           <Edit className="size-3.5" />
                           {t("editBanner")}
                         </DropdownMenuItem>

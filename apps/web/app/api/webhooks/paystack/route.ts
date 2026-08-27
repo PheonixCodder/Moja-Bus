@@ -38,6 +38,9 @@ export async function POST(request: Request) {
     return Response.json({ received: true });
   } catch (error) {
     console.error("Paystack webhook error:", error);
-    return Response.json({ message: "Webhook processing failed" }, { status: 500 });
+    return Response.json(
+      { message: "Webhook processing failed" },
+      { status: 500 },
+    );
   }
 }

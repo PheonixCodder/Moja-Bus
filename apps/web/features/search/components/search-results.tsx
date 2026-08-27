@@ -37,7 +37,10 @@ export const SearchResults = memo(function SearchResults({
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((idx) => (
-          <Card key={idx} className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden">
+          <Card
+            key={idx}
+            className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden"
+          >
             <CardContent className="p-6">
               <div className="animate-pulse space-y-4">
                 <div className="flex justify-between items-center">

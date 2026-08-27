@@ -92,7 +92,9 @@ const en: TermsData = {
       subsections: [
         {
           heading: "4.1 Payment methods",
-          body: ["Transport tickets may be paid in different ways depending on the booking type:"],
+          body: [
+            "Transport tickets may be paid in different ways depending on the booking type:",
+          ],
           lists: [
             {
               variant: "bullet",
@@ -106,11 +108,15 @@ const en: TermsData = {
         },
         {
           heading: "4.2 Credit card purchases",
-          body: ["Customer accounts are debited once the booking is complete. In the event of a rejected card payment, customers may be temporarily or permanently prohibited from paying with that card and must use another card or an alternative payment method (see 4.1)."],
+          body: [
+            "Customer accounts are debited once the booking is complete. In the event of a rejected card payment, customers may be temporarily or permanently prohibited from paying with that card and must use another card or an alternative payment method (see 4.1).",
+          ],
         },
         {
           heading: "4.3 Offsetting",
-          body: ["Claims may only be offset where the principle of legal set-off applies, i.e., between two fungible, certain, liquid, and due obligations. Obligations involving sums of money — even in different convertible currencies — or obligations involving a quantity of goods of the same kind are fungible."],
+          body: [
+            "Claims may only be offset where the principle of legal set-off applies, i.e., between two fungible, certain, liquid, and due obligations. Obligations involving sums of money — even in different convertible currencies — or obligations involving a quantity of goods of the same kind are fungible.",
+          ],
         },
         {
           heading: "4.4 Promo credits and discount codes",
@@ -232,7 +238,8 @@ const en: TermsData = {
         "• Booking and service fees are non-refundable.",
       ],
       olderPolicy: {
-        label: "Previous policy — Applicable to trips with departure between 18 December 2023 and 12 September 2024",
+        label:
+          "Previous policy — Applicable to trips with departure between 18 December 2023 and 12 September 2024",
         table: {
           headers: ["Time before departure", "Refund (% of ticket price)"],
           rows: [
@@ -242,7 +249,8 @@ const en: TermsData = {
             ["30 days or more", "100%"],
           ],
         },
-        extras: "Extras (seat reservations, additional luggage): 100% refund. Booking and service fees are non-refundable.",
+        extras:
+          "Extras (seat reservations, additional luggage): 100% refund. Booking and service fees are non-refundable.",
       },
     },
     {
@@ -263,7 +271,10 @@ const fr: TermsData = {
     { id: "partner", title: "2. Partenaire contractuel" },
     { id: "commercial-use", title: "3. Utilisation commerciale du portail" },
     { id: "payment", title: "4. Paiement et promotions" },
-    { id: "cancellation-modification", title: "5. Annulation et réassignation" },
+    {
+      id: "cancellation-modification",
+      title: "5. Annulation et réassignation",
+    },
     { id: "service-fees", title: "6. Frais de service" },
     { id: "jurisdiction", title: "7. Compétence juridictionnelle" },
     { id: "severability", title: "8. Divisibilité" },
@@ -310,7 +321,9 @@ const fr: TermsData = {
       subsections: [
         {
           heading: "4.1 Méthodes de paiement",
-          body: ["Les billets de transport peuvent être payés de différentes manières selon le type de réservation :"],
+          body: [
+            "Les billets de transport peuvent être payés de différentes manières selon le type de réservation :",
+          ],
           lists: [
             {
               variant: "bullet",
@@ -324,11 +337,15 @@ const fr: TermsData = {
         },
         {
           heading: "4.2 Achats par carte de crédit",
-          body: ["Les comptes clients sont débités dès que la réservation est terminée. En cas de refus d’un paiement par carte, les clients peuvent être temporairement ou définitivement interdits de payer avec cette carte et doivent utiliser une autre carte ou un autre moyen de paiement (voir 4.1)."],
+          body: [
+            "Les comptes clients sont débités dès que la réservation est terminée. En cas de refus d’un paiement par carte, les clients peuvent être temporairement ou définitivement interdits de payer avec cette carte et doivent utiliser une autre carte ou un autre moyen de paiement (voir 4.1).",
+          ],
         },
         {
           heading: "4.3 Compensation",
-          body: ["Les créances ne peuvent être compensées que lorsque le principe de la compensation légale s’applique, c’est-à-dire entre deux obligations fongibles, certaines, liquides et exigibles."],
+          body: [
+            "Les créances ne peuvent être compensées que lorsque le principe de la compensation légale s’applique, c’est-à-dire entre deux obligations fongibles, certaines, liquides et exigibles.",
+          ],
         },
         {
           heading: "4.4 Crédits promo et codes de réduction",
@@ -436,7 +453,10 @@ const fr: TermsData = {
         ],
       },
       table: {
-        headers: ["Délai avant le départ", "Remboursement (% du prix du billet)"],
+        headers: [
+          "Délai avant le départ",
+          "Remboursement (% du prix du billet)",
+        ],
         rows: [
           ["Moins de 2 jours", "25%"],
           ["Entre 2 et 6 jours", "50%"],
@@ -450,9 +470,13 @@ const fr: TermsData = {
         "• Les frais de réservation et de service sont non remboursables.",
       ],
       olderPolicy: {
-        label: "Ancienne politique — Applicable aux voyages avec départ entre le 18 décembre 2023 et le 12 septembre 2024",
+        label:
+          "Ancienne politique — Applicable aux voyages avec départ entre le 18 décembre 2023 et le 12 septembre 2024",
         table: {
-          headers: ["Délai avant le départ", "Remboursement (% du prix du billet)"],
+          headers: [
+            "Délai avant le départ",
+            "Remboursement (% du prix du billet)",
+          ],
           rows: [
             ["Moins de 1 jour", "25%"],
             ["Entre 1 et 6 jours", "50%"],
@@ -460,7 +484,8 @@ const fr: TermsData = {
             ["30 jours ou plus", "100%"],
           ],
         },
-        extras: "Suppléments (réservation de siège, bagages supplémentaires) : remboursés à 100%. Les frais de réservation et de service sont non remboursables.",
+        extras:
+          "Suppléments (réservation de siège, bagages supplémentaires) : remboursés à 100%. Les frais de réservation et de service sont non remboursables.",
       },
     },
     {
@@ -479,6 +504,8 @@ export function getTermsContent(locale: string): TermsData {
   return locale.startsWith("fr") ? fr : en;
 }
 
-export function getTermsToc(locale: string): Array<{ id: string; title: string }> {
+export function getTermsToc(
+  locale: string,
+): Array<{ id: string; title: string }> {
   return getTermsContent(locale).toc;
 }

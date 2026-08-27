@@ -15,7 +15,9 @@ export const metadata = {
     "Audit the Paystack clearing account balance and record manual offline operator settlements.",
 };
 
-export default async function SettlementsPage({ searchParams }: SettlementsPageProps) {
+export default async function SettlementsPage({
+  searchParams,
+}: SettlementsPageProps) {
   const t = await getTranslations("adminDashboard.pages.settlements");
   const parsed = await settlementsSearchParamsCache.parse(searchParams);
   const PAGE_SIZE = 20;
@@ -28,7 +30,7 @@ export default async function SettlementsPage({ searchParams }: SettlementsPageP
       trpc.payments.listSettlementHistory.queryOptions({
         limit: PAGE_SIZE,
         offset: (parsed.page - 1) * PAGE_SIZE,
-      })
+      }),
     ),
   ]);
 

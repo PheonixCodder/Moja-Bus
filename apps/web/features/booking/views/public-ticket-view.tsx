@@ -30,7 +30,10 @@ export function PublicTicketView({ ticketToken }: PublicTicketViewProps) {
             </p>
           </div>
         </div>
-        <PrintTicketButton size="sm" className="shrink-0 self-end sm:self-center" />
+        <PrintTicketButton
+          size="sm"
+          className="shrink-0 self-end sm:self-center"
+        />
       </div>
 
       <div className="print:break-inside-avoid">

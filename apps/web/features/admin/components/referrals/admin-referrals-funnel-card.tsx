@@ -1,7 +1,15 @@
 "use client";
 
 import { Card } from "@moja/ui/components/ui/card";
-import { ArrowRight, CheckCircle2, Gift, ShieldAlert, Sparkles, UserPlus, Users } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Gift,
+  ShieldAlert,
+  Sparkles,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { InfoTooltip } from "@/features/discounts/components/info-tooltip";
 
 import { useTranslations } from "next-intl";
@@ -22,8 +30,10 @@ export function AdminReferralsFunnelCard({
   const fraud = funnel["REJECTED_FRAUD"] ?? 0;
   const total = attributed + qualified + rewarded + fraud;
 
-  const qualRate = attributed > 0 ? Math.round((qualified / attributed) * 100) : 0;
-  const rewardRate = qualified > 0 ? Math.round((rewarded / qualified) * 100) : 0;
+  const qualRate =
+    attributed > 0 ? Math.round((qualified / attributed) * 100) : 0;
+  const rewardRate =
+    qualified > 0 ? Math.round((rewarded / qualified) * 100) : 0;
 
   return (
     <Card className="p-6 border-slate-200/80 shadow-xs bg-white space-y-6">
@@ -34,10 +44,14 @@ export function AdminReferralsFunnelCard({
             <div className="flex size-9 items-center justify-center rounded-lg bg-pink-100 text-[#ee237c]">
               <UserPlus className="size-4" />
             </div>
-            <span className="text-[11px] font-medium text-slate-400">{t("step1")}</span>
+            <span className="text-[11px] font-medium text-slate-400">
+              {t("step1")}
+            </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">{t("attributedTitle")}</p>
+            <p className="text-xs font-medium text-slate-500">
+              {t("attributedTitle")}
+            </p>
             <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
               {isLoading ? "—" : attributed.toLocaleString()}
             </p>
@@ -55,7 +69,9 @@ export function AdminReferralsFunnelCard({
             </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">{t("qualifiedTitle")}</p>
+            <p className="text-xs font-medium text-slate-500">
+              {t("qualifiedTitle")}
+            </p>
             <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
               {isLoading ? "—" : qualified.toLocaleString()}
             </p>
@@ -73,7 +89,9 @@ export function AdminReferralsFunnelCard({
             </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">{t("rewardedTitle")}</p>
+            <p className="text-xs font-medium text-slate-500">
+              {t("rewardedTitle")}
+            </p>
             <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
               {isLoading ? "—" : rewarded.toLocaleString()}
             </p>
@@ -86,10 +104,14 @@ export function AdminReferralsFunnelCard({
             <div className="flex size-9 items-center justify-center rounded-lg bg-rose-100 text-rose-700">
               <ShieldAlert className="size-4" />
             </div>
-            <span className="text-[11px] font-medium text-rose-500">{t("blockedTag")}</span>
+            <span className="text-[11px] font-medium text-rose-500">
+              {t("blockedTag")}
+            </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">{t("fraudTitle")}</p>
+            <p className="text-xs font-medium text-slate-500">
+              {t("fraudTitle")}
+            </p>
             <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
               {isLoading ? "—" : fraud.toLocaleString()}
             </p>

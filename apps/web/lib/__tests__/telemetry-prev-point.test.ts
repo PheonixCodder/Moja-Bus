@@ -26,7 +26,10 @@ describe("isGoodReferencePing", () => {
 
   it("accepts NULL accuracy (unknown ≠ bad)", () => {
     assert.equal(isGoodReferencePing({ ...good, accuracyMeters: null }), true);
-    assert.equal(isGoodReferencePing({ ...good, accuracyMeters: undefined }), true);
+    assert.equal(
+      isGoodReferencePing({ ...good, accuracyMeters: undefined }),
+      true,
+    );
   });
 
   it("rejects fixes beyond the accuracy threshold", () => {
@@ -56,7 +59,11 @@ describe("advanceReference — chaining", () => {
       accuracyMeters: 300,
     };
     const after = advanceReference(original, canyonFix);
-    assert.equal(after, original, "flagged fix must be transparent to the gate");
+    assert.equal(
+      after,
+      original,
+      "flagged fix must be transparent to the gate",
+    );
   });
 
   it("chains sequentially through mixed batches to the last good fix", () => {

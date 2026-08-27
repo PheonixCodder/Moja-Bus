@@ -18,16 +18,19 @@ interface PageProps {
 export default async function AdminDispatchPage({ searchParams }: PageProps) {
   const t = await getTranslations("adminDashboard.pages.dispatch");
   const params = await searchParams;
-  const { status, companyId, from, to } = dispatchSearchParamsCache.parse(params);
+  const { status, companyId, from, to } =
+    dispatchSearchParamsCache.parse(params);
 
   await Promise.all([
     prefetch(trpc.public.listOperators.queryOptions()),
-    prefetch(trpc.admin.listDispatchTrips.queryOptions({
-      status: status as any,
-      companyId,
-      from,
-      to,
-    })),
+    prefetch(
+      trpc.admin.listDispatchTrips.queryOptions({
+        status: status as any,
+        companyId,
+        from,
+        to,
+      }),
+    ),
   ]);
 
   return (

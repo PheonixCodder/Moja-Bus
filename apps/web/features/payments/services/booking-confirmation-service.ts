@@ -46,7 +46,8 @@ export class BookingConfirmationService {
     // This handles both the case where the cron runs after expiry AND direct webhook calls.
     const holdIsExpired =
       holdGroup.status !== "ACTIVE" ||
-      (holdGroup.holdExpiresAt !== null && holdGroup.holdExpiresAt < new Date());
+      (holdGroup.holdExpiresAt !== null &&
+        holdGroup.holdExpiresAt < new Date());
 
     if (holdIsExpired) {
       await this.rescueOrphanedPayment(holdGroup);
@@ -59,254 +60,268 @@ export class BookingConfirmationService {
 
     assertHoldGroupActive(holdGroup);
 
-    const clearingAcct = await this.accountService.getSystemPaystackClearingAccount();
-    const operatorAcct = await this.accountService.getOperatorReceivableAccount(holdGroup.companyId);
-    const platformCommissionAcct = await this.accountService.getPlatformCommissionRevenueAccount();
-    const platformConvenienceAcct = await this.accountService.getPlatformConvenienceFeeRevenueAccount();
-    const processorFeeAcct = await this.accountService.getPaymentProcessorFeeAccount();
+    const clearingAcct =
+      await this.accountService.getSystemPaystackClearingAccount();
+    const operatorAcct = await this.accountService.getOperatorReceivableAccount(
+      holdGroup.companyId,
+    );
+    const platformCommissionAcct =
+      await this.accountService.getPlatformCommissionRevenueAccount();
+    const platformConvenienceAcct =
+      await this.accountService.getPlatformConvenienceFeeRevenueAccount();
+    const processorFeeAcct =
+      await this.accountService.getPaymentProcessorFeeAccount();
 
     let confirmed;
     let exhaustedCampaignIds: string[] = [];
     try {
-      confirmed = await this.prisma.$transaction(async (tx) => {
-      // Idempotent guard: only one concurrent confirm wins
-      const holdClaim = await tx.holdGroup.updateMany({
-        where: { id: holdGroup.id, status: "ACTIVE" },
-        data: { status: "CONFIRMED" },
-      });
-      if (holdClaim.count === 0) {
-        const existing = await tx.holdGroup.findUnique({
-          where: { id: holdGroup.id },
-          include: { bookings: true },
-        });
-        if (existing?.status === "CONFIRMED") {
-          return existing.bookings;
-        }
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Hold group is no longer active",
-        });
-      }
-
-      // F-16 defense-in-depth: re-verify no other hold group already holds any of
-      // these seats on an overlapping segment. createHold now serializes holds per
-      // trip (SELECT ... FOR UPDATE), so this should never trip — but it guarantees
-      // no over-sale at confirm time even if a hold somehow slipped through.
-      const holdBookings = await tx.booking.findMany({
-        where: { holdGroupId: holdGroup.id },
-        select: {
-          id: true,
-          seatId: true,
-          boardingStopOrder: true,
-          dropoffStopOrder: true,
-        },
-      });
-
-      const updatedBookings = [];
-      for (const booking of holdBookings) {
-        const clash = await tx.booking.findFirst({
-          where: {
-            tripId: holdGroup.tripId,
-            seatId: booking.seatId,
-            id: { not: booking.id },
-            holdGroupId: { not: holdGroup.id },
-            OR: [
-              { status: "CONFIRMED" },
-              { status: "PENDING_PAYMENT", holdExpiresAt: { gt: new Date() } },
-            ],
-            boardingStopOrder: { lt: booking.dropoffStopOrder },
-            dropoffStopOrder: { gt: booking.boardingStopOrder },
-          },
-        });
-        if (clash) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Seat no longer available for this segment",
+      confirmed = await this.prisma.$transaction(
+        async (tx) => {
+          // Idempotent guard: only one concurrent confirm wins
+          const holdClaim = await tx.holdGroup.updateMany({
+            where: { id: holdGroup.id, status: "ACTIVE" },
+            data: { status: "CONFIRMED" },
           });
-        }
-
-        const updated = await tx.booking.updateMany({
-          where: {
-            id: booking.id,
-            status: "PENDING_PAYMENT",
-          },
-          data: {
-            status: "CONFIRMED",
-            paymentStatus: "PAID",
-            issuedAt: new Date(),
-            holdExpiresAt: null,
-            ...(userId ? { userId } : {}),
-          },
-        });
-        if (updated.count === 0) {
-          const current = await tx.booking.findUnique({ where: { id: booking.id } });
-          if (current?.status === "CONFIRMED") {
-            updatedBookings.push(current);
-            continue;
+          if (holdClaim.count === 0) {
+            const existing = await tx.holdGroup.findUnique({
+              where: { id: holdGroup.id },
+              include: { bookings: true },
+            });
+            if (existing?.status === "CONFIRMED") {
+              return existing.bookings;
+            }
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Hold group is no longer active",
+            });
           }
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Booking could not be confirmed",
+
+          // F-16 defense-in-depth: re-verify no other hold group already holds any of
+          // these seats on an overlapping segment. createHold now serializes holds per
+          // trip (SELECT ... FOR UPDATE), so this should never trip — but it guarantees
+          // no over-sale at confirm time even if a hold somehow slipped through.
+          const holdBookings = await tx.booking.findMany({
+            where: { holdGroupId: holdGroup.id },
+            select: {
+              id: true,
+              seatId: true,
+              boardingStopOrder: true,
+              dropoffStopOrder: true,
+            },
           });
-        }
-        updatedBookings.push(
-          await tx.booking.findUniqueOrThrow({ where: { id: booking.id } }),
-        );
-      }
 
-      const snapshot = holdGroup.pricingSnapshot;
-      const { finalizeDiscountRedemptions } = await import(
-        "@/features/discounts/services/quote-service"
-      );
-      const finalized = await finalizeDiscountRedemptions(tx, holdGroup.id);
-      exhaustedCampaignIds = finalized.exhaustedCampaignIds;
+          const updatedBookings = [];
+          for (const booking of holdBookings) {
+            const clash = await tx.booking.findFirst({
+              where: {
+                tripId: holdGroup.tripId,
+                seatId: booking.seatId,
+                id: { not: booking.id },
+                holdGroupId: { not: holdGroup.id },
+                OR: [
+                  { status: "CONFIRMED" },
+                  {
+                    status: "PENDING_PAYMENT",
+                    holdExpiresAt: { gt: new Date() },
+                  },
+                ],
+                boardingStopOrder: { lt: booking.dropoffStopOrder },
+                dropoffStopOrder: { gt: booking.boardingStopOrder },
+              },
+            });
+            if (clash) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: "Seat no longer available for this segment",
+              });
+            }
 
-      const hasPromoLegs =
-        (snapshot?.platformPromoFundedXOF ?? 0) > 0 ||
-        (snapshot?.creditAppliedXOF ?? 0) > 0;
-      if (
-        snapshot &&
-        (snapshot.operatorNetXOF > 0 ||
-          snapshot.chargeAmountXOF > 0 ||
-          hasPromoLegs)
-      ) {
-        const engine = new AccountingEngine("BOOKING", {
-          externalPaymentId: holdGroup.payment!.id,
-          description: `Payment for booking hold ${holdGroup.id}`,
-          idempotencyKey: `CARD_BOOKING_${holdGroup.id}`,
-        });
-
-        const feesXOF = holdGroup.payment?.feesXOF ?? 0;
-        let seq = 1;
-
-        const clearingNet = Math.max(0, snapshot.chargeAmountXOF - feesXOF);
-        if (clearingNet > 0) {
-          engine.addDebit({
-            accountId: clearingAcct.id,
-            amount: clearingNet,
-            sequenceNumber: seq++,
-            referenceType: "HOLD_GROUP",
-            referenceId: holdGroup.id,
-            description: "Funds received from Paystack net of fees",
-          });
-        }
-
-        if (feesXOF > 0) {
-          engine.addDebit({
-            accountId: processorFeeAcct.id,
-            amount: feesXOF,
-            sequenceNumber: seq++,
-            referenceType: "HOLD_GROUP",
-            referenceId: holdGroup.id,
-            description: "Paystack processing fees",
-          });
-        }
-
-        if (snapshot.operatorNetXOF > 0) {
-          engine.addCredit({
-            accountId: operatorAcct.id,
-            amount: snapshot.operatorNetXOF,
-            sequenceNumber: seq++,
-            referenceType: "HOLD_GROUP",
-            referenceId: holdGroup.id,
-            description:
-              "Operator ticket revenue net of commission (escrowed until departure)",
-            reserveOnCredit: true,
-          });
-        }
-
-        if (snapshot.commissionXOF > 0) {
-          engine.addCredit({
-            accountId: platformCommissionAcct.id,
-            amount: snapshot.commissionXOF,
-            sequenceNumber: seq++,
-            referenceType: "HOLD_GROUP",
-            referenceId: holdGroup.id,
-            description: "Platform commission",
-          });
-        }
-
-        if (snapshot.convenienceFeeXOF > 0) {
-          engine.addCredit({
-            accountId: platformConvenienceAcct.id,
-            amount: snapshot.convenienceFeeXOF,
-            sequenceNumber: seq++,
-            referenceType: "HOLD_GROUP",
-            referenceId: holdGroup.id,
-            description: "Platform convenience fee",
-          });
-        }
-
-        if (hasPromoLegs) {
-          const promoExpense =
-            await this.accountService.getPlatformPromoExpenseAccount();
-          const promoCreditsUser = holdGroup.userId
-            ? await this.accountService.getUserPromoCreditsAccount(
-                holdGroup.userId,
-              )
-            : null;
-          const promoContra =
-            await this.accountService.getOperatorPromoContraAccount(
-              holdGroup.companyId,
+            const updated = await tx.booking.updateMany({
+              where: {
+                id: booking.id,
+                status: "PENDING_PAYMENT",
+              },
+              data: {
+                status: "CONFIRMED",
+                paymentStatus: "PAID",
+                issuedAt: new Date(),
+                holdExpiresAt: null,
+                ...(userId ? { userId } : {}),
+              },
+            });
+            if (updated.count === 0) {
+              const current = await tx.booking.findUnique({
+                where: { id: booking.id },
+              });
+              if (current?.status === "CONFIRMED") {
+                updatedBookings.push(current);
+                continue;
+              }
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: "Booking could not be confirmed",
+              });
+            }
+            updatedBookings.push(
+              await tx.booking.findUniqueOrThrow({ where: { id: booking.id } }),
             );
-          const { appendPromoLedgerEntries } = await import(
-            "@/features/discounts/services/promo-ledger"
-          );
-          const { splitPromoPaymentInstruments } = await import(
-            "@/features/discounts/services/promo-payment-split"
-          );
-          const split = splitPromoPaymentInstruments(snapshot);
-          seq = appendPromoLedgerEntries({
-            engine,
-            snapshot: {
-              platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
-              operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
-              creditAppliedXOF: split.creditAppliedXOF,
-              ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
-            },
-            accounts: {
-              promoExpensePlatformId: promoExpense.id,
-              promoCreditsUserId: promoCreditsUser?.id ?? null,
-              promoContraOperatorId: promoContra.id,
-            },
-            operatorReceivableId: operatorAcct.id,
-            holdGroupId: holdGroup.id,
-            sequenceStart: seq,
-            postOperatorContra: false,
-          });
-        }
+          }
 
-        engine.validate();
-        await engine.commit(tx as any);
-      }
+          const snapshot = holdGroup.pricingSnapshot;
+          const { finalizeDiscountRedemptions } = await import(
+            "@/features/discounts/services/quote-service"
+          );
+          const finalized = await finalizeDiscountRedemptions(tx, holdGroup.id);
+          exhaustedCampaignIds = finalized.exhaustedCampaignIds;
 
-      // Phase 32 (F-PS-14) — receipt outbox row enqueues INSIDE the tx
-      // (atomic with confirmation; a crash after commit can no longer
-      // lose it). Webhook retries take the P2002 recovery path, which
-      // skips this by design — the first commit already enqueued it.
-      const { sendBookingConfirmedEmails } = await import(
-        "./booking-receipt-email"
-      );
-      await sendBookingConfirmedEmails(
-        tx,
-        {
-          holdId: holdGroup.id,
-          bookingReferences: updatedBookings.map((b) => b.bookingReference),
-          ticketTokens: updatedBookings.map((b) => b.ticketToken),
-          totalAmountXOF:
-            holdGroup.pricingSnapshot?.chargeAmountXOF ??
-            updatedBookings.reduce((sum, b) => sum + b.farePaid, 0),
-          status: "CONFIRMED",
+          const hasPromoLegs =
+            (snapshot?.platformPromoFundedXOF ?? 0) > 0 ||
+            (snapshot?.creditAppliedXOF ?? 0) > 0;
+          if (
+            snapshot &&
+            (snapshot.operatorNetXOF > 0 ||
+              snapshot.chargeAmountXOF > 0 ||
+              hasPromoLegs)
+          ) {
+            const engine = new AccountingEngine("BOOKING", {
+              externalPaymentId: holdGroup.payment!.id,
+              description: `Payment for booking hold ${holdGroup.id}`,
+              idempotencyKey: `CARD_BOOKING_${holdGroup.id}`,
+            });
+
+            const feesXOF = holdGroup.payment?.feesXOF ?? 0;
+            let seq = 1;
+
+            const clearingNet = Math.max(0, snapshot.chargeAmountXOF - feesXOF);
+            if (clearingNet > 0) {
+              engine.addDebit({
+                accountId: clearingAcct.id,
+                amount: clearingNet,
+                sequenceNumber: seq++,
+                referenceType: "HOLD_GROUP",
+                referenceId: holdGroup.id,
+                description: "Funds received from Paystack net of fees",
+              });
+            }
+
+            if (feesXOF > 0) {
+              engine.addDebit({
+                accountId: processorFeeAcct.id,
+                amount: feesXOF,
+                sequenceNumber: seq++,
+                referenceType: "HOLD_GROUP",
+                referenceId: holdGroup.id,
+                description: "Paystack processing fees",
+              });
+            }
+
+            if (snapshot.operatorNetXOF > 0) {
+              engine.addCredit({
+                accountId: operatorAcct.id,
+                amount: snapshot.operatorNetXOF,
+                sequenceNumber: seq++,
+                referenceType: "HOLD_GROUP",
+                referenceId: holdGroup.id,
+                description:
+                  "Operator ticket revenue net of commission (escrowed until departure)",
+                reserveOnCredit: true,
+              });
+            }
+
+            if (snapshot.commissionXOF > 0) {
+              engine.addCredit({
+                accountId: platformCommissionAcct.id,
+                amount: snapshot.commissionXOF,
+                sequenceNumber: seq++,
+                referenceType: "HOLD_GROUP",
+                referenceId: holdGroup.id,
+                description: "Platform commission",
+              });
+            }
+
+            if (snapshot.convenienceFeeXOF > 0) {
+              engine.addCredit({
+                accountId: platformConvenienceAcct.id,
+                amount: snapshot.convenienceFeeXOF,
+                sequenceNumber: seq++,
+                referenceType: "HOLD_GROUP",
+                referenceId: holdGroup.id,
+                description: "Platform convenience fee",
+              });
+            }
+
+            if (hasPromoLegs) {
+              const promoExpense =
+                await this.accountService.getPlatformPromoExpenseAccount();
+              const promoCreditsUser = holdGroup.userId
+                ? await this.accountService.getUserPromoCreditsAccount(
+                    holdGroup.userId,
+                  )
+                : null;
+              const promoContra =
+                await this.accountService.getOperatorPromoContraAccount(
+                  holdGroup.companyId,
+                );
+              const { appendPromoLedgerEntries } = await import(
+                "@/features/discounts/services/promo-ledger"
+              );
+              const { splitPromoPaymentInstruments } = await import(
+                "@/features/discounts/services/promo-payment-split"
+              );
+              const split = splitPromoPaymentInstruments(snapshot);
+              seq = appendPromoLedgerEntries({
+                engine,
+                snapshot: {
+                  platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
+                  operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
+                  creditAppliedXOF: split.creditAppliedXOF,
+                  ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
+                },
+                accounts: {
+                  promoExpensePlatformId: promoExpense.id,
+                  promoCreditsUserId: promoCreditsUser?.id ?? null,
+                  promoContraOperatorId: promoContra.id,
+                },
+                operatorReceivableId: operatorAcct.id,
+                holdGroupId: holdGroup.id,
+                sequenceStart: seq,
+                postOperatorContra: false,
+              });
+            }
+
+            engine.validate();
+            await engine.commit(tx as any);
+          }
+
+          // Phase 32 (F-PS-14) — receipt outbox row enqueues INSIDE the tx
+          // (atomic with confirmation; a crash after commit can no longer
+          // lose it). Webhook retries take the P2002 recovery path, which
+          // skips this by design — the first commit already enqueued it.
+          const { sendBookingConfirmedEmails } = await import(
+            "./booking-receipt-email"
+          );
+          await sendBookingConfirmedEmails(
+            tx,
+            {
+              holdId: holdGroup.id,
+              bookingReferences: updatedBookings.map((b) => b.bookingReference),
+              ticketTokens: updatedBookings.map((b) => b.ticketToken),
+              totalAmountXOF:
+                holdGroup.pricingSnapshot?.chargeAmountXOF ??
+                updatedBookings.reduce((sum, b) => sum + b.farePaid, 0),
+              status: "CONFIRMED",
+            },
+            userId,
+          );
+
+          return updatedBookings;
         },
-        userId,
+        {
+          maxWait: 5000,
+          timeout: 15000,
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        },
       );
-
-      return updatedBookings;
-    }, {
-      maxWait: 5000,
-      timeout: 15000,
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-    });
     } catch (error: any) {
       if (error.code === "P2002") {
         const existing = await this.prisma.booking.findMany({
@@ -340,11 +355,12 @@ export class BookingConfirmationService {
     if (exhaustedCampaignIds.length > 0) {
       void import("@/features/discounts/services/quote-service").then(
         ({ notifyExhaustedCampaignBudgets }) =>
-          notifyExhaustedCampaignBudgets(this.prisma, exhaustedCampaignIds).catch(
-            (error) => {
-              console.error("Failed to notify budget exhaustion:", error);
-            },
-          ),
+          notifyExhaustedCampaignBudgets(
+            this.prisma,
+            exhaustedCampaignIds,
+          ).catch((error) => {
+            console.error("Failed to notify budget exhaustion:", error);
+          }),
       );
     }
 
@@ -418,217 +434,226 @@ export class BookingConfirmationService {
     let confirmed;
     let exhaustedCampaignIds: string[] = [];
     try {
-      confirmed = await this.prisma.$transaction(async (tx) => {
-      const accountService = new FinancialAccountService(tx as any);
-      const walletAcct = await accountService.getUserWallet(userId);
-      const operatorAcct = await accountService.getOperatorReceivableAccount(
-        holdGroup.companyId,
-      );
-      const platformCommissionAcct =
-        await accountService.getPlatformCommissionRevenueAccount();
+      confirmed = await this.prisma.$transaction(
+        async (tx) => {
+          const accountService = new FinancialAccountService(tx as any);
+          const walletAcct = await accountService.getUserWallet(userId);
+          const operatorAcct =
+            await accountService.getOperatorReceivableAccount(
+              holdGroup.companyId,
+            );
+          const platformCommissionAcct =
+            await accountService.getPlatformCommissionRevenueAccount();
 
-      // Lock wallet inside the transaction (TOCTOU fix)
-      const lockedWallet = await tx.$queryRaw<
-        { available_balance: bigint | number }[]
-      >(
-        Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${walletAcct.id} FOR UPDATE`,
-      );
-      const available = BigInt(lockedWallet[0]?.available_balance ?? 0);
-      // Zero-cash (fully covered by promo credits/discounts): no wallet debit required
-      if (totalToPay > 0 && available < BigInt(totalToPay)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Insufficient wallet balance",
-        });
-      }
+          // Lock wallet inside the transaction (TOCTOU fix)
+          const lockedWallet = await tx.$queryRaw<
+            { available_balance: bigint | number }[]
+          >(
+            Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${walletAcct.id} FOR UPDATE`,
+          );
+          const available = BigInt(lockedWallet[0]?.available_balance ?? 0);
+          // Zero-cash (fully covered by promo credits/discounts): no wallet debit required
+          if (totalToPay > 0 && available < BigInt(totalToPay)) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Insufficient wallet balance",
+            });
+          }
 
-      const updatedHold = await tx.holdGroup.updateMany({
-        where: { id: holdGroup.id, status: "ACTIVE" },
-        data: { status: "CONFIRMED" },
-      });
-
-      if (updatedHold.count === 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Hold group is no longer active",
-        });
-      }
-
-      const updatedBookings = [];
-      for (const booking of holdGroup.bookings) {
-        const clash = await tx.booking.findFirst({
-          where: {
-            tripId: holdGroup.tripId,
-            seatId: booking.seatId,
-            id: { not: booking.id },
-            holdGroupId: { not: holdGroup.id },
-            OR: [
-              { status: "CONFIRMED" },
-              { status: "PENDING_PAYMENT", holdExpiresAt: { gt: new Date() } },
-            ],
-            boardingStopOrder: { lt: booking.dropoffStopOrder },
-            dropoffStopOrder: { gt: booking.boardingStopOrder },
-          },
-        });
-        if (clash) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Seat no longer available for this segment",
+          const updatedHold = await tx.holdGroup.updateMany({
+            where: { id: holdGroup.id, status: "ACTIVE" },
+            data: { status: "CONFIRMED" },
           });
-        }
 
-        const claim = await tx.booking.updateMany({
-          where: {
-            id: booking.id,
-            status: "PENDING_PAYMENT",
-          },
-          data: {
-            status: "CONFIRMED",
-            paymentStatus: "PAID",
-            issuedAt: new Date(),
-            holdExpiresAt: null,
+          if (updatedHold.count === 0) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Hold group is no longer active",
+            });
+          }
+
+          const updatedBookings = [];
+          for (const booking of holdGroup.bookings) {
+            const clash = await tx.booking.findFirst({
+              where: {
+                tripId: holdGroup.tripId,
+                seatId: booking.seatId,
+                id: { not: booking.id },
+                holdGroupId: { not: holdGroup.id },
+                OR: [
+                  { status: "CONFIRMED" },
+                  {
+                    status: "PENDING_PAYMENT",
+                    holdExpiresAt: { gt: new Date() },
+                  },
+                ],
+                boardingStopOrder: { lt: booking.dropoffStopOrder },
+                dropoffStopOrder: { gt: booking.boardingStopOrder },
+              },
+            });
+            if (clash) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: "Seat no longer available for this segment",
+              });
+            }
+
+            const claim = await tx.booking.updateMany({
+              where: {
+                id: booking.id,
+                status: "PENDING_PAYMENT",
+              },
+              data: {
+                status: "CONFIRMED",
+                paymentStatus: "PAID",
+                issuedAt: new Date(),
+                holdExpiresAt: null,
+                userId,
+              },
+            });
+            if (claim.count === 0) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: "Booking could not be confirmed",
+              });
+            }
+            updatedBookings.push(
+              await tx.booking.findUniqueOrThrow({ where: { id: booking.id } }),
+            );
+          }
+
+          const engine = new AccountingEngine("BOOKING", {
+            description: `Wallet payment for booking hold ${holdGroup.id}`,
+            idempotencyKey: `WALLET_PAYMENT_${holdGroup.id}`,
+          });
+
+          let seq = 1;
+
+          if (totalToPay > 0) {
+            engine.addDebit({
+              accountId: walletAcct.id,
+              amount: totalToPay,
+              sequenceNumber: seq++,
+              referenceType: "HOLD_GROUP",
+              referenceId: holdGroup.id,
+              description: "Wallet balance checkout",
+            });
+          }
+
+          if (snapshot.operatorNetXOF > 0) {
+            engine.addCredit({
+              accountId: operatorAcct.id,
+              amount: snapshot.operatorNetXOF,
+              sequenceNumber: seq++,
+              referenceType: "HOLD_GROUP",
+              referenceId: holdGroup.id,
+              description:
+                "Operator ticket revenue net of commission (escrowed until departure)",
+              reserveOnCredit: true,
+            });
+          }
+
+          // Wallet waives convenience fee; keep commission from freeze snapshot.
+          const commissionXOF = snapshot.commissionXOF;
+          await tx.pricingSnapshot.update({
+            where: { holdGroupId: holdGroup.id },
+            data: {
+              convenienceFeeXOF: 0,
+              chargeAmountXOF: totalToPay,
+              platformGrossXOF:
+                commissionXOF + (snapshot.platformPromoFundedXOF ?? 0),
+            },
+          });
+
+          if (commissionXOF > 0) {
+            engine.addCredit({
+              accountId: platformCommissionAcct.id,
+              amount: commissionXOF,
+              sequenceNumber: seq++,
+              referenceType: "HOLD_GROUP",
+              referenceId: holdGroup.id,
+              description: "Platform commission",
+            });
+          }
+
+          const hasPromoLegs =
+            (snapshot.platformPromoFundedXOF ?? 0) > 0 ||
+            (snapshot.operatorPromoFundedXOF ?? 0) > 0 ||
+            (snapshot.creditAppliedXOF ?? 0) > 0 ||
+            (snapshot.ticketDiscountXOF ?? 0) > 0;
+          if (hasPromoLegs) {
+            const promoExpense =
+              await accountService.getPlatformPromoExpenseAccount();
+            const promoCreditsUser =
+              await accountService.getUserPromoCreditsAccount(userId);
+            const promoContra =
+              await accountService.getOperatorPromoContraAccount(
+                holdGroup.companyId,
+              );
+            const { appendPromoLedgerEntries } = await import(
+              "@/features/discounts/services/promo-ledger"
+            );
+            const { splitPromoPaymentInstruments } = await import(
+              "@/features/discounts/services/promo-payment-split"
+            );
+            const split = splitPromoPaymentInstruments(snapshot);
+            seq = appendPromoLedgerEntries({
+              engine,
+              snapshot: {
+                platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
+                operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
+                creditAppliedXOF: split.creditAppliedXOF,
+                ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
+              },
+              accounts: {
+                promoExpensePlatformId: promoExpense.id,
+                promoCreditsUserId: promoCreditsUser.id,
+                promoContraOperatorId: promoContra.id,
+              },
+              operatorReceivableId: operatorAcct.id,
+              holdGroupId: holdGroup.id,
+              sequenceStart: seq,
+              postOperatorContra: false,
+            });
+          }
+
+          const { finalizeDiscountRedemptions } = await import(
+            "@/features/discounts/services/quote-service"
+          );
+          const finalized = await finalizeDiscountRedemptions(tx, holdGroup.id);
+          exhaustedCampaignIds = finalized.exhaustedCampaignIds;
+
+          if (seq > 1) {
+            engine.validate();
+            await engine.commit(tx as any);
+          }
+
+          // Phase 32 (F-PS-14) — same in-tx receipt enqueue as the card path
+          // (wallet confirmations were equally exposed to the commit→notify
+          // crash window). P2002 recovery skips it by design, as above.
+          const { sendBookingConfirmedEmails } = await import(
+            "./booking-receipt-email"
+          );
+          await sendBookingConfirmedEmails(
+            tx,
+            {
+              holdId: holdGroup.id,
+              bookingReferences: updatedBookings.map((b) => b.bookingReference),
+              ticketTokens: updatedBookings.map((b) => b.ticketToken),
+              totalAmountXOF: totalToPay,
+              status: "CONFIRMED",
+            },
             userId,
-          },
-        });
-        if (claim.count === 0) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Booking could not be confirmed",
-          });
-        }
-        updatedBookings.push(
-          await tx.booking.findUniqueOrThrow({ where: { id: booking.id } }),
-        );
-      }
+          );
 
-      const engine = new AccountingEngine("BOOKING", {
-        description: `Wallet payment for booking hold ${holdGroup.id}`,
-        idempotencyKey: `WALLET_PAYMENT_${holdGroup.id}`,
-      });
-
-      let seq = 1;
-
-      if (totalToPay > 0) {
-        engine.addDebit({
-          accountId: walletAcct.id,
-          amount: totalToPay,
-          sequenceNumber: seq++,
-          referenceType: "HOLD_GROUP",
-          referenceId: holdGroup.id,
-          description: "Wallet balance checkout",
-        });
-      }
-
-      if (snapshot.operatorNetXOF > 0) {
-        engine.addCredit({
-          accountId: operatorAcct.id,
-          amount: snapshot.operatorNetXOF,
-          sequenceNumber: seq++,
-          referenceType: "HOLD_GROUP",
-          referenceId: holdGroup.id,
-          description:
-            "Operator ticket revenue net of commission (escrowed until departure)",
-          reserveOnCredit: true,
-        });
-      }
-
-      // Wallet waives convenience fee; keep commission from freeze snapshot.
-      const commissionXOF = snapshot.commissionXOF;
-      await tx.pricingSnapshot.update({
-        where: { holdGroupId: holdGroup.id },
-        data: {
-          convenienceFeeXOF: 0,
-          chargeAmountXOF: totalToPay,
-          platformGrossXOF: commissionXOF + (snapshot.platformPromoFundedXOF ?? 0),
+          return updatedBookings;
         },
-      });
-
-      if (commissionXOF > 0) {
-        engine.addCredit({
-          accountId: platformCommissionAcct.id,
-          amount: commissionXOF,
-          sequenceNumber: seq++,
-          referenceType: "HOLD_GROUP",
-          referenceId: holdGroup.id,
-          description: "Platform commission",
-        });
-      }
-
-      const hasPromoLegs =
-        (snapshot.platformPromoFundedXOF ?? 0) > 0 ||
-        (snapshot.operatorPromoFundedXOF ?? 0) > 0 ||
-        (snapshot.creditAppliedXOF ?? 0) > 0 ||
-        (snapshot.ticketDiscountXOF ?? 0) > 0;
-      if (hasPromoLegs) {
-        const promoExpense =
-          await accountService.getPlatformPromoExpenseAccount();
-        const promoCreditsUser =
-          await accountService.getUserPromoCreditsAccount(userId);
-        const promoContra = await accountService.getOperatorPromoContraAccount(
-          holdGroup.companyId,
-        );
-        const { appendPromoLedgerEntries } = await import(
-          "@/features/discounts/services/promo-ledger"
-        );
-        const { splitPromoPaymentInstruments } = await import(
-          "@/features/discounts/services/promo-payment-split"
-        );
-        const split = splitPromoPaymentInstruments(snapshot);
-        seq = appendPromoLedgerEntries({
-          engine,
-          snapshot: {
-            platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
-            operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
-            creditAppliedXOF: split.creditAppliedXOF,
-            ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
-          },
-          accounts: {
-            promoExpensePlatformId: promoExpense.id,
-            promoCreditsUserId: promoCreditsUser.id,
-            promoContraOperatorId: promoContra.id,
-          },
-          operatorReceivableId: operatorAcct.id,
-          holdGroupId: holdGroup.id,
-          sequenceStart: seq,
-          postOperatorContra: false,
-        });
-      }
-
-      const { finalizeDiscountRedemptions } = await import(
-        "@/features/discounts/services/quote-service"
-      );
-      const finalized = await finalizeDiscountRedemptions(tx, holdGroup.id);
-      exhaustedCampaignIds = finalized.exhaustedCampaignIds;
-
-      if (seq > 1) {
-        engine.validate();
-        await engine.commit(tx as any);
-      }
-
-      // Phase 32 (F-PS-14) — same in-tx receipt enqueue as the card path
-      // (wallet confirmations were equally exposed to the commit→notify
-      // crash window). P2002 recovery skips it by design, as above.
-      const { sendBookingConfirmedEmails } = await import(
-        "./booking-receipt-email"
-      );
-      await sendBookingConfirmedEmails(
-        tx,
         {
-          holdId: holdGroup.id,
-          bookingReferences: updatedBookings.map((b) => b.bookingReference),
-          ticketTokens: updatedBookings.map((b) => b.ticketToken),
-          totalAmountXOF: totalToPay,
-          status: "CONFIRMED",
+          maxWait: 5000,
+          timeout: 15000,
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         },
-        userId,
       );
-
-      return updatedBookings;
-    }, {
-      maxWait: 5000,
-      timeout: 15000,
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-    });
     } catch (error: any) {
       if (error.code === "P2002") {
         const existing = await this.prisma.booking.findMany({
@@ -683,11 +708,12 @@ export class BookingConfirmationService {
     if (exhaustedCampaignIds.length > 0) {
       void import("@/features/discounts/services/quote-service").then(
         ({ notifyExhaustedCampaignBudgets }) =>
-          notifyExhaustedCampaignBudgets(this.prisma, exhaustedCampaignIds).catch(
-            (error) => {
-              console.error("Failed to notify budget exhaustion:", error);
-            },
-          ),
+          notifyExhaustedCampaignBudgets(
+            this.prisma,
+            exhaustedCampaignIds,
+          ).catch((error) => {
+            console.error("Failed to notify budget exhaustion:", error);
+          }),
       );
     }
 
@@ -739,7 +765,10 @@ export class BookingConfirmationService {
         })
         .catch(() => {});
     } catch (e) {
-      console.error("Failed to trigger passenger-wallet-low-balance via Novu:", e);
+      console.error(
+        "Failed to trigger passenger-wallet-low-balance via Novu:",
+        e,
+      );
     }
   }
 
@@ -765,7 +794,7 @@ export class BookingConfirmationService {
       // Guest booking with no account — log for manual review, do not throw
       console.error(
         `[rescueOrphanedPayment] Cannot auto-rescue: no userId for holdGroup ${holdGroup.id} ` +
-        `(payment ${payment.id}, amount ${amountXOF} XOF). Manual intervention required.`
+          `(payment ${payment.id}, amount ${amountXOF} XOF). Manual intervention required.`,
       );
       return;
     }
@@ -776,8 +805,10 @@ export class BookingConfirmationService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      const clearingAcct = await this.accountService.getSystemPaystackClearingAccount();
-      const passengerWallet = await this.accountService.getUserWallet(targetUserId);
+      const clearingAcct =
+        await this.accountService.getSystemPaystackClearingAccount();
+      const passengerWallet =
+        await this.accountService.getUserWallet(targetUserId);
 
       const engine = new AccountingEngine("ORPHANED_PAYMENT_RESCUE", {
         externalPaymentId: payment.id,
@@ -799,7 +830,8 @@ export class BookingConfirmationService {
 
       // Debit processor fee account for the Paystack fees already incurred
       if (feesXOF > 0) {
-        const processorFeeAcct = await this.accountService.getPaymentProcessorFeeAccount();
+        const processorFeeAcct =
+          await this.accountService.getPaymentProcessorFeeAccount();
         engine.addDebit({
           accountId: processorFeeAcct.id,
           amount: feesXOF,

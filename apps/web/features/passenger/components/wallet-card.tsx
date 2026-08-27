@@ -10,7 +10,11 @@ interface WalletCardProps {
   onOpenTopup: () => void;
 }
 
-export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCardProps) {
+export function WalletCard({
+  availableBalance,
+  walletId,
+  onOpenTopup,
+}: WalletCardProps) {
   const t = useTranslations("passengerDashboard.wallet");
   const accountSuffix = walletId ? walletId.slice(-6).toUpperCase() : "XXXXXX";
 
@@ -33,10 +37,12 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
           <ShieldCheck className="size-3.5 text-emerald-300" />
-          <span className="text-[9px] font-extrabold uppercase tracking-wider text-white">{t("verified")}</span>
+          <span className="text-[9px] font-extrabold uppercase tracking-wider text-white">
+            {t("verified")}
+          </span>
         </div>
       </div>
 
@@ -56,7 +62,7 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
         <p className="text-[10px] text-white/70 font-semibold leading-none">
           {t("prefundedAccount")}
         </p>
-        
+
         <Button
           onClick={onOpenTopup}
           className="bg-white text-primary hover:bg-white/95 font-black h-10 px-5 rounded-xl shadow-md hover:shadow-lg transition-all gap-1.5 text-xs"

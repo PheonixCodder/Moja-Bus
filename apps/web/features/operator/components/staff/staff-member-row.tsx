@@ -58,8 +58,7 @@ export function StaffMemberRow({
   onRemove,
 }: StaffMemberRowProps) {
   const t = useTranslations("operatorDashboard.staff");
-  const lastActive =
-    member.user.sessions?.[0]?.createdAt ?? member.joinedAt;
+  const lastActive = member.user.sessions?.[0]?.createdAt ?? member.joinedAt;
 
   return (
     <div

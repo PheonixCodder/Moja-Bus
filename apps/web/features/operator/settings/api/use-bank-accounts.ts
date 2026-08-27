@@ -1,4 +1,8 @@
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
 
@@ -24,7 +28,9 @@ export function useDeleteBankAccount() {
 
         queryClient.setQueryData(queryKey, (old) => {
           if (!old) return old;
-          return old.filter((account) => account.id !== variables.bankAccountId);
+          return old.filter(
+            (account) => account.id !== variables.bankAccountId,
+          );
         });
 
         return { previousAccounts };
@@ -37,14 +43,16 @@ export function useDeleteBankAccount() {
         if (context?.previousAccounts) {
           queryClient.setQueryData(
             trpc.operator.listBankAccounts.queryKey(),
-            context.previousAccounts
+            context.previousAccounts,
           );
         }
       },
       onSettled: () => {
-        queryClient.invalidateQueries(trpc.operator.listBankAccounts.queryFilter());
+        queryClient.invalidateQueries(
+          trpc.operator.listBankAccounts.queryFilter(),
+        );
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
       },
-    })
+    }),
   );
 }

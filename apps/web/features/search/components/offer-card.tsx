@@ -9,7 +9,11 @@ import { buttonVariants } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { formatDateWithWeekday } from "@/lib/format-date";
-import { formatDepartureTime, formatPriceXOF, formatTripDuration } from "../lib/format";
+import {
+  formatDepartureTime,
+  formatPriceXOF,
+  formatTripDuration,
+} from "../lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { AmenityChips } from "@/features/booking/lib/amenities";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,7 +31,9 @@ export const OfferCard = memo(function OfferCard({
 }) {
   const t = useTranslations("search");
   const isSoldOut = offer.availability.status === "SOLD_OUT";
-  const [, setBookingOfferId] = useQueryState("bookingOfferId", { history: "push" });
+  const [, setBookingOfferId] = useQueryState("bookingOfferId", {
+    history: "push",
+  });
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
@@ -35,8 +41,12 @@ export const OfferCard = memo(function OfferCard({
 
   const handlePrefetch = () => {
     if (isSoldOut) return;
-    void queryClient.prefetchQuery(trpc.booking.getTripDetails.queryOptions({ offerId: offer.offerId }));
-    void queryClient.prefetchQuery(trpc.booking.getSeatAvailability.queryOptions({ offerId: offer.offerId }));
+    void queryClient.prefetchQuery(
+      trpc.booking.getTripDetails.queryOptions({ offerId: offer.offerId }),
+    );
+    void queryClient.prefetchQuery(
+      trpc.booking.getSeatAvailability.queryOptions({ offerId: offer.offerId }),
+    );
   };
 
   async function handleSelectSeats() {
@@ -46,7 +56,7 @@ export const OfferCard = memo(function OfferCard({
   }
 
   return (
-    <Card 
+    <Card
       className="border border-slate-100 hover:border-pink-200 transition-all duration-300 shadow-sm hover:shadow-md rounded-2xl overflow-hidden group"
       onMouseEnter={handlePrefetch}
       onTouchStart={handlePrefetch}
@@ -68,7 +78,9 @@ export const OfferCard = memo(function OfferCard({
                   )}
                 </h4>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs font-semibold text-slate-400">{offer.busTypeName}</span>
+                  <span className="text-xs font-semibold text-slate-400">
+                    {offer.busTypeName}
+                  </span>
                   <Badge
                     className={cn(
                       "text-[10px] font-bold py-0.5 px-2 rounded-full border",
@@ -96,7 +108,14 @@ export const OfferCard = memo(function OfferCard({
                 <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                   {offer.originTerminalName}
                 </p>
-                <span className="text-[10px] font-semibold text-slate-400">{formatLocationLabel({ cityName: offer.originCityName, municipalityName: offer.originMunicipalityName, quarterName: offer.originQuarterName, isUrban })}</span>
+                <span className="text-[10px] font-semibold text-slate-400">
+                  {formatLocationLabel({
+                    cityName: offer.originCityName,
+                    municipalityName: offer.originMunicipalityName,
+                    quarterName: offer.originQuarterName,
+                    isUrban,
+                  })}
+                </span>
               </div>
 
               <div className="md:col-span-3 flex flex-col items-center justify-center px-4 my-2 md:my-0">
@@ -127,7 +146,14 @@ export const OfferCard = memo(function OfferCard({
                 <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">
                   {offer.destinationTerminalName}
                 </p>
-                <span className="text-[10px] font-semibold text-slate-400">{formatLocationLabel({ cityName: offer.destinationCityName, municipalityName: offer.destinationMunicipalityName, quarterName: offer.destinationQuarterName, isUrban })}</span>
+                <span className="text-[10px] font-semibold text-slate-400">
+                  {formatLocationLabel({
+                    cityName: offer.destinationCityName,
+                    municipalityName: offer.destinationMunicipalityName,
+                    quarterName: offer.destinationQuarterName,
+                    isUrban,
+                  })}
+                </span>
               </div>
             </div>
           </div>
@@ -170,7 +196,9 @@ export const OfferCard = memo(function OfferCard({
                   </Badge>
                 ) : (
                   <span className="text-[10px] font-semibold text-emerald-600 block">
-                    {t("seatsAvailable", { count: offer.availability.remaining })}
+                    {t("seatsAvailable", {
+                      count: offer.availability.remaining,
+                    })}
                   </span>
                 )}
               </div>

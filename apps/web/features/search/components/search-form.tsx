@@ -98,7 +98,9 @@ export const SearchForm = memo(function SearchForm({
       ? {
           terminalId: initialFromTerminal,
           level: "terminal" as const,
-          ...(initialFromCompanyName ? { companyName: initialFromCompanyName } : {}),
+          ...(initialFromCompanyName
+            ? { companyName: initialFromCompanyName }
+            : {}),
         }
       : {}),
   });
@@ -118,7 +120,9 @@ export const SearchForm = memo(function SearchForm({
       ? {
           terminalId: initialToTerminal,
           level: "terminal" as const,
-          ...(initialToCompanyName ? { companyName: initialToCompanyName } : {}),
+          ...(initialToCompanyName
+            ? { companyName: initialToCompanyName }
+            : {}),
         }
       : {}),
   });
@@ -158,7 +162,9 @@ export const SearchForm = memo(function SearchForm({
         id: originCity.id,
         terminalId: initialFromTerminal,
         terminalName: initialFromTerminalName,
-        ...(initialFromCompanyName ? { companyName: initialFromCompanyName } : {}),
+        ...(initialFromCompanyName
+          ? { companyName: initialFromCompanyName }
+          : {}),
         level: "terminal",
         text: label,
       }));
@@ -178,7 +184,7 @@ export const SearchForm = memo(function SearchForm({
             .filter(Boolean)
             .join(" ")
         : originCity.name;
-     setOrigin((prev) => ({ ...prev, id: originCity.id, text: label }));
+    setOrigin((prev) => ({ ...prev, id: originCity.id, text: label }));
   }, [
     originCity,
     originLabel,

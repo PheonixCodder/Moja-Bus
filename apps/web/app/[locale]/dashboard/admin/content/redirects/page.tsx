@@ -10,15 +10,21 @@ export const metadata = {
   description: "Manage SEO URL redirects for the platform.",
 };
 
-export default async function RedirectsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function RedirectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const t = await getTranslations("adminDashboard.pages.redirects");
   const { q, page } = adminRedirectsParamsCache.parse(await searchParams);
 
-  await prefetch(trpc.admin.listBlogRedirects.queryOptions({
-    search: q || undefined,
-    page: page,
-    limit: 20,
-  }));
+  await prefetch(
+    trpc.admin.listBlogRedirects.queryOptions({
+      search: q || undefined,
+      page: page,
+      limit: 20,
+    }),
+  );
 
   return (
     <HydrateClient>

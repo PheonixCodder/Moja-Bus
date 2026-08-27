@@ -77,7 +77,7 @@ export function AdminDriverVerificationsView() {
       licenseCategory: categoryFilter === "ALL" ? undefined : categoryFilter,
       limit: PAGE_SIZE,
       offset,
-    })
+    }),
   );
 
   // Reset accumulation when any filter changes (same guarded render-time
@@ -242,15 +242,23 @@ export function AdminDriverVerificationsView() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-slate-400">
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-12 text-slate-400"
+                >
                   Loading verification queue...
                 </TableCell>
               </TableRow>
             ) : drivers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-slate-500">
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-12 text-slate-500"
+                >
                   <ShieldCheck className="size-10 text-slate-300 mx-auto mb-2" />
-                  <p className="font-semibold text-sm">No driver applications found.</p>
+                  <p className="font-semibold text-sm">
+                    No driver applications found.
+                  </p>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {statusFilter === "PENDING"
                       ? "All submitted driver licenses have been reviewed."
@@ -293,7 +301,10 @@ export function AdminDriverVerificationsView() {
                         <CreditCard className="size-3.5 text-slate-400" />
                         {driver.licenseNumber}
                       </p>
-                      <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] font-bold px-1.5 py-0"
+                      >
                         Class {driver.licenseCategory}
                       </Badge>
                     </div>
@@ -303,7 +314,9 @@ export function AdminDriverVerificationsView() {
                   <TableCell>
                     <p className="text-xs font-semibold text-slate-800">
                       {driver.companyAffiliations?.[0]?.company?.name ?? (
-                        <span className="text-slate-400 italic">Independent Pool</span>
+                        <span className="text-slate-400 italic">
+                          Independent Pool
+                        </span>
                       )}
                     </p>
                   </TableCell>
@@ -323,8 +336,8 @@ export function AdminDriverVerificationsView() {
                         driver.verificationStatus === "VERIFIED"
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                           : driver.verificationStatus === "REJECTED"
-                          ? "bg-rose-50 text-rose-700 border-rose-200"
-                          : "bg-amber-50 text-amber-700 border-amber-200"
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
                       }
                     >
                       {driver.verificationStatus}

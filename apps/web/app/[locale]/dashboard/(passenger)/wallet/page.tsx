@@ -9,7 +9,10 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "passengerDashboard.wallet" });
+  const t = await getTranslations({
+    locale,
+    namespace: "passengerDashboard.wallet",
+  });
   return { title: t("metaTitle"), description: t("metaDescription") };
 }
 
@@ -21,7 +24,7 @@ export default async function WalletPage() {
     trpc.passenger.getWalletLedger.queryOptions({
       limit: 20,
       offset: 0,
-    })
+    }),
   );
   await prefetch(trpc.discounts.listMyCreditLots.queryOptions());
 

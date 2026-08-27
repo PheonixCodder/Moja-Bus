@@ -21,7 +21,6 @@ const crontab = readFileSync(
 );
 
 describe("outbox cadence guard (F-NF-10)", () => {
-
   it("runs process-outbox every minute in production", () => {
     assert.match(
       crontab,
@@ -55,49 +54,49 @@ describe("outbox cadence guard (F-NF-10)", () => {
 
 const cronRoutesDir = new URL("../../app/api/cron", import.meta.url);
 const routeDirs = readdirSync(cronRoutesDir).filter(
-	(name) => !name.startsWith("."),
+  (name) => !name.startsWith("."),
 );
 
 describe("cron route↔schedule parity (F-IN-07)", () => {
-	it("schedules EVERY /api/cron/* route in the authoritative crontab", () => {
-		assert.ok(routeDirs.length > 0, "no cron routes found — path drift");
-		for (const route of routeDirs) {
-			assert.match(
-				crontab,
-				new RegExp(`/api/cron/${route}\\b`),
-				`route "${route}" has no schedule in deploy/cron/crontab.template — it will NEVER run in production`,
-			);
-		}
-	});
+  it("schedules EVERY /api/cron/* route in the authoritative crontab", () => {
+    assert.ok(routeDirs.length > 0, "no cron routes found — path drift");
+    for (const route of routeDirs) {
+      assert.match(
+        crontab,
+        new RegExp(`/api/cron/${route}\\b`),
+        `route "${route}" has no schedule in deploy/cron/crontab.template — it will NEVER run in production`,
+      );
+    }
+  });
 
-	it("has no stale crontab lines pointing at deleted routes", () => {
-		const scheduled = [...crontab.matchAll(/\/api\/cron\/([a-z0-9-]+)/g)].map(
-			(m) => m[1] ?? "",
-		);
-		for (const name of scheduled) {
-			assert.ok(
-				routeDirs.includes(name),
-				`crontab schedules "/api/cron/${name}" but no such route directory exists — stale line`,
-			);
-		}
-	});
+  it("has no stale crontab lines pointing at deleted routes", () => {
+    const scheduled = [...crontab.matchAll(/\/api\/cron\/([a-z0-9-]+)/g)].map(
+      (m) => m[1] ?? "",
+    );
+    for (const name of scheduled) {
+      assert.ok(
+        routeDirs.includes(name),
+        `crontab schedules "/api/cron/${name}" but no such route directory exists — stale line`,
+      );
+    }
+  });
 
-	it("keeps vercel.json paths a subset of the authoritative routes", () => {
-		const vercel = JSON.parse(
-			readFileSync(new URL("../../vercel.json", import.meta.url), "utf8"),
-		) as { crons?: Array<{ path: string }> };
-		for (const entry of vercel.crons ?? []) {
-			const name = entry.path.split("/").pop();
-			assert.ok(name, `vercel.json entry without a path: ${entry.path}`);
-			assert.ok(
-				routeDirs.includes(name),
-				`vercel.json schedules unknown route "${name}"`,
-			);
-			assert.match(
-				crontab,
-				new RegExp(`/api/cron/${name}\\b`),
-				`vercel.json route "${name}" is missing from the authoritative crontab`,
-			);
-		}
-	});
+  it("keeps vercel.json paths a subset of the authoritative routes", () => {
+    const vercel = JSON.parse(
+      readFileSync(new URL("../../vercel.json", import.meta.url), "utf8"),
+    ) as { crons?: Array<{ path: string }> };
+    for (const entry of vercel.crons ?? []) {
+      const name = entry.path.split("/").pop();
+      assert.ok(name, `vercel.json entry without a path: ${entry.path}`);
+      assert.ok(
+        routeDirs.includes(name),
+        `vercel.json schedules unknown route "${name}"`,
+      );
+      assert.match(
+        crontab,
+        new RegExp(`/api/cron/${name}\\b`),
+        `vercel.json route "${name}" is missing from the authoritative crontab`,
+      );
+    }
+  });
 });

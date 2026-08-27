@@ -19,7 +19,11 @@ export class SeatAvailabilityService {
         bus: { include: { layoutTemplate: true } },
         seats: {
           include: { seat: true },
-          orderBy: [{ seat: { deck: "asc" } }, { seat: { row: "asc" } }, { seat: { col: "asc" } }],
+          orderBy: [
+            { seat: { deck: "asc" } },
+            { seat: { row: "asc" } },
+            { seat: { col: "asc" } },
+          ],
         },
         bookings: {
           where: {
@@ -53,10 +57,7 @@ export class SeatAvailabilityService {
       const seat = tripSeat.seat;
       let status: PassengerSeatStatus = "AVAILABLE";
 
-      if (
-        seat.seatType === "DRIVER_AREA" ||
-        seat.seatType === "EMPTY_SPACE"
-      ) {
+      if (seat.seatType === "DRIVER_AREA" || seat.seatType === "EMPTY_SPACE") {
         status = seat.seatType === "DRIVER_AREA" ? "DRIVER" : "EMPTY";
       } else if (!tripSeat.isActive || !seat.isActive || !seat.isBookable) {
         status = "BLOCKED";
@@ -74,8 +75,7 @@ export class SeatAvailabilityService {
         );
 
         if (conflicting) {
-          status =
-            conflicting.status === "PENDING_PAYMENT" ? "HELD" : "SOLD";
+          status = conflicting.status === "PENDING_PAYMENT" ? "HELD" : "SOLD";
         }
       }
 

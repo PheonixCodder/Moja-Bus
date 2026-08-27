@@ -44,7 +44,10 @@ export const passengerRebookedWorkflow = workflow(
           <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 0;">Your digital ticket is already available in the Moja Ride app under Bookings.</p>
         </div>
       `;
-      return { subject: "Your trip has been rescheduled — new details inside", body: html };
+      return {
+        subject: "Your trip has been rescheduled — new details inside",
+        body: html,
+      };
     });
 
     // 2. In-App Notification

@@ -13,7 +13,12 @@ import { OperationalMetricsGrid } from "../components/revenue/operational-metric
 import { RevenueAnalyticsChart } from "../components/revenue/revenue-analytics-chart";
 import { RoutePerformanceTable } from "../components/revenue/route-performance-table";
 import { TransactionLedgerTable } from "../components/revenue/transaction-ledger-table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@moja/ui/components/ui/tabs";
 
 export function OperatorRevenueView() {
   const trpc = useTRPC();
@@ -23,14 +28,14 @@ export function OperatorRevenueView() {
   });
 
   const { data: analytics } = useSuspenseQuery(
-    trpc.operator.getRevenueAnalytics.queryOptions({ 
-      from: from.toISOString(), 
-      to: to.toISOString() 
-    })
+    trpc.operator.getRevenueAnalytics.queryOptions({
+      from: from.toISOString(),
+      to: to.toISOString(),
+    }),
   );
 
   const { data: balances } = useSuspenseQuery(
-    trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" })
+    trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" }),
   );
 
   return (
@@ -39,7 +44,7 @@ export function OperatorRevenueView() {
 
       <ArrearsAlertBanner availableBalance={balances.liveAvailableBalance} />
 
-      <BalanceOverviewCards 
+      <BalanceOverviewCards
         availableBalance={balances.liveAvailableBalance}
         reservedBalance={balances.liveReservedBalance}
         netEarnings={analytics.kpis.netRevenueXOF}
@@ -47,8 +52,8 @@ export function OperatorRevenueView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
-          <RevenueAnalyticsChart 
-            timeSeries={analytics.timeSeries} 
+          <RevenueAnalyticsChart
+            timeSeries={analytics.timeSeries}
             totalNet={analytics.kpis.netRevenueXOF}
           />
         </div>
@@ -57,21 +62,21 @@ export function OperatorRevenueView() {
         </div>
       </div>
 
-      <Tabs 
-        value={tab} 
-        onValueChange={(val) => setParams({ tab: val, page: 1 })} 
+      <Tabs
+        value={tab}
+        onValueChange={(val) => setParams({ tab: val, page: 1 })}
         className="space-y-6 flex flex-col"
       >
         <div className="flex items-center justify-between border-b pb-2">
           <TabsList className="bg-transparent space-x-4 p-0">
-            <TabsTrigger 
-              value="overview" 
+            <TabsTrigger
+              value="overview"
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-2"
             >
               {t("tabs.overview")}
             </TabsTrigger>
-            <TabsTrigger 
-              value="ledger" 
+            <TabsTrigger
+              value="ledger"
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-2"
             >
               {t("tabs.ledger")}
@@ -90,4 +95,3 @@ export function OperatorRevenueView() {
     </div>
   );
 }
-

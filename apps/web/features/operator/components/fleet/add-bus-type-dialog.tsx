@@ -44,7 +44,9 @@ export function AddBusTypeDialog({
       onSuccess: () => {
         toast.success(t("addBusTypeDialog.created"));
         queryClient.invalidateQueries(trpc.fleet.getBusTypes.pathFilter());
-        queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
+        queryClient.invalidateQueries(
+          trpc.fleet.getLayoutTemplates.pathFilter(),
+        );
         onSuccess();
         onOpenChange(false);
         resetForm();
@@ -109,7 +111,11 @@ export function AddBusTypeDialog({
           </div>
         </DialogHeader>
 
-        <form id="add-bus-type-form" onSubmit={handleSubmit} className="space-y-4">
+        <form
+          id="add-bus-type-form"
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
           <div className="space-y-1.5">
             <Label
               htmlFor="bus-type-name"

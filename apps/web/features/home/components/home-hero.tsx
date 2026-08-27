@@ -46,9 +46,7 @@ export function HomeHero() {
             className="text-left text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 leading-[1.08] mb-4"
           >
             {t("titleLine1")}
-            <span className="block text-slate-900">
-              {t("titleLine2")}
-            </span>
+            <span className="block text-slate-900">{t("titleLine2")}</span>
           </motion.h1>
 
           <motion.p

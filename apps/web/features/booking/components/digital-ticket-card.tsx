@@ -3,7 +3,10 @@
 import QRCode from "react-qr-code";
 import { useTranslations } from "next-intl";
 import { formatDateWithWeekday } from "@/lib/format-date";
-import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/format";
+import {
+  formatDepartureTime,
+  formatPriceXOF,
+} from "@/features/search/lib/format";
 import type { DigitalTicketDTO } from "@moja/types";
 import { Calendar, User, Armchair, Ticket } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
@@ -15,7 +18,10 @@ interface DigitalTicketCardProps {
   compact?: boolean;
 }
 
-export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCardProps) {
+export function DigitalTicketCard({
+  ticket,
+  compact = false,
+}: DigitalTicketCardProps) {
   const t = useTranslations("passengerDashboard.tickets");
   const tTicket = useTranslations("ticket");
 
@@ -24,7 +30,7 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
       className={cn(
         "rounded-[24px] border border-border bg-white overflow-hidden relative shadow-sm",
         "print:shadow-none print:border-slate-300 print:rounded-xl print:bg-white",
-        compact ? "p-4" : "p-6 sm:p-7"
+        compact ? "p-4" : "p-6 sm:p-7",
       )}
     >
       {/* Decorative ambient background blur */}
@@ -44,10 +50,14 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
         </span>
       </div>
 
-      <div className={cn(
-        "flex relative z-10",
-        compact ? "flex-col items-center gap-6 print:flex-row print:items-start print:gap-6" : "flex-col md:flex-row items-center md:items-start gap-8"
-      )}>
+      <div
+        className={cn(
+          "flex relative z-10",
+          compact
+            ? "flex-col items-center gap-6 print:flex-row print:items-start print:gap-6"
+            : "flex-col md:flex-row items-center md:items-start gap-8",
+        )}
+      >
         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] shrink-0 print:p-2.5 print:shadow-none print:border-slate-200">
           <QRCode
             value={ticket.qrPayload}
@@ -57,7 +67,14 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
         </div>
 
         <div className="flex-1 space-y-5 text-center md:text-left print:text-left w-full">
-          <div className={cn("flex flex-col", compact ? "items-center print:items-start" : "items-center md:items-start")}>
+          <div
+            className={cn(
+              "flex flex-col",
+              compact
+                ? "items-center print:items-start"
+                : "items-center md:items-start",
+            )}
+          >
             <div className="flex flex-wrap items-center justify-center print:justify-start gap-2 mb-2">
               <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1 rounded-full print:bg-slate-100 print:text-slate-900 print:border print:border-slate-300">
                 {ticket.companyName}
@@ -65,10 +82,28 @@ export function DigitalTicketCard({ ticket, compact = false }: DigitalTicketCard
               {ticket.serviceType === "URBAN" && <UrbanBadge />}
             </div>
             <h3 className="text-xl font-extrabold text-slate-900 tracking-tight font-display">
-              {formatLocationLabel({ cityName: ticket.originCityName, municipalityName: ticket.originMunicipalityName, quarterName: ticket.originQuarterName, isUrban: ticket.serviceType === "URBAN" })} <span className="text-slate-300 mx-1">→</span> {formatLocationLabel({ cityName: ticket.destinationCityName, municipalityName: ticket.destinationMunicipalityName, quarterName: ticket.destinationQuarterName, isUrban: ticket.serviceType === "URBAN" })}
+              {formatLocationLabel({
+                cityName: ticket.originCityName,
+                municipalityName: ticket.originMunicipalityName,
+                quarterName: ticket.originQuarterName,
+                isUrban: ticket.serviceType === "URBAN",
+              })}{" "}
+              <span className="text-slate-300 mx-1">→</span>{" "}
+              {formatLocationLabel({
+                cityName: ticket.destinationCityName,
+                municipalityName: ticket.destinationMunicipalityName,
+                quarterName: ticket.destinationQuarterName,
+                isUrban: ticket.serviceType === "URBAN",
+              })}
             </h3>
             <p className="text-sm text-slate-500 mt-1 font-medium">
-              {ticket.originTerminalName}{ticket.originQuarterName ? ` · ${ticket.originQuarterName}` : ""} <span className="mx-1 opacity-50">→</span> {ticket.destinationTerminalName}{ticket.destinationQuarterName ? ` · ${ticket.destinationQuarterName}` : ""}
+              {ticket.originTerminalName}
+              {ticket.originQuarterName ? ` · ${ticket.originQuarterName}` : ""}{" "}
+              <span className="mx-1 opacity-50">→</span>{" "}
+              {ticket.destinationTerminalName}
+              {ticket.destinationQuarterName
+                ? ` · ${ticket.destinationQuarterName}`
+                : ""}
             </p>
           </div>
 

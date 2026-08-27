@@ -28,7 +28,7 @@ export default async function AdminPostsPage({
         status: status || undefined,
         limit: 20,
         offset: (page - 1) * 20,
-      })
+      }),
     ),
     prefetch(trpc.admin.listBlogCategories.queryOptions()),
     prefetch(trpc.admin.listBlogTags.queryOptions()),
@@ -44,7 +44,9 @@ export default async function AdminPostsPage({
           <span className="mx-1 text-text-muted/40">/</span>
           <span>{t("breadcrumbContent")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">{t("breadcrumbPosts")}</span>
+          <span className="text-text-primary font-medium">
+            {t("breadcrumbPosts")}
+          </span>
         </nav>
       </header>
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

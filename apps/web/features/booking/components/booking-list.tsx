@@ -70,17 +70,20 @@ export function BookingList({
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden px-0">
-
         <Tabs
           value={filter}
           onValueChange={(v) => onFilterChange(v as BookingFilter)}
         >
           <TabsList className="w-full border-b px-4" variant="line">
             <TabsTrigger className="text-xs" value="upcoming">
-              {t("upcoming")}{upcomingCount !== undefined ? ` (${upcomingCount})` : ""}
+              {t("upcoming")}
+              {upcomingCount !== undefined ? ` (${upcomingCount})` : ""}
             </TabsTrigger>
             <TabsTrigger className="text-xs" value="pending">
-              {t("pending")}{pendingCount !== undefined && pendingCount > 0 ? ` (${pendingCount})` : ""}
+              {t("pending")}
+              {pendingCount !== undefined && pendingCount > 0
+                ? ` (${pendingCount})`
+                : ""}
             </TabsTrigger>
             <TabsTrigger className="text-xs" value="past">
               {t("past")}
@@ -137,7 +140,10 @@ export function BookingList({
 
         {!isLoading && filtered.length > 0 && (
           <div className="px-4 pb-2 text-muted-foreground text-xs">
-            {t(total !== 1 ? "showingCountPlural" : "showingCountSingular", { count: filtered.length, total })}
+            {t(total !== 1 ? "showingCountPlural" : "showingCountSingular", {
+              count: filtered.length,
+              total,
+            })}
           </div>
         )}
       </CardContent>

@@ -73,5 +73,5 @@ export const operatorDriverAssignmentConflictWorkflow = workflow(
       all: { readOnly: true },
     },
     payloadSchema: operatorDriverAssignmentConflictPayloadSchema,
-  }
+  },
 );

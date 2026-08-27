@@ -95,12 +95,32 @@ export function ProfileStep({
     const year = parseInt(parts[2] ?? "", 10);
 
     if (isNaN(month) || isNaN(day) || isNaN(year)) return "";
-    if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900 || year > 2100) {
+    if (
+      month < 1 ||
+      month > 12 ||
+      day < 1 ||
+      day > 31 ||
+      year < 1900 ||
+      year > 2100
+    ) {
       return "";
     }
 
     // Basic day-of-month validation
-    const daysInMonth = [31, (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const daysInMonth = [
+      31,
+      year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28,
+      31,
+      30,
+      31,
+      30,
+      31,
+      31,
+      30,
+      31,
+      30,
+      31,
+    ];
     if (day > (daysInMonth[month - 1] ?? 31)) return "";
 
     return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -137,12 +157,8 @@ export function ProfileStep({
               <User className="w-5 h-5" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold">
-                {t("title")}
-              </CardTitle>
-              <CardDescription>
-                {t("description")}
-              </CardDescription>
+              <CardTitle className="text-lg font-bold">{t("title")}</CardTitle>
+              <CardDescription>{t("description")}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -157,9 +173,7 @@ export function ProfileStep({
               shape="circle"
               previewClassName="h-20 w-20"
             />
-            <p className="text-xs text-muted-foreground">
-              {t("photoDesc")}
-            </p>
+            <p className="text-xs text-muted-foreground">{t("photoDesc")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -214,35 +228,33 @@ export function ProfileStep({
               />
             </div>
 
-             <div className="flex flex-col gap-2">
-               <Label
-                 htmlFor="dob"
-                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-               >
-                 {t("dateOfBirth")}
-               </Label>
-               <Input
-                 id="dob"
-                 value={dobInput}
-                 onChange={(e) => {
-                   const raw = e.target.value;
-                   setDobInput(raw);
-                   setDateOfBirth(parseDobInput(raw));
-                   setDobError("");
-                 }}
-                 onBlur={() => {
-                   if (dobInput && !dateOfBirth) {
-                     setDobError(t("dateOfBirthInvalid"));
-                   }
-                 }}
-                 placeholder={t("dateOfBirthPlaceholder")}
-                 required
-                 className={`rounded-md border-border focus-visible:ring-primary focus-visible:border-primary ${dobError ? "border-red-500" : ""}`}
-               />
-               {dobError && (
-                 <p className="text-xs text-red-500">{dobError}</p>
-               )}
-             </div>
+            <div className="flex flex-col gap-2">
+              <Label
+                htmlFor="dob"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                {t("dateOfBirth")}
+              </Label>
+              <Input
+                id="dob"
+                value={dobInput}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setDobInput(raw);
+                  setDateOfBirth(parseDobInput(raw));
+                  setDobError("");
+                }}
+                onBlur={() => {
+                  if (dobInput && !dateOfBirth) {
+                    setDobError(t("dateOfBirthInvalid"));
+                  }
+                }}
+                placeholder={t("dateOfBirthPlaceholder")}
+                required
+                className={`rounded-md border-border focus-visible:ring-primary focus-visible:border-primary ${dobError ? "border-red-500" : ""}`}
+              />
+              {dobError && <p className="text-xs text-red-500">{dobError}</p>}
+            </div>
           </div>
 
           {/* Identification Details */}
@@ -301,13 +313,13 @@ export function ProfileStep({
                   placeholder={t("idNumberPlaceholder")}
                   className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
-               </div>
-             </div>
-           </div>
-         </CardContent>
-       </Card>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-       {/* Sticky Bottom Action Bar container placeholder */}
+      {/* Sticky Bottom Action Bar container placeholder */}
       <div className="flex justify-between pt-4">
         <Button
           type="button"

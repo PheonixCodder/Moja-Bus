@@ -11,7 +11,10 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "operatorDashboard.overview" });
+  const t = await getTranslations({
+    locale,
+    namespace: "operatorDashboard.overview",
+  });
   return { title: t("metaTitle") };
 }
 
@@ -35,7 +38,8 @@ export default async function OperatorDashboardPage({ params }: Props) {
         key === "trips:read" ||
         key === "bookings:read" ||
         key === "company:view",
-    ) ?? false);
+    ) ??
+      false);
 
   if (!canViewDashboard) {
     return (

@@ -26,5 +26,8 @@ export function useCitySearch(query: string, delayMs = 250) {
     enabled: debouncedQuery.length >= 2,
   });
 
-  return { cities: (data ?? []) as CitySearchResult[], isSearchable: debouncedQuery.length >= 2 };
+  return {
+    cities: (data ?? []) as CitySearchResult[],
+    isSearchable: debouncedQuery.length >= 2,
+  };
 }

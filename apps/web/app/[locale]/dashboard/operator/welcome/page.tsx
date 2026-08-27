@@ -41,7 +41,7 @@ export default async function OperatorWelcomePage({ params }: Props) {
     redirect("/dashboard/operator/onboarding");
   }
 
-  const companyName = (data.operator)?.company?.name ?? t("companyFallback");
+  const companyName = data.operator?.company?.name ?? t("companyFallback");
 
   return (
     <HydrateClient>

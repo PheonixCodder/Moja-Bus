@@ -4,13 +4,29 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plane, Hotel, Train, Bus, Package, Search, MapPin, Calendar, Users, ChevronDown
+  Plane,
+  Hotel,
+  Train,
+  Bus,
+  Package,
+  Search,
+  MapPin,
+  Calendar,
+  Users,
+  ChevronDown,
 } from "lucide-react";
 import { format } from "date-fns";
-import { CityAutocompleteField, type CityValue } from "@/features/search/components/city-autocomplete-field";
+import {
+  CityAutocompleteField,
+  type CityValue,
+} from "@/features/search/components/city-autocomplete-field";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@moja/ui/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@moja/ui/components/ui/popover";
 import { Calendar as CalendarComponent } from "@moja/ui/components/ui/calendar";
 
 import { useTranslations } from "next-intl";
@@ -19,7 +35,7 @@ const todayISO = () => new Date().toISOString().split("T")[0]!;
 
 function parseLocalDate(dateStr: string) {
   if (!dateStr) return undefined;
-  const [y, m, d] = dateStr.split('-');
+  const [y, m, d] = dateStr.split("-");
   return new Date(Number(y), Number(m) - 1, Number(d));
 }
 
@@ -86,10 +102,14 @@ const POPULAR = ["Abidjan", "Yamoussoukro", "San Pedro", "Bouake", "Korhogo"];
 export function HeroSearchBar() {
   const t = useTranslations("landing.hero");
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("buses");
+  const [activeTab, setActiveTab] =
+    useState<(typeof TABS)[number]["id"]>("buses");
 
   const [origin, setOrigin] = useState<CityValue>({ id: "", text: "" });
-  const [destination, setDestination] = useState<CityValue>({ id: "", text: "" });
+  const [destination, setDestination] = useState<CityValue>({
+    id: "",
+    text: "",
+  });
   const [date, setDate] = useState(todayISO());
   const [travelers, setTravelers] = useState(1);
 
@@ -100,19 +120,36 @@ export function HeroSearchBar() {
     if (activeTab === "buses") {
       const originVal = origin.id || origin.text.trim();
       const destVal = destination.id || destination.text.trim();
-      if (!originVal) { toast.error(t("validation.noOrigin")); return; }
-      if (!destVal) { toast.error(t("validation.noDestination")); return; }
-      if (originVal === destVal && !origin.terminalId && !destination.terminalId) {
+      if (!originVal) {
+        toast.error(t("validation.noOrigin"));
+        return;
+      }
+      if (!destVal) {
+        toast.error(t("validation.noDestination"));
+        return;
+      }
+      if (
+        originVal === destVal &&
+        !origin.terminalId &&
+        !destination.terminalId
+      ) {
         toast.error(t("validation.sameCity"));
         return;
       }
-      const params = new URLSearchParams({ from: originVal, to: destVal, date, passengers: String(travelers) });
+      const params = new URLSearchParams({
+        from: originVal,
+        to: destVal,
+        date,
+        passengers: String(travelers),
+      });
       if (origin.municipalityId) params.set("fromMuni", origin.municipalityId);
-      if (destination.municipalityId) params.set("toMuni", destination.municipalityId);
+      if (destination.municipalityId)
+        params.set("toMuni", destination.municipalityId);
       if (origin.quarterId) params.set("fromQuarter", origin.quarterId);
       if (destination.quarterId) params.set("toQuarter", destination.quarterId);
       if (origin.terminalId) params.set("fromTerminal", origin.terminalId);
-      if (destination.terminalId) params.set("toTerminal", destination.terminalId);
+      if (destination.terminalId)
+        params.set("toTerminal", destination.terminalId);
       router.push(`/search?${params.toString()}`);
     } else {
       toast.info(`${tab.label} booking is coming soon!`);
@@ -133,7 +170,9 @@ export function HeroSearchBar() {
                 : "border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50 h-full w-full first:hover:rounded-tl-4xl last:hover:rounded-tr-4xl"
             }`}
           >
-            <item.icon className={`w-5 h-5 ${activeTab === item.id ? item.text : "text-slate-400"}`} />
+            <item.icon
+              className={`w-5 h-5 ${activeTab === item.id ? item.text : "text-slate-400"}`}
+            />
             <span className="flex items-center gap-1">
               {t(`tabs.${item.id}`)}
               {item.comingSoon && (
@@ -164,7 +203,11 @@ export function HeroSearchBar() {
                     <MapPin className="w-3.5 h-3.5 text-[#ee237c]" />
                     {t("from")}
                   </label>
-                  <CityAutocompleteField value={origin} onChange={setOrigin} placeholder={t("departurePlaceholder")} />
+                  <CityAutocompleteField
+                    value={origin}
+                    onChange={setOrigin}
+                    placeholder={t("departurePlaceholder")}
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -172,7 +215,11 @@ export function HeroSearchBar() {
                     <MapPin className="w-3.5 h-3.5 text-[#ee237c]" />
                     {t("to")}
                   </label>
-                  <CityAutocompleteField value={destination} onChange={setDestination} placeholder={t("destinationPlaceholder")} />
+                  <CityAutocompleteField
+                    value={destination}
+                    onChange={setDestination}
+                    placeholder={t("destinationPlaceholder")}
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -190,18 +237,25 @@ export function HeroSearchBar() {
                       }
                     >
                       <span className="truncate">
-                        {date ? format(parseLocalDate(date)!, "d MMM yyyy") : t("pickDate")}
+                        {date
+                          ? format(parseLocalDate(date)!, "d MMM yyyy")
+                          : t("pickDate")}
                       </span>
                       <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-2xl shadow-xl border-slate-100" align="start">
+                    <PopoverContent
+                      className="w-auto p-0 rounded-2xl shadow-xl border-slate-100"
+                      align="start"
+                    >
                       <CalendarComponent
                         mode="single"
                         selected={parseLocalDate(date)}
                         onSelect={(newDate) => {
                           if (newDate) setDate(format(newDate, "yyyy-MM-dd"));
                         }}
-                        disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                        disabled={{
+                          before: new Date(new Date().setHours(0, 0, 0, 0)),
+                        }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -222,17 +276,44 @@ export function HeroSearchBar() {
                       }
                     >
                       <span className="truncate">
-                        {travelers === 1 ? t("guest", { count: 1 }) : t("guests", { count: travelers })}
+                        {travelers === 1
+                          ? t("guest", { count: 1 })
+                          : t("guests", { count: travelers })}
                       </span>
                       <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                     </PopoverTrigger>
-                    <PopoverContent className="w-48 p-3 rounded-2xl shadow-xl border-slate-100" align="start">
+                    <PopoverContent
+                      className="w-48 p-3 rounded-2xl shadow-xl border-slate-100"
+                      align="start"
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-700">{t("passengers")}</span>
+                        <span className="text-sm font-medium text-slate-700">
+                          {t("passengers")}
+                        </span>
                         <div className="flex items-center gap-2">
-                          <button type="button" onClick={() => setTravelers(Math.max(1, travelers - 1))} disabled={travelers <= 1} className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold">-</button>
-                          <span className="w-4 text-center text-sm font-semibold text-slate-900">{travelers}</span>
-                          <button type="button" onClick={() => setTravelers(Math.min(9, travelers + 1))} disabled={travelers >= 9} className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold">+</button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTravelers(Math.max(1, travelers - 1))
+                            }
+                            disabled={travelers <= 1}
+                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold"
+                          >
+                            -
+                          </button>
+                          <span className="w-4 text-center text-sm font-semibold text-slate-900">
+                            {travelers}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTravelers(Math.min(9, travelers + 1))
+                            }
+                            disabled={travelers >= 9}
+                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold"
+                          >
+                            +
+                          </button>
                         </div>
                       </div>
                     </PopoverContent>
@@ -242,14 +323,24 @@ export function HeroSearchBar() {
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-100">
                 <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
-                  <span className="text-xs text-slate-400 font-medium">{t("popular")}</span>
+                  <span className="text-xs text-slate-400 font-medium">
+                    {t("popular")}
+                  </span>
                   {POPULAR.map((city) => (
-                    <button key={city} type="button" onClick={() => setDestination({ id: city, text: city })} className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-[#ee237c]/10 hover:text-[#ee237c] font-medium transition-colors">
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => setDestination({ id: city, text: city })}
+                      className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-[#ee237c]/10 hover:text-[#ee237c] font-medium transition-colors"
+                    >
                       {city}
                     </button>
                   ))}
                 </div>
-                <Button type="submit" className="w-full sm:w-auto px-8 py-2.5 bg-[#ee237c] hover:bg-[#c71d65] text-white font-semibold text-sm rounded-xl shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 transition-all hover:shadow-xl hover:shadow-pink-500/30 shrink-0 h-10">
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto px-8 py-2.5 bg-[#ee237c] hover:bg-[#c71d65] text-white font-semibold text-sm rounded-xl shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 transition-all hover:shadow-xl hover:shadow-pink-500/30 shrink-0 h-10"
+                >
                   <Search className="w-4 h-4" />
                   {t("search")}
                 </Button>
@@ -264,7 +355,9 @@ export function HeroSearchBar() {
                 {t("comingSoonHeading", { service: t(`tabs.${tab.id}`) })}
               </h3>
               <p className="text-sm text-slate-500 max-w-sm mx-auto mb-4">
-                {t("comingSoonDesc", { service: t(`tabs.${tab.id}`).toLowerCase() })}
+                {t("comingSoonDesc", {
+                  service: t(`tabs.${tab.id}`).toLowerCase(),
+                })}
               </p>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
                 <span className="text-sm">✨</span>

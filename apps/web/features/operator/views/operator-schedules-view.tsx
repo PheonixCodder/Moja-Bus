@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQueryStates } from "nuqs";
 import { useTranslations } from "next-intl";
-import {
-  CalendarClock,
-  Plus,
-} from "lucide-react";
+import { CalendarClock, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
@@ -91,8 +88,7 @@ export function OperatorSchedulesView() {
     trpc.schedules.list.queryOptions(listInput),
   );
 
-  const needFleet =
-    wizardOpen || !!editId || canCreate || canUpdate;
+  const needFleet = wizardOpen || !!editId || canCreate || canUpdate;
   const { data: routesData } = useQuery({
     ...trpc.routes.list.queryOptions(),
     enabled: can("routes:read"),
@@ -197,8 +193,11 @@ export function OperatorSchedulesView() {
       // Re-validate validFrom on every check so an overnight-open wizard is caught
       const todayMidnight = new Date();
       todayMidnight.setHours(0, 0, 0, 0);
-      const validFromDate = calConfig.validFrom ? new Date(calConfig.validFrom) : null;
-      const validFromOk = validFromDate !== null && validFromDate >= todayMidnight;
+      const validFromDate = calConfig.validFrom
+        ? new Date(calConfig.validFrom)
+        : null;
+      const validFromOk =
+        validFromDate !== null && validFromDate >= todayMidnight;
       return (
         hasDays &&
         calConfig.departureTimes.length > 0 &&
@@ -234,7 +233,7 @@ export function OperatorSchedulesView() {
           sunday: calConfig.days.sunday,
           validFrom: calConfig.validFrom,
           ...(calConfig.validUntil ? { validUntil: calConfig.validUntil } : {}),
-},
+        },
         dwells: timings
           .filter((d) => d.stopOrder > 0)
           .map((d) => ({
@@ -290,7 +289,9 @@ export function OperatorSchedulesView() {
       }
       if (fallbackBus) {
         toast.warning(
-          t("toast.extendFallback", { plate: fallbackBus.registrationPlate ?? "an active bus" }),
+          t("toast.extendFallback", {
+            plate: fallbackBus.registrationPlate ?? "an active bus",
+          }),
         );
       }
       if (!schedule.isActive) {
@@ -314,16 +315,12 @@ export function OperatorSchedulesView() {
   }
 
   async function handleRetire(schedule: ScheduleListItem) {
-    if (
-      !window.confirm(t("toast.retireConfirm"))
-    ) {
+    if (!window.confirm(t("toast.retireConfirm"))) {
       return;
     }
     try {
       const res = await retireMutation.mutateAsync({ id: schedule.id });
-      toast.success(
-        t("toast.scheduleRetired", { pruned: res.prunedTrips }),
-      );
+      toast.success(t("toast.scheduleRetired", { pruned: res.prunedTrips }));
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : t("toast.retireFailed"));
     }
@@ -354,11 +351,7 @@ export function OperatorSchedulesView() {
             />
           )}
           {step === "Stops" && selectedRoute && (
-            <TimingStep
-              stops={stops}
-              timings={timings}
-              onChange={setTimings}
-            />
+            <TimingStep stops={stops} timings={timings} onChange={setTimings} />
           )}
           {step === "Calendar" && (
             <CalendarStep
@@ -379,11 +372,13 @@ export function OperatorSchedulesView() {
               <PricingStep
                 stops={stops}
                 fares={fares}
-                dwells={new Map(
-                  timings
-                    .filter((d) => d.stopOrder > 0)
-                    .map((d) => [d.stopOrder, d.dwellMinutes] as const),
-                )}
+                dwells={
+                  new Map(
+                    timings
+                      .filter((d) => d.stopOrder > 0)
+                      .map((d) => [d.stopOrder, d.dwellMinutes] as const),
+                  )
+                }
                 onChange={setFares}
               />
             ))}
@@ -393,7 +388,9 @@ export function OperatorSchedulesView() {
               validFrom={calConfig.validFrom}
               validUntil={calConfig.validUntil}
               departureTimes={calConfig.departureTimes}
-              routeName={(selectedRoute as { name?: string } | null)?.name ?? ""}
+              routeName={
+                (selectedRoute as { name?: string } | null)?.name ?? ""
+              }
               fares={fares}
             />
           )}
@@ -449,9 +446,7 @@ export function OperatorSchedulesView() {
         status={status}
         onStatusChange={(v) => setParams({ status: v, page: 1 })}
         serviceType={serviceType}
-        onServiceTypeChange={(v) =>
-          setParams({ serviceType: v, page: 1 })
-        }
+        onServiceTypeChange={(v) => setParams({ serviceType: v, page: 1 })}
         canCreate={canCreate}
         onNew={() => setParams({ new: true, step: "Route" })}
         routeId={routeId}
@@ -477,9 +472,7 @@ export function OperatorSchedulesView() {
             </EmptyMedia>
             <EmptyHeader>
               <EmptyTitle>{t("noSchedulesTitle")}</EmptyTitle>
-              <EmptyDescription>
-                {t("noSchedulesDesc")}
-              </EmptyDescription>
+              <EmptyDescription>{t("noSchedulesDesc")}</EmptyDescription>
             </EmptyHeader>
             {canCreate && (
               <EmptyContent>
@@ -521,7 +514,10 @@ export function OperatorSchedulesView() {
                   {t("previous")}
                 </Button>
                 <span className="text-xs text-muted-foreground">
-                  {t("pageOf", { page: listData.page, pageCount: listData.pageCount })}
+                  {t("pageOf", {
+                    page: listData.page,
+                    pageCount: listData.pageCount,
+                  })}
                 </span>
                 <Button
                   size="sm"

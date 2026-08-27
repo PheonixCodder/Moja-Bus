@@ -29,7 +29,10 @@ function getPepper(): string {
 }
 
 function hashCode(code: string): string {
-  return crypto.createHash("sha256").update(`${code}:${getPepper()}`).digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(`${code}:${getPepper()}`)
+    .digest("hex");
 }
 
 function generateCode(): string {
@@ -80,11 +83,7 @@ export async function createWithdrawalChallenge(params: {
 
 export type VerifyWithdrawalChallengeResult = {
   ok: boolean;
-  reason?:
-    | "not_found"
-    | "expired"
-    | "invalid"
-    | "too_many_attempts";
+  reason?: "not_found" | "expired" | "invalid" | "too_many_attempts";
 };
 
 /**

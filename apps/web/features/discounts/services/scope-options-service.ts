@@ -12,9 +12,7 @@ export async function listSchedulesForScope(
     where: {
       isActive: true,
       ...(input.companyId ? { companyId: input.companyId } : {}),
-      ...(input.routeIds.length > 0
-        ? { routeId: { in: input.routeIds } }
-        : {}),
+      ...(input.routeIds.length > 0 ? { routeId: { in: input.routeIds } } : {}),
     },
     orderBy: [{ routeId: "asc" }, { departureTime: "asc" }],
     take: input.limit,
@@ -72,9 +70,7 @@ export async function listTripsForScope(
       status: { in: ["SCHEDULED", "BOARDING", "DEPARTED"] },
       departureDate: { gte: now, lte: until },
       ...(input.companyId ? { companyId: input.companyId } : {}),
-      ...(scheduleIds.length > 0
-        ? { scheduleId: { in: scheduleIds } }
-        : {}),
+      ...(scheduleIds.length > 0 ? { scheduleId: { in: scheduleIds } } : {}),
     },
     orderBy: { departureDate: "asc" },
     take: input.limit,

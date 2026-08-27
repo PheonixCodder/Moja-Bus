@@ -84,7 +84,9 @@ export function DeleteRouteDialog({
             {deleteMutation.isPending ? (
               <Spinner className="size-4 mr-2" />
             ) : null}
-            {deleteMutation.isPending ? t("deleteDialog.deleting") : tc("delete")}
+            {deleteMutation.isPending
+              ? t("deleteDialog.deleting")
+              : tc("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

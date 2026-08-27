@@ -21,9 +21,16 @@ export function PassengerWalletView() {
   const t = useTranslations("passengerDashboard.wallet");
   const trpc = useTRPC();
 
-  const [currentPageParam, setCurrentPageParam] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [topupStatus, setTopupStatus] = useQueryState("topup", { defaultValue: "" });
-  const [pendingRef, setPendingRef] = useQueryState("ref", { defaultValue: "" });
+  const [currentPageParam, setCurrentPageParam] = useQueryState(
+    "page",
+    parseAsInteger.withDefault(1),
+  );
+  const [topupStatus, setTopupStatus] = useQueryState("topup", {
+    defaultValue: "",
+  });
+  const [pendingRef, setPendingRef] = useQueryState("ref", {
+    defaultValue: "",
+  });
 
   const currentPage = currentPageParam - 1;
   const pageSize = 20;
@@ -31,14 +38,14 @@ export function PassengerWalletView() {
   const [isTopupOpen, setIsTopupOpen] = useState(false);
 
   const { data: balance, refetch: refetchBalance } = useSuspenseQuery(
-    trpc.passenger.getWalletBalance.queryOptions()
+    trpc.passenger.getWalletBalance.queryOptions(),
   );
 
   const { data: ledgerResult, refetch: refetchLedger } = useSuspenseQuery(
     trpc.passenger.getWalletLedger.queryOptions({
       limit: pageSize,
       offset: currentPage * pageSize,
-    })
+    }),
   );
 
   const topupMutation = useMutation(
@@ -50,11 +57,11 @@ export function PassengerWalletView() {
       onError: (err) => {
         toast.error(err.message || t("initFailed"));
       },
-    })
+    }),
   );
 
   const verifyTopUpMutation = useMutation(
-    trpc.passenger.verifyWalletTopUp.mutationOptions()
+    trpc.passenger.verifyWalletTopUp.mutationOptions(),
   );
 
   const handleTopupSubmit = (amount: number) => {
@@ -74,7 +81,7 @@ export function PassengerWalletView() {
 
         const prevAvailable = balance.availableBalance;
         const { data: newBalance } = await refetchBalance();
-        
+
         if (newBalance && newBalance.availableBalance > prevAvailable) {
           toast.success(t("topUpSuccess"));
           void setTopupStatus(null);
@@ -86,7 +93,15 @@ export function PassengerWalletView() {
 
       return () => clearInterval(interval);
     }
-  }, [topupStatus, pendingRef, balance.availableBalance, refetchBalance, refetchLedger, setTopupStatus, setPendingRef]);
+  }, [
+    topupStatus,
+    pendingRef,
+    balance.availableBalance,
+    refetchBalance,
+    refetchLedger,
+    setTopupStatus,
+    setPendingRef,
+  ]);
 
   return (
     <div className="space-y-6">
@@ -105,12 +120,13 @@ export function PassengerWalletView() {
 
       {/* Two-column responsive dashboard grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         {/* Left Column (Wallet & History) */}
         <div className="lg:col-span-8 space-y-6">
           <WalletCard
             availableBalance={balance.availableBalance}
-            walletId={balance.postedBalance ? balance.postedBalance.toString() : ""} // Mocked placeholder mapping or similar
+            walletId={
+              balance.postedBalance ? balance.postedBalance.toString() : ""
+            } // Mocked placeholder mapping or similar
             onOpenTopup={() => setIsTopupOpen(true)}
           />
 

@@ -4,7 +4,10 @@ import * as React from "react";
 import { BusFront } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
-import type { PassengerBookingSummary, PassengerBookingStatus } from "@moja/types";
+import type {
+  PassengerBookingSummary,
+  PassengerBookingStatus,
+} from "@moja/types";
 import { formatDateWithWeekday } from "@/lib/format-date";
 import { formatDepartureTime } from "@/features/search/lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
@@ -117,18 +120,32 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
           <div className="font-medium text-xs leading-none">
-            {formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}
+            {formatLocationLabel({
+              cityName: booking.originCityName,
+              municipalityName: booking.originMunicipalityName,
+              quarterName: booking.originQuarterName,
+              isUrban: booking.serviceType === "URBAN",
+            })}
           </div>
           <div className="text-muted-foreground text-[10px]">
-            {booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}
+            {booking.originTerminalName}
+            {booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}
           </div>
         </div>
         <div className="flex flex-col gap-0.5 text-right">
           <div className="font-medium text-xs leading-none">
-            {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
+            {formatLocationLabel({
+              cityName: booking.destinationCityName,
+              municipalityName: booking.destinationMunicipalityName,
+              quarterName: booking.destinationQuarterName,
+              isUrban: booking.serviceType === "URBAN",
+            })}
           </div>
           <div className="text-muted-foreground text-[10px]">
-            {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
+            {booking.destinationTerminalName}
+            {booking.destinationQuarterName
+              ? ` · ${booking.destinationQuarterName}`
+              : ""}
           </div>
         </div>
       </div>
@@ -170,9 +187,7 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
         </div>
       </div>
 
-      {booking.status === "PENDING_PAYMENT" && (
-        <HoldLabel booking={booking} />
-      )}
+      {booking.status === "PENDING_PAYMENT" && <HoldLabel booking={booking} />}
     </button>
   );
 }

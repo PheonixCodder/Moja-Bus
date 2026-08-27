@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { normalizePhone, phonesMatch } from "@/features/booking/lib/normalize-phone";
+import {
+  normalizePhone,
+  phonesMatch,
+} from "@/features/booking/lib/normalize-phone";
 
 describe("normalizePhone", () => {
   it("strips non-digit characters", () => {

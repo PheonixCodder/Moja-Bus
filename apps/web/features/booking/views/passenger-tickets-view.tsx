@@ -5,7 +5,14 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import {
-  Ticket, QrCode, MapPin, Armchair, Share2, ExternalLink, AlertTriangle, ArrowRight
+  Ticket,
+  QrCode,
+  MapPin,
+  Armchair,
+  Share2,
+  ExternalLink,
+  AlertTriangle,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { buttonVariants } from "@moja/ui/components/ui/button";
@@ -23,7 +30,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-  SheetFooter
+  SheetFooter,
 } from "@moja/ui/components/ui/sheet";
 import {
   Dialog,
@@ -34,7 +41,10 @@ import {
 } from "@moja/ui/components/ui/dialog";
 import type { PassengerBookingSummary } from "@moja/types";
 import { formatDateWithWeekday } from "@/lib/format-date";
-import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/format";
+import {
+  formatDepartureTime,
+  formatPriceXOF,
+} from "@/features/search/lib/format";
 import { toast } from "sonner";
 
 function TicketSheet({
@@ -60,9 +70,11 @@ function TicketSheet({
   // F-PS-02: passenger self-cancel refunds to the Moja wallet only.
   const refundChannel = "WALLET" as const;
 
-  const { data: ticket, isLoading, isError } = useQuery(
-    trpc.booking.getTicket.queryOptions({ bookingReference }),
-  );
+  const {
+    data: ticket,
+    isLoading,
+    isError,
+  } = useQuery(trpc.booking.getTicket.queryOptions({ bookingReference }));
 
   // P2-12 — real refund quote from the same policy code the service executes.
   const refundQuoteQuery = useQuery({
@@ -85,7 +97,7 @@ function TicketSheet({
       onError: (err: any) => {
         toast.error(err.message || t("cancelFailed"));
       },
-    })
+    }),
   );
 
   // P2-3 👻 → wired: email the digital-ticket link to a companion.
@@ -101,7 +113,7 @@ function TicketSheet({
       onError: (err: any) => {
         toast.error(err.message || t("shareFailed"));
       },
-    })
+    }),
   );
 
   const handleShareTicket = (e: React.FormEvent) => {
@@ -110,7 +122,9 @@ function TicketSheet({
       bookingReference,
       recipientName: recipientName.trim(),
       recipientEmail: recipientEmail.trim(),
-      ...(recipientPhone.trim() ? { recipientPhone: recipientPhone.trim() } : {}),
+      ...(recipientPhone.trim()
+        ? { recipientPhone: recipientPhone.trim() }
+        : {}),
       locale: locale === "en" ? "en" : "fr",
     });
   };
@@ -124,7 +138,9 @@ function TicketSheet({
     });
   };
 
-  const isCancellable = ticket ? new Date(ticket.departureTime) > new Date() : false;
+  const isCancellable = ticket
+    ? new Date(ticket.departureTime) > new Date()
+    : false;
 
   return (
     <>
@@ -132,7 +148,9 @@ function TicketSheet({
         <SheetContent className="w-full sm:max-w-md p-0 flex flex-col border-l border-border bg-bg-surface overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg-base">
             <SheetHeader className="text-left space-y-0 border-none p-0">
-              <SheetTitle className="text-lg font-bold">{t("sheetTitle")}</SheetTitle>
+              <SheetTitle className="text-lg font-bold">
+                {t("sheetTitle")}
+              </SheetTitle>
               <SheetDescription className="text-xs">
                 {bookingReference}
               </SheetDescription>
@@ -146,7 +164,10 @@ function TicketSheet({
               <button
                 type="button"
                 onClick={() => setIsShareOpen(true)}
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8 gap-1.5 rounded-full text-xs font-medium")}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "h-8 gap-1.5 rounded-full text-xs font-medium",
+                )}
               >
                 <Share2 className="w-3 h-3" />
                 {t("share")}
@@ -154,7 +175,10 @@ function TicketSheet({
               <Link
                 href={`/tickets/${encodeURIComponent(ticketToken)}`}
                 target="_blank"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8 gap-1.5 rounded-full text-xs font-medium")}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "h-8 gap-1.5 rounded-full text-xs font-medium",
+                )}
               >
                 <ExternalLink className="w-3 h-3" />
                 {t("openTicket")}
@@ -169,7 +193,9 @@ function TicketSheet({
               </div>
             ) : isError || !ticket ? (
               <div className="py-12 text-center space-y-4">
-                <p className="text-sm text-error font-medium">{t("loadError")}</p>
+                <p className="text-sm text-error font-medium">
+                  {t("loadError")}
+                </p>
                 <Button variant="outline" size="sm" onClick={onClose}>
                   {t("close")}
                 </Button>
@@ -241,7 +267,9 @@ function TicketSheet({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="shareRecipientPhone">{t("recipientPhoneOptional")}</Label>
+              <Label htmlFor="shareRecipientPhone">
+                {t("recipientPhoneOptional")}
+              </Label>
               <Input
                 id="shareRecipientPhone"
                 type="tel"
@@ -290,7 +318,9 @@ function TicketSheet({
           <form onSubmit={handleCancelBooking} className="space-y-5 pt-2">
             {ticket && (
               <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-1.5">
-                <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">{t("refundSummary")}</div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                  {t("refundSummary")}
+                </div>
                 <div className="text-sm font-bold text-slate-900 flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
                   <span>{t("farePaid")}</span>
                   <span>{formatPriceXOF(ticket.farePaidXOF)}</span>
@@ -301,7 +331,9 @@ function TicketSheet({
                       <span>{t("refundAmount")}</span>
                       <span>{formatPriceXOF(quote.refundAmountXOF)}</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 pt-2 leading-relaxed">{t("feeNote")}</p>
+                    <p className="text-[11px] text-slate-500 pt-2 leading-relaxed">
+                      {t("feeNote")}
+                    </p>
                     <p className="text-[10px] text-slate-400 leading-relaxed">
                       {/* Phase 38 (F-PS-12) — was hardcoded French beside t() */}
                       {t("cancelEstimateNote")}
@@ -330,7 +362,11 @@ function TicketSheet({
                 className="flex-1 h-11 rounded-xl bg-error hover:bg-error/90 text-white font-bold"
                 disabled={cancelMutation.isPending}
               >
-                {cancelMutation.isPending ? <Spinner className="size-4" /> : t("confirmCancel")}
+                {cancelMutation.isPending ? (
+                  <Spinner className="size-4" />
+                ) : (
+                  t("confirmCancel")
+                )}
               </Button>
             </div>
           </form>
@@ -370,7 +406,11 @@ export function PassengerTicketsView() {
         <p className="text-sm text-text-muted mt-1">
           {error instanceof Error ? error.message : t("errorFallback")}
         </p>
-        <Button variant="outline" className="mt-4 border-border text-text-primary" onClick={() => refetch()}>
+        <Button
+          variant="outline"
+          className="mt-4 border-border text-text-primary"
+          onClick={() => refetch()}
+        >
           {t("tryAgain")}
         </Button>
       </div>
@@ -384,7 +424,9 @@ export function PassengerTicketsView() {
           <Ticket className="size-8" />
         </div>
         <div className="space-y-1.5">
-          <p className="text-lg font-bold text-text-primary tracking-tight">{t("emptyTitle")}</p>
+          <p className="text-lg font-bold text-text-primary tracking-tight">
+            {t("emptyTitle")}
+          </p>
           <p className="text-sm text-text-secondary">{t("emptyDescription")}</p>
         </div>
         <Link
@@ -406,7 +448,12 @@ export function PassengerTicketsView() {
     <div className="space-y-6 w-full max-w-6xl">
       <div className="flex items-center justify-between">
         <p className="text-xs font-bold text-text-secondary uppercase tracking-widest px-1">
-          {t(activeTicketsCount === 1 ? "activeCountSingular" : "activeCountPlural", { count: activeTicketsCount })}
+          {t(
+            activeTicketsCount === 1
+              ? "activeCountSingular"
+              : "activeCountPlural",
+            { count: activeTicketsCount },
+          )}
         </p>
       </div>
 
@@ -416,10 +463,12 @@ export function PassengerTicketsView() {
             return (
               <div
                 key={seat.bookingReference}
-                onClick={() => setActiveTicket({
-                  bookingReference: seat.bookingReference,
-                  ticketToken: seat.ticketToken,
-                })}
+                onClick={() =>
+                  setActiveTicket({
+                    bookingReference: seat.bookingReference,
+                    ticketToken: seat.ticketToken,
+                  })
+                }
                 className="group relative flex flex-col justify-between rounded-2xl bg-bg-surface hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden border border-border"
               >
                 <div className="absolute top-1/2 -left-3 w-6 h-6 bg-bg-base rounded-full border border-border group-hover:border-transparent transition-colors z-10" />
@@ -438,19 +487,35 @@ export function PassengerTicketsView() {
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col flex-1 truncate">
                       <span className="text-xl font-extrabold text-text-primary tracking-tight truncate">
-                        {formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}
+                        {formatLocationLabel({
+                          cityName: booking.originCityName,
+                          municipalityName: booking.originMunicipalityName,
+                          quarterName: booking.originQuarterName,
+                          isUrban: booking.serviceType === "URBAN",
+                        })}
                       </span>
                       <span className="text-xs text-text-secondary truncate mt-0.5">
-                        {booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}
+                        {booking.originTerminalName}
+                        {booking.originQuarterName
+                          ? ` · ${booking.originQuarterName}`
+                          : ""}
                       </span>
                     </div>
                     <ArrowRight className="size-4 text-primary shrink-0 opacity-50" />
                     <div className="flex flex-col flex-1 truncate text-right">
                       <span className="text-xl font-extrabold text-text-primary tracking-tight truncate">
-                        {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
+                        {formatLocationLabel({
+                          cityName: booking.destinationCityName,
+                          municipalityName: booking.destinationMunicipalityName,
+                          quarterName: booking.destinationQuarterName,
+                          isUrban: booking.serviceType === "URBAN",
+                        })}
                       </span>
                       <span className="text-xs text-text-secondary truncate mt-0.5">
-                        {booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
+                        {booking.destinationTerminalName}
+                        {booking.destinationQuarterName
+                          ? ` · ${booking.destinationQuarterName}`
+                          : ""}
                       </span>
                     </div>
                   </div>
@@ -487,7 +552,7 @@ export function PassengerTicketsView() {
                 </div>
               </div>
             );
-          })
+          }),
         )}
       </div>
 

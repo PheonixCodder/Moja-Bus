@@ -258,7 +258,10 @@ export class PaymentService {
 
     if (payment.status === "SUCCESS") {
       if (!payment.holdGroupId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Missing hold group ID" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Missing hold group ID",
+        });
       }
       return this.confirmationService.confirmFromPayment(payment.holdGroupId);
     }
@@ -284,7 +287,10 @@ export class PaymentService {
     }
 
     if (!payment.holdGroupId) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Missing hold group ID" });
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Missing hold group ID",
+      });
     }
 
     await this.markPaymentSuccess(payment.id, verified);
@@ -427,7 +433,9 @@ export class PaymentService {
       if (verified.status === "success") {
         await this.markPaymentSuccess(payment.id, verified);
         if (payment.holdGroupId) {
-          await this.confirmationService.confirmFromPayment(payment.holdGroupId);
+          await this.confirmationService.confirmFromPayment(
+            payment.holdGroupId,
+          );
         } else if (isTopUpPayment(payment)) {
           await this.processTopUp(payment);
         }
@@ -467,87 +475,105 @@ export class PaymentService {
           data: { status: "SETTLED" },
         });
       }
-    } else if (payload.event === "transfer.failed" || payload.event === "transfer.reversed") {
+    } else if (
+      payload.event === "transfer.failed" ||
+      payload.event === "transfer.reversed"
+    ) {
       if (tx.status !== "FAILED" && tx.status !== "REVERSED") {
         // Reverse the ledger entries
         await this.prisma.$transaction(async (prismaTx) => {
           try {
-          const engine = new AccountingEngine("PAYOUT_REVERSAL", {
-            ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
-            description: `Reversal for failed transfer ${reference}`,
-            metadata: { originalTxId: reference, reason: payload.data.reason, paystackRef: payload.data.transfer_code ?? payload.data.id?.toString() },
-          });
-
-          // Original: DEBIT Operator Liability, CREDIT System Asset
-          // Reversal: CREDIT Operator Liability, DEBIT System Asset
-          for (const entry of tx.entries) {
-            if (entry.side === "DEBIT") {
-              engine.addCredit({
-                accountId: entry.accountId,
-                amount: toSafeDisplayNumber(entry.amount),
-                sequenceNumber: entry.sequenceNumber,
-              });
-            } else {
-              engine.addDebit({
-                accountId: entry.accountId,
-                amount: toSafeDisplayNumber(entry.amount),
-                sequenceNumber: entry.sequenceNumber,
-              });
-            }
-          }
-
-          await engine.commit(prismaTx as any);
-
-          // Fix #4: Also reverse the PAYMENT_PROCESSOR_FEE transaction for this transfer.
-          // The fee was recorded in a separate $transaction in requestWithdrawal, keyed by
-          // the same externalPaymentId (the Paystack transfer code). Without this, the
-          // processor fee account accumulates phantom debits on every failed payout.
-          if (tx.externalPaymentId) {
-            const feeTx = await prismaTx.financialTransaction.findFirst({
-              where: {
-                type: "PAYMENT_PROCESSOR_FEE",
-                externalPaymentId: tx.externalPaymentId,
-                status: { notIn: ["FAILED", "REVERSED"] },
+            const engine = new AccountingEngine("PAYOUT_REVERSAL", {
+              ...(tx.externalPaymentId
+                ? { externalPaymentId: tx.externalPaymentId }
+                : {}),
+              description: `Reversal for failed transfer ${reference}`,
+              metadata: {
+                originalTxId: reference,
+                reason: payload.data.reason,
+                paystackRef:
+                  payload.data.transfer_code ?? payload.data.id?.toString(),
               },
-              include: { entries: true },
             });
 
-            if (feeTx && feeTx.entries.length > 0) {
-              const feeReverseEngine = new AccountingEngine("PAYOUT_FEE_REVERSAL", {
-                ...(tx.externalPaymentId ? { externalPaymentId: tx.externalPaymentId } : {}),
-                description: `Fee reversal for failed transfer ${reference}`,
-                metadata: { originalFeeTxId: feeTx.id, originalPayoutTxId: reference },
-              });
-
-              for (const entry of feeTx.entries) {
-                if (entry.side === "DEBIT") {
-                  feeReverseEngine.addCredit({
-                    accountId: entry.accountId,
-                    amount: toSafeDisplayNumber(entry.amount),
-                    sequenceNumber: entry.sequenceNumber,
-                  });
-                } else {
-                  feeReverseEngine.addDebit({
-                    accountId: entry.accountId,
-                    amount: toSafeDisplayNumber(entry.amount),
-                    sequenceNumber: entry.sequenceNumber,
-                  });
-                }
+            // Original: DEBIT Operator Liability, CREDIT System Asset
+            // Reversal: CREDIT Operator Liability, DEBIT System Asset
+            for (const entry of tx.entries) {
+              if (entry.side === "DEBIT") {
+                engine.addCredit({
+                  accountId: entry.accountId,
+                  amount: toSafeDisplayNumber(entry.amount),
+                  sequenceNumber: entry.sequenceNumber,
+                });
+              } else {
+                engine.addDebit({
+                  accountId: entry.accountId,
+                  amount: toSafeDisplayNumber(entry.amount),
+                  sequenceNumber: entry.sequenceNumber,
+                });
               }
-
-              await feeReverseEngine.commit(prismaTx as any);
-
-              await prismaTx.financialTransaction.update({
-                where: { id: feeTx.id },
-                data: { status: "REVERSED" },
-              });
             }
-          }
 
-          await prismaTx.financialTransaction.update({
-            where: { id: tx.id },
-            data: { status: "FAILED" },
-          });
+            await engine.commit(prismaTx as any);
+
+            // Fix #4: Also reverse the PAYMENT_PROCESSOR_FEE transaction for this transfer.
+            // The fee was recorded in a separate $transaction in requestWithdrawal, keyed by
+            // the same externalPaymentId (the Paystack transfer code). Without this, the
+            // processor fee account accumulates phantom debits on every failed payout.
+            if (tx.externalPaymentId) {
+              const feeTx = await prismaTx.financialTransaction.findFirst({
+                where: {
+                  type: "PAYMENT_PROCESSOR_FEE",
+                  externalPaymentId: tx.externalPaymentId,
+                  status: { notIn: ["FAILED", "REVERSED"] },
+                },
+                include: { entries: true },
+              });
+
+              if (feeTx && feeTx.entries.length > 0) {
+                const feeReverseEngine = new AccountingEngine(
+                  "PAYOUT_FEE_REVERSAL",
+                  {
+                    ...(tx.externalPaymentId
+                      ? { externalPaymentId: tx.externalPaymentId }
+                      : {}),
+                    description: `Fee reversal for failed transfer ${reference}`,
+                    metadata: {
+                      originalFeeTxId: feeTx.id,
+                      originalPayoutTxId: reference,
+                    },
+                  },
+                );
+
+                for (const entry of feeTx.entries) {
+                  if (entry.side === "DEBIT") {
+                    feeReverseEngine.addCredit({
+                      accountId: entry.accountId,
+                      amount: toSafeDisplayNumber(entry.amount),
+                      sequenceNumber: entry.sequenceNumber,
+                    });
+                  } else {
+                    feeReverseEngine.addDebit({
+                      accountId: entry.accountId,
+                      amount: toSafeDisplayNumber(entry.amount),
+                      sequenceNumber: entry.sequenceNumber,
+                    });
+                  }
+                }
+
+                await feeReverseEngine.commit(prismaTx as any);
+
+                await prismaTx.financialTransaction.update({
+                  where: { id: feeTx.id },
+                  data: { status: "REVERSED" },
+                });
+              }
+            }
+
+            await prismaTx.financialTransaction.update({
+              where: { id: tx.id },
+              data: { status: "FAILED" },
+            });
           } catch (err: any) {
             // The (externalPaymentId, type) unique constraint on FinancialTransaction makes a
             // payout reversal exactly-once. A concurrent transfer.failed webhook, or the reconcile
@@ -576,7 +602,9 @@ export class PaymentService {
         if (user?.email && bankAccount) {
           const novu = getNovuClient();
           if (novu) {
-            const amountXOF = tx.entries[0] ? toSafeDisplayNumber(tx.entries[0].amount) : 0;
+            const amountXOF = tx.entries[0]
+              ? toSafeDisplayNumber(tx.entries[0].amount)
+              : 0;
             const phone = user.phoneNumber?.replace(/\s+/g, "");
 
             if (payload.event === "transfer.success") {
@@ -599,7 +627,10 @@ export class PaymentService {
                 },
                 transactionId: `withdrawal-settled-${tx.id}`,
               });
-            } else if (payload.event === "transfer.failed" || payload.event === "transfer.reversed") {
+            } else if (
+              payload.event === "transfer.failed" ||
+              payload.event === "transfer.reversed"
+            ) {
               await novu.trigger({
                 workflowId: "operator-withdrawal-failed",
                 to: {
@@ -614,7 +645,9 @@ export class PaymentService {
                   bankName: bankAccount.bankName,
                   accountNumberLast4: bankAccount.accountNumberLast4,
                   transactionId: tx.id,
-                  reason: payload.data.reason || "Bank transaction rejected by destination network",
+                  reason:
+                    payload.data.reason ||
+                    "Bank transaction rejected by destination network",
                   ...(phone ? { phone } : {}),
                 },
                 transactionId: `withdrawal-failed-${tx.id}`,
@@ -623,7 +656,10 @@ export class PaymentService {
           }
         }
       } catch (error) {
-        console.error("Failed to trigger operator-withdrawal notification via Novu:", error);
+        console.error(
+          "Failed to trigger operator-withdrawal notification via Novu:",
+          error,
+        );
       }
     }
   }
@@ -631,7 +667,7 @@ export class PaymentService {
   private async processTopUp(payment: any) {
     const meta = payment.metadata as any;
     if (!meta || !meta.accountId) return;
-    
+
     // Make sure we haven't already posted this top up. We check if there's a transaction.
     const existingTx = await this.prisma.financialTransaction.findFirst({
       where: { externalPaymentId: payment.id, type: "TOP_UP" },
@@ -640,8 +676,10 @@ export class PaymentService {
     if (existingTx) return;
 
     const accountService = new FinancialAccountService(this.prisma);
-    const clearingAcct = await accountService.getSystemPaystackClearingAccount();
-    const processorFeeAcct = await accountService.getPaymentProcessorFeeAccount();
+    const clearingAcct =
+      await accountService.getSystemPaystackClearingAccount();
+    const processorFeeAcct =
+      await accountService.getPaymentProcessorFeeAccount();
 
     let posted = false;
     await this.prisma.$transaction(async (tx) => {
@@ -724,7 +762,10 @@ export class PaymentService {
             });
           }
         } catch (error) {
-          console.error("Failed to trigger passenger-wallet-topup via Novu:", error);
+          console.error(
+            "Failed to trigger passenger-wallet-topup via Novu:",
+            error,
+          );
         }
       }
     }
@@ -737,7 +778,7 @@ export class PaymentService {
     await this.prisma.$transaction(async (tx) => {
       const existingPayment = await tx.externalPayment.findUnique({
         where: { id: paymentId },
-        select: { metadata: true }
+        select: { metadata: true },
       });
       const existingMeta = (existingPayment?.metadata as object) || {};
 

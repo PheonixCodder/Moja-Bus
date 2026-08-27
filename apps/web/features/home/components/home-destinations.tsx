@@ -20,7 +20,8 @@ const DESTINATIONS_DATA = [
     name: "San-Pédro",
     image: "/home/destination-san-pedro.jpg",
     badgeKey: "sanPedroBadge",
-    badgeStyle: "bg-white/25 backdrop-blur-md text-white border border-white/10",
+    badgeStyle:
+      "bg-white/25 backdrop-blur-md text-white border border-white/10",
     href: "/search?to=san-pedro",
     gridClass: "md:col-span-2 min-h-[220px]",
     titleSize: "text-2xl",
@@ -58,7 +59,9 @@ export async function HomeDestinations() {
             >
               {t("title")}
             </h2>
-            <p className="text-slate-500 text-sm md:text-base mt-3 leading-relaxed">{t("subtitle")}</p>
+            <p className="text-slate-500 text-sm md:text-base mt-3 leading-relaxed">
+              {t("subtitle")}
+            </p>
           </div>
           <Link
             href="/search"
@@ -85,26 +88,33 @@ export async function HomeDestinations() {
                 sizes={dest.imgSizes}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent transition-opacity duration-500 group-hover:opacity-95" />
-              
+
               {dest.badgeKey && (
                 <div className="absolute top-6 left-6 z-10">
-                  <span className={`px-3.5 py-1.5 ${dest.badgeStyle} text-[10px] font-bold rounded-full uppercase tracking-wider shadow-sm`}>
+                  <span
+                    className={`px-3.5 py-1.5 ${dest.badgeStyle} text-[10px] font-bold rounded-full uppercase tracking-wider shadow-sm`}
+                  >
                     {t(dest.badgeKey)}
                   </span>
                 </div>
               )}
-              
+
               <div className="absolute bottom-8 left-8 right-8 text-white z-10">
-                <h3 className={`${dest.titleSize} font-bold mb-1 tracking-tight`}>
+                <h3
+                  className={`${dest.titleSize} font-bold mb-1 tracking-tight`}
+                >
                   {dest.name}
                 </h3>
-                <p className="text-white/70 text-sm font-medium">{t(dest.key)}</p>
+                <p className="text-white/70 text-sm font-medium">
+                  {t(dest.key)}
+                </p>
               </div>
 
               {/* Premium Hover CTA */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
                 <span className="px-6 py-3.5 bg-white text-slate-900 font-extrabold rounded-2xl shadow-2xl text-xs flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                  {t("searchNow")} <ArrowRight className="h-4 w-4 text-[#ee237c]" />
+                  {t("searchNow")}{" "}
+                  <ArrowRight className="h-4 w-4 text-[#ee237c]" />
                 </span>
               </div>
             </Link>
@@ -120,7 +130,9 @@ export async function HomeDestinations() {
             </div>
             <div className="text-white mt-8 md:mt-0">
               <h3 className="text-xl font-bold mb-2">{t("tailorMade")}</h3>
-              <p className="text-white/80 text-sm leading-relaxed">{t("tailorMadeDesc")}</p>
+              <p className="text-white/80 text-sm leading-relaxed">
+                {t("tailorMadeDesc")}
+              </p>
               <div className="mt-4 flex items-center gap-2 text-white font-extrabold text-sm">
                 <span>{t("searchNow")}</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />

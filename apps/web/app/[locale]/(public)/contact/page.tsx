@@ -28,7 +28,6 @@ export default async function ContactPage() {
       description={t("shellDescription")}
       badge={t("shellBadge")}
     >
-
       {/* Contact info cards */}
       <div className="max-w-7xl mx-auto px-6 md:px-8 py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
@@ -37,11 +36,17 @@ export default async function ContactPage() {
               key={key}
               className="bg-white border border-slate-100 rounded-3xl p-6 hover:shadow-md transition-all"
             >
-              <div className={`w-12 h-12 ${color} rounded-2xl flex items-center justify-center mb-5`}>
+              <div
+                className={`w-12 h-12 ${color} rounded-2xl flex items-center justify-center mb-5`}
+              >
                 <Icon className="h-6 w-6" />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">{t(`info${key}`)}</h3>
-              <p className="text-sm font-semibold text-slate-700">{t(`info${key}Line1`)}</p>
+              <h3 className="font-bold text-slate-900 mb-2">
+                {t(`info${key}`)}
+              </h3>
+              <p className="text-sm font-semibold text-slate-700">
+                {t(`info${key}Line1`)}
+              </p>
               <p className="text-sm text-slate-400">{t(`info${key}Line2`)}</p>
             </div>
           ))}
@@ -60,15 +65,15 @@ export default async function ContactPage() {
             >
               {t("formTitle")}
             </h2>
-            <p className="text-slate-500 mb-8">
-              {t("formDescription")}
-            </p>
+            <p className="text-slate-500 mb-8">{t("formDescription")}</p>
             <ContactForm />
           </div>
 
           {/* What to expect */}
           <div className="bg-slate-50 rounded-3xl p-8">
-            <h3 className="font-bold text-slate-900 text-lg mb-6">{t("expectTitle")}</h3>
+            <h3 className="font-bold text-slate-900 text-lg mb-6">
+              {t("expectTitle")}
+            </h3>
             <div className="space-y-5">
               {steps.map((step) => (
                 <div key={step} className="flex gap-4">
@@ -76,8 +81,12 @@ export default async function ContactPage() {
                     {step}
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-800 mb-1">{t(`step${step}Title`)}</p>
-                    <p className="text-slate-500 text-sm">{t(`step${step}Description`)}</p>
+                    <p className="font-semibold text-slate-800 mb-1">
+                      {t(`step${step}Title`)}
+                    </p>
+                    <p className="text-slate-500 text-sm">
+                      {t(`step${step}Description`)}
+                    </p>
                   </div>
                 </div>
               ))}

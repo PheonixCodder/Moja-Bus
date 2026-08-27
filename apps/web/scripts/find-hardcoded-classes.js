@@ -5,10 +5,20 @@ function walk(dir, files) {
   for (const e of entries) {
     const fp = dir + "/" + e.name;
     if (e.isDirectory()) {
-      if (!e.name.includes("node_modules") && !e.name.includes(".next") && !e.name.includes("dist") && !e.name.includes("scratch") && e.name !== "scripts" && e.name !== ".git") {
+      if (
+        !e.name.includes("node_modules") &&
+        !e.name.includes(".next") &&
+        !e.name.includes("dist") &&
+        !e.name.includes("scratch") &&
+        e.name !== "scripts" &&
+        e.name !== ".git"
+      ) {
         walk(fp, files);
       }
-    } else if (e.isFile() && (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))) {
+    } else if (
+      e.isFile() &&
+      (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))
+    ) {
       files.push(fp);
     }
   }
@@ -24,7 +34,15 @@ for (const f of files) {
         const lines = content.split("\n");
         for (let i = 0; i < lines.length; i++) {
           if (lines[i].includes(cn)) {
-            console.log(f + ":" + (i + 1) + " [" + cn + "]: " + lines[i].trim().substring(0, 200));
+            console.log(
+              f +
+                ":" +
+                (i + 1) +
+                " [" +
+                cn +
+                "]: " +
+                lines[i].trim().substring(0, 200),
+            );
           }
         }
       }

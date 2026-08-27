@@ -29,9 +29,7 @@ export default async function OperatorOnboardingPage({ params }: Props) {
               <h1 className="text-xl font-bold text-slate-900 font-display">
                 {t("headerTitle")}
               </h1>
-              <p className="text-xs text-slate-500">
-                {t("headerSubtitle")}
-              </p>
+              <p className="text-xs text-slate-500">{t("headerSubtitle")}</p>
             </div>
           </div>
         </header>

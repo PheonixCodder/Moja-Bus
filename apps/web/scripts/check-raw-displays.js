@@ -7,11 +7,14 @@ try {
   const lines = content.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (line.includes("busTypeName") || (line.includes("seatClass") && line.includes("{"))) {
-      console.log(tsFile + ":" + (i+1) + ": " + line.substring(0, 200));
+    if (
+      line.includes("busTypeName") ||
+      (line.includes("seatClass") && line.includes("{"))
+    ) {
+      console.log(tsFile + ":" + (i + 1) + ": " + line.substring(0, 200));
     }
   }
-} catch(e) {}
+} catch (e) {}
 
 console.log("");
 
@@ -22,11 +25,14 @@ try {
   const lines = content.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    if ((line.includes("Standard") && line.includes("label")) || (line.includes("STANDARD") && line.includes("label"))) {
-      console.log(addBusModal + ":" + (i+1) + ": " + line.substring(0, 200));
+    if (
+      (line.includes("Standard") && line.includes("label")) ||
+      (line.includes("STANDARD") && line.includes("label"))
+    ) {
+      console.log(addBusModal + ":" + (i + 1) + ": " + line.substring(0, 200));
     }
   }
-} catch(e) {}
+} catch (e) {}
 
 console.log("");
 
@@ -38,10 +44,10 @@ try {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (line.includes("layout.seatClass")) {
-      console.log(addBusDrawer + ":" + (i+1) + ": " + line.substring(0, 200));
+      console.log(addBusDrawer + ":" + (i + 1) + ": " + line.substring(0, 200));
     }
   }
-} catch(e) {}
+} catch (e) {}
 
 // Check operator fleet view busType.name display
 const opFleet = "features/operator/views/operator-fleet-view.tsx";
@@ -50,8 +56,11 @@ try {
   const lines = content.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (line.includes("busType.name") && (line.includes("{") || line.includes("="))) {
-      console.log(opFleet + ":" + (i+1) + ": " + line.substring(0, 200));
+    if (
+      line.includes("busType.name") &&
+      (line.includes("{") || line.includes("="))
+    ) {
+      console.log(opFleet + ":" + (i + 1) + ": " + line.substring(0, 200));
     }
   }
-} catch(e) {}
+} catch (e) {}

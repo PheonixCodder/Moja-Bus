@@ -6,12 +6,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import {
-  Calendar,
-  Clock,
-  ArrowLeft,
-  BookOpen,
-} from "lucide-react";
+import { Calendar, Clock, ArrowLeft, BookOpen } from "lucide-react";
 import { Card } from "@moja/ui/components/ui/card";
 import { BlogTelemetry } from "../components/blog-telemetry";
 import { BlogShareButtons } from "../components/blog-share-buttons";
@@ -60,7 +55,11 @@ function unescapeMarkdown(content: string): string {
     .replace(/\\!/g, "!");
 }
 
-export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDetailViewProps) {
+export async function BlogDetailView({
+  locale,
+  post,
+  recommendedPosts,
+}: BlogDetailViewProps) {
   const t = await getTranslations({ locale, namespace: "blog" });
   const formattedDate = post.publishedAt
     ? format(new Date(post.publishedAt), "MMMM d, yyyy")
@@ -85,10 +84,8 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
       {/* ── Main content wrapper ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
           {/* ─ Left side: Post body (lg:col-span-8) ─ */}
           <article className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 md:p-10 shadow-3xs overflow-hidden">
-            
             {/* Category badge */}
             {post.category && (
               <span className="inline-flex text-[10px] font-extrabold uppercase tracking-wider text-rose-600 mb-4 bg-rose-50 border border-rose-100/50 px-2.5 py-0.5 rounded-full">
@@ -129,7 +126,9 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
                 </div>
                 <div>
                   <p className="font-bold text-slate-800 text-sm">
-                    {post.displayAuthorName || post.author?.fullName || "Moja Ride Editorial"}
+                    {post.displayAuthorName ||
+                      post.author?.fullName ||
+                      "Moja Ride Editorial"}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5 text-slate-400 text-[11px] font-medium">
                     <span className="flex items-center gap-1">
@@ -215,7 +214,9 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
                   ) : null}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900 mb-0.5">{t("aboutAuthor")}</p>
+                  <p className="font-bold text-slate-900 mb-0.5">
+                    {t("aboutAuthor")}
+                  </p>
                   <p className="text-slate-500">{post.displayAuthorBio}</p>
                 </div>
               </div>
@@ -224,7 +225,6 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
 
           {/* ─ Right side: Recommendations (lg:col-span-4) ─ */}
           <div className="lg:col-span-4 space-y-6">
-            
             {/* Recommended reading */}
             <Card className="bg-white border-slate-200 shadow-3xs p-4 rounded-xl space-y-4">
               <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -234,7 +234,9 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
 
               <div className="space-y-4">
                 {recommendedPosts.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic">{t("noRecommendations")}</p>
+                  <p className="text-xs text-slate-400 italic">
+                    {t("noRecommendations")}
+                  </p>
                 ) : (
                   recommendedPosts.map((rp) => (
                     <Link
@@ -268,7 +270,9 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
 
             {/* Quick search CTA */}
             <Card className="bg-gradient-to-br from-rose-500 to-rose-600 text-white p-5 rounded-xl space-y-3 shadow-sm border-none">
-              <h4 className="font-extrabold text-sm leading-tight">{t("ctaTitle")}</h4>
+              <h4 className="font-extrabold text-sm leading-tight">
+                {t("ctaTitle")}
+              </h4>
               <p className="text-[11px] text-rose-100 leading-relaxed">
                 {t("ctaDesc")}
               </p>
@@ -280,7 +284,6 @@ export async function BlogDetailView({ locale, post, recommendedPosts }: BlogDet
               </Link>
             </Card>
           </div>
-
         </div>
       </div>
     </div>

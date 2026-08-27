@@ -17,7 +17,9 @@ interface PageProps {
 
 export default async function WebhookLogsPage({ searchParams }: PageProps) {
   const t = await getTranslations("adminDashboard.pages.webhooks");
-  const params = await searchParams.then((p) => webhookLogsSearchParamsCache.parse(p));
+  const params = await searchParams.then((p) =>
+    webhookLogsSearchParamsCache.parse(p),
+  );
 
   await prefetch(
     trpc.admin.listWebhookEvents.queryOptions({
@@ -26,7 +28,7 @@ export default async function WebhookLogsPage({ searchParams }: PageProps) {
       search: params.search || undefined,
       status: params.status,
       provider: params.provider,
-    })
+    }),
   );
 
   return (

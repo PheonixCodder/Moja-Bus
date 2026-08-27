@@ -68,8 +68,12 @@ export function DriverCareerStatsCard({
               <Icon className={cn("size-5", stat.color)} />
             </div>
             <div className="min-w-0">
-              <div className="text-xl font-bold tracking-tight">{stat.value}</div>
-              <div className="text-xs text-muted-foreground truncate">{stat.label}</div>
+              <div className="text-xl font-bold tracking-tight">
+                {stat.value}
+              </div>
+              <div className="text-xs text-muted-foreground truncate">
+                {stat.label}
+              </div>
             </div>
           </div>
         );

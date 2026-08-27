@@ -80,8 +80,7 @@ export async function expireOrReleaseHold(
       data: { status: "EXPIRED", holdExpiresAt: null },
     });
 
-    const nextStatus =
-      input.reason === "RELEASED" ? "CANCELLED" : "EXPIRED";
+    const nextStatus = input.reason === "RELEASED" ? "CANCELLED" : "EXPIRED";
 
     await tx.holdGroup.update({
       where: { id: hold.id },
@@ -90,7 +89,10 @@ export async function expireOrReleaseHold(
 
     // Close abandoned checkout payment attempts (best-effort hygiene).
     const payment = await tx.externalPayment.findFirst({
-      where: { holdGroupId: hold.id, status: { in: ["INITIALIZED", "PENDING"] } },
+      where: {
+        holdGroupId: hold.id,
+        status: { in: ["INITIALIZED", "PENDING"] },
+      },
       select: { id: true },
     });
     if (payment) {

@@ -15,7 +15,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export function RevenueAnalyticsChart({ timeSeries, totalNet }: { timeSeries: any[]; totalNet: number }) {
+export function RevenueAnalyticsChart({
+  timeSeries,
+  totalNet,
+}: {
+  timeSeries: any[];
+  totalNet: number;
+}) {
   const t = useTranslations("operatorDashboard.revenue.chart");
   const data = useMemo(() => {
     return timeSeries.map((d) => ({
@@ -28,9 +34,7 @@ export function RevenueAnalyticsChart({ timeSeries, totalNet }: { timeSeries: an
     <div className="bg-white rounded-xl border shadow-sm p-6">
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-slate-900">{t("title")}</h3>
-        <p className="text-sm text-slate-500">
-          {t("description")}
-        </p>
+        <p className="text-sm text-slate-500">{t("description")}</p>
       </div>
 
       <div className="h-[300px] w-full">
@@ -40,14 +44,21 @@ export function RevenueAnalyticsChart({ timeSeries, totalNet }: { timeSeries: an
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <AreaChart
+              data={data}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="#e2e8f0"
+              />
               <XAxis
                 dataKey="displayDate"
                 axisLine={false}
@@ -72,10 +83,14 @@ export function RevenueAnalyticsChart({ timeSeries, totalNet }: { timeSeries: an
                   if (active && payload && payload.length) {
                     return (
                       <div className="bg-white border rounded-lg shadow-lg p-3">
-                        <p className="text-sm font-medium text-slate-900 mb-2">{label}</p>
+                        <p className="text-sm font-medium text-slate-900 mb-2">
+                          {label}
+                        </p>
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="text-sm text-slate-500">{t("tooltipLabel")}</span>
+                          <span className="text-sm text-slate-500">
+                            {t("tooltipLabel")}
+                          </span>
                           <span className="text-sm font-semibold text-emerald-600">
                             {formatXOF(payload[0]?.value as number)}
                           </span>

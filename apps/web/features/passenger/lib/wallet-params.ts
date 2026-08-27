@@ -1,4 +1,8 @@
-import { parseAsInteger, parseAsString, createSearchParamsCache } from "nuqs/server";
+import {
+  parseAsInteger,
+  parseAsString,
+  createSearchParamsCache,
+} from "nuqs/server";
 
 export const walletParamsSchema = {
   page: parseAsInteger.withDefault(1),

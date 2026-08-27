@@ -41,7 +41,9 @@ export function RemoveStaffDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="h-9 text-[13px]">{tp("cancel")}</AlertDialogCancel>
+          <AlertDialogCancel className="h-9 text-[13px]">
+            {tp("cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             className="h-9 text-[13px] bg-red-600 hover:bg-red-700 text-white border-0"
             onClick={onConfirm}

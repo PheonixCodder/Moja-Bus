@@ -14,7 +14,14 @@ import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
 import { Building2, Save } from "lucide-react";
 import { ImageUploadField } from "@/components/image-upload-field";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@moja/ui/components/ui/card";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 export function CompanyProfileView() {
@@ -23,7 +30,7 @@ export function CompanyProfileView() {
   const form = useProfileForm(settings?.company || {});
   const { can } = useStaffPermissions();
   const canManage = can("company:profile:update");
-  
+
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -57,15 +64,20 @@ export function CompanyProfileView() {
         form.reset(form.getValues());
       },
       onError: (err, _variables, context) => {
-        toast.error(err.message || t("toastSaveFailed"), { id: "save-profile" });
+        toast.error(err.message || t("toastSaveFailed"), {
+          id: "save-profile",
+        });
         if (context?.previousSettings) {
-          queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
+          queryClient.setQueryData(
+            trpc.operator.getSettings.queryKey(),
+            context.previousSettings,
+          );
         }
       },
       onSettled: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
-      }
-    })
+      },
+    }),
   );
 
   const onSubmit = form.handleSubmit((data) => {
@@ -78,9 +90,7 @@ export function CompanyProfileView() {
     <div className="max-w-4xl space-y-6">
       <div>
         <h3 className="text-lg font-medium">{t("title")}</h3>
-        <p className="text-sm text-muted-foreground">
-          {t("description")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       <form onSubmit={onSubmit}>
@@ -90,21 +100,26 @@ export function CompanyProfileView() {
               <Building2 className="w-5 h-5 text-muted-foreground" />
               {t("generalInfo")}
             </CardTitle>
-            <CardDescription>
-              {t("generalInfoDesc")}
-            </CardDescription>
+            <CardDescription>{t("generalInfoDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <Field>
                 <FieldLabel>{t("companyName")}</FieldLabel>
-                <Input placeholder={t("companyNamePlaceholder")} {...form.register("name")} />
+                <Input
+                  placeholder={t("companyNamePlaceholder")}
+                  {...form.register("name")}
+                />
                 <FieldError errors={[form.formState.errors.name]} />
               </Field>
 
               <Field>
                 <FieldLabel>{t("supportEmail")}</FieldLabel>
-                <Input type="email" placeholder={t("supportEmailPlaceholder")} {...form.register("email")} />
+                <Input
+                  type="email"
+                  placeholder={t("supportEmailPlaceholder")}
+                  {...form.register("email")}
+                />
                 <FieldError errors={[form.formState.errors.email]} />
               </Field>
 
@@ -130,7 +145,12 @@ export function CompanyProfileView() {
                 <ImageUploadField
                   purpose="operator-logo"
                   value={form.watch("logoUrl") ?? null}
-                  onUploaded={(res) => form.setValue("logoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
+                  onUploaded={(res) =>
+                    form.setValue("logoUrl", res.fileUrl, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
                   label={t("uploadLogo")}
                   hint={t("logoHint")}
                   shape="square"
@@ -144,14 +164,22 @@ export function CompanyProfileView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field>
                   <FieldLabel>{t("taxId")}</FieldLabel>
-                  <Input placeholder={t("taxIdPlaceholder")} {...form.register("taxId")} />
+                  <Input
+                    placeholder={t("taxIdPlaceholder")}
+                    {...form.register("taxId")}
+                  />
                   <FieldError errors={[form.formState.errors.taxId]} />
                 </Field>
-                
+
                 <Field>
                   <FieldLabel>{t("regNumber")}</FieldLabel>
-                  <Input placeholder={t("regNumberPlaceholder")} {...form.register("registrationNumber")} />
-                  <FieldError errors={[form.formState.errors.registrationNumber]} />
+                  <Input
+                    placeholder={t("regNumberPlaceholder")}
+                    {...form.register("registrationNumber")}
+                  />
+                  <FieldError
+                    errors={[form.formState.errors.registrationNumber]}
+                  />
                 </Field>
               </div>
 
@@ -161,7 +189,9 @@ export function CompanyProfileView() {
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   {...form.register("businessType")}
                 >
-                  <option value="SOLE_PROPRIETORSHIP">{t("types.SOLE_PROPRIETORSHIP")}</option>
+                  <option value="SOLE_PROPRIETORSHIP">
+                    {t("types.SOLE_PROPRIETORSHIP")}
+                  </option>
                   <option value="LLC">{t("types.LLC")}</option>
                   <option value="CORPORATION">{t("types.CORPORATION")}</option>
                   <option value="PARTNERSHIP">{t("types.PARTNERSHIP")}</option>
@@ -174,39 +204,61 @@ export function CompanyProfileView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field>
                   <FieldLabel>{t("yearEstablished")}</FieldLabel>
-                  <Input type="number" placeholder={t("yearPlaceholder")} {...form.register("yearEstablished", { valueAsNumber: true })} />
-                  <FieldError errors={[form.formState.errors.yearEstablished]} />
+                  <Input
+                    type="number"
+                    placeholder={t("yearPlaceholder")}
+                    {...form.register("yearEstablished", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  <FieldError
+                    errors={[form.formState.errors.yearEstablished]}
+                  />
                 </Field>
 
                 <Field>
                   <FieldLabel>{t("staffSize")}</FieldLabel>
-                  <Input type="number" placeholder={t("staffSizePlaceholder")} {...form.register("estimatedStaffSize", { valueAsNumber: true })} />
-                  <FieldError errors={[form.formState.errors.estimatedStaffSize]} />
+                  <Input
+                    type="number"
+                    placeholder={t("staffSizePlaceholder")}
+                    {...form.register("estimatedStaffSize", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  <FieldError
+                    errors={[form.formState.errors.estimatedStaffSize]}
+                  />
                 </Field>
               </div>
 
               <Field>
                 <FieldLabel>{t("websiteUrl")}</FieldLabel>
-                <Input type="url" placeholder={t("websitePlaceholder")} {...form.register("website")} />
+                <Input
+                  type="url"
+                  placeholder={t("websitePlaceholder")}
+                  {...form.register("website")}
+                />
                 <FieldError errors={[form.formState.errors.website]} />
               </Field>
 
               <Field>
                 <FieldLabel>{t("businessDescription")}</FieldLabel>
-                <Textarea 
-                  placeholder={t("businessDescPlaceholder")} 
-                  className="resize-none" 
+                <Textarea
+                  placeholder={t("businessDescPlaceholder")}
+                  className="resize-none"
                   rows={4}
-                  {...form.register("description")} 
+                  {...form.register("description")}
                 />
                 <FieldError errors={[form.formState.errors.description]} />
               </Field>
             </div>
           </CardContent>
           <CardFooter className="border-t border-border bg-muted/20 px-6 py-4 flex justify-end">
-            <Button 
-              type="submit" 
-              disabled={!canManage || !form.formState.isDirty || mutation.isPending}
+            <Button
+              type="submit"
+              disabled={
+                !canManage || !form.formState.isDirty || mutation.isPending
+              }
               className="w-full sm:w-auto"
             >
               <Save className="w-4 h-4 mr-2" />

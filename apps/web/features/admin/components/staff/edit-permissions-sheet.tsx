@@ -68,10 +68,7 @@ export function EditPermissionsSheet({
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent
-        side="right"
-        className="flex flex-col p-0 sm:max-w-lg"
-      >
+      <SheetContent side="right" className="flex flex-col p-0 sm:max-w-lg">
         <SheetHeader>
           <SheetTitle>{t("editPermissionsSheet.title")}</SheetTitle>
           <SheetDescription>

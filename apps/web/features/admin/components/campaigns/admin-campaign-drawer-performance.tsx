@@ -19,7 +19,11 @@ interface CampaignPerformanceData {
   operatorFundedXOF: number;
   creditAppliedXOF: number;
   byStatus: Record<string, number>;
-  byCompany: Array<{ companyId: string; redemptions: number; ticketDiscountXOF: number }>;
+  byCompany: Array<{
+    companyId: string;
+    redemptions: number;
+    ticketDiscountXOF: number;
+  }>;
 }
 
 interface AdminCampaignDrawerPerformanceProps {
@@ -56,7 +60,9 @@ export function AdminCampaignDrawerPerformance({
   const reserved = performance.campaign.budgetReservedXOF;
   const totalSpend = consumed + reserved;
   const hasBudget = budget != null && budget > 0;
-  const pct = hasBudget ? Math.min(100, Math.round((totalSpend / budget!) * 100)) : 0;
+  const pct = hasBudget
+    ? Math.min(100, Math.round((totalSpend / budget!) * 100))
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -70,14 +76,18 @@ export function AdminCampaignDrawerPerformance({
 
         <div className="mt-3 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="p-4 bg-slate-50/70 border-slate-200/80 shadow-none">
-            <p className="text-xs font-medium text-slate-500">{t("confirmedRedemptions")}</p>
+            <p className="text-xs font-medium text-slate-500">
+              {t("confirmedRedemptions")}
+            </p>
             <p className="mt-1 font-display text-2xl font-bold tabular-nums text-slate-900">
               {performance.confirmedRedemptions.toLocaleString()}
             </p>
           </Card>
 
           <Card className="p-4 bg-slate-50/70 border-slate-200/80 shadow-none">
-            <p className="text-xs font-medium text-slate-500">{t("ticketDiscountTotal")}</p>
+            <p className="text-xs font-medium text-slate-500">
+              {t("ticketDiscountTotal")}
+            </p>
             <p className="mt-1 font-display text-2xl font-bold tabular-nums text-slate-900">
               {performance.ticketDiscountXOF.toLocaleString()}{" "}
               <span className="text-xs font-medium text-slate-400">XOF</span>
@@ -85,7 +95,9 @@ export function AdminCampaignDrawerPerformance({
           </Card>
 
           <Card className="p-4 bg-slate-50/70 border-slate-200/80 shadow-none">
-            <p className="text-xs font-medium text-slate-500">{t("platformFunded")}</p>
+            <p className="text-xs font-medium text-slate-500">
+              {t("platformFunded")}
+            </p>
             <p className="mt-1 font-display text-2xl font-bold tabular-nums text-slate-900">
               {performance.platformFundedXOF.toLocaleString()}{" "}
               <span className="text-xs font-medium text-slate-400">XOF</span>
@@ -93,7 +105,9 @@ export function AdminCampaignDrawerPerformance({
           </Card>
 
           <Card className="p-4 bg-slate-50/70 border-slate-200/80 shadow-none">
-            <p className="text-xs font-medium text-slate-500">{t("operatorFunded")}</p>
+            <p className="text-xs font-medium text-slate-500">
+              {t("operatorFunded")}
+            </p>
             <p className="mt-1 font-display text-2xl font-bold tabular-nums text-slate-900">
               {performance.operatorFundedXOF.toLocaleString()}{" "}
               <span className="text-xs font-medium text-slate-400">XOF</span>
@@ -105,15 +119,22 @@ export function AdminCampaignDrawerPerformance({
       {hasBudget && (
         <Card className="p-4 border-slate-200/80 bg-white">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-slate-800">{t("budgetUtilization")}</span>
+            <span className="font-semibold text-slate-800">
+              {t("budgetUtilization")}
+            </span>
             <span className="text-xs font-medium text-slate-500">
-              {totalSpend.toLocaleString()} / {budget.toLocaleString()} XOF ({pct}%)
+              {totalSpend.toLocaleString()} / {budget.toLocaleString()} XOF (
+              {pct}%)
             </span>
           </div>
           <div className="mt-2 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
             <div
               className={`h-full transition-all ${
-                pct >= 90 ? "bg-rose-500" : pct >= 70 ? "bg-amber-500" : "bg-emerald-500"
+                pct >= 90
+                  ? "bg-rose-500"
+                  : pct >= 70
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
               }`}
               style={{ width: `${pct}%` }}
             />
@@ -132,11 +153,20 @@ export function AdminCampaignDrawerPerformance({
           </p>
           <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
             {performance.byCompany.map((c) => (
-              <div key={c.companyId} className="flex items-center justify-between p-3 text-sm">
-                <span className="font-mono text-xs text-slate-700">{c.companyId}</span>
+              <div
+                key={c.companyId}
+                className="flex items-center justify-between p-3 text-sm"
+              >
+                <span className="font-mono text-xs text-slate-700">
+                  {c.companyId}
+                </span>
                 <div className="flex items-center gap-4 text-xs">
-                  <span className="text-slate-500">{t("operatorRedemptions", { count: c.redemptions })}</span>
-                  <span className="font-semibold text-slate-900">{c.ticketDiscountXOF.toLocaleString()} XOF</span>
+                  <span className="text-slate-500">
+                    {t("operatorRedemptions", { count: c.redemptions })}
+                  </span>
+                  <span className="font-semibold text-slate-900">
+                    {c.ticketDiscountXOF.toLocaleString()} XOF
+                  </span>
                 </div>
               </div>
             ))}

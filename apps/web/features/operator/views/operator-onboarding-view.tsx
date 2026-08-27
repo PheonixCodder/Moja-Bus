@@ -22,11 +22,11 @@ import { type OnboardingStep } from "@moja/schemas";
 export function OperatorOnboardingView() {
   const t = useTranslations("onboarding");
   const steps = [
-    { id: "COMPANY",   name: t("steps.COMPANY"),      icon: Building2   },
-    { id: "DOCUMENTS", name: t("steps.DOCUMENTS"),    icon: FileText    },
-    { id: "BANK",      name: t("steps.BANK"), icon: Banknote    },
-    { id: "PROFILE",   name: t("steps.PROFILE"), icon: User        },
-    { id: "TERMS",     name: t("steps.TERMS"),        icon: ShieldCheck },
+    { id: "COMPANY", name: t("steps.COMPANY"), icon: Building2 },
+    { id: "DOCUMENTS", name: t("steps.DOCUMENTS"), icon: FileText },
+    { id: "BANK", name: t("steps.BANK"), icon: Banknote },
+    { id: "PROFILE", name: t("steps.PROFILE"), icon: User },
+    { id: "TERMS", name: t("steps.TERMS"), icon: ShieldCheck },
   ] as const;
 
   const {
@@ -76,11 +76,7 @@ export function OperatorOnboardingView() {
                   type="button"
                   onClick={() => goToStep(step.id as OnboardingStep)}
                   disabled={isUpcoming}
-                  title={
-                    isUpcoming
-                      ? t("pleaseCompleteFirst")
-                      : undefined
-                  }
+                  title={isUpcoming ? t("pleaseCompleteFirst") : undefined}
                   className="flex flex-col items-center gap-2 focus:outline-none disabled:cursor-not-allowed group"
                 >
                   <div

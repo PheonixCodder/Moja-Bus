@@ -32,11 +32,9 @@ export default async function VerificationsQueuePage({
         status,
         limit,
         offset,
-      })
+      }),
     ),
-    prefetch(
-      trpc.payments.listBanks.queryOptions({})
-    ),
+    prefetch(trpc.payments.listBanks.queryOptions({})),
   ]);
 
   return (

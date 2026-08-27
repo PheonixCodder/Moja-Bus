@@ -61,10 +61,7 @@ export function AdminCampaignDrawerRedemptions({
         </Button>
       </div>
 
-      <CampaignRedemptionsTable
-        items={redemptions}
-        isLoading={isLoading}
-      />
+      <CampaignRedemptionsTable items={redemptions} isLoading={isLoading} />
     </div>
   );
 }

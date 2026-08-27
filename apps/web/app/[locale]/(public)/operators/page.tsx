@@ -23,7 +23,6 @@ export default async function OperatorsPage() {
         description={t("shellDescription")}
         badge={t("shellBadge")}
       >
-
         {/* Operator grid */}
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-16">
           <OperatorListingClient />
@@ -36,9 +35,7 @@ export default async function OperatorsPage() {
               <h2 className="text-2xl font-bold text-slate-900 mb-2">
                 {t("ctaTitle")}
               </h2>
-              <p className="text-slate-500">
-                {t("ctaDesc")}
-              </p>
+              <p className="text-slate-500">{t("ctaDesc")}</p>
             </div>
             <Link
               href="/become-a-partner"

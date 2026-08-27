@@ -13,7 +13,10 @@ import {
   OperatorPromotionCreateDialog,
   type CreatePromoData,
 } from "../components/promotions/operator-promotion-create-dialog";
-import { OperatorPromotionDrawer, type PromoDrawerTab } from "../components/promotions/operator-promotion-drawer";
+import {
+  OperatorPromotionDrawer,
+  type PromoDrawerTab,
+} from "../components/promotions/operator-promotion-drawer";
 import { OperatorPromotionOptInsCard } from "../components/promotions/operator-promotion-opt-ins-card";
 import { OperatorPageHeader } from "../components/operator-page-header";
 import { useTranslations } from "next-intl";
@@ -45,11 +48,15 @@ export function OperatorPromotionsView() {
   const listQuery = useQuery(
     trpc.discountsOperator.listCampaigns.queryOptions({ limit: 50, offset: 0 }),
   );
-  const summaryQuery = useQuery(trpc.discountsOperator.promotionsSummary.queryOptions());
+  const summaryQuery = useQuery(
+    trpc.discountsOperator.promotionsSummary.queryOptions(),
+  );
   const summary = summaryQuery.data;
 
   const campaignDetailQuery = useQuery({
-    ...trpc.discountsOperator.getCampaign.queryOptions({ id: selectedPromoId ?? "" }),
+    ...trpc.discountsOperator.getCampaign.queryOptions({
+      id: selectedPromoId ?? "",
+    }),
     enabled: Boolean(selectedPromoId),
   });
 
@@ -73,7 +80,10 @@ export function OperatorPromotionsView() {
 
   const routesQuery = useQuery(trpc.routes.list.queryOptions());
   const schedulesQuery = useQuery({
-    ...trpc.discountsOperator.listScopeSchedules.queryOptions({ routeIds: scopeRouteIds, limit: 100 }),
+    ...trpc.discountsOperator.listScopeSchedules.queryOptions({
+      routeIds: scopeRouteIds,
+      limit: 100,
+    }),
     enabled: Boolean(selectedPromoId),
   });
   const tripsQuery = useQuery({
@@ -83,9 +93,13 @@ export function OperatorPromotionsView() {
       daysAhead: 60,
       limit: 100,
     }),
-    enabled: Boolean(selectedPromoId) && (scopeScheduleIds.length > 0 || scopeRouteIds.length > 0),
+    enabled:
+      Boolean(selectedPromoId) &&
+      (scopeScheduleIds.length > 0 || scopeRouteIds.length > 0),
   });
-  const optInsQuery = useQuery(trpc.discountsOperator.listPlatformOptIns.queryOptions());
+  const optInsQuery = useQuery(
+    trpc.discountsOperator.listPlatformOptIns.queryOptions(),
+  );
 
   // Mutations
   const createMutation = useMutation(
@@ -94,7 +108,9 @@ export function OperatorPromotionsView() {
         toast.success("Promotion created — add codes, then Activate");
         setCreateOpen(false);
         await setSelectedPromoId(campaign.id);
-        await queryClient.invalidateQueries(trpc.discountsOperator.listCampaigns.pathFilter());
+        await queryClient.invalidateQueries(
+          trpc.discountsOperator.listCampaigns.pathFilter(),
+        );
       },
       onError: (err) => toast.error(err.message),
     }),
@@ -104,7 +120,9 @@ export function OperatorPromotionsView() {
     trpc.discountsOperator.setCampaignStatus.mutationOptions({
       onSuccess: async () => {
         toast.success("Status updated");
-        await queryClient.invalidateQueries(trpc.discountsOperator.listCampaigns.pathFilter());
+        await queryClient.invalidateQueries(
+          trpc.discountsOperator.listCampaigns.pathFilter(),
+        );
       },
       onError: (err) => toast.error(err.message),
     }),
@@ -115,9 +133,15 @@ export function OperatorPromotionsView() {
       onSuccess: async () => {
         toast.success("Coupon created");
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsOperator.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsOperator.listCampaigns.pathFilter(),
+          ),
           selectedPromoId
-            ? queryClient.invalidateQueries(trpc.discountsOperator.getCampaign.queryFilter({ id: selectedPromoId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsOperator.getCampaign.queryFilter({
+                  id: selectedPromoId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -130,9 +154,15 @@ export function OperatorPromotionsView() {
       onSuccess: async () => {
         toast.success("Coupon deactivated");
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsOperator.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsOperator.listCampaigns.pathFilter(),
+          ),
           selectedPromoId
-            ? queryClient.invalidateQueries(trpc.discountsOperator.getCampaign.queryFilter({ id: selectedPromoId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsOperator.getCampaign.queryFilter({
+                  id: selectedPromoId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -145,9 +175,15 @@ export function OperatorPromotionsView() {
       onSuccess: async (result) => {
         toast.success(`Created ${result.codes.length} codes`);
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsOperator.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsOperator.listCampaigns.pathFilter(),
+          ),
           selectedPromoId
-            ? queryClient.invalidateQueries(trpc.discountsOperator.getCampaign.queryFilter({ id: selectedPromoId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsOperator.getCampaign.queryFilter({
+                  id: selectedPromoId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -160,9 +196,15 @@ export function OperatorPromotionsView() {
       onSuccess: async () => {
         toast.success("Promo settings saved");
         await Promise.all([
-          queryClient.invalidateQueries(trpc.discountsOperator.listCampaigns.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discountsOperator.listCampaigns.pathFilter(),
+          ),
           selectedPromoId
-            ? queryClient.invalidateQueries(trpc.discountsOperator.getCampaign.queryFilter({ id: selectedPromoId }))
+            ? queryClient.invalidateQueries(
+                trpc.discountsOperator.getCampaign.queryFilter({
+                  id: selectedPromoId,
+                }),
+              )
             : Promise.resolve(),
         ]);
       },
@@ -174,7 +216,9 @@ export function OperatorPromotionsView() {
     trpc.discountsOperator.setPlatformOptIn.mutationOptions({
       onSuccess: async () => {
         toast.success("Opt-in updated");
-        await queryClient.invalidateQueries(trpc.discountsOperator.listPlatformOptIns.pathFilter());
+        await queryClient.invalidateQueries(
+          trpc.discountsOperator.listPlatformOptIns.pathFilter(),
+        );
       },
       onError: (err) => toast.error(err.message),
     }),
@@ -182,9 +226,19 @@ export function OperatorPromotionsView() {
 
   const items = listQuery.data?.items ?? [];
 
-  const routes = (routesQuery.data ?? []).map((r: any) => ({ id: r.id, name: r.name }));
-  const schedules = (schedulesQuery.data ?? []).map((s: any) => ({ id: s.id, name: s.name, routeId: s.routeId }));
-  const trips = (tripsQuery.data ?? []).map((t: any) => ({ id: t.id, name: t.name }));
+  const routes = (routesQuery.data ?? []).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+  }));
+  const schedules = (schedulesQuery.data ?? []).map((s: any) => ({
+    id: s.id,
+    name: s.name,
+    routeId: s.routeId,
+  }));
+  const trips = (tripsQuery.data ?? []).map((t: any) => ({
+    id: t.id,
+    name: t.name,
+  }));
 
   function handleCreate(data: CreatePromoData) {
     createMutation.mutate({
@@ -228,7 +282,12 @@ export function OperatorPromotionsView() {
               ? t("promotionsCount", { count: items.length })
               : t("noPromotions")}
           </p>
-          <Button type="button" size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setCreateOpen(true)}
+          >
             <Plus className="size-3.5" />
             {t("newPromo")}
           </Button>
@@ -251,7 +310,9 @@ export function OperatorPromotionsView() {
         {/* Platform opt-in campaigns */}
         <OperatorPromotionOptInsCard
           campaigns={optInsQuery.data ?? []}
-          onOptIn={(campaignId, status) => optInMutation.mutate({ campaignId, status })}
+          onOptIn={(campaignId, status) =>
+            optInMutation.mutate({ campaignId, status })
+          }
           isPending={optInMutation.isPending}
         />
       </div>
@@ -290,17 +351,24 @@ export function OperatorPromotionsView() {
         onStatusChange={(id, status) => statusMutation.mutate({ id, status })}
         isStatusPending={statusMutation.isPending}
         onCreateCoupon={(code) => {
-          if (selectedPromoId) couponMutation.mutate({ campaignId: selectedPromoId, code });
+          if (selectedPromoId)
+            couponMutation.mutate({ campaignId: selectedPromoId, code });
         }}
         onBulkCreate={({ prefix, count }) => {
-          if (selectedPromoId) bulkCouponMutation.mutate({ campaignId: selectedPromoId, prefix, count });
+          if (selectedPromoId)
+            bulkCouponMutation.mutate({
+              campaignId: selectedPromoId,
+              prefix,
+              count,
+            });
         }}
         onDeactivateCoupon={(id) => deactivateCouponMutation.mutate({ id })}
         createCouponPending={couponMutation.isPending}
         bulkCouponPending={bulkCouponMutation.isPending}
         deactivateCouponPending={deactivateCouponMutation.isPending}
         onSaveSettings={(input) => {
-          if (selectedPromoId) updateMutation.mutate({ id: selectedPromoId, ...input });
+          if (selectedPromoId)
+            updateMutation.mutate({ id: selectedPromoId, ...input });
         }}
         isSavingSettings={updateMutation.isPending}
       />

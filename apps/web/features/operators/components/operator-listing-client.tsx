@@ -11,14 +11,17 @@ export function OperatorListingClient() {
   const t = useTranslations("operators");
   const trpc = useTRPC();
   const { data: operators, isLoading } = useQuery(
-    trpc.public.listOperators.queryOptions()
+    trpc.public.listOperators.queryOptions(),
   );
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-slate-100 rounded-3xl h-64 animate-pulse" />
+          <div
+            key={i}
+            className="bg-slate-100 rounded-3xl h-64 animate-pulse"
+          />
         ))}
       </div>
     );
@@ -28,10 +31,10 @@ export function OperatorListingClient() {
     return (
       <div className="text-center py-24">
         <Bus className="h-16 w-16 text-slate-300 mx-auto mb-6" />
-        <h3 className="text-xl font-bold text-slate-700 mb-2">{t("emptyTitle")}</h3>
-        <p className="text-slate-400 mb-8">
-          {t("emptyDesc")}
-        </p>
+        <h3 className="text-xl font-bold text-slate-700 mb-2">
+          {t("emptyTitle")}
+        </h3>
+        <p className="text-slate-400 mb-8">{t("emptyDesc")}</p>
         <Link
           href="/become-a-partner"
           className="inline-flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all"
@@ -69,7 +72,9 @@ export function OperatorListingClient() {
                   className="object-cover"
                 />
               ) : (
-                <span className="text-xl font-black text-slate-300">{abbr}</span>
+                <span className="text-xl font-black text-slate-300">
+                  {abbr}
+                </span>
               )}
             </div>
 

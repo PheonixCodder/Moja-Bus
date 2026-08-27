@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const operatorWithdrawalRequestedWorkflow = workflow(
   "operator-withdrawal-requested",
   async ({ step, payload }) => {
@@ -38,7 +37,8 @@ export const operatorWithdrawalRequestedWorkflow = workflow(
   },
   {
     name: "Operator Withdrawal Requested",
-    description: "Confirms that an operator payout withdrawal request was successfully generated and sent to Paystack",
+    description:
+      "Confirms that an operator payout withdrawal request was successfully generated and sent to Paystack",
     payloadSchema: z.object({
       email: z.string().email(),
       ownerName: z.string(),
@@ -48,5 +48,5 @@ export const operatorWithdrawalRequestedWorkflow = workflow(
       accountNumberLast4: z.string(),
       transactionId: z.string(),
     }),
-  }
+  },
 );

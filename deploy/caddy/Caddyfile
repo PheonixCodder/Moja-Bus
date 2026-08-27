@@ -7,7 +7,11 @@
 {$SITE_ADDRESS} {
 	encode zstd gzip
 
-	reverse_proxy web:3000
+	reverse_proxy web:3000 {
+		transport http {
+			versions 1.1 2
+		}
+	}
 
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
@@ -20,16 +24,10 @@
 		# Allow self for the features the product actually uses; microphone
 		# stays denied. Status/PostHog/SigNoz blocks are untouched below.
 		Permissions-Policy "geolocation=(self), camera=(self), microphone=()"
-		# Phase 35 (D35-4) — REPORT-ONLY baseline. Builds a violation record so
+		# Phase 35 (D35-4) & Phase 6 — REPORT-ONLY baseline. Builds a violation record so
 		# enforcement (flipping to Content-Security-Policy) is evidence-driven,
-		# not blind. unsafe-inline/unsafe-eval are deliberate first-baseline;
-		# tightening them (nonce/hash) is its own future session. Sources:
-		# tile.openstreetmap.org + S3_PUBLIC_HOST = Leaflet/upload images,
-		# lh3.googleusercontent.com = Google-auth avatars (<img>, not optimizer),
-		# avatar.vercel.sh = Novu in-app notification avatars, POSTHOG_PUBLIC_HOST
-		# = analytics connect. QA pass must show zero console violations before
-		# this flips to enforcing.
-		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.mojaride.com https://{$S3_PUBLIC_HOST:cdn.mojaride.com} https://tile.openstreetmap.org https://lh3.googleusercontent.com https://avatar.vercel.sh; connect-src 'self' {$POSTHOG_PUBLIC_HOST:https://us.i.posthog.com}; font-src 'self' data:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+		# not blind. Sources include wss:// for real-time telemetry gateway.
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.mojaride.com https://{$S3_PUBLIC_HOST:cdn.mojaride.com} https://tile.openstreetmap.org https://lh3.googleusercontent.com https://avatar.vercel.sh; connect-src 'self' ws://{$SITE_ADDRESS} wss://{$SITE_ADDRESS} {$POSTHOG_PUBLIC_HOST:https://us.i.posthog.com}; font-src 'self' data:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
 	}
 
 	log {

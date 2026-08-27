@@ -30,7 +30,9 @@ export function HomeFeatures() {
             }}
           >
             {t.rich("title", {
-              span: (chunks) => <span className="text-[#ee237c]">{chunks}</span>,
+              span: (chunks) => (
+                <span className="text-[#ee237c]">{chunks}</span>
+              ),
             })}
           </h2>
           <p className="text-slate-500 text-sm md:text-base leading-relaxed">

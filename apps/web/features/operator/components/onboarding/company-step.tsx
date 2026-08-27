@@ -73,40 +73,36 @@ export function CompanyStep({
     { value: "OTHER", label: t("other") },
   ];
 
-   // Pre-fill form if initialData exists
-   useEffect(() => {
-     if (initialData?.company) {
-       const company = initialData.company;
-        setName(company.name || "");
-        setSlug(
-          company.slug && !company.slug.startsWith("draft-")
-            ? company.slug
-            : generateSlug(company.name || ""),
-        );
-        setEmail(company.email || "");
-        setPhone(company.phone || "");
-        setWebsite(company.website || "");
-       setDescription(company.description || "");
-       setBusinessType(company.businessType || "");
-       setRegistrationNumber(
-         company.registrationNumber?.startsWith("DRAFT-")
-           ? ""
-           : company.registrationNumber || "",
-       );
-       setTaxId(
-         company.taxId?.startsWith("DRAFT-")
-           ? ""
-           : company.taxId || "",
-       );
-       setYearEstablished(
-         company.yearEstablished ? String(company.yearEstablished) : "",
-       );
-       setEstimatedStaffSize(
-         company.estimatedStaffSize ? String(company.estimatedStaffSize) : "",
-       );
-       setLogoUrl(company.logoUrl || "");
-     }
-   }, [initialData]);
+  // Pre-fill form if initialData exists
+  useEffect(() => {
+    if (initialData?.company) {
+      const company = initialData.company;
+      setName(company.name || "");
+      setSlug(
+        company.slug && !company.slug.startsWith("draft-")
+          ? company.slug
+          : generateSlug(company.name || ""),
+      );
+      setEmail(company.email || "");
+      setPhone(company.phone || "");
+      setWebsite(company.website || "");
+      setDescription(company.description || "");
+      setBusinessType(company.businessType || "");
+      setRegistrationNumber(
+        company.registrationNumber?.startsWith("DRAFT-")
+          ? ""
+          : company.registrationNumber || "",
+      );
+      setTaxId(company.taxId?.startsWith("DRAFT-") ? "" : company.taxId || "");
+      setYearEstablished(
+        company.yearEstablished ? String(company.yearEstablished) : "",
+      );
+      setEstimatedStaffSize(
+        company.estimatedStaffSize ? String(company.estimatedStaffSize) : "",
+      );
+      setLogoUrl(company.logoUrl || "");
+    }
+  }, [initialData]);
 
   // Debounce slug for validation
   useEffect(() => {
@@ -118,7 +114,8 @@ export function CompanyStep({
 
   const { data: slugValidation, isLoading: isCheckingSlug } = useQuery({
     ...trpc.operator.validateSlug.queryOptions({ slug: debouncedSlug }),
-    enabled: debouncedSlug.length > 0 && debouncedSlug !== initialData?.company?.slug,
+    enabled:
+      debouncedSlug.length > 0 && debouncedSlug !== initialData?.company?.slug,
   });
 
   const isSlugTaken = slugValidation?.isAvailable === false;
@@ -191,12 +188,8 @@ export function CompanyStep({
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold">
-                {t("title")}
-              </CardTitle>
-              <CardDescription>
-                {t("description")}
-              </CardDescription>
+              <CardTitle className="text-lg font-bold">{t("title")}</CardTitle>
+              <CardDescription>{t("description")}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -232,7 +225,7 @@ export function CompanyStep({
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder={t("slugPlaceholder")}
                 required
-                className={`rounded-md focus-visible:ring-primary focus-visible:border-primary ${isSlugTaken ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive' : 'border-border'}`}
+                className={`rounded-md focus-visible:ring-primary focus-visible:border-primary ${isSlugTaken ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive" : "border-border"}`}
               />
               {isSlugTaken && (
                 <p className="text-xs text-destructive mt-1 font-semibold">

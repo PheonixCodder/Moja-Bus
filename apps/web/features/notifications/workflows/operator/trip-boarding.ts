@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const passengerTripBoardingWorkflow = workflow(
   "passenger-trip-boarding",
   async ({ step, payload }) => {
@@ -23,7 +22,8 @@ export const passengerTripBoardingWorkflow = workflow(
   },
   {
     name: "Passenger Trip Boarding Commenced",
-    description: "Alerts passenger at the terminal when their bus boarding status changes to active",
+    description:
+      "Alerts passenger at the terminal when their bus boarding status changes to active",
     preferences: {
       all: { readOnly: true },
     },
@@ -35,5 +35,5 @@ export const passengerTripBoardingWorkflow = workflow(
       busPlate: z.string().nullable().optional(),
       phone: z.string().optional(),
     }),
-  }
+  },
 );

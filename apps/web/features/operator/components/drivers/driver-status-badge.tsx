@@ -61,8 +61,12 @@ const DEFAULT_CONFIG: StatusConfigItem = {
   dot: "bg-zinc-400",
 };
 
-export function DriverStatusBadge({ status, className }: DriverStatusBadgeProps) {
-  const config = (typeof status === "string" && STATUS_CONFIG[status]) || DEFAULT_CONFIG;
+export function DriverStatusBadge({
+  status,
+  className,
+}: DriverStatusBadgeProps) {
+  const config =
+    (typeof status === "string" && STATUS_CONFIG[status]) || DEFAULT_CONFIG;
 
   return (
     <span
@@ -70,7 +74,7 @@ export function DriverStatusBadge({ status, className }: DriverStatusBadgeProps)
         "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors",
         config.bg,
         config.text,
-        className
+        className,
       )}
     >
       <span className={cn("size-1.5 rounded-full shrink-0", config.dot)} />

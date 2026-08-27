@@ -135,7 +135,12 @@ export function useStorageUpload(
           keyContext: { ...defaultKeyContext, ...keyContext },
         });
 
-        await putWithProgress(res.uploadUrl, toUpload, contentType, setProgress);
+        await putWithProgress(
+          res.uploadUrl,
+          toUpload,
+          contentType,
+          setProgress,
+        );
 
         return { fileUrl: res.fileUrl, objectKey: res.objectKey };
       } catch (e) {

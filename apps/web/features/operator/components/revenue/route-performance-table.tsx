@@ -29,9 +29,13 @@ export function RoutePerformanceTable({ topRoutes }: { topRoutes: any[] }) {
           <TableRow>
             <TableHead className="w-[300px]">{t("columns.route")}</TableHead>
             <TableHead className="text-right">{t("columns.trips")}</TableHead>
-            <TableHead className="text-right">{t("columns.seatsSold")}</TableHead>
+            <TableHead className="text-right">
+              {t("columns.seatsSold")}
+            </TableHead>
             <TableHead className="text-right">{t("columns.avgFare")}</TableHead>
-            <TableHead className="text-right">{t("columns.netRevenue")}</TableHead>
+            <TableHead className="text-right">
+              {t("columns.netRevenue")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

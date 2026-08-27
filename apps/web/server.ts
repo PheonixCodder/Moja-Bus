@@ -7,17 +7,14 @@ import {
 import type { Socket } from "node:net";
 import { parse } from "node:url";
 import next from "next";
-// Phase 09 Option B — v1 transport is HTTP-only. This custom server (and the
-// gateway in ./server/telemetry-ws) is DORMANT: production runs the Next
-// standalone server, and no deploy artifact starts this file. It is kept for
-// dev experimentation (`pnpm --filter web dev:ws`) and for revival when the
-// live-tracking consumer ships — revival requires Phase 11 (room authz +
-// fleet channel) and a hosted image with a Caddy upgrade passthrough.
+// Phase 6 (2026-08-27) — Live-tracking consumer revival: custom server
+// active in production hosting the Real-Time Telemetry Gateway alongside Next.js.
 import { telemetryGateway } from "./server/telemetry-ws";
 
 const dev = process.env["NODE_ENV"] !== "production";
 const port = parseInt(process.env["PORT"] || "3000", 10);
-const nextApp = next({ dev });
+const hostname = process.env["HOSTNAME"] || "0.0.0.0";
+const nextApp = next({ dev, hostname, port });
 const handle = nextApp.getRequestHandler();
 
 nextApp.prepare().then(() => {
@@ -40,9 +37,9 @@ nextApp.prepare().then(() => {
     }
   });
 
-  server.listen(port, () => {
+  server.listen(port, hostname, () => {
     console.log(
-      `> Moja Bus Ready on http://localhost:${port} with Real-Time Telemetry Gateway`,
+      `> Moja Bus Ready on http://${hostname}:${port} with Real-Time Telemetry Gateway`,
     );
   });
 });

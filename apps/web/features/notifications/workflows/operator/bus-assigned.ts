@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const operatorBusAssignedWorkflow = workflow(
   "operator-bus-assigned",
   async ({ step, payload }) => {
@@ -37,7 +36,8 @@ export const operatorBusAssignedWorkflow = workflow(
   },
   {
     name: "Operator Bus Assigned",
-    description: "Alerts operator staff / drivers when a vehicle is assigned or swapped for a departure",
+    description:
+      "Alerts operator staff / drivers when a vehicle is assigned or swapped for a departure",
     payloadSchema: z.object({
       email: z.string().email(),
       staffName: z.string(),
@@ -46,5 +46,5 @@ export const operatorBusAssignedWorkflow = workflow(
       departureTime: z.string(),
       phone: z.string().optional(),
     }),
-  }
+  },
 );

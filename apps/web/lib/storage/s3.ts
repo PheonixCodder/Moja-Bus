@@ -65,7 +65,10 @@ export async function signGetObject(params: {
   key: string;
   expiresIn?: number;
 }): Promise<string> {
-  const command = new GetObjectCommand({ Bucket: params.bucket, Key: params.key });
+  const command = new GetObjectCommand({
+    Bucket: params.bucket,
+    Key: params.key,
+  });
   return getSignedUrl(getS3Client(), command, {
     expiresIn: params.expiresIn ?? 300,
   });

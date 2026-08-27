@@ -4,7 +4,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowRightLeft, Calendar, Check, Clock, Printer, Sparkles, UserCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRightLeft,
+  Calendar,
+  Check,
+  Clock,
+  Printer,
+  Sparkles,
+  UserCheck,
+} from "lucide-react";
 import { PassengerSeatMap } from "@/features/booking/components/passenger-seat-map";
 import { toast } from "sonner";
 import { Button, buttonVariants } from "@moja/ui/components/ui/button";
@@ -37,7 +46,10 @@ import {
 } from "@moja/ui/components/ui/select";
 import { useTRPC } from "@/trpc/client";
 import { formatDateWithWeekday } from "@/lib/format-date";
-import { formatDepartureTime, formatPriceXOF } from "@/features/search/lib/format";
+import {
+  formatDepartureTime,
+  formatPriceXOF,
+} from "@/features/search/lib/format";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
@@ -84,12 +96,10 @@ export function BookingDetailDrawer({
 
   // Query upcoming candidate trips for rebooking
   const upcomingTripsQuery = useQuery({
-    ...trpc.operator.listUpcomingScheduleTrips.queryOptions(
-      {
-        scheduleId: booking?.scheduleId ?? undefined,
-        limit: 20,
-      },
-    ),
+    ...trpc.operator.listUpcomingScheduleTrips.queryOptions({
+      scheduleId: booking?.scheduleId ?? undefined,
+      limit: 20,
+    }),
     enabled: isRebookModalOpen && !!booking?.scheduleId,
   });
 
@@ -97,7 +107,9 @@ export function BookingDetailDrawer({
     (trip) => trip.id !== booking?.tripId,
   );
 
-  const selectedTrip = candidateTrips.find((t) => t.id === selectedTargetTripId);
+  const selectedTrip = candidateTrips.find(
+    (t) => t.id === selectedTargetTripId,
+  );
 
   const cancelMutation = useMutation(
     trpc.operator.cancelBooking.mutationOptions({
@@ -273,15 +285,28 @@ export function BookingDetailDrawer({
                   </p>
                   <p className="text-sm font-semibold text-foreground leading-snug">
                     {booking.originTerminalName}
-                    {booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}{" "}
-                    →{" "}
-                    {booking.destinationTerminalName}
-                    {booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}
+                    {booking.originQuarterName
+                      ? ` · ${booking.originQuarterName}`
+                      : ""}{" "}
+                    → {booking.destinationTerminalName}
+                    {booking.destinationQuarterName
+                      ? ` · ${booking.destinationQuarterName}`
+                      : ""}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}
+                    {formatLocationLabel({
+                      cityName: booking.originCityName,
+                      municipalityName: booking.originMunicipalityName,
+                      quarterName: booking.originQuarterName,
+                      isUrban: booking.serviceType === "URBAN",
+                    })}
                     {" → "}
-                    {formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}
+                    {formatLocationLabel({
+                      cityName: booking.destinationCityName,
+                      municipalityName: booking.destinationMunicipalityName,
+                      quarterName: booking.destinationQuarterName,
+                      isUrban: booking.serviceType === "URBAN",
+                    })}
                   </p>
                 </div>
 
@@ -308,17 +333,22 @@ export function BookingDetailDrawer({
                       {t("detail.departure")}
                     </p>
                     <p className="text-sm text-foreground">
-                      {formatDateWithWeekday(booking.departureTime)} · {formatDepartureTime(booking.departureTime)}
+                      {formatDateWithWeekday(booking.departureTime)} ·{" "}
+                      {formatDepartureTime(booking.departureTime)}
                     </p>
                   </div>
                   <div className="rounded-xl border border-border bg-card px-4 py-3.5 col-span-2">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                       {t("detail.checkIn")}
                     </p>
-                    <p className={cn(
-                      "text-sm",
-                      booking.checkedInAt ? "text-foreground" : "text-amber-600 dark:text-amber-400",
-                    )}>
+                    <p
+                      className={cn(
+                        "text-sm",
+                        booking.checkedInAt
+                          ? "text-foreground"
+                          : "text-amber-600 dark:text-amber-400",
+                      )}
+                    >
                       {booking.checkedInAt
                         ? formatDepartureTime(booking.checkedInAt)
                         : t("detail.notCheckedIn")}
@@ -385,8 +415,12 @@ export function BookingDetailDrawer({
               {/* Current Ticket Summary */}
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-1.5 text-xs text-slate-700">
                 <div className="flex justify-between font-semibold text-slate-900">
-                  <span>{t("rebookModal.passenger")} {booking.passengerName}</span>
-                  <span>{t("rebookModal.seatNumber", { seat: booking.seatLabel })}</span>
+                  <span>
+                    {t("rebookModal.passenger")} {booking.passengerName}
+                  </span>
+                  <span>
+                    {t("rebookModal.seatNumber", { seat: booking.seatLabel })}
+                  </span>
                 </div>
                 <div className="text-slate-500">
                   {t("rebookModal.currentDeparture", {
@@ -419,7 +453,9 @@ export function BookingDetailDrawer({
                     }}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("rebookModal.chooseDeparture")} />
+                      <SelectValue
+                        placeholder={t("rebookModal.chooseDeparture")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {candidateTrips.map((trip) => (
@@ -430,7 +466,12 @@ export function BookingDetailDrawer({
                             month: "short",
                             hour: "2-digit",
                             minute: "2-digit",
-                          }).format(new Date(trip.departureDate))} · {t("rebookModal.openSeats", { open: trip.availableSeats, total: trip.busName })}
+                          }).format(new Date(trip.departureDate))}{" "}
+                          ·{" "}
+                          {t("rebookModal.openSeats", {
+                            open: trip.availableSeats,
+                            total: trip.busName,
+                          })}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -443,7 +484,9 @@ export function BookingDetailDrawer({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      {t("rebookModal.seatAssignment", { count: selectedTrip.availableSeats })}
+                      {t("rebookModal.seatAssignment", {
+                        count: selectedTrip.availableSeats,
+                      })}
                     </Label>
                     <button
                       type="button"
@@ -464,7 +507,10 @@ export function BookingDetailDrawer({
                       <Sparkles className="size-4 text-emerald-600 shrink-0" />
                       <span>
                         {t("rebookModal.selectedSeat", {
-                          number: selectedTrip.seats.find((s) => s.seatId === selectedSeatId)?.label ?? selectedSeatId,
+                          number:
+                            selectedTrip.seats.find(
+                              (s) => s.seatId === selectedSeatId,
+                            )?.label ?? selectedSeatId,
                         })}
                       </span>
                     </div>
@@ -483,7 +529,9 @@ export function BookingDetailDrawer({
                         selectedSeatIds={selectedSeatId ? [selectedSeatId] : []}
                         maxSelection={1}
                         onToggleSeat={(seatId) => {
-                          setSelectedSeatId(seatId === selectedSeatId ? "" : seatId);
+                          setSelectedSeatId(
+                            seatId === selectedSeatId ? "" : seatId,
+                          );
                         }}
                       />
                     </div>
@@ -558,7 +606,9 @@ export function BookingDetailDrawer({
           {booking ? (
             <form onSubmit={handleConfirmCancel} className="space-y-4 py-2">
               <div className="rounded-md border border-slate-100 bg-slate-50 p-3.5 space-y-1">
-                <div className="text-xs text-slate-500">{t("cancelModal.refundSummary")}</div>
+                <div className="text-xs text-slate-500">
+                  {t("cancelModal.refundSummary")}
+                </div>
                 <div className="text-sm font-bold text-slate-900 flex justify-between">
                   <span>{t("cancelModal.refundAmount")}</span>
                   <span>{formatPriceXOF(booking.farePaidXOF)}</span>
@@ -604,7 +654,9 @@ export function BookingDetailDrawer({
                     >
                       {t(opt.labelKey)}
                       <span className="block text-[8px] text-slate-400 font-normal mt-0.5">
-                        {opt.disabled ? t("cancelModal.unavailable") : t(opt.hintKey)}
+                        {opt.disabled
+                          ? t("cancelModal.unavailable")
+                          : t(opt.hintKey)}
                       </span>
                     </button>
                   ))}

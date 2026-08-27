@@ -42,7 +42,10 @@ export function AdminCampaignsFilterBar({
           />
         </div>
 
-        <Select value={status} onValueChange={(val) => onStatusChange(val ?? status)}>
+        <Select
+          value={status}
+          onValueChange={(val) => onStatusChange(val ?? status)}
+        >
           <SelectTrigger className="w-[150px] bg-white">
             <SelectValue placeholder={t("allStatuses")} />
           </SelectTrigger>

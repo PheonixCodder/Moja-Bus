@@ -23,9 +23,7 @@ export function AccessDenied({ reason }: AccessDeniedProps) {
             {isSuspended ? t("accountSuspended") : t("adminUnavailable")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {isSuspended
-              ? t("suspendedDesc")
-              : t("profileMissingDesc")}
+            {isSuspended ? t("suspendedDesc") : t("profileMissingDesc")}
           </p>
         </div>
         <a

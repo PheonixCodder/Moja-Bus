@@ -460,7 +460,9 @@ export class CaptureService {
           cityId: capture.resolvedCityId,
           municipalityId: capture.resolvedMunicipalityId,
           quarterId: capture.resolvedQuarterId,
-          ...(fillAddress && derivedAddress ? { addressLine1: derivedAddress } : {}),
+          ...(fillAddress && derivedAddress
+            ? { addressLine1: derivedAddress }
+            : {}),
           ...(capture.latitude != null ? { latitude: capture.latitude } : {}),
           ...(capture.longitude != null
             ? { longitude: capture.longitude }

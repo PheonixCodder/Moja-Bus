@@ -93,7 +93,10 @@ export const discountsAdminRouter = createTRPCRouter({
         },
       });
       if (!campaign) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
       return campaign;
     }),
@@ -149,7 +152,10 @@ export const discountsAdminRouter = createTRPCRouter({
         where: { id },
       });
       if (!existing || existing.ownerType !== "PLATFORM") {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
       return ctx.prisma.$transaction(async (tx) => {
         await tx.discountCampaign.update({
@@ -228,7 +234,8 @@ export const discountsAdminRouter = createTRPCRouter({
             })),
             campaignId: before.id,
             campaignName: before.name,
-            pauseReason: input.pauseReason ?? "Campaign paused by administrator",
+            pauseReason:
+              input.pauseReason ?? "Campaign paused by administrator",
           });
         }
       }
@@ -369,8 +376,6 @@ export const discountsAdminRouter = createTRPCRouter({
       return result;
     }),
 
-
-
   grantCredit: adminProcedure
     .input(issuePromoCreditSchema)
     .mutation(async ({ ctx, input }) => {
@@ -389,7 +394,11 @@ export const discountsAdminRouter = createTRPCRouter({
         action: "MARKETING_CREDIT_GRANT",
         description: `Granted ${input.amountXOF} XOF promo credits (${input.source}) to user ${input.userId}`,
         targetUserId: input.userId,
-        metadata: { creditLotId: lot.id, amountXOF: input.amountXOF, source: input.source },
+        metadata: {
+          creditLotId: lot.id,
+          amountXOF: input.amountXOF,
+          source: input.source,
+        },
       });
       return lot;
     }),
@@ -412,7 +421,11 @@ export const discountsAdminRouter = createTRPCRouter({
         action: "MARKETING_CREDIT_GRANT",
         description: `Granted ${input.amountXOF} XOF promo credits (${input.source}) to user ${input.userId}`,
         targetUserId: input.userId,
-        metadata: { creditLotId: lot.id, amountXOF: input.amountXOF, source: input.source },
+        metadata: {
+          creditLotId: lot.id,
+          amountXOF: input.amountXOF,
+          source: input.source,
+        },
       });
       return lot;
     }),
@@ -427,7 +440,9 @@ export const discountsAdminRouter = createTRPCRouter({
   getReferralProgram: adminProcedure.query(async ({ ctx }) => {
     requireAdminPermission(ctx, "marketing:referrals:write");
     return (
-      (await ctx.prisma.referralProgram.findUnique({ where: { id: "default" } })) ??
+      (await ctx.prisma.referralProgram.findUnique({
+        where: { id: "default" },
+      })) ??
       (await ctx.prisma.referralProgram.create({
         data: { id: "default", isActive: false },
       }))
@@ -565,7 +580,10 @@ export const discountsAdminRouter = createTRPCRouter({
         where: { id: input.id },
       });
       if (!existing) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Abuse event not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Abuse event not found",
+        });
       }
       const prev =
         existing.metadata && typeof existing.metadata === "object"
@@ -763,7 +781,10 @@ export const discountsAdminRouter = createTRPCRouter({
         },
       });
       if (!campaign) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        });
       }
 
       const [agg, byStatus, topRoutes] = await Promise.all([

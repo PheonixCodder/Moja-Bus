@@ -366,7 +366,10 @@ describe("CaptureService.submit", () => {
     });
 
     assert.equal(result.resolvedAddress, "12 Rue du Commerce, Adjamé");
-    assert.equal(updated.capture?.reverseGeocodedAddress, "12 Rue du Commerce, Adjamé");
+    assert.equal(
+      updated.capture?.reverseGeocodedAddress,
+      "12 Rue du Commerce, Adjamé",
+    );
   });
 
   it("stores null address and succeeds when reverse geocoding fails", async () => {

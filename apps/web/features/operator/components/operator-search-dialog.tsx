@@ -47,17 +47,72 @@ interface EntityResult {
 }
 
 const operatorSearchItems: SearchItem[] = [
-  { id: "dashboard", title: "Dashboard Overview", url: "/dashboard/operator", icon: Building },
-  { id: "bookings", title: "Bookings & Passengers", url: "/dashboard/operator/bookings", icon: CalendarDays },
-  { id: "fleet", title: "Fleet & Vehicles", url: "/dashboard/operator/fleet", icon: Bus },
-  { id: "routes", title: "Routes & Destinations", url: "/dashboard/operator/routes", icon: Map },
-  { id: "schedules", title: "Schedules & Automation", url: "/dashboard/operator/schedules", icon: Clock },
-  { id: "trips", title: "Active Trips", url: "/dashboard/operator/trips", icon: Route },
-  { id: "terminals", title: "Terminals & Locations", url: "/dashboard/operator/terminals", icon: Building },
-  { id: "revenue", title: "Revenue & Sales", url: "/dashboard/operator/revenue", icon: Banknote },
-  { id: "withdraw", title: "Withdrawals & Payouts", url: "/dashboard/operator/withdraw", icon: Wallet },
-  { id: "staff", title: "Staff & Team", url: "/dashboard/operator/staff", icon: Users },
-  { id: "settings", title: "Company Settings", url: "/dashboard/operator/settings", icon: Settings },
+  {
+    id: "dashboard",
+    title: "Dashboard Overview",
+    url: "/dashboard/operator",
+    icon: Building,
+  },
+  {
+    id: "bookings",
+    title: "Bookings & Passengers",
+    url: "/dashboard/operator/bookings",
+    icon: CalendarDays,
+  },
+  {
+    id: "fleet",
+    title: "Fleet & Vehicles",
+    url: "/dashboard/operator/fleet",
+    icon: Bus,
+  },
+  {
+    id: "routes",
+    title: "Routes & Destinations",
+    url: "/dashboard/operator/routes",
+    icon: Map,
+  },
+  {
+    id: "schedules",
+    title: "Schedules & Automation",
+    url: "/dashboard/operator/schedules",
+    icon: Clock,
+  },
+  {
+    id: "trips",
+    title: "Active Trips",
+    url: "/dashboard/operator/trips",
+    icon: Route,
+  },
+  {
+    id: "terminals",
+    title: "Terminals & Locations",
+    url: "/dashboard/operator/terminals",
+    icon: Building,
+  },
+  {
+    id: "revenue",
+    title: "Revenue & Sales",
+    url: "/dashboard/operator/revenue",
+    icon: Banknote,
+  },
+  {
+    id: "withdraw",
+    title: "Withdrawals & Payouts",
+    url: "/dashboard/operator/withdraw",
+    icon: Wallet,
+  },
+  {
+    id: "staff",
+    title: "Staff & Team",
+    url: "/dashboard/operator/staff",
+    icon: Users,
+  },
+  {
+    id: "settings",
+    title: "Company Settings",
+    url: "/dashboard/operator/settings",
+    icon: Settings,
+  },
 ];
 
 function useDebounced<T>(value: T, delay: number): T {
@@ -115,7 +170,9 @@ export function OperatorSearchDialog() {
   const tripResults: EntityResult[] = (results?.trips ?? []).map((t) => ({
     id: t.id,
     title: `${t.schedule?.route?.originTerminal?.cityRelation?.name ?? ""} → ${t.schedule?.route?.destTerminal?.cityRelation?.name ?? ""}`,
-    subtitle: t.departureDate ? new Date(t.departureDate).toLocaleDateString() : undefined,
+    subtitle: t.departureDate
+      ? new Date(t.departureDate).toLocaleDateString()
+      : undefined,
     url: `/dashboard/operator/trips?manifest=${t.id}`,
     icon: Route,
   }));
@@ -123,7 +180,8 @@ export function OperatorSearchDialog() {
   const staffResults: EntityResult[] = (results?.staff ?? []).map((s) => ({
     id: s.id,
     title: s.user?.fullName ?? s.user?.email ?? "Staff",
-    subtitle: [s.jobTitle, s.user?.email].filter(Boolean).join(" · ") || undefined,
+    subtitle:
+      [s.jobTitle, s.user?.email].filter(Boolean).join(" · ") || undefined,
     url: "/dashboard/operator/staff",
     icon: Users,
   }));

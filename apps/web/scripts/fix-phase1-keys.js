@@ -40,8 +40,10 @@ updateJsonFile(adminEnPath, (en) => {
 
   // adminSettingsView
   ad.adminSettingsView = ad.adminSettingsView || {};
-  ad.adminSettingsView.platformSettingsUpdated = "Platform settings updated successfully.";
-  ad.adminSettingsView.failedToUpdateSettings = "Failed to update platform settings.";
+  ad.adminSettingsView.platformSettingsUpdated =
+    "Platform settings updated successfully.";
+  ad.adminSettingsView.failedToUpdateSettings =
+    "Failed to update platform settings.";
 
   // adminTagsView
   ad.adminTagsView = ad.adminTagsView || {};
@@ -58,11 +60,13 @@ updateJsonFile(adminEnPath, (en) => {
   ad.blogEditView.selectPublicationTime = "Select publication time";
   ad.blogEditView.featureFlags = "Feature flags";
   ad.blogEditView.image = "Cover image";
-  ad.blogEditView.overrideTitleInSearchResults = "Override title in search results";
+  ad.blogEditView.overrideTitleInSearchResults =
+    "Override title in search results";
 
   // newBlogPostDialog
   ad.newBlogPostDialog = ad.newBlogPostDialog || {};
-  ad.newBlogPostDialog["e.g.5TipsForSafeIntercityTravel"] = "e.g. 5 Tips for Safe Intercity Travel";
+  ad.newBlogPostDialog["e.g.5TipsForSafeIntercityTravel"] =
+    "e.g. 5 Tips for Safe Intercity Travel";
 });
 
 updateJsonFile(adminFrPath, (fr) => {
@@ -92,8 +96,10 @@ updateJsonFile(adminFrPath, (fr) => {
 
   // adminSettingsView
   ad.adminSettingsView = ad.adminSettingsView || {};
-  ad.adminSettingsView.platformSettingsUpdated = "Paramètres de la plateforme mis à jour avec succès.";
-  ad.adminSettingsView.failedToUpdateSettings = "Échec de la mise à jour des paramètres.";
+  ad.adminSettingsView.platformSettingsUpdated =
+    "Paramètres de la plateforme mis à jour avec succès.";
+  ad.adminSettingsView.failedToUpdateSettings =
+    "Échec de la mise à jour des paramètres.";
 
   // adminTagsView
   ad.adminTagsView = ad.adminTagsView || {};
@@ -110,11 +116,13 @@ updateJsonFile(adminFrPath, (fr) => {
   ad.blogEditView.selectPublicationTime = "Sélectionner l'heure de publication";
   ad.blogEditView.featureFlags = "Options de fonctionnalité";
   ad.blogEditView.image = "Image de couverture";
-  ad.blogEditView.overrideTitleInSearchResults = "Remplacer le titre dans les résultats de recherche";
+  ad.blogEditView.overrideTitleInSearchResults =
+    "Remplacer le titre dans les résultats de recherche";
 
   // newBlogPostDialog
   ad.newBlogPostDialog = ad.newBlogPostDialog || {};
-  ad.newBlogPostDialog["e.g.5TipsForSafeIntercityTravel"] = "ex. 5 conseils pour voyager en toute sécurité";
+  ad.newBlogPostDialog["e.g.5TipsForSafeIntercityTravel"] =
+    "ex. 5 conseils pour voyager en toute sécurité";
 });
 
 // ─── 2. Invitation Feature Updates ─────────────────────────────────────────
@@ -145,10 +153,13 @@ const bookingFrPath = path.join(FEATURES_DIR, "booking/messages/fr.json");
 
 updateJsonFile(bookingEnPath, (en) => {
   en.booking = en.booking || {};
-  en.booking.selectSavedPassenger = "Select a saved passenger or enter details below.";
+  en.booking.selectSavedPassenger =
+    "Select a saved passenger or enter details below.";
   en.booking.enterPassengerName = "Please enter passenger name for seat {seat}";
-  en.booking.enterPassengerPhone = "Please enter passenger phone number for seat {seat}";
-  en.booking.seatConflictToast = "Some selected seats are no longer available. Please choose other seats.";
+  en.booking.enterPassengerPhone =
+    "Please enter passenger phone number for seat {seat}";
+  en.booking.seatConflictToast =
+    "Some selected seats are no longer available. Please choose other seats.";
   en.booking.bookingFailed = "Failed to create booking. Please try again.";
   en.booking.bookingSuccess = "Booking confirmed successfully!";
   en.booking.paymentCancelled = "Payment was cancelled.";
@@ -158,14 +169,19 @@ updateJsonFile(bookingEnPath, (en) => {
 
 updateJsonFile(bookingFrPath, (fr) => {
   fr.booking = fr.booking || {};
-  fr.booking.selectSavedPassenger = "Sélectionnez un passager enregistré ou renseignez les détails ci-dessous.";
-  fr.booking.enterPassengerName = "Veuillez saisir le nom du passager pour le siège {seat}";
-  fr.booking.enterPassengerPhone = "Veuillez saisir le numéro de téléphone pour le siège {seat}";
-  fr.booking.seatConflictToast = "Certains sièges sélectionnés ne sont plus disponibles. Veuillez en choisir d'autres.";
+  fr.booking.selectSavedPassenger =
+    "Sélectionnez un passager enregistré ou renseignez les détails ci-dessous.";
+  fr.booking.enterPassengerName =
+    "Veuillez saisir le nom du passager pour le siège {seat}";
+  fr.booking.enterPassengerPhone =
+    "Veuillez saisir le numéro de téléphone pour le siège {seat}";
+  fr.booking.seatConflictToast =
+    "Certains sièges sélectionnés ne sont plus disponibles. Veuillez en choisir d'autres.";
   fr.booking.bookingFailed = "Échec de la réservation. Veuillez réessayer.";
   fr.booking.bookingSuccess = "Réservation confirmée avec succès !";
   fr.booking.paymentCancelled = "Le paiement a été annulé.";
-  fr.booking.paymentFailed = "Échec du paiement. Veuillez vérifier et réessayer.";
+  fr.booking.paymentFailed =
+    "Échec du paiement. Veuillez vérifier et réessayer.";
   fr.printTicket = fr.printTicket || "Imprimer le billet";
 });
 
@@ -187,7 +203,8 @@ updateJsonFile(opEnPath, (en) => {
 
   // staff
   if (od.staff && od.staff.roleSheet) {
-    od.staff.roleSheet.resetNotice = "Resetting permissions will restore default settings for this role.";
+    od.staff.roleSheet.resetNotice =
+      "Resetting permissions will restore default settings for this role.";
   }
 
   // error
@@ -259,13 +276,15 @@ updateJsonFile(opFrPath, (fr) => {
 
   // staff
   if (od.staff && od.staff.roleSheet) {
-    od.staff.roleSheet.resetNotice = "La réinitialisation des permissions restaurera les paramètres par défaut pour ce rôle.";
+    od.staff.roleSheet.resetNotice =
+      "La réinitialisation des permissions restaurera les paramètres par défaut pour ce rôle.";
   }
 
   // error
   od.error = od.error || {
     title: "Une erreur est survenue",
-    message: "Une erreur inattendue est survenue lors du chargement des données de l'opérateur.",
+    message:
+      "Une erreur inattendue est survenue lors du chargement des données de l'opérateur.",
     retry: "Réessayer",
   };
 

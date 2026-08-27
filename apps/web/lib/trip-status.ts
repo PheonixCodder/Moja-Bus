@@ -19,9 +19,7 @@ export function canTransitionTripStatus(
 
 export function assertTripTransition(from: TripStatus, to: TripStatus): void {
   if (!canTransitionTripStatus(from, to)) {
-    throw new Error(
-      `Invalid trip status transition from ${from} to ${to}.`,
-    );
+    throw new Error(`Invalid trip status transition from ${from} to ${to}.`);
   }
 }
 

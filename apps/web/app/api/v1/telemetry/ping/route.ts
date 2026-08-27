@@ -13,7 +13,10 @@ import {
   type PreviousPoint,
 } from "@/server/telemetry-prev-point";
 import { redisPub } from "@/server/telemetry-redis";
-import { clientIpFromHeaders, telemetryThrottle } from "@/lib/telemetry-throttle";
+import {
+  clientIpFromHeaders,
+  telemetryThrottle,
+} from "@/lib/telemetry-throttle";
 import { validateTelemetryPing } from "@/server/telemetry-validator";
 
 const batchPingSchema = z.object({
@@ -36,7 +39,9 @@ export async function POST(req: NextRequest) {
         { success: false, error: "Telemetry throttled" },
         {
           status: 429,
-          headers: { "Retry-After": String(Math.ceil(ipGate.retryAfterMs / 1000)) },
+          headers: {
+            "Retry-After": String(Math.ceil(ipGate.retryAfterMs / 1000)),
+          },
         },
       );
     }
@@ -203,14 +208,17 @@ export async function POST(req: NextRequest) {
             recordedAt: ping.recordedAt,
           },
         });
-        // Phase 11 — HTTP ingest publishes the trip channel only. The
-        // operator fleet channel is intentionally WS-path-scoped: attributing
-        // a company here would require a per-ping DB lookup on the hot path
-        // for a channel with zero subscribers. Dispatch tokens minted since
-        // Phase 11 already carry `c` for when that trade-off is revisited.
+        // Phase 6 (D7 / Issue A) — publish to trip room AND operator fleet room
+        // if the verified dispatch token carries company attribution `c`.
         redisPub
           .publish(`trip:${ping.tripId}:telemetry`, payload)
           .catch(() => {});
+
+        if (claims?.c) {
+          redisPub
+            .publish(`operator:${claims.c}:fleet`, payload)
+            .catch(() => {});
+        }
       }
     }
 

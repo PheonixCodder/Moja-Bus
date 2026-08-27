@@ -25,7 +25,5 @@ export function buildSeatGrid<T extends { row: number; col: number }>(
 }
 
 export function getColumnHeaders(columns: number): string[] {
-  return Array.from({ length: columns }, (_, i) =>
-    String.fromCharCode(65 + i),
-  );
+  return Array.from({ length: columns }, (_, i) => String.fromCharCode(65 + i));
 }

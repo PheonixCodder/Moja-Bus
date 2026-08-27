@@ -80,15 +80,15 @@ export function DepartureTimesEditor({
 
   const normalized = useMemo(() => normalizeTimes(times), [times]);
 
-   function addDraft() {
-     const { times, added } = addDepartureTime(normalized, draft);
-     if (!added) {
-       toast.error(t("wizard.duplicateTime", { time: draft }));
-       return;
-     }
-     onChange(times);
-     setDraft("");
-   }
+  function addDraft() {
+    const { times, added } = addDepartureTime(normalized, draft);
+    if (!added) {
+      toast.error(t("wizard.duplicateTime", { time: draft }));
+      return;
+    }
+    onChange(times);
+    setDraft("");
+  }
 
   function removeTime(hhmm: string) {
     onChange(normalized.filter((x) => x !== hhmm));
@@ -113,10 +113,14 @@ export function DepartureTimesEditor({
 
   return (
     <div className="space-y-3">
-      <Label className="text-xs font-semibold">{t("wizard.departureTimes")}</Label>
+      <Label className="text-xs font-semibold">
+        {t("wizard.departureTimes")}
+      </Label>
 
       {normalized.length === 0 ? (
-        <p className="text-xs text-destructive">{t("wizard.noDepartureTimes")}</p>
+        <p className="text-xs text-destructive">
+          {t("wizard.noDepartureTimes")}
+        </p>
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {normalized.map((hhmm) => (

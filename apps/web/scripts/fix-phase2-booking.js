@@ -25,7 +25,8 @@ en.booking.checkout = Object.assign(en.booking.checkout || {}, {
   applyToAll: "Apply to all:",
   choosePassenger: "Choose passenger",
   signInToUseSaved: "Sign in",
-  signInToUseSavedSuffix: "to use saved passengers, or enter details manually below.",
+  signInToUseSavedSuffix:
+    "to use saved passengers, or enter details manually below.",
   seat: "Seat",
   passenger: "Passenger",
   enterManually: "Enter manually",
@@ -35,16 +36,20 @@ en.booking.checkout = Object.assign(en.booking.checkout || {}, {
   manageSavedPassengersIn: "Manage saved passengers in",
   yourDashboard: "your dashboard",
   promoCoveredTitle: "100% Covered by Promo Credits",
-  promoCoveredDesc: "Your promotional balance fully covers the ticket fare. No cash, card, or wallet debit is required.",
+  promoCoveredDesc:
+    "Your promotional balance fully covers the ticket fare. No cash, card, or wallet debit is required.",
   paymentOptions: "Payment Options",
-  paymentOptionsDesc: "Choose a checkout method below to complete seat registration.",
+  paymentOptionsDesc:
+    "Choose a checkout method below to complete seat registration.",
   cardMobileMoney: "Card / Mobile Money",
   payViaPaystack: "Pay via Paystack checkout",
   mojaWalletBalance: "Moja Wallet Balance",
   walletBenefitTitle: "Moja Wallet Checkout Benefit",
-  walletBenefitDesc: "Service convenience fees are fully waived (0 XOF) when paying with your internal wallet balance.",
+  walletBenefitDesc:
+    "Service convenience fees are fully waived (0 XOF) when paying with your internal wallet balance.",
   walletTip: "Tip: Switch to Wallet Balance to waive the convenience fee!",
-  insufficientBalance: "Your wallet balance is insufficient for this booking (need {needed}, have {have}).",
+  insufficientBalance:
+    "Your wallet balance is insufficient for this booking (need {needed}, have {have}).",
   topUpWallet: "Top-Up Wallet →",
   backToSeats: "Back to seats",
   processing: "Processing...",
@@ -59,7 +64,8 @@ fr.booking.checkout = Object.assign(fr.booking.checkout || {}, {
   applyToAll: "Appliquer à tous :",
   choosePassenger: "Choisir un passager",
   signInToUseSaved: "Connectez-vous",
-  signInToUseSavedSuffix: "pour utiliser vos passagers enregistrés, ou saisissez les informations ci-dessous.",
+  signInToUseSavedSuffix:
+    "pour utiliser vos passagers enregistrés, ou saisissez les informations ci-dessous.",
   seat: "Siège",
   passenger: "Passager",
   enterManually: "Saisir manuellement",
@@ -69,16 +75,21 @@ fr.booking.checkout = Object.assign(fr.booking.checkout || {}, {
   manageSavedPassengersIn: "Gérez vos passagers enregistrés dans",
   yourDashboard: "votre tableau de bord",
   promoCoveredTitle: "100% Couvert par les crédits promo",
-  promoCoveredDesc: "Votre solde promotionnel couvre l'intégralité du billet. Aucun débit carte ou portefeuille n'est requis.",
+  promoCoveredDesc:
+    "Votre solde promotionnel couvre l'intégralité du billet. Aucun débit carte ou portefeuille n'est requis.",
   paymentOptions: "Options de paiement",
-  paymentOptionsDesc: "Choisissez un mode de paiement ci-dessous pour finaliser votre réservation.",
+  paymentOptionsDesc:
+    "Choisissez un mode de paiement ci-dessous pour finaliser votre réservation.",
   cardMobileMoney: "Carte / Mobile Money",
   payViaPaystack: "Payer via le paiement Paystack",
   mojaWalletBalance: "Solde du portefeuille Moja",
   walletBenefitTitle: "Avantage portefeuille Moja",
-  walletBenefitDesc: "Les frais de service sont totalement offerts (0 XOF) lors du paiement avec votre portefeuille.",
-  walletTip: "Astuce : Payez avec votre portefeuille pour économiser les frais de service !",
-  insufficientBalance: "Le solde de votre portefeuille est insuffisant (besoin de {needed}, disponible : {have}).",
+  walletBenefitDesc:
+    "Les frais de service sont totalement offerts (0 XOF) lors du paiement avec votre portefeuille.",
+  walletTip:
+    "Astuce : Payez avec votre portefeuille pour économiser les frais de service !",
+  insufficientBalance:
+    "Le solde de votre portefeuille est insuffisant (besoin de {needed}, disponible : {have}).",
   topUpWallet: "Recharger le portefeuille →",
   backToSeats: "Retour aux sièges",
   processing: "Traitement en cours...",

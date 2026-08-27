@@ -14,7 +14,9 @@ describe("generateCouponSuffix", () => {
   });
 
   it("varies across calls", () => {
-    const a = new Set(Array.from({ length: 20 }, () => generateCouponSuffix(8)));
+    const a = new Set(
+      Array.from({ length: 20 }, () => generateCouponSuffix(8)),
+    );
     assert.ok(a.size > 10);
   });
 });

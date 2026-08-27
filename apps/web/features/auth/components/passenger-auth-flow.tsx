@@ -13,7 +13,13 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
-import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@moja/ui/components/ui/field";
+import {
+  Field,
+  FieldContent,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@moja/ui/components/ui/field";
 import { Switch } from "@moja/ui/components/ui/switch";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { PhoneInput } from "@moja/ui/components/ui/phone-input";
@@ -44,12 +50,12 @@ const slideVariants = {
 };
 
 export function PassengerAuthFlow({
-                                    userType = "passenger",
-                                    initialStep = "input",
-                                    initialUser,
-                                    callbackUrl,
-                                    detectedCountry,
-                                  }: {
+  userType = "passenger",
+  initialStep = "input",
+  initialUser,
+  callbackUrl,
+  detectedCountry,
+}: {
   userType?: "passenger" | "operator" | undefined;
   initialStep?: AuthStep | undefined;
   initialUser?: { email?: string; phone?: string } | undefined;
@@ -57,7 +63,11 @@ export function PassengerAuthFlow({
   detectedCountry?: string | undefined;
 }) {
   const t = useTranslations("auth");
-  const { isPending: authPending, sendPassengerOtp, verifyPassengerOtp } = useAuth();
+  const {
+    isPending: authPending,
+    sendPassengerOtp,
+    verifyPassengerOtp,
+  } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -67,7 +77,11 @@ export function PassengerAuthFlow({
     if (!callbackUrl) return fallback;
     // Inline safe check to avoid circular import issues in client bundle
     const trimmed = callbackUrl.trim();
-    if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("://")) {
+    if (
+      !trimmed.startsWith("/") ||
+      trimmed.startsWith("//") ||
+      trimmed.includes("://")
+    ) {
       return fallback;
     }
     return trimmed;
@@ -76,10 +90,10 @@ export function PassengerAuthFlow({
   const [step, setStep] = useState<AuthStep>(initialStep);
   const [direction, setDirection] = useState(1);
   const [identifier, setIdentifier] = useState(
-      initialUser ? (initialUser.email || initialUser.phone || "") : ""
+    initialUser ? initialUser.email || initialUser.phone || "" : "",
   );
   const [method, setMethod] = useState<"phone" | "email">(
-      initialUser && initialUser.phone ? "phone" : "email"
+    initialUser && initialUser.phone ? "phone" : "email",
   );
   const [otp, setOtp] = useState("");
   const [identifierError, setIdentifierError] = useState("");
@@ -87,8 +101,12 @@ export function PassengerAuthFlow({
 
   // Passenger Profile setup states (for new travelers)
   const [fullName, setFullName] = useState("");
-  const [preferredSeat, setPreferredSeat] = useState<"WINDOW" | "AISLE" | "NONE">("NONE");
-  const [preferredClass, setPreferredClass] = useState<"ECONOMY" | "STANDARD" | "VIP">("ECONOMY");
+  const [preferredSeat, setPreferredSeat] = useState<
+    "WINDOW" | "AISLE" | "NONE"
+  >("NONE");
+  const [preferredClass, setPreferredClass] = useState<
+    "ECONOMY" | "STANDARD" | "VIP"
+  >("ECONOMY");
   const [marketingOptIn, setMarketingOptIn] = useState(false);
 
   // Operator Company details states (for new operators)
@@ -102,25 +120,25 @@ export function PassengerAuthFlow({
 
   // TRPC Mutations
   const updatePreferencesMutation = useMutation(
-      trpc.passenger.updatePreferences.mutationOptions({
-        onSuccess: () => {
-          toast.success(t("passenger.toastProfileComplete"));
-          router.push(resolvePostAuthPath("/dashboard"));
-          router.refresh();
-        },
-        onError: (err) => {
-          toast.error(err.message || t("passenger.toastProfileFailed"));
-          setLocalPending(false);
-        },
-      })
+    trpc.passenger.updatePreferences.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("passenger.toastProfileComplete"));
+        router.push(resolvePostAuthPath("/dashboard"));
+        router.refresh();
+      },
+      onError: (err) => {
+        toast.error(err.message || t("passenger.toastProfileFailed"));
+        setLocalPending(false);
+      },
+    }),
   );
 
   const checkAccountStatusMutation = useMutation(
-      trpc.operator.checkAccountStatus.mutationOptions()
+    trpc.operator.checkAccountStatus.mutationOptions(),
   );
 
   const initSignupMutation = useMutation(
-      trpc.operator.initSignup.mutationOptions()
+    trpc.operator.initSignup.mutationOptions(),
   );
 
   const detectMethod = (input: string): "phone" | "email" => {
@@ -206,7 +224,10 @@ export function PassengerAuthFlow({
 
       setIdentifierError("");
       setSentIdentifier(finalIdentifier);
-      const { success } = await sendPassengerOtp(finalIdentifier, detectedMethod);
+      const { success } = await sendPassengerOtp(
+        finalIdentifier,
+        detectedMethod,
+      );
       if (success) {
         setDirection(1);
         setStep("otp");
@@ -218,8 +239,10 @@ export function PassengerAuthFlow({
     e.preventDefault();
     if (!companyName.trim() || !ownerName.trim()) return;
 
-    const emailVal = method === "email" ? identifier.trim() : operatorCollectedEmail.trim();
-    const phoneVal = method === "phone" ? identifier.trim() : operatorCollectedPhone.trim();
+    const emailVal =
+      method === "email" ? identifier.trim() : operatorCollectedEmail.trim();
+    const phoneVal =
+      method === "phone" ? identifier.trim() : operatorCollectedPhone.trim();
 
     if (!emailVal) {
       toast.error(t("operator.toastEmailRequired"));
@@ -269,7 +292,11 @@ export function PassengerAuthFlow({
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     let finalIdentifier = identifier.trim();
-    if (method === "phone" && !finalIdentifier.startsWith("+") && finalIdentifier.length === 10) {
+    if (
+      method === "phone" &&
+      !finalIdentifier.startsWith("+") &&
+      finalIdentifier.length === 10
+    ) {
       finalIdentifier = `+225${finalIdentifier}`;
     }
 
@@ -290,7 +317,11 @@ export function PassengerAuthFlow({
         }
         if (res.error) throw res.error;
 
-        toast.success(t("operator.toastWelcome", { appName: process.env["NEXT_PUBLIC_APP_NAME"] || "Moja Ride" }));
+        toast.success(
+          t("operator.toastWelcome", {
+            appName: process.env["NEXT_PUBLIC_APP_NAME"] || "Moja Ride",
+          }),
+        );
 
         // Route by onboarding status, not by account age — a COMPLETED operator
         // goes to the dashboard, everyone else continues onboarding.
@@ -372,12 +403,12 @@ export function PassengerAuthFlow({
   }
 
   const isPending =
-      authPending ||
-      localPending ||
-      otpVerifying ||
-      updatePreferencesMutation.isPending ||
-      checkAccountStatusMutation.isPending ||
-      initSignupMutation.isPending;
+    authPending ||
+    localPending ||
+    otpVerifying ||
+    updatePreferencesMutation.isPending ||
+    checkAccountStatusMutation.isPending ||
+    initSignupMutation.isPending;
 
   // Operator details step: the Continue button stays disabled until Company
   // Name, Full Name, and the collected Phone/Email (field depends on the
@@ -385,319 +416,431 @@ export function PassengerAuthFlow({
   // This guarantees initSignup always receives a real email + phone, so no
   // placeholder/guest email can ever be derived from a phone-only entry.
   const detailsValid =
-      Boolean(companyName.trim()) &&
-      Boolean(ownerName.trim()) &&
-      (method === "email"
-          ? Boolean(operatorCollectedPhone.trim())
-          : Boolean(operatorCollectedEmail.trim())) &&
-      acceptTerms;
+    Boolean(companyName.trim()) &&
+    Boolean(ownerName.trim()) &&
+    (method === "email"
+      ? Boolean(operatorCollectedPhone.trim())
+      : Boolean(operatorCollectedEmail.trim())) &&
+    acceptTerms;
 
   return (
-      <div className="w-full overflow-hidden max-w-[500px] mx-auto px-4 sm:px-6">
-        <motion.div
-            layout
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="w-full bg-transparent border-none shadow-none"
-        >
-          <AnimatePresence mode="wait" custom={direction} initial={false}>
-            <motion.div
-                key={step}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.2 }}
-                className="w-full py-2 flex flex-col gap-4"
-            >
-              {/* Header section based on step */}
-              <div className="space-y-3 text-center mb-4">
-                <h1 className="font-medium text-4xl tracking-tight text-text-primary">
-                  {step === "input" && (userType === "passenger" ? t("passenger.inputHeading") : t("operator.inputHeading"))}
-                  {step === "details" && t("operator.detailsHeading")}
-                  {step === "otp" && (userType === "passenger" ? t("passenger.otpHeading") : t("operator.otpHeading"))}
-                  {step === "profile" && t("passenger.profileHeading")}
-                </h1>
-                <p className="text-muted-foreground text-base">
-                  {step === "input" && (userType === "passenger" ? t("passenger.inputDescription") : t("operator.inputDescription"))}
-                  {step === "details" && t("operator.detailsDescription")}
-                  {step === "otp" && t(userType === "passenger" ? "passenger.otpDescription" : "operator.otpDescription", { identifier })}
-                  {step === "profile" && t("passenger.profileDescription")}
-                </p>
-              </div>
+    <div className="w-full overflow-hidden max-w-[500px] mx-auto px-4 sm:px-6">
+      <motion.div
+        layout
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="w-full bg-transparent border-none shadow-none"
+      >
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.2 }}
+            className="w-full py-2 flex flex-col gap-4"
+          >
+            {/* Header section based on step */}
+            <div className="space-y-3 text-center mb-4">
+              <h1 className="font-medium text-4xl tracking-tight text-text-primary">
+                {step === "input" &&
+                  (userType === "passenger"
+                    ? t("passenger.inputHeading")
+                    : t("operator.inputHeading"))}
+                {step === "details" && t("operator.detailsHeading")}
+                {step === "otp" &&
+                  (userType === "passenger"
+                    ? t("passenger.otpHeading")
+                    : t("operator.otpHeading"))}
+                {step === "profile" && t("passenger.profileHeading")}
+              </h1>
+              <p className="text-muted-foreground text-base">
+                {step === "input" &&
+                  (userType === "passenger"
+                    ? t("passenger.inputDescription")
+                    : t("operator.inputDescription"))}
+                {step === "details" && t("operator.detailsDescription")}
+                {step === "otp" &&
+                  t(
+                    userType === "passenger"
+                      ? "passenger.otpDescription"
+                      : "operator.otpDescription",
+                    { identifier },
+                  )}
+                {step === "profile" && t("passenger.profileDescription")}
+              </p>
+            </div>
 
-              {/* Input Step Form */}
-              {step === "input" && (
-                  <form onSubmit={handleSendCode} className="flex flex-col gap-4">
-                    <FieldGroup className="gap-4">
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="identifier">
-                          {userType === "passenger" ? t("passenger.inputLabel") : t("operator.inputLabel")}
-                        </FieldLabel>
-                        <Input
-                            id="identifier"
-                            type="text"
-                            value={identifier}
-                            onChange={(e) => {
-                              setIdentifier(e.target.value);
-                              if (identifierError) setIdentifierError("");
-                            }}
-                            placeholder={userType === "passenger" ? t("passenger.inputPlaceholder") : t("operator.inputPlaceholder")}
-                            required
-                            disabled={isPending}
-                            autoFocus
-                            className="h-11 px-4 w-full box-border"
-                            style={{ boxSizing: "border-box" }}
-                        />
-                        {identifierError ? (
-                            <FieldError>{identifierError}</FieldError>
-                        ) : null}
-                      </Field>
-                    </FieldGroup>
-                    <Button type="submit" className="w-full" disabled={isPending || !identifier.trim()}>
-                      {isPending ? t(`${userType}.inputChecking`) : t(`${userType}.inputContinue`)}
-                    </Button>
-                  </form>
-              )}
+            {/* Input Step Form */}
+            {step === "input" && (
+              <form onSubmit={handleSendCode} className="flex flex-col gap-4">
+                <FieldGroup className="gap-4">
+                  <Field className="gap-1.5">
+                    <FieldLabel htmlFor="identifier">
+                      {userType === "passenger"
+                        ? t("passenger.inputLabel")
+                        : t("operator.inputLabel")}
+                    </FieldLabel>
+                    <Input
+                      id="identifier"
+                      type="text"
+                      value={identifier}
+                      onChange={(e) => {
+                        setIdentifier(e.target.value);
+                        if (identifierError) setIdentifierError("");
+                      }}
+                      placeholder={
+                        userType === "passenger"
+                          ? t("passenger.inputPlaceholder")
+                          : t("operator.inputPlaceholder")
+                      }
+                      required
+                      disabled={isPending}
+                      autoFocus
+                      className="h-11 px-4 w-full box-border"
+                      style={{ boxSizing: "border-box" }}
+                    />
+                    {identifierError ? (
+                      <FieldError>{identifierError}</FieldError>
+                    ) : null}
+                  </Field>
+                </FieldGroup>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isPending || !identifier.trim()}
+                >
+                  {isPending
+                    ? t(`${userType}.inputChecking`)
+                    : t(`${userType}.inputContinue`)}
+                </Button>
+              </form>
+            )}
 
-              {/* Company Details Step Form (Operators Only) */}
-              {step === "details" && (
-                  <form onSubmit={handleOperatorDetailsSubmit} className="flex flex-col gap-4">
-                    <FieldGroup className="gap-4">
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="companyName">{t("operator.detailsCompanyLabel")}</FieldLabel>
-                        <Input
-                            id="companyName"
-                            value={companyName}
-                            onChange={(e) => setCompanyName(e.target.value)}
-                            placeholder={t("operator.detailsCompanyPlaceholder")}
-                            required
-                            disabled={isPending}
-                            autoFocus
-                            className="h-11 px-4 w-full box-border"
-                            style={{ boxSizing: "border-box" }}
-                        />
-                      </Field>
+            {/* Company Details Step Form (Operators Only) */}
+            {step === "details" && (
+              <form
+                onSubmit={handleOperatorDetailsSubmit}
+                className="flex flex-col gap-4"
+              >
+                <FieldGroup className="gap-4">
+                  <Field className="gap-1.5">
+                    <FieldLabel htmlFor="companyName">
+                      {t("operator.detailsCompanyLabel")}
+                    </FieldLabel>
+                    <Input
+                      id="companyName"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder={t("operator.detailsCompanyPlaceholder")}
+                      required
+                      disabled={isPending}
+                      autoFocus
+                      className="h-11 px-4 w-full box-border"
+                      style={{ boxSizing: "border-box" }}
+                    />
+                  </Field>
 
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="ownerName">{t("operator.detailsOwnerLabel")}</FieldLabel>
-                        <Input
-                            id="ownerName"
-                            value={ownerName}
-                            onChange={(e) => setOwnerName(e.target.value)}
-                            placeholder={t("operator.detailsOwnerPlaceholder")}
-                            required
-                            disabled={isPending}
-                            className="h-11 px-4 w-full box-border"
-                            style={{ boxSizing: "border-box" }}
-                        />
-                      </Field>
+                  <Field className="gap-1.5">
+                    <FieldLabel htmlFor="ownerName">
+                      {t("operator.detailsOwnerLabel")}
+                    </FieldLabel>
+                    <Input
+                      id="ownerName"
+                      value={ownerName}
+                      onChange={(e) => setOwnerName(e.target.value)}
+                      placeholder={t("operator.detailsOwnerPlaceholder")}
+                      required
+                      disabled={isPending}
+                      className="h-11 px-4 w-full box-border"
+                      style={{ boxSizing: "border-box" }}
+                    />
+                  </Field>
 
-                      {/* Conditional fields based on first step input type */}
-                      {method === "email" ? (
-                          <Field className="gap-1.5">
-                            <FieldLabel htmlFor="operatorPhone">{t("operator.detailsPhoneLabel")}</FieldLabel>
-                            <PhoneInput
-                                id="operatorPhone"
-                                value={operatorCollectedPhone}
-                                onChange={(value) => setOperatorCollectedPhone(value ?? "")}
-                                required
-                                disabled={isPending}
-                                className="w-full box-border"
-                                style={{ boxSizing: "border-box" }}
-                            />
-                          </Field>
-                      ) : (
-                          <Field className="gap-1.5">
-                            <FieldLabel htmlFor="operatorEmail">{t("operator.detailsEmailLabel")}</FieldLabel>
-                            <Input
-                                id="operatorEmail"
-                                type="email"
-                                value={operatorCollectedEmail}
-                                onChange={(e) => setOperatorCollectedEmail(e.target.value)}
-                                placeholder={t("operator.detailsEmailPlaceholder")}
-                                required
-                                disabled={isPending}
-                                className="h-11 px-4 w-full box-border"
-                                style={{ boxSizing: "border-box" }}
-                            />
-                          </Field>
-                      )}
-
-                      <Field orientation="horizontal">
-                        <Checkbox
-                            id="terms"
-                            checked={acceptTerms}
-                            onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-                            disabled={isPending}
-                        />
-                        <FieldContent>
-                          <FieldLabel htmlFor="terms" className="font-normal">
-                            {t.rich("operator.detailsTerms", {
-                              linkTerms: (chunks) => (
-                                <Link href="/terms" className="text-primary hover:underline font-medium">
-                                  {chunks}
-                                </Link>
-                              ),
-                              linkPrivacy: (chunks) => (
-                                <Link href="/privacy" className="text-primary hover:underline font-medium">
-                                  {chunks}
-                                </Link>
-                              ),
-                            })}
-                          </FieldLabel>
-                        </FieldContent>
-                      </Field>
-                    </FieldGroup>
-
-                    <Button type="submit" className="w-full" disabled={isPending || !detailsValid}>
-                      {isPending ? t("operator.detailsSubmitting") : t("operator.detailsContinue")}
-                    </Button>
-
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-full text-muted-foreground"
-                        onClick={() => {
-                          setDirection(-1);
-                          setStep("input");
-                        }}
+                  {/* Conditional fields based on first step input type */}
+                  {method === "email" ? (
+                    <Field className="gap-1.5">
+                      <FieldLabel htmlFor="operatorPhone">
+                        {t("operator.detailsPhoneLabel")}
+                      </FieldLabel>
+                      <PhoneInput
+                        id="operatorPhone"
+                        value={operatorCollectedPhone}
+                        onChange={(value) =>
+                          setOperatorCollectedPhone(value ?? "")
+                        }
+                        required
                         disabled={isPending}
-                    >
-                      {t("operator.detailsGoBack")}
-                    </Button>
-                  </form>
-              )}
-
-              {/* OTP Step Form */}
-              {step === "otp" && (
-                  <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
-                    <FieldGroup className="gap-4">
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="otp">{t(`${userType}.otpLabel`)}</FieldLabel>
-                        <Input
-                            id="otp"
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            maxLength={6}
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                            placeholder={t(`${userType}.otpPlaceholder`)}
-                            required
-                            disabled={isPending}
-                            className="h-11 w-full text-center font-mono text-lg tracking-[0.5em] box-border"
-                            style={{ boxSizing: "border-box" }}
-                            autoFocus
-                        />
-                      </Field>
-                    </FieldGroup>
-                    <Button type="submit" className="w-full" disabled={isPending || otp.length < 6}>
-                      {isPending ? (
-                          <>
-                            <Spinner className="size-4" />
-                            {t(`${userType}.otpVerifying`)}
-                          </>
-                      ) : (
-                          t(`${userType}.otpVerify`)
-                      )}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-full text-muted-foreground"
-                        onClick={() => {
-                          setDirection(-1);
-                          setStep(userType === "operator" && companyName ? "details" : "input");
-                          setOtp("");
-                        }}
+                        className="w-full box-border"
+                        style={{ boxSizing: "border-box" }}
+                      />
+                    </Field>
+                  ) : (
+                    <Field className="gap-1.5">
+                      <FieldLabel htmlFor="operatorEmail">
+                        {t("operator.detailsEmailLabel")}
+                      </FieldLabel>
+                      <Input
+                        id="operatorEmail"
+                        type="email"
+                        value={operatorCollectedEmail}
+                        onChange={(e) =>
+                          setOperatorCollectedEmail(e.target.value)
+                        }
+                        placeholder={t("operator.detailsEmailPlaceholder")}
+                        required
                         disabled={isPending}
+                        className="h-11 px-4 w-full box-border"
+                        style={{ boxSizing: "border-box" }}
+                      />
+                    </Field>
+                  )}
+
+                  <Field orientation="horizontal">
+                    <Checkbox
+                      id="terms"
+                      checked={acceptTerms}
+                      onCheckedChange={(checked) =>
+                        setAcceptTerms(checked as boolean)
+                      }
+                      disabled={isPending}
+                    />
+                    <FieldContent>
+                      <FieldLabel htmlFor="terms" className="font-normal">
+                        {t.rich("operator.detailsTerms", {
+                          linkTerms: (chunks) => (
+                            <Link
+                              href="/terms"
+                              className="text-primary hover:underline font-medium"
+                            >
+                              {chunks}
+                            </Link>
+                          ),
+                          linkPrivacy: (chunks) => (
+                            <Link
+                              href="/privacy"
+                              className="text-primary hover:underline font-medium"
+                            >
+                              {chunks}
+                            </Link>
+                          ),
+                        })}
+                      </FieldLabel>
+                    </FieldContent>
+                  </Field>
+                </FieldGroup>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isPending || !detailsValid}
+                >
+                  {isPending
+                    ? t("operator.detailsSubmitting")
+                    : t("operator.detailsContinue")}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-muted-foreground"
+                  onClick={() => {
+                    setDirection(-1);
+                    setStep("input");
+                  }}
+                  disabled={isPending}
+                >
+                  {t("operator.detailsGoBack")}
+                </Button>
+              </form>
+            )}
+
+            {/* OTP Step Form */}
+            {step === "otp" && (
+              <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
+                <FieldGroup className="gap-4">
+                  <Field className="gap-1.5">
+                    <FieldLabel htmlFor="otp">
+                      {t(`${userType}.otpLabel`)}
+                    </FieldLabel>
+                    <Input
+                      id="otp"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) =>
+                        setOtp(e.target.value.replace(/\D/g, ""))
+                      }
+                      placeholder={t(`${userType}.otpPlaceholder`)}
+                      required
+                      disabled={isPending}
+                      className="h-11 w-full text-center font-mono text-lg tracking-[0.5em] box-border"
+                      style={{ boxSizing: "border-box" }}
+                      autoFocus
+                    />
+                  </Field>
+                </FieldGroup>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isPending || otp.length < 6}
+                >
+                  {isPending ? (
+                    <>
+                      <Spinner className="size-4" />
+                      {t(`${userType}.otpVerifying`)}
+                    </>
+                  ) : (
+                    t(`${userType}.otpVerify`)
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-muted-foreground"
+                  onClick={() => {
+                    setDirection(-1);
+                    setStep(
+                      userType === "operator" && companyName
+                        ? "details"
+                        : "input",
+                    );
+                    setOtp("");
+                  }}
+                  disabled={isPending}
+                >
+                  {t(`${userType}.otpDifferent`)}
+                </Button>
+              </form>
+            )}
+
+            {/* Passenger Profile Setup Step Form */}
+            {step === "profile" && (
+              <form
+                onSubmit={handleCompleteProfile}
+                className="flex flex-col gap-4"
+              >
+                <FieldGroup className="gap-4">
+                  <Field className="gap-1.5">
+                    <FieldLabel htmlFor="fullName">
+                      {t("passenger.profileNameLabel")}
+                    </FieldLabel>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder={t("passenger.profileNamePlaceholder")}
+                      required
+                      disabled={isPending}
+                      autoFocus
+                      className="h-11 px-4 w-full box-border"
+                      style={{ boxSizing: "border-box" }}
+                    />
+                  </Field>
+
+                  <Field className="gap-1.5">
+                    <FieldLabel htmlFor="preferredSeat">
+                      {t("passenger.profileSeatLabel")}
+                    </FieldLabel>
+                    <Select
+                      value={preferredSeat}
+                      onValueChange={(val) =>
+                        setPreferredSeat(val as "NONE" | "WINDOW" | "AISLE")
+                      }
+                      disabled={isPending}
                     >
-                      {t(`${userType}.otpDifferent`)}
-                    </Button>
-                  </form>
-              )}
-
-              {/* Passenger Profile Setup Step Form */}
-              {step === "profile" && (
-                  <form onSubmit={handleCompleteProfile} className="flex flex-col gap-4">
-                    <FieldGroup className="gap-4">
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="fullName">{t("passenger.profileNameLabel")}</FieldLabel>
-                        <Input
-                            id="fullName"
-                            type="text"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder={t("passenger.profileNamePlaceholder")}
-                            required
-                            disabled={isPending}
-                            autoFocus
-                            className="h-11 px-4 w-full box-border"
-                            style={{ boxSizing: "border-box" }}
+                      <SelectTrigger
+                        id="preferredSeat"
+                        className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary"
+                      >
+                        <SelectValue
+                          placeholder={t("passenger.profileSeatNone")}
                         />
-                      </Field>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">
+                          {t("passenger.profileSeatNone")}
+                        </SelectItem>
+                        <SelectItem value="WINDOW">
+                          {t("passenger.profileSeatWindow")}
+                        </SelectItem>
+                        <SelectItem value="AISLE">
+                          {t("passenger.profileSeatAisle")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
 
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="preferredSeat">{t("passenger.profileSeatLabel")}</FieldLabel>
-                        <Select
-                            value={preferredSeat}
-                            onValueChange={(val) => setPreferredSeat(val as "NONE" | "WINDOW" | "AISLE")}
-                            disabled={isPending}
-                        >
-                          <SelectTrigger id="preferredSeat" className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
-                            <SelectValue placeholder={t("passenger.profileSeatNone")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="NONE">{t("passenger.profileSeatNone")}</SelectItem>
-                            <SelectItem value="WINDOW">{t("passenger.profileSeatWindow")}</SelectItem>
-                            <SelectItem value="AISLE">{t("passenger.profileSeatAisle")}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-
-<Field className="gap-1.5">
-                         <FieldLabel htmlFor="preferredClass">{t("passenger.profileClassLabel")}</FieldLabel>
-                         <Select
-                             value={preferredClass}
-                             onValueChange={(val) => setPreferredClass(val as "ECONOMY" | "STANDARD" | "VIP")}
-                             disabled={isPending}
-                         >
-                           <SelectTrigger id="preferredClass" className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
-                             <SelectValue placeholder={t("passenger.profileClassPlaceholder")} />
-                           </SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="ECONOMY">{t("passenger.profileClassEconomy")}</SelectItem>
-                             <SelectItem value="STANDARD">{t("passenger.profileClassStandard")}</SelectItem>
-                             <SelectItem value="VIP">{t("passenger.profileClassVip")}</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </Field>
-
-                      <Field orientation="horizontal" className="border-t border-border pt-4 justify-between">
-                        <FieldContent>
-                          <FieldLabel htmlFor="marketing">{t("passenger.profileMarketingLabel")}</FieldLabel>
-                          <p className="text-sm text-muted-foreground leading-normal">
-                            {t("passenger.profileMarketingDesc")}
-                          </p>
-                        </FieldContent>
-                        <Switch
-                            id="marketing"
-                            checked={marketingOptIn}
-                            onCheckedChange={setMarketingOptIn}
-                            disabled={isPending}
+                  <Field className="gap-1.5">
+                    <FieldLabel htmlFor="preferredClass">
+                      {t("passenger.profileClassLabel")}
+                    </FieldLabel>
+                    <Select
+                      value={preferredClass}
+                      onValueChange={(val) =>
+                        setPreferredClass(val as "ECONOMY" | "STANDARD" | "VIP")
+                      }
+                      disabled={isPending}
+                    >
+                      <SelectTrigger
+                        id="preferredClass"
+                        className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary"
+                      >
+                        <SelectValue
+                          placeholder={t("passenger.profileClassPlaceholder")}
                         />
-                      </Field>
-                    </FieldGroup>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ECONOMY">
+                          {t("passenger.profileClassEconomy")}
+                        </SelectItem>
+                        <SelectItem value="STANDARD">
+                          {t("passenger.profileClassStandard")}
+                        </SelectItem>
+                        <SelectItem value="VIP">
+                          {t("passenger.profileClassVip")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
 
-                    <Button type="submit" className="w-full mt-2" disabled={isPending || !fullName.trim()}>
-                      {t("passenger.profileComplete")}
-                    </Button>
-                  </form>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-      </div>
+                  <Field
+                    orientation="horizontal"
+                    className="border-t border-border pt-4 justify-between"
+                  >
+                    <FieldContent>
+                      <FieldLabel htmlFor="marketing">
+                        {t("passenger.profileMarketingLabel")}
+                      </FieldLabel>
+                      <p className="text-sm text-muted-foreground leading-normal">
+                        {t("passenger.profileMarketingDesc")}
+                      </p>
+                    </FieldContent>
+                    <Switch
+                      id="marketing"
+                      checked={marketingOptIn}
+                      onCheckedChange={setMarketingOptIn}
+                      disabled={isPending}
+                    />
+                  </Field>
+                </FieldGroup>
+
+                <Button
+                  type="submit"
+                  className="w-full mt-2"
+                  disabled={isPending || !fullName.trim()}
+                >
+                  {t("passenger.profileComplete")}
+                </Button>
+              </form>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </motion.div>
+    </div>
   );
 }

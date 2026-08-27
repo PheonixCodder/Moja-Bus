@@ -2,11 +2,26 @@
 
 import { useTranslations } from "next-intl";
 import { useCompanySettings } from "../api/use-company-settings";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
-import { FileText, ArrowRight, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import {
+  FileText,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import { Badge } from "@moja/ui/components/ui/badge";
-import { getDocumentsVerificationState, REQUIRED_DOC_TYPES } from "../../lib/company-status";
+import {
+  getDocumentsVerificationState,
+  REQUIRED_DOC_TYPES,
+} from "../../lib/company-status";
 
 interface DocumentsSectionProps {
   onManage: () => void;
@@ -18,7 +33,7 @@ export function DocumentsSection({ onManage }: DocumentsSectionProps) {
   const documents = settings?.company.documents || [];
   const state = getDocumentsVerificationState(documents);
 
-  const activeDocs = documents.filter(d => !d.supersededAt);
+  const activeDocs = documents.filter((d) => !d.supersededAt);
 
   return (
     <Card className="flex flex-col h-full">
@@ -41,25 +56,38 @@ export function DocumentsSection({ onManage }: DocumentsSectionProps) {
             <p className="font-medium text-sm">{t("statusLabel")}</p>
             <div className="flex items-center gap-2">
               {state === "approved" && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+                <Badge
+                  variant="outline"
+                  className="bg-green-500/10 text-green-600 border-green-200"
+                >
                   <CheckCircle2 className="w-3 h-3 mr-1" /> {t("allApproved")}
                 </Badge>
               )}
               {state === "pending" && (
-                <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-200">
+                <Badge
+                  variant="outline"
+                  className="bg-yellow-500/10 text-yellow-600 border-yellow-200"
+                >
                   <Clock className="w-3 h-3 mr-1" /> {t("inReview")}
                 </Badge>
               )}
               {state === "missing" && (
-                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-200">
+                <Badge
+                  variant="outline"
+                  className="bg-orange-500/10 text-orange-600 border-orange-200"
+                >
                   <AlertCircle className="w-3 h-3 mr-1" /> {t("actionRequired")}
                 </Badge>
               )}
             </div>
           </div>
           <div className="text-right space-y-1 text-sm">
-            <p className="font-medium">{t("uploadedCount", { count: activeDocs.length })}</p>
-            <p className="text-muted-foreground">{t("requiredCount", { count: REQUIRED_DOC_TYPES.length })}</p>
+            <p className="font-medium">
+              {t("uploadedCount", { count: activeDocs.length })}
+            </p>
+            <p className="text-muted-foreground">
+              {t("requiredCount", { count: REQUIRED_DOC_TYPES.length })}
+            </p>
           </div>
         </div>
 
@@ -69,9 +97,21 @@ export function DocumentsSection({ onManage }: DocumentsSectionProps) {
               <span className="truncate pr-4 text-muted-foreground">
                 {t(`types.${doc.type}` as any) || doc.type.replace(/_/g, " ")}
               </span>
-              {doc.status === "APPROVED" && <span className="text-green-600 font-medium text-xs">{t("status.APPROVED")}</span>}
-              {doc.status === "PENDING" && <span className="text-yellow-600 font-medium text-xs">{t("status.PENDING")}</span>}
-              {doc.status === "REJECTED" && <span className="text-red-600 font-medium text-xs">{t("status.REJECTED")}</span>}
+              {doc.status === "APPROVED" && (
+                <span className="text-green-600 font-medium text-xs">
+                  {t("status.APPROVED")}
+                </span>
+              )}
+              {doc.status === "PENDING" && (
+                <span className="text-yellow-600 font-medium text-xs">
+                  {t("status.PENDING")}
+                </span>
+              )}
+              {doc.status === "REJECTED" && (
+                <span className="text-red-600 font-medium text-xs">
+                  {t("status.REJECTED")}
+                </span>
+              )}
             </li>
           ))}
           {activeDocs.length === 0 && (

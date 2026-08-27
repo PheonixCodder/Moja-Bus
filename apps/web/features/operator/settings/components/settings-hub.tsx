@@ -24,7 +24,7 @@ const actionEnum = parseAsStringEnum([
   "edit-personal-profile",
   "manage-banks",
   "manage-documents",
-  "manage-verification"
+  "manage-verification",
 ]).withDefault(null as any);
 
 export function SettingsHub() {
@@ -38,9 +38,7 @@ export function SettingsHub() {
     <div className="container max-w-6xl py-8 px-4 md:px-8 space-y-8">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          {t("description")}
-        </p>
+        <p className="text-muted-foreground mt-2 text-sm">{t("description")}</p>
       </div>
 
       <Suspense fallback={<SettingsSectionSkeleton />}>
@@ -58,7 +56,9 @@ export function SettingsHub() {
 
         <Suspense fallback={<SettingsSectionSkeleton />}>
           <ErrorBoundary FallbackComponent={SettingsSectionError}>
-            <PersonalProfileSection onManage={() => setAction("edit-personal-profile")} />
+            <PersonalProfileSection
+              onManage={() => setAction("edit-personal-profile")}
+            />
           </ErrorBoundary>
         </Suspense>
 
@@ -73,15 +73,17 @@ export function SettingsHub() {
             <DocumentsSection onManage={() => setAction("manage-documents")} />
           </ErrorBoundary>
         </Suspense>
-        
+
         <div className="md:col-span-2 lg:col-span-3">
           <Suspense fallback={<SettingsSectionSkeleton />}>
             <ErrorBoundary FallbackComponent={SettingsSectionError}>
-              <VerificationPipeline onManage={() => setAction("manage-verification")} />
+              <VerificationPipeline
+                onManage={() => setAction("manage-verification")}
+              />
             </ErrorBoundary>
           </Suspense>
         </div>
-        
+
         <div className="md:col-span-2 lg:col-span-3">
           <Suspense fallback={<SettingsSectionSkeleton />}>
             <ErrorBoundary FallbackComponent={SettingsSectionError}>
@@ -92,11 +94,21 @@ export function SettingsHub() {
       </div>
 
       {/* Drawers: Render conditionally to avoid fetching/mounting heavy hooks prematurely */}
-      {action === "edit-profile" && <ProfileDrawer isOpen={true} onClose={clearAction} />}
-      {action === "edit-personal-profile" && <PersonalProfileDrawer isOpen={true} onClose={clearAction} />}
-      {action === "manage-banks" && <BankDrawer isOpen={true} onClose={clearAction} />}
-      {action === "manage-documents" && <DocumentsDrawer isOpen={true} onClose={clearAction} />}
-      {action === "manage-verification" && <VerificationDrawer isOpen={true} onClose={clearAction} />}
+      {action === "edit-profile" && (
+        <ProfileDrawer isOpen={true} onClose={clearAction} />
+      )}
+      {action === "edit-personal-profile" && (
+        <PersonalProfileDrawer isOpen={true} onClose={clearAction} />
+      )}
+      {action === "manage-banks" && (
+        <BankDrawer isOpen={true} onClose={clearAction} />
+      )}
+      {action === "manage-documents" && (
+        <DocumentsDrawer isOpen={true} onClose={clearAction} />
+      )}
+      {action === "manage-verification" && (
+        <VerificationDrawer isOpen={true} onClose={clearAction} />
+      )}
     </div>
   );
 }

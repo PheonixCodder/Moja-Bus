@@ -18,9 +18,12 @@ interface PageProps {
 export default async function AdminRoutesPage({ searchParams }: PageProps) {
   const t = await getTranslations("adminDashboard.pages.routes");
   const params = await searchParams;
-  const { q, status, page, pageSize } = adminRoutesSearchParamsCache.parse(params);
+  const { q, status, page, pageSize } =
+    adminRoutesSearchParamsCache.parse(params);
 
-  await prefetch(trpc.admin.listRoutes.queryOptions({ search: q, status, page, pageSize }));
+  await prefetch(
+    trpc.admin.listRoutes.queryOptions({ search: q, status, page, pageSize }),
+  );
 
   return (
     <HydrateClient>

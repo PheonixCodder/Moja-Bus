@@ -26,10 +26,13 @@ const personalProfileSchema = z.object({
   jobTitle: z.string().optional().nullable(),
 });
 
-export function PersonalProfileDrawer({ isOpen, onClose }: PersonalProfileDrawerProps) {
+export function PersonalProfileDrawer({
+  isOpen,
+  onClose,
+}: PersonalProfileDrawerProps) {
   const t = useTranslations("operatorDashboard.settings.personal");
   const { data: settings } = useCompanySettings();
-  
+
   const form = useForm({
     resolver: zodResolver(personalProfileSchema),
     defaultValues: {
@@ -37,7 +40,7 @@ export function PersonalProfileDrawer({ isOpen, onClose }: PersonalProfileDrawer
       jobTitle: settings?.operator?.jobTitle || "",
     },
   });
-  
+
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -56,8 +59,8 @@ export function PersonalProfileDrawer({ isOpen, onClose }: PersonalProfileDrawer
             ...old,
             operator: {
               ...old.operator,
-              ...variables
-            }
+              ...variables,
+            },
           };
         });
 
@@ -68,15 +71,20 @@ export function PersonalProfileDrawer({ isOpen, onClose }: PersonalProfileDrawer
         onClose();
       },
       onError: (err, variables, context) => {
-        toast.error(err.message || t("toastFailed"), { id: "save-personal-profile" });
+        toast.error(err.message || t("toastFailed"), {
+          id: "save-personal-profile",
+        });
         if (context?.previousSettings) {
-          queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
+          queryClient.setQueryData(
+            trpc.operator.getSettings.queryKey(),
+            context.previousSettings,
+          );
         }
       },
       onSettled: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
-      }
-    })
+      },
+    }),
   );
 
   const onSubmit = form.handleSubmit((data) => {
@@ -96,20 +104,35 @@ export function PersonalProfileDrawer({ isOpen, onClose }: PersonalProfileDrawer
       description={t("personalDrawerDesc")}
       footer={
         <div className="flex gap-2 w-full">
-          <Button variant="outline" className="flex-1" onClick={onClose} disabled={mutation.isPending}>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={onClose}
+            disabled={mutation.isPending}
+          >
             {t("cancel")}
           </Button>
-          <Button className="flex-1" onClick={onSubmit} disabled={mutation.isPending}>
+          <Button
+            className="flex-1"
+            onClick={onSubmit}
+            disabled={mutation.isPending}
+          >
             {mutation.isPending ? t("saving") : t("saveChanges")}
           </Button>
         </div>
       }
     >
-      <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
+      <form
+        onSubmit={onSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"
+      >
         <div className="space-y-4">
           <Field>
             <FieldLabel>{t("jobTitle")}</FieldLabel>
-            <Input placeholder={t("jobTitlePlaceholder")} {...form.register("jobTitle")} />
+            <Input
+              placeholder={t("jobTitlePlaceholder")}
+              {...form.register("jobTitle")}
+            />
           </Field>
         </div>
         <div className="space-y-4">
@@ -118,7 +141,12 @@ export function PersonalProfileDrawer({ isOpen, onClose }: PersonalProfileDrawer
             <ImageUploadField
               purpose="operator-profile-photo"
               value={form.watch("profilePhotoUrl") ?? null}
-              onUploaded={(res) => form.setValue("profilePhotoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
+              onUploaded={(res) =>
+                form.setValue("profilePhotoUrl", res.fileUrl, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }
               label={t("uploadAvatar")}
               hint={t("avatarHint")}
               shape="circle"

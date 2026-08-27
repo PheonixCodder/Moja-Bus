@@ -7,7 +7,11 @@ import { Smartphone, Star } from "lucide-react";
 // Inline SVG for Apple logo
 function AppleLogo() {
   return (
-    <svg viewBox="0 0 814 1000" className="h-5 w-5 fill-current" aria-hidden="true">
+    <svg
+      viewBox="0 0 814 1000"
+      className="h-5 w-5 fill-current"
+      aria-hidden="true"
+    >
       <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-167.2-21.8C79.8 774.7 10 554.8 10 431.2c0-226.6 147.3-346.3 282.7-346.3 74.3 0 136.7 48.8 183.7 48.8 44.8 0 115.7-51.6 198.5-51.6zm-234.8-191.5c37.9-45.3 65.1-108.2 65.1-171.1 0-8.9-.6-17.9-2.2-25.4-61.9 2.2-136.8 41.1-182.2 100.5-35.7 43.9-66.4 110.2-66.4 174.7 0 11.9 1.9 23.8 2.5 27.7 3.5.5 9.5 1.2 15.5 1.2 56 0 127.1-37.8 167.7-107.6z" />
     </svg>
   );
@@ -16,7 +20,11 @@ function AppleLogo() {
 // Inline SVG for Google Play logo
 function GooglePlayLogo() {
   return (
-    <svg viewBox="0 0 512 512" className="h-5 w-5 fill-current" aria-hidden="true">
+    <svg
+      viewBox="0 0 512 512"
+      className="h-5 w-5 fill-current"
+      aria-hidden="true"
+    >
       <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l236.6-238L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c17.4-9.5 17.4-35.5-.2-60.8zm-258.8 98.8l-165 165c.1.1.2.3.3.4l165-165z" />
     </svg>
   );
@@ -36,10 +44,15 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
           <div className="flex items-center gap-1.5 mb-3">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="h-3 w-3 fill-yellow-300 text-yellow-300" />
+                <Star
+                  key={i}
+                  className="h-3 w-3 fill-yellow-300 text-yellow-300"
+                />
               ))}
             </div>
-            <span className="text-white/80 text-xs font-semibold">{t("ratingText")}</span>
+            <span className="text-white/80 text-xs font-semibold">
+              {t("ratingText")}
+            </span>
           </div>
 
           <h3 className="text-white font-extrabold text-xl leading-tight mb-1 font-montserrat">
@@ -61,8 +74,12 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
             >
               <AppleLogo />
               <div className="leading-none">
-                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">{t("downloadOn")}</p>
-                <p className="text-sm font-bold text-slate-900 -mt-0.5">{t("appStore")}</p>
+                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">
+                  {t("downloadOn")}
+                </p>
+                <p className="text-sm font-bold text-slate-900 -mt-0.5">
+                  {t("appStore")}
+                </p>
               </div>
             </a>
 
@@ -75,8 +92,12 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
             >
               <GooglePlayLogo />
               <div className="leading-none">
-                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">{t("getItOn")}</p>
-                <p className="text-sm font-bold text-slate-900 -mt-0.5">{t("googlePlay")}</p>
+                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">
+                  {t("getItOn")}
+                </p>
+                <p className="text-sm font-bold text-slate-900 -mt-0.5">
+                  {t("googlePlay")}
+                </p>
               </div>
             </a>
           </div>

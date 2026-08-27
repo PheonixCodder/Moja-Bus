@@ -151,10 +151,7 @@ export function InviteSheet({
         }
       }}
     >
-      <SheetContent
-        side="right"
-        className="flex flex-col p-0 sm:max-w-lg"
-      >
+      <SheetContent side="right" className="flex flex-col p-0 sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="text-base font-semibold">
             {t("inviteSheet.title")}

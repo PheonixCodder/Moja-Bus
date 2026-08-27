@@ -7,7 +7,8 @@ import { DashboardHeader } from "@/features/admin/components/dashboard-header";
 
 export const metadata = {
   title: "Driver Verifications Queue — Moja Ride Admin",
-  description: "Review and verify commercial driver licenses, national IDs, and carrier affiliations.",
+  description:
+    "Review and verify commercial driver licenses, national IDs, and carrier affiliations.",
 };
 
 export default async function DriverVerificationsPage() {
@@ -16,7 +17,7 @@ export default async function DriverVerificationsPage() {
       status: "PENDING",
       limit: 50,
       offset: 0,
-    })
+    }),
   );
 
   return (
@@ -34,7 +35,9 @@ export default async function DriverVerificationsPage() {
               Commercial Driver Compliance & Licensing
             </h1>
             <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Review driver licensing documents, inspect Ministry of Transport credentials, and grant commercial clearance for platform-wide dispatch.
+              Review driver licensing documents, inspect Ministry of Transport
+              credentials, and grant commercial clearance for platform-wide
+              dispatch.
             </p>
           </div>
           <Suspense

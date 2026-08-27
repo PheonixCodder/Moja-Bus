@@ -33,7 +33,10 @@ export function isPaystackConfigured(): boolean {
   );
 }
 
-export function buildPaystackReference(holdGroupId: string, attemptNumber: number) {
+export function buildPaystackReference(
+  holdGroupId: string,
+  attemptNumber: number,
+) {
   return `moja_${holdGroupId}_${attemptNumber}_${Date.now()}`;
 }
 
@@ -153,7 +156,10 @@ export function verifyPaystackSignature(
 
 export const PAYSTACK_RECIPIENT_CURRENCY = "XOF" as const;
 
-function paystackErrorMessage(code?: string | null, message?: string | null): string {
+function paystackErrorMessage(
+  code?: string | null,
+  message?: string | null,
+): string {
   switch (code) {
     case "invalid_account_number":
       return "This account number was not recognized for the selected bank. Check the number (14-digit RIB for banks, or your phone number for mobile money) and try again.";
@@ -201,7 +207,10 @@ export async function paystackCreateTransferRecipient(input: {
 
   if (!res.ok || !json.status || !json.data) {
     throw new Error(
-      paystackErrorMessage(json.code, json.message ?? "Failed to create Paystack transfer recipient"),
+      paystackErrorMessage(
+        json.code,
+        json.message ?? "Failed to create Paystack transfer recipient",
+      ),
     );
   }
 
@@ -240,7 +249,8 @@ export async function paystackRegisterRecipient(input: {
   const resolvedAccountName = result.accountName;
   const accountNameMatched =
     !resolvedAccountName ||
-    normalizeAccountName(resolvedAccountName) === normalizeAccountName(input.accountName);
+    normalizeAccountName(resolvedAccountName) ===
+      normalizeAccountName(input.accountName);
 
   return {
     recipientCode: result.recipientCode,
@@ -250,7 +260,10 @@ export async function paystackRegisterRecipient(input: {
 }
 
 function normalizeAccountName(name: string): string {
-  return name.trim().toLowerCase().replace(/[\s.,'`-]+/g, "");
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[\s.,'`-]+/g, "");
 }
 
 export async function paystackInitiateTransfer(input: {
@@ -370,12 +383,15 @@ export async function paystackVerifyTransfer(reference: string): Promise<{
   reason?: string;
   id?: number;
 }> {
-  const res = await fetch(`https://api.paystack.co/transfer/verify/${reference}`, {
-    headers: {
-      Authorization: `Bearer ${paystackSecretKey()}`,
+  const res = await fetch(
+    `https://api.paystack.co/transfer/verify/${reference}`,
+    {
+      headers: {
+        Authorization: `Bearer ${paystackSecretKey()}`,
+      },
+      signal: AbortSignal.timeout(30_000),
     },
-    signal: AbortSignal.timeout(30_000),
-  });
+  );
 
   const json = (await res.json()) as {
     status?: boolean;
@@ -423,4 +439,3 @@ export async function paystackVerifyTransfer(reference: string): Promise<{
 
   return responseObj;
 }
-

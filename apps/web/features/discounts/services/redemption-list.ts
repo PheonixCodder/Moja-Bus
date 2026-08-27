@@ -68,9 +68,11 @@ export async function listDiscountRedemptions(
     total,
     items: rows.map((r) => {
       const fallbackBooking = r.holdGroup?.bookings?.[0];
-      const rawName = r.user?.fullName ?? fallbackBooking?.passengerName ?? null;
+      const rawName =
+        r.user?.fullName ?? fallbackBooking?.passengerName ?? null;
       const rawEmail = r.user?.email ?? fallbackBooking?.user?.email ?? null;
-      const rawPhone = r.user?.phoneNumber ?? fallbackBooking?.passengerPhone ?? null;
+      const rawPhone =
+        r.user?.phoneNumber ?? fallbackBooking?.passengerPhone ?? null;
 
       const hasUserInfo = Boolean(rawName || rawEmail || rawPhone);
 
@@ -92,12 +94,8 @@ export async function listDiscountRedemptions(
               name: displayName(rawName ?? "Guest Passenger", {
                 privacy: input.privacy,
               }),
-              email: input.privacy
-                ? maskEmail(rawEmail)
-                : (rawEmail ?? "—"),
-              phone: input.privacy
-                ? maskPhone(rawPhone)
-                : (rawPhone ?? "—"),
+              email: input.privacy ? maskEmail(rawEmail) : (rawEmail ?? "—"),
+              phone: input.privacy ? maskPhone(rawPhone) : (rawPhone ?? "—"),
             }
           : null,
       };

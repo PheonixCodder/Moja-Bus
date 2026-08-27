@@ -23,10 +23,18 @@ export async function sendBookingConfirmedEmails(
           bookingReference: true,
           passengerPhone: true,
           originTripStop: {
-            select: { terminal: { select: { cityRelation: { select: { name: true } } } } },
+            select: {
+              terminal: {
+                select: { cityRelation: { select: { name: true } } },
+              },
+            },
           },
           destinationTripStop: {
-            select: { terminal: { select: { cityRelation: { select: { name: true } } } } },
+            select: {
+              terminal: {
+                select: { cityRelation: { select: { name: true } } },
+              },
+            },
           },
         },
       },
@@ -45,10 +53,12 @@ export async function sendBookingConfirmedEmails(
   const email =
     payerEmail ??
     (userId
-      ? (await prisma.user.findUnique({
-          where: { id: userId },
-          select: { email: true },
-        }))?.email
+      ? (
+          await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true },
+          })
+        )?.email
       : null);
 
   // P2-18: do not invent @guest.mojaride.ci — undeliverable for Novu/email.
@@ -65,13 +75,17 @@ export async function sendBookingConfirmedEmails(
   const originCityName =
     booking?.originTripStop?.terminal?.cityRelation?.name ?? "Côte d'Ivoire";
   const destinationCityName =
-    booking?.destinationTripStop?.terminal?.cityRelation?.name ?? "Côte d'Ivoire";
+    booking?.destinationTripStop?.terminal?.cityRelation?.name ??
+    "Côte d'Ivoire";
   const passengerName = holdGroup.bookings[0]?.passengerName ?? "Traveler";
   const companyName = holdGroup.trip.company.name;
   const departureTime = holdGroup.trip.departureDate;
   const totalAmountXOF =
     confirmed.totalAmountXOF ?? holdGroup.pricingSnapshot.chargeAmountXOF;
-  const passengerPhone = holdGroup.bookings[0]?.passengerPhone?.replace(/\s+/g, "");
+  const passengerPhone = holdGroup.bookings[0]?.passengerPhone?.replace(
+    /\s+/g,
+    "",
+  );
   const snapshot = holdGroup.pricingSnapshot;
   const ticketDiscountXOF = snapshot.ticketDiscountXOF ?? 0;
   const creditAppliedXOF = snapshot.creditAppliedXOF ?? 0;

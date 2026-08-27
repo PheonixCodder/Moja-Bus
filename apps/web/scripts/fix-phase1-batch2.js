@@ -45,12 +45,18 @@ updateJsonFile(adminEnPath, (en) => {
 
   // verificationsRejectDialog
   ad.verificationsRejectDialog = ad.verificationsRejectDialog || {};
-  ad.verificationsRejectDialog.verificationRejected = "Verification request rejected.";
-  ad.verificationsRejectDialog.failedToRejectCompany = "Failed to reject company verification.";
-  ad.verificationsRejectDialog.invalidRejectionReason = "Please provide a valid rejection reason.";
-  ad.verificationsRejectDialog.rejectVerificationRequest = "Reject Verification Request";
-  ad.verificationsRejectDialog.dialogDescription = "Explain why this operator's verification is being rejected. This note will be visible to the operator.";
-  ad.verificationsRejectDialog.rejectionReasonPlaceholder = "Enter the reason for rejection (e.g. invalid document, missing tax ID)...";
+  ad.verificationsRejectDialog.verificationRejected =
+    "Verification request rejected.";
+  ad.verificationsRejectDialog.failedToRejectCompany =
+    "Failed to reject company verification.";
+  ad.verificationsRejectDialog.invalidRejectionReason =
+    "Please provide a valid rejection reason.";
+  ad.verificationsRejectDialog.rejectVerificationRequest =
+    "Reject Verification Request";
+  ad.verificationsRejectDialog.dialogDescription =
+    "Explain why this operator's verification is being rejected. This note will be visible to the operator.";
+  ad.verificationsRejectDialog.rejectionReasonPlaceholder =
+    "Enter the reason for rejection (e.g. invalid document, missing tax ID)...";
   ad.verificationsRejectDialog.cancel = "Cancel";
   ad.verificationsRejectDialog.submitting = "Rejecting...";
   ad.verificationsRejectDialog.submitRejection = "Confirm Rejection";
@@ -71,14 +77,16 @@ updateJsonFile(adminFrPath, (fr) => {
 
   // activityFeed statuses
   if (ad.overview && ad.overview.activityFeed) {
-    ad.overview.activityFeed.PENDING_VERIFICATION = "En attente de vérification";
+    ad.overview.activityFeed.PENDING_VERIFICATION =
+      "En attente de vérification";
     ad.overview.activityFeed.ACTIVE = "Actif";
     ad.overview.activityFeed.REJECTED = "Rejeté";
   }
 
   // operatorsActionCell / columns
   ad.operatorsActionCell = ad.operatorsActionCell || {};
-  ad.operatorsActionCell.selectAllOperators = "Sélectionner tous les opérateurs";
+  ad.operatorsActionCell.selectAllOperators =
+    "Sélectionner tous les opérateurs";
   ad.operatorsActionCell.selectRow = "Sélectionner la ligne";
   ad.operatorsActionCell.operator = "Opérateur";
   ad.operatorsActionCell.company = "Entreprise";
@@ -90,12 +98,18 @@ updateJsonFile(adminFrPath, (fr) => {
 
   // verificationsRejectDialog
   ad.verificationsRejectDialog = ad.verificationsRejectDialog || {};
-  ad.verificationsRejectDialog.verificationRejected = "Demande de vérification rejetée.";
-  ad.verificationsRejectDialog.failedToRejectCompany = "Échec du rejet de la vérification.";
-  ad.verificationsRejectDialog.invalidRejectionReason = "Veuillez fournir un motif de rejet valide.";
-  ad.verificationsRejectDialog.rejectVerificationRequest = "Rejeter la demande de vérification";
-  ad.verificationsRejectDialog.dialogDescription = "Expliquez pourquoi la vérification de cet opérateur est rejetée. Cette note sera visible par l'opérateur.";
-  ad.verificationsRejectDialog.rejectionReasonPlaceholder = "Saisissez le motif du rejet (ex. document non valide, N° contribuable manquant)...";
+  ad.verificationsRejectDialog.verificationRejected =
+    "Demande de vérification rejetée.";
+  ad.verificationsRejectDialog.failedToRejectCompany =
+    "Échec du rejet de la vérification.";
+  ad.verificationsRejectDialog.invalidRejectionReason =
+    "Veuillez fournir un motif de rejet valide.";
+  ad.verificationsRejectDialog.rejectVerificationRequest =
+    "Rejeter la demande de vérification";
+  ad.verificationsRejectDialog.dialogDescription =
+    "Expliquez pourquoi la vérification de cet opérateur est rejetée. Cette note sera visible par l'opérateur.";
+  ad.verificationsRejectDialog.rejectionReasonPlaceholder =
+    "Saisissez le motif du rejet (ex. document non valide, N° contribuable manquant)...";
   ad.verificationsRejectDialog.cancel = "Annuler";
   ad.verificationsRejectDialog.submitting = "Rejet en cours...";
   ad.verificationsRejectDialog.submitRejection = "Confirmer le rejet";
@@ -113,7 +127,11 @@ updateJsonFile(adminFrPath, (fr) => {
 // 2. Operator FR seatClass
 const opFrPath = path.join(FEATURES_DIR, "operator/messages/fr.json");
 updateJsonFile(opFrPath, (fr) => {
-  if (fr.operatorDashboard && fr.operatorDashboard.fleet && fr.operatorDashboard.fleet.addBusDrawer) {
+  if (
+    fr.operatorDashboard &&
+    fr.operatorDashboard.fleet &&
+    fr.operatorDashboard.fleet.addBusDrawer
+  ) {
     fr.operatorDashboard.fleet.addBusDrawer.seatClass = {
       ECONOMY: "Économique",
       STANDARD: "Standard",

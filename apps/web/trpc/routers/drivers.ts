@@ -10,6 +10,8 @@ import {
   driverCompleteTripSchema,
   driverGetMyTripsSchema,
   driverManualCheckInSchema,
+  driverRecordStopArrivalSchema,
+  driverRecordStopDepartureSchema,
   driverReportDelaySchema,
   driverSelfRegisterSchema,
   // Phase 14/17 (F-DV-07) — shared shift-toggle contract
@@ -70,6 +72,7 @@ import {
   type TripConflictCandidate,
 } from "@/lib/driver-assignment";
 import {
+  calculateAffiliationEarnings,
   DEFAULT_DRIVER_PAY_RATE_XOF_PER_MINUTE,
   earningsFromMinutes,
   mondayStartUtc,
@@ -88,6 +91,7 @@ import {
 import { getPhoneValidationError, toE164 } from "@/lib/phone/phone-number";
 import { mintTelemetryDispatchTokenWithCompany } from "@/lib/telemetry-token";
 import { finalizeTripArrival } from "@/lib/trip-arrival";
+import { redisPub } from "@/server/telemetry-redis";
 import {
   createTRPCRouter,
   driverProcedure,
@@ -1184,11 +1188,61 @@ export const driversRouter = createTRPCRouter({
     }),
 
   getAvailableDriversForTrip: operatorCompanyProcedure
-    .input(z.object({ tripDate: z.coerce.date().optional() }))
-    .query(async ({ ctx }) => {
+    .input(
+      z.object({
+        tripDate: z.coerce.date().optional(),
+        tripId: z.string().cuid().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
       requirePermission(ctx, "drivers:read");
 
-      return ctx.prisma.driverProfile.findMany({
+      let routeKeywords: string[] = [];
+      if (input.tripId) {
+        const trip = await ctx.prisma.trip.findUnique({
+          where: { id: input.tripId, companyId: ctx.companyId },
+          include: {
+            schedule: {
+              include: {
+                route: {
+                  select: {
+                    name: true,
+                    originTerminal: { select: { name: true, city: true } },
+                    destTerminal: { select: { name: true, city: true } },
+                  },
+                },
+              },
+            },
+            tripStops: {
+              include: { terminal: true },
+            },
+          },
+        });
+        if (trip?.schedule?.route) {
+          const r = trip.schedule.route;
+          routeKeywords = [
+            r.name,
+            r.originTerminal?.name,
+            r.originTerminal?.city,
+            r.destTerminal?.name,
+            r.destTerminal?.city,
+          ]
+            .filter((v): v is string => Boolean(v))
+            .map((s) => s.toLowerCase());
+        }
+        if (trip?.tripStops) {
+          for (const stop of trip.tripStops) {
+            if (stop.terminal?.name) {
+              routeKeywords.push(stop.terminal.name.toLowerCase());
+            }
+            if (stop.terminal?.city) {
+              routeKeywords.push(stop.terminal.city.toLowerCase());
+            }
+          }
+        }
+      }
+
+      const drivers = await ctx.prisma.driverProfile.findMany({
         where: {
           companyAffiliations: {
             some: {
@@ -1208,9 +1262,45 @@ export const driversRouter = createTRPCRouter({
               image: true,
             },
           },
+          servicePreference: {
+            select: {
+              cityBase: true,
+              routeExperience: true,
+            },
+          },
         },
         orderBy: { averageRating: "desc" },
       });
+
+      // Phase 7 (Gap #11 Extension) — Rank candidates by route experience (+50), city base (+30), safety score (+20)
+      if (routeKeywords.length > 0) {
+        return drivers
+          .map((d) => {
+            let score = 0;
+            const exp = d.servicePreference?.routeExperience ?? [];
+            const base = d.servicePreference?.cityBase?.toLowerCase() ?? "";
+
+            const hasRouteMatch = exp.some((r) => {
+              const rLower = r.toLowerCase();
+              return routeKeywords.some((kw) => rLower.includes(kw));
+            });
+            if (hasRouteMatch) score += 50;
+
+            const hasBaseMatch = routeKeywords.some((kw) => base.includes(kw));
+            if (hasBaseMatch) score += 30;
+
+            score += Math.round((d.safetyScore ?? 100) * 0.2);
+
+            return {
+              ...d,
+              matchScore: score,
+              hasCorridorExperience: hasRouteMatch,
+            };
+          })
+          .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
+      }
+
+      return drivers;
     }),
 
   getLivePositions: operatorCompanyProcedure.query(async ({ ctx }) => {
@@ -2274,6 +2364,191 @@ export const driversRouter = createTRPCRouter({
       };
     }),
 
+  recordStopArrival: driverProcedure
+    .input(driverRecordStopArrivalSchema)
+    .mutation(async ({ ctx, input }) => {
+      const assignment = await ctx.prisma.tripDriverAssignment.findFirst({
+        where: {
+          driverProfileId: ctx.driver.id,
+          tripId: input.tripId,
+        },
+      });
+      if (!assignment) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not assigned to this trip.",
+        });
+      }
+
+      const trip = await ctx.prisma.trip.findUnique({
+        where: { id: input.tripId },
+        select: { id: true, status: true, companyId: true },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found." });
+      }
+      if (trip.status !== "DEPARTED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Trip must be in progress (DEPARTED) to record stop progress.",
+        });
+      }
+
+      const tripStop = await ctx.prisma.tripStop.findFirst({
+        where: { id: input.tripStopId, tripId: input.tripId },
+        include: { terminal: { select: { name: true } } },
+      });
+      if (!tripStop) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Stop not found on this trip.",
+        });
+      }
+
+      if (tripStop.actualArrival) {
+        return {
+          success: true,
+          alreadyArrived: true,
+          tripStopId: tripStop.id,
+          actualArrival: tripStop.actualArrival,
+          terminalName: tripStop.terminal?.name ?? "Stop",
+        };
+      }
+
+      const now = new Date();
+      const updatedStop = await ctx.prisma.tripStop.update({
+        where: { id: tripStop.id },
+        data: { actualArrival: now },
+      });
+
+      // Broadcast real-time stop progress via WebSocket gateway
+      const payload = JSON.stringify({
+        event: "telemetry:stop_update",
+        data: {
+          tripId: input.tripId,
+          tripStopId: tripStop.id,
+          stopOrder: tripStop.stopOrder,
+          action: "ARRIVAL",
+          terminalName: tripStop.terminal?.name ?? "Stop",
+          timestamp: now.toISOString(),
+        },
+      });
+
+      redisPub
+        .publish(`trip:${input.tripId}:telemetry`, payload)
+        .catch(() => {});
+      if (trip.companyId) {
+        redisPub
+          .publish(`operator:${trip.companyId}:fleet`, payload)
+          .catch(() => {});
+      }
+
+      return {
+        success: true,
+        alreadyArrived: false,
+        tripStopId: updatedStop.id,
+        actualArrival: updatedStop.actualArrival,
+        terminalName: tripStop.terminal?.name ?? "Stop",
+      };
+    }),
+
+  recordStopDeparture: driverProcedure
+    .input(driverRecordStopDepartureSchema)
+    .mutation(async ({ ctx, input }) => {
+      const assignment = await ctx.prisma.tripDriverAssignment.findFirst({
+        where: {
+          driverProfileId: ctx.driver.id,
+          tripId: input.tripId,
+        },
+      });
+      if (!assignment) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not assigned to this trip.",
+        });
+      }
+
+      const trip = await ctx.prisma.trip.findUnique({
+        where: { id: input.tripId },
+        select: { id: true, status: true, companyId: true },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found." });
+      }
+      if (trip.status !== "DEPARTED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Trip must be in progress (DEPARTED) to record stop progress.",
+        });
+      }
+
+      const tripStop = await ctx.prisma.tripStop.findFirst({
+        where: { id: input.tripStopId, tripId: input.tripId },
+        include: { terminal: { select: { name: true } } },
+      });
+      if (!tripStop) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Stop not found on this trip.",
+        });
+      }
+
+      if (!tripStop.actualArrival) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot record departure before arrival has been recorded.",
+        });
+      }
+
+      if (tripStop.actualDeparture) {
+        return {
+          success: true,
+          alreadyDeparted: true,
+          tripStopId: tripStop.id,
+          actualDeparture: tripStop.actualDeparture,
+          terminalName: tripStop.terminal?.name ?? "Stop",
+        };
+      }
+
+      const now = new Date();
+      const updatedStop = await ctx.prisma.tripStop.update({
+        where: { id: tripStop.id },
+        data: { actualDeparture: now },
+      });
+
+      // Broadcast real-time stop progress via WebSocket gateway
+      const payload = JSON.stringify({
+        event: "telemetry:stop_update",
+        data: {
+          tripId: input.tripId,
+          tripStopId: tripStop.id,
+          stopOrder: tripStop.stopOrder,
+          action: "DEPARTURE",
+          terminalName: tripStop.terminal?.name ?? "Stop",
+          timestamp: now.toISOString(),
+        },
+      });
+
+      redisPub
+        .publish(`trip:${input.tripId}:telemetry`, payload)
+        .catch(() => {});
+      if (trip.companyId) {
+        redisPub
+          .publish(`operator:${trip.companyId}:fleet`, payload)
+          .catch(() => {});
+      }
+
+      return {
+        success: true,
+        alreadyDeparted: false,
+        tripStopId: updatedStop.id,
+        actualDeparture: updatedStop.actualDeparture,
+        terminalName: tripStop.terminal?.name ?? "Stop",
+      };
+    }),
+
   toggleShift: driverProcedure
     .input(driverShiftToggleSchema)
     .mutation(async ({ ctx, input }) => {
@@ -2413,17 +2688,12 @@ export const driversRouter = createTRPCRouter({
     // SCOPE RULING (Phase 31 review): totals are GLOBAL ACROSS CARRIERS BY
     // DESIGN — no companyId filter here. INTERCITY exclusivity means one
     // active exclusive carrier at a time; urban-contractor shifts coexist and
-    // are labeled per-shift in the UI (shift.company.name). Do NOT "fix" this
-    // into per-company scoping without a product decision: it silently
-    // changes every multi-affiliated driver's numbers.
-    //
-    // Phase 31 (F-DV-11) — the rate lives in PlatformSettings (one DB truth,
-    // identical across environments), not an env var and not a hardcoded 50.
+    // are labeled per-shift in the UI (shift.company.name).
     const settings = await ctx.prisma.platformSettings.findUnique({
       where: { id: "default" },
       select: { driverPayRateXofPerMinute: true },
     });
-    const rateXofPerMinute =
+    const fallbackRateXofPerMinute =
       settings?.driverPayRateXofPerMinute ??
       DEFAULT_DRIVER_PAY_RATE_XOF_PER_MINUTE;
 
@@ -2431,13 +2701,28 @@ export const driversRouter = createTRPCRouter({
     const startOfDay = utcMidnight(now);
     const startOfWeek = mondayStartUtc(now);
 
-    // One indexed aggregate over UNBOUNDED history (the old take:30 capped
-    // the week bucket for >30-shift weeks). Open shifts accrue live minutes;
-    // closed shifts use their ledger totalMinutes.
-    const rows = await ctx.prisma.$queryRaw<
-      Array<{ today_minutes: number; week_minutes: number }>
+    // Active affiliations with configured pay rates (Phase 7 Gap #17a)
+    const affiliations = await ctx.prisma.driverCompanyAffiliation.findMany({
+      where: { driverProfileId: ctx.driver.id, isActive: true },
+      include: {
+        company: {
+          select: { id: true, name: true, logoUrl: true },
+        },
+      },
+    });
+
+    // Per-company shift aggregates
+    const companyShifts = await ctx.prisma.$queryRaw<
+      Array<{
+        company_id: string;
+        today_minutes: number;
+        week_minutes: number;
+        today_trips: number;
+        week_trips: number;
+      }>
     >`
       SELECT
+        s."companyId" AS company_id,
         COALESCE(SUM(
           CASE
             WHEN s."endedAt" IS NOT NULL THEN COALESCE(s."totalMinutes", 0)
@@ -2449,12 +2734,96 @@ export const driversRouter = createTRPCRouter({
             WHEN s."endedAt" IS NOT NULL THEN COALESCE(s."totalMinutes", 0)
             ELSE GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (NOW() - s."startedAt")) / 60))
           END
-        ) FILTER (WHERE s."startedAt" >= ${startOfWeek}), 0)::int AS week_minutes
+        ) FILTER (WHERE s."startedAt" >= ${startOfWeek}), 0)::int AS week_minutes,
+        COALESCE(SUM(s."tripsCompleted") FILTER (WHERE s."startedAt" >= ${startOfDay}), 0)::int AS today_trips,
+        COALESCE(SUM(s."tripsCompleted") FILTER (WHERE s."startedAt" >= ${startOfWeek}), 0)::int AS week_trips
       FROM "driver_shift" s
       WHERE s."driverProfileId" = ${ctx.driver.id}
         AND s."startedAt" >= ${startOfWeek}
+      GROUP BY s."companyId"
     `;
-    const totals = rows[0] ?? { today_minutes: 0, week_minutes: 0 };
+
+    const metricsByCompany = new Map(
+      companyShifts.map((row) => [row.company_id, row]),
+    );
+
+    let totalTodayEarningsXof = 0;
+    let totalWeekEarningsXof = 0;
+    let totalTodayMinutes = 0;
+    let totalWeekMinutes = 0;
+
+    const byCompany = affiliations.map((aff) => {
+      const metrics = metricsByCompany.get(aff.companyId) ?? {
+        company_id: aff.companyId,
+        today_minutes: 0,
+        week_minutes: 0,
+        today_trips: 0,
+        week_trips: 0,
+      };
+
+      totalTodayMinutes += metrics.today_minutes;
+      totalWeekMinutes += metrics.week_minutes;
+
+      const todayCalc = calculateAffiliationEarnings(
+        {
+          companyId: aff.companyId,
+          companyName: aff.company.name,
+          employmentType: aff.employmentType,
+          payModel: aff.payModel,
+          payRateXOF: aff.payRateXOF,
+        },
+        {
+          minutes: metrics.today_minutes,
+          tripsCompleted: metrics.today_trips,
+          daysInPeriod: 1,
+        },
+        fallbackRateXofPerMinute,
+      );
+
+      const daysSoFarInWeek = Math.max(
+        1,
+        Math.min(
+          7,
+          Math.floor((now.getTime() - startOfWeek.getTime()) / 86400000) + 1,
+        ),
+      );
+      const weekCalc = calculateAffiliationEarnings(
+        {
+          companyId: aff.companyId,
+          companyName: aff.company.name,
+          employmentType: aff.employmentType,
+          payModel: aff.payModel,
+          payRateXOF: aff.payRateXOF,
+        },
+        {
+          minutes: metrics.week_minutes,
+          tripsCompleted: metrics.week_trips,
+          daysInPeriod: daysSoFarInWeek,
+        },
+        fallbackRateXofPerMinute,
+      );
+
+      totalTodayEarningsXof += todayCalc.amountXOF;
+      totalWeekEarningsXof += weekCalc.amountXOF;
+
+      return {
+        companyId: aff.companyId,
+        companyName: aff.company.name,
+        companyLogoUrl: aff.company.logoUrl,
+        employmentType: aff.employmentType,
+        payModel: aff.payModel,
+        payRateXOF: aff.payRateXOF,
+        rateDescription: weekCalc.rateDescription,
+        isEstimated: weekCalc.isEstimated,
+        todayMinutes: metrics.today_minutes,
+        weekMinutes: metrics.week_minutes,
+        todayEarningsXof: todayCalc.amountXOF,
+        weekEarningsXof: weekCalc.amountXOF,
+      };
+    });
+
+    // If no affiliations exist or fallback is used across all
+    const hasConcreteRates = affiliations.some((a) => a.payRateXOF != null);
 
     const shifts = await ctx.prisma.driverShift.findMany({
       where: { driverProfileId: ctx.driver.id },
@@ -2468,22 +2837,17 @@ export const driversRouter = createTRPCRouter({
     });
 
     return {
-      todayEarningsXof: earningsFromMinutes(
-        totals.today_minutes,
-        rateXofPerMinute,
-      ),
-      weekEarningsXof: earningsFromMinutes(
-        totals.week_minutes,
-        rateXofPerMinute,
-      ),
-      // Phase 31 D5 — the UI labels these as an ESTIMATE while the pay-rate
-      // model (roadmap) has not replaced this flat per-minute placeholder.
-      rateXofPerMinute,
-      isPlaceholderRate: true,
+      todayEarningsXof: totalTodayEarningsXof,
+      weekEarningsXof: totalWeekEarningsXof,
+      todayMinutes: totalTodayMinutes,
+      weekMinutes: totalWeekMinutes,
+      rateXofPerMinute: fallbackRateXofPerMinute,
+      isPlaceholderRate: !hasConcreteRates,
       totalTripsCompleted: ctx.driver.totalTripsCompleted,
       totalDistanceKm: ctx.driver.totalDistanceKm,
       averageRating: ctx.driver.averageRating,
       safetyScore: ctx.driver.safetyScore,
+      byCompany,
       recentShifts: shifts,
     };
   }),
@@ -2705,6 +3069,7 @@ export const driversRouter = createTRPCRouter({
         licenseCategory,
         preferredType,
         cityBase,
+        corridor,
         minRating,
         minSafetyScore,
         page,
@@ -2721,6 +3086,9 @@ export const driversRouter = createTRPCRouter({
           ...(preferredType ? { preferredType } : {}),
           ...(cityBase
             ? { cityBase: { contains: cityBase, mode: "insensitive" } }
+            : {}),
+          ...(corridor
+            ? { routeExperience: { hasSome: [corridor] } }
             : {}),
         },
         // Exclude drivers already exclusively affiliated with this operator

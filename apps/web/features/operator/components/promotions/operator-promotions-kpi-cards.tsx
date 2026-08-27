@@ -26,7 +26,9 @@ export function OperatorPromotionsKpiCards({
           <Megaphone className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">{t("activePromos")}</p>
+          <p className="text-xs font-medium text-slate-500">
+            {t("activePromos")}
+          </p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : activePromos}
           </p>
@@ -38,7 +40,9 @@ export function OperatorPromotionsKpiCards({
           <CheckCircle2 className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">{t("confirmedRedemptions")}</p>
+          <p className="text-xs font-medium text-slate-500">
+            {t("confirmedRedemptions")}
+          </p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
             {isLoading ? "—" : confirmedRedemptions.toLocaleString()}
           </p>
@@ -50,9 +54,13 @@ export function OperatorPromotionsKpiCards({
           <Coins className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">{t("operatorFunded")}</p>
+          <p className="text-xs font-medium text-slate-500">
+            {t("operatorFunded")}
+          </p>
           <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
-            {isLoading ? "—" : (
+            {isLoading ? (
+              "—"
+            ) : (
               <>
                 {operatorFundedXOF.toLocaleString()}{" "}
                 <span className="text-xs font-medium text-slate-400">XOF</span>

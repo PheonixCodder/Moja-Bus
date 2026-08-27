@@ -11,11 +11,37 @@ import { ActionDrawer } from "@moja/ui/components/ui/action-drawer";
 import { Field, FieldLabel, FieldError } from "@moja/ui/components/ui/field";
 import { Input } from "@moja/ui/components/ui/input";
 import { Button } from "@moja/ui/components/ui/button";
-import { Combobox, ComboboxInput, ComboboxContent, ComboboxList, ComboboxItem } from "@moja/ui/components/ui/combobox";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@moja/ui/components/ui/alert-dialog";
-import { Landmark, ShieldCheck, Clock, Trash2, Plus, AlertTriangle, Pencil } from "lucide-react";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+} from "@moja/ui/components/ui/combobox";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@moja/ui/components/ui/alert-dialog";
+import {
+  Landmark,
+  ShieldCheck,
+  Clock,
+  Trash2,
+  Plus,
+  AlertTriangle,
+  Pencil,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { useBankAccounts, useDeleteBankAccount } from "../../api/use-bank-accounts";
+import {
+  useBankAccounts,
+  useDeleteBankAccount,
+} from "../../api/use-bank-accounts";
 import { Badge } from "@moja/ui/components/ui/badge";
 
 import { bankStepSchema, type BankStepInput } from "../../schemas";
@@ -36,36 +62,40 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
   const deleteBankMutation = useDeleteBankAccount();
 
   const { data: paystackBanks, isLoading: isLoadingBanks } = useQuery(
-    trpc.payments.listBanks.queryOptions({})
+    trpc.payments.listBanks.queryOptions({}),
   );
 
   const addBankAccountMutation = useMutation(
     trpc.operator.addBankAccount.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
-        queryClient.invalidateQueries(trpc.operator.listBankAccounts.queryFilter());
+        queryClient.invalidateQueries(
+          trpc.operator.listBankAccounts.queryFilter(),
+        );
         toast.success(t("toast.added"));
         setIsAdding(false);
       },
       onError: (err) => {
         toast.error(err.message || t("toast.addFailed"));
-      }
-    })
+      },
+    }),
   );
 
   const updateBankAccountMutation = useMutation(
     trpc.operator.updateBankAccount.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
-        queryClient.invalidateQueries(trpc.operator.listBankAccounts.queryFilter());
+        queryClient.invalidateQueries(
+          trpc.operator.listBankAccounts.queryFilter(),
+        );
         toast.success(t("toast.updated"));
         setIsEditing(false);
         setEditingId(null);
       },
       onError: (err) => {
         toast.error(err.message || t("toast.updateFailed"));
-      }
-    })
+      },
+    }),
   );
 
   const form = useForm<BankFormValues>({
@@ -135,9 +165,12 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
 
   const confirmDelete = () => {
     if (deletingId) {
-      deleteBankMutation.mutate({ bankAccountId: deletingId }, {
-        onSettled: () => setDeletingId(null)
-      });
+      deleteBankMutation.mutate(
+        { bankAccountId: deletingId },
+        {
+          onSettled: () => setDeletingId(null),
+        },
+      );
     }
   };
 
@@ -149,10 +182,13 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
           <Plus className="w-4 h-4 mr-1" /> {t("addAccount")}
         </Button>
       </div>
-      
+
       <div className="space-y-3">
         {bankAccounts?.map((account) => (
-          <div key={account.id} className="p-4 rounded-lg border bg-card shadow-sm space-y-3 relative group">
+          <div
+            key={account.id}
+            className="p-4 rounded-lg border bg-card shadow-sm space-y-3 relative group"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-semibold">{account.bankName}</p>
@@ -162,33 +198,43 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
               </div>
               <div className="flex flex-col items-end gap-2">
                 {account.isVerified ? (
-                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-green-500/10 text-green-600 border-green-200"
+                  >
                     <ShieldCheck className="w-3 h-3 mr-1" /> {t("verified")}
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-amber-500/10 text-amber-600 border-amber-200"
+                  >
                     <Clock className="w-3 h-3 mr-1" /> {t("pending")}
                   </Badge>
                 )}
                 {account.isDefault && (
-                  <Badge variant="secondary" className="text-[10px]">{t("default")}</Badge>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {t("default")}
+                  </Badge>
                 )}
               </div>
             </div>
-            
+
             <div className="pt-3 border-t grid grid-cols-2 text-sm gap-2">
               <div className="text-muted-foreground">{t("accountName")}</div>
-              <div className="font-medium truncate" title={account.accountName || ""}>
+              <div
+                className="font-medium truncate"
+                title={account.accountName || ""}
+              >
                 {account.accountName}
               </div>
             </div>
 
-            {(account as any).verificationPayload?.accountNameMatched === false && (
+            {(account as any).verificationPayload?.accountNameMatched ===
+              false && (
               <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
                 <AlertTriangle className="size-3.5 shrink-0" />
-                <span>
-                  {t("nameMismatchWarning")}
-                </span>
+                <span>{t("nameMismatchWarning")}</span>
               </div>
             )}
 
@@ -218,7 +264,10 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
   );
 
   const renderForm = () => (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-4 py-2">
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-4 px-4 py-2"
+    >
       <Field>
         <FieldLabel>{t("bankName")} *</FieldLabel>
         <Combobox
@@ -232,7 +281,11 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
             }
           }}
         >
-          <ComboboxInput placeholder={isLoadingBanks ? "Loading banks..." : t("bankNamePlaceholder")} />
+          <ComboboxInput
+            placeholder={
+              isLoadingBanks ? "Loading banks..." : t("bankNamePlaceholder")
+            }
+          />
           <ComboboxContent>
             <ComboboxList>
               {paystackBanks?.map((provider) => (
@@ -284,10 +337,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
 
       <Field>
         <FieldLabel>{t("iban")}</FieldLabel>
-        <Input
-          placeholder={t("ibanPlaceholder")}
-          {...form.register("iban")}
-        />
+        <Input placeholder={t("ibanPlaceholder")} {...form.register("iban")} />
         <FieldError errors={[form.formState.errors.iban as any]} />
       </Field>
     </form>
@@ -298,12 +348,23 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
       <ActionDrawer
         isOpen={isOpen}
         onClose={onClose}
-        title={isEditing ? t("editAccount") : isAdding ? t("addAccount") : t("title")}
+        title={
+          isEditing ? t("editAccount") : isAdding ? t("addAccount") : t("title")
+        }
         description={t("manageAccountsDesc")}
         footer={
           <div className="flex w-full justify-end gap-3">
-            {(isAdding || isEditing) && bankAccounts && bankAccounts.length > 0 ? (
-              <Button variant="outline" onClick={() => { setIsAdding(false); setIsEditing(false); setEditingId(null); }}>
+            {(isAdding || isEditing) &&
+            bankAccounts &&
+            bankAccounts.length > 0 ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsAdding(false);
+                  setIsEditing(false);
+                  setEditingId(null);
+                }}
+              >
                 {t("cancel")}
               </Button>
             ) : (
@@ -312,8 +373,17 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
               </Button>
             )}
             {(isAdding || isEditing) && (
-              <Button onClick={form.handleSubmit(onSubmit)} disabled={addBankAccountMutation.isPending || updateBankAccountMutation.isPending}>
-                {(addBankAccountMutation.isPending || updateBankAccountMutation.isPending) ? t("saving") : t("saveChanges")}
+              <Button
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={
+                  addBankAccountMutation.isPending ||
+                  updateBankAccountMutation.isPending
+                }
+              >
+                {addBankAccountMutation.isPending ||
+                updateBankAccountMutation.isPending
+                  ? t("saving")
+                  : t("saveChanges")}
               </Button>
             )}
           </div>
@@ -322,7 +392,10 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
         {isAdding || isEditing ? renderForm() : renderList()}
       </ActionDrawer>
 
-      <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
+      <AlertDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 mb-4">

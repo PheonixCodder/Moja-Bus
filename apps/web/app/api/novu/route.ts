@@ -12,5 +12,7 @@ export const { GET, POST, OPTIONS } = serve({
 });
 
 if (!process.env["NOVU_SECRET_KEY"] && process.env.NODE_ENV === "production") {
-  console.error("NOVU_SECRET_KEY is not set — notifications will not be delivered.");
+  console.error(
+    "NOVU_SECRET_KEY is not set — notifications will not be delivered.",
+  );
 }

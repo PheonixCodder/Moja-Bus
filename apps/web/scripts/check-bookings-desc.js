@@ -1,7 +1,5 @@
 const fs = require("fs");
-const files = [
-  "features/operator/views/operator-dashboard-view.tsx",
-];
+const files = ["features/operator/views/operator-dashboard-view.tsx"];
 for (const f of files) {
   try {
     const content = fs.readFileSync(f, "utf8");
@@ -13,5 +11,5 @@ for (const f of files) {
       console.log(content.substring(start, end));
       console.log("");
     }
-  } catch(e) {}
+  } catch (e) {}
 }

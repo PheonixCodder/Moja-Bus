@@ -74,7 +74,10 @@ export function CityAutocompleteField({
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          className={inputClassName || "pl-10 h-12 bg-slate-50 focus:bg-white border-slate-200 focus:ring-[#ee237c] focus:border-[#ee237c] rounded-xl font-medium"}
+          className={
+            inputClassName ||
+            "pl-10 h-12 bg-slate-50 focus:bg-white border-slate-200 focus:ring-[#ee237c] focus:border-[#ee237c] rounded-xl font-medium"
+          }
         />
       </div>
       {isOpen && isSearchable && (
@@ -88,14 +91,18 @@ export function CityAutocompleteField({
                   onChange({
                     id: city.id,
                     text: city.hierarchyLabel ?? city.name,
-                    ...(city.municipalityId ? { municipalityId: city.municipalityId } : {}),
+                    ...(city.municipalityId
+                      ? { municipalityId: city.municipalityId }
+                      : {}),
                     ...(city.quarterId ? { quarterId: city.quarterId } : {}),
                     ...(city.level ? { level: city.level } : {}),
                     ...(city.terminalId ? { terminalId: city.terminalId } : {}),
                     ...(city.level === "terminal" && city.name
                       ? { terminalName: city.name }
                       : {}),
-                    ...(city.companyName ? { companyName: city.companyName } : {}),
+                    ...(city.companyName
+                      ? { companyName: city.companyName }
+                      : {}),
                     ...(city.companyId ? { companyId: city.companyId } : {}),
                   });
                   setIsOpen(false);

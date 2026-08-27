@@ -456,7 +456,9 @@ export function InvitationView() {
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) =>
+                    setOtpCode(e.target.value.replace(/\D/g, ""))
+                  }
                   onKeyDown={(e) => e.key === "Enter" && handleVerifyOtp()}
                   className="h-11 text-[16px] tracking-[0.3em] text-center border-border font-mono"
                   disabled={submitting}

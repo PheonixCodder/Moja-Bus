@@ -157,6 +157,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, reconciledCount });
   } catch (error) {
     console.error("Reconciliation cron execution failed:", error);
-    return NextResponse.json({ error: "Reconciliation failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Reconciliation failed" },
+      { status: 500 },
+    );
   }
 }

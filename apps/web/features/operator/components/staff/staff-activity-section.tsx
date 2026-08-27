@@ -10,7 +10,9 @@ interface StaffActivitySectionProps {
   activities: ActivityLogEntry[];
 }
 
-export function StaffActivitySection({ activities }: StaffActivitySectionProps) {
+export function StaffActivitySection({
+  activities,
+}: StaffActivitySectionProps) {
   const t = useTranslations("operatorDashboard.staff.activitySection");
   const groups = groupActivityByDate(activities);
 

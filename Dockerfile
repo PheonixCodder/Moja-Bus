@@ -123,7 +123,21 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 USER nextjs
 EXPOSE 3000
 
+CMD ["node", "apps/web/server.js"]
+
+###############################################################################
+# runner-ws — minimal production image with WebSocket gateway (Phase 6 Option B)
+###############################################################################
+FROM builder AS runner-ws
+ENV NODE_ENV=production \
+    HOSTNAME=0.0.0.0 \
+    PORT=3000 \
+    NEXT_TELEMETRY_DISABLED=1
+
+EXPOSE 3000
+
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
     CMD wget -qO- http://127.0.0.1:3000/api/health >/dev/null 2>&1 || exit 1
 
-CMD ["node", "apps/web/server.js"]
+CMD ["pnpm", "--filter", "web", "start:ws"]
+

@@ -85,7 +85,6 @@ export function buildTripWhere(
   const effectiveStart =
     cutoff && cutoff.getTime() > start.getTime() ? cutoff : start;
 
-
   if (filters.operators && filters.operators.length > 0) {
     where.companyId = { in: filters.operators };
   }

@@ -5,10 +5,7 @@ export type BenefitType =
   | "FREE_SEAT"
   | "WALLET_CREDIT_GRANT";
 export type DiscountApplyTarget = "TICKET_ONLY" | "ENTIRE_CHARGE";
-export type InstrumentType =
-  | "COUPON_CODE"
-  | "AUTO_PROMO"
-  | "CREDIT_LOT";
+export type InstrumentType = "COUPON_CODE" | "AUTO_PROMO" | "CREDIT_LOT";
 
 export type EvalCampaign = {
   id: string;

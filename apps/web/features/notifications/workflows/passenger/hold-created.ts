@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const passengerHoldCreatedWorkflow = workflow(
   "passenger-hold-created",
   async ({ step, payload }) => {
@@ -46,7 +45,8 @@ export const passengerHoldCreatedWorkflow = workflow(
   },
   {
     name: "Passenger Hold Created",
-    description: "Alerts passenger when seat reservations are held and tells them when the payment window expires",
+    description:
+      "Alerts passenger when seat reservations are held and tells them when the payment window expires",
     preferences: {
       all: { readOnly: true },
     },
@@ -61,5 +61,5 @@ export const passengerHoldCreatedWorkflow = workflow(
       totalAmountXOF: z.number(),
       phone: z.string().optional(),
     }),
-  }
+  },
 );

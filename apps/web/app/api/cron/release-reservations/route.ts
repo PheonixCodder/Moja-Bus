@@ -60,7 +60,7 @@ export async function GET(request: Request) {
     console.error("Failed to release expired reservations:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

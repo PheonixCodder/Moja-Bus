@@ -13,7 +13,8 @@ const DEMO_OPERATORS = [
     slug: "#",
     name: "Union des Transports de Bouaké",
     abbr: "UTB",
-    description: "Leading intercity transport with high frequency connections across central Côte d'Ivoire.",
+    description:
+      "Leading intercity transport with high frequency connections across central Côte d'Ivoire.",
     rating: 4.8,
     routes: 14,
     fleet: 32,
@@ -25,7 +26,8 @@ const DEMO_OPERATORS = [
     slug: "#",
     name: "Abidjan Voyage Services",
     abbr: "AVS",
-    description: "Premium express passenger transport along the southern coastal and central corridors.",
+    description:
+      "Premium express passenger transport along the southern coastal and central corridors.",
     rating: 4.7,
     routes: 9,
     fleet: 21,
@@ -37,7 +39,8 @@ const DEMO_OPERATORS = [
     slug: "#",
     name: "General Transport Company",
     abbr: "GTT",
-    description: "Reliable and affordable commuter options covering northern and western territories.",
+    description:
+      "Reliable and affordable commuter options covering northern and western territories.",
     rating: 4.5,
     routes: 7,
     fleet: 18,
@@ -49,7 +52,9 @@ const DEMO_OPERATORS = [
 export function HomeOperatorsClient() {
   const t = useTranslations("operators");
   const trpc = useTRPC();
-  const { data: operators } = useQuery(trpc.public.listOperators.queryOptions());
+  const { data: operators } = useQuery(
+    trpc.public.listOperators.queryOptions(),
+  );
 
   // Use real data if available, fall back to demo cards
   const displayOperators =
@@ -95,7 +100,9 @@ export function HomeOperatorsClient() {
                     className="object-cover"
                   />
                 ) : (
-                  <span className="text-lg font-black tracking-wider text-slate-100">{op.abbr}</span>
+                  <span className="text-lg font-black tracking-wider text-slate-100">
+                    {op.abbr}
+                  </span>
                 )}
               </div>
 
@@ -109,7 +116,9 @@ export function HomeOperatorsClient() {
                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
                     <span>{op.rating}</span>
                   </div>
-                  <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{t("partner")}</span>
+                  <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                    {t("partner")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -124,7 +133,9 @@ export function HomeOperatorsClient() {
             {/* Hub Cities list */}
             {op.cityNames.length > 0 && (
               <div className="mb-5 pb-5 border-b border-slate-100">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">{t("keyHubs")}</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">
+                  {t("keyHubs")}
+                </span>
                 <div className="flex flex-wrap gap-1.5">
                   {op.cityNames.slice(0, 3).map((city) => (
                     <span
@@ -150,7 +161,7 @@ export function HomeOperatorsClient() {
                   {t("buses", { count: op.fleet })}
                 </span>
               </div>
-              
+
               <span className="text-xs font-extrabold text-[#ee237c] flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
                 {t("schedules")} <ArrowRight className="h-3.5 w-3.5" />
               </span>

@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const passengerWalletLowBalanceWorkflow = workflow(
   "passenger-wallet-low-balance",
   async ({ step, payload }) => {
@@ -23,12 +22,13 @@ export const passengerWalletLowBalanceWorkflow = workflow(
   },
   {
     name: "Passenger Wallet Low Balance",
-    description: "Alerts passenger when a wallet payment check fails due to insufficient available balance",
+    description:
+      "Alerts passenger when a wallet payment check fails due to insufficient available balance",
     payloadSchema: z.object({
       email: z.string().email(),
       passengerName: z.string(),
       availableBalanceXOF: z.number(),
       requiredAmountXOF: z.number(),
     }),
-  }
+  },
 );

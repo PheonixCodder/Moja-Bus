@@ -33,7 +33,10 @@ export function LoginView({
       <div className="absolute top-5 flex w-full justify-end px-10 right-0">
         <div className="text-muted-foreground text-sm">
           {t("loginOperatorLink")}{" "}
-          <Link href="/operator/login" className="text-foreground font-semibold hover:underline">
+          <Link
+            href="/operator/login"
+            className="text-foreground font-semibold hover:underline"
+          >
             {t("loginOperatorPortal")}
           </Link>
         </div>

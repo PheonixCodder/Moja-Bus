@@ -255,6 +255,13 @@ enum DriverEmploymentType {
   HYBRID
 }
 
+enum DriverPayModel {
+  HOURLY
+  PER_TRIP
+  MONTHLY_SALARY
+}
+
+
 enum LicenseCategory {
   B
   C
@@ -2348,6 +2355,8 @@ model DriverCompanyAffiliation {
   company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   employmentType  DriverEmploymentType @default(EXCLUSIVE_INTERCITY)
+  payModel        DriverPayModel       @default(HOURLY)
+  payRateXOF      Int?
   isActive        Boolean              @default(true)
   isVerified      Boolean              @default(false)
   badgeNumber     String?

@@ -33,7 +33,9 @@ export function PendingReferralApplier() {
         }
         await Promise.all([
           queryClient.invalidateQueries(trpc.discounts.myReferral.pathFilter()),
-          queryClient.invalidateQueries(trpc.discounts.listMyInvitees.pathFilter()),
+          queryClient.invalidateQueries(
+            trpc.discounts.listMyInvitees.pathFilter(),
+          ),
         ]);
       },
       onError: (err) => {

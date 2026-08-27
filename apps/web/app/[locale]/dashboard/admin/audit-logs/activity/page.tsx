@@ -7,7 +7,8 @@ import type { SearchParams } from "nuqs/server";
 
 export const metadata = {
   title: "Activity Logs | Admin",
-  description: "Audit all platform notification events across operators, travelers and admins.",
+  description:
+    "Audit all platform notification events across operators, travelers and admins.",
 };
 
 export default async function ActivityLogsPage({
@@ -16,9 +17,8 @@ export default async function ActivityLogsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const t = await getTranslations("adminDashboard.pages.activityLogs");
-  const { search, channel, template, page } = adminActivityLogsParamsCache.parse(
-    await searchParams
-  );
+  const { search, channel, template, page } =
+    adminActivityLogsParamsCache.parse(await searchParams);
 
   await prefetch(
     trpc.admin.listActivityLogs.queryOptions({
@@ -27,7 +27,7 @@ export default async function ActivityLogsPage({
       search: search || undefined,
       channels: channel ? [channel] : undefined,
       templates: template ? [template] : undefined,
-    })
+    }),
   );
 
   return (

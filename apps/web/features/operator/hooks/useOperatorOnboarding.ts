@@ -49,7 +49,8 @@ export function useOperatorOnboarding() {
   );
 
   // Server is the source of truth for the current step
-  const currentStep = (data?.progress?.currentStep ?? "COMPANY") as OnboardingStep;
+  const currentStep = (data?.progress?.currentStep ??
+    "COMPANY") as OnboardingStep;
 
   // Log STEP_ENTERED and reset timer each time currentStep changes
   useEffect(() => {

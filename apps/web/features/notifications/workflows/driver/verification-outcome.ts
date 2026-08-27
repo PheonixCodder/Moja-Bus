@@ -65,5 +65,5 @@ export const driverVerificationOutcomeWorkflow = workflow(
     description:
       "Notifies the driver when platform verification is approved, rejected, or suspended",
     payloadSchema: driverVerificationOutcomePayloadSchema,
-  }
+  },
 );

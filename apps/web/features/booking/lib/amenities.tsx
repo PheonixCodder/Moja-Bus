@@ -30,7 +30,9 @@ export function AmenityChips({ amenities }: { amenities: Amenity[] }) {
           const fallbackLabel = AMENITY_LABEL[amenity];
           if (!Icon || !fallbackLabel) return null;
           const searchKey = `amenity${amenity}`;
-          const label = tSearch.has(searchKey) ? tSearch(searchKey) : fallbackLabel;
+          const label = tSearch.has(searchKey)
+            ? tSearch(searchKey)
+            : fallbackLabel;
           return (
             <span
               key={amenity}

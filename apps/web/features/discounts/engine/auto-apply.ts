@@ -74,7 +74,10 @@ export function instrumentFromCampaign(input: {
 export function buildChargeQuote(input: {
   ctx: EvalContext;
   instruments: SelectedInstrument[];
-}): Omit<QuoteResult, "ok" | "rejection" | "rejectedAlternatives" | "autoAppliedCampaignId"> {
+}): Omit<
+  QuoteResult,
+  "ok" | "rejection" | "rejectedAlternatives" | "autoAppliedCampaignId"
+> {
   const ticketDiscountXOF = input.instruments.reduce(
     (sum, i) => sum + i.ticketDiscountXOF,
     0,

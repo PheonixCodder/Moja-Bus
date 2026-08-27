@@ -5,12 +5,12 @@ import {
   createScheduleSchema,
   updateScheduleBasicSchema,
   updateCalendarSchema,
-   updateFareSchema,
-   addFareSchema,
-   exceptionSchema,
-   listSchedulesSchema,
-   type FareType,
- } from "@moja/schemas";
+  updateFareSchema,
+  addFareSchema,
+  exceptionSchema,
+  listSchedulesSchema,
+  type FareType,
+} from "@moja/schemas";
 import { generateTripsForSchedule } from "@/lib/trip-generator";
 import {
   buildAppDepartureTimestamp,
@@ -27,10 +27,23 @@ import type { PrismaClient } from "@moja/db";
  * For missing adjacent segments, proportionally allocate from the full-route fare.
  */
 function computeScheduleWaypoints(
-  routeWaypoints: { id: string; stopOrder: number; distanceFromOriginKm: number | null }[],
-  fares: { fromStopOrder: number; toStopOrder: number; durationMinutes: number }[],
+  routeWaypoints: {
+    id: string;
+    stopOrder: number;
+    distanceFromOriginKm: number | null;
+  }[],
+  fares: {
+    fromStopOrder: number;
+    toStopOrder: number;
+    durationMinutes: number;
+  }[],
   dwells: ReadonlyMap<number, number> = new Map(),
-): { routeWaypointId: string; arrivalOffsetMinutes: number; departureOffsetMinutes: number; dwellMinutes: number }[] {
+): {
+  routeWaypointId: string;
+  arrivalOffsetMinutes: number;
+  departureOffsetMinutes: number;
+  dwellMinutes: number;
+}[] {
   if (routeWaypoints.length === 0) return [];
 
   const sorted = [...routeWaypoints].sort((a, b) => a.stopOrder - b.stopOrder);
@@ -46,13 +59,23 @@ function computeScheduleWaypoints(
   // Full-route fare for fallback
   const lastWp = sorted[sorted.length - 1]!;
   const destOrder = lastWp.stopOrder + 1;
-  const fullRouteFare = fares.find((f) => f.fromStopOrder === 0 && f.toStopOrder === destOrder);
+  const fullRouteFare = fares.find(
+    (f) => f.fromStopOrder === 0 && f.toStopOrder === destOrder,
+  );
   const totalDuration = fullRouteFare?.durationMinutes ?? 0;
-  const totalDist = sorted.reduce((s, w) => s + (w.distanceFromOriginKm ?? 0), 0);
+  const totalDist = sorted.reduce(
+    (s, w) => s + (w.distanceFromOriginKm ?? 0),
+    0,
+  );
 
   let cumulative = 0;
   let prevOrder = 0;
-  const result: { routeWaypointId: string; arrivalOffsetMinutes: number; departureOffsetMinutes: number; dwellMinutes: number }[] = [];
+  const result: {
+    routeWaypointId: string;
+    arrivalOffsetMinutes: number;
+    departureOffsetMinutes: number;
+    dwellMinutes: number;
+  }[] = [];
 
   for (let i = 0; i < sorted.length; i++) {
     const wp = sorted[i]!;
@@ -62,11 +85,16 @@ function computeScheduleWaypoints(
 
     // Fallback: proportionally allocate from full-route fare
     if (segDuration === undefined && totalDuration > 0) {
-      const segDist = i === 0
-        ? (wp.distanceFromOriginKm ?? 0)
-        : ((wp.distanceFromOriginKm ?? 0) - (sorted[i - 1]?.distanceFromOriginKm ?? 0));
+      const segDist =
+        i === 0
+          ? (wp.distanceFromOriginKm ?? 0)
+          : (wp.distanceFromOriginKm ?? 0) -
+            (sorted[i - 1]?.distanceFromOriginKm ?? 0);
       const distTotal = totalDist > 0 ? totalDist : sorted.length;
-      const proportion = totalDist > 0 ? Math.max(0, segDist) / distTotal : 1 / (sorted.length + 1);
+      const proportion =
+        totalDist > 0
+          ? Math.max(0, segDist) / distTotal
+          : 1 / (sorted.length + 1);
       segDuration = Math.max(1, Math.round(totalDuration * proportion));
     }
 
@@ -201,19 +229,18 @@ async function reconcileScheduleTrips(
   const mismatchUnbookedIds = leftover
     .filter(
       (t) =>
-        t._count.bookings === 0 &&
-        !allowed.has(t.departureDate.toISOString()),
+        t._count.bookings === 0 && !allowed.has(t.departureDate.toISOString()),
     )
     .map((t) => t.id);
 
   if (mismatchUnbookedIds.length > 0) {
-    await prisma.trip.deleteMany({ where: { id: { in: mismatchUnbookedIds } } });
+    await prisma.trip.deleteMany({
+      where: { id: { in: mismatchUnbookedIds } },
+    });
   }
 
   const mismatchBookedTrips = leftover.filter(
-    (t) =>
-      t._count.bookings > 0 &&
-      !allowed.has(t.departureDate.toISOString()),
+    (t) => t._count.bookings > 0 && !allowed.has(t.departureDate.toISOString()),
   );
 
   let cancelledBooked = 0;
@@ -298,7 +325,9 @@ async function checkBusScheduleConflict(
   if (existingSchedules.length === 0) return;
 
   const newFrom = new Date(calendar.validFrom).getTime();
-  const newUntil = calendar.validUntil ? new Date(calendar.validUntil).getTime() : Infinity;
+  const newUntil = calendar.validUntil
+    ? new Date(calendar.validUntil).getTime()
+    : Infinity;
 
   const days = [
     "monday",
@@ -469,8 +498,20 @@ export const schedulesRouter = createTRPCRouter({
           include: {
             route: {
               include: {
-                originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                originTerminal: {
+                  include: {
+                    cityRelation: true,
+                    municipality: true,
+                    quarter: true,
+                  },
+                },
+                destTerminal: {
+                  include: {
+                    cityRelation: true,
+                    municipality: true,
+                    quarter: true,
+                  },
+                },
               },
             },
             calendar: true,
@@ -536,12 +577,30 @@ export const schedulesRouter = createTRPCRouter({
         include: {
           route: {
             include: {
-              originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-              destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+              originTerminal: {
+                include: {
+                  cityRelation: true,
+                  municipality: true,
+                  quarter: true,
+                },
+              },
+              destTerminal: {
+                include: {
+                  cityRelation: true,
+                  municipality: true,
+                  quarter: true,
+                },
+              },
               waypoints: {
                 orderBy: { stopOrder: "asc" },
                 include: {
-                  terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                  terminal: {
+                    include: {
+                      cityRelation: true,
+                      municipality: true,
+                      quarter: true,
+                    },
+                  },
                 },
               },
             },
@@ -558,9 +617,9 @@ export const schedulesRouter = createTRPCRouter({
           exceptions: {
             orderBy: { date: "asc" },
           },
-fares: {
-             orderBy: [{ fromStopOrder: "asc" }],
-           },
+          fares: {
+            orderBy: [{ fromStopOrder: "asc" }],
+          },
         },
       });
 
@@ -578,8 +637,15 @@ fares: {
     .input(createScheduleSchema)
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "schedules:create");
-      const { name, routeId, preferredBusId, departureTimes, calendar, fares, dwells } =
-        input;
+      const {
+        name,
+        routeId,
+        preferredBusId,
+        departureTimes,
+        calendar,
+        fares,
+        dwells,
+      } = input;
       const departureTime = departureTimes[0]!;
 
       const route = await ctx.prisma.route.findFirst({
@@ -695,9 +761,15 @@ fares: {
         });
 
         // Compute schedule-specific waypoint timings from adjacent fare durations + dwell
-        const swData = computeScheduleWaypoints(route.waypoints, fares, new Map((dwells ?? []).map((d) => [d.stopOrder, d.dwellMinutes])));
+        const swData = computeScheduleWaypoints(
+          route.waypoints,
+          fares,
+          new Map((dwells ?? []).map((d) => [d.stopOrder, d.dwellMinutes])),
+        );
         if (swData.length > 0) {
-          await tx.scheduleWaypoint.createMany({ data: swData.map((sw) => ({ ...sw, scheduleId: schedule.id })) });
+          await tx.scheduleWaypoint.createMany({
+            data: swData.map((sw) => ({ ...sw, scheduleId: schedule.id })),
+          });
         }
 
         for (const f of fares) {
@@ -828,8 +900,7 @@ fares: {
       if (bookingsCount > 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message:
-            `Cannot delete schedule: ${bookingsCount} active booking(s) exist on its trips. Retire (deactivate) the schedule instead.`,
+          message: `Cannot delete schedule: ${bookingsCount} active booking(s) exist on its trips. Retire (deactivate) the schedule instead.`,
         });
       }
 
@@ -871,12 +942,12 @@ fares: {
       return { success: true };
     }),
 
-updateBasic: operatorCompanyProcedure
-      .input(z.object({ id: z.string(), data: updateScheduleBasicSchema }))
-      .mutation(async ({ ctx, input }) => {
-        requirePermission(ctx, "schedules:update");
-        requirePermission(ctx, "trips:cancel");
-        requirePermission(ctx, "trips:dispatch");
+  updateBasic: operatorCompanyProcedure
+    .input(z.object({ id: z.string(), data: updateScheduleBasicSchema }))
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "schedules:update");
+      requirePermission(ctx, "trips:cancel");
+      requirePermission(ctx, "trips:dispatch");
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
       });
@@ -968,7 +1039,13 @@ updateBasic: operatorCompanyProcedure
         input.data.preferredBusId !== undefined
           ? input.data.preferredBusId
           : schedule.preferredBusId;
-      if (willBeActive && effectiveBusId && (timesChanged || input.data.isActive === true || input.data.preferredBusId !== undefined)) {
+      if (
+        willBeActive &&
+        effectiveBusId &&
+        (timesChanged ||
+          input.data.isActive === true ||
+          input.data.preferredBusId !== undefined)
+      ) {
         const calendar = await ctx.prisma.serviceCalendar.findUnique({
           where: { scheduleId: schedule.id },
         });
@@ -991,26 +1068,20 @@ updateBasic: operatorCompanyProcedure
       });
 
       if (input.data.isActive === false) {
-        await pruneUnbookedFutureTrips(
-          ctx.prisma,
-          schedule.id,
-          ctx.companyId,
-        );
+        await pruneUnbookedFutureTrips(ctx.prisma, schedule.id, ctx.companyId);
       } else if (
-        (timesChanged ||
-          input.data.preferredBusId !== undefined) &&
+        (timesChanged || input.data.preferredBusId !== undefined) &&
         updated.isActive &&
         (updated.preferredBusId || input.data.preferredBusId)
       ) {
-        const busId =
-          input.data.preferredBusId ?? updated.preferredBusId;
+        const busId = input.data.preferredBusId ?? updated.preferredBusId;
         if (busId) {
           await reconcileScheduleTrips(
             ctx.prisma,
             schedule.id,
             ctx.companyId,
             busId,
-            ctx.user.id
+            ctx.user.id,
           );
         }
       }
@@ -1018,12 +1089,12 @@ updateBasic: operatorCompanyProcedure
       return updated;
     }),
 
-updateCalendar: operatorCompanyProcedure
-      .input(z.object({ id: z.string(), data: updateCalendarSchema }))
-      .mutation(async ({ ctx, input }) => {
-        requirePermission(ctx, "schedules:update");
-        requirePermission(ctx, "trips:cancel");
-        requirePermission(ctx, "trips:dispatch");
+  updateCalendar: operatorCompanyProcedure
+    .input(z.object({ id: z.string(), data: updateCalendarSchema }))
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "schedules:update");
+      requirePermission(ctx, "trips:cancel");
+      requirePermission(ctx, "trips:dispatch");
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
         include: { calendar: true },
@@ -1039,7 +1110,8 @@ updateCalendar: operatorCompanyProcedure
       const data = input.data;
       const updateData: Record<string, unknown> = {};
       if (data["monday"] !== undefined) updateData["monday"] = data["monday"];
-      if (data["tuesday"] !== undefined) updateData["tuesday"] = data["tuesday"];
+      if (data["tuesday"] !== undefined)
+        updateData["tuesday"] = data["tuesday"];
       if (data["wednesday"] !== undefined)
         updateData["wednesday"] = data["wednesday"];
       if (data["thursday"] !== undefined)
@@ -1061,8 +1133,13 @@ updateCalendar: operatorCompanyProcedure
       // (property-access narrowing is not preserved in closures).
       const existingCalendar = schedule.calendar;
       const DAY_FIELDS = [
-        "monday", "tuesday", "wednesday", "thursday",
-        "friday", "saturday", "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
       ] as const;
       const hasActiveDay = DAY_FIELDS.some((k) =>
         updateData[k] !== undefined
@@ -1072,21 +1149,49 @@ updateCalendar: operatorCompanyProcedure
       if (!hasActiveDay) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Schedule must run on at least one day. Select at least one operating day.",
+          message:
+            "Schedule must run on at least one day. Select at least one operating day.",
         });
       }
 
       if (schedule.isActive && schedule.preferredBusId) {
         const mergedCalendar = {
-          monday: updateData["monday"] !== undefined ? Boolean(updateData["monday"]) : existingCalendar.monday,
-          tuesday: updateData["tuesday"] !== undefined ? Boolean(updateData["tuesday"]) : existingCalendar.tuesday,
-          wednesday: updateData["wednesday"] !== undefined ? Boolean(updateData["wednesday"]) : existingCalendar.wednesday,
-          thursday: updateData["thursday"] !== undefined ? Boolean(updateData["thursday"]) : existingCalendar.thursday,
-          friday: updateData["friday"] !== undefined ? Boolean(updateData["friday"]) : existingCalendar.friday,
-          saturday: updateData["saturday"] !== undefined ? Boolean(updateData["saturday"]) : existingCalendar.saturday,
-          sunday: updateData["sunday"] !== undefined ? Boolean(updateData["sunday"]) : existingCalendar.sunday,
-          validFrom: updateData["validFrom"] !== undefined ? (updateData["validFrom"] as Date) : existingCalendar.validFrom,
-          validUntil: updateData["validUntil"] !== undefined ? (updateData["validUntil"] as Date | null) : existingCalendar.validUntil,
+          monday:
+            updateData["monday"] !== undefined
+              ? Boolean(updateData["monday"])
+              : existingCalendar.monday,
+          tuesday:
+            updateData["tuesday"] !== undefined
+              ? Boolean(updateData["tuesday"])
+              : existingCalendar.tuesday,
+          wednesday:
+            updateData["wednesday"] !== undefined
+              ? Boolean(updateData["wednesday"])
+              : existingCalendar.wednesday,
+          thursday:
+            updateData["thursday"] !== undefined
+              ? Boolean(updateData["thursday"])
+              : existingCalendar.thursday,
+          friday:
+            updateData["friday"] !== undefined
+              ? Boolean(updateData["friday"])
+              : existingCalendar.friday,
+          saturday:
+            updateData["saturday"] !== undefined
+              ? Boolean(updateData["saturday"])
+              : existingCalendar.saturday,
+          sunday:
+            updateData["sunday"] !== undefined
+              ? Boolean(updateData["sunday"])
+              : existingCalendar.sunday,
+          validFrom:
+            updateData["validFrom"] !== undefined
+              ? (updateData["validFrom"] as Date)
+              : existingCalendar.validFrom,
+          validUntil:
+            updateData["validUntil"] !== undefined
+              ? (updateData["validUntil"] as Date | null)
+              : existingCalendar.validUntil,
         };
         await checkBusScheduleConflict(
           ctx.prisma,
@@ -1112,24 +1217,24 @@ updateCalendar: operatorCompanyProcedure
           schedule.id,
           ctx.companyId,
           schedule.preferredBusId,
-          ctx.user.id
+          ctx.user.id,
         );
       }
 
       return updated;
     }),
 
-reconcileFutureTrips: operatorCompanyProcedure
-      .input(
-        z.object({
-          id: z.string(),
-          busId: z.string().optional(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        requirePermission(ctx, "schedules:update");
-        requirePermission(ctx, "trips:cancel");
-        requirePermission(ctx, "trips:dispatch");
+  reconcileFutureTrips: operatorCompanyProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        busId: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "schedules:update");
+      requirePermission(ctx, "trips:cancel");
+      requirePermission(ctx, "trips:dispatch");
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
         include: { calendar: true },
@@ -1162,7 +1267,7 @@ reconcileFutureTrips: operatorCompanyProcedure
         schedule.id,
         ctx.companyId,
         busId,
-        ctx.user.id
+        ctx.user.id,
       );
 
       return { success: true, ...result };
@@ -1204,18 +1309,13 @@ reconcileFutureTrips: operatorCompanyProcedure
         });
       }
 
-      await assertNoFareOverlap(
-        ctx.prisma,
-        schedule.id,
-        input.fareId,
-        {
-          type: input.data.type ?? fare.type,
-          fromStopOrder: fare.fromStopOrder,
-          toStopOrder: fare.toStopOrder,
-          validFrom: fare.validFrom,
-          validUntil: fare.validUntil,
-        },
-      );
+      await assertNoFareOverlap(ctx.prisma, schedule.id, input.fareId, {
+        type: input.data.type ?? fare.type,
+        fromStopOrder: fare.fromStopOrder,
+        toStopOrder: fare.toStopOrder,
+        validFrom: fare.validFrom,
+        validUntil: fare.validUntil,
+      });
 
       const updateData = Object.fromEntries(
         Object.entries(input.data).filter(([, v]) => v !== undefined),
@@ -1365,9 +1465,7 @@ reconcileFutureTrips: operatorCompanyProcedure
       }
 
       const busId =
-        input.preferredBusId ||
-        input.defaultBusId ||
-        schedule.preferredBusId;
+        input.preferredBusId || input.defaultBusId || schedule.preferredBusId;
       if (!busId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -1388,7 +1486,8 @@ reconcileFutureTrips: operatorCompanyProcedure
       if (!bus) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Selected bus is invalid or does not belong to your company.",
+          message:
+            "Selected bus is invalid or does not belong to your company.",
         });
       }
 
@@ -1400,11 +1499,7 @@ reconcileFutureTrips: operatorCompanyProcedure
       }
 
       try {
-        const newTrips = await generateTripsForSchedule(
-          schedule.id,
-          busId,
-          14,
-        );
+        const newTrips = await generateTripsForSchedule(schedule.id, busId, 14);
         return {
           success: true,
           tripsCreated: newTrips.length,
@@ -1419,15 +1514,15 @@ reconcileFutureTrips: operatorCompanyProcedure
       }
     }),
 
-   addException: operatorCompanyProcedure
-     .input(
-       exceptionSchema.extend({
-         scheduleId: z.string(),
-       }),
-     )
-     .mutation(async ({ ctx, input }) => {
-       requirePermission(ctx, "schedules:update");
-       requirePermission(ctx, "trips:cancel");
+  addException: operatorCompanyProcedure
+    .input(
+      exceptionSchema.extend({
+        scheduleId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "schedules:update");
+      requirePermission(ctx, "trips:cancel");
       const schedule = await ctx.prisma.schedule.findFirst({
         where: { id: input.scheduleId, companyId: ctx.companyId },
       });
@@ -1456,7 +1551,8 @@ reconcileFutureTrips: operatorCompanyProcedure
         if (targetDate < validFromStart) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Exception date cannot be prior to the schedule's Valid From date.",
+            message:
+              "Exception date cannot be prior to the schedule's Valid From date.",
           });
         }
         if (calendar.validUntil) {
@@ -1465,7 +1561,8 @@ reconcileFutureTrips: operatorCompanyProcedure
           if (targetDate > validUntilEnd) {
             throw new TRPCError({
               code: "BAD_REQUEST",
-              message: "Exception date cannot be after the schedule's Valid Until date.",
+              message:
+                "Exception date cannot be after the schedule's Valid Until date.",
             });
           }
         }
@@ -1573,7 +1670,7 @@ reconcileFutureTrips: operatorCompanyProcedure
               schedule.id,
               ctx.companyId,
               schedule.preferredBusId,
-              ctx.user.id
+              ctx.user.id,
             );
           } catch (err) {
             console.error("Failed to reconcile trips after exception:", err);
@@ -1584,11 +1681,11 @@ reconcileFutureTrips: operatorCompanyProcedure
       return exception;
     }),
 
-   removeException: operatorCompanyProcedure
-     .input(z.object({ exceptionId: z.string() }))
-     .mutation(async ({ ctx, input }) => {
-       requirePermission(ctx, "schedules:update");
-       requirePermission(ctx, "trips:cancel");
+  removeException: operatorCompanyProcedure
+    .input(z.object({ exceptionId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "schedules:update");
+      requirePermission(ctx, "trips:cancel");
       const exception = await ctx.prisma.serviceException.findFirst({
         where: { id: input.exceptionId },
         include: { schedule: true },
@@ -1605,17 +1702,14 @@ reconcileFutureTrips: operatorCompanyProcedure
         where: { id: exception.id },
       });
 
-      if (
-        exception.schedule.isActive &&
-        exception.schedule.preferredBusId
-      ) {
+      if (exception.schedule.isActive && exception.schedule.preferredBusId) {
         try {
           await reconcileScheduleTrips(
             ctx.prisma,
             exception.scheduleId,
             ctx.companyId,
             exception.schedule.preferredBusId,
-            ctx.user.id
+            ctx.user.id,
           );
         } catch (err) {
           console.error(

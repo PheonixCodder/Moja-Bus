@@ -45,6 +45,10 @@ function makeDb(opts: {
         calls.push({ op: "driverShift.update", args });
         return {};
       },
+      updateMany: async (args: any) => {
+        calls.push({ op: "driverShift.updateMany", args });
+        return { count: 0 };
+      },
     },
   };
 
@@ -68,7 +72,10 @@ describe("convergeDriversAfterRunEnd", () => {
     const result = await convergeDriversAfterRunEnd(db, "trip_1");
 
     assert.deepEqual(result, []);
-    assert.equal(calls.filter((c) => c.op === "driverProfile.updateMany").length, 0);
+    assert.equal(
+      calls.filter((c) => c.op === "driverProfile.updateMany").length,
+      0,
+    );
   });
 
   it("groups by shift presence: on-duty → AVAILABLE, off-duty → OFFLINE", async () => {
@@ -90,7 +97,10 @@ describe("convergeDriversAfterRunEnd", () => {
     const offlineUpdate = updates.find((u) => u.args.data.status === "OFFLINE");
 
     assert.ok(availableUpdate, "expected an AVAILABLE batch");
-    assert.deepEqual(availableUpdate.args.where.id.in.sort(), ["d_on", "d_on2"]);
+    assert.deepEqual(availableUpdate.args.where.id.in.sort(), [
+      "d_on",
+      "d_on2",
+    ]);
     assert.equal(availableUpdate.args.where.currentTripId, "trip_1");
     assert.equal(availableUpdate.args.data.currentTripId, null);
 

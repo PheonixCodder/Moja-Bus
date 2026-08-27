@@ -45,14 +45,14 @@ async function assertTicketExists(token: string) {
   }
 }
 
-export default async function PublicTicketPage({ params }: PublicTicketPageProps) {
+export default async function PublicTicketPage({
+  params,
+}: PublicTicketPageProps) {
   const { token: rawToken } = await params;
   const ticketToken = await assertTicketExists(rawToken);
   const t = await getTranslations("ticket");
 
-  await prefetch(
-    trpc.booking.getTicketByToken.queryOptions({ ticketToken }),
-  );
+  await prefetch(trpc.booking.getTicketByToken.queryOptions({ ticketToken }));
 
   return (
     <HydrateClient>
@@ -63,7 +63,9 @@ export default async function PublicTicketPage({ params }: PublicTicketPageProps
             <Link href="/" className="text-sm font-bold text-slate-900">
               Moja Ride
             </Link>
-            <span className="text-xs text-slate-500 ml-auto">{t("digitalTicket")}</span>
+            <span className="text-xs text-slate-500 ml-auto">
+              {t("digitalTicket")}
+            </span>
           </div>
         </header>
 

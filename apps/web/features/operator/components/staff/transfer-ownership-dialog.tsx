@@ -151,11 +151,7 @@ export function TransferOwnershipDialog({
             onClick={handleConfirm}
             disabled={confirming || otp.length < 6}
           >
-            {confirming ? (
-              <Spinner className="h-3.5 w-3.5" />
-            ) : (
-              t("confirm")
-            )}
+            {confirming ? <Spinner className="h-3.5 w-3.5" /> : t("confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

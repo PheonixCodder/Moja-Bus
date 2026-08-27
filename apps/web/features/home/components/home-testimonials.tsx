@@ -7,7 +7,8 @@ const testimonials = [
     initials: "FK",
     gradient: "from-[#ee237c] to-pink-500",
     route: "Abidjan → Bouaké",
-    quote: "Booking was incredibly fast! I paid securely via Wave and received my QR boarding ticket via SMS and email within 30 seconds. No more standing in queues at the station.",
+    quote:
+      "Booking was incredibly fast! I paid securely via Wave and received my QR boarding ticket via SMS and email within 30 seconds. No more standing in queues at the station.",
     date: "2 days ago",
   },
   {
@@ -15,7 +16,8 @@ const testimonials = [
     initials: "KY",
     gradient: "from-indigo-500 to-purple-600",
     route: "Yamoussoukro → Abidjan",
-    quote: "Excellent customer support. I had to reschedule my trip last minute. The customer service agent helped me switch buses quickly, and the process was absolutely seamless.",
+    quote:
+      "Excellent customer support. I had to reschedule my trip last minute. The customer service agent helped me switch buses quickly, and the process was absolutely seamless.",
     date: "1 week ago",
   },
   {
@@ -23,7 +25,8 @@ const testimonials = [
     initials: "AD",
     gradient: "from-emerald-400 to-teal-600",
     route: "San-Pédro → Abidjan",
-    quote: "I love that I can select my exact seat! I prefer sitting near the window, and Moja-Bus allows me to inspect the seating chart and choose my spot before paying.",
+    quote:
+      "I love that I can select my exact seat! I prefer sitting near the window, and Moja-Bus allows me to inspect the seating chart and choose my spot before paying.",
     date: "3 days ago",
   },
 ];
@@ -94,11 +97,15 @@ export async function HomeTestimonials() {
 
               {/* User Bio */}
               <div className="flex items-center gap-4 border-t border-slate-50 pt-6 mt-auto relative z-10">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${review.gradient} text-white font-extrabold flex items-center justify-center text-sm shadow-sm select-none group-hover:ring-4 group-hover:ring-[#ee237c]/10 transition-all duration-300`}>
+                <div
+                  className={`w-12 h-12 rounded-full bg-gradient-to-br ${review.gradient} text-white font-extrabold flex items-center justify-center text-sm shadow-sm select-none group-hover:ring-4 group-hover:ring-[#ee237c]/10 transition-all duration-300`}
+                >
                   {review.initials}
                 </div>
                 <div className="text-left">
-                  <h4 className="font-extrabold text-slate-900 text-[14.5px]">{review.name}</h4>
+                  <h4 className="font-extrabold text-slate-900 text-[14.5px]">
+                    {review.name}
+                  </h4>
                   <div className="flex items-center gap-1.5 mt-1">
                     <span className="text-[10px] text-[#ee237c] font-bold tracking-wider uppercase bg-pink-50 px-2 py-0.5 rounded border border-pink-100/40">
                       {review.route}
@@ -118,18 +125,27 @@ export async function HomeTestimonials() {
           <div className="bg-slate-50 border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 rounded-[2rem] px-8 py-6 flex flex-col md:flex-row items-center gap-6 md:gap-10 select-none">
             {/* Trustpilot Logo */}
             <div className="flex items-center gap-2 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-10">
-              <svg className="w-8 h-8 text-[#00b67a] fill-current" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-[#00b67a] fill-current"
+                viewBox="0 0 24 24"
+              >
                 <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
               </svg>
-              <span className="font-black text-2xl tracking-tight text-slate-900" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              <span
+                className="font-black text-2xl tracking-tight text-slate-900"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
                 Trustpilot
               </span>
             </div>
-            
+
             {/* Trustpilot Stars */}
             <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((s) => (
-                <div key={s} className="w-8 h-8 bg-[#00b67a] text-white flex items-center justify-center rounded-md shadow-sm">
+                <div
+                  key={s}
+                  className="w-8 h-8 bg-[#00b67a] text-white flex items-center justify-center rounded-md shadow-sm"
+                >
                   <Star className="h-4.5 w-4.5 fill-white text-white" />
                 </div>
               ))}
@@ -137,13 +153,21 @@ export async function HomeTestimonials() {
 
             {/* Trustpilot Stats */}
             <div className="text-sm text-slate-500 flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
-              <span className="font-extrabold text-slate-900 text-base">{t("trustpilot.trustScore")}</span>
+              <span className="font-extrabold text-slate-900 text-base">
+                {t("trustpilot.trustScore")}
+              </span>
               <span className="hidden md:inline text-slate-300">|</span>
-              <span>{t.rich("trustpilot.basedOn", { count: "12,450+", strong: (chunks) => <span className="font-bold text-slate-700">{chunks}</span> })}</span>
+              <span>
+                {t.rich("trustpilot.basedOn", {
+                  count: "12,450+",
+                  strong: (chunks) => (
+                    <span className="font-bold text-slate-700">{chunks}</span>
+                  ),
+                })}
+              </span>
             </div>
           </div>
         </div>
-
       </div>
     </section>
   );

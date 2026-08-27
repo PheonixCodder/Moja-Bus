@@ -16,7 +16,7 @@ export default async function SentOffersPage() {
       status: "ACTIVE",
       page: 1,
       limit: 20,
-    })
+    }),
   );
 
   return (

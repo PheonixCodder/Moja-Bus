@@ -32,9 +32,7 @@ export function BalanceOverviewCards({
           <div className="text-3xl font-display font-bold text-slate-900">
             {formatXOF(netEarnings)}
           </div>
-          <p className="text-xs text-slate-500 mt-2">
-            {t("netEarningsDesc")}
-          </p>
+          <p className="text-xs text-slate-500 mt-2">{t("netEarningsDesc")}</p>
         </div>
       </div>
 
@@ -48,9 +46,7 @@ export function BalanceOverviewCards({
           <div className="text-3xl font-display font-bold text-slate-900">
             {formatXOF(reserved)}
           </div>
-          <p className="text-xs text-slate-500 mt-2">
-            {t("inEscrowDesc")}
-          </p>
+          <p className="text-xs text-slate-500 mt-2">{t("inEscrowDesc")}</p>
         </div>
       </div>
 
@@ -67,13 +63,11 @@ export function BalanceOverviewCards({
           <div className="text-3xl font-display font-bold text-primary">
             {formatXOF(available)}
           </div>
-          <p className="text-xs text-primary/60 mt-2">
-            {t("availableDesc")}
-          </p>
+          <p className="text-xs text-primary/60 mt-2">{t("availableDesc")}</p>
         </div>
-        
+
         {available > 0 ? (
-          <Button 
+          <Button
             render={<Link href="/dashboard/operator/withdraw" />}
             nativeButton={false}
             className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground relative z-10"
@@ -82,7 +76,7 @@ export function BalanceOverviewCards({
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
-          <Button 
+          <Button
             disabled
             className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground relative z-10"
           >

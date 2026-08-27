@@ -82,17 +82,11 @@ export function buildAppDepartureTimestamp(
   return new Date(Date.UTC(year, month - 1, day, hours, minutes, 0, 0));
 }
 
-export function isOnOrAfterCalendarDay(
-  candidate: Date,
-  bound: Date,
-): boolean {
+export function isOnOrAfterCalendarDay(candidate: Date, bound: Date): boolean {
   return getCalendarDateKey(candidate) >= getCalendarDateKey(bound);
 }
 
-export function isOnOrBeforeCalendarDay(
-  candidate: Date,
-  bound: Date,
-): boolean {
+export function isOnOrBeforeCalendarDay(candidate: Date, bound: Date): boolean {
   return getCalendarDateKey(candidate) <= getCalendarDateKey(bound);
 }
 

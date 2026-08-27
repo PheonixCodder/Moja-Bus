@@ -54,12 +54,10 @@ export function BlogIndexView() {
 
   // Suspense queries for categories, tags, and posts
   const { data: categories } = useSuspenseQuery(
-    trpc.blog.listCategories.queryOptions()
+    trpc.blog.listCategories.queryOptions(),
   );
-  
-  const { data: tags } = useSuspenseQuery(
-    trpc.blog.listTags.queryOptions()
-  );
+
+  const { data: tags } = useSuspenseQuery(trpc.blog.listTags.queryOptions());
 
   const { data: postsData } = useSuspenseQuery(
     trpc.blog.getPublishedPosts.queryOptions({
@@ -68,7 +66,7 @@ export function BlogIndexView() {
       searchQuery: params.q || undefined,
       limit: limit,
       offset: offset,
-    })
+    }),
   );
 
   const posts = postsData.posts;
@@ -121,10 +119,8 @@ export function BlogIndexView() {
       {/* ── Main Layout (Columns) ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          
           {/* ─ Left sidebar (Filters cloud) ─ */}
           <div className="space-y-6 lg:col-span-1">
-            
             {/* Category selection */}
             <Card className="bg-white border-slate-200 shadow-3xs p-4 rounded-xl">
               <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2 mb-3">
@@ -150,9 +146,13 @@ export function BlogIndexView() {
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => void setParams({ category: cat.slug, page: 1 })}
+                      onClick={() =>
+                        void setParams({ category: cat.slug, page: 1 })
+                      }
                       className={`w-full text-left py-1.5 rounded-md text-xs transition-all flex items-center justify-between ${
-                        cat.parentId ? "pl-5 font-normal" : "pl-2.5 font-semibold"
+                        cat.parentId
+                          ? "pl-5 font-normal"
+                          : "pl-2.5 font-semibold"
                       } ${
                         isSelected
                           ? "bg-rose-50 text-rose-700"
@@ -160,7 +160,9 @@ export function BlogIndexView() {
                       }`}
                     >
                       <span className="flex items-center gap-1">
-                        {cat.parentId && <ChevronRight className="size-3 text-slate-400" />}
+                        {cat.parentId && (
+                          <ChevronRight className="size-3 text-slate-400" />
+                        )}
                         {cat.name}
                       </span>
                     </button>
@@ -210,15 +212,35 @@ export function BlogIndexView() {
 
           {/* ─ Right grids (Content stream) ─ */}
           <div className="lg:col-span-3 space-y-8">
-            
             {/* Filter Reset Alert */}
             {hasActiveFilters && (
               <div className="flex items-center justify-between bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-3xs text-xs">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-500">{t("activeFilters")}</span>
-                  {params.q && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">{t("filterSearch", { query: params.q })}</Badge>}
-                  {params.category && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">{t("filterCategory", { category: params.category })}</Badge>}
-                  {params.tag && <Badge variant="outline" className="border-rose-100 bg-rose-50/50 text-rose-700">{t("filterTag", { tag: params.tag })}</Badge>}
+                  {params.q && (
+                    <Badge
+                      variant="outline"
+                      className="border-rose-100 bg-rose-50/50 text-rose-700"
+                    >
+                      {t("filterSearch", { query: params.q })}
+                    </Badge>
+                  )}
+                  {params.category && (
+                    <Badge
+                      variant="outline"
+                      className="border-rose-100 bg-rose-50/50 text-rose-700"
+                    >
+                      {t("filterCategory", { category: params.category })}
+                    </Badge>
+                  )}
+                  {params.tag && (
+                    <Badge
+                      variant="outline"
+                      className="border-rose-100 bg-rose-50/50 text-rose-700"
+                    >
+                      {t("filterTag", { tag: params.tag })}
+                    </Badge>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -237,12 +259,17 @@ export function BlogIndexView() {
                   <SearchX className="size-6" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-slate-800">{t("noResults")}</h3>
+                  <h3 className="text-base font-bold text-slate-800">
+                    {t("noResults")}
+                  </h3>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
                     {t("noResultsDesc")}
                   </p>
                 </div>
-                <Button onClick={handleClearFilters} className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs">
+                <Button
+                  onClick={handleClearFilters}
+                  className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs"
+                >
                   {t("resetFilters")}
                 </Button>
               </div>
@@ -281,11 +308,11 @@ export function BlogIndexView() {
                           </span>
                         )}
                       </div>
-                      
+
                       <h3 className="text-sm font-bold text-slate-900 mb-2 line-clamp-2 leading-tight group-hover:text-rose-600 transition-colors">
                         {post.title}
                       </h3>
-                      
+
                       <p className="text-xs text-slate-500 line-clamp-3 mb-4 leading-relaxed flex-1">
                         {post.excerpt || t("noExcerpt")}
                       </p>
@@ -320,12 +347,15 @@ export function BlogIndexView() {
                   {t("previous")}
                 </Button>
                 <span className="text-slate-500 font-semibold">
-                  {t("page", { page: params.page })} / {Math.ceil((postsData.total || 1) / limit)}
+                  {t("page", { page: params.page })} /{" "}
+                  {Math.ceil((postsData.total || 1) / limit)}
                 </span>
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={params.page >= Math.ceil((postsData.total || 0) / limit)}
+                  disabled={
+                    params.page >= Math.ceil((postsData.total || 0) / limit)
+                  }
                   onClick={() => handlePageChange(params.page + 1)}
                   className="h-8 font-semibold text-xs border-slate-200"
                 >
@@ -334,7 +364,6 @@ export function BlogIndexView() {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>

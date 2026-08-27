@@ -20,6 +20,10 @@ import {
 	StopCircle,
 	ShieldAlert,
 	Bus,
+	CheckCircle2,
+	Navigation,
+	ArrowRight,
+	Clock,
 } from "lucide-react-native";
 import { DriverFeedback } from "@/lib/haptics";
 import { useTranslation } from "react-i18next";
@@ -71,6 +75,41 @@ export default function DriverLiveTripScreen() {
 		trpc.drivers.completeTrip.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries();
+			},
+		})
+	);
+
+	// Phase 7 (Gap #10) — Waypoint progression mutations
+	const recordArrivalMutation = useMutation(
+		trpc.drivers.recordStopArrival.mutationOptions({
+			onSuccess: (res) => {
+				DriverFeedback.successScan();
+				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
+				Alert.alert(
+					"Arrived at Stop",
+					`Arrival confirmed at ${res.terminalName}. Passenger tracking and ETAs updated.`,
+				);
+			},
+			onError: (err: any) => {
+				DriverFeedback.invalidScan();
+				Alert.alert("Arrival Failed", err?.message ?? "Please try again.");
+			},
+		})
+	);
+
+	const recordDepartureMutation = useMutation(
+		trpc.drivers.recordStopDeparture.mutationOptions({
+			onSuccess: (res) => {
+				DriverFeedback.successScan();
+				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
+				Alert.alert(
+					"Departed Stop",
+					`Departure confirmed from ${res.terminalName}. En route to next waypoint.`,
+				);
+			},
+			onError: (err: any) => {
+				DriverFeedback.invalidScan();
+				Alert.alert("Departure Failed", err?.message ?? "Please try again.");
 			},
 		})
 	);
@@ -175,6 +214,47 @@ export default function DriverLiveTripScreen() {
 			];
 		});
 	}, [activeTrip]);
+
+	// Phase 7 (Gap #10) — Ordered stop corridor & active waypoint progression
+	const tripStops = useMemo(() => {
+		return (activeTrip?.tripStops ?? [])
+			.slice()
+			.sort((a, b) => (a.stopOrder ?? 0) - (b.stopOrder ?? 0));
+	}, [activeTrip]);
+
+	const currentWaypointIndex = useMemo(() => {
+		const idx = tripStops.findIndex((s) => !s.actualDeparture);
+		return idx !== -1 ? idx : Math.max(0, tripStops.length - 1);
+	}, [tripStops]);
+
+	const currentWaypoint = tripStops[currentWaypointIndex] ?? null;
+	const isAtWaypoint =
+		currentWaypoint?.actualArrival != null &&
+		currentWaypoint?.actualDeparture == null;
+
+	// Distance to current waypoint
+	const distanceToWaypointKm = useMemo(() => {
+		if (!currentLocation || !currentWaypoint?.terminal) return null;
+		const lat1 = currentLocation.latitude;
+		const lon1 = currentLocation.longitude;
+		const lat2 = currentWaypoint.terminal.latitude;
+		const lon2 = currentWaypoint.terminal.longitude;
+		if (typeof lat2 !== "number" || typeof lon2 !== "number") return null;
+
+		const R = 6371;
+		const dLat = ((lat2 - lat1) * Math.PI) / 180;
+		const dLon = ((lon2 - lon1) * Math.PI) / 180;
+		const a =
+			Math.sin(dLat / 2) ** 2 +
+			Math.cos((lat1 * Math.PI) / 180) *
+				Math.cos((lat2 * Math.PI) / 180) *
+				Math.sin(dLon / 2) ** 2;
+		const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		return Math.round(d * 10) / 10;
+	}, [currentLocation, currentWaypoint]);
+
+	const isNearWaypoint =
+		distanceToWaypointKm != null && distanceToWaypointKm <= 0.5;
 
 	useEffect(() => {
 		if (!activeTrip || stops.length < 2) return;
@@ -365,22 +445,31 @@ export default function DriverLiveTripScreen() {
 							<Text className="text-[10px] uppercase text-zinc-500 font-bold">
 								Update Rate
 							</Text>
-							<Text className="text-xs font-bold text-emerald-400 font-mono">
-								Fixed 5 s
+							<Text
+								className={`text-xs font-bold font-mono ${
+									(currentLocation?.speedKmh ?? 0) < 5
+										? "text-amber-400"
+										: "text-emerald-400"
+								}`}
+							>
+								{(currentLocation?.speedKmh ?? 0) < 5
+									? "Eco 30 s"
+									: "Active 5 s"}
 							</Text>
 						</View>
 					</View>
 				</View>
 
-				{/* Route Progress Card — Phase 12: honest whole-route ETA */}
-				<View className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-3">
+				{/* Phase 7 (Gap #10) — Interactive Waypoint Progression & Stop Checklist */}
+				<View className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-4 shadow-xl">
 					<View className="flex-row items-center justify-between">
-						<Text className="text-xs font-bold text-zinc-400 uppercase">
-							Route Progress
-						</Text>
+						<View className="flex-row items-center gap-1.5">
+							<Navigation size={14} color="#e11d48" />
+							<Text className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+								Waypoint Progression
+							</Text>
+						</View>
 						{routeIsApproximate ? (
-							// Phase 30 (F-TM-17) — the corridor is terminal-to-terminal
-							// straight line, not a road path; say so instead of an ETA.
 							<Text className="text-[10px] font-bold text-amber-400">
 								{t("approximateRoute")}
 							</Text>
@@ -393,18 +482,195 @@ export default function DriverLiveTripScreen() {
 						)}
 					</View>
 
-					<View className="flex-row items-center gap-3">
-						<View className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-							<MapPin size={18} color="#e11d48" />
-						</View>
-						<View className="flex-1">
-							<Text className="text-sm font-bold text-white">
-								{nextStop?.name ?? "En route"}
+					{/* Active Stop Action Card */}
+					{currentWaypoint && (
+						<View
+							className={`p-4 rounded-xl border ${
+								isAtWaypoint
+									? "bg-amber-500/10 border-amber-500/30"
+									: isNearWaypoint
+									? "bg-emerald-500/10 border-emerald-500/30"
+									: "bg-zinc-950 border-zinc-800"
+							}`}
+						>
+							<View className="flex-row items-center justify-between mb-2">
+								<View className="flex-row items-center gap-2">
+									<View
+										className={`size-2.5 rounded-full ${
+											isAtWaypoint
+												? "bg-amber-400"
+												: isNearWaypoint
+												? "bg-emerald-400"
+												: "bg-rose-500"
+										}`}
+									/>
+									<Text className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400">
+										{isAtWaypoint
+											? "At Terminal / Boarding"
+											: `Stop ${currentWaypointIndex + 1} of ${tripStops.length}`}
+									</Text>
+								</View>
+								{distanceToWaypointKm != null && !isAtWaypoint && (
+									<View className="bg-zinc-800/80 px-2 py-0.5 rounded-full border border-zinc-700">
+										<Text className="text-[10px] font-mono font-bold text-zinc-300">
+											{distanceToWaypointKm < 1
+												? `${Math.round(distanceToWaypointKm * 1000)} m away`
+												: `${distanceToWaypointKm} km away`}
+										</Text>
+									</View>
+								)}
+							</View>
+
+							<Text className="text-base font-bold text-white mb-1">
+								{currentWaypoint.terminal?.name ??
+									`Stop #${currentWaypointIndex + 1}`}
 							</Text>
-							<Text className="text-xs text-zinc-400">
-								Passenger exchange at next scheduled stop
+							<Text className="text-xs text-zinc-400 mb-3">
+								{isAtWaypoint
+									? "Boarding & passenger exchange in progress. Tap depart when ready."
+									: "Next scheduled waypoint on route corridor."}
 							</Text>
+
+							{/* Action Button */}
+							{isAtWaypoint ? (
+								<TouchableOpacity
+									onPress={() => {
+										DriverFeedback.tap();
+										recordDepartureMutation.mutate({
+											tripId: activeTrip.id,
+											tripStopId: currentWaypoint.id,
+										});
+									}}
+									disabled={recordDepartureMutation.isPending}
+									className="bg-amber-600 active:bg-amber-700 py-3 rounded-xl flex-row items-center justify-center gap-2 shadow-lg shadow-amber-600/30"
+								>
+									{recordDepartureMutation.isPending ? (
+										<ActivityIndicator size="small" color="#ffffff" />
+									) : (
+										<>
+											<ArrowRight size={16} color="#ffffff" />
+											<Text className="text-white font-bold text-xs uppercase tracking-wider">
+												Confirm Departure from {currentWaypoint.terminal?.name ?? "Stop"}
+											</Text>
+										</>
+									)}
+								</TouchableOpacity>
+							) : !currentWaypoint.actualArrival ? (
+								<TouchableOpacity
+									onPress={() => {
+										DriverFeedback.tap();
+										recordArrivalMutation.mutate({
+											tripId: activeTrip.id,
+											tripStopId: currentWaypoint.id,
+										});
+									}}
+									disabled={recordArrivalMutation.isPending}
+									className={`py-3 rounded-xl flex-row items-center justify-center gap-2 shadow-lg ${
+										isNearWaypoint
+											? "bg-emerald-600 active:bg-emerald-700 shadow-emerald-600/30"
+											: "bg-rose-600 active:bg-rose-700 shadow-rose-600/30"
+									}`}
+								>
+									{recordArrivalMutation.isPending ? (
+										<ActivityIndicator size="small" color="#ffffff" />
+									) : (
+										<>
+											<CheckCircle2 size={16} color="#ffffff" />
+											<Text className="text-white font-bold text-xs uppercase tracking-wider">
+												Mark Arrived at {currentWaypoint.terminal?.name ?? "Stop"}
+											</Text>
+										</>
+									)}
+								</TouchableOpacity>
+							) : null}
 						</View>
+					)}
+
+					{/* Waypoints Sequence List */}
+					<View className="space-y-2 pt-2 border-t border-zinc-800/80">
+						<Text className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">
+							Route Waypoint Checklist
+						</Text>
+						{tripStops.map((stop, idx) => {
+							const isPassed = stop.actualDeparture != null;
+							const isCurrent = stop.id === currentWaypoint?.id;
+							const isArrived = stop.actualArrival != null;
+
+							return (
+								<View
+									key={stop.id}
+									className={`flex-row items-center justify-between p-2.5 rounded-xl border ${
+										isCurrent
+											? "bg-zinc-800/60 border-zinc-700"
+											: "bg-zinc-950/40 border-zinc-800/50"
+									}`}
+								>
+									<View className="flex-row items-center gap-2.5 flex-1">
+										<View
+											className={`size-6 rounded-full items-center justify-center ${
+												isPassed
+													? "bg-emerald-500/20"
+													: isCurrent && isArrived
+													? "bg-amber-500/20"
+													: "bg-zinc-800"
+											}`}
+										>
+											{isPassed ? (
+												<CheckCircle2 size={14} color="#10b981" />
+											) : isCurrent && isArrived ? (
+												<Clock size={14} color="#f59e0b" />
+											) : (
+												<Text className="text-[10px] font-bold text-zinc-400">
+													{idx + 1}
+												</Text>
+											)}
+										</View>
+										<View className="flex-1">
+											<Text
+												className={`text-xs font-bold ${
+													isPassed
+														? "text-zinc-400 line-through"
+														: isCurrent
+														? "text-white"
+														: "text-zinc-300"
+												}`}
+											>
+												{stop.terminal?.name ?? `Stop ${idx + 1}`}
+											</Text>
+											<Text className="text-[10px] text-zinc-500">
+												{stop.actualDeparture
+													? `Departed ${new Date(stop.actualDeparture).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+													: stop.actualArrival
+													? `Arrived ${new Date(stop.actualArrival).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+													: stop.scheduledArrival
+													? `Sched: ${new Date(stop.scheduledArrival).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+													: "En route"}
+											</Text>
+										</View>
+									</View>
+
+									<View>
+										{isPassed ? (
+											<Text className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+												Completed
+											</Text>
+										) : isCurrent && isArrived ? (
+											<Text className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+												At Stop
+											</Text>
+										) : isCurrent ? (
+											<Text className="text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md">
+												Next Stop
+											</Text>
+										) : (
+											<Text className="text-[10px] font-medium text-zinc-500">
+												Upcoming
+											</Text>
+										)}
+									</View>
+								</View>
+							);
+						})}
 					</View>
 				</View>
 

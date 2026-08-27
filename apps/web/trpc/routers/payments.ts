@@ -239,10 +239,7 @@ export const paymentsRouter = createTRPCRouter({
     .input(updatePlatformSettingsSchema)
     .mutation(async ({ ctx, input }) => {
       requireAdminPermission(ctx, "platform:settings:update");
-      const {
-        defaultCommissionBps,
-        defaultConvenienceFeeBps,
-      } = input;
+      const { defaultCommissionBps, defaultConvenienceFeeBps } = input;
 
       const before = await ctx.prisma.platformSettings.findUnique({
         where: { id: "default" },
@@ -410,19 +407,23 @@ export const paymentsRouter = createTRPCRouter({
   getTreasuryOverview: adminProcedure.query(async ({ ctx }) => {
     requireAdminPermission(ctx, "platform:financials:read");
     const accountService = new FinancialAccountService(ctx.prisma);
-    const [clearing, commissionRevenue, convenienceRevenue, operatorLiabilitySum] =
-      await Promise.all([
-        accountService.getSystemPaystackClearingAccount(),
-        accountService.getPlatformCommissionRevenueAccount(),
-        accountService.getPlatformConvenienceFeeRevenueAccount(),
-        ctx.prisma.financialAccount.aggregate({
-          _sum: { postedBalance: true },
-          where: {
-            accountCategory: "LIABILITY",
-            accountClass: "OPERATOR_RECEIVABLE",
-          },
-        }),
-      ]);
+    const [
+      clearing,
+      commissionRevenue,
+      convenienceRevenue,
+      operatorLiabilitySum,
+    ] = await Promise.all([
+      accountService.getSystemPaystackClearingAccount(),
+      accountService.getPlatformCommissionRevenueAccount(),
+      accountService.getPlatformConvenienceFeeRevenueAccount(),
+      ctx.prisma.financialAccount.aggregate({
+        _sum: { postedBalance: true },
+        where: {
+          accountCategory: "LIABILITY",
+          accountClass: "OPERATOR_RECEIVABLE",
+        },
+      }),
+    ]);
 
     return {
       clearingBalance: toSafeDisplayNumber(clearing.postedBalance),

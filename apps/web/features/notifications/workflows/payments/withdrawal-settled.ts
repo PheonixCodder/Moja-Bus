@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const operatorWithdrawalSettledWorkflow = workflow(
   "operator-withdrawal-settled",
   async ({ step, payload }) => {
@@ -34,11 +33,11 @@ export const operatorWithdrawalSettledWorkflow = workflow(
       avatar: "https://avatar.vercel.sh/withdrawal-success",
       redirect: { url: "/dashboard/operator/revenue", target: "_self" },
     }));
-
   },
   {
     name: "Operator Withdrawal Settled",
-    description: "Sends successful transfer notifications (email, in-app, and SMS) when the bank payout clears",
+    description:
+      "Sends successful transfer notifications (email, in-app, and SMS) when the bank payout clears",
     preferences: {
       all: { readOnly: true },
     },
@@ -53,5 +52,5 @@ export const operatorWithdrawalSettledWorkflow = workflow(
       settledAt: z.string(),
       phone: z.string().optional(),
     }),
-  }
+  },
 );

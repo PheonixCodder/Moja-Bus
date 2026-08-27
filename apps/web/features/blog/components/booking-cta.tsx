@@ -13,7 +13,10 @@ export function BookingCTA({ origin, destination }: BookingCTAProps) {
   return (
     <div className="my-8 p-6 bg-rose-50/70 border border-rose-100 rounded-xl text-center space-y-4">
       <h3 className="text-base font-extrabold text-slate-900 mb-1">
-        {t("bookCtaTitle", { origin: origin || "Abidjan", destination: destination || "Yamoussoukro" })}
+        {t("bookCtaTitle", {
+          origin: origin || "Abidjan",
+          destination: destination || "Yamoussoukro",
+        })}
       </h3>
       <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
         {t("bookCtaDesc")}

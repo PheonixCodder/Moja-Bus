@@ -158,7 +158,9 @@ export function BannerFormDialog({
     }
   }, [banner, reset, open]);
 
-  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
@@ -233,16 +235,18 @@ export function BannerFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{banner ? t("editBanner") : t("newBannerDialogTitle")}</DialogTitle>
-          <DialogDescription>
-            {t("dialogDescription")}
-          </DialogDescription>
+          <DialogTitle>
+            {banner ? t("editBanner") : t("newBannerDialogTitle")}
+          </DialogTitle>
+          <DialogDescription>{t("dialogDescription")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
           {/* Banner Image Upload */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-700">{t("form.bannerImage")}</label>
+            <label className="text-xs font-semibold text-slate-700">
+              {t("form.bannerImage")}
+            </label>
             {watchImageUrl ? (
               <div className="relative aspect-[21/9] w-full rounded-lg overflow-hidden border border-slate-200 group">
                 <Image
@@ -290,7 +294,9 @@ export function BannerFormDialog({
           {/* Title & Subtitle */}
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-semibold text-slate-700">{t("form.title")}</label>
+              <label className="text-xs font-semibold text-slate-700">
+                {t("form.title")}
+              </label>
               <Input
                 placeholder={t("form.titlePlaceholder")}
                 {...register("title")}
@@ -314,12 +320,20 @@ export function BannerFormDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700">{t("form.badgeLabel")}</label>
-                <Input placeholder={t("form.badgePlaceholder")} {...register("badge")} className="mt-1" />
+                <label className="text-xs font-semibold text-slate-700">
+                  {t("form.badgeLabel")}
+                </label>
+                <Input
+                  placeholder={t("form.badgePlaceholder")}
+                  {...register("badge")}
+                  className="mt-1"
+                />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700">{t("form.sortOrder")}</label>
+                <label className="text-xs font-semibold text-slate-700">
+                  {t("form.sortOrder")}
+                </label>
                 <Input
                   type="number"
                   {...register("sortOrder", { valueAsNumber: true })}
@@ -336,7 +350,9 @@ export function BannerFormDialog({
             </h4>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700">{t("form.actionType")}</label>
+              <label className="text-xs font-semibold text-slate-700">
+                {t("form.actionType")}
+              </label>
               <Controller
                 name="actionType"
                 control={control}
@@ -346,10 +362,18 @@ export function BannerFormDialog({
                       <SelectValue placeholder={t("form.actionType")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SEARCH">{t("form.actionTypes.search")}</SelectItem>
-                      <SelectItem value="APP_SCREEN">{t("form.actionTypes.appScreen")}</SelectItem>
-                      <SelectItem value="BLOG_ARTICLE">{t("form.actionTypes.blogArticle")}</SelectItem>
-                      <SelectItem value="EXTERNAL_URL">{t("form.actionTypes.externalUrl")}</SelectItem>
+                      <SelectItem value="SEARCH">
+                        {t("form.actionTypes.search")}
+                      </SelectItem>
+                      <SelectItem value="APP_SCREEN">
+                        {t("form.actionTypes.appScreen")}
+                      </SelectItem>
+                      <SelectItem value="BLOG_ARTICLE">
+                        {t("form.actionTypes.blogArticle")}
+                      </SelectItem>
+                      <SelectItem value="EXTERNAL_URL">
+                        {t("form.actionTypes.externalUrl")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -360,19 +384,33 @@ export function BannerFormDialog({
             {watchActionType === "SEARCH" && (
               <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-600">{t("form.originCity")}</label>
-                  <Input placeholder="e.g. Abidjan" {...register("searchOrigin")} className="mt-1 text-xs" />
+                  <label className="text-[11px] font-semibold text-slate-600">
+                    {t("form.originCity")}
+                  </label>
+                  <Input
+                    placeholder="e.g. Abidjan"
+                    {...register("searchOrigin")}
+                    className="mt-1 text-xs"
+                  />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-600">{t("form.destCity")}</label>
-                  <Input placeholder="e.g. Yamoussoukro" {...register("searchDestination")} className="mt-1 text-xs" />
+                  <label className="text-[11px] font-semibold text-slate-600">
+                    {t("form.destCity")}
+                  </label>
+                  <Input
+                    placeholder="e.g. Yamoussoukro"
+                    {...register("searchDestination")}
+                    className="mt-1 text-xs"
+                  />
                 </div>
               </div>
             )}
 
             {watchActionType === "APP_SCREEN" && (
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <label className="text-[11px] font-semibold text-slate-600">{t("form.targetAppTab")}</label>
+                <label className="text-[11px] font-semibold text-slate-600">
+                  {t("form.targetAppTab")}
+                </label>
                 <Controller
                   name="targetTab"
                   control={control}
@@ -382,16 +420,36 @@ export function BannerFormDialog({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="search">{t("form.tabs.search")}</SelectItem>
-                        <SelectItem value="bookings">{t("form.tabs.bookings")}</SelectItem>
-                        <SelectItem value="tickets">{t("form.tabs.tickets")}</SelectItem>
-                        <SelectItem value="settings">{t("form.tabs.settings")}</SelectItem>
-                        <SelectItem value="wallet">{t("form.tabs.wallet")}</SelectItem>
-                        <SelectItem value="notifications">{t("form.tabs.notifications")}</SelectItem>
-                        <SelectItem value="passengers">{t("form.tabs.passengers")}</SelectItem>
-                        <SelectItem value="personal-info">{t("form.tabs.personalInfo")}</SelectItem>
-                        <SelectItem value="reviews">{t("form.tabs.reviews")}</SelectItem>
-                        <SelectItem value="help-support">{t("form.tabs.helpSupport")}</SelectItem>
+                        <SelectItem value="search">
+                          {t("form.tabs.search")}
+                        </SelectItem>
+                        <SelectItem value="bookings">
+                          {t("form.tabs.bookings")}
+                        </SelectItem>
+                        <SelectItem value="tickets">
+                          {t("form.tabs.tickets")}
+                        </SelectItem>
+                        <SelectItem value="settings">
+                          {t("form.tabs.settings")}
+                        </SelectItem>
+                        <SelectItem value="wallet">
+                          {t("form.tabs.wallet")}
+                        </SelectItem>
+                        <SelectItem value="notifications">
+                          {t("form.tabs.notifications")}
+                        </SelectItem>
+                        <SelectItem value="passengers">
+                          {t("form.tabs.passengers")}
+                        </SelectItem>
+                        <SelectItem value="personal-info">
+                          {t("form.tabs.personalInfo")}
+                        </SelectItem>
+                        <SelectItem value="reviews">
+                          {t("form.tabs.reviews")}
+                        </SelectItem>
+                        <SelectItem value="help-support">
+                          {t("form.tabs.helpSupport")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
@@ -401,7 +459,9 @@ export function BannerFormDialog({
 
             {watchActionType === "BLOG_ARTICLE" && (
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <label className="text-[11px] font-semibold text-slate-600">{t("form.targetBlogArticle")}</label>
+                <label className="text-[11px] font-semibold text-slate-600">
+                  {t("form.targetBlogArticle")}
+                </label>
                 <Controller
                   name="blogSlug"
                   control={control}
@@ -425,8 +485,14 @@ export function BannerFormDialog({
 
             {watchActionType === "EXTERNAL_URL" && (
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <label className="text-[11px] font-semibold text-slate-600">{t("form.webLinkUrl")}</label>
-                <Input placeholder="https://mojaride.com/promo" {...register("externalUrl")} className="mt-1 text-xs" />
+                <label className="text-[11px] font-semibold text-slate-600">
+                  {t("form.webLinkUrl")}
+                </label>
+                <Input
+                  placeholder="https://mojaride.com/promo"
+                  {...register("externalUrl")}
+                  className="mt-1 text-xs"
+                />
               </div>
             )}
           </div>
@@ -434,7 +500,9 @@ export function BannerFormDialog({
           {/* Active Switch & Gradient Theme */}
           <div className="space-y-3 pt-2 border-t border-slate-100">
             <div>
-              <label className="text-xs font-semibold text-slate-700">{t("form.themeColor")}</label>
+              <label className="text-xs font-semibold text-slate-700">
+                {t("form.themeColor")}
+              </label>
               <Controller
                 name="gradientPreset"
                 control={control}
@@ -456,12 +524,17 @@ export function BannerFormDialog({
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-xs font-semibold text-slate-700">{t("form.activeStatus")}</span>
+              <span className="text-xs font-semibold text-slate-700">
+                {t("form.activeStatus")}
+              </span>
               <Controller
                 name="isActive"
                 control={control}
                 render={({ field }) => (
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 )}
               />
             </div>

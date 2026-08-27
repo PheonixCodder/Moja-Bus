@@ -190,12 +190,8 @@ export function DocumentsStep({
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold">
-                {t("title")}
-              </CardTitle>
-              <CardDescription>
-                {t("description")}
-              </CardDescription>
+              <CardTitle className="text-lg font-bold">{t("title")}</CardTitle>
+              <CardDescription>{t("description")}</CardDescription>
             </div>
           </div>
         </CardHeader>

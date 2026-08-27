@@ -32,14 +32,17 @@ async function main() {
       : {}),
   };
 
-  const initRes = await fetch("https://api.paystack.co/transaction/initialize", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${secret}`,
-      "Content-Type": "application/json",
+  const initRes = await fetch(
+    "https://api.paystack.co/transaction/initialize",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(initBody),
     },
-    body: JSON.stringify(initBody),
-  });
+  );
   const initJson = await initRes.json();
   console.log("Initialize:", initRes.status, JSON.stringify(initJson, null, 2));
 
@@ -47,7 +50,9 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("\nComplete payment in Paystack test UI, then press Enter to verify...");
+  console.log(
+    "\nComplete payment in Paystack test UI, then press Enter to verify...",
+  );
   await new Promise((resolve) => process.stdin.once("data", resolve));
 
   const verifyRes = await fetch(
@@ -55,9 +60,15 @@ async function main() {
     { headers: { Authorization: `Bearer ${secret}` } },
   );
   const verifyJson = await verifyRes.json();
-  console.log("\nVerify:", verifyRes.status, JSON.stringify(verifyJson, null, 2));
+  console.log(
+    "\nVerify:",
+    verifyRes.status,
+    JSON.stringify(verifyJson, null, 2),
+  );
 
-  console.log("\nCheck Paystack dashboard for split credit and fee allocation.");
+  console.log(
+    "\nCheck Paystack dashboard for split credit and fee allocation.",
+  );
   console.log("Document refund debit behavior before enabling v2 auto-split.");
 }
 

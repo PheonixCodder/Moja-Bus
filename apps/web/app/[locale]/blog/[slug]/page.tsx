@@ -34,12 +34,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const seoTitle = post.seoTitle || post.title;
   const seoDescription = post.seoDescription || post.excerpt || "";
-  const robots = post.robots || (post.allowIndex ? "index, follow" : "noindex, nofollow");
+  const robots =
+    post.robots || (post.allowIndex ? "index, follow" : "noindex, nofollow");
   const canonicalUrl = post.canonicalUrl || undefined;
 
   // Prevent empty strings in metadata arrays
   const ogImageUrl = post.ogImage || post.coverImage || "/default-og.png";
-  const twitterImageUrl = post.twitterImage || post.ogImage || post.coverImage || "/default-og.png";
+  const twitterImageUrl =
+    post.twitterImage || post.ogImage || post.coverImage || "/default-og.png";
 
   return {
     title: seoTitle,
@@ -101,6 +103,10 @@ export default async function BlogPostPage({ params }: Props) {
   });
 
   return (
-    <BlogDetailView locale={locale} post={post} recommendedPosts={recommendedPosts} />
+    <BlogDetailView
+      locale={locale}
+      post={post}
+      recommendedPosts={recommendedPosts}
+    />
   );
 }

@@ -82,16 +82,22 @@ export function AdminReferralProgramCard() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
-            <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              {t("title")}
+            </h2>
             <InfoTooltip content={t("tooltip")} />
           </div>
-          <p className="max-w-sm text-xs text-slate-500">
-            {t("description")}
-          </p>
+          <p className="max-w-sm text-xs text-slate-500">{t("description")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="text-xs text-slate-500">{isActive ? t("active") : t("paused")}</span>
-          <Switch id="ref-active" checked={isActive} onCheckedChange={setIsActive} />
+          <span className="text-xs text-slate-500">
+            {isActive ? t("active") : t("paused")}
+          </span>
+          <Switch
+            id="ref-active"
+            checked={isActive}
+            onCheckedChange={setIsActive}
+          />
         </div>
       </div>
 
@@ -99,7 +105,10 @@ export function AdminReferralProgramCard() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label htmlFor="ref-initial" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <Label
+              htmlFor="ref-initial"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               {t("initialRewardLabel")}
             </Label>
             <InfoTooltip content={t("initialRewardTooltip")} />
@@ -116,7 +125,10 @@ export function AdminReferralProgramCard() {
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label htmlFor="ref-recurring" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <Label
+              htmlFor="ref-recurring"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               {t("recurringRewardLabel")}
             </Label>
             <InfoTooltip content={t("recurringRewardTooltip")} />
@@ -128,12 +140,17 @@ export function AdminReferralProgramCard() {
             onChange={(e) => setRecurringCredit(e.target.value)}
             placeholder="e.g. 250"
           />
-          <p className="text-[11px] text-slate-400">{t("recurringRewardSub")}</p>
+          <p className="text-[11px] text-slate-400">
+            {t("recurringRewardSub")}
+          </p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label htmlFor="ref-max" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <Label
+              htmlFor="ref-max"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               {t("maxTripsLabel")}
             </Label>
             <InfoTooltip content={t("maxTripsTooltip")} />
@@ -149,7 +166,10 @@ export function AdminReferralProgramCard() {
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label htmlFor="ref-window" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <Label
+              htmlFor="ref-window"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               {t("windowLabel")}
             </Label>
             <InfoTooltip content={t("windowTooltip")} />
@@ -165,7 +185,10 @@ export function AdminReferralProgramCard() {
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label htmlFor="ref-delay" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <Label
+              htmlFor="ref-delay"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               {t("delayLabel")}
             </Label>
             <InfoTooltip content={t("delayTooltip")} />
@@ -194,7 +217,9 @@ export function AdminReferralProgramCard() {
               <SelectValue placeholder={t("welcomeCampaignNone")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NONE}>{t("welcomeCampaignNoneOption")}</SelectItem>
+              <SelectItem value={NONE}>
+                {t("welcomeCampaignNoneOption")}
+              </SelectItem>
               {(campaignsQuery.data?.items ?? []).map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
@@ -213,7 +238,9 @@ export function AdminReferralProgramCard() {
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
             <ShieldCheck className="size-4 shrink-0 text-emerald-600" />
-            <p className="text-sm font-semibold text-emerald-800">{t("fraudTitle")}</p>
+            <p className="text-sm font-semibold text-emerald-800">
+              {t("fraudTitle")}
+            </p>
           </div>
           <InfoTooltip
             content={t("fraudTooltip")}
@@ -222,7 +249,10 @@ export function AdminReferralProgramCard() {
         </div>
         <ul className="mt-2.5 space-y-1 pl-6">
           {(t.raw("fraudItems") as string[]).map((item) => (
-            <li key={item} className="flex items-center gap-2 text-xs text-emerald-700">
+            <li
+              key={item}
+              className="flex items-center gap-2 text-xs text-emerald-700"
+            >
               <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
               {item}
             </li>
@@ -245,7 +275,8 @@ export function AdminReferralProgramCard() {
             recurringMaxBookings: Number(recurringMax) || 0,
             recurringWindowDays: Number(windowDays) || 1,
             rewardDelayHours: Number(delayHours) || 0,
-            refereeCouponCampaignId: welcomeCampaignId === NONE ? null : welcomeCampaignId,
+            refereeCouponCampaignId:
+              welcomeCampaignId === NONE ? null : welcomeCampaignId,
             selfReferralBlock,
             samePhoneBlock,
             sameDeviceBlock,

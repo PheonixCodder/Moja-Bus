@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const adminOperatorSignupPendingWorkflow = workflow(
   "admin-operator-signup-pending",
   async ({ step, payload }) => {
@@ -42,7 +41,8 @@ export const adminOperatorSignupPendingWorkflow = workflow(
   },
   {
     name: "Admin Operator Onboarding Pending",
-    description: "Alerts admins when a new transport company finishes onboarding and requests account verification",
+    description:
+      "Alerts admins when a new transport company finishes onboarding and requests account verification",
     preferences: {
       all: { readOnly: true },
     },
@@ -55,5 +55,5 @@ export const adminOperatorSignupPendingWorkflow = workflow(
       submittedAt: z.string(),
       dashboardUrl: z.string().url(),
     }),
-  }
+  },
 );

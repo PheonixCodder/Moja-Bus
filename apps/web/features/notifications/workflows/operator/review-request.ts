@@ -61,7 +61,14 @@ export const passengerReviewRequestWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Leave a Review",
       body: `Rate your ${escapeHtml(payload.companyName)} trip from ${escapeHtml(payload.originCity)} to ${escapeHtml(payload.destinationCity)}.`,
-      overrides: { expo: { data: { type: "review-request", bookingReference: payload.bookingReference } } },
+      overrides: {
+        expo: {
+          data: {
+            type: "review-request",
+            bookingReference: payload.bookingReference,
+          },
+        },
+      },
     }));
   },
   {

@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const operatorBankRejectedWorkflow = workflow(
   "operator-bank-rejected",
   async ({ step, payload }) => {
@@ -38,7 +37,8 @@ export const operatorBankRejectedWorkflow = workflow(
   },
   {
     name: "Operator Bank Account Rejected",
-    description: "Alerts transport operators when their registered bank account is rejected during verification",
+    description:
+      "Alerts transport operators when their registered bank account is rejected during verification",
     payloadSchema: z.object({
       email: z.string().email(),
       ownerName: z.string(),
@@ -47,5 +47,5 @@ export const operatorBankRejectedWorkflow = workflow(
       accountNumberHidden: z.string(),
       reason: z.string(),
     }),
-  }
+  },
 );

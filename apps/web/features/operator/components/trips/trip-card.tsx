@@ -58,8 +58,7 @@ export function TripCard({
       toast.success(t("busAssigned"));
       void queryClient.invalidateQueries(trpc.trips.list.pathFilter());
     },
-    onError: (err) =>
-      toast.error(err.message || t("failedAssignBus")),
+    onError: (err) => toast.error(err.message || t("failedAssignBus")),
   });
 
   const route = trip.schedule?.route;
@@ -95,9 +94,13 @@ export function TripCard({
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-foreground">{origin}</span>
+                <span className="text-sm font-bold text-foreground">
+                  {origin}
+                </span>
                 <ArrowRight className="size-3 text-muted-foreground/50" />
-                <span className="text-sm font-bold text-foreground">{dest}</span>
+                <span className="text-sm font-bold text-foreground">
+                  {dest}
+                </span>
               </div>
               <div className="flex items-center gap-3 mt-0.5">
                 <span className="text-[11px] text-muted-foreground flex items-center gap-1">
@@ -213,7 +216,10 @@ export function TripCard({
                 ? { id: trip.driver.id, name: trip.driver.user.fullName ?? "—" }
                 : null,
               RELIEF: trip.reliefDriver
-                ? { id: trip.reliefDriver.id, name: trip.reliefDriver.user.fullName ?? "—" }
+                ? {
+                    id: trip.reliefDriver.id,
+                    name: trip.reliefDriver.user.fullName ?? "—",
+                  }
                 : null,
               CONDUCTOR:
                 (trip as any).driverAssignments

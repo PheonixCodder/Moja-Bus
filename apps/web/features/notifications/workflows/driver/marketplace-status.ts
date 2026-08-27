@@ -23,7 +23,7 @@ export const driverMarketplaceFeaturedWorkflow = workflow(
     name: "Driver Marketplace Featured",
     description: "Platform admins featured this driver across the marketplace",
     payloadSchema: z.object({}),
-  }
+  },
 );
 
 /**
@@ -49,5 +49,5 @@ export const driverMarketplaceSuspendedWorkflow = workflow(
     payloadSchema: z.object({
       reason: z.string(),
     }),
-  }
+  },
 );

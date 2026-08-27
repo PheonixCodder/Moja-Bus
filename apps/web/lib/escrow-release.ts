@@ -21,10 +21,7 @@ export function computeEscrowReleaseNet(input: {
   const isReleasingLastSeat =
     cancelledCount + seatCountReleasing === snapshot.seatCount;
   if (isReleasingLastSeat) {
-    return Math.max(
-      0,
-      snapshot.operatorNetXOF - cancelledCount * standardNet,
-    );
+    return Math.max(0, snapshot.operatorNetXOF - cancelledCount * standardNet);
   }
   return seatCountReleasing * standardNet;
 }

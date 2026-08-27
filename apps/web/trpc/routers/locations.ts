@@ -86,7 +86,13 @@ export const locationsRouter = createTRPCRouter({
         take: 10,
       });
 
-      return buildSearchEntries(cities, municipalities, quarters, terminals, 10);
+      return buildSearchEntries(
+        cities,
+        municipalities,
+        quarters,
+        terminals,
+        10,
+      );
     }),
 
   getCityDetails: publicProcedure

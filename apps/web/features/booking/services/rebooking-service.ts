@@ -31,7 +31,15 @@ export type RebookPassengerResult = {
 export async function rebookPassenger(
   input: RebookPassengerInput,
 ): Promise<RebookPassengerResult> {
-  const { prisma, companyId, staffId, bookingReference, targetTripId, targetSeatId, reason } = input;
+  const {
+    prisma,
+    companyId,
+    staffId,
+    bookingReference,
+    targetTripId,
+    targetSeatId,
+    reason,
+  } = input;
 
   if (!reason || reason.trim().length < 3) {
     throw new TRPCError({
@@ -63,7 +71,8 @@ export async function rebookPassenger(
   if (sourceBooking.companyId !== companyId) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "You can only rebook passengers on trips operated by your company",
+      message:
+        "You can only rebook passengers on trips operated by your company",
     });
   }
 
@@ -77,7 +86,8 @@ export async function rebookPassenger(
   if (sourceBooking.checkedInAt || sourceBooking.boardedAt) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Cannot rebook a passenger who has already checked in or boarded",
+      message:
+        "Cannot rebook a passenger who has already checked in or boarded",
     });
   }
 
@@ -146,13 +156,15 @@ export async function rebookPassenger(
   const originTripStop =
     targetTrip.tripStops.find(
       (ts: { id: string; stopOrder: number }) =>
-        ts.id === sourceBooking.originTripStopId || ts.stopOrder === sourceBooking.boardingStopOrder,
+        ts.id === sourceBooking.originTripStopId ||
+        ts.stopOrder === sourceBooking.boardingStopOrder,
     ) ?? targetTrip.tripStops[0];
 
   const destinationTripStop =
     targetTrip.tripStops.find(
       (ts: { id: string; stopOrder: number }) =>
-        ts.id === sourceBooking.destinationTripStopId || ts.stopOrder === sourceBooking.dropoffStopOrder,
+        ts.id === sourceBooking.destinationTripStopId ||
+        ts.stopOrder === sourceBooking.dropoffStopOrder,
     ) ?? targetTrip.tripStops[targetTrip.tripStops.length - 1];
 
   if (!originTripStop || !destinationTripStop) {
@@ -163,14 +175,22 @@ export async function rebookPassenger(
   }
 
   // 4. Resolve and validate Seat on target trip
-  const allBusSeats = targetTrip.bus.seats.filter((s: { isBookable: boolean; isActive: boolean }) => s.isBookable && s.isActive);
+  const allBusSeats = targetTrip.bus.seats.filter(
+    (s: { isBookable: boolean; isActive: boolean }) =>
+      s.isBookable && s.isActive,
+  );
   const now = new Date();
 
   const occupiedSeatIds = new Set(
     targetTrip.bookings
       .filter((b: { status: string; holdExpiresAt: Date | null }) => {
         if (b.status === "CONFIRMED") return true;
-        if (b.status === "PENDING_PAYMENT" && b.holdExpiresAt && b.holdExpiresAt > now) return true;
+        if (
+          b.status === "PENDING_PAYMENT" &&
+          b.holdExpiresAt &&
+          b.holdExpiresAt > now
+        )
+          return true;
         return false;
       })
       .map((b: { seatId: string }) => b.seatId),
@@ -189,7 +209,9 @@ export async function rebookPassenger(
 
   if (!chosenSeat) {
     // Auto-assign first available seat
-    chosenSeat = allBusSeats.find((s: { id: string }) => !occupiedSeatIds.has(s.id));
+    chosenSeat = allBusSeats.find(
+      (s: { id: string }) => !occupiedSeatIds.has(s.id),
+    );
     if (!chosenSeat) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -202,7 +224,9 @@ export async function rebookPassenger(
   const rebookingResult = await prisma.$transaction(async (tx) => {
     // Generate new unique booking reference
     let newRef = generateBookingReference();
-    const existing = await tx.booking.findUnique({ where: { bookingReference: newRef } });
+    const existing = await tx.booking.findUnique({
+      where: { bookingReference: newRef },
+    });
     if (existing) {
       newRef = generateBookingReference();
     }
@@ -367,11 +391,18 @@ export async function listUpcomingScheduleTrips(params: {
     const allSeats = trip.bus?.seats ?? [];
     const seats = allSeats.filter((s) => s.isBookable && s.isActive);
     const totalSeats = trip.totalSeats ?? seats.length;
-    const occupiedSeats = trip.bookings.filter((b: { status: string; holdExpiresAt: Date | null }) => {
-      if (b.status === "CONFIRMED") return true;
-      if (b.status === "PENDING_PAYMENT" && b.holdExpiresAt && b.holdExpiresAt > now) return true;
-      return false;
-    }).length;
+    const occupiedSeats = trip.bookings.filter(
+      (b: { status: string; holdExpiresAt: Date | null }) => {
+        if (b.status === "CONFIRMED") return true;
+        if (
+          b.status === "PENDING_PAYMENT" &&
+          b.holdExpiresAt &&
+          b.holdExpiresAt > now
+        )
+          return true;
+        return false;
+      },
+    ).length;
 
     const availableSeats = Math.max(0, totalSeats - occupiedSeats);
 
@@ -386,8 +417,14 @@ export async function listUpcomingScheduleTrips(params: {
       scheduleId: trip.scheduleId,
       scheduleName: trip.schedule?.name ?? "Schedule",
       routeName: trip.schedule?.route?.name ?? "Route",
-      originCity: trip.schedule?.route?.originTerminal?.cityRelation?.name ?? trip.schedule?.route?.originTerminal?.name ?? "Origin",
-      destinationCity: trip.schedule?.route?.destTerminal?.cityRelation?.name ?? trip.schedule?.route?.destTerminal?.name ?? "Destination",
+      originCity:
+        trip.schedule?.route?.originTerminal?.cityRelation?.name ??
+        trip.schedule?.route?.originTerminal?.name ??
+        "Origin",
+      destinationCity:
+        trip.schedule?.route?.destTerminal?.cityRelation?.name ??
+        trip.schedule?.route?.destTerminal?.name ??
+        "Destination",
       departureDate: trip.departureDate,
       busName: trip.bus?.internalName ?? trip.bus?.registrationPlate ?? "Bus",
       plateNumber: trip.bus?.registrationPlate ?? "",
@@ -400,7 +437,9 @@ export async function listUpcomingScheduleTrips(params: {
           (b: { seatId: string; status: string; holdExpiresAt: Date | null }) =>
             b.seatId === s.id &&
             (b.status === "CONFIRMED" ||
-              (b.status === "PENDING_PAYMENT" && b.holdExpiresAt && b.holdExpiresAt > now)),
+              (b.status === "PENDING_PAYMENT" &&
+                b.holdExpiresAt &&
+                b.holdExpiresAt > now)),
         );
         return {
           id: s.id,
@@ -414,11 +453,12 @@ export async function listUpcomingScheduleTrips(params: {
           isBookable: s.isBookable,
           isActive: s.isActive,
           isOccupied,
-          status: !s.isBookable || !s.isActive
-            ? "BLOCKED"
-            : isOccupied
-              ? "SOLD"
-              : ("AVAILABLE" as const),
+          status:
+            !s.isBookable || !s.isActive
+              ? "BLOCKED"
+              : isOccupied
+                ? "SOLD"
+                : ("AVAILABLE" as const),
         };
       }),
     };

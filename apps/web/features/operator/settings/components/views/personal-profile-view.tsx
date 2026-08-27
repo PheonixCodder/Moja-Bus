@@ -14,12 +14,19 @@ import { PhoneInput } from "@moja/ui/components/ui/phone-input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileStepSchema } from "@moja/schemas";
 import { ImageUploadField } from "@/components/image-upload-field";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@moja/ui/components/ui/card";
 
 export function PersonalProfileView() {
   const t = useTranslations("operatorDashboard.settings.personal");
   const { data: settings } = useCompanySettings();
-  
+
   const form = useForm({
     resolver: zodResolver(profileStepSchema.partial()),
     defaultValues: {
@@ -32,7 +39,7 @@ export function PersonalProfileView() {
       emergencyContactPhone: settings?.operator?.emergencyContactPhone || "",
     },
   });
-  
+
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -51,8 +58,8 @@ export function PersonalProfileView() {
             ...old,
             operator: {
               ...old.operator,
-              ...variables
-            }
+              ...variables,
+            },
           };
         });
 
@@ -63,15 +70,20 @@ export function PersonalProfileView() {
         form.reset(form.getValues());
       },
       onError: (err, variables, context) => {
-        toast.error(err.message || t("toastFailed"), { id: "save-personal-profile" });
+        toast.error(err.message || t("toastFailed"), {
+          id: "save-personal-profile",
+        });
         if (context?.previousSettings) {
-          queryClient.setQueryData(trpc.operator.getSettings.queryKey(), context.previousSettings);
+          queryClient.setQueryData(
+            trpc.operator.getSettings.queryKey(),
+            context.previousSettings,
+          );
         }
       },
       onSettled: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
-      }
-    })
+      },
+    }),
   );
 
   const onSubmit = form.handleSubmit((data) => {
@@ -84,9 +96,7 @@ export function PersonalProfileView() {
     <div className="max-w-4xl space-y-6">
       <div>
         <h3 className="text-lg font-medium">{t("title")}</h3>
-        <p className="text-sm text-muted-foreground">
-          {t("description")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       <form onSubmit={onSubmit}>
@@ -96,9 +106,7 @@ export function PersonalProfileView() {
               <UserCircle className="w-5 h-5 text-muted-foreground" />
               {t("yourIdentity")}
             </CardTitle>
-            <CardDescription>
-              {t("identityDesc")}
-            </CardDescription>
+            <CardDescription>{t("identityDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -107,7 +115,12 @@ export function PersonalProfileView() {
                 <ImageUploadField
                   purpose="operator-profile-photo"
                   value={form.watch("profilePhotoUrl") || ""}
-                  onUploaded={(res) => form.setValue("profilePhotoUrl", res.fileUrl, { shouldValidate: true, shouldDirty: true })}
+                  onUploaded={(res) =>
+                    form.setValue("profilePhotoUrl", res.fileUrl, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
                   label={t("uploadAvatar")}
                   hint={t("avatarHint")}
                   shape="circle"
@@ -117,7 +130,10 @@ export function PersonalProfileView() {
 
               <Field>
                 <FieldLabel>{t("jobTitle")}</FieldLabel>
-                <Input placeholder={t("jobTitlePlaceholder")} {...form.register("jobTitle")} />
+                <Input
+                  placeholder={t("jobTitlePlaceholder")}
+                  {...form.register("jobTitle")}
+                />
                 <FieldError errors={[form.formState.errors.jobTitle]} />
               </Field>
 
@@ -148,23 +164,37 @@ export function PersonalProfileView() {
                     {...form.register("nationalIdType")}
                   >
                     <option value="PASSPORT">{t("idTypes.PASSPORT")}</option>
-                    <option value="NATIONAL_ID">{t("idTypes.NATIONAL_ID")}</option>
-                    <option value="DRIVERS_LICENSE">{t("idTypes.DRIVERS_LICENSE")}</option>
+                    <option value="NATIONAL_ID">
+                      {t("idTypes.NATIONAL_ID")}
+                    </option>
+                    <option value="DRIVERS_LICENSE">
+                      {t("idTypes.DRIVERS_LICENSE")}
+                    </option>
                   </select>
                   <FieldError errors={[form.formState.errors.nationalIdType]} />
                 </Field>
-                
+
                 <Field>
                   <FieldLabel>{t("idNumber")}</FieldLabel>
-                  <Input placeholder={t("idNumberPlaceholder")} {...form.register("nationalIdNumber")} />
-                  <FieldError errors={[form.formState.errors.nationalIdNumber]} />
+                  <Input
+                    placeholder={t("idNumberPlaceholder")}
+                    {...form.register("nationalIdNumber")}
+                  />
+                  <FieldError
+                    errors={[form.formState.errors.nationalIdNumber]}
+                  />
                 </Field>
               </div>
 
               <Field>
                 <FieldLabel>{t("emergencyContactName")}</FieldLabel>
-                <Input placeholder={t("emergencyContactNamePlaceholder")} {...form.register("emergencyContactName")} />
-                <FieldError errors={[form.formState.errors.emergencyContactName]} />
+                <Input
+                  placeholder={t("emergencyContactNamePlaceholder")}
+                  {...form.register("emergencyContactName")}
+                />
+                <FieldError
+                  errors={[form.formState.errors.emergencyContactName]}
+                />
               </Field>
 
               <Field>
@@ -181,13 +211,15 @@ export function PersonalProfileView() {
                     />
                   )}
                 />
-                <FieldError errors={[form.formState.errors.emergencyContactPhone]} />
+                <FieldError
+                  errors={[form.formState.errors.emergencyContactPhone]}
+                />
               </Field>
             </div>
           </CardContent>
           <CardFooter className="border-t border-border bg-muted/20 px-6 py-4 flex justify-end">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!form.formState.isDirty || mutation.isPending}
               className="w-full sm:w-auto"
             >

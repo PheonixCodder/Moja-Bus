@@ -4,7 +4,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { Armchair, Eraser, Gauge, Square } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 
-type SeatType = "PASSENGER_WINDOW" | "PASSENGER_AISLE" | "PASSENGER_MIDDLE" | "DRIVER_AREA" | "EMPTY_SPACE";
+type SeatType =
+  | "PASSENGER_WINDOW"
+  | "PASSENGER_AISLE"
+  | "PASSENGER_MIDDLE"
+  | "DRIVER_AREA"
+  | "EMPTY_SPACE";
 type Tool = SeatType | "ERASE";
 
 interface GridCell {
@@ -36,7 +41,8 @@ export const TOOLS: {
     label: "Aisle Seat",
     description: "Passenger seat beside the aisle",
     Icon: Armchair,
-    cellClass: "bg-card/60 border-border/60 text-foreground/80 hover:border-primary/40",
+    cellClass:
+      "bg-card/60 border-border/60 text-foreground/80 hover:border-primary/40",
     paletteDot: "bg-card/60 border border-border/60",
   },
   {
@@ -44,7 +50,8 @@ export const TOOLS: {
     label: "Middle Seat",
     description: "Passenger seat between window and aisle",
     Icon: Armchair,
-    cellClass: "bg-card/80 border-border/80 text-foreground/90 hover:border-primary/40",
+    cellClass:
+      "bg-card/80 border-border/80 text-foreground/90 hover:border-primary/40",
     paletteDot: "bg-card/80 border border-border/80",
   },
   {

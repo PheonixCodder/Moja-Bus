@@ -170,7 +170,9 @@ export function AddBusModal({
             registrationPlate: plateNumber.trim().toUpperCase(),
             internalName: internalName.trim() ? internalName.trim() : null,
             seatClass,
-            ...(manufactureYear ? { manufactureYear: parseInt(manufactureYear, 10) } : { manufactureYear: null }),
+            ...(manufactureYear
+              ? { manufactureYear: parseInt(manufactureYear, 10) }
+              : { manufactureYear: null }),
             notes: notes.trim() ? notes.trim() : null,
             status,
           },
@@ -217,7 +219,12 @@ export function AddBusModal({
 
   return (
     <>
-      <Drawer open={open} onOpenChange={onOpenChange} modal={false} direction="right">
+      <Drawer
+        open={open}
+        onOpenChange={onOpenChange}
+        modal={false}
+        direction="right"
+      >
         <DrawerContent className="bg-background border-l border-border w-full sm:max-w-lg flex flex-col">
           <DrawerHeader className="border-b border-border pb-4 shrink-0">
             <div className="flex items-center gap-3">
@@ -242,7 +249,11 @@ export function AddBusModal({
           </DrawerHeader>
 
           <div className="flex-1 overflow-y-auto">
-            <form id="bus-form" onSubmit={handleSubmit} className="space-y-5 p-5">
+            <form
+              id="bus-form"
+              onSubmit={handleSubmit}
+              className="space-y-5 p-5"
+            >
               {/* Plate Number */}
               <div className="space-y-1.5">
                 <Label
@@ -259,7 +270,9 @@ export function AddBusModal({
                   onChange={(e) => setPlateNumber(e.target.value)}
                 />
                 {errors["plateNumber"] && (
-                  <p className="text-xs text-destructive">{errors["plateNumber"]}</p>
+                  <p className="text-xs text-destructive">
+                    {errors["plateNumber"]}
+                  </p>
                 )}
               </div>
 
@@ -270,7 +283,9 @@ export function AddBusModal({
                   className="text-xs font-semibold text-foreground/80"
                 >
                   {t("internalNameLabel")}{" "}
-                  <span className="text-muted-foreground font-normal">{t("internalNameOptional")}</span>
+                  <span className="text-muted-foreground font-normal">
+                    {t("internalNameOptional")}
+                  </span>
                 </Label>
                 <Input
                   id="internalName"
@@ -292,9 +307,14 @@ export function AddBusModal({
                     label: y.toString(),
                   }))}
                   value={manufactureYear}
-                  onValueChange={(v) => { if (v !== null) setManufactureYear(v); }}
+                  onValueChange={(v) => {
+                    if (v !== null) setManufactureYear(v);
+                  }}
                 >
-                  <ComboboxInput placeholder={t("yearPlaceholder")} className="w-full" />
+                  <ComboboxInput
+                    placeholder={t("yearPlaceholder")}
+                    className="w-full"
+                  />
                   <ComboboxContent>
                     <ComboboxEmpty>{t("yearEmpty")}</ComboboxEmpty>
                     <ComboboxList>
@@ -320,15 +340,26 @@ export function AddBusModal({
                     { value: "ECONOMY", label: t("seatClass.ECONOMY") },
                   ]}
                   value={seatClass}
-                  onValueChange={(v) => { if (v !== null) setSeatClass(v as SeatClass); }}
+                  onValueChange={(v) => {
+                    if (v !== null) setSeatClass(v as SeatClass);
+                  }}
                 >
-                  <ComboboxInput placeholder={t("seatClass.STANDARD")} className="w-full" />
+                  <ComboboxInput
+                    placeholder={t("seatClass.STANDARD")}
+                    className="w-full"
+                  />
                   <ComboboxContent>
                     <ComboboxEmpty>{t("statusEmpty")}</ComboboxEmpty>
                     <ComboboxList>
-                      <ComboboxItem value="STANDARD">{t("seatClass.STANDARD")}</ComboboxItem>
-                      <ComboboxItem value="VIP">{t("seatClass.VIP")}</ComboboxItem>
-                      <ComboboxItem value="ECONOMY">{t("seatClass.ECONOMY")}</ComboboxItem>
+                      <ComboboxItem value="STANDARD">
+                        {t("seatClass.STANDARD")}
+                      </ComboboxItem>
+                      <ComboboxItem value="VIP">
+                        {t("seatClass.VIP")}
+                      </ComboboxItem>
+                      <ComboboxItem value="ECONOMY">
+                        {t("seatClass.ECONOMY")}
+                      </ComboboxItem>
                     </ComboboxList>
                   </ComboboxContent>
                 </Combobox>
@@ -377,7 +408,9 @@ export function AddBusModal({
                   </ComboboxContent>
                 </Combobox>
                 {errors["busTypeId"] && (
-                  <p className="text-xs text-destructive">{errors["busTypeId"]}</p>
+                  <p className="text-xs text-destructive">
+                    {errors["busTypeId"]}
+                  </p>
                 )}
                 {isEditing && (
                   <p className="text-[11px] text-muted-foreground">
@@ -461,26 +494,29 @@ export function AddBusModal({
                       )}
 
                       {/* No layouts for this type */}
-                      {filteredPlatform.length === 0 && filteredCustom.length === 0 && (
-                        <div className="rounded-lg border border-dashed border-border p-4 text-center">
-                          <p className="text-xs text-muted-foreground">
-                            {t("noLayoutsAvailable")}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setBuilderOpen(true)}
-                            className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                          >
-                            <Plus className="size-3.5" />
-                            {tLayouts("createCustomLayout")}
-                          </button>
-                        </div>
-                      )}
+                      {filteredPlatform.length === 0 &&
+                        filteredCustom.length === 0 && (
+                          <div className="rounded-lg border border-dashed border-border p-4 text-center">
+                            <p className="text-xs text-muted-foreground">
+                              {t("noLayoutsAvailable")}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setBuilderOpen(true)}
+                              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                            >
+                              <Plus className="size-3.5" />
+                              {tLayouts("createCustomLayout")}
+                            </button>
+                          </div>
+                        )}
                     </div>
                   )}
 
                   {errors["seatLayoutId"] && (
-                    <p className="text-xs text-destructive">{errors["seatLayoutId"]}</p>
+                    <p className="text-xs text-destructive">
+                      {errors["seatLayoutId"]}
+                    </p>
                   )}
                 </div>
               )}
@@ -498,15 +534,26 @@ export function AddBusModal({
                       { value: "INACTIVE", label: t("status.INACTIVE") },
                     ]}
                     value={status}
-                    onValueChange={(v) => setStatus((v ?? "ACTIVE") as BusStatus)}
+                    onValueChange={(v) =>
+                      setStatus((v ?? "ACTIVE") as BusStatus)
+                    }
                   >
-                    <ComboboxInput placeholder={t("statusPlaceholder")} className="w-full" />
+                    <ComboboxInput
+                      placeholder={t("statusPlaceholder")}
+                      className="w-full"
+                    />
                     <ComboboxContent>
                       <ComboboxEmpty>{t("statusEmpty")}</ComboboxEmpty>
                       <ComboboxList>
-                        <ComboboxItem value="ACTIVE">{t("status.ACTIVE")}</ComboboxItem>
-                        <ComboboxItem value="MAINTENANCE">{t("status.MAINTENANCE")}</ComboboxItem>
-                        <ComboboxItem value="INACTIVE">{t("status.INACTIVE")}</ComboboxItem>
+                        <ComboboxItem value="ACTIVE">
+                          {t("status.ACTIVE")}
+                        </ComboboxItem>
+                        <ComboboxItem value="MAINTENANCE">
+                          {t("status.MAINTENANCE")}
+                        </ComboboxItem>
+                        <ComboboxItem value="INACTIVE">
+                          {t("status.INACTIVE")}
+                        </ComboboxItem>
                       </ComboboxList>
                     </ComboboxContent>
                   </Combobox>
@@ -520,7 +567,9 @@ export function AddBusModal({
                   className="text-xs font-semibold text-foreground/80"
                 >
                   {t("notesLabel")}{" "}
-                  <span className="text-muted-foreground font-normal">{t("notesOptional")}</span>
+                  <span className="text-muted-foreground font-normal">
+                    {t("notesOptional")}
+                  </span>
                 </Label>
                 <Textarea
                   id="notes"
@@ -562,7 +611,9 @@ export function AddBusModal({
         busTypes={busTypes}
         onSuccess={(newLayoutId: string) => {
           // Invalidate layouts and auto-select the new one
-          queryClient.invalidateQueries(trpc.fleet.getLayoutTemplates.pathFilter());
+          queryClient.invalidateQueries(
+            trpc.fleet.getLayoutTemplates.pathFilter(),
+          );
           setSeatLayoutId(newLayoutId);
         }}
       />
@@ -575,13 +626,24 @@ export function AddBusModal({
 // ──────────────────────────────────────────────
 
 interface LayoutRadioCardProps {
-  layout: { id: string; name: string; rows: number; columns: number; totalSeats: number };
+  layout: {
+    id: string;
+    name: string;
+    rows: number;
+    columns: number;
+    totalSeats: number;
+  };
   selected: boolean;
   onSelect: () => void;
   isCustom: boolean;
 }
 
-function LayoutRadioCard({ layout, selected, onSelect, isCustom }: LayoutRadioCardProps) {
+function LayoutRadioCard({
+  layout,
+  selected,
+  onSelect,
+  isCustom,
+}: LayoutRadioCardProps) {
   const t = useTranslations("operatorDashboard.fleet.addBusDrawer");
   return (
     <button
@@ -600,7 +662,9 @@ function LayoutRadioCard({ layout, selected, onSelect, isCustom }: LayoutRadioCa
           selected ? "border-primary bg-primary" : "border-border",
         )}
       >
-        {selected && <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />}
+        {selected && (
+          <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 min-w-0">

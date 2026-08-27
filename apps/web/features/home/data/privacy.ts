@@ -59,16 +59,36 @@ const en: PrivacyData = {
       sections: [
         {
           heading: "1.1 Definitions",
-          body: ["This Privacy Policy is based on the definitions set out in Article 4 of the GDPR:"],
+          body: [
+            "This Privacy Policy is based on the definitions set out in Article 4 of the GDPR:",
+          ],
         },
       ],
       legalList: [
-        { term: "Personal data", def: "Any information relating to an identified or identifiable natural person (\u201cdata subject\u201d). A person is identifiable if they can be identified directly or indirectly \u2014 in particular by reference to an identifier such as a name, identification number, location data, or online identifier, or through information relating to their physical, physiological, genetic, mental, economic, cultural, or social characteristics (Art. 4(1) GDPR)." },
-        { term: "Processing", def: "Any operation performed on personal data, whether by automated means or not. This includes in particular: collection, recording, organization, structuring, storage, adaptation, retrieval, consultation, use, disclosure by transmission, dissemination, alignment, combination, restriction, erasure, or destruction (Art. 4(2) GDPR)." },
-        { term: "Controller", def: "The natural or legal person, public authority, or other body that, alone or jointly with others, determines the purposes and means of personal data processing (Art. 4(7) GDPR)." },
-        { term: "Processor", def: "A natural or legal person, public authority, or other body that processes personal data on behalf of the controller, in particular in accordance with its instructions (Art. 4(8) GDPR)." },
-        { term: "Third party", def: "Any natural or legal person, public authority, or other body other than the data subject, controller, processor, and persons who, under the direct authority of the controller or processor, are authorized to process personal data (Art. 4(10) GDPR)." },
-        { term: "Consent", def: "Any freely given, specific, informed, and unambiguous indication of the data subject\u2019s wishes by which they signify agreement to the processing of personal data relating to them by a statement or by a clear affirmative action (Art. 4(11) GDPR)." },
+        {
+          term: "Personal data",
+          def: "Any information relating to an identified or identifiable natural person (\u201cdata subject\u201d). A person is identifiable if they can be identified directly or indirectly \u2014 in particular by reference to an identifier such as a name, identification number, location data, or online identifier, or through information relating to their physical, physiological, genetic, mental, economic, cultural, or social characteristics (Art. 4(1) GDPR).",
+        },
+        {
+          term: "Processing",
+          def: "Any operation performed on personal data, whether by automated means or not. This includes in particular: collection, recording, organization, structuring, storage, adaptation, retrieval, consultation, use, disclosure by transmission, dissemination, alignment, combination, restriction, erasure, or destruction (Art. 4(2) GDPR).",
+        },
+        {
+          term: "Controller",
+          def: "The natural or legal person, public authority, or other body that, alone or jointly with others, determines the purposes and means of personal data processing (Art. 4(7) GDPR).",
+        },
+        {
+          term: "Processor",
+          def: "A natural or legal person, public authority, or other body that processes personal data on behalf of the controller, in particular in accordance with its instructions (Art. 4(8) GDPR).",
+        },
+        {
+          term: "Third party",
+          def: "Any natural or legal person, public authority, or other body other than the data subject, controller, processor, and persons who, under the direct authority of the controller or processor, are authorized to process personal data (Art. 4(10) GDPR).",
+        },
+        {
+          term: "Consent",
+          def: "Any freely given, specific, informed, and unambiguous indication of the data subject\u2019s wishes by which they signify agreement to the processing of personal data relating to them by a statement or by a clear affirmative action (Art. 4(11) GDPR).",
+        },
       ],
     },
     {
@@ -77,12 +97,15 @@ const en: PrivacyData = {
       sections: [
         {
           heading: "1.2 Controller Identity",
-          body: ["The controller responsible for the processing of your personal data (Art. 4(7) GDPR) is:"],
+          body: [
+            "The controller responsible for the processing of your personal data (Art. 4(7) GDPR) is:",
+          ],
         },
       ],
       addressBox: {
         name: "Moja Ride SARL",
-        address: "Abidjan, Cocody, Cit\u00e9 Sir \u2014 C\u00f4te d\u2019Ivoire",
+        address:
+          "Abidjan, Cocody, Cit\u00e9 Sir \u2014 C\u00f4te d\u2019Ivoire",
         email: "contact@mojaride.com",
       },
     },
@@ -92,7 +115,9 @@ const en: PrivacyData = {
       sections: [
         {
           heading: "1.3 Data Protection Officer",
-          body: ["Our Data Protection Officer is available at all times to answer your questions. Contact details:"],
+          body: [
+            "Our Data Protection Officer is available at all times to answer your questions. Contact details:",
+          ],
         },
       ],
       addressBox: {
@@ -107,16 +132,36 @@ const en: PrivacyData = {
       sections: [
         {
           heading: "1.4 Legal Basis for Data Processing",
-          body: ["Processing of personal data is permitted where at least one of the following legal bases applies:"],
+          body: [
+            "Processing of personal data is permitted where at least one of the following legal bases applies:",
+          ],
         },
       ],
       legalList: [
-        { term: "Art. 6(1)(a) GDPR", def: "The data subject has given consent to the processing for one or more specific purposes." },
-        { term: "Art. 6(1)(b) GDPR", def: "Processing is necessary for the performance of a contract to which the data subject is party, or in order to take steps at their request prior to entering into a contract." },
-        { term: "Art. 6(1)(c) GDPR", def: "Processing is necessary for compliance with a legal obligation to which the controller is subject (e.g., statutory retention obligations)." },
-        { term: "Art. 6(1)(d) GDPR", def: "Processing is necessary in order to protect the vital interests of the data subject or of another natural person." },
-        { term: "Art. 6(1)(e) GDPR", def: "Processing is necessary for the performance of a task carried out in the public interest or in the exercise of official authority vested in the controller." },
-        { term: "Art. 6(1)(f) GDPR", def: "Processing is necessary for the purposes of the legitimate interests pursued by the controller or a third party, except where such interests are overridden by the interests or rights of the data subject." },
+        {
+          term: "Art. 6(1)(a) GDPR",
+          def: "The data subject has given consent to the processing for one or more specific purposes.",
+        },
+        {
+          term: "Art. 6(1)(b) GDPR",
+          def: "Processing is necessary for the performance of a contract to which the data subject is party, or in order to take steps at their request prior to entering into a contract.",
+        },
+        {
+          term: "Art. 6(1)(c) GDPR",
+          def: "Processing is necessary for compliance with a legal obligation to which the controller is subject (e.g., statutory retention obligations).",
+        },
+        {
+          term: "Art. 6(1)(d) GDPR",
+          def: "Processing is necessary in order to protect the vital interests of the data subject or of another natural person.",
+        },
+        {
+          term: "Art. 6(1)(e) GDPR",
+          def: "Processing is necessary for the performance of a task carried out in the public interest or in the exercise of official authority vested in the controller.",
+        },
+        {
+          term: "Art. 6(1)(f) GDPR",
+          def: "Processing is necessary for the purposes of the legitimate interests pursued by the controller or a third party, except where such interests are overridden by the interests or rights of the data subject.",
+        },
       ],
     },
     {
@@ -229,14 +274,38 @@ const en: PrivacyData = {
         },
       ],
       rightsList: [
-        { right: "Right of access (Art. 15 GDPR)", desc: "You may request information about the personal data we process about you. Please specify your request clearly to help us compile the necessary data. On request, we will provide you with a copy of the data being processed. Note that your right to information may be limited in certain circumstances under regulatory provisions." },
-        { right: "Right to rectification (Art. 16 GDPR)", desc: "If information about you is inaccurate or incomplete, you may request that it be corrected or completed." },
-        { right: "Right to erasure (Art. 17 GDPR)", desc: "You may request the erasure of your personal data. Your right to erasure depends, among other things, on whether the data is still needed for our legal obligations." },
-        { right: "Right to restriction of processing (Art. 18 GDPR)", desc: "You have the right to request restriction of the processing of data concerning you." },
-        { right: "Right to data portability (Art. 20 GDPR)", desc: "You have the right to receive the data you have provided to us in a structured, commonly used, machine-readable format, or to request its transmission to another controller." },
-        { right: "Right to object (Art. 21 GDPR)", desc: "You have the right to object at any time to the processing of your data for reasons relating to your particular situation. You may also object to receiving advertising at any time with future effect (Art. 21(2) GDPR)." },
-        { right: "Right to lodge a complaint", desc: "If you believe we have failed to comply with data protection regulations when processing your data, you may lodge a complaint with the competent supervisory authority: ARTCI \u2014 Abidjan, Marcory Anoumabo \u2014 18 BP 2203 Abidjan 18, C\u00f4te d\u2019Ivoire." },
-        { right: "Right to withdraw consent", desc: "You may withdraw your consent to data processing at any time with future effect. This also applies to consent declarations issued before 25 May 2018." },
+        {
+          right: "Right of access (Art. 15 GDPR)",
+          desc: "You may request information about the personal data we process about you. Please specify your request clearly to help us compile the necessary data. On request, we will provide you with a copy of the data being processed. Note that your right to information may be limited in certain circumstances under regulatory provisions.",
+        },
+        {
+          right: "Right to rectification (Art. 16 GDPR)",
+          desc: "If information about you is inaccurate or incomplete, you may request that it be corrected or completed.",
+        },
+        {
+          right: "Right to erasure (Art. 17 GDPR)",
+          desc: "You may request the erasure of your personal data. Your right to erasure depends, among other things, on whether the data is still needed for our legal obligations.",
+        },
+        {
+          right: "Right to restriction of processing (Art. 18 GDPR)",
+          desc: "You have the right to request restriction of the processing of data concerning you.",
+        },
+        {
+          right: "Right to data portability (Art. 20 GDPR)",
+          desc: "You have the right to receive the data you have provided to us in a structured, commonly used, machine-readable format, or to request its transmission to another controller.",
+        },
+        {
+          right: "Right to object (Art. 21 GDPR)",
+          desc: "You have the right to object at any time to the processing of your data for reasons relating to your particular situation. You may also object to receiving advertising at any time with future effect (Art. 21(2) GDPR).",
+        },
+        {
+          right: "Right to lodge a complaint",
+          desc: "If you believe we have failed to comply with data protection regulations when processing your data, you may lodge a complaint with the competent supervisory authority: ARTCI \u2014 Abidjan, Marcory Anoumabo \u2014 18 BP 2203 Abidjan 18, C\u00f4te d\u2019Ivoire.",
+        },
+        {
+          right: "Right to withdraw consent",
+          desc: "You may withdraw your consent to data processing at any time with future effect. This also applies to consent declarations issued before 25 May 2018.",
+        },
       ],
     },
     {
@@ -273,7 +342,8 @@ const en: PrivacyData = {
           ],
         },
         {
-          heading: "2.1.3 Booking, Provision, and Processing of Transport Services",
+          heading:
+            "2.1.3 Booking, Provision, and Processing of Transport Services",
           body: [
             "When booking transport tickets, we collect and process the following personal data categories:",
           ],
@@ -313,8 +383,16 @@ const en: PrivacyData = {
         title: "Payment processors",
         body: "Required payment data is transmitted to payment service providers for the secure processing of your payments:",
         processors: [
-          { name: "Paystack", address: "26 Joel Ogunnaike Street, Ikeja GRA, Ikeja, Lagos, Nigeria \u2014 +234 201 631 6160" },
-          { name: "Wave C\u00f4te d\u2019Ivoire", address: "Cocody Riviera 4, near Mansah Bank \u2014 contact@wave.com \u2014 +225 07 48 27 77 42" },
+          {
+            name: "Paystack",
+            address:
+              "26 Joel Ogunnaike Street, Ikeja GRA, Ikeja, Lagos, Nigeria \u2014 +234 201 631 6160",
+          },
+          {
+            name: "Wave C\u00f4te d\u2019Ivoire",
+            address:
+              "Cocody Riviera 4, near Mansah Bank \u2014 contact@wave.com \u2014 +225 07 48 27 77 42",
+          },
         ],
       },
     },
@@ -351,16 +429,36 @@ const fr: PrivacyData = {
       sections: [
         {
           heading: "1.1 D\u00e9finitions",
-          body: ["La pr\u00e9sente politique de confidentialit\u00e9 est bas\u00e9e sur les d\u00e9finitions \u00e9nonc\u00e9es \u00e0 l\u2019article 4 du RGPD :"],
+          body: [
+            "La pr\u00e9sente politique de confidentialit\u00e9 est bas\u00e9e sur les d\u00e9finitions \u00e9nonc\u00e9es \u00e0 l\u2019article 4 du RGPD :",
+          ],
         },
       ],
       legalList: [
-        { term: "Donn\u00e9es personnelles", def: "Toute information se rapportant \u00e0 une personne physique identifi\u00e9e ou identifiable (\u00ab personne concern\u00e9e \u00bb). Une personne est identifiable si elle peut \u00eatre identifi\u00e9e, directement ou indirectement \u2014 notamment par r\u00e9f\u00e9rence \u00e0 un identifiant tel qu\u2019un nom, un num\u00e9ro d\u2019identification, des donn\u00e9es de localisation ou un identifiant en ligne, ou par des informations relatives \u00e0 ses caract\u00e9ristiques physiques, physiologiques, g\u00e9n\u00e9tiques, psychiques, \u00e9conomiques, culturelles ou sociales (Art. 4(1) RGPD)." },
-        { term: "Traitement", def: "Toute op\u00e9ration effectu\u00e9e sur des donn\u00e9es personnelles, que ce soit par des moyens automatis\u00e9s ou non. Cela inclut notamment : la collecte, l\u2019enregistrement, l\u2019organisation, la structuration, la conservation, l\u2019adaptation, la r\u00e9cup\u00e9ration, la consultation, l\u2019utilisation, la divulgation par transmission, la diffusion, le rapprochement, la combinaison, la limitation, l\u2019effacement ou la destruction (Art. 4(2) RGPD)." },
-        { term: "Responsable du traitement", def: "La personne physique ou morale, l\u2019autorit\u00e9 publique ou tout autre organisme qui, seul ou conjointement avec d\u2019autres, d\u00e9termine les finalit\u00e9s et les moyens du traitement des donn\u00e9es personnelles (Art. 4(7) RGPD)." },
-        { term: "Sous-traitant", def: "Une personne physique ou morale, une autorit\u00e9 publique ou tout autre organisme qui traite des donn\u00e9es personnelles pour le compte du responsable du traitement, notamment conform\u00e9ment \u00e0 ses instructions (Art. 4(8) RGPD)." },
-        { term: "Tiers", def: "Toute personne physique ou morale, autorit\u00e9 publique ou tout autre organisme autre que la personne concern\u00e9e, le responsable du traitement, le sous-traitant et les personnes qui, sous l\u2019autorit\u00e9 directe du responsable du traitement ou du sous-traitant, sont autoris\u00e9es \u00e0 traiter des donn\u00e9es personnelles (Art. 4(10) RGPD)." },
-        { term: "Consentement", def: "Toute manifestation de volont\u00e9 libre, sp\u00e9cifique, \u00e9clair\u00e9e et univoque par laquelle la personne concern\u00e9e accepte, par une d\u00e9claration ou par un acte positif clair, que des donn\u00e9es personnelles la concernant fassent l\u2019objet d\u2019un traitement (Art. 4(11) RGPD)." },
+        {
+          term: "Donn\u00e9es personnelles",
+          def: "Toute information se rapportant \u00e0 une personne physique identifi\u00e9e ou identifiable (\u00ab personne concern\u00e9e \u00bb). Une personne est identifiable si elle peut \u00eatre identifi\u00e9e, directement ou indirectement \u2014 notamment par r\u00e9f\u00e9rence \u00e0 un identifiant tel qu\u2019un nom, un num\u00e9ro d\u2019identification, des donn\u00e9es de localisation ou un identifiant en ligne, ou par des informations relatives \u00e0 ses caract\u00e9ristiques physiques, physiologiques, g\u00e9n\u00e9tiques, psychiques, \u00e9conomiques, culturelles ou sociales (Art. 4(1) RGPD).",
+        },
+        {
+          term: "Traitement",
+          def: "Toute op\u00e9ration effectu\u00e9e sur des donn\u00e9es personnelles, que ce soit par des moyens automatis\u00e9s ou non. Cela inclut notamment : la collecte, l\u2019enregistrement, l\u2019organisation, la structuration, la conservation, l\u2019adaptation, la r\u00e9cup\u00e9ration, la consultation, l\u2019utilisation, la divulgation par transmission, la diffusion, le rapprochement, la combinaison, la limitation, l\u2019effacement ou la destruction (Art. 4(2) RGPD).",
+        },
+        {
+          term: "Responsable du traitement",
+          def: "La personne physique ou morale, l\u2019autorit\u00e9 publique ou tout autre organisme qui, seul ou conjointement avec d\u2019autres, d\u00e9termine les finalit\u00e9s et les moyens du traitement des donn\u00e9es personnelles (Art. 4(7) RGPD).",
+        },
+        {
+          term: "Sous-traitant",
+          def: "Une personne physique ou morale, une autorit\u00e9 publique ou tout autre organisme qui traite des donn\u00e9es personnelles pour le compte du responsable du traitement, notamment conform\u00e9ment \u00e0 ses instructions (Art. 4(8) RGPD).",
+        },
+        {
+          term: "Tiers",
+          def: "Toute personne physique ou morale, autorit\u00e9 publique ou tout autre organisme autre que la personne concern\u00e9e, le responsable du traitement, le sous-traitant et les personnes qui, sous l\u2019autorit\u00e9 directe du responsable du traitement ou du sous-traitant, sont autoris\u00e9es \u00e0 traiter des donn\u00e9es personnelles (Art. 4(10) RGPD).",
+        },
+        {
+          term: "Consentement",
+          def: "Toute manifestation de volont\u00e9 libre, sp\u00e9cifique, \u00e9clair\u00e9e et univoque par laquelle la personne concern\u00e9e accepte, par une d\u00e9claration ou par un acte positif clair, que des donn\u00e9es personnelles la concernant fassent l\u2019objet d\u2019un traitement (Art. 4(11) RGPD).",
+        },
       ],
     },
     {
@@ -369,12 +467,15 @@ const fr: PrivacyData = {
       sections: [
         {
           heading: "1.2 Identit\u00e9 du responsable du traitement",
-          body: ["Le responsable du traitement de vos donn\u00e9es personnelles (Art. 4(7) RGPD) est :"],
+          body: [
+            "Le responsable du traitement de vos donn\u00e9es personnelles (Art. 4(7) RGPD) est :",
+          ],
         },
       ],
       addressBox: {
         name: "Moja Ride SARL",
-        address: "Abidjan, Cocody, Cit\u00e9 Sir \u2014 C\u00f4te d\u2019Ivoire",
+        address:
+          "Abidjan, Cocody, Cit\u00e9 Sir \u2014 C\u00f4te d\u2019Ivoire",
         email: "contact@mojaride.com",
       },
     },
@@ -383,8 +484,11 @@ const fr: PrivacyData = {
       title: "1.3 D\u00e9l\u00e9gu\u00e9 \u00e0 la protection",
       sections: [
         {
-          heading: "1.3 D\u00e9l\u00e9gu\u00e9 \u00e0 la protection des donn\u00e9es",
-          body: ["Notre d\u00e9l\u00e9gu\u00e9 \u00e0 la protection des donn\u00e9es est disponible \u00e0 tout moment pour r\u00e9pondre \u00e0 vos questions. Coordonn\u00e9es :"],
+          heading:
+            "1.3 D\u00e9l\u00e9gu\u00e9 \u00e0 la protection des donn\u00e9es",
+          body: [
+            "Notre d\u00e9l\u00e9gu\u00e9 \u00e0 la protection des donn\u00e9es est disponible \u00e0 tout moment pour r\u00e9pondre \u00e0 vos questions. Coordonn\u00e9es :",
+          ],
         },
       ],
       addressBox: {
@@ -399,16 +503,36 @@ const fr: PrivacyData = {
       sections: [
         {
           heading: "1.4 Base juridique du traitement des donn\u00e9es",
-          body: ["Le traitement des donn\u00e9es personnelles est autoris\u00e9 lorsqu\u2019au moins l\u2019une des bases juridiques suivantes s\u2019applique :"],
+          body: [
+            "Le traitement des donn\u00e9es personnelles est autoris\u00e9 lorsqu\u2019au moins l\u2019une des bases juridiques suivantes s\u2019applique :",
+          ],
         },
       ],
       legalList: [
-        { term: "Art. 6(1)(a) RGPD", def: "La personne concern\u00e9e a donn\u00e9 son consentement au traitement pour une ou plusieurs finalit\u00e9s sp\u00e9cifiques." },
-        { term: "Art. 6(1)(b) RGPD", def: "Le traitement est n\u00e9cessaire \u00e0 l\u2019ex\u00e9cution d\u2019un contrat auquel la personne concern\u00e9e est partie, ou \u00e0 l\u2019ex\u00e9cution de mesures pr\u00e9contractuelles prises \u00e0 la demande de celle-ci." },
-        { term: "Art. 6(1)(c) RGPD", def: "Le traitement est n\u00e9cessaire au respect d\u2019une obligation l\u00e9gale \u00e0 laquelle le responsable du traitement est soumis (par exemple, obligations l\u00e9gales de conservation)." },
-        { term: "Art. 6(1)(d) RGPD", def: "Le traitement est n\u00e9cessaire \u00e0 la protection des int\u00e9r\u00eats vitaux de la personne concern\u00e9e ou d\u2019une autre personne physique." },
-        { term: "Art. 6(1)(e) RGPD", def: "Le traitement est n\u00e9cessaire \u00e0 l\u2019ex\u00e9cution d\u2019une mission d\u2019int\u00e9r\u00eat public ou relevant de l\u2019exercice de l\u2019autorit\u00e9 publique dont est investi le responsable du traitement." },
-        { term: "Art. 6(1)(f) RGPD", def: "Le traitement est n\u00e9cessaire aux fins des int\u00e9r\u00eats l\u00e9gitimes poursuivis par le responsable du traitement ou par un tiers, \u00e0 moins que ne pr\u00e9valent les int\u00e9r\u00eats ou les droits de la personne concern\u00e9e." },
+        {
+          term: "Art. 6(1)(a) RGPD",
+          def: "La personne concern\u00e9e a donn\u00e9 son consentement au traitement pour une ou plusieurs finalit\u00e9s sp\u00e9cifiques.",
+        },
+        {
+          term: "Art. 6(1)(b) RGPD",
+          def: "Le traitement est n\u00e9cessaire \u00e0 l\u2019ex\u00e9cution d\u2019un contrat auquel la personne concern\u00e9e est partie, ou \u00e0 l\u2019ex\u00e9cution de mesures pr\u00e9contractuelles prises \u00e0 la demande de celle-ci.",
+        },
+        {
+          term: "Art. 6(1)(c) RGPD",
+          def: "Le traitement est n\u00e9cessaire au respect d\u2019une obligation l\u00e9gale \u00e0 laquelle le responsable du traitement est soumis (par exemple, obligations l\u00e9gales de conservation).",
+        },
+        {
+          term: "Art. 6(1)(d) RGPD",
+          def: "Le traitement est n\u00e9cessaire \u00e0 la protection des int\u00e9r\u00eats vitaux de la personne concern\u00e9e ou d\u2019une autre personne physique.",
+        },
+        {
+          term: "Art. 6(1)(e) RGPD",
+          def: "Le traitement est n\u00e9cessaire \u00e0 l\u2019ex\u00e9cution d\u2019une mission d\u2019int\u00e9r\u00eat public ou relevant de l\u2019exercice de l\u2019autorit\u00e9 publique dont est investi le responsable du traitement.",
+        },
+        {
+          term: "Art. 6(1)(f) RGPD",
+          def: "Le traitement est n\u00e9cessaire aux fins des int\u00e9r\u00eats l\u00e9gitimes poursuivis par le responsable du traitement ou par un tiers, \u00e0 moins que ne pr\u00e9valent les int\u00e9r\u00eats ou les droits de la personne concern\u00e9e.",
+        },
       ],
     },
     {
@@ -472,7 +596,8 @@ const fr: PrivacyData = {
       title: "1.8 D\u00e9cisions automatis\u00e9es",
       sections: [
         {
-          heading: "1.8 D\u00e9cisions automatis\u00e9es (y compris le profilage)",
+          heading:
+            "1.8 D\u00e9cisions automatis\u00e9es (y compris le profilage)",
           body: [
             "Nous n\u2019avons pas l\u2019intention d\u2019utiliser les donn\u00e9es personnelles collect\u00e9es pour des processus impliquant une prise de d\u00e9cision automatis\u00e9e (y compris le profilage). Si nous souhaitons mettre en \u0153uvre de telles proc\u00e9dures, nous vous en informerons s\u00e9par\u00e9ment conform\u00e9ment aux dispositions l\u00e9gales applicables.",
           ],
@@ -484,13 +609,15 @@ const fr: PrivacyData = {
       title: "1.9 & 1.10 Obligations",
       sections: [
         {
-          heading: "1.9 Absence d\u2019obligation de fournir des donn\u00e9es personnelles",
+          heading:
+            "1.9 Absence d\u2019obligation de fournir des donn\u00e9es personnelles",
           body: [
             "La conclusion d\u2019un contrat avec nous n\u2019est pas conditionn\u00e9e \u00e0 la fourniture pr\u00e9alable de vos donn\u00e9es personnelles. Il n\u2019existe g\u00e9n\u00e9ralement pas non plus d\u2019obligation l\u00e9gale ou contractuelle de nous fournir vos donn\u00e9es personnelles ; cependant, nous pouvons n\u2019\u00eatre en mesure d\u2019offrir certains services que dans une mesure limit\u00e9e, ou pas du tout, si vous ne fournissez pas les donn\u00e9es requises.",
           ],
         },
         {
-          heading: "1.10 Obligation l\u00e9gale de transmettre des donn\u00e9es",
+          heading:
+            "1.10 Obligation l\u00e9gale de transmettre des donn\u00e9es",
           body: [
             "Dans certains cas, nous pouvons \u00eatre soumis \u00e0 une obligation r\u00e9glementaire ou l\u00e9gale sp\u00e9cifique de transmettre des donn\u00e9es personnelles \u00e0 des tiers, notamment \u00e0 des organismes publics.",
           ],
@@ -521,14 +648,39 @@ const fr: PrivacyData = {
         },
       ],
       rightsList: [
-        { right: "Droit d\u2019acc\u00e8s (Art. 15 RGPD)", desc: "Vous pouvez demander des informations sur les donn\u00e9es personnelles que nous traitons vous concernant. Veuillez pr\u00e9ciser clairement votre demande pour nous aider \u00e0 compiler les donn\u00e9es n\u00e9cessaires. Sur demande, nous vous fournirons une copie des donn\u00e9es trait\u00e9es. Notez que votre droit d\u2019information peut \u00eatre limit\u00e9 dans certaines circonstances en vertu des dispositions r\u00e9glementaires." },
-        { right: "Droit de rectification (Art. 16 RGPD)", desc: "Si les informations vous concernant sont inexactes ou incompl\u00e8tes, vous pouvez demander qu\u2019elles soient corrig\u00e9es ou compl\u00e9t\u00e9es." },
-        { right: "Droit \u00e0 l\u2019effacement (Art. 17 RGPD)", desc: "Vous pouvez demander l\u2019effacement de vos donn\u00e9es personnelles. Votre droit \u00e0 l\u2019effacement d\u00e9pend, entre autres, de la question de savoir si les donn\u00e9es sont encore n\u00e9cessaires \u00e0 nos obligations l\u00e9gales." },
-        { right: "Droit \u00e0 la limitation du traitement (Art. 18 RGPD)", desc: "Vous avez le droit de demander la limitation du traitement des donn\u00e9es vous concernant." },
-        { right: "Droit \u00e0 la portabilit\u00e9 des donn\u00e9es (Art. 20 RGPD)", desc: "Vous avez le droit de recevoir les donn\u00e9es que vous nous avez fournies dans un format structur\u00e9, couramment utilis\u00e9 et lisible par machine, ou de demander leur transmission \u00e0 un autre responsable du traitement." },
-        { right: "Droit d\u2019opposition (Art. 21 RGPD)", desc: "Vous avez le droit de vous opposer \u00e0 tout moment au traitement de vos donn\u00e9es pour des raisons li\u00e9es \u00e0 votre situation particuli\u00e8re. Vous pouvez \u00e9galement vous opposer \u00e0 la r\u00e9ception de publicit\u00e9s \u00e0 tout moment avec effet futur (Art. 21(2) RGPD)." },
-        { right: "Droit d\u2019introduire une r\u00e9clamation", desc: "Si vous estimez que nous n\u2019avons pas respect\u00e9 la r\u00e9glementation sur la protection des donn\u00e9es lors du traitement de vos donn\u00e9es, vous pouvez introduire une r\u00e9clamation aupr\u00e8s de l\u2019autorit\u00e9 de contr\u00f4le comp\u00e9tente : ARTCI \u2014 Abidjan, Marcory Anoumabo \u2014 18 BP 2203 Abidjan 18, C\u00f4te d\u2019Ivoire." },
-        { right: "Droit de retirer le consentement", desc: "Vous pouvez retirer \u00e0 tout moment votre consentement au traitement des donn\u00e9es avec effet futur. Cela s\u2019applique \u00e9galement aux d\u00e9clarations de consentement \u00e9mises avant le 25 mai 2018." },
+        {
+          right: "Droit d\u2019acc\u00e8s (Art. 15 RGPD)",
+          desc: "Vous pouvez demander des informations sur les donn\u00e9es personnelles que nous traitons vous concernant. Veuillez pr\u00e9ciser clairement votre demande pour nous aider \u00e0 compiler les donn\u00e9es n\u00e9cessaires. Sur demande, nous vous fournirons une copie des donn\u00e9es trait\u00e9es. Notez que votre droit d\u2019information peut \u00eatre limit\u00e9 dans certaines circonstances en vertu des dispositions r\u00e9glementaires.",
+        },
+        {
+          right: "Droit de rectification (Art. 16 RGPD)",
+          desc: "Si les informations vous concernant sont inexactes ou incompl\u00e8tes, vous pouvez demander qu\u2019elles soient corrig\u00e9es ou compl\u00e9t\u00e9es.",
+        },
+        {
+          right: "Droit \u00e0 l\u2019effacement (Art. 17 RGPD)",
+          desc: "Vous pouvez demander l\u2019effacement de vos donn\u00e9es personnelles. Votre droit \u00e0 l\u2019effacement d\u00e9pend, entre autres, de la question de savoir si les donn\u00e9es sont encore n\u00e9cessaires \u00e0 nos obligations l\u00e9gales.",
+        },
+        {
+          right: "Droit \u00e0 la limitation du traitement (Art. 18 RGPD)",
+          desc: "Vous avez le droit de demander la limitation du traitement des donn\u00e9es vous concernant.",
+        },
+        {
+          right:
+            "Droit \u00e0 la portabilit\u00e9 des donn\u00e9es (Art. 20 RGPD)",
+          desc: "Vous avez le droit de recevoir les donn\u00e9es que vous nous avez fournies dans un format structur\u00e9, couramment utilis\u00e9 et lisible par machine, ou de demander leur transmission \u00e0 un autre responsable du traitement.",
+        },
+        {
+          right: "Droit d\u2019opposition (Art. 21 RGPD)",
+          desc: "Vous avez le droit de vous opposer \u00e0 tout moment au traitement de vos donn\u00e9es pour des raisons li\u00e9es \u00e0 votre situation particuli\u00e8re. Vous pouvez \u00e9galement vous opposer \u00e0 la r\u00e9ception de publicit\u00e9s \u00e0 tout moment avec effet futur (Art. 21(2) RGPD).",
+        },
+        {
+          right: "Droit d\u2019introduire une r\u00e9clamation",
+          desc: "Si vous estimez que nous n\u2019avons pas respect\u00e9 la r\u00e9glementation sur la protection des donn\u00e9es lors du traitement de vos donn\u00e9es, vous pouvez introduire une r\u00e9clamation aupr\u00e8s de l\u2019autorit\u00e9 de contr\u00f4le comp\u00e9tente : ARTCI \u2014 Abidjan, Marcory Anoumabo \u2014 18 BP 2203 Abidjan 18, C\u00f4te d\u2019Ivoire.",
+        },
+        {
+          right: "Droit de retirer le consentement",
+          desc: "Vous pouvez retirer \u00e0 tout moment votre consentement au traitement des donn\u00e9es avec effet futur. Cela s\u2019applique \u00e9galement aux d\u00e9clarations de consentement \u00e9mises avant le 25 mai 2018.",
+        },
       ],
     },
     {
@@ -565,7 +717,8 @@ const fr: PrivacyData = {
           ],
         },
         {
-          heading: "2.1.3 R\u00e9servation, fourniture et traitement des services de transport",
+          heading:
+            "2.1.3 R\u00e9servation, fourniture et traitement des services de transport",
           body: [
             "Lors de la r\u00e9servation de billets de transport, nous collectons et traitons les cat\u00e9gories de donn\u00e9es personnelles suivantes :",
           ],
@@ -605,8 +758,16 @@ const fr: PrivacyData = {
         title: "Processeurs de paiement",
         body: "Les donn\u00e9es de paiement requises sont transmises aux prestataires de services de paiement pour le traitement s\u00e9curis\u00e9 de vos paiements :",
         processors: [
-          { name: "Paystack", address: "26 Joel Ogunnaike Street, Ikeja GRA, Ikeja, Lagos, Nigeria \u2014 +234 201 631 6160" },
-          { name: "Wave C\u00f4te d\u2019Ivoire", address: "Cocody Riviera 4, pr\u00e8s de la Banque Mansah \u2014 contact@wave.com \u2014 +225 07 48 27 77 42" },
+          {
+            name: "Paystack",
+            address:
+              "26 Joel Ogunnaike Street, Ikeja GRA, Ikeja, Lagos, Nigeria \u2014 +234 201 631 6160",
+          },
+          {
+            name: "Wave C\u00f4te d\u2019Ivoire",
+            address:
+              "Cocody Riviera 4, pr\u00e8s de la Banque Mansah \u2014 contact@wave.com \u2014 +225 07 48 27 77 42",
+          },
         ],
       },
     },
@@ -617,6 +778,8 @@ export function getPrivacyContent(locale: string): PrivacyData {
   return locale.startsWith("fr") ? fr : en;
 }
 
-export function getPrivacyToc(locale: string): Array<{ id: string; title: string }> {
+export function getPrivacyToc(
+  locale: string,
+): Array<{ id: string; title: string }> {
   return getPrivacyContent(locale).toc;
 }

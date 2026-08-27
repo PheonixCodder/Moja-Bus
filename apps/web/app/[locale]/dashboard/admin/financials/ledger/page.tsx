@@ -26,11 +26,12 @@ export default async function LedgerPage({ searchParams }: LedgerPageProps) {
   await prefetch(
     trpc.admin.listLedgerEntries.queryOptions({
       search: parsedParams.q || undefined,
-      side: parsedParams.side === "ALL" ? undefined : (parsedParams.side as any),
+      side:
+        parsedParams.side === "ALL" ? undefined : (parsedParams.side as any),
       type: parsedParams.type === "ALL" ? undefined : parsedParams.type,
       limit: parsedParams.pageSize,
       offset: currentPageIndex * parsedParams.pageSize,
-    })
+    }),
   );
 
   return (

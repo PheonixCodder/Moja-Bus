@@ -73,9 +73,7 @@ export function CampaignCouponsPanel({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
-          <p className="text-xs text-slate-500">
-            {t("description")}
-          </p>
+          <p className="text-xs text-slate-500">{t("description")}</p>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={onClose}>
           {t("close")}
@@ -104,7 +102,9 @@ export function CampaignCouponsPanel({
       {onBulkCreate ? (
         <div className="flex flex-col gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50/80 p-3 sm:flex-row sm:items-end">
           <div className="flex-1 space-y-1">
-            <p className="text-xs font-medium text-slate-600">{t("bulkGenerate")}</p>
+            <p className="text-xs font-medium text-slate-600">
+              {t("bulkGenerate")}
+            </p>
             <Input
               className="uppercase"
               placeholder={t("prefixPlaceholder")}
@@ -132,7 +132,10 @@ export function CampaignCouponsPanel({
             onClick={() => {
               onBulkCreate({
                 prefix: bulkPrefix.trim(),
-                count: Math.min(500, Math.max(1, Math.floor(Number(bulkCount)))),
+                count: Math.min(
+                  500,
+                  Math.max(1, Math.floor(Number(bulkCount))),
+                ),
               });
             }}
           >
@@ -155,13 +158,19 @@ export function CampaignCouponsPanel({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-sm text-slate-500">
+                <TableCell
+                  colSpan={5}
+                  className="py-8 text-center text-sm text-slate-500"
+                >
                   {t("loading")}
                 </TableCell>
               </TableRow>
             ) : coupons.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-sm text-slate-500">
+                <TableCell
+                  colSpan={5}
+                  className="py-8 text-center text-sm text-slate-500"
+                >
                   {t("noCodes")}
                 </TableCell>
               </TableRow>

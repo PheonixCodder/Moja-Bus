@@ -5,10 +5,22 @@ import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ActionDrawer } from "@moja/ui/components/ui/action-drawer";
-import { CheckCircle2, Clock, ShieldCheck, ShieldAlert, AlertCircle, Lock } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  ShieldCheck,
+  ShieldAlert,
+  AlertCircle,
+  Lock,
+} from "lucide-react";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Button } from "@moja/ui/components/ui/button";
-import { getCompanyStatusPresentation, getBankVerificationState, getDocumentsVerificationState, getCompanyProfileState } from "../../../lib/company-status";
+import {
+  getCompanyStatusPresentation,
+  getBankVerificationState,
+  getDocumentsVerificationState,
+  getCompanyProfileState,
+} from "../../../lib/company-status";
 import { useCompanySettings } from "../../api/use-company-settings";
 
 interface VerificationDrawerProps {
@@ -16,7 +28,10 @@ interface VerificationDrawerProps {
   onClose: () => void;
 }
 
-export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps) {
+export function VerificationDrawer({
+  isOpen,
+  onClose,
+}: VerificationDrawerProps) {
   const t = useTranslations("operatorDashboard.settings.verificationDrawer");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -25,19 +40,25 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
 
   const companyStatus = getCompanyStatusPresentation(settings?.company?.status);
   const companyProfileState = getCompanyProfileState(settings?.company);
-  const bankVerificationState = getBankVerificationState(settings?.company?.bankAccounts?.[0]);
-  const documentsVerificationState = getDocumentsVerificationState(settings?.company?.documents || []);
+  const bankVerificationState = getBankVerificationState(
+    settings?.company?.bankAccounts?.[0],
+  );
+  const documentsVerificationState = getDocumentsVerificationState(
+    settings?.company?.documents || [],
+  );
 
   const completeOnboardingMutation = useMutation(
     trpc.operator.completeOnboarding.mutationOptions({
-      onSuccess: () => queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
-    })
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
   );
 
   const resubmitVerificationMutation = useMutation(
     trpc.operator.resubmitVerification.mutationOptions({
-      onSuccess: () => queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
-    })
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter()),
+    }),
   );
 
   const handleSubmitVerification = async () => {
@@ -47,7 +68,8 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
       toast.success(t("toastSubmitted"), { id: "submit-verification" });
       onClose();
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("toastSubmitFailed");
+      const message =
+        err instanceof Error ? err.message : t("toastSubmitFailed");
       toast.error(message, { id: "submit-verification" });
     }
   };
@@ -59,7 +81,8 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
       toast.success(t("toastResubmitted"), { id: "resubmit-verification" });
       onClose();
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("toastResubmitFailed");
+      const message =
+        err instanceof Error ? err.message : t("toastResubmitFailed");
       toast.error(message, { id: "resubmit-verification" });
     }
   };
@@ -80,13 +103,16 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
     {
       label: t("checklist.registrationDoc"),
       done: company.documents?.some(
-        (d) => d.type === "BUSINESS_REGISTRATION_CERTIFICATE" && d.status === "APPROVED"
+        (d) =>
+          d.type === "BUSINESS_REGISTRATION_CERTIFICATE" &&
+          d.status === "APPROVED",
       ),
     },
     {
       label: t("checklist.permitDoc"),
       done: company.documents?.some(
-        (d) => d.type === "TRANSPORT_OPERATING_PERMIT" && d.status === "APPROVED"
+        (d) =>
+          d.type === "TRANSPORT_OPERATING_PERMIT" && d.status === "APPROVED",
       ),
     },
   ];
@@ -106,13 +132,23 @@ export function VerificationDrawer({ isOpen, onClose }: VerificationDrawerProps)
             {t("close")}
           </Button>
           {canSubmit && (
-            <Button onClick={handleSubmitVerification} disabled={completeOnboardingMutation.isPending}>
-              {completeOnboardingMutation.isPending ? t("submitting") : t("submitForVerification")}
+            <Button
+              onClick={handleSubmitVerification}
+              disabled={completeOnboardingMutation.isPending}
+            >
+              {completeOnboardingMutation.isPending
+                ? t("submitting")
+                : t("submitForVerification")}
             </Button>
           )}
           {canResubmit && !canSubmit && (
-            <Button onClick={handleResubmitVerification} disabled={resubmitVerificationMutation.isPending}>
-              {resubmitVerificationMutation.isPending ? t("resubmitting") : t("resubmitApplication")}
+            <Button
+              onClick={handleResubmitVerification}
+              disabled={resubmitVerificationMutation.isPending}
+            >
+              {resubmitVerificationMutation.isPending
+                ? t("resubmitting")
+                : t("resubmitApplication")}
             </Button>
           )}
         </div>

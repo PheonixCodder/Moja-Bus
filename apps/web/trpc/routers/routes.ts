@@ -1,13 +1,20 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
-import { requirePermission, requireAnyPermission } from "@/lib/permissions/authorize";
+import {
+  requirePermission,
+  requireAnyPermission,
+} from "@/lib/permissions/authorize";
 import { createRouteSchema, updateRouteSchema } from "@moja/schemas";
 import { resolveRouteServiceType } from "@/lib/route-service-type";
 
 export const routesRouter = createTRPCRouter({
   list: operatorCompanyProcedure
-    .input(z.object({ showArchived: z.boolean().optional().default(false) }).optional())
+    .input(
+      z
+        .object({ showArchived: z.boolean().optional().default(false) })
+        .optional(),
+    )
     .query(async ({ ctx, input }) => {
       requirePermission(ctx, "routes:read");
       return ctx.prisma.route.findMany({
@@ -16,8 +23,12 @@ export const routesRouter = createTRPCRouter({
           ...(input?.showArchived ? {} : { status: { not: "ARCHIVED" } }),
         },
         include: {
-          originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-          destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+          originTerminal: {
+            include: { cityRelation: true, municipality: true, quarter: true },
+          },
+          destTerminal: {
+            include: { cityRelation: true, municipality: true, quarter: true },
+          },
           _count: {
             select: { waypoints: true, schedules: true },
           },
@@ -41,11 +52,21 @@ export const routesRouter = createTRPCRouter({
       const route = await ctx.prisma.route.findFirst({
         where: { id: input.id, companyId: ctx.companyId },
         include: {
-          originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-          destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+          originTerminal: {
+            include: { cityRelation: true, municipality: true, quarter: true },
+          },
+          destTerminal: {
+            include: { cityRelation: true, municipality: true, quarter: true },
+          },
           waypoints: {
             include: {
-              terminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+              terminal: {
+                include: {
+                  cityRelation: true,
+                  municipality: true,
+                  quarter: true,
+                },
+              },
             },
             orderBy: { stopOrder: "asc" },
           },
@@ -108,7 +129,8 @@ export const routesRouter = createTRPCRouter({
       if (owned.length !== new Set(terminalIds).size) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "One or more terminals are invalid, inactive, or do not belong to your company.",
+          message:
+            "One or more terminals are invalid, inactive, or do not belong to your company.",
         });
       }
 
@@ -282,7 +304,8 @@ export const routesRouter = createTRPCRouter({
         if (owned.length !== new Set(terminalIds).size) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "One or more terminals are invalid, inactive, or do not belong to your company.",
+            message:
+              "One or more terminals are invalid, inactive, or do not belong to your company.",
           });
         }
       }
@@ -304,9 +327,7 @@ export const routesRouter = createTRPCRouter({
           cityRelation: { select: { name: true } },
         },
       });
-      const cityByTerminal = new Map(
-        geoTerminals.map((t) => [t.id, t.cityId]),
-      );
+      const cityByTerminal = new Map(geoTerminals.map((t) => [t.id, t.cityId]));
       const cityNameByTerminal = new Map(
         geoTerminals.map((t) => [t.id, t.cityRelation?.name ?? t.cityId]),
       );
@@ -358,7 +379,8 @@ export const routesRouter = createTRPCRouter({
         updateData["originTerminalId"] = data.originTerminalId;
       if (data.destTerminalId !== undefined)
         updateData["destTerminalId"] = data.destTerminalId;
-      if (data.distanceKm !== undefined) updateData["distanceKm"] = data.distanceKm;
+      if (data.distanceKm !== undefined)
+        updateData["distanceKm"] = data.distanceKm;
       if (data.status !== undefined) updateData["status"] = data.status;
       // Reclassify whenever the endpoints may have changed — also covers the
       // case where only waypoints changed but classification could shift. An

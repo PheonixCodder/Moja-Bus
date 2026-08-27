@@ -147,7 +147,6 @@ describe("evaluateCheckoutDiscounts", () => {
     assert.equal(result.operatorFundedXOF, 1000);
   });
 
-
   it("applies promo credits after discounts", () => {
     const result = evaluateCheckoutDiscounts({
       ctx: baseCtx(),
@@ -171,9 +170,7 @@ describe("evaluateCheckoutDiscounts", () => {
   it("respects trip scope", () => {
     const result = evaluateCheckoutDiscounts({
       ctx: baseCtx({ tripId: "trip_other" }),
-      campaigns: [
-        campaign({ tripIds: ["trip_1"], isAutoApply: true }),
-      ],
+      campaigns: [campaign({ tripIds: ["trip_1"], isAutoApply: true })],
     });
     assert.equal(result.ticketDiscountXOF, 0);
     assert.equal(result.autoAppliedCampaignId, null);
@@ -182,9 +179,7 @@ describe("evaluateCheckoutDiscounts", () => {
   it("respects schedule scope", () => {
     const result = evaluateCheckoutDiscounts({
       ctx: baseCtx({ scheduleId: "sch_other" }),
-      campaigns: [
-        campaign({ scheduleIds: ["sch_1"], isAutoApply: true }),
-      ],
+      campaigns: [campaign({ scheduleIds: ["sch_1"], isAutoApply: true })],
     });
     assert.equal(result.ticketDiscountXOF, 0);
     assert.equal(result.autoAppliedCampaignId, null);

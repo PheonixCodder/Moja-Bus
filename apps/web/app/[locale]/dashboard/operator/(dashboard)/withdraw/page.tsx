@@ -1,4 +1,3 @@
-
 import { getTranslations } from "next-intl/server";
 import { OperatorWithdrawView } from "@/features/operator/views/operator-withdraw-view";
 import { trpc, prefetch, HydrateClient } from "@/trpc/server";
@@ -11,16 +10,19 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "operatorDashboard.withdraw" });
+  const t = await getTranslations({
+    locale,
+    namespace: "operatorDashboard.withdraw",
+  });
   return { title: t("metaTitle") };
 }
 
 export default async function OperatorWithdrawPage() {
   await prefetch(
-    trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" })
+    trpc.operator.getAccountSnapshot.queryOptions({ period: "DAILY" }),
   );
   await prefetch(
-    trpc.operator.listWithdrawals.queryOptions({ limit: 10, offset: 0 })
+    trpc.operator.listWithdrawals.queryOptions({ limit: 10, offset: 0 }),
   );
 
   return (

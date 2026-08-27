@@ -17,28 +17,28 @@ import { describe, it } from "node:test";
 const cronDir = new URL("../../app/api/cron", import.meta.url);
 
 function collectTsFiles(dir: string): string[] {
-	const entries = readdirSync(dir, { withFileTypes: true });
-	return entries.flatMap((entry) => {
-		const full = join(dir, entry.name);
-		return entry.isDirectory()
-			? collectTsFiles(full)
-			: entry.name.endsWith(".ts")
-				? [full]
-				: [];
-	});
+  const entries = readdirSync(dir, { withFileTypes: true });
+  return entries.flatMap((entry) => {
+    const full = join(dir, entry.name);
+    return entry.isDirectory()
+      ? collectTsFiles(full)
+      : entry.name.endsWith(".ts")
+        ? [full]
+        : [];
+  });
 }
 
 describe("cron SQL hygiene guard (F-IN-12)", () => {
-	const files = collectTsFiles(fileURLToPath(cronDir));
-	it("found cron route files to scan", () => {
-		assert.ok(files.length > 0, "no cron files discovered — path drift");
-	});
+  const files = collectTsFiles(fileURLToPath(cronDir));
+  it("found cron route files to scan", () => {
+    assert.ok(files.length > 0, "no cron files discovered — path drift");
+  });
 
-	for (const file of files) {
-		const short = file.split(/[/\\]app[/\\]/).pop() ?? file;
-		it(`uses no raw-unsafe SQL: ${short}`, () => {
-			const source = readFileSync(file, "utf8");
-			assert.doesNotMatch(source, /\$queryRawUnsafe|\$executeRawUnsafe/);
-		});
-	}
+  for (const file of files) {
+    const short = file.split(/[/\\]app[/\\]/).pop() ?? file;
+    it(`uses no raw-unsafe SQL: ${short}`, () => {
+      const source = readFileSync(file, "utf8");
+      assert.doesNotMatch(source, /\$queryRawUnsafe|\$executeRawUnsafe/);
+    });
+  }
 });

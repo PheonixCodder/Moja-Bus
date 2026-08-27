@@ -8,14 +8,24 @@ function walk(dir, files) {
     for (const e of entries) {
       const fp = path.join(dir, e.name);
       if (e.isDirectory()) {
-        if (!e.name.includes("node_modules") && !e.name.includes(".next") && !e.name.includes("dist") && !e.name.includes("scratch") && e.name !== "scripts" && e.name !== ".git") {
+        if (
+          !e.name.includes("node_modules") &&
+          !e.name.includes(".next") &&
+          !e.name.includes("dist") &&
+          !e.name.includes("scratch") &&
+          e.name !== "scripts" &&
+          e.name !== ".git"
+        ) {
           walk(fp, files);
         }
-      } else if (e.isFile() && (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))) {
+      } else if (
+        e.isFile() &&
+        (e.name.endsWith(".tsx") || e.name.endsWith(".ts"))
+      ) {
         files.push(fp);
       }
     }
-  } catch(e) {}
+  } catch (e) {}
   return files;
 }
 
@@ -43,27 +53,43 @@ for (const file of files) {
         if (line.includes(pattern)) {
           // Check if it's inside a {t(...)} call, or a raw display
           const trimmed = line.trim();
-          if (trimmed.includes("t(`seatClass") || trimmed.includes("t(\"seatClass") || trimmed.includes("t('seatClass")) {
+          if (
+            trimmed.includes("t(`seatClass") ||
+            trimmed.includes('t("seatClass') ||
+            trimmed.includes("t('seatClass")
+          ) {
             continue; // Already translated
           }
-          if (trimmed.includes("t(`bus") || trimmed.includes("t(\"bus") || trimmed.includes("t('bus")) {
+          if (
+            trimmed.includes("t(`bus") ||
+            trimmed.includes('t("bus') ||
+            trimmed.includes("t('bus")
+          ) {
             continue; // Already translated
           }
           if (trimmed.includes("t(") && trimmed.includes(".")) {
             continue; // Likely translated
           }
           // Skip type definitions and CSS classes
-          if (trimmed.startsWith("type ") || trimmed.startsWith("const ") || trimmed.startsWith("let ") || trimmed.startsWith("var ")) {
+          if (
+            trimmed.startsWith("type ") ||
+            trimmed.startsWith("const ") ||
+            trimmed.startsWith("let ") ||
+            trimmed.startsWith("var ")
+          ) {
             continue;
           }
-          if (trimmed.includes(": \"") && trimmed.includes("seatClass")) continue;
-          if (trimmed.includes("className") || trimmed.includes("style=")) continue;
-          if (trimmed.includes("value=") && trimValue.includes("seatClass")) continue;
+          if (trimmed.includes(': "') && trimmed.includes("seatClass"))
+            continue;
+          if (trimmed.includes("className") || trimmed.includes("style="))
+            continue;
+          if (trimmed.includes("value=") && trimValue.includes("seatClass"))
+            continue;
 
-          console.log(file + ":" + (i+1) + ": " + trimmed.substring(0, 200));
+          console.log(file + ":" + (i + 1) + ": " + trimmed.substring(0, 200));
           break;
         }
       }
     }
-  } catch(e) {}
+  } catch (e) {}
 }

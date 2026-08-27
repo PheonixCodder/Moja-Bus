@@ -21,12 +21,17 @@ import {
   rebookPassenger,
   listUpcomingScheduleTrips,
 } from "@/features/booking/services/rebooking-service";
-import { TERMS_VERSION, PRIVACY_VERSION, COMMISSION_VERSION } from "@/lib/constants/legal";
+import {
+  TERMS_VERSION,
+  PRIVACY_VERSION,
+  COMMISSION_VERSION,
+} from "@/lib/constants/legal";
 import crypto from "crypto";
 import { getNovuClient } from "@/lib/novu";
 import { startOfAppCalendarDay, addAppCalendarDays } from "@/lib/timezone";
 import { toSafeDisplayNumber } from "@/lib/money";
 import { auth } from "@/lib/auth-server";
+import { mintOperatorSubscriptionToken } from "@/lib/telemetry-token";
 
 import {
   createTRPCRouter,
@@ -34,7 +39,11 @@ import {
   operatorProcedure,
   publicProcedure,
 } from "../init";
-import { requirePermission, requireAnyPermission, operatorHasPermission } from "@/lib/permissions/authorize";
+import {
+  requirePermission,
+  requireAnyPermission,
+  operatorHasPermission,
+} from "@/lib/permissions/authorize";
 import { deleteStorageObject } from "@/lib/storage";
 
 import {
@@ -50,15 +59,11 @@ import { OperatorBookingService } from "@/features/operator/services/operator-bo
 import { CancellationService } from "@/features/payments/services/cancellation-service";
 import { aggregateRevenueRows } from "@/features/payments/lib/revenue-analytics";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
-import {
-  paystackRegisterRecipient,
-} from "@/features/payments/providers/paystack-client";
+import { paystackRegisterRecipient } from "@/features/payments/providers/paystack-client";
 import { AccountingEngine } from "@moja/db";
 import { operatorSettingsProcedures } from "./operator/settings";
 
-function maskOperatorCompanyBank<T extends any>(
-  operator: T,
-): T {
+function maskOperatorCompanyBank<T extends any>(operator: T): T {
   if (!operator || typeof operator !== "object" || !("company" in operator)) {
     return operator;
   }
@@ -71,7 +76,9 @@ function maskOperatorCompanyBank<T extends any>(
   const updatedCompany = { ...op.company };
 
   if (op.company.bankAccount) {
-    updatedCompany.bankAccount = maskBankAccountForClient(op.company.bankAccount);
+    updatedCompany.bankAccount = maskBankAccountForClient(
+      op.company.bankAccount,
+    );
   }
 
   if (op.company.bankAccounts) {
@@ -124,41 +131,47 @@ export const operatorRouter = createTRPCRouter({
         });
       }
 
-       const pending = await ctx.prisma.pendingOperatorSignup.upsert({
-         where: { email: input.email },
-         update: {
-           ...input,
-           otpHash: "",
-           expiresAt: new Date(0),
-           attempts: 0,
-         },
-         create: {
-           ...input,
-           otpHash: "",
-           expiresAt: new Date(0),
-         },
-       });
+      const pending = await ctx.prisma.pendingOperatorSignup.upsert({
+        where: { email: input.email },
+        update: {
+          ...input,
+          otpHash: "",
+          expiresAt: new Date(0),
+          attempts: 0,
+        },
+        create: {
+          ...input,
+          otpHash: "",
+          expiresAt: new Date(0),
+        },
+      });
 
       return { success: true, email: pending.email };
     }),
 
   getOnboardingStatus: operatorProcedure.query(async ({ ctx }) => {
-    const STEP_ORDER = ["COMPANY", "DOCUMENTS", "BANK", "PROFILE", "TERMS"] as const;
+    const STEP_ORDER = [
+      "COMPANY",
+      "DOCUMENTS",
+      "BANK",
+      "PROFILE",
+      "TERMS",
+    ] as const;
     const TOTAL_STEPS = STEP_ORDER.length;
 
     const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
-       include: {
-         company: {
-           include: {
-             documents: { where: { isCurrent: true } },
-             bankAccounts: true,
-           },
-         },
-         onboardingProgress: true,
-         user: { select: { fullName: true } },
-       },
+      include: {
+        company: {
+          include: {
+            documents: { where: { isCurrent: true } },
+            bankAccounts: true,
+          },
+        },
+        onboardingProgress: true,
+        user: { select: { fullName: true } },
+      },
     });
 
     if (!operator) {
@@ -197,7 +210,9 @@ export const operatorRouter = createTRPCRouter({
         ctx.prisma.companyLocation.count({
           where: { companyId: operator.companyId, isTerminal: true },
         }),
-        ctx.prisma.bus.count({ where: { companyId: operator.companyId, deletedAt: null } }),
+        ctx.prisma.bus.count({
+          where: { companyId: operator.companyId, deletedAt: null },
+        }),
         ctx.prisma.route.count({
           where: { companyId: operator.companyId, status: "ACTIVE" },
         }),
@@ -257,18 +272,18 @@ export const operatorRouter = createTRPCRouter({
     };
   }),
 
-   completeOnboarding: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-     const operator = await ctx.prisma.operator.findFirst({
+  completeOnboarding: operatorCompanyProcedure.mutation(async ({ ctx }) => {
+    const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
-      include: { 
+      include: {
         onboardingProgress: true,
         company: {
           include: {
             bankAccounts: true,
-            documents: { where: { supersededAt: null } }
-          }
-        }
+            documents: { where: { supersededAt: null } },
+          },
+        },
       },
     });
 
@@ -283,14 +298,16 @@ export const operatorRouter = createTRPCRouter({
     if (!company.name || !company.registrationNumber || !company.taxId) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Company profile details are incomplete. Name, registration number, and tax ID are required.",
+        message:
+          "Company profile details are incomplete. Name, registration number, and tax ID are required.",
       });
     }
 
     if (!company.bankAccounts || company.bankAccounts.length === 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "At least one bank account must be added before submitting for verification.",
+        message:
+          "At least one bank account must be added before submitting for verification.",
       });
     }
 
@@ -299,8 +316,8 @@ export const operatorRouter = createTRPCRouter({
       "TAX_CLEARANCE_CERTIFICATE",
       "TRANSPORT_OPERATING_PERMIT",
     ];
-    const hasRequiredDocs = requiredDocs.every(docType => 
-      company.documents.some(d => d.type === docType)
+    const hasRequiredDocs = requiredDocs.every((docType) =>
+      company.documents.some((d) => d.type === docType),
     );
 
     if (!hasRequiredDocs) {
@@ -343,30 +360,40 @@ export const operatorRouter = createTRPCRouter({
         try {
           const companyInfo = await ctx.prisma.company.findUnique({
             where: { id: companyId },
-            include: { operators: { where: { role: "OWNER" }, include: { user: true } } },
+            include: {
+              operators: { where: { role: "OWNER" }, include: { user: true } },
+            },
           });
           const owner = companyInfo?.operators[0]?.user;
           for (const admin of admins) {
-            await novu.trigger({
-              workflowId: "admin-operator-signup-pending",
-              to: {
-                subscriberId: admin.id,
-                email: admin.email,
-              },
-               payload: {
-                 adminEmail: admin.email,
-                 companyId: companyId,
-                 companyName: companyInfo?.name ?? "Transport Operator",
-                 ownerName: owner?.fullName ?? "Operator Owner",
-                 ownerPhone: owner?.phoneNumber ?? "N/A",
-                 submittedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }),
-                 dashboardUrl: process.env["APP_URL"] ?? "http://localhost:3000",
-               },
-               transactionId: `admin-operator-signup-pending-${companyId}-${admin.id}`,
-            }).catch(() => {});
+            await novu
+              .trigger({
+                workflowId: "admin-operator-signup-pending",
+                to: {
+                  subscriberId: admin.id,
+                  email: admin.email,
+                },
+                payload: {
+                  adminEmail: admin.email,
+                  companyId: companyId,
+                  companyName: companyInfo?.name ?? "Transport Operator",
+                  ownerName: owner?.fullName ?? "Operator Owner",
+                  ownerPhone: owner?.phoneNumber ?? "N/A",
+                  submittedAt: new Date().toLocaleString("en-US", {
+                    timeZone: "UTC",
+                  }),
+                  dashboardUrl:
+                    process.env["APP_URL"] ?? "http://localhost:3000",
+                },
+                transactionId: `admin-operator-signup-pending-${companyId}-${admin.id}`,
+              })
+              .catch(() => {});
           }
         } catch (err) {
-          console.error("Failed to trigger admin-operator-signup-pending:", err);
+          console.error(
+            "Failed to trigger admin-operator-signup-pending:",
+            err,
+          );
         }
       }
     }
@@ -374,8 +401,8 @@ export const operatorRouter = createTRPCRouter({
     return { success: true };
   }),
 
-   resubmitVerification: operatorCompanyProcedure.mutation(async ({ ctx }) => {
-     const operator = await ctx.prisma.operator.findFirst({
+  resubmitVerification: operatorCompanyProcedure.mutation(async ({ ctx }) => {
+    const operator = await ctx.prisma.operator.findFirst({
       where: { userId: ctx.user.id, deletedAt: null },
       orderBy: { joinedAt: "desc" },
       include: { company: true },
@@ -414,30 +441,40 @@ export const operatorRouter = createTRPCRouter({
         try {
           const companyInfo = await ctx.prisma.company.findUnique({
             where: { id: operator.companyId },
-            include: { operators: { where: { role: "OWNER" }, include: { user: true } } },
+            include: {
+              operators: { where: { role: "OWNER" }, include: { user: true } },
+            },
           });
           const owner = companyInfo?.operators[0]?.user;
           for (const admin of admins) {
-            await novu.trigger({
-              workflowId: "admin-operator-signup-pending",
-              to: {
-                subscriberId: admin.id,
-                email: admin.email,
-              },
-               payload: {
-                 adminEmail: admin.email,
-                 companyId: operator.companyId,
-                 companyName: companyInfo?.name ?? "Transport Operator",
-                 ownerName: owner?.fullName ?? "Operator Owner",
-                 ownerPhone: owner?.phoneNumber ?? "N/A",
-                 submittedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }),
-                 dashboardUrl: process.env["APP_URL"] ?? "http://localhost:3000",
-               },
-               transactionId: `admin-operator-signup-pending-resubmit-${operator.companyId}-${admin.id}`,
-            }).catch(() => {});
+            await novu
+              .trigger({
+                workflowId: "admin-operator-signup-pending",
+                to: {
+                  subscriberId: admin.id,
+                  email: admin.email,
+                },
+                payload: {
+                  adminEmail: admin.email,
+                  companyId: operator.companyId,
+                  companyName: companyInfo?.name ?? "Transport Operator",
+                  ownerName: owner?.fullName ?? "Operator Owner",
+                  ownerPhone: owner?.phoneNumber ?? "N/A",
+                  submittedAt: new Date().toLocaleString("en-US", {
+                    timeZone: "UTC",
+                  }),
+                  dashboardUrl:
+                    process.env["APP_URL"] ?? "http://localhost:3000",
+                },
+                transactionId: `admin-operator-signup-pending-resubmit-${operator.companyId}-${admin.id}`,
+              })
+              .catch(() => {});
           }
         } catch (err) {
-          console.error("Failed to trigger admin-operator-signup-pending:", err);
+          console.error(
+            "Failed to trigger admin-operator-signup-pending:",
+            err,
+          );
         }
       }
     }
@@ -454,10 +491,10 @@ export const operatorRouter = createTRPCRouter({
       return { isAvailable: !existing };
     }),
 
-   saveOnboardingStep: operatorCompanyProcedure
-     .input(saveOnboardingStepSchema)
-     .mutation(async ({ ctx, input }) => {
-       const {
+  saveOnboardingStep: operatorCompanyProcedure
+    .input(saveOnboardingStepSchema)
+    .mutation(async ({ ctx, input }) => {
+      const {
         step,
         companyData,
         documentsData,
@@ -573,8 +610,9 @@ export const operatorRouter = createTRPCRouter({
       const operatorId = existingOperator.id;
 
       const getCompleted = () =>
-        (existingOperator?.onboardingProgress
-          ?.completedSteps as string[] | null) ?? [];
+        (existingOperator?.onboardingProgress?.completedSteps as
+          | string[]
+          | null) ?? [];
 
       if (step === "COMPANY") {
         if (!companyData)
@@ -641,335 +679,331 @@ export const operatorRouter = createTRPCRouter({
             where: { id: existingOperator.id },
             data: { onboardingStatus: "IN_PROGRESS" },
           });
-          
-           try {
-             await tx.user.update({
-               where: { id: ctx.user.id },
-               data: { workEmail: companyData.email },
-             });
-           } catch (err) {
-             if (
-               err instanceof Prisma.PrismaClientKnownRequestError &&
-               err.code === "P2002"
-             ) {
-               throw new TRPCError({
-                 code: "CONFLICT",
-                 message:
-                   "This email is already used by another operator account.",
-               });
-             }
-             throw err;
-           }
-         });
+
+          try {
+            await tx.user.update({
+              where: { id: ctx.user.id },
+              data: { workEmail: companyData.email },
+            });
+          } catch (err) {
+            if (
+              err instanceof Prisma.PrismaClientKnownRequestError &&
+              err.code === "P2002"
+            ) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message:
+                  "This email is already used by another operator account.",
+              });
+            }
+            throw err;
+          }
+        });
 
         resultOperator = await ctx.prisma.operator.findUnique({
           where: { id: existingOperator.id },
           include: { company: true, onboardingProgress: true },
         });
       } else if (step === "DOCUMENTS") {
-          if (!documentsData) throw new TRPCError({ code: "BAD_REQUEST" });
-          const now = new Date();
-          for (const doc of documentsData.documents) {
-            const existing = await ctx.prisma.companyDocument.findFirst({
-              where: { companyId, type: doc.type as any, isCurrent: true },
+        if (!documentsData) throw new TRPCError({ code: "BAD_REQUEST" });
+        const now = new Date();
+        for (const doc of documentsData.documents) {
+          const existing = await ctx.prisma.companyDocument.findFirst({
+            where: { companyId, type: doc.type as any, isCurrent: true },
+          });
+          const newDoc = await ctx.prisma.companyDocument.create({
+            data: {
+              companyId,
+              type: doc.type as any,
+              fileName: doc.fileName,
+              fileUrl: doc.fileUrl,
+              objectKey: doc.objectKey,
+              fileSize: doc.fileSize,
+              mimeType: doc.mimeType,
+              status: "PENDING",
+              isCurrent: true,
+              expiresAt: doc.expiresAt ?? null,
+            },
+          });
+          if (existing) {
+            await ctx.prisma.companyDocument.update({
+              where: { id: existing.id },
+              data: {
+                isCurrent: false,
+                supersededAt: now,
+                replacedById: newDoc.id,
+              },
             });
-             const newDoc = await ctx.prisma.companyDocument.create({
-               data: {
-                 companyId,
-                 type: doc.type as any,
-                 fileName: doc.fileName,
-                 fileUrl: doc.fileUrl,
-                 objectKey: doc.objectKey,
-                 fileSize: doc.fileSize,
-                 mimeType: doc.mimeType,
-                 status: "PENDING",
-                 isCurrent: true,
-                 expiresAt: doc.expiresAt ?? null,
-               },
-            });
-            if (existing) {
-              await ctx.prisma.companyDocument.update({
-                where: { id: existing.id },
-                data: {
-                  isCurrent: false,
-                  supersededAt: now,
-                  replacedById: newDoc.id,
-                },
-              });
-            }
           }
-          const prev = getCompleted();
-          const newCompleted = prev.includes("DOCUMENTS")
-            ? prev
-            : [...prev, "DOCUMENTS"];
-          const nextStep = computeNextStep(newCompleted) ?? "TERMS";
-          await ctx.prisma.operatorOnboarding.upsert({
-            where: { operatorId },
-            create: {
-              operatorId,
-              currentStep: nextStep as any,
-              completedSteps: newCompleted,
-              completedStepCount: newCompleted.length,
-            },
-            update: {
-              currentStep: nextStep as any,
-              completedSteps: newCompleted,
-              completedStepCount: newCompleted.length,
-            },
-          });
-          resultOperator = await ctx.prisma.operator.findUnique({
-            where: { id: operatorId },
-            include: { company: true, onboardingProgress: true },
-          });
-         } else if (step === "BANK") {
-           if (!bankData) throw new TRPCError({ code: "BAD_REQUEST" });
-           if (!bankData.bankCode) {
-             throw new TRPCError({
-               code: "BAD_REQUEST",
-               message: "Please select a bank.",
-             });
-           }
-
-           // Register the Paystack transfer recipient immediately. XOF/CI has no
-           // /bank/resolve support, so Paystack validates the account number when
-           // the recipient is created — wrong details surface here as a clear
-           // error, before anything is persisted, and the operator can correct
-           // them without an admin round-trip.
-           let recipientCode = "";
-           let resolvedAccountName: string | null = null;
-           let accountNameMatched = true;
-           try {
-             const registered = await paystackRegisterRecipient({
-               accountNumber: bankData.accountNumber,
-               bankCode: bankData.bankCode,
-               bankType: bankData.bankType ?? null,
-               accountName: bankData.accountName,
-             });
-             recipientCode = registered.recipientCode;
-             resolvedAccountName = registered.resolvedAccountName;
-             accountNameMatched = registered.accountNameMatched;
-           } catch (err: any) {
-             throw new TRPCError({
-               code: "BAD_REQUEST",
-               message:
-                 err?.message ??
-                 "We could not verify this account with the selected bank. Check the details and try again.",
-             });
-           }
-
-           const encryptedAccount = prepareBankAccountStorage(
-             bankData.accountNumber,
-           );
-
-           const bankType = bankData.bankType ?? "bceao";
-           const verificationPayload = {
-             type: bankType,
-             currency: "XOF",
-             resolvedAccountName,
-             accountNameMatched,
-           };
-
-           const bankCreate = {
-             companyId,
-             isActive: true as const,
-             bankName: bankData.bankName,
-             bankCode: bankData.bankCode ?? null,
-             accountNumber: encryptedAccount.accountNumber,
-             accountNumberLast4: encryptedAccount.accountNumberLast4,
-             accountName: bankData.accountName,
-             isVerified: true,
-             verificationProvider: "PAYSTACK" as const,
-             verifiedByProvider: true,
-             verificationPayload,
-             lastVerificationAt: new Date(),
-             verifiedAt: new Date(),
-             paystackTransferRecipientCode: recipientCode,
-             ...(bankData.branch != null ? { branch: bankData.branch } : {}),
-             ...(bankData.swiftCode != null
-               ? { swiftCode: bankData.swiftCode }
-               : {}),
-             ...(bankData.iban != null ? { iban: bankData.iban } : {}),
-           };
-           const bankUpdate = {
-             bankName: bankData.bankName,
-             bankCode: bankData.bankCode ?? null,
-             accountNumber: encryptedAccount.accountNumber,
-             accountNumberLast4: encryptedAccount.accountNumberLast4,
-             accountName: bankData.accountName,
-             isVerified: true,
-             verificationProvider: "PAYSTACK" as const,
-             verifiedByProvider: true,
-             verificationPayload,
-             lastVerificationAt: new Date(),
-             verifiedAt: new Date(),
-             paystackTransferRecipientCode: recipientCode,
-             ...(bankData.branch != null ? { branch: bankData.branch } : {}),
-             ...(bankData.swiftCode != null
-               ? { swiftCode: bankData.swiftCode }
-               : {}),
-             ...(bankData.iban != null ? { iban: bankData.iban } : {}),
-           };
-           const existingBank = await ctx.prisma.bankAccount.findFirst({
-             where: { companyId },
-           });
-           try {
-             if (existingBank) {
-               await ctx.prisma.bankAccount.update({
-                 where: { id: existingBank.id },
-                 data: bankUpdate,
-               });
-             } else {
-               await ctx.prisma.bankAccount.create({
-                 data: { ...bankCreate, isDefault: true },
-               });
-             }
-           } catch (err) {
-             if (
-               err instanceof Prisma.PrismaClientKnownRequestError &&
-               err.code === "P2002"
-             ) {
-               throw new TRPCError({
-                 code: "CONFLICT",
-                 message:
-                   "This bank account is already registered to your company.",
-               });
-             }
-             throw err;
-           }
-           await logBankAccess(ctx.prisma, {
-             companyId,
-             userId: ctx.user.id,
-             action: existingBank ? "UPDATE" : "CREATE",
-           });
-
-           // Mirror the recipient code onto the company so withdrawal gating
-           // works immediately after onboarding. The first bank is created as
-           // default, and subsequent saves must respect an existing default.
-           const isDefaultBank = existingBank ? existingBank.isDefault : true;
-           if (recipientCode && isDefaultBank) {
-             await ctx.prisma.company.update({
-               where: { id: companyId },
-               data: { paystackTransferRecipientCode: recipientCode },
-             });
-           }
-
-           const prev = getCompleted();
-           const newCompleted = prev.includes("BANK")
-             ? prev
-             : [...prev, "BANK"];
-           const nextStep = computeNextStep(newCompleted) ?? "TERMS";
-           await ctx.prisma.operatorOnboarding.upsert({
-             where: { operatorId },
-             create: {
-               operatorId,
-               currentStep: nextStep as any,
-               completedSteps: newCompleted,
-               completedStepCount: newCompleted.length,
-             },
-             update: {
-               currentStep: nextStep as any,
-               completedSteps: newCompleted,
-               completedStepCount: newCompleted.length,
-             },
-           });
-           resultOperator = await ctx.prisma.operator.findUnique({
-             where: { id: operatorId },
-             include: { company: true, onboardingProgress: true },
-           });
-         } else if (step === "PROFILE") {
-           if (!profileData) throw new TRPCError({ code: "BAD_REQUEST" });
-           if (!profileData.dateOfBirth) {
-             throw new TRPCError({
-               code: "BAD_REQUEST",
-               message: "Date of birth is required.",
-             });
-           }
-           await ctx.prisma.user.update({
-            where: { id: ctx.user.id },
-            data: { fullName: profileData.fullName },
-          });
-          await ctx.prisma.operator.update({
-            where: { id: operatorId },
-            data: {
-              personalPhone: profileData.personalPhone ?? null,
-              role: "OWNER",
-              dateOfBirth: profileData.dateOfBirth
-                ? new Date(profileData.dateOfBirth)
-                : null,
-              nationalIdNumber: profileData.nationalIdNumber ?? null,
-              nationalIdType: profileData.nationalIdType ?? null,
-              jobTitle: profileData.jobTitle ?? null,
-              profilePhotoUrl: profileData.profilePhotoUrl ?? null,
-              emergencyContactName: profileData.emergencyContactName ?? null,
-              emergencyContactPhone: profileData.emergencyContactPhone ?? null,
-            },
-          });
-          const prev = getCompleted();
-          const newCompleted = prev.includes("PROFILE")
-            ? prev
-            : [...prev, "PROFILE"];
-          const nextStep = computeNextStep(newCompleted) ?? "TERMS";
-          await ctx.prisma.operatorOnboarding.upsert({
-            where: { operatorId },
-            create: {
-              operatorId,
-              currentStep: nextStep as any,
-              completedSteps: newCompleted,
-              completedStepCount: newCompleted.length,
-            },
-            update: {
-              currentStep: nextStep as any,
-              completedSteps: newCompleted,
-              completedStepCount: newCompleted.length,
-            },
-          });
-          resultOperator = await ctx.prisma.operator.findUnique({
-            where: { id: operatorId },
-            include: { company: true, onboardingProgress: true },
-          });
-        } else if (step === "TERMS") {
-          if (!termsData) throw new TRPCError({ code: "BAD_REQUEST" });
-          const termsNow = new Date();
-          await ctx.prisma.company.update({
-            where: { id: companyId },
-            data: {
-              ...(termsData.acceptTerms && {
-                termsAcceptedAt: termsNow,
-                termsVersion: TERMS_VERSION,
-              }),
-              ...(termsData.acceptCommission && {
-                commissionAcceptedAt: termsNow,
-                commissionVersion: COMMISSION_VERSION,
-              }),
-              ...(termsData.acceptPrivacy && {
-                privacyAcceptedAt: termsNow,
-                privacyVersion: PRIVACY_VERSION,
-              }),
-            },
-          });
-          const prev = getCompleted();
-          const newCompleted = prev.includes("TERMS")
-            ? prev
-            : [...prev, "TERMS"];
-          await ctx.prisma.operatorOnboarding.upsert({
-            where: { operatorId },
-            create: {
-              operatorId,
-              currentStep: "TERMS",
-              completedSteps: newCompleted,
-              completedStepCount: newCompleted.length,
-            },
-            update: {
-              currentStep: "TERMS",
-              completedSteps: newCompleted,
-              completedStepCount: newCompleted.length,
-            },
-          });
-          resultOperator = await ctx.prisma.operator.findUnique({
-            where: { id: operatorId },
-            include: { company: true, onboardingProgress: true },
+        }
+        const prev = getCompleted();
+        const newCompleted = prev.includes("DOCUMENTS")
+          ? prev
+          : [...prev, "DOCUMENTS"];
+        const nextStep = computeNextStep(newCompleted) ?? "TERMS";
+        await ctx.prisma.operatorOnboarding.upsert({
+          where: { operatorId },
+          create: {
+            operatorId,
+            currentStep: nextStep as any,
+            completedSteps: newCompleted,
+            completedStepCount: newCompleted.length,
+          },
+          update: {
+            currentStep: nextStep as any,
+            completedSteps: newCompleted,
+            completedStepCount: newCompleted.length,
+          },
+        });
+        resultOperator = await ctx.prisma.operator.findUnique({
+          where: { id: operatorId },
+          include: { company: true, onboardingProgress: true },
+        });
+      } else if (step === "BANK") {
+        if (!bankData) throw new TRPCError({ code: "BAD_REQUEST" });
+        if (!bankData.bankCode) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Please select a bank.",
           });
         }
+
+        // Register the Paystack transfer recipient immediately. XOF/CI has no
+        // /bank/resolve support, so Paystack validates the account number when
+        // the recipient is created — wrong details surface here as a clear
+        // error, before anything is persisted, and the operator can correct
+        // them without an admin round-trip.
+        let recipientCode = "";
+        let resolvedAccountName: string | null = null;
+        let accountNameMatched = true;
+        try {
+          const registered = await paystackRegisterRecipient({
+            accountNumber: bankData.accountNumber,
+            bankCode: bankData.bankCode,
+            bankType: bankData.bankType ?? null,
+            accountName: bankData.accountName,
+          });
+          recipientCode = registered.recipientCode;
+          resolvedAccountName = registered.resolvedAccountName;
+          accountNameMatched = registered.accountNameMatched;
+        } catch (err: any) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              err?.message ??
+              "We could not verify this account with the selected bank. Check the details and try again.",
+          });
+        }
+
+        const encryptedAccount = prepareBankAccountStorage(
+          bankData.accountNumber,
+        );
+
+        const bankType = bankData.bankType ?? "bceao";
+        const verificationPayload = {
+          type: bankType,
+          currency: "XOF",
+          resolvedAccountName,
+          accountNameMatched,
+        };
+
+        const bankCreate = {
+          companyId,
+          isActive: true as const,
+          bankName: bankData.bankName,
+          bankCode: bankData.bankCode ?? null,
+          accountNumber: encryptedAccount.accountNumber,
+          accountNumberLast4: encryptedAccount.accountNumberLast4,
+          accountName: bankData.accountName,
+          isVerified: true,
+          verificationProvider: "PAYSTACK" as const,
+          verifiedByProvider: true,
+          verificationPayload,
+          lastVerificationAt: new Date(),
+          verifiedAt: new Date(),
+          paystackTransferRecipientCode: recipientCode,
+          ...(bankData.branch != null ? { branch: bankData.branch } : {}),
+          ...(bankData.swiftCode != null
+            ? { swiftCode: bankData.swiftCode }
+            : {}),
+          ...(bankData.iban != null ? { iban: bankData.iban } : {}),
+        };
+        const bankUpdate = {
+          bankName: bankData.bankName,
+          bankCode: bankData.bankCode ?? null,
+          accountNumber: encryptedAccount.accountNumber,
+          accountNumberLast4: encryptedAccount.accountNumberLast4,
+          accountName: bankData.accountName,
+          isVerified: true,
+          verificationProvider: "PAYSTACK" as const,
+          verifiedByProvider: true,
+          verificationPayload,
+          lastVerificationAt: new Date(),
+          verifiedAt: new Date(),
+          paystackTransferRecipientCode: recipientCode,
+          ...(bankData.branch != null ? { branch: bankData.branch } : {}),
+          ...(bankData.swiftCode != null
+            ? { swiftCode: bankData.swiftCode }
+            : {}),
+          ...(bankData.iban != null ? { iban: bankData.iban } : {}),
+        };
+        const existingBank = await ctx.prisma.bankAccount.findFirst({
+          where: { companyId },
+        });
+        try {
+          if (existingBank) {
+            await ctx.prisma.bankAccount.update({
+              where: { id: existingBank.id },
+              data: bankUpdate,
+            });
+          } else {
+            await ctx.prisma.bankAccount.create({
+              data: { ...bankCreate, isDefault: true },
+            });
+          }
+        } catch (err) {
+          if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            err.code === "P2002"
+          ) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "This bank account is already registered to your company.",
+            });
+          }
+          throw err;
+        }
+        await logBankAccess(ctx.prisma, {
+          companyId,
+          userId: ctx.user.id,
+          action: existingBank ? "UPDATE" : "CREATE",
+        });
+
+        // Mirror the recipient code onto the company so withdrawal gating
+        // works immediately after onboarding. The first bank is created as
+        // default, and subsequent saves must respect an existing default.
+        const isDefaultBank = existingBank ? existingBank.isDefault : true;
+        if (recipientCode && isDefaultBank) {
+          await ctx.prisma.company.update({
+            where: { id: companyId },
+            data: { paystackTransferRecipientCode: recipientCode },
+          });
+        }
+
+        const prev = getCompleted();
+        const newCompleted = prev.includes("BANK") ? prev : [...prev, "BANK"];
+        const nextStep = computeNextStep(newCompleted) ?? "TERMS";
+        await ctx.prisma.operatorOnboarding.upsert({
+          where: { operatorId },
+          create: {
+            operatorId,
+            currentStep: nextStep as any,
+            completedSteps: newCompleted,
+            completedStepCount: newCompleted.length,
+          },
+          update: {
+            currentStep: nextStep as any,
+            completedSteps: newCompleted,
+            completedStepCount: newCompleted.length,
+          },
+        });
+        resultOperator = await ctx.prisma.operator.findUnique({
+          where: { id: operatorId },
+          include: { company: true, onboardingProgress: true },
+        });
+      } else if (step === "PROFILE") {
+        if (!profileData) throw new TRPCError({ code: "BAD_REQUEST" });
+        if (!profileData.dateOfBirth) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Date of birth is required.",
+          });
+        }
+        await ctx.prisma.user.update({
+          where: { id: ctx.user.id },
+          data: { fullName: profileData.fullName },
+        });
+        await ctx.prisma.operator.update({
+          where: { id: operatorId },
+          data: {
+            personalPhone: profileData.personalPhone ?? null,
+            role: "OWNER",
+            dateOfBirth: profileData.dateOfBirth
+              ? new Date(profileData.dateOfBirth)
+              : null,
+            nationalIdNumber: profileData.nationalIdNumber ?? null,
+            nationalIdType: profileData.nationalIdType ?? null,
+            jobTitle: profileData.jobTitle ?? null,
+            profilePhotoUrl: profileData.profilePhotoUrl ?? null,
+            emergencyContactName: profileData.emergencyContactName ?? null,
+            emergencyContactPhone: profileData.emergencyContactPhone ?? null,
+          },
+        });
+        const prev = getCompleted();
+        const newCompleted = prev.includes("PROFILE")
+          ? prev
+          : [...prev, "PROFILE"];
+        const nextStep = computeNextStep(newCompleted) ?? "TERMS";
+        await ctx.prisma.operatorOnboarding.upsert({
+          where: { operatorId },
+          create: {
+            operatorId,
+            currentStep: nextStep as any,
+            completedSteps: newCompleted,
+            completedStepCount: newCompleted.length,
+          },
+          update: {
+            currentStep: nextStep as any,
+            completedSteps: newCompleted,
+            completedStepCount: newCompleted.length,
+          },
+        });
+        resultOperator = await ctx.prisma.operator.findUnique({
+          where: { id: operatorId },
+          include: { company: true, onboardingProgress: true },
+        });
+      } else if (step === "TERMS") {
+        if (!termsData) throw new TRPCError({ code: "BAD_REQUEST" });
+        const termsNow = new Date();
+        await ctx.prisma.company.update({
+          where: { id: companyId },
+          data: {
+            ...(termsData.acceptTerms && {
+              termsAcceptedAt: termsNow,
+              termsVersion: TERMS_VERSION,
+            }),
+            ...(termsData.acceptCommission && {
+              commissionAcceptedAt: termsNow,
+              commissionVersion: COMMISSION_VERSION,
+            }),
+            ...(termsData.acceptPrivacy && {
+              privacyAcceptedAt: termsNow,
+              privacyVersion: PRIVACY_VERSION,
+            }),
+          },
+        });
+        const prev = getCompleted();
+        const newCompleted = prev.includes("TERMS") ? prev : [...prev, "TERMS"];
+        await ctx.prisma.operatorOnboarding.upsert({
+          where: { operatorId },
+          create: {
+            operatorId,
+            currentStep: "TERMS",
+            completedSteps: newCompleted,
+            completedStepCount: newCompleted.length,
+          },
+          update: {
+            currentStep: "TERMS",
+            completedSteps: newCompleted,
+            completedStepCount: newCompleted.length,
+          },
+        });
+        resultOperator = await ctx.prisma.operator.findUnique({
+          where: { id: operatorId },
+          include: { company: true, onboardingProgress: true },
+        });
+      }
 
       if (!resultOperator) {
         throw new TRPCError({
@@ -989,14 +1023,14 @@ export const operatorRouter = createTRPCRouter({
     }),
 
   /** Re-open a completed onboarding step so the operator can edit it again. */
-   reopenOnboardingStep: operatorCompanyProcedure
-     .input(
-       z.object({
-         step: z.enum(["COMPANY", "DOCUMENTS", "BANK", "PROFILE", "TERMS"]),
-       }),
-     )
-     .mutation(async ({ ctx, input }) => {
-       const operator = await ctx.prisma.operator.findFirst({
+  reopenOnboardingStep: operatorCompanyProcedure
+    .input(
+      z.object({
+        step: z.enum(["COMPANY", "DOCUMENTS", "BANK", "PROFILE", "TERMS"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const operator = await ctx.prisma.operator.findFirst({
         where: { userId: ctx.user.id, deletedAt: null },
         orderBy: { joinedAt: "desc" },
         include: { onboardingProgress: true },
@@ -1144,8 +1178,20 @@ export const operatorRouter = createTRPCRouter({
                       include: {
                         route: {
                           include: {
-                            originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                            destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                            originTerminal: {
+                              include: {
+                                cityRelation: true,
+                                municipality: true,
+                                quarter: true,
+                              },
+                            },
+                            destTerminal: {
+                              include: {
+                                cityRelation: true,
+                                municipality: true,
+                                quarter: true,
+                              },
+                            },
                           },
                         },
                       },
@@ -1166,7 +1212,9 @@ export const operatorRouter = createTRPCRouter({
                   route: {
                     OR: [
                       { name: insensitive },
-                      { originTerminal: { cityRelation: { name: insensitive } } },
+                      {
+                        originTerminal: { cityRelation: { name: insensitive } },
+                      },
                       { destTerminal: { cityRelation: { name: insensitive } } },
                     ],
                   },
@@ -1177,8 +1225,20 @@ export const operatorRouter = createTRPCRouter({
                   include: {
                     route: {
                       include: {
-                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        originTerminal: {
+                          include: {
+                            cityRelation: true,
+                            municipality: true,
+                            quarter: true,
+                          },
+                        },
+                        destTerminal: {
+                          include: {
+                            cityRelation: true,
+                            municipality: true,
+                            quarter: true,
+                          },
+                        },
                       },
                     },
                   },
@@ -1365,9 +1425,7 @@ export const operatorRouter = createTRPCRouter({
           continue;
         }
         const channel =
-          !b.userId && input.channel === "WALLET"
-            ? "CASH"
-            : input.channel;
+          !b.userId && input.channel === "WALLET" ? "CASH" : input.channel;
         try {
           await service.cancelBooking({
             bookingReference: b.bookingReference,
@@ -1427,8 +1485,20 @@ export const operatorRouter = createTRPCRouter({
                   select: {
                     route: {
                       select: {
-                        originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                        destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                        originTerminal: {
+                          include: {
+                            cityRelation: true,
+                            municipality: true,
+                            quarter: true,
+                          },
+                        },
+                        destTerminal: {
+                          include: {
+                            cityRelation: true,
+                            municipality: true,
+                            quarter: true,
+                          },
+                        },
                       },
                     },
                   },
@@ -1456,7 +1526,9 @@ export const operatorRouter = createTRPCRouter({
   // L11: operator publishes a response to a passenger review. Only the
   // company that owns the review can respond.
   respondToReview: operatorCompanyProcedure
-    .input(z.object({ reviewId: z.string(), response: z.string().min(1).max(2000) }))
+    .input(
+      z.object({ reviewId: z.string(), response: z.string().min(1).max(2000) }),
+    )
     .mutation(async ({ ctx, input }) => {
       requirePermission(ctx, "reviews:respond");
       const existing = await ctx.prisma.review.findFirst({
@@ -1482,7 +1554,8 @@ export const operatorRouter = createTRPCRouter({
       const companyId = ctx.companyId;
 
       const accountService = new FinancialAccountService(ctx.prisma);
-      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+      const operatorAcct =
+        await accountService.getOperatorReceivableAccount(companyId);
 
       const fromDate = new Date(from);
       const toDate = new Date(to);
@@ -1493,15 +1566,17 @@ export const operatorRouter = createTRPCRouter({
       // is per hold group, so MAX() within the hold group prevents duplicate
       // multiplication across multi-seat bookings while subtotalBaseXOF gives
       // true operator ticket sales before commission.
-      const rows = await ctx.prisma.$queryRaw<Array<{
-        day: Date;
-        originCity: string | null;
-        destCity: string | null;
-        net: bigint;
-        gross: bigint;
-        bookingsCount: bigint;
-        tripsCount: bigint;
-      }>>`
+      const rows = await ctx.prisma.$queryRaw<
+        Array<{
+          day: Date;
+          originCity: string | null;
+          destCity: string | null;
+          net: bigint;
+          gross: bigint;
+          bookingsCount: bigint;
+          tripsCount: bigint;
+        }>
+      >`
         SELECT
           DATE_TRUNC('day', MIN(b."issuedAt") AT TIME ZONE 'Africa/Abidjan') AS "day",
           oc."name" AS "originCity",
@@ -1536,10 +1611,12 @@ export const operatorRouter = createTRPCRouter({
       } = aggregateRevenueRows(rows);
 
       // Refunds issued to this operator in the window (all refund DEBIT entries).
-      const refundAgg = await ctx.prisma.$queryRaw<Array<{
-        refundsIssued: bigint;
-        refundsCount: bigint;
-      }>>`
+      const refundAgg = await ctx.prisma.$queryRaw<
+        Array<{
+          refundsIssued: bigint;
+          refundsCount: bigint;
+        }>
+      >`
         SELECT
           COALESCE(SUM(le."amount"), 0) AS "refundsIssued",
           COUNT(DISTINCT ft."id") AS "refundsCount"
@@ -1573,7 +1650,9 @@ export const operatorRouter = createTRPCRouter({
         .map((r) => ({
           ...r,
           avgFareXOF:
-            r.bookingsCount > 0 ? Math.round(r.totalNetXOF / r.bookingsCount) : 0,
+            r.bookingsCount > 0
+              ? Math.round(r.totalNetXOF / r.bookingsCount)
+              : 0,
         }))
         .sort((a, b) => b.totalNetXOF - a.totalNetXOF)
         .slice(0, 5);
@@ -1600,9 +1679,12 @@ export const operatorRouter = createTRPCRouter({
       const companyId = ctx.companyId;
 
       const accountService = new FinancialAccountService(ctx.prisma);
-      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+      const operatorAcct =
+        await accountService.getOperatorReceivableAccount(companyId);
 
-      const where: Prisma.LedgerEntryWhereInput = { accountId: operatorAcct.id };
+      const where: Prisma.LedgerEntryWhereInput = {
+        accountId: operatorAcct.id,
+      };
 
       if (from && to) {
         where.createdAt = { gte: new Date(from), lte: new Date(to) };
@@ -1612,7 +1694,9 @@ export const operatorRouter = createTRPCRouter({
         if (type === "TICKET_SALE") {
           where.transaction = { type: { in: ["BOOKING", "WALLET_BOOKING"] } };
         } else if (type === "WITHDRAWAL") {
-          where.transaction = { type: { in: ["WITHDRAWAL", "OPERATOR_PAYOUT"] } };
+          where.transaction = {
+            type: { in: ["WITHDRAWAL", "OPERATOR_PAYOUT"] },
+          };
         } else if (type === "REFUND") {
           where.transaction = { type: { in: ["REFUND", "WALLET_REFUND"] } };
         } else if (type === "ADJUSTMENT") {
@@ -1672,7 +1756,9 @@ export const operatorRouter = createTRPCRouter({
         if (input.type === "TICKET_SALE") {
           where.transaction = { type: { in: ["BOOKING", "WALLET_BOOKING"] } };
         } else if (input.type === "WITHDRAWAL") {
-          where.transaction = { type: { in: ["WITHDRAWAL", "OPERATOR_PAYOUT"] } };
+          where.transaction = {
+            type: { in: ["WITHDRAWAL", "OPERATOR_PAYOUT"] },
+          };
         } else if (input.type === "REFUND") {
           where.transaction = { type: { in: ["REFUND", "WALLET_REFUND"] } };
         } else if (input.type === "ADJUSTMENT") {
@@ -1704,21 +1790,33 @@ export const operatorRouter = createTRPCRouter({
   getDashboardMetrics: operatorCompanyProcedure
     .input(z.object({ clientDate: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
-      requireAnyPermission(ctx, ["trips:read", "bookings:read", "company:view"]);
+      requireAnyPermission(ctx, [
+        "trips:read",
+        "bookings:read",
+        "company:view",
+      ]);
       const companyId = ctx.companyId;
-      
-      const baseDate = input?.clientDate ? new Date(input.clientDate) : new Date();
+
+      const baseDate = input?.clientDate
+        ? new Date(input.clientDate)
+        : new Date();
       const startOfDay = startOfAppCalendarDay(baseDate);
       const endOfDay = addAppCalendarDays(startOfDay, 1);
       endOfDay.setUTCMilliseconds(-1);
-      
+
       const canReadFleet = operatorHasPermission(ctx, "fleet:read");
       // Sub-gate the sensitive sections so a read-only role (e.g. SUPPORT with
       // only trips:read/bookings:read) is never shown revenue it isn't
       // authorized for, and booking activity is only shown to bookings:read.
       const canReadRevenue = operatorHasPermission(ctx, "revenue:view");
       const canReadBookings = operatorHasPermission(ctx, "bookings:read");
-      const [todayTrips, totalBuses, activeBuses, bookingsCreatedToday, recentBookings] = await Promise.all([
+      const [
+        todayTrips,
+        totalBuses,
+        activeBuses,
+        bookingsCreatedToday,
+        recentBookings,
+      ] = await Promise.all([
         ctx.prisma.trip.findMany({
           where: {
             companyId,
@@ -1736,8 +1834,20 @@ export const operatorRouter = createTRPCRouter({
               include: {
                 route: {
                   include: {
-                    originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                    destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                    originTerminal: {
+                      include: {
+                        cityRelation: true,
+                        municipality: true,
+                        quarter: true,
+                      },
+                    },
+                    destTerminal: {
+                      include: {
+                        cityRelation: true,
+                        municipality: true,
+                        quarter: true,
+                      },
+                    },
                   },
                 },
               },
@@ -1798,8 +1908,20 @@ export const operatorRouter = createTRPCRouter({
                       include: {
                         route: {
                           include: {
-                            originTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
-                            destTerminal: { include: { cityRelation: true, municipality: true, quarter: true } },
+                            originTerminal: {
+                              include: {
+                                cityRelation: true,
+                                municipality: true,
+                                quarter: true,
+                              },
+                            },
+                            destTerminal: {
+                              include: {
+                                cityRelation: true,
+                                municipality: true,
+                                quarter: true,
+                              },
+                            },
                           },
                         },
                       },
@@ -1842,53 +1964,63 @@ export const operatorRouter = createTRPCRouter({
         totalSeatsToday += t.totalSeats;
         const bookedCount = t._count.bookings;
         totalBookingsToday += bookedCount;
-        
-        const origin = t.schedule?.route?.originTerminal?.cityRelation?.name ?? "Unknown";
-        const dest = t.schedule?.route?.destTerminal?.cityRelation?.name ?? "Unknown";
+
+        const origin =
+          t.schedule?.route?.originTerminal?.cityRelation?.name ?? "Unknown";
+        const dest =
+          t.schedule?.route?.destTerminal?.cityRelation?.name ?? "Unknown";
 
         return {
           id: t.id,
           routeLabel: `${origin} → ${dest}`,
           departureTime: t.departureDate.toISOString(),
           status: t.status,
-          busLabel: t.bus ? `${t.bus.registrationPlate}${t.bus.internalName ? ` (${t.bus.internalName})` : ""}` : "No Bus Assigned",
+          busLabel: t.bus
+            ? `${t.bus.registrationPlate}${t.bus.internalName ? ` (${t.bus.internalName})` : ""}`
+            : "No Bus Assigned",
           bookedSeats: bookedCount,
           totalSeats: t.totalSeats,
         };
       });
 
-      const occupancyRateToday = totalSeatsToday > 0 
-        ? Math.round((totalBookingsToday / totalSeatsToday) * 100) 
-        : 0;
+      const occupancyRateToday =
+        totalSeatsToday > 0
+          ? Math.round((totalBookingsToday / totalSeatsToday) * 100)
+          : 0;
 
-const activities = canReadBookings
+      const activities = canReadBookings
         ? recentBookings.map((b) => {
-          const origin = b.trip.schedule?.route?.originTerminal?.cityRelation?.name ?? "Unknown";
-          const dest = b.trip.schedule?.route?.destTerminal?.cityRelation?.name ?? "Unknown";
-          
-          let actionLabel = "Booked ticket";
-          if (b.status === "CONFIRMED") {
-            actionLabel = b.checkedInAt ? "Checked in" : "Purchased ticket";
-          } else if (b.status === "CANCELLED") {
-            actionLabel = "Cancelled booking";
-          } else if (b.status === "PENDING_PAYMENT") {
-            actionLabel = "Reserved seat (pending payment)";
-          }
+            const origin =
+              b.trip.schedule?.route?.originTerminal?.cityRelation?.name ??
+              "Unknown";
+            const dest =
+              b.trip.schedule?.route?.destTerminal?.cityRelation?.name ??
+              "Unknown";
 
-          const timestamp = b.checkedInAt && b.checkedInAt > b.createdAt 
-            ? b.checkedInAt.toISOString() 
-            : b.createdAt.toISOString();
+            let actionLabel = "Booked ticket";
+            if (b.status === "CONFIRMED") {
+              actionLabel = b.checkedInAt ? "Checked in" : "Purchased ticket";
+            } else if (b.status === "CANCELLED") {
+              actionLabel = "Cancelled booking";
+            } else if (b.status === "PENDING_PAYMENT") {
+              actionLabel = "Reserved seat (pending payment)";
+            }
 
-          return {
-            id: b.id,
-            passengerName: b.passengerName,
-            action: actionLabel,
-            routeLabel: `${origin} → ${dest}`,
-            timestamp,
-            status: b.status,
-            bookingReference: b.bookingReference,
-          };
-        })
+            const timestamp =
+              b.checkedInAt && b.checkedInAt > b.createdAt
+                ? b.checkedInAt.toISOString()
+                : b.createdAt.toISOString();
+
+            return {
+              id: b.id,
+              passengerName: b.passengerName,
+              action: actionLabel,
+              routeLabel: `${origin} → ${dest}`,
+              timestamp,
+              status: b.status,
+              bookingReference: b.bookingReference,
+            };
+          })
         : [];
 
       return {
@@ -1922,7 +2054,8 @@ const activities = canReadBookings
       const accountService = new FinancialAccountService(ctx.prisma);
       const snapshotService = new SnapshotService(ctx.prisma);
 
-      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+      const operatorAcct =
+        await accountService.getOperatorReceivableAccount(companyId);
       const series = await snapshotService.getTimeSeries(
         operatorAcct.id,
         input.period,
@@ -1959,8 +2092,12 @@ const activities = canReadBookings
       const accountService = new FinancialAccountService(ctx.prisma);
       const snapshotService = new SnapshotService(ctx.prisma);
 
-      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
-      const latest = await snapshotService.getLatest(operatorAcct.id, input.period);
+      const operatorAcct =
+        await accountService.getOperatorReceivableAccount(companyId);
+      const latest = await snapshotService.getLatest(
+        operatorAcct.id,
+        input.period,
+      );
 
       return {
         livePostedBalance: operatorAcct.postedBalance.toString(),
@@ -1982,11 +2119,11 @@ const activities = canReadBookings
    * UI can decide whether to show the 2FA step and how to word the frequency
    * rule. (F-18)
    */
-   getWithdrawalControls: operatorCompanyProcedure.query(async ({ ctx }) => {
-     requirePermission(ctx, "withdrawals:view");
-     const settings = await ctx.prisma.platformSettings.findUnique({
-       where: { id: "default" },
-     });
+  getWithdrawalControls: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx, "withdrawals:view");
+    const settings = await ctx.prisma.platformSettings.findUnique({
+      where: { id: "default" },
+    });
     return {
       require2FA: Boolean(settings?.require2FAForWithdrawals),
       frequencyHours: settings?.withdrawalFrequencyHours ?? 0,
@@ -2050,7 +2187,8 @@ const activities = canReadBookings
       const companyId = ctx.companyId;
       const amount = input.amountXOF;
       // Stable per-attempt nonce (client-supplied when available).
-      const idempotencyKey = input.idempotencyKey?.trim() || crypto.randomUUID();
+      const idempotencyKey =
+        input.idempotencyKey?.trim() || crypto.randomUUID();
 
       // 1. Fetch settings and check minimum withdrawal limit
       const settings = await ctx.prisma.platformSettings.findUnique({
@@ -2096,7 +2234,8 @@ const activities = canReadBookings
         if (!code) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "A 2FA code is required to withdraw. Request one and try again.",
+            message:
+              "A 2FA code is required to withdraw. Request one and try again.",
           });
         }
         const result = await verifyWithdrawalChallenge({
@@ -2128,7 +2267,8 @@ const activities = canReadBookings
       if (!bankAccount || !bankAccount.paystackTransferRecipientCode) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "No verified bank account or transfer recipient found. Please contact support.",
+          message:
+            "No verified bank account or transfer recipient found. Please contact support.",
         });
       }
 
@@ -2136,8 +2276,10 @@ const activities = canReadBookings
 
       // 3. Lock account, enforce idempotency, and check balance using AccountingEngine
       const { txId, duplicate } = await ctx.prisma.$transaction(async (tx) => {
-        const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
-        const systemAcct = await accountService.getSystemPaystackClearingAccount();
+        const operatorAcct =
+          await accountService.getOperatorReceivableAccount(companyId);
+        const systemAcct =
+          await accountService.getSystemPaystackClearingAccount();
 
         // Acquire an exclusive row lock on the operator account FIRST so that
         // concurrent withdrawals for the same company serialize. This is what
@@ -2145,7 +2287,7 @@ const activities = canReadBookings
         const lockedAccounts = await tx.$queryRaw<
           { available_balance: number }[]
         >(
-          Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${operatorAcct.id} FOR UPDATE`
+          Prisma.sql`SELECT "availableBalance" as available_balance FROM "financial_account" WHERE id = ${operatorAcct.id} FOR UPDATE`,
         );
 
         // Idempotency: if a withdrawal with this key was already recorded, return
@@ -2163,7 +2305,10 @@ const activities = canReadBookings
           return { txId: existing.id, duplicate: true };
         }
 
-        if (!lockedAccounts.length || BigInt(lockedAccounts[0]!.available_balance) < BigInt(amount)) {
+        if (
+          !lockedAccounts.length ||
+          BigInt(lockedAccounts[0]!.available_balance) < BigInt(amount)
+        ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Insufficient available balance.",
@@ -2252,8 +2397,10 @@ const activities = canReadBookings
         // Record the Paystack transfer fee as a separate expense
         if (transfer.fee > 0) {
           await ctx.prisma.$transaction(async (tx) => {
-            const processorFeeAcct = await accountService.getPaymentProcessorFeeAccount();
-            const systemAcct = await accountService.getSystemPaystackClearingAccount();
+            const processorFeeAcct =
+              await accountService.getPaymentProcessorFeeAccount();
+            const systemAcct =
+              await accountService.getSystemPaystackClearingAccount();
             const feeEngine = new AccountingEngine("PAYMENT_PROCESSOR_FEE", {
               description: `Paystack transfer fee for payout ${txId}`,
               externalPaymentId: transfer.transferCode,
@@ -2293,11 +2440,18 @@ const activities = canReadBookings
               transactionId: `operator-withdrawal-requested-${txId}`,
             });
           } catch (err) {
-            console.error("Failed to trigger operator-withdrawal-requested via Novu:", err);
+            console.error(
+              "Failed to trigger operator-withdrawal-requested via Novu:",
+              err,
+            );
           }
         }
 
-        return { success: true, transactionId: txId, transferCode: transfer.transferCode };
+        return {
+          success: true,
+          transactionId: txId,
+          transferCode: transfer.transferCode,
+        };
       } catch (error: any) {
         console.error("Paystack Transfer Initiation Error:", error);
 
@@ -2339,7 +2493,10 @@ const activities = canReadBookings
               }),
             );
           } catch (err) {
-            console.error("Failed to trigger admin-treasury-network-failure via Novu:", err);
+            console.error(
+              "Failed to trigger admin-treasury-network-failure via Novu:",
+              err,
+            );
           }
         }
 
@@ -2423,13 +2580,14 @@ const activities = canReadBookings
       z.object({
         limit: z.number().int().min(1).max(100).default(10),
         offset: z.number().int().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       requirePermission(ctx, "withdrawals:view");
       const companyId = ctx.companyId;
       const accountService = new FinancialAccountService(ctx.prisma);
-      const operatorAcct = await accountService.getOperatorReceivableAccount(companyId);
+      const operatorAcct =
+        await accountService.getOperatorReceivableAccount(companyId);
 
       const [items, total] = await Promise.all([
         ctx.prisma.financialTransaction.findMany({
@@ -2468,4 +2626,16 @@ const activities = canReadBookings
 
       return { items, total };
     }),
+
+  getGatewaySubscriptionToken: operatorCompanyProcedure.query(
+    async ({ ctx }) => {
+      requirePermission(ctx, "drivers:read");
+      const token = mintOperatorSubscriptionToken(ctx.user.id, ctx.companyId);
+      return {
+        token,
+        companyId: ctx.companyId,
+        expiresAt: Date.now() + 30 * 60 * 1000,
+      };
+    },
+  ),
 });

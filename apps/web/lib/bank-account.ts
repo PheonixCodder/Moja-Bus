@@ -54,6 +54,8 @@ export function maskBankAccountForClient<T extends BankAccountRecord>(
   };
 }
 
-export function revealBankAccountNumber(bankAccount: BankAccountRecord): string {
+export function revealBankAccountNumber(
+  bankAccount: BankAccountRecord,
+): string {
   return decryptAccountNumber(bankAccount.accountNumber);
 }

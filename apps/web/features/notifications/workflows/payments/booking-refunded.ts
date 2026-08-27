@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const passengerBookingRefundedWorkflow = workflow(
   "passenger-booking-refunded",
   async ({ step, payload }) => {
@@ -40,12 +39,20 @@ export const passengerBookingRefundedWorkflow = workflow(
     await step.push("send-push", async () => ({
       subject: "Ticket Refunded",
       body: `Booking ${escapeHtml(payload.bookingReference)} cancelled. ${escapeHtml(payload.refundAmountXOF)} XOF refunded via ${escapeHtml(payload.channel)}.`,
-      overrides: { expo: { data: { type: "booking-refunded", bookingReference: payload.bookingReference } } },
+      overrides: {
+        expo: {
+          data: {
+            type: "booking-refunded",
+            bookingReference: payload.bookingReference,
+          },
+        },
+      },
     }));
   },
   {
     name: "Passenger Booking Refunded",
-    description: "Sends refund notification to traveler when a booking is cancelled",
+    description:
+      "Sends refund notification to traveler when a booking is cancelled",
     preferences: {
       all: { readOnly: true },
     },
@@ -57,5 +64,5 @@ export const passengerBookingRefundedWorkflow = workflow(
       channel: z.enum(["WALLET", "CASH"]),
       reason: z.string(),
     }),
-  }
+  },
 );

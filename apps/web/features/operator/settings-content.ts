@@ -9,22 +9,36 @@ export const SETTINGS_TABS = [
 export type SettingsTab = (typeof SETTINGS_TABS)[number]["value"];
 
 export const COMPANY_PROFILE_FIELDS = [
-  "name", "email", "phone", "website", "description", "estimatedStaffSize"
+  "name",
+  "email",
+  "phone",
+  "website",
+  "description",
+  "estimatedStaffSize",
 ] as const;
 
 export const LEGAL_FIELDS = [
-  "businessType", "registrationNumber", "taxId", "yearEstablished"
+  "businessType",
+  "registrationNumber",
+  "taxId",
+  "yearEstablished",
 ] as const;
 
 export const BANK_FIELDS = [
-  "bankName", "bankCode", "accountNumber", "accountName", "branch", "swiftCode", "iban"
+  "bankName",
+  "bankCode",
+  "accountNumber",
+  "accountName",
+  "branch",
+  "swiftCode",
+  "iban",
 ] as const;
 
 export const DOCUMENT_TYPES = [
   "BUSINESS_REGISTRATION_CERTIFICATE",
   "TRANSPORT_OPERATING_PERMIT",
   "INSURANCE_CERTIFICATE",
-  "TAX_COMPLIANCE_CERTIFICATE"
+  "TAX_COMPLIANCE_CERTIFICATE",
 ] as const;
 
 export const SETTINGS_ROUTES = {

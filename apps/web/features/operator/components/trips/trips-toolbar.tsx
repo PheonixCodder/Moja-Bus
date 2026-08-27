@@ -54,7 +54,10 @@ export function TripsToolbar({
     { value: "CANCELLED", label: t("status.CANCELLED") },
   ];
 
-  const SERVICE_TYPE_OPTIONS: { value: SearchServiceType | "ALL"; label: string }[] = [
+  const SERVICE_TYPE_OPTIONS: {
+    value: SearchServiceType | "ALL";
+    label: string;
+  }[] = [
     { value: "ALL", label: t("allServiceTypes") },
     { value: "URBAN", label: t("serviceType.URBAN") },
     { value: "INTERCITY", label: t("serviceType.INTERCITY") },

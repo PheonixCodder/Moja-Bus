@@ -23,7 +23,10 @@ import { toast } from "sonner";
 
 import { useTranslations } from "next-intl";
 
-export type BenefitType = "PERCENT_OFF" | "FIXED_AMOUNT_OFF" | "WALLET_CREDIT_GRANT";
+export type BenefitType =
+  | "PERCENT_OFF"
+  | "FIXED_AMOUNT_OFF"
+  | "WALLET_CREDIT_GRANT";
 
 export interface CreateCampaignData {
   name: string;
@@ -102,7 +105,9 @@ export function AdminCampaignCreateDialog({
         : { amountXOF: Number(amountXOF || "0") }),
       ...(budgetXOF ? { budgetXOF: Number(budgetXOF) } : {}),
       ...(minSubtotalXOF ? { minSubtotalXOF: Number(minSubtotalXOF) } : {}),
-      ...(maxDiscountXOF ? { maxDiscountPerBookingXOF: Number(maxDiscountXOF) } : {}),
+      ...(maxDiscountXOF
+        ? { maxDiscountPerBookingXOF: Number(maxDiscountXOF) }
+        : {}),
       firstBookingOnly,
       isAutoApply,
     };
@@ -116,9 +121,7 @@ export function AdminCampaignCreateDialog({
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            {step === 1
-              ? t("step1Desc")
-              : t("step2Desc")}
+            {step === 1 ? t("step1Desc") : t("step2Desc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,9 +150,15 @@ export function AdminCampaignCreateDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PERCENT_OFF">{t("benefitTypes.percent")}</SelectItem>
-                      <SelectItem value="FIXED_AMOUNT_OFF">{t("benefitTypes.fixed")}</SelectItem>
-                      <SelectItem value="WALLET_CREDIT_GRANT">{t("benefitTypes.walletCredit")}</SelectItem>
+                      <SelectItem value="PERCENT_OFF">
+                        {t("benefitTypes.percent")}
+                      </SelectItem>
+                      <SelectItem value="FIXED_AMOUNT_OFF">
+                        {t("benefitTypes.fixed")}
+                      </SelectItem>
+                      <SelectItem value="WALLET_CREDIT_GRANT">
+                        {t("benefitTypes.walletCredit")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

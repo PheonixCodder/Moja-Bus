@@ -34,7 +34,6 @@ export default async function AboutPage() {
       description={t("shellDescription")}
       badge={t("shellBadge")}
     >
-
       {/* Stats */}
       <div className="bg-[#ee237c] px-6 md:px-8 py-14">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -42,11 +41,16 @@ export default async function AboutPage() {
             <div key={key} className="text-center text-white">
               <p
                 className="font-bold mb-1"
-                style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontFamily: "Montserrat, sans-serif" }}
+                style={{
+                  fontSize: "clamp(2rem, 4vw, 3rem)",
+                  fontFamily: "Montserrat, sans-serif",
+                }}
               >
                 {["35+", "50k+", "100+", "500+"][i]}
               </p>
-              <p className="text-white/70 text-sm font-medium">{t(`stat${key}`)}</p>
+              <p className="text-white/70 text-sm font-medium">
+                {t(`stat${key}`)}
+              </p>
             </div>
           ))}
         </div>
@@ -99,12 +103,21 @@ export default async function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {values.map(({ icon: Icon, key, color }) => (
-              <div key={key} className="bg-white rounded-3xl p-8 border border-slate-100">
-                <div className={`w-12 h-12 ${color} rounded-2xl flex items-center justify-center mb-6`}>
+              <div
+                key={key}
+                className="bg-white rounded-3xl p-8 border border-slate-100"
+              >
+                <div
+                  className={`w-12 h-12 ${color} rounded-2xl flex items-center justify-center mb-6`}
+                >
                   <Icon className="h-6 w-6" />
                 </div>
-                <h3 className="font-bold text-slate-900 text-xl mb-3">{t(`value${key}Title`)}</h3>
-                <p className="text-slate-500 leading-relaxed">{t(`value${key}Desc`)}</p>
+                <h3 className="font-bold text-slate-900 text-xl mb-3">
+                  {t(`value${key}Title`)}
+                </h3>
+                <p className="text-slate-500 leading-relaxed">
+                  {t(`value${key}Desc`)}
+                </p>
               </div>
             ))}
           </div>
@@ -116,9 +129,7 @@ export default async function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-[#ee237c] rounded-3xl p-10 text-white">
             <h3 className="text-2xl font-bold mb-3">{t("cta1Title")}</h3>
-            <p className="text-white/80 mb-8">
-              {t("cta1Desc")}
-            </p>
+            <p className="text-white/80 mb-8">{t("cta1Desc")}</p>
             <Link
               href="/search"
               className="inline-flex items-center gap-2 bg-white text-[#ee237c] px-6 py-3 rounded-2xl font-bold hover:bg-slate-50 transition-all"
@@ -128,9 +139,7 @@ export default async function AboutPage() {
           </div>
           <div className="bg-slate-900 rounded-3xl p-10 text-white">
             <h3 className="text-2xl font-bold mb-3">{t("cta2Title")}</h3>
-            <p className="text-slate-300 mb-8">
-              {t("cta2Desc")}
-            </p>
+            <p className="text-slate-300 mb-8">{t("cta2Desc")}</p>
             <Link
               href="/become-a-partner"
               className="inline-flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all"

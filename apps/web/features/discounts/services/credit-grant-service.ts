@@ -65,7 +65,9 @@ export async function grantAdminCreditLot(
         userId: input.userId,
         amountXOF: input.amountXOF,
         idempotencyKey: `${grantIdempotencyKey}:ledger`,
-        description: input.reason?.trim() || `Admin promo credit grant (${input.source ?? "ADMIN_MANUAL"})`,
+        description:
+          input.reason?.trim() ||
+          `Admin promo credit grant (${input.source ?? "ADMIN_MANUAL"})`,
         referenceType: "CREDIT_LOT",
         referenceId: lot.id,
       });

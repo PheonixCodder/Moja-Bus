@@ -65,14 +65,26 @@ export async function convergeDriversAfterRunEnd(
   if (onDutyIds.size > 0) {
     await db.driverProfile.updateMany({
       where: { id: { in: [...onDutyIds] }, currentTripId: tripId },
-      data: { status: "AVAILABLE", currentTripId: null },
+      data: {
+        status: "AVAILABLE",
+        currentTripId: null,
+        totalTripsCompleted: { increment: 1 },
+      },
+    });
+    await db.driverShift.updateMany({
+      where: { driverProfileId: { in: [...onDutyIds] }, endedAt: null },
+      data: { tripsCompleted: { increment: 1 } },
     });
   }
 
   if (offDutyIds.length > 0) {
     await db.driverProfile.updateMany({
       where: { id: { in: offDutyIds }, currentTripId: tripId },
-      data: { status: "OFFLINE", currentTripId: null },
+      data: {
+        status: "OFFLINE",
+        currentTripId: null,
+        totalTripsCompleted: { increment: 1 },
+      },
     });
   }
 

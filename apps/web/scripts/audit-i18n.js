@@ -21,7 +21,9 @@ const MESSAGES_DIR = path.join(WEB_ROOT, "messages");
 const args = process.argv.slice(2);
 const OUTPUT_JSON = args.includes("--json");
 const OUTPUT_MD = args.includes("--markdown");
-const FEATURE_FILTER = args.find((a) => a.startsWith("--feature="))?.split("=")[1];
+const FEATURE_FILTER = args
+  .find((a) => a.startsWith("--feature="))
+  ?.split("=")[1];
 
 // ─── 1. Load and Merge Locale Dictionaries ─────────────────────────────────
 function loadMessages(locale) {
@@ -34,7 +36,12 @@ function loadMessages(locale) {
   if (fs.existsSync(FEATURES_DIR)) {
     const features = fs.readdirSync(FEATURES_DIR);
     for (const feat of features) {
-      const featMsgPath = path.join(FEATURES_DIR, feat, "messages", `${locale}.json`);
+      const featMsgPath = path.join(
+        FEATURES_DIR,
+        feat,
+        "messages",
+        `${locale}.json`,
+      );
       if (fs.existsSync(featMsgPath)) {
         Object.assign(merged, JSON.parse(fs.readFileSync(featMsgPath, "utf8")));
       }
@@ -66,7 +73,11 @@ function findMissingEnInFr(enObj, frObj, currentPath = "") {
     const fullPath = currentPath ? `${currentPath}.${key}` : key;
     if (!(key in frObj)) {
       enMissingInFr.push(fullPath);
-    } else if (typeof enObj[key] === "object" && enObj[key] !== null && !Array.isArray(enObj[key])) {
+    } else if (
+      typeof enObj[key] === "object" &&
+      enObj[key] !== null &&
+      !Array.isArray(enObj[key])
+    ) {
       findMissingEnInFr(enObj[key], frObj[key] || {}, fullPath);
     }
   }
@@ -104,7 +115,10 @@ function getAllSourceFiles(dir, list = []) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       getAllSourceFiles(fullPath, list);
-    } else if (entry.isFile() && (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))) {
+    } else if (
+      entry.isFile() &&
+      (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))
+    ) {
       if (entry.name.endsWith(".d.ts")) continue;
       list.push(fullPath);
     }
@@ -114,7 +128,11 @@ function getAllSourceFiles(dir, list = []) {
 
 const targetDirs = FEATURE_FILTER
   ? [path.join(FEATURES_DIR, FEATURE_FILTER)]
-  : [FEATURES_DIR, path.join(WEB_ROOT, "components"), path.join(WEB_ROOT, "app")];
+  : [
+      FEATURES_DIR,
+      path.join(WEB_ROOT, "components"),
+      path.join(WEB_ROOT, "app"),
+    ];
 
 const filesToScan = targetDirs.flatMap((d) => getAllSourceFiles(d));
 
@@ -128,12 +146,20 @@ function isHardcodedEnglishText(text) {
   if (/^[\p{P}\p{S}\s\d]+$/u.test(trimmed)) return false;
 
   // Ignore CSS classes, Tailwind strings (e.g. "flex items-center gap-2", "text-sm text-muted-foreground")
-  if (/^(?:flex|grid|hidden|block|inline|text-|bg-|p-|m-|gap-|w-|h-|border-|rounded-|font-|opacity-|z-|col-|row-)/.test(trimmed)) {
+  if (
+    /^(?:flex|grid|hidden|block|inline|text-|bg-|p-|m-|gap-|w-|h-|border-|rounded-|font-|opacity-|z-|col-|row-)/.test(
+      trimmed,
+    )
+  ) {
     return false;
   }
 
   // Ignore URLs / paths / IDs / CSS units / code vars
-  if (/^(?:https?:\/\/|\/|#| MW-|MOB-|XOF|USD|EUR|%|px|rem|em|vh|vw|[a-z0-9_-]+\.[a-z0-9]+)/i.test(trimmed)) {
+  if (
+    /^(?:https?:\/\/|\/|#| MW-|MOB-|XOF|USD|EUR|%|px|rem|em|vh|vw|[a-z0-9_-]+\.[a-z0-9]+)/i.test(
+      trimmed,
+    )
+  ) {
     return false;
   }
 
@@ -169,7 +195,7 @@ for (const filePath of filesToScan) {
     fileContent,
     ts.ScriptTarget.Latest,
     true,
-    filePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+    filePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
   );
 
   // Map variable names to their namespace: e.g. t -> "booking", tNav -> "nav"
@@ -177,7 +203,11 @@ for (const filePath of filesToScan) {
 
   // Pass 1: Find useTranslations / getTranslations declarations
   function findTranslationVars(node) {
-    if (ts.isVariableDeclaration(node) && node.initializer && ts.isCallExpression(node.initializer)) {
+    if (
+      ts.isVariableDeclaration(node) &&
+      node.initializer &&
+      ts.isCallExpression(node.initializer)
+    ) {
       const call = node.initializer;
       const callName = call.expression.getText(sourceFile);
       if (callName === "useTranslations" || callName === "getTranslations") {
@@ -196,7 +226,9 @@ for (const filePath of filesToScan) {
 
   // Pass 2: Check t('key') calls and JSX text/attributes
   function analyzeNode(node) {
-    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+      node.getStart(sourceFile),
+    );
     const lineNum = line + 1;
 
     // 1. Translation call checks: t("key") or t.rich("key")
@@ -211,7 +243,9 @@ for (const filePath of filesToScan) {
         ts.isIdentifier(node.expression.expression)
       ) {
         varName = node.expression.expression.text;
-        isRich = node.expression.name.text === "rich" || node.expression.name.text === "has";
+        isRich =
+          node.expression.name.text === "rich" ||
+          node.expression.name.text === "has";
       }
 
       if (varName && tVariables.has(varName)) {
@@ -221,8 +255,10 @@ for (const filePath of filesToScan) {
           const namespace = tVariables.get(varName);
           const fullKeyPath = namespace ? `${namespace}.${key}` : key;
 
-          const existsInEn = getNestedValue(enMessages, fullKeyPath) !== undefined;
-          const existsInFr = getNestedValue(frMessages, fullKeyPath) !== undefined;
+          const existsInEn =
+            getNestedValue(enMessages, fullKeyPath) !== undefined;
+          const existsInFr =
+            getNestedValue(frMessages, fullKeyPath) !== undefined;
 
           if (!existsInEn || !existsInFr) {
             report.missingKeys.push({
@@ -232,7 +268,8 @@ for (const filePath of filesToScan) {
               namespace,
               key,
               fullKeyPath,
-              missingIn: !existsInEn && !existsInFr ? "both" : !existsInEn ? "en" : "fr",
+              missingIn:
+                !existsInEn && !existsInFr ? "both" : !existsInEn ? "en" : "fr",
             });
             fileHasMissingKeys = true;
           }
@@ -245,9 +282,10 @@ for (const filePath of filesToScan) {
       const text = node.getText(sourceFile);
       if (isHardcodedEnglishText(text)) {
         // Exclude if parent element is <style>, <script>, <code>, <pre>
-        const parentTag = node.parent && ts.isJsxElement(node.parent)
-          ? node.parent.openingElement.tagName.getText(sourceFile)
-          : "";
+        const parentTag =
+          node.parent && ts.isJsxElement(node.parent)
+            ? node.parent.openingElement.tagName.getText(sourceFile)
+            : "";
 
         if (!["style", "script", "code", "pre"].includes(parentTag)) {
           report.hardcodedText.push({
@@ -309,17 +347,27 @@ if (OUTPUT_JSON) {
   console.log(`> Generated on ${new Date().toISOString().split("T")[0]}\n`);
   console.log("## Summary\n");
   console.log(`- **Files scanned:** ${report.summary.scannedFiles}`);
-  console.log(`- **Files with hardcoded text:** ${report.summary.filesWithHardcodedText}`);
-  console.log(`- **Total hardcoded text occurrences:** ${report.summary.totalHardcodedSnippets}`);
-  console.log(`- **Missing \`t('key')\` translation keys:** ${report.summary.totalMissingKeys}`);
-  console.log(`- **EN keys missing in FR:** ${report.summary.totalEnMissingInFr}\n`);
+  console.log(
+    `- **Files with hardcoded text:** ${report.summary.filesWithHardcodedText}`,
+  );
+  console.log(
+    `- **Total hardcoded text occurrences:** ${report.summary.totalHardcodedSnippets}`,
+  );
+  console.log(
+    `- **Missing \`t('key')\` translation keys:** ${report.summary.totalMissingKeys}`,
+  );
+  console.log(
+    `- **EN keys missing in FR:** ${report.summary.totalEnMissingInFr}\n`,
+  );
 
   if (report.missingKeys.length > 0) {
     console.log("## ❌ Missing Translation Keys in Code\n");
     console.log("| File | Line | Key Path | Missing In |");
     console.log("|---|---|---|---|");
     for (const item of report.missingKeys) {
-      console.log(`| \`${item.file}\` | ${item.line} | \`${item.fullKeyPath}\` | ${item.missingIn.toUpperCase()} |`);
+      console.log(
+        `| \`${item.file}\` | ${item.line} | \`${item.fullKeyPath}\` | ${item.missingIn.toUpperCase()} |`,
+      );
     }
     console.log("\n");
   }
@@ -330,10 +378,14 @@ if (OUTPUT_JSON) {
     console.log("|---|---|---|---|");
     for (const item of report.hardcodedText.slice(0, 200)) {
       const cleanSnippet = item.text.replace(/\|/g, "\\|").slice(0, 60);
-      console.log(`| \`${item.file}\` | ${item.line} | \`${item.type}\` | ${cleanSnippet} |`);
+      console.log(
+        `| \`${item.file}\` | ${item.line} | \`${item.type}\` | ${cleanSnippet} |`,
+      );
     }
     if (report.hardcodedText.length > 200) {
-      console.log(`\n*... and ${report.hardcodedText.length - 200} more items.*`);
+      console.log(
+        `\n*... and ${report.hardcodedText.length - 200} more items.*`,
+      );
     }
   }
 } else {
@@ -341,11 +393,21 @@ if (OUTPUT_JSON) {
   console.log("\n=======================================================");
   console.log("            🌐 I18N CODEBASE AUDIT RESULTS            ");
   console.log("=======================================================");
-  console.log(`📁 Files Scanned:                 ${report.summary.scannedFiles}`);
-  console.log(`❌ Missing Translation Keys:      ${report.summary.totalMissingKeys}`);
-  console.log(`⚠️  Hardcoded String Snippets:     ${report.summary.totalHardcodedSnippets}`);
-  console.log(`📄 Files with Hardcoded Strings:   ${report.summary.filesWithHardcodedText}`);
-  console.log(`🇫🇷 EN keys missing in FR:          ${report.summary.totalEnMissingInFr}`);
+  console.log(
+    `📁 Files Scanned:                 ${report.summary.scannedFiles}`,
+  );
+  console.log(
+    `❌ Missing Translation Keys:      ${report.summary.totalMissingKeys}`,
+  );
+  console.log(
+    `⚠️  Hardcoded String Snippets:     ${report.summary.totalHardcodedSnippets}`,
+  );
+  console.log(
+    `📄 Files with Hardcoded Strings:   ${report.summary.filesWithHardcodedText}`,
+  );
+  console.log(
+    `🇫🇷 EN keys missing in FR:          ${report.summary.totalEnMissingInFr}`,
+  );
   console.log("-------------------------------------------------------");
 
   // Group hardcoded text by feature
@@ -357,21 +419,31 @@ if (OUTPUT_JSON) {
   }
 
   console.log("\n📊 Hardcoded Text Occurrences by Feature Area:\n");
-  const sortedFeatures = Object.entries(featureBreakdown).sort((a, b) => b[1] - a[1]);
+  const sortedFeatures = Object.entries(featureBreakdown).sort(
+    (a, b) => b[1] - a[1],
+  );
   for (const [feat, count] of sortedFeatures) {
     const bar = "█".repeat(Math.min(30, Math.ceil(count / 10)));
-    console.log(`  ${feat.padEnd(16)} : ${count.toString().padStart(4)} occurrences  ${bar}`);
+    console.log(
+      `  ${feat.padEnd(16)} : ${count.toString().padStart(4)} occurrences  ${bar}`,
+    );
   }
 
   if (report.missingKeys.length > 0) {
     console.log("\n❌ Sample Missing Keys:");
     report.missingKeys.slice(0, 10).forEach((k) => {
-      console.log(`  - [${k.missingIn.toUpperCase()}] \`${k.fullKeyPath}\` in ${k.file}:${k.line}`);
+      console.log(
+        `  - [${k.missingIn.toUpperCase()}] \`${k.fullKeyPath}\` in ${k.file}:${k.line}`,
+      );
     });
   }
 
   console.log("\n💡 Tips:");
-  console.log("  • Run with --markdown to generate a full Markdown report table.");
-  console.log("  • Run with --feature=<name> to focus on a specific feature (e.g. --feature=operator).");
+  console.log(
+    "  • Run with --markdown to generate a full Markdown report table.",
+  );
+  console.log(
+    "  • Run with --feature=<name> to focus on a specific feature (e.g. --feature=operator).",
+  );
   console.log("  • Run with --json for programmatic inspection.\n");
 }

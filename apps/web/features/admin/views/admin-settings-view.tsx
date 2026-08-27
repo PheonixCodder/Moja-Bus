@@ -160,11 +160,7 @@ export function AdminSettingsView() {
 
   const handleUpdateSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      commissionPct === null ||
-      conveniencePct === null
-    )
-      return;
+    if (commissionPct === null || conveniencePct === null) return;
 
     updateSettingsMutation.mutate({
       defaultCommissionBps: Math.round(commissionPct * 100),

@@ -14,19 +14,26 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "operatorDashboard.trips" });
+  const t = await getTranslations({
+    locale,
+    namespace: "operatorDashboard.trips",
+  });
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
   };
 }
 
-export default async function TripsPage({ params, searchParams: searchParamsProp }: Props) {
+export default async function TripsPage({
+  params,
+  searchParams: searchParamsProp,
+}: Props) {
   const sp = await searchParamsProp;
   const spParsed = await tripListParamsCache.parse(sp);
   const listInput = {
     status: spParsed.status === "ALL" ? undefined : spParsed.status,
-    serviceType: spParsed.serviceType === "ALL" ? undefined : spParsed.serviceType,
+    serviceType:
+      spParsed.serviceType === "ALL" ? undefined : spParsed.serviceType,
     scheduleId: spParsed.scheduleId || undefined,
     q: spParsed.q || undefined,
     startDate: spParsed.startDate || undefined,

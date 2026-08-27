@@ -6,7 +6,7 @@ let content = fs.readFileSync(filePath, "utf8");
 // Line 78: {offer.seatClass} -> {t("seatClass." + offer.seatClass)}
 content = content.replace(
   /{offer\.seatClass}/g,
-  '{offer.seatClass ? t(`seatClass.${offer.seatClass}`) : offer.seatClass}'
+  "{offer.seatClass ? t(`seatClass.${offer.seatClass}`) : offer.seatClass}",
 );
 
 fs.writeFileSync(filePath, content);

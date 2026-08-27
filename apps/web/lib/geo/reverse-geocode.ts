@@ -81,9 +81,7 @@ export function formatNominatimAddress(data: NominatimResponse): string | null {
 
 export function createReverseGeocoder(deps: ReverseGeocodeDeps = {}) {
   const baseUrl =
-    deps.baseUrl ??
-    process.env["REVERSE_GEOCODE_BASE_URL"] ??
-    DEFAULT_BASE_URL;
+    deps.baseUrl ?? process.env["REVERSE_GEOCODE_BASE_URL"] ?? DEFAULT_BASE_URL;
   const userAgent = deps.userAgent ?? DEFAULT_USER_AGENT;
   const timeoutMs = deps.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const now = deps.now ?? Date.now;

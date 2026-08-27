@@ -100,10 +100,16 @@ export async function applyReferralCode(
     include: { user: { select: { id: true, phoneNumber: true } } },
   });
   if (!referralCode) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid referral code" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Invalid referral code",
+    });
   }
 
-  if (program.selfReferralBlock && referralCode.userId === input.refereeUserId) {
+  if (
+    program.selfReferralBlock &&
+    referralCode.userId === input.refereeUserId
+  ) {
     await prisma.promoAbuseEvent.create({
       data: {
         eventType: "SELF_REFERRAL",
@@ -111,7 +117,10 @@ export async function applyReferralCode(
         metadata: { code: input.code },
       },
     });
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Self-referral is not allowed" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Self-referral is not allowed",
+    });
   }
 
   const existing = await prisma.referralEdge.findUnique({
@@ -573,20 +582,21 @@ export async function getPublicReferralProgram(
 }
 
 export async function getReferralStats(prisma: PrismaClient, userId: string) {
-  const [{ code }, program, attributed, qualified, rewarded] = await Promise.all([
-    ensureReferralCode(prisma, userId),
-    getPublicReferralProgram(prisma),
-    prisma.referralEdge.count({ where: { referrerUserId: userId } }),
-    prisma.referralEdge.count({
-      where: {
-        referrerUserId: userId,
-        status: { in: ["QUALIFIED", "REWARDED"] },
-      },
-    }),
-    prisma.referralEdge.count({
-      where: { referrerUserId: userId, status: "REWARDED" },
-    }),
-  ]);
+  const [{ code }, program, attributed, qualified, rewarded] =
+    await Promise.all([
+      ensureReferralCode(prisma, userId),
+      getPublicReferralProgram(prisma),
+      prisma.referralEdge.count({ where: { referrerUserId: userId } }),
+      prisma.referralEdge.count({
+        where: {
+          referrerUserId: userId,
+          status: { in: ["QUALIFIED", "REWARDED"] },
+        },
+      }),
+      prisma.referralEdge.count({
+        where: { referrerUserId: userId, status: "REWARDED" },
+      }),
+    ]);
   return { code, attributed, qualified, rewarded, program };
 }
 

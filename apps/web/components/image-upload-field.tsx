@@ -4,10 +4,7 @@ import { useRef, type ReactNode } from "react";
 import { Loader2, UploadCloud, CheckCircle2, X } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
-import {
-  useStorageUpload,
-  type UploadResult,
-} from "@/lib/storage-client";
+import { useStorageUpload, type UploadResult } from "@/lib/storage-client";
 import type { StoragePurposeId } from "@/lib/storage/purposes";
 
 interface ImageUploadFieldProps {

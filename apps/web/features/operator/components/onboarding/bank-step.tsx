@@ -42,7 +42,7 @@ export function BankStep({
   const tRoot = useTranslations("onboarding");
   const trpc = useTRPC();
   const { data: paystackBanks, isLoading: isLoadingBanks } = useQuery(
-    trpc.payments.listBanks.queryOptions({})
+    trpc.payments.listBanks.queryOptions({}),
   );
 
   const [bankName, setBankName] = useState("");
@@ -122,12 +122,8 @@ export function BankStep({
               <Banknote className="w-5 h-5" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold">
-                {t("title")}
-              </CardTitle>
-              <CardDescription>
-                {t("description")}
-              </CardDescription>
+              <CardTitle className="text-lg font-bold">{t("title")}</CardTitle>
+              <CardDescription>{t("description")}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -141,18 +137,25 @@ export function BankStep({
                 {t("bankName")}
               </Label>
               <Combobox
-                items={(paystackBanks || []).map((b: any) => ({ value: b.code, label: b.name }))}
+                items={(paystackBanks || []).map((b: any) => ({
+                  value: b.code,
+                  label: b.name,
+                }))}
                 value={bankCode}
                 onValueChange={(val) => {
                   setBankCode(val || "");
-                  const matched = paystackBanks?.find((b: any) => b.code === val);
+                  const matched = paystackBanks?.find(
+                    (b: any) => b.code === val,
+                  );
                   setBankName(matched ? matched.name : "");
                   setBankType(matched ? matched.type : "");
                 }}
               >
                 <ComboboxInput
                   id="bank-name"
-                  placeholder={isLoadingBanks ? t("loadingBanks") : t("selectBank")}
+                  placeholder={
+                    isLoadingBanks ? t("loadingBanks") : t("selectBank")
+                  }
                   aria-label={t("bankSearchPlaceholder")}
                   className="w-full text-sm"
                   value={bankName || ""}
@@ -200,13 +203,19 @@ export function BankStep({
                 id="account-number"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder={isMobileMoney ? t("mobileMoneyPlaceholder") : t("accountNumberPlaceholder")}
+                placeholder={
+                  isMobileMoney
+                    ? t("mobileMoneyPlaceholder")
+                    : t("accountNumberPlaceholder")
+                }
                 required
                 className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
               />
               {bankCode && (
                 <p className="text-[11px] text-muted-foreground">
-                  {isMobileMoney ? t("mobileMoneyHint") : t("accountNumberHint")}
+                  {isMobileMoney
+                    ? t("mobileMoneyHint")
+                    : t("accountNumberHint")}
                 </p>
               )}
             </div>

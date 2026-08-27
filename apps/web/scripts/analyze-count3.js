@@ -31,10 +31,19 @@ function findJsTsFiles(dir, results) {
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (!entry.name.includes("node_modules") && !entry.name.includes(".next") && !entry.name.includes("dist") && !entry.name.includes("scratch") && !entry.name.includes("scripts")) {
+      if (
+        !entry.name.includes("node_modules") &&
+        !entry.name.includes(".next") &&
+        !entry.name.includes("dist") &&
+        !entry.name.includes("scratch") &&
+        !entry.name.includes("scripts")
+      ) {
         findJsTsFiles(fullPath, results);
       }
-    } else if (entry.isFile() && (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))) {
+    } else if (
+      entry.isFile() &&
+      (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))
+    ) {
       results.push(fullPath);
     }
   }
@@ -65,7 +74,9 @@ for (const file of files) {
     }
 
     // Find t("key") calls with simple keys (not dots, not function references)
-    const tMatch = line.match(/t\s*\(\s*["'`]([a-zA-Z][a-zA-Z0-9]*)["'`]\s*[\),]/);
+    const tMatch = line.match(
+      /t\s*\(\s*["'`]([a-zA-Z][a-zA-Z0-9]*)["'`]\s*[\),]/,
+    );
     if (!tMatch) continue;
 
     const keyName = tMatch[1];
@@ -80,7 +91,12 @@ for (const file of files) {
     for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
       callContext += "\n" + lines[j];
       // Stop if we've closed the t() call
-      if (lines[j].includes(")") && !lines[j].includes("||") && !lines[j].includes("&&")) break;
+      if (
+        lines[j].includes(")") &&
+        !lines[j].includes("||") &&
+        !lines[j].includes("&&")
+      )
+        break;
     }
 
     const hasCountParam = /count\s*:/.test(callContext);
@@ -88,7 +104,9 @@ for (const file of files) {
     if (!hasCountParam) {
       issues.push({
         fullKey: fullKey,
-        template: countKeys.find((k) => k.path === fullKey)?.value?.substring(0, 80) || "",
+        template:
+          countKeys.find((k) => k.path === fullKey)?.value?.substring(0, 80) ||
+          "",
         file: file,
         lineNum: i + 1,
         lineContent: line.trim().substring(0, 200),
@@ -106,7 +124,9 @@ const uniqueIssues = issues.filter((issue) => {
   return true;
 });
 
-uniqueIssues.sort((a, b) => a.file.localeCompare(b.file) || a.lineNum - b.lineNum);
+uniqueIssues.sort(
+  (a, b) => a.file.localeCompare(b.file) || a.lineNum - b.lineNum,
+);
 
 console.log("=== {count} keys without count parameter passed ===");
 console.log("Total issues:", uniqueIssues.length);
@@ -114,8 +134,13 @@ console.log("");
 
 // Also check t() calls with keys that have ICU plural format
 console.log("=== Also checking ICU plural keys ---");
-const icuPluralKeys = countKeys.filter((k) => k.value.includes("{count, plural"));
-console.log("ICU plural keys:", icuPluralKeys.map((k) => k.path));
+const icuPluralKeys = countKeys.filter((k) =>
+  k.value.includes("{count, plural"),
+);
+console.log(
+  "ICU plural keys:",
+  icuPluralKeys.map((k) => k.path),
+);
 console.log("");
 
 for (const issue of uniqueIssues) {

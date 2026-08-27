@@ -6,6 +6,7 @@ import {
 	Modal,
 	StyleSheet,
 	ActivityIndicator,
+	Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -20,6 +21,8 @@ import {
 	Armchair,
 	Flashlight,
 	RotateCw,
+	CloudOff,
+	RefreshCw,
 } from "lucide-react-native";
 import { useTRPC } from "@/lib/trpc";
 import { DriverFeedback } from "@/lib/haptics";
@@ -27,8 +30,17 @@ import { useTranslation } from "react-i18next";
 import { ACTIVE_TRIP_ID_KEY } from "@/lib/telemetry";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
+const OFFLINE_SCANS_KEY = "driver_offline_scans_queue";
+
+interface OfflineScanItem {
+	ticketToken: string;
+	tripId?: string;
+	scannedAt: string;
+}
+
 interface ScanValidationState {
-	status: "SUCCESS" | "ALREADY_BOARDED" | "ERROR";
+	status: "SUCCESS" | "ALREADY_BOARDED" | "QUEUED_OFFLINE" | "ERROR";
 	passengerName?: string;
 	seatNumber?: string;
 	bookingReference?: string;
@@ -43,23 +55,75 @@ export default function DriverScannerScreen() {
 	const [permission, requestPermission] = useCameraPermissions();
 	const [torch, setTorch] = useState(false);
 	const [validationResult, setValidationResult] = useState<ScanValidationState | null>(null);
+	const [offlineQueue, setOfflineQueue] = useState<OfflineScanItem[]>([]);
+	const [isSyncing, setIsSyncing] = useState(false);
 	const isScanningRef = useRef(false);
-	// Phase 03 — best-effort trip binding: scans declare the run the scanner
-	// believes it is operating (server still authorizes via assignment).
 	const [activeTripId, setActiveTripId] = useState<string | null>(null);
 
+	// Load stored trip ID & offline queue on mount
 	useEffect(() => {
 		AsyncStorage.getItem(ACTIVE_TRIP_ID_KEY)
 			.then((v) => {
 				if (v) setActiveTripId(v);
 			})
 			.catch(() => {});
+
+		loadOfflineQueue();
 	}, []);
+
+	const loadOfflineQueue = async () => {
+		try {
+			const raw = await AsyncStorage.getItem(OFFLINE_SCANS_KEY);
+			if (raw) {
+				const parsed = JSON.parse(raw);
+				if (Array.isArray(parsed)) setOfflineQueue(parsed);
+			}
+		} catch {}
+	};
+
+	const saveOfflineQueue = async (queue: OfflineScanItem[]) => {
+		setOfflineQueue(queue);
+		await AsyncStorage.setItem(OFFLINE_SCANS_KEY, JSON.stringify(queue));
+	};
 
 	// Real tRPC checkInPassenger mutation
 	const checkInMutation = useMutation(
 		trpc.drivers.checkInPassenger.mutationOptions()
 	);
+
+	// Batch sync mutation for offline queue
+	const batchSyncMutation = useMutation(
+		trpc.drivers.batchSyncCheckIns.mutationOptions()
+	);
+
+	const handleSyncOfflineQueue = async () => {
+		if (offlineQueue.length === 0 || isSyncing) return;
+		setIsSyncing(true);
+		DriverFeedback.tap();
+
+		try {
+			const res = await batchSyncMutation.mutateAsync({
+				checkIns: offlineQueue,
+			});
+
+			const syncedCount = res.syncedCount ?? 0;
+			const rejectedCount = res.results.filter((r: any) => r.outcome === "REJECTED").length;
+			const alreadyBoardedCount = res.results.filter((r: any) => r.outcome === "ALREADY_BOARDED").length;
+
+			await saveOfflineQueue([]);
+			DriverFeedback.successScan();
+
+			Alert.alert(
+				"Sync Complete",
+				`Successfully processed ${offlineQueue.length} offline scans:\n• ${syncedCount} cleared for boarding\n• ${alreadyBoardedCount} previously boarded\n• ${rejectedCount} rejected`,
+			);
+		} catch (err: any) {
+			DriverFeedback.invalidScan();
+			Alert.alert("Sync Failed", err?.message ?? "Unable to sync offline scans. Will retry later.");
+		} finally {
+			setIsSyncing(false);
+		}
+	};
 
 	if (!permission) {
 		return <View className="flex-1 bg-zinc-950" />;
@@ -120,12 +184,37 @@ export default function DriverScannerScreen() {
 				});
 			}
 		} catch (err: any) {
-			DriverFeedback.invalidScan();
-			setValidationResult({
-				status: "ERROR",
-				ticketToken: data,
+			const isNetworkErr =
+				err?.message?.includes("Network") ||
+				err?.message?.includes("fetch") ||
+				err?.message?.includes("timeout") ||
+				err?.message?.includes("Failed to fetch");
+
+			if (isNetworkErr) {
+				// Phase 7 (Gap #10b) — Save to offline queue for later reconciliation
+				const newItem: OfflineScanItem = {
+					ticketToken: data,
+					tripId: activeTripId ?? undefined,
+					scannedAt: new Date().toISOString(),
+				};
+				const updatedQueue = [...offlineQueue, newItem];
+				void saveOfflineQueue(updatedQueue);
+
+				DriverFeedback.successScan();
+				setValidationResult({
+					status: "QUEUED_OFFLINE",
+					passengerName: "Queued for Sync",
+					ticketToken: data,
+					errorMessage: "Device is offline. Scan recorded locally and will sync when network is restored.",
+				});
+			} else {
+				DriverFeedback.invalidScan();
+				setValidationResult({
+					status: "ERROR",
+					ticketToken: data,
 					errorMessage: err.message || t("fallbackError"),
-			});
+				});
+			}
 		} finally {
 			isScanningRef.current = false;
 		}
@@ -157,6 +246,32 @@ export default function DriverScannerScreen() {
 					<Flashlight size={18} color={torch ? "#000000" : "#fafafa"} />
 				</TouchableOpacity>
 			</View>
+
+			{/* Phase 7 (Gap #10b) — Offline Scans Queue Banner */}
+			{offlineQueue.length > 0 && (
+				<View className="bg-amber-500/15 border-b border-amber-500/30 px-5 py-2.5 flex-row items-center justify-between">
+					<View className="flex-row items-center gap-2">
+						<CloudOff size={16} color="#f59e0b" />
+						<Text className="text-xs font-bold text-amber-400">
+							{offlineQueue.length} {offlineQueue.length === 1 ? "scan" : "scans"} queued offline
+						</Text>
+					</View>
+					<TouchableOpacity
+						onPress={handleSyncOfflineQueue}
+						disabled={isSyncing}
+						className="bg-amber-500 active:bg-amber-600 px-3 py-1.5 rounded-lg flex-row items-center gap-1.5 shadow-md shadow-amber-500/20"
+					>
+						{isSyncing ? (
+							<ActivityIndicator size="small" color="#000000" />
+						) : (
+							<RefreshCw size={12} color="#000000" />
+						)}
+						<Text className="text-xs font-black text-black uppercase tracking-wider">
+							{isSyncing ? "Syncing…" : "Sync Now"}
+						</Text>
+					</TouchableOpacity>
+				</View>
+			)}
 
 			{/* Camera Feed with Viewfinder Frame */}
 			<View className="flex-1 relative items-center justify-center">
@@ -204,6 +319,22 @@ export default function DriverScannerScreen() {
 									</Text>
 									<Text className="text-xs text-emerald-400 font-semibold">
 										{t("clearedMsg")}
+									</Text>
+								</View>
+							</View>
+						)}
+
+						{validationResult?.status === "QUEUED_OFFLINE" && (
+							<View className="flex-row items-center gap-3">
+								<View className="size-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 items-center justify-center">
+									<CloudOff size={28} color="#06b6d4" />
+								</View>
+								<View>
+									<Text className="text-lg font-black text-white">
+										Recorded Offline
+									</Text>
+									<Text className="text-xs text-cyan-400 font-semibold">
+										Saved locally • Passenger cleared to board
 									</Text>
 								</View>
 							</View>

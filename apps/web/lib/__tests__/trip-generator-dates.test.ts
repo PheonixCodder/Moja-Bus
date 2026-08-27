@@ -12,7 +12,7 @@ import {
 
 describe("timezone (Africa/Abidjan)", () => {
   it("maps a known UTC instant to the correct calendar day and weekday", () => {
-    // 2026-07-05 23:30 UTC is still Sunday in US Eastern but Monday in Abidjan? 
+    // 2026-07-05 23:30 UTC is still Sunday in US Eastern but Monday in Abidjan?
     // Abidjan is UTC+0, so it's still 2026-07-05 Sunday 23:30
     const instant = new Date("2026-07-05T23:30:00.000Z");
     assert.equal(getCalendarDateKey(instant), "2026-07-05");
@@ -33,7 +33,9 @@ describe("timezone (Africa/Abidjan)", () => {
 
   it("matches exception dates by calendar day, not UTC string split", () => {
     const exceptionDate = new Date("2026-07-10T00:00:00.000Z");
-    const targetDay = startOfAppCalendarDay(new Date("2026-07-10T15:00:00.000Z"));
+    const targetDay = startOfAppCalendarDay(
+      new Date("2026-07-10T15:00:00.000Z"),
+    );
     assert.equal(datesMatchCalendarDay(exceptionDate, targetDay), true);
   });
 

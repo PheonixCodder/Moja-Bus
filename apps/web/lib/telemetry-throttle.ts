@@ -25,29 +25,29 @@ export const TELEMETRY_IP_PRE_GATE = { windowMs: 60_000, max: 1200 };
 export const TELEMETRY_DRIVER_CEILING = { windowMs: 60_000, max: 60 };
 
 export interface TelemetryThrottle {
-	ipGate: ReturnType<typeof createRateLimiter>;
-	driverCeiling: ReturnType<typeof createRateLimiter>;
+  ipGate: ReturnType<typeof createRateLimiter>;
+  driverCeiling: ReturnType<typeof createRateLimiter>;
 }
 
 /** Injectable for tests (clock + store). */
 export function createTelemetryThrottle(options?: {
-	now?: () => number;
-	storeFactory?: () => Parameters<typeof createRateLimiter>[0]["store"];
+  now?: () => number;
+  storeFactory?: () => Parameters<typeof createRateLimiter>[0]["store"];
 }): TelemetryThrottle {
-	const ipStore = options?.storeFactory?.();
-	const driverStore = options?.storeFactory?.();
-	return {
-		ipGate: createRateLimiter({
-			...TELEMETRY_IP_PRE_GATE,
-			...(options?.now ? { now: options.now } : {}),
-			...(ipStore ? { store: ipStore } : {}),
-		}),
-		driverCeiling: createRateLimiter({
-			...TELEMETRY_DRIVER_CEILING,
-			...(options?.now ? { now: options.now } : {}),
-			...(driverStore ? { store: driverStore } : {}),
-		}),
-	};
+  const ipStore = options?.storeFactory?.();
+  const driverStore = options?.storeFactory?.();
+  return {
+    ipGate: createRateLimiter({
+      ...TELEMETRY_IP_PRE_GATE,
+      ...(options?.now ? { now: options.now } : {}),
+      ...(ipStore ? { store: ipStore } : {}),
+    }),
+    driverCeiling: createRateLimiter({
+      ...TELEMETRY_DRIVER_CEILING,
+      ...(options?.now ? { now: options.now } : {}),
+      ...(driverStore ? { store: driverStore } : {}),
+    }),
+  };
 }
 
 /** Process-wide singletons used by the ping route. */
@@ -55,10 +55,10 @@ export const telemetryThrottle = createTelemetryThrottle();
 
 /** Left-most x-forwarded-for entry → x-real-ip → stable placeholder. */
 export function clientIpFromHeaders(headers: Headers): string {
-	const forwarded = headers.get("x-forwarded-for");
-	if (forwarded) {
-		const first = forwarded.split(",")[0]?.trim();
-		if (first) return first;
-	}
-	return headers.get("x-real-ip") ?? "unknown";
+  const forwarded = headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  return headers.get("x-real-ip") ?? "unknown";
 }

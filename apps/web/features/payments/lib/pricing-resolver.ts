@@ -76,24 +76,20 @@ export function buildPricingBreakdown(input: {
   };
 }
 
-export async function loadPlatformSettings(
-  prisma: {
-    platformSettings: {
-      findUnique: (args: {
-        where: { id: string };
-      }) => Promise<PlatformSettings | null>;
-      create: (args: {
-        data: { id: string };
-      }) => Promise<PlatformSettings>;
-    };
-    commissionDistanceTier: {
-      findMany: (args: {
-        where: { isActive: boolean };
-        orderBy: { sortOrder: "asc" };
-      }) => Promise<CommissionDistanceTier[]>;
-    };
-  },
-): Promise<{
+export async function loadPlatformSettings(prisma: {
+  platformSettings: {
+    findUnique: (args: {
+      where: { id: string };
+    }) => Promise<PlatformSettings | null>;
+    create: (args: { data: { id: string } }) => Promise<PlatformSettings>;
+  };
+  commissionDistanceTier: {
+    findMany: (args: {
+      where: { isActive: boolean };
+      orderBy: { sortOrder: "asc" };
+    }) => Promise<CommissionDistanceTier[]>;
+  };
+}): Promise<{
   settings: PlatformSettings;
   tiers: CommissionDistanceTier[];
 }> {
@@ -101,7 +97,9 @@ export async function loadPlatformSettings(
     where: { id: "default" },
   });
   if (!settings) {
-    settings = await prisma.platformSettings.create({ data: { id: "default" } });
+    settings = await prisma.platformSettings.create({
+      data: { id: "default" },
+    });
   }
 
   const tiers = await prisma.commissionDistanceTier.findMany({

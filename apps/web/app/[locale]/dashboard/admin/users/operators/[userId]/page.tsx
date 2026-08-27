@@ -18,7 +18,11 @@ export default async function OperatorProfilePage({
       <DashboardHeader
         breadcrumbs={[
           { label: "Admin", tKey: "overview.breadcrumb.admin" },
-          { label: "Operators", tKey: "nav.operators", href: "/dashboard/admin/users/operators" },
+          {
+            label: "Operators",
+            tKey: "nav.operators",
+            href: "/dashboard/admin/users/operators",
+          },
           { label: "Profile", tKey: "overview.breadcrumb.profile" },
         ]}
       />

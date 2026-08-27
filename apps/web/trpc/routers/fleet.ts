@@ -13,22 +13,19 @@ export const fleetRouter = createTRPCRouter({
     return ctx.prisma.busType.findMany({
       where: {
         isActive: true,
-        OR: [
-          { companyId: null },
-          { companyId: ctx.companyId },
-        ],
+        OR: [{ companyId: null }, { companyId: ctx.companyId }],
       },
     });
   }),
 
-   getPermissions: operatorCompanyProcedure.query(({ ctx }) => {
-     return {
-       canManageFleet:
-         operatorHasPermission(ctx, "fleet:create") ||
-         operatorHasPermission(ctx, "fleet:update") ||
-         operatorHasPermission(ctx, "fleet:delete"),
-     };
-   }),
+  getPermissions: operatorCompanyProcedure.query(({ ctx }) => {
+    return {
+      canManageFleet:
+        operatorHasPermission(ctx, "fleet:create") ||
+        operatorHasPermission(ctx, "fleet:update") ||
+        operatorHasPermission(ctx, "fleet:delete"),
+    };
+  }),
 
   // Platform defaults + calling company's custom layouts
   getLayoutTemplates: operatorCompanyProcedure.query(async ({ ctx }) => {
@@ -143,7 +140,8 @@ export const fleetRouter = createTRPCRouter({
       if (existing) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: "This registration plate is already registered to a vehicle in the system. If this is an error, please contact support.",
+          message:
+            "This registration plate is already registered to a vehicle in the system. If this is an error, please contact support.",
         });
       }
 
@@ -252,7 +250,8 @@ export const fleetRouter = createTRPCRouter({
           if (activeTrip) {
             throw new TRPCError({
               code: "BAD_REQUEST",
-              message: "Cannot retire a vehicle that is assigned to an active trip.",
+              message:
+                "Cannot retire a vehicle that is assigned to an active trip.",
             });
           }
         }
@@ -383,7 +382,10 @@ export const fleetRouter = createTRPCRouter({
         }
 
         const futureTrips = await tx.trip.findMany({
-          where: { busId: input.busId, status: { in: ["SCHEDULED", "BOARDING", "DELAYED"] } },
+          where: {
+            busId: input.busId,
+            status: { in: ["SCHEDULED", "BOARDING", "DELAYED"] },
+          },
           select: { id: true },
         });
         const futureTripIds = futureTrips.map((t) => t.id);
@@ -503,10 +505,7 @@ export const fleetRouter = createTRPCRouter({
         where: {
           id: input.busTypeId,
           isActive: true,
-          OR: [
-            { companyId: null },
-            { companyId: ctx.companyId },
-          ],
+          OR: [{ companyId: null }, { companyId: ctx.companyId }],
         },
       });
       if (!busType) {
@@ -553,7 +552,11 @@ export const fleetRouter = createTRPCRouter({
       // deletion even after being retired.
       return ctx.prisma.$transaction(async (tx) => {
         const busCount = await tx.bus.count({
-          where: { layoutTemplateId: input.id, companyId: ctx.companyId, deletedAt: null },
+          where: {
+            layoutTemplateId: input.id,
+            companyId: ctx.companyId,
+            deletedAt: null,
+          },
         });
         if (busCount > 0) {
           throw new TRPCError({
@@ -583,10 +586,7 @@ export const fleetRouter = createTRPCRouter({
       const existing = await ctx.prisma.busType.findFirst({
         where: {
           name: input.name,
-          OR: [
-            { companyId: null },
-            { companyId: ctx.companyId },
-          ],
+          OR: [{ companyId: null }, { companyId: ctx.companyId }],
         },
       });
       if (existing) {
@@ -626,7 +626,11 @@ export const fleetRouter = createTRPCRouter({
         }
 
         const busCount = await tx.bus.count({
-          where: { busTypeId: input.id, companyId: ctx.companyId, deletedAt: null },
+          where: {
+            busTypeId: input.id,
+            companyId: ctx.companyId,
+            deletedAt: null,
+          },
         });
         if (busCount > 0) {
           throw new TRPCError({

@@ -72,8 +72,11 @@ export interface PaymentProviderAdapter {
   initialize(input: InitializePaymentInput): Promise<InitializePaymentResult>;
   verify(reference: string): Promise<VerifyPaymentResult>;
   refund(input: RefundInput): Promise<RefundResult>;
-  createTransferRecipient(input: CreateTransferRecipientInput): Promise<CreateTransferRecipientResult>;
-  initiateTransfer(input: InitiateTransferInput): Promise<InitiateTransferResult>;
+  createTransferRecipient(
+    input: CreateTransferRecipientInput,
+  ): Promise<CreateTransferRecipientResult>;
+  initiateTransfer(
+    input: InitiateTransferInput,
+  ): Promise<InitiateTransferResult>;
   parseWebhook(rawBody: string, signature: string | null): WebhookPayload;
 }
-

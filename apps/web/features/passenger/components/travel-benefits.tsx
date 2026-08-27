@@ -2,7 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { TrendingUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@moja/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@moja/ui/components/ui/card";
 
 export function TravelBenefits() {
   const t = useTranslations("passengerDashboard.wallet");
@@ -21,7 +26,9 @@ export function TravelBenefits() {
               1
             </div>
             <div>
-              <span className="font-semibold text-text-primary block">{t("instantBooking")}</span>
+              <span className="font-semibold text-text-primary block">
+                {t("instantBooking")}
+              </span>
               <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
                 {t("instantBookingDesc")}
               </p>
@@ -33,7 +40,9 @@ export function TravelBenefits() {
               2
             </div>
             <div>
-              <span className="font-semibold text-text-primary block">{t("oneClickRefunds")}</span>
+              <span className="font-semibold text-text-primary block">
+                {t("oneClickRefunds")}
+              </span>
               <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
                 {t("oneClickRefundsDesc")}
               </p>

@@ -16,7 +16,7 @@ export default async function AdminTravelersPage() {
       limit: 20,
       offset: 0,
       role: "TRAVELER",
-    })
+    }),
   );
 
   return (
@@ -29,7 +29,9 @@ export default async function AdminTravelersPage() {
           <span className="mx-1 text-text-muted/40">/</span>
           <span>{t("breadcrumbUsers")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">{t("breadcrumbTravelers")}</span>
+          <span className="text-text-primary font-medium">
+            {t("breadcrumbTravelers")}
+          </span>
         </nav>
       </header>
       <div className="flex-1 overflow-y-auto p-6 md:p-8">

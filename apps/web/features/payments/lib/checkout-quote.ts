@@ -70,9 +70,7 @@ export function signCheckoutQuote(
     exp: input.exp ?? Date.now() + QUOTE_TTL_MS,
   };
   const body = b64url(Buffer.from(JSON.stringify(payload), "utf8"));
-  const sig = b64url(
-    createHmac("sha256", quoteSecret()).update(body).digest(),
-  );
+  const sig = b64url(createHmac("sha256", quoteSecret()).update(body).digest());
   return `${body}.${sig}`;
 }
 
@@ -81,7 +79,8 @@ export function verifyCheckoutQuote(quoteId: string): CheckoutQuotePayload {
   if (parts.length !== 2 || !parts[0] || !parts[1]) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Invalid or missing checkout quote. Refresh pricing and try again.",
+      message:
+        "Invalid or missing checkout quote. Refresh pricing and try again.",
     });
   }
   const [body, sig] = parts;
@@ -92,26 +91,28 @@ export function verifyCheckoutQuote(quoteId: string): CheckoutQuotePayload {
   } catch {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Invalid or missing checkout quote. Refresh pricing and try again.",
+      message:
+        "Invalid or missing checkout quote. Refresh pricing and try again.",
     });
   }
-  if (
-    actual.length !== expected.length ||
-    !timingSafeEqual(actual, expected)
-  ) {
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Invalid or missing checkout quote. Refresh pricing and try again.",
+      message:
+        "Invalid or missing checkout quote. Refresh pricing and try again.",
     });
   }
 
   let payload: CheckoutQuotePayload;
   try {
-    payload = JSON.parse(fromB64url(body).toString("utf8")) as CheckoutQuotePayload;
+    payload = JSON.parse(
+      fromB64url(body).toString("utf8"),
+    ) as CheckoutQuotePayload;
   } catch {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Invalid or missing checkout quote. Refresh pricing and try again.",
+      message:
+        "Invalid or missing checkout quote. Refresh pricing and try again.",
     });
   }
 

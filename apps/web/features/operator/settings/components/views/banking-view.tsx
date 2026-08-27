@@ -10,11 +10,37 @@ import { ActionDrawer } from "@moja/ui/components/ui/action-drawer";
 import { Field, FieldLabel, FieldError } from "@moja/ui/components/ui/field";
 import { Input } from "@moja/ui/components/ui/input";
 import { Button } from "@moja/ui/components/ui/button";
-import { Combobox, ComboboxInput, ComboboxContent, ComboboxList, ComboboxItem } from "@moja/ui/components/ui/combobox";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@moja/ui/components/ui/alert-dialog";
-import { Landmark, ShieldCheck, Clock, Trash2, Plus, AlertTriangle, Pencil } from "lucide-react";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+} from "@moja/ui/components/ui/combobox";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@moja/ui/components/ui/alert-dialog";
+import {
+  Landmark,
+  ShieldCheck,
+  Clock,
+  Trash2,
+  Plus,
+  AlertTriangle,
+  Pencil,
+} from "lucide-react";
 import { useState } from "react";
-import { useBankAccounts, useDeleteBankAccount } from "../../api/use-bank-accounts";
+import {
+  useBankAccounts,
+  useDeleteBankAccount,
+} from "../../api/use-bank-accounts";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { bankStepSchema, type BankStepInput } from "../../schemas";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
@@ -36,7 +62,7 @@ export function BankingView() {
   const deleteBankMutation = useDeleteBankAccount();
 
   const { data: paystackBanks, isLoading: isLoadingBanks } = useQuery(
-    trpc.payments.listBanks.queryOptions({})
+    trpc.payments.listBanks.queryOptions({}),
   );
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -44,7 +70,8 @@ export function BankingView() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingVerifiedWarning, setEditingVerifiedWarning] = useState(false);
-  const [pendingSubmitData, setPendingSubmitData] = useState<BankFormValues | null>(null);
+  const [pendingSubmitData, setPendingSubmitData] =
+    useState<BankFormValues | null>(null);
 
   const form = useForm<BankFormValues>({
     resolver: zodResolver(bankStepSchema),
@@ -63,28 +90,32 @@ export function BankingView() {
     trpc.operator.addBankAccount.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
-        queryClient.invalidateQueries(trpc.operator.listBankAccounts.queryFilter());
+        queryClient.invalidateQueries(
+          trpc.operator.listBankAccounts.queryFilter(),
+        );
         toast.success(t("toast.added"));
         handleCloseDrawer();
       },
       onError: (err) => {
         toast.error(err.message || t("toast.addFailed"));
-      }
-    })
+      },
+    }),
   );
 
   const updateBankAccountMutation = useMutation(
     trpc.operator.updateBankAccount.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.operator.getSettings.queryFilter());
-        queryClient.invalidateQueries(trpc.operator.listBankAccounts.queryFilter());
+        queryClient.invalidateQueries(
+          trpc.operator.listBankAccounts.queryFilter(),
+        );
         toast.success(t("toast.updated"));
         handleCloseDrawer();
       },
       onError: (err) => {
         toast.error(err.message || t("toast.updateFailed"));
-      }
-    })
+      },
+    }),
   );
 
   const handleOpenAdd = () => {
@@ -163,9 +194,12 @@ export function BankingView() {
 
   const confirmDelete = () => {
     if (deletingId) {
-      deleteBankMutation.mutate({ bankAccountId: deletingId }, {
-        onSettled: () => setDeletingId(null)
-      });
+      deleteBankMutation.mutate(
+        { bankAccountId: deletingId },
+        {
+          onSettled: () => setDeletingId(null),
+        },
+      );
     }
   };
 
@@ -174,9 +208,7 @@ export function BankingView() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h3 className="text-lg font-medium">{t("title")}</h3>
-          <p className="text-sm text-muted-foreground">
-            {t("description")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
         {canManageBanking && (
           <Button onClick={handleOpenAdd} className="w-full sm:w-auto">
@@ -187,7 +219,10 @@ export function BankingView() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {bankAccounts?.map((account) => (
-          <div key={account.id} className="p-5 rounded-lg border bg-card shadow-sm space-y-4 relative group">
+          <div
+            key={account.id}
+            className="p-5 rounded-lg border bg-card shadow-sm space-y-4 relative group"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-semibold text-lg">{account.bankName}</p>
@@ -197,33 +232,43 @@ export function BankingView() {
               </div>
               <div className="flex flex-col items-end gap-2">
                 {account.isVerified ? (
-                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-green-500/10 text-green-600 border-green-200"
+                  >
                     <ShieldCheck className="w-3 h-3 mr-1" /> {t("verified")}
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-amber-500/10 text-amber-600 border-amber-200"
+                  >
                     <Clock className="w-3 h-3 mr-1" /> {t("pending")}
                   </Badge>
                 )}
                 {account.isDefault && (
-                  <Badge variant="secondary" className="text-[10px]">{t("default")}</Badge>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {t("default")}
+                  </Badge>
                 )}
               </div>
             </div>
-            
+
             <div className="pt-4 border-t grid grid-cols-2 text-sm gap-2">
               <div className="text-muted-foreground">{t("accountName")}</div>
-              <div className="font-medium truncate" title={account.accountName || ""}>
+              <div
+                className="font-medium truncate"
+                title={account.accountName || ""}
+              >
                 {account.accountName}
               </div>
             </div>
 
-            {(account as any).verificationPayload?.accountNameMatched === false && (
+            {(account as any).verificationPayload?.accountNameMatched ===
+              false && (
               <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
                 <AlertTriangle className="size-3.5 shrink-0" />
-                <span>
-                  {t("nameMismatchWarning")}
-                </span>
+                <span>{t("nameMismatchWarning")}</span>
               </div>
             )}
 
@@ -257,7 +302,9 @@ export function BankingView() {
           <div className="col-span-full py-12 text-center border-2 border-dashed rounded-lg border-muted">
             <Landmark className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
             <h4 className="font-medium text-base mb-1">{t("noAccounts")}</h4>
-            <p className="text-sm text-muted-foreground mb-4">{t("noAccountsDesc")}</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t("noAccountsDesc")}
+            </p>
             <Button onClick={handleOpenAdd} variant="outline">
               <Plus className="w-4 h-4 mr-2" /> {t("addAccount")}
             </Button>
@@ -272,16 +319,33 @@ export function BankingView() {
         description={t("manageAccountsDesc")}
         footer={
           <div className="flex flex-col-reverse sm:flex-row w-full justify-end gap-2 sm:gap-3">
-            <Button variant="outline" onClick={handleCloseDrawer} className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={handleCloseDrawer}
+              className="w-full sm:w-auto"
+            >
               {t("cancel")}
             </Button>
-            <Button onClick={form.handleSubmit(onSubmit)} disabled={addBankAccountMutation.isPending || updateBankAccountMutation.isPending} className="w-full sm:w-auto">
-              {(addBankAccountMutation.isPending || updateBankAccountMutation.isPending) ? t("saving") : t("saveChanges")}
+            <Button
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={
+                addBankAccountMutation.isPending ||
+                updateBankAccountMutation.isPending
+              }
+              className="w-full sm:w-auto"
+            >
+              {addBankAccountMutation.isPending ||
+              updateBankAccountMutation.isPending
+                ? t("saving")
+                : t("saveChanges")}
             </Button>
           </div>
         }
       >
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-4 py-2 pb-20">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4 px-4 py-2 pb-20"
+        >
           <Field>
             <FieldLabel>{t("bankName")} *</FieldLabel>
             <Combobox
@@ -289,13 +353,19 @@ export function BankingView() {
               onValueChange={(val) => {
                 if (val) {
                   form.setValue("bankCode", val);
-                  const matched = paystackBanks?.find((p: any) => p.code === val);
+                  const matched = paystackBanks?.find(
+                    (p: any) => p.code === val,
+                  );
                   form.setValue("bankName", matched?.name ?? "");
                   form.setValue("bankType", matched?.type ?? "bceao");
                 }
               }}
             >
-              <ComboboxInput placeholder={isLoadingBanks ? "Loading banks..." : t("bankNamePlaceholder")} />
+              <ComboboxInput
+                placeholder={
+                  isLoadingBanks ? "Loading banks..." : t("bankNamePlaceholder")
+                }
+              />
               <ComboboxContent>
                 <ComboboxList>
                   {paystackBanks?.map((provider: any) => (
@@ -357,7 +427,10 @@ export function BankingView() {
       </ActionDrawer>
 
       {/* Delete Warning */}
-      <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
+      <AlertDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 mb-4">
@@ -378,7 +451,10 @@ export function BankingView() {
       </AlertDialog>
 
       {/* Edit Verified Warning */}
-      <AlertDialog open={editingVerifiedWarning} onOpenChange={setEditingVerifiedWarning}>
+      <AlertDialog
+        open={editingVerifiedWarning}
+        onOpenChange={setEditingVerifiedWarning}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-amber-100 mb-4">
@@ -390,12 +466,19 @@ export function BankingView() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setEditingVerifiedWarning(false); setPendingSubmitData(null); }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setEditingVerifiedWarning(false);
+                setPendingSubmitData(null);
+              }}
+            >
               {t("dialog.cancel")}
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               variant="default"
-              onClick={() => pendingSubmitData && executeSubmit(pendingSubmitData)}
+              onClick={() =>
+                pendingSubmitData && executeSubmit(pendingSubmitData)
+              }
             >
               {t("dialog.editWarningConfirm")}
             </AlertDialogAction>

@@ -1,10 +1,22 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { companyStepSchema, profileStepSchema, bankStepSchema, documentSchema } from "@moja/schemas";
+import {
+  companyStepSchema,
+  profileStepSchema,
+  bankStepSchema,
+  documentSchema,
+} from "@moja/schemas";
 import { operatorCompanyProcedure } from "../../init";
-import { requirePermission, requireAnyPermission, requireOwner } from "@/lib/permissions/authorize";
+import {
+  requirePermission,
+  requireAnyPermission,
+  requireOwner,
+} from "@/lib/permissions/authorize";
 import { deleteStorageObject } from "@/lib/storage";
-import { maskBankAccountForClient, prepareBankAccountStorage } from "@/lib/bank-account";
+import {
+  maskBankAccountForClient,
+  prepareBankAccountStorage,
+} from "@/lib/bank-account";
 import { logBankAccess } from "@/lib/bank-access";
 import { paystackRegisterRecipient } from "@/features/payments/providers/paystack-client";
 
@@ -58,7 +70,10 @@ export const operatorSettingsProcedures = {
       });
     }
 
-    if (operator.company.bankAccounts && operator.company.bankAccounts.length > 0) {
+    if (
+      operator.company.bankAccounts &&
+      operator.company.bankAccounts.length > 0
+    ) {
       await logBankAccess(ctx.prisma, {
         companyId: operator.companyId,
         userId: ctx.user.id,
@@ -70,7 +85,9 @@ export const operatorSettingsProcedures = {
       company: {
         ...operator.company,
         bankAccounts: operator.company.bankAccounts
-          ? operator.company.bankAccounts.map((b: any) => maskBankAccountForClient(b))
+          ? operator.company.bankAccounts.map((b: any) =>
+              maskBankAccountForClient(b),
+            )
           : [],
       },
       operator,
@@ -98,17 +115,30 @@ export const operatorSettingsProcedures = {
         ...(fields.email !== undefined && { email: fields.email }),
         ...(fields.phone !== undefined && { phone: fields.phone }),
         ...(fields.website !== undefined && { website: fields.website }),
-        ...(fields.description !== undefined && { description: fields.description }),
-        ...(fields.businessType !== undefined && { businessType: fields.businessType }),
-        ...(fields.registrationNumber !== undefined && { registrationNumber: fields.registrationNumber }),
+        ...(fields.description !== undefined && {
+          description: fields.description,
+        }),
+        ...(fields.businessType !== undefined && {
+          businessType: fields.businessType,
+        }),
+        ...(fields.registrationNumber !== undefined && {
+          registrationNumber: fields.registrationNumber,
+        }),
         ...(fields.taxId !== undefined && { taxId: fields.taxId }),
-        ...(fields.yearEstablished !== undefined && { yearEstablished: fields.yearEstablished }),
-        ...(fields.estimatedStaffSize !== undefined && { estimatedStaffSize: fields.estimatedStaffSize }),
+        ...(fields.yearEstablished !== undefined && {
+          yearEstablished: fields.yearEstablished,
+        }),
+        ...(fields.estimatedStaffSize !== undefined && {
+          estimatedStaffSize: fields.estimatedStaffSize,
+        }),
         ...(fields.logoUrl !== undefined && { logoUrl: fields.logoUrl }),
       };
 
       if (Object.keys(updateData).length === 0) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No fields to update." });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No fields to update.",
+        });
       }
 
       const updatedCompany = await ctx.prisma.company.update({
@@ -119,19 +149,25 @@ export const operatorSettingsProcedures = {
       return updatedCompany;
     }),
 
-   updateProfile: operatorCompanyProcedure
-     .input(profileStepSchema.partial())
-     .mutation(async ({ ctx, input }) => {
-       const operator = await ctx.prisma.operator.findFirst({
-         where: { userId: ctx.user.id, deletedAt: null },
-         orderBy: { joinedAt: "desc" },
-       });
-       if (!operator)
-         throw new TRPCError({ code: "NOT_FOUND", message: "Operator not found" });
-        
+  updateProfile: operatorCompanyProcedure
+    .input(profileStepSchema.partial())
+    .mutation(async ({ ctx, input }) => {
+      const operator = await ctx.prisma.operator.findFirst({
+        where: { userId: ctx.user.id, deletedAt: null },
+        orderBy: { joinedAt: "desc" },
+      });
+      if (!operator)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Operator not found",
+        });
+
       const parsed = profileStepSchema.partial().safeParse(input);
       if (!parsed.success) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Validation failed" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Validation failed",
+        });
       }
 
       const { data: profileFields } = parsed;
@@ -146,14 +182,30 @@ export const operatorSettingsProcedures = {
       const updatedOperator = await ctx.prisma.operator.update({
         where: { id: operator.id },
         data: {
-          ...(profileFields.personalPhone !== undefined && { personalPhone: profileFields.personalPhone }),
-          ...(profileFields.jobTitle !== undefined && { jobTitle: profileFields.jobTitle }),
-          ...(profileFields.dateOfBirth !== undefined && { dateOfBirth: profileFields.dateOfBirth }),
-          ...(profileFields.nationalIdNumber !== undefined && { nationalIdNumber: profileFields.nationalIdNumber }),
-          ...(profileFields.nationalIdType !== undefined && { nationalIdType: profileFields.nationalIdType }),
-          ...(profileFields.profilePhotoUrl !== undefined && { profilePhotoUrl: profileFields.profilePhotoUrl }),
-          ...(profileFields.emergencyContactName !== undefined && { emergencyContactName: profileFields.emergencyContactName }),
-          ...(profileFields.emergencyContactPhone !== undefined && { emergencyContactPhone: profileFields.emergencyContactPhone }),
+          ...(profileFields.personalPhone !== undefined && {
+            personalPhone: profileFields.personalPhone,
+          }),
+          ...(profileFields.jobTitle !== undefined && {
+            jobTitle: profileFields.jobTitle,
+          }),
+          ...(profileFields.dateOfBirth !== undefined && {
+            dateOfBirth: profileFields.dateOfBirth,
+          }),
+          ...(profileFields.nationalIdNumber !== undefined && {
+            nationalIdNumber: profileFields.nationalIdNumber,
+          }),
+          ...(profileFields.nationalIdType !== undefined && {
+            nationalIdType: profileFields.nationalIdType,
+          }),
+          ...(profileFields.profilePhotoUrl !== undefined && {
+            profilePhotoUrl: profileFields.profilePhotoUrl,
+          }),
+          ...(profileFields.emergencyContactName !== undefined && {
+            emergencyContactName: profileFields.emergencyContactName,
+          }),
+          ...(profileFields.emergencyContactPhone !== undefined && {
+            emergencyContactPhone: profileFields.emergencyContactPhone,
+          }),
         },
       });
       return updatedOperator;
@@ -208,7 +260,10 @@ export const operatorSettingsProcedures = {
       });
 
       if (!existingBank) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Bank account not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bank account not found",
+        });
       }
 
       const updatedBank = await ctx.prisma.bankAccount.update({
@@ -224,10 +279,17 @@ export const operatorSettingsProcedures = {
           verificationPayload: bankPayload.verificationPayload,
           lastVerificationAt: bankPayload.lastVerificationAt,
           verifiedAt: bankPayload.verifiedAt,
-          paystackTransferRecipientCode: bankPayload.paystackTransferRecipientCode,
-          ...(bankPayload.bankCode !== undefined && { bankCode: bankPayload.bankCode }),
-          ...(bankPayload.branch !== undefined && { branch: bankPayload.branch }),
-          ...(bankPayload.swiftCode !== undefined && { swiftCode: bankPayload.swiftCode }),
+          paystackTransferRecipientCode:
+            bankPayload.paystackTransferRecipientCode,
+          ...(bankPayload.bankCode !== undefined && {
+            bankCode: bankPayload.bankCode,
+          }),
+          ...(bankPayload.branch !== undefined && {
+            branch: bankPayload.branch,
+          }),
+          ...(bankPayload.swiftCode !== undefined && {
+            swiftCode: bankPayload.swiftCode,
+          }),
           ...(bankPayload.iban !== undefined && { iban: bankPayload.iban }),
         },
       });
@@ -240,34 +302,33 @@ export const operatorSettingsProcedures = {
         });
       }
 
-return maskBankAccountForClient(updatedBank);
+      return maskBankAccountForClient(updatedBank);
     }),
 
-  listBankAccounts: operatorCompanyProcedure
-    .query(async ({ ctx }) => {
-      requireAnyPermission(ctx, ["company:view", "financials:view"]);
-      const bankAccounts = await ctx.prisma.bankAccount.findMany({
-        where: { companyId: ctx.companyId },
-        orderBy: { createdAt: "desc" },
-      });
-      return bankAccounts.map((b) => maskBankAccountForClient(b));
-    }),
+  listBankAccounts: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requireAnyPermission(ctx, ["company:view", "financials:view"]);
+    const bankAccounts = await ctx.prisma.bankAccount.findMany({
+      where: { companyId: ctx.companyId },
+      orderBy: { createdAt: "desc" },
+    });
+    return bankAccounts.map((b) => maskBankAccountForClient(b));
+  }),
 
-addBankAccount: operatorCompanyProcedure
-      .input(
-        z.object({
-          bankName: z.string().min(1),
-          bankCode: z.string().min(1),
-          bankType: z.string().nullable().optional(),
-          accountNumber: z.string().min(1),
-          accountName: z.string().min(1),
-          branch: z.string().nullable().optional(),
-          swiftCode: z.string().nullable().optional(),
-          iban: z.string().nullable().optional(),
-        })
-      )
-      .mutation(async ({ ctx, input }) => {
-        requirePermission(ctx, "company:banking:update");
+  addBankAccount: operatorCompanyProcedure
+    .input(
+      z.object({
+        bankName: z.string().min(1),
+        bankCode: z.string().min(1),
+        bankType: z.string().nullable().optional(),
+        accountNumber: z.string().min(1),
+        accountName: z.string().min(1),
+        branch: z.string().nullable().optional(),
+        swiftCode: z.string().nullable().optional(),
+        iban: z.string().nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "company:banking:update");
       // Use the operator-provided name. Paystack validates the account number
       // when the recipient is registered — wrong details fail here immediately.
       const resolvedName = input.accountName || "Operator Account";
@@ -320,10 +381,10 @@ addBankAccount: operatorCompanyProcedure
       return maskBankAccountForClient(newAccount);
     }),
 
-   deleteBankAccount: operatorCompanyProcedure
-     .input(z.object({ bankAccountId: z.string() }))
-     .mutation(async ({ ctx, input }) => {
-       requireOwner(ctx);
+  deleteBankAccount: operatorCompanyProcedure
+    .input(z.object({ bankAccountId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      requireOwner(ctx);
       const bankAccount = await ctx.prisma.bankAccount.findFirst({
         where: { id: input.bankAccountId, companyId: ctx.companyId },
       });

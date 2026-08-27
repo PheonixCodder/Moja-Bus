@@ -43,7 +43,11 @@ function campaign(partial: Partial<EvalCampaign>): EvalCampaign {
 describe("feeDiscountForCampaign", () => {
   it("returns 0 for TICKET_ONLY", () => {
     assert.equal(
-      feeDiscountForCampaign(campaign({ applyTarget: "TICKET_ONLY" }), 500, 200),
+      feeDiscountForCampaign(
+        campaign({ applyTarget: "TICKET_ONLY" }),
+        500,
+        200,
+      ),
       0,
     );
   });

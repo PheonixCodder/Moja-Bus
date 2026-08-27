@@ -45,10 +45,7 @@ import {
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RouterOutputs } from "@/trpc/client";
-import {
-  SortableWaypoint,
-  type WaypointDraft,
-} from "./sortable-waypoint";
+import { SortableWaypoint, type WaypointDraft } from "./sortable-waypoint";
 
 type Terminal = RouterOutputs["terminals"]["list"][number];
 type RouteType = RouterOutputs["routes"]["list"][number];
@@ -112,12 +109,12 @@ export function RouteFormDrawer({
   const destTerminal = terminals.find((t) => t.id === destId);
   // ID-based (never name-based): same cityRelation id => urban. Falls back to
   // the legacy free-text city only when both lack a city relation entirely.
-  const originCityId = originTerminal?.cityRelation?.id ?? originTerminal?.city ?? null;
-  const destCityId = destTerminal?.cityRelation?.id ?? destTerminal?.city ?? null;
+  const originCityId =
+    originTerminal?.cityRelation?.id ?? originTerminal?.city ?? null;
+  const destCityId =
+    destTerminal?.cityRelation?.id ?? destTerminal?.city ?? null;
   const isUrbanRoute =
-    Boolean(originCityId) &&
-    Boolean(destCityId) &&
-    originCityId === destCityId;
+    Boolean(originCityId) && Boolean(destCityId) && originCityId === destCityId;
 
   // The toggle default always follows terminal geography. When the operator has
   // not manually chosen, the effective value re-syncs to the derived one.
@@ -279,13 +276,23 @@ export function RouteFormDrawer({
 
     const originCity = originTerminal?.cityRelation?.id ?? originTerminal?.city;
     const destCity = destTerminal?.cityRelation?.id ?? destTerminal?.city;
-    if (effectiveServiceType === "URBAN" && originCity && destCity && originCity !== destCity) {
+    if (
+      effectiveServiceType === "URBAN" &&
+      originCity &&
+      destCity &&
+      originCity !== destCity
+    ) {
       toast.error(
         "An urban route requires all stops in the same city. Choose Intercity or change a terminal.",
       );
       return;
     }
-    if (effectiveServiceType === "INTERCITY" && originCity && destCity && originCity === destCity) {
+    if (
+      effectiveServiceType === "INTERCITY" &&
+      originCity &&
+      destCity &&
+      originCity === destCity
+    ) {
       toast.error(
         "An intercity route must connect terminals in different cities. Choose Urban or change a terminal.",
       );
@@ -401,7 +408,9 @@ export function RouteFormDrawer({
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
             {/* Name */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">{t("form.routeName")} *</Label>
+              <Label className="text-xs font-semibold">
+                {t("form.routeName")} *
+              </Label>
               <Input
                 placeholder="e.g. Abidjan – Bouaké Express"
                 value={name}
@@ -436,7 +445,12 @@ export function RouteFormDrawer({
               </div>
               {strayWaypointInUrban && (
                 <p className="text-[11px] text-amber-700">
-                  {t("form.urbanCityDesc", { city: originTerminal?.cityRelation?.name ?? originTerminal?.city ?? "" })}
+                  {t("form.urbanCityDesc", {
+                    city:
+                      originTerminal?.cityRelation?.name ??
+                      originTerminal?.city ??
+                      "",
+                  })}
                 </p>
               )}
               {intercitySameCity && (
@@ -448,7 +462,9 @@ export function RouteFormDrawer({
 
             {/* Origin */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">{t("form.originTerminal")} *</Label>
+              <Label className="text-xs font-semibold">
+                {t("form.originTerminal")} *
+              </Label>
               <div className="w-full">
                 <Combobox
                   items={terminals
@@ -481,7 +497,10 @@ export function RouteFormDrawer({
                         .filter((t) => t.id !== destId)
                         .map((t) => (
                           <ComboboxItem key={t.id} value={t.id}>
-                            {t.name} — {t.cityRelation?.name ?? t.city}{t.municipality?.name ? ` (${t.municipality.name})` : ""}
+                            {t.name} — {t.cityRelation?.name ?? t.city}
+                            {t.municipality?.name
+                              ? ` (${t.municipality.name})`
+                              : ""}
                           </ComboboxItem>
                         ))}
                     </ComboboxList>
@@ -527,7 +546,10 @@ export function RouteFormDrawer({
                         .filter((t) => t.id !== originId)
                         .map((t) => (
                           <ComboboxItem key={t.id} value={t.id}>
-                            {t.name} — {t.cityRelation?.name ?? t.city}{t.municipality?.name ? ` (${t.municipality.name})` : ""}
+                            {t.name} — {t.cityRelation?.name ?? t.city}
+                            {t.municipality?.name
+                              ? ` (${t.municipality.name})`
+                              : ""}
                           </ComboboxItem>
                         ))}
                     </ComboboxList>
@@ -552,14 +574,15 @@ export function RouteFormDrawer({
                   className="text-sm"
                 />
               </div>
-
             </div>
 
             {/* Stop Sequence */}
             {(originId || destId) && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold">{t("form.stopSequence")}</Label>
+                  <Label className="text-xs font-semibold">
+                    {t("form.stopSequence")}
+                  </Label>
                 </div>
 
                 <div className="border border-border rounded-lg p-3.5 bg-slate-50/50 space-y-2">
@@ -592,48 +615,51 @@ export function RouteFormDrawer({
                       {addingStop ? (
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
-                              <Combobox
-                                items={intermediateOptions.map((t) => ({
-                                  value: t.id,
-                                  label: `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`,
-                                }))}
-                                value={newStopId}
-                                onValueChange={(val) => setNewStopId(val || "")}
-                              >
-                                <ComboboxInput
-                                  placeholder={t("form.selectTerminal")}
-                                  className="h-8 text-xs w-full"
-                                  value={
-                                    newStopId
-                                      ? (() => {
-                                          const t = intermediateOptions.find(
-                                            (x) => x.id === newStopId,
-                                          );
-                                          return t
-                                            ? `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`
-                                            : "";
-                                        })()
-                                      : ""
-                                  }
-                                />
-                                <ComboboxContent>
-                                  <ComboboxEmpty>
-                                    {t("form.noTerminalFound")}
-                                  </ComboboxEmpty>
-                                  <ComboboxList>
-                                    {intermediateOptions.map((t) => (
-                                      <ComboboxItem
-                                        key={t.id}
-                                        value={t.id}
-                                        className="text-xs"
-                                      >
-                                        {t.name} —{" "}
-                                        {t.cityRelation?.name ?? t.city}{t.municipality?.name ? ` (${t.municipality.name})` : ""}
-                                      </ComboboxItem>
-                                    ))}
-                                  </ComboboxList>
-                                </ComboboxContent>
-                              </Combobox>
+                            <Combobox
+                              items={intermediateOptions.map((t) => ({
+                                value: t.id,
+                                label: `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`,
+                              }))}
+                              value={newStopId}
+                              onValueChange={(val) => setNewStopId(val || "")}
+                            >
+                              <ComboboxInput
+                                placeholder={t("form.selectTerminal")}
+                                className="h-8 text-xs w-full"
+                                value={
+                                  newStopId
+                                    ? (() => {
+                                        const t = intermediateOptions.find(
+                                          (x) => x.id === newStopId,
+                                        );
+                                        return t
+                                          ? `${t.name} — ${t.cityRelation?.name ?? t.city}${t.municipality?.name ? ` (${t.municipality.name})` : ""}`
+                                          : "";
+                                      })()
+                                    : ""
+                                }
+                              />
+                              <ComboboxContent>
+                                <ComboboxEmpty>
+                                  {t("form.noTerminalFound")}
+                                </ComboboxEmpty>
+                                <ComboboxList>
+                                  {intermediateOptions.map((t) => (
+                                    <ComboboxItem
+                                      key={t.id}
+                                      value={t.id}
+                                      className="text-xs"
+                                    >
+                                      {t.name} —{" "}
+                                      {t.cityRelation?.name ?? t.city}
+                                      {t.municipality?.name
+                                        ? ` (${t.municipality.name})`
+                                        : ""}
+                                    </ComboboxItem>
+                                  ))}
+                                </ComboboxList>
+                              </ComboboxContent>
+                            </Combobox>
                           </div>
                           <Button
                             size="sm"

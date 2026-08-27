@@ -46,12 +46,8 @@ export function AdminOfflineRefundsView() {
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-slate-500">
-          {t("description")}
-        </p>
+        <h1 className="text-lg font-semibold text-slate-900">{t("title")}</h1>
+        <p className="text-sm text-slate-500">{t("description")}</p>
       </div>
       <Card className="divide-y overflow-hidden">
         {listQuery.isLoading ? (

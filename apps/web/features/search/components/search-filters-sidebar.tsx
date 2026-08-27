@@ -11,7 +11,12 @@ export type TimeFilterId = "MORNING" | "AFTERNOON" | "EVENING" | "LATE_NIGHT";
 export type SeatClassFilter = "ECONOMY" | "STANDARD" | "VIP";
 
 const AMENITY_IDS = ["AC", "WIFI", "TOILET", "LUGGAGE"] as const;
-const TIME_IDS: TimeFilterId[] = ["MORNING", "AFTERNOON", "EVENING", "LATE_NIGHT"];
+const TIME_IDS: TimeFilterId[] = [
+  "MORNING",
+  "AFTERNOON",
+  "EVENING",
+  "LATE_NIGHT",
+];
 const SEAT_CLASS_IDS: SeatClassFilter[] = ["ECONOMY", "STANDARD", "VIP"];
 
 export interface OperatorOption {
@@ -211,7 +216,9 @@ export const FiltersContent = memo(function FiltersContent({
 });
 
 /** Desktop sticky sidebar — hidden on mobile (<lg) */
-export const SearchFiltersSidebar = memo(function SearchFiltersSidebar(props: SearchFiltersSidebarProps) {
+export const SearchFiltersSidebar = memo(function SearchFiltersSidebar(
+  props: SearchFiltersSidebarProps,
+) {
   const { onOpenMobileFilters: _unused, ...filtersProps } = props;
 
   return (

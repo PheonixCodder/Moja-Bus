@@ -58,7 +58,9 @@ export default async function AdminStaffPage() {
         <nav className="flex items-center gap-1 text-xs text-text-muted">
           <span>{t("breadcrumbAdmin")}</span>
           <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">{t("breadcrumbStaff")}</span>
+          <span className="text-text-primary font-medium">
+            {t("breadcrumbStaff")}
+          </span>
         </nav>
       </header>
       <div className="flex-1 overflow-y-auto">

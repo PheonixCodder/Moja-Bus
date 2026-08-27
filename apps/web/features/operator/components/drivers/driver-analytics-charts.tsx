@@ -32,11 +32,14 @@ type Analytics = {
   };
   ratingTrend: Array<{ month: string; averageRating: number; reviews: number }>;
   distribution: Array<{ star: number; count: number }>;
-  recentAnomalies: Array<{ reason: string; speedKmh: number | null; recordedAt: Date }>;
+  recentAnomalies: Array<{
+    reason: string;
+    speedKmh: number | null;
+    recordedAt: Date;
+  }>;
 };
 
-const CARD_CLS =
-  "rounded-xl border bg-card p-4 space-y-2";
+const CARD_CLS = "rounded-xl border bg-card p-4 space-y-2";
 
 function ChartCard({
   icon: Icon,
@@ -135,11 +138,7 @@ export function DriverAnalyticsCharts({
                 startAngle={90}
                 endAngle={-270}
               >
-                <PolarAngleAxis
-                  type="number"
-                  domain={[0, 100]}
-                  tick={false}
-                />
+                <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
                 <RadialBar background dataKey="value" cornerRadius={12} />
               </RadialBarChart>
             </ResponsiveContainer>
@@ -147,19 +146,29 @@ export function DriverAnalyticsCharts({
               <span className="text-3xl font-black text-emerald-600">
                 {analytics.summary.safetyScore}
               </span>
-              <span className="text-[10px] font-semibold text-muted-foreground">/ 100</span>
+              <span className="text-[10px] font-semibold text-muted-foreground">
+                / 100
+              </span>
             </div>
           </div>
           <div className="space-y-1.5 text-xs">
             <div className="flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-rose-500" />
-              <span className="text-muted-foreground">{t("analytics.overspeed")}</span>
-              <span className="font-bold">{analytics.summary.recentOverspeed}</span>
+              <span className="text-muted-foreground">
+                {t("analytics.overspeed")}
+              </span>
+              <span className="font-bold">
+                {analytics.summary.recentOverspeed}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-amber-500" />
-              <span className="text-muted-foreground">{t("analytics.harshBraking")}</span>
-              <span className="font-bold">{analytics.summary.recentHarshBraking}</span>
+              <span className="text-muted-foreground">
+                {t("analytics.harshBraking")}
+              </span>
+              <span className="font-bold">
+                {analytics.summary.recentHarshBraking}
+              </span>
             </div>
           </div>
         </div>
@@ -170,7 +179,11 @@ export function DriverAnalyticsCharts({
         <div className="h-40">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={analytics.distribution}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e2e8f0"
+                vertical={false}
+              />
               <XAxis
                 dataKey="star"
                 tick={{ fontSize: 9 }}
@@ -179,9 +192,15 @@ export function DriverAnalyticsCharts({
               <YAxis allowDecimals={false} tick={{ fontSize: 9 }} />
               <Tooltip
                 contentStyle={{ fontSize: 11, borderRadius: 8 }}
-                formatter={((v: any) => [v, t("analytics.reviewsLabel")]) as any}
+                formatter={
+                  ((v: any) => [v, t("analytics.reviewsLabel")]) as any
+                }
               />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]} className="fill-primary" />
+              <Bar
+                dataKey="count"
+                radius={[4, 4, 0, 0]}
+                className="fill-primary"
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>

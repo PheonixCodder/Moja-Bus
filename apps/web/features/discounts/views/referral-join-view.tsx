@@ -8,9 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
-import {
-  storePendingReferralCode,
-} from "@/features/discounts/lib/pending-referral";
+import { storePendingReferralCode } from "@/features/discounts/lib/pending-referral";
 import { useTRPC } from "@/trpc/client";
 import { useTranslations } from "next-intl";
 
@@ -107,8 +105,8 @@ export function ReferralJoinView({ code }: Props) {
             {program.recurringCreditAmountXOF > 0 ? (
               <li>
                 {t("earnUpTo")}{" "}
-                {program.recurringCreditAmountXOF.toLocaleString()} XOF
-                (max {program.recurringMaxBookings}).
+                {program.recurringCreditAmountXOF.toLocaleString()} XOF (max{" "}
+                {program.recurringMaxBookings}).
               </li>
             ) : null}
           </ul>
@@ -132,9 +130,15 @@ export function ReferralJoinView({ code }: Props) {
                 })();
               }}
             >
-              {applyMutation.isPending ? "Applying…" : "Apply invite to my account"}
+              {applyMutation.isPending
+                ? "Applying…"
+                : "Apply invite to my account"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.push("/search")}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/search")}
+            >
               {t("browseTrips")}
             </Button>
           </div>
@@ -143,7 +147,11 @@ export function ReferralJoinView({ code }: Props) {
             <Button type="button" onClick={() => router.push(loginHref)}>
               {t("signInOrCreate")}
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.push("/search")}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/search")}
+            >
               {t("browseTripsFirst")}
             </Button>
           </div>

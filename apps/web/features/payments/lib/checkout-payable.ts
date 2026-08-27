@@ -26,7 +26,9 @@ export type CheckoutPayable = {
  * Wallet and zero-cash waive convenience fee. Payable is max(0, post-discount
  * subtotal − credits) when fee waived, else chargeAmountXOF (already nets credits).
  */
-export function resolveCheckoutPayable(input: CheckoutPayableInput): CheckoutPayable {
+export function resolveCheckoutPayable(
+  input: CheckoutPayableInput,
+): CheckoutPayable {
   const credit = Math.max(0, input.creditAppliedXOF);
   const postSub = Math.max(0, input.postDiscountSubtotalXOF);
   const waiveFee =

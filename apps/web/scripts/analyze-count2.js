@@ -33,10 +33,19 @@ function findJsTsFiles(dir, results) {
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (!entry.name.includes("node_modules") && !entry.name.includes(".next") && !entry.name.includes("dist") && !entry.name.includes("scratch") && !entry.name.includes("scripts")) {
+      if (
+        !entry.name.includes("node_modules") &&
+        !entry.name.includes(".next") &&
+        !entry.name.includes("dist") &&
+        !entry.name.includes("scratch") &&
+        !entry.name.includes("scripts")
+      ) {
         findJsTsFiles(fullPath, results);
       }
-    } else if (entry.isFile() && (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))) {
+    } else if (
+      entry.isFile() &&
+      (entry.name.endsWith(".tsx") || entry.name.endsWith(".ts"))
+    ) {
       results.push(fullPath);
     }
   }
@@ -116,7 +125,9 @@ const uniqueIssues = issues.filter((issue) => {
 });
 
 // Sort by file
-uniqueIssues.sort((a, b) => a.file.localeCompare(b.file) || a.lineNum - b.lineNum);
+uniqueIssues.sort(
+  (a, b) => a.file.localeCompare(b.file) || a.lineNum - b.lineNum,
+);
 
 console.log("=== ISSUES: {count} keys without count parameter ===");
 console.log("Total keys with {count}:", countKeys.length);
@@ -137,7 +148,13 @@ console.log("");
 for (const [file, group] of Object.entries(byFile)) {
   console.log("FILE: " + file);
   for (const issue of group) {
-    console.log("  Line " + issue.lineNum + ": t(\"" + issue.fullKey.split(".").slice(-1)[0] + "\")");
+    console.log(
+      "  Line " +
+        issue.lineNum +
+        ': t("' +
+        issue.fullKey.split(".").slice(-1)[0] +
+        '")',
+    );
     console.log("    Template: " + issue.template);
     console.log("    Code: " + issue.lineContent);
   }

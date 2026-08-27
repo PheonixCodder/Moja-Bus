@@ -1,16 +1,21 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "../init";
+import { createTRPCRouter, protectedProcedure } from "../init";
 import {
   createPresignedDownload,
   createPresignedUpload,
   StorageError,
 } from "@/lib/storage";
-import { getStoragePurpose, type StorageKeyContext, type StoragePurposeId } from "@/lib/storage/purposes";
-import { requirePermission, requireAnyPermission, type PermissionContext } from "@/lib/permissions/authorize";
+import {
+  getStoragePurpose,
+  type StorageKeyContext,
+  type StoragePurposeId,
+} from "@/lib/storage/purposes";
+import {
+  requirePermission,
+  requireAnyPermission,
+  type PermissionContext,
+} from "@/lib/permissions/authorize";
 
 type OperatorCtx = {
   prisma: { operator: { findFirst: (args: any) => Promise<any> } };
@@ -39,7 +44,12 @@ async function resolveOperator(ctx: OperatorCtx) {
 
 function operatorPermissionContext(
   ctx: { user: { id: string; role: string } },
-  operator: { role: string; permissions: unknown; status: string; companyId: string | null },
+  operator: {
+    role: string;
+    permissions: unknown;
+    status: string;
+    companyId: string | null;
+  },
 ): PermissionContext {
   return {
     user: { id: ctx.user.id, role: ctx.user.role },
@@ -80,10 +90,7 @@ export const storageRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const purpose = getStoragePurpose(input.purpose);
 
-      if (
-        purpose.iam === "admin" &&
-        ctx.user.role !== "ADMIN"
-      ) {
+      if (purpose.iam === "admin" && ctx.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin access required.",
@@ -95,10 +102,7 @@ export const storageRouter = createTRPCRouter({
       };
 
       if (purpose.iam === "operator") {
-        if (
-          ctx.user.role !== "OPERATOR" &&
-          ctx.user.role !== "ADMIN"
-        ) {
+        if (ctx.user.role !== "OPERATOR" && ctx.user.role !== "ADMIN") {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "Operator access required.",
@@ -164,50 +168,53 @@ export const storageRouter = createTRPCRouter({
         });
       }
 
-       if (purpose.id === "operator-document") {
-         const isAdmin = ctx.user.role === "ADMIN";
-         const caller = isAdmin ? undefined : await resolveOperator(ctx);
-         const callerCompanyId = caller?.companyId ?? undefined;
+      if (purpose.id === "operator-document") {
+        const isAdmin = ctx.user.role === "ADMIN";
+        const caller = isAdmin ? undefined : await resolveOperator(ctx);
+        const callerCompanyId = caller?.companyId ?? undefined;
 
-         const doc = await ctx.prisma.companyDocument.findFirst({
-           where: {
-             ...(input.documentId ? { id: input.documentId } : {}),
-             ...(input.objectKey ? { objectKey: input.objectKey } : {}),
-             // Non-admin operators may only ever reach documents belonging to
-             // their own company (prevents cross-company IDOR via documentId).
-             ...(callerCompanyId ? { companyId: callerCompanyId } : {}),
-           },
-         });
-         if (!doc) {
-           throw new TRPCError({ code: "NOT_FOUND", message: "Document not found." });
-         }
+        const doc = await ctx.prisma.companyDocument.findFirst({
+          where: {
+            ...(input.documentId ? { id: input.documentId } : {}),
+            ...(input.objectKey ? { objectKey: input.objectKey } : {}),
+            // Non-admin operators may only ever reach documents belonging to
+            // their own company (prevents cross-company IDOR via documentId).
+            ...(callerCompanyId ? { companyId: callerCompanyId } : {}),
+          },
+        });
+        if (!doc) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Document not found.",
+          });
+        }
 
-         requireAnyPermission(
-           isAdmin
-             ? {
-                 user: { id: ctx.user.id, role: ctx.user.role },
-                 operator: {
-                   role: "OWNER",
-                   permissions: [],
-                   status: "ACTIVE",
-                   companyId: doc.companyId,
-                 },
-                 companyId: doc.companyId,
-               }
-             : operatorPermissionContext(ctx, caller!),
-           ["company:compliance:update", "company:view", "financials:view"],
-         );
+        requireAnyPermission(
+          isAdmin
+            ? {
+                user: { id: ctx.user.id, role: ctx.user.role },
+                operator: {
+                  role: "OWNER",
+                  permissions: [],
+                  status: "ACTIVE",
+                  companyId: doc.companyId,
+                },
+                companyId: doc.companyId,
+              }
+            : operatorPermissionContext(ctx, caller!),
+          ["company:compliance:update", "company:view", "financials:view"],
+        );
 
-         // Defense-in-depth: even if the caller reaches here, the document must
-         // belong to their company (non-admin) or an explicit admin target.
-         if (!isAdmin && doc.companyId !== callerCompanyId) {
-           throw new TRPCError({
-             code: "FORBIDDEN",
-             message: "Access denied: document does not belong to your company.",
-           });
-         }
+        // Defense-in-depth: even if the caller reaches here, the document must
+        // belong to their company (non-admin) or an explicit admin target.
+        if (!isAdmin && doc.companyId !== callerCompanyId) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Access denied: document does not belong to your company.",
+          });
+        }
 
-         if (!doc.objectKey) {
+        if (!doc.objectKey) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Document has no stored object key.",

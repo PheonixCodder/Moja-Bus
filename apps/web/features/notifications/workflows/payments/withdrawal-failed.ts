@@ -2,7 +2,6 @@ import { workflow } from "@novu/framework";
 import { z } from "zod";
 import { escapeHtml } from "@/features/notifications/utils/escape-html";
 
-
 export const operatorWithdrawalFailedWorkflow = workflow(
   "operator-withdrawal-failed",
   async ({ step, payload }) => {
@@ -36,11 +35,11 @@ export const operatorWithdrawalFailedWorkflow = workflow(
       avatar: "https://avatar.vercel.sh/withdrawal-failed",
       redirect: { url: "/dashboard/operator/settings", target: "_self" },
     }));
-
   },
   {
     name: "Operator Payout Failed Alert",
-    description: "Sends failed payout transfer alerts immediately returning funds to the operator receivable balance",
+    description:
+      "Sends failed payout transfer alerts immediately returning funds to the operator receivable balance",
     preferences: {
       all: { readOnly: true },
     },
@@ -55,5 +54,5 @@ export const operatorWithdrawalFailedWorkflow = workflow(
       reason: z.string(),
       phone: z.string().optional(),
     }),
-  }
+  },
 );

@@ -1,7 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { cn } from "@moja/ui/lib/utils";
 import { getInitials, getAvatarColor } from "@/features/operator/lib/staff";
 
@@ -23,11 +27,7 @@ export function MemberAvatar({ name, src, size = "md" }: MemberAvatarProps) {
         : "h-10 w-10 text-[13px]";
   return (
     <Avatar
-      className={cn(
-        "shrink-0 font-semibold text-white",
-        sizeClass,
-        color,
-      )}
+      className={cn("shrink-0 font-semibold text-white", sizeClass, color)}
     >
       <AvatarImage src={src ?? undefined} alt={name ?? t("alt")} />
       <AvatarFallback>{initials}</AvatarFallback>

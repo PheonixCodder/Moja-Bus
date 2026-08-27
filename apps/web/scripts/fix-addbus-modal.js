@@ -7,7 +7,8 @@ let content = fs.readFileSync(filePath, "utf8");
 // Insert after "import { toast } from \"sonner\";" line
 
 const importMarker = 'import { toast } from "sonner";';
-const tImport = 'import { toast } from "sonner";\nimport { useTranslations } from "next-intl";';
+const tImport =
+  'import { toast } from "sonner";\nimport { useTranslations } from "next-intl";';
 
 // Check if useTranslations is already imported (it shouldn't be)
 if (!content.includes("useTranslations")) {
@@ -30,12 +31,12 @@ console.log("Context:", beforeUseState.substring(0, 300));
 // Now replace the hardcoded labels
 content = content.replace(
   '{ value: "STANDARD", label: "Standard" },\n                      { value: "VIP", label: "VIP" },\n                      { value: "ECONOMY", label: "Economy" },',
-  '{ value: "STANDARD", label: t("seatClass.STANDARD") },\n                      { value: "VIP", label: t("seatClass.VIP") },\n                      { value: "ECONOMY", label: t("seatClass.ECONOMY") },'
+  '{ value: "STANDARD", label: t("seatClass.STANDARD") },\n                      { value: "VIP", label: t("seatClass.VIP") },\n                      { value: "ECONOMY", label: t("seatClass.ECONOMY") },',
 );
 
 content = content.replace(
   '<ComboboxItem value="STANDARD">Standard</ComboboxItem>\n                      <ComboboxItem value="VIP">VIP</ComboboxItem>\n                      <ComboboxItem value="ECONOMY">Economy</ComboboxItem>',
-  '<ComboboxItem value="STANDARD">{t("seatClass.STANDARD")}</ComboboxItem>\n                      <ComboboxItem value="VIP">{t("seatClass.VIP")}</ComboboxItem>\n                      <ComboboxItem value="ECONOMY">{t("seatClass.ECONOMY")}</ComboboxItem>'
+  '<ComboboxItem value="STANDARD">{t("seatClass.STANDARD")}</ComboboxItem>\n                      <ComboboxItem value="VIP">{t("seatClass.VIP")}</ComboboxItem>\n                      <ComboboxItem value="ECONOMY">{t("seatClass.ECONOMY")}</ComboboxItem>',
 );
 
 fs.writeFileSync(filePath, content);

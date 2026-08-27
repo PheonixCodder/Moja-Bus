@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   MapPin,
@@ -48,10 +53,13 @@ const DAYS_OF_WEEK = [
   "sunday",
 ];
 
-const DEFAULT_OPERATING_HOURS = DAYS_OF_WEEK.reduce((acc, day) => {
-  acc[day] = { open: "06:00", close: "20:00", closed: false };
-  return acc;
-}, {} as Record<string, { open: string; close: string; closed: boolean }>);
+const DEFAULT_OPERATING_HOURS = DAYS_OF_WEEK.reduce(
+  (acc, day) => {
+    acc[day] = { open: "06:00", close: "20:00", closed: false };
+    return acc;
+  },
+  {} as Record<string, { open: string; close: string; closed: boolean }>,
+);
 
 type CaptureMode = "standard" | "capture";
 
@@ -104,7 +112,9 @@ export function TerminalEditorSheet({
 
   // Capture link UI
   const [mode, setMode] = useState<CaptureMode>("standard");
-  const [captureResult, setCaptureResult] = useState<CaptureLinkResult | null>(null);
+  const [captureResult, setCaptureResult] = useState<CaptureLinkResult | null>(
+    null,
+  );
   const [copied, setCopied] = useState(false);
 
   // Form inputs
@@ -170,8 +180,12 @@ export function TerminalEditorSheet({
       setCityId(editingLocation.cityId ?? "");
       setMunicipalityId(editingLocation.municipalityId ?? "");
       setQuarterId(editingLocation.quarterId ?? "");
-      setLatitude(editingLocation.latitude ? String(editingLocation.latitude) : "");
-      setLongitude(editingLocation.longitude ? String(editingLocation.longitude) : "");
+      setLatitude(
+        editingLocation.latitude ? String(editingLocation.latitude) : "",
+      );
+      setLongitude(
+        editingLocation.longitude ? String(editingLocation.longitude) : "",
+      );
       setIsTerminal(editingLocation.isTerminal ?? false);
       setIsPrimary(editingLocation.isPrimary ?? false);
       setIsActive(editingLocation.isActive ?? true);
@@ -183,7 +197,7 @@ export function TerminalEditorSheet({
           ? typeof editingLocation.operatingHours === "string"
             ? JSON.parse(editingLocation.operatingHours)
             : editingLocation.operatingHours
-          : DEFAULT_OPERATING_HOURS
+          : DEFAULT_OPERATING_HOURS,
       );
       setMode(isCapturePending ? "capture" : "standard");
       setCaptureResult(null);
@@ -515,7 +529,9 @@ export function TerminalEditorSheet({
 
                     <div className="flex items-center justify-between border-t border-border pt-3">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-medium">{t("editor.primaryHub")}</Label>
+                        <Label className="text-sm font-medium">
+                          {t("editor.primaryHub")}
+                        </Label>
                         <p className="text-xs text-muted-foreground">
                           {t("editor.primaryHubDesc")}
                         </p>
@@ -531,7 +547,9 @@ export function TerminalEditorSheet({
 
                     <div className="flex items-center justify-between border-t border-border pt-3">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-medium">{t("editor.activeStatus")}</Label>
+                        <Label className="text-sm font-medium">
+                          {t("editor.activeStatus")}
+                        </Label>
                         <p className="text-xs text-muted-foreground">
                           {t("editor.activeStatusDesc")}
                         </p>
@@ -546,7 +564,8 @@ export function TerminalEditorSheet({
                     </div>
                   </div>
 
-                  {editingLocation?.geoCaptureStatus === "PENDING_CONFIRMATION" && (
+                  {editingLocation?.geoCaptureStatus ===
+                    "PENDING_CONFIRMATION" && (
                     <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-4 text-sm text-foreground space-y-1">
                       <p className="font-semibold flex items-center gap-2">
                         <CheckCircle className="size-4 text-sky-600" />
@@ -597,7 +616,9 @@ export function TerminalEditorSheet({
                     <div className="flex items-center justify-between gap-2 pt-1">
                       <span className="text-xs text-muted-foreground">
                         {t("capture.expiresOn", {
-                          date: new Date(captureResult.expiresAt).toLocaleString(),
+                          date: new Date(
+                            captureResult.expiresAt,
+                          ).toLocaleString(),
                         })}
                       </span>
                       <Button
@@ -671,9 +692,7 @@ export function TerminalEditorSheet({
                       setName(e.target.value);
                       setIsDirty(true);
                     }}
-                    className={
-                      formErrors["name"] ? "border-destructive" : ""
-                    }
+                    className={formErrors["name"] ? "border-destructive" : ""}
                   />
                   {formErrors["name"] && (
                     <p className="text-xs text-destructive">
@@ -696,9 +715,7 @@ export function TerminalEditorSheet({
                       setPhone(val || "");
                       setIsDirty(true);
                     }}
-                    className={
-                      formErrors["phone"] ? "border-destructive" : ""
-                    }
+                    className={formErrors["phone"] ? "border-destructive" : ""}
                   />
                   {formErrors["phone"] && (
                     <p className="text-xs text-destructive">
@@ -761,7 +778,8 @@ export function TerminalEditorSheet({
                       className="w-full text-sm"
                       value={
                         cityId
-                          ? (cities.find((c: any) => c.id === cityId)?.name ?? "")
+                          ? (cities.find((c: any) => c.id === cityId)?.name ??
+                            "")
                           : ""
                       }
                     />
@@ -846,7 +864,9 @@ export function TerminalEditorSheet({
                       value=""
                       readOnly
                       placeholder={
-                        cityId ? t("editor.noMunicipalityFound") : t("editor.selectCity")
+                        cityId
+                          ? t("editor.noMunicipalityFound")
+                          : t("editor.selectCity")
                       }
                       className="bg-muted"
                     />
@@ -883,13 +903,15 @@ export function TerminalEditorSheet({
                       className="w-full text-sm"
                       value={
                         quarterId
-                          ? (quarters.find((q: any) => q.id === quarterId)?.name ??
-                            "")
+                          ? (quarters.find((q: any) => q.id === quarterId)
+                              ?.name ?? "")
                           : ""
                       }
                     />
                     <ComboboxContent>
-                      <ComboboxEmpty>{t("editor.noQuarterFound")}</ComboboxEmpty>
+                      <ComboboxEmpty>
+                        {t("editor.noQuarterFound")}
+                      </ComboboxEmpty>
                       <ComboboxList>
                         {quarters.map((q: any) => (
                           <ComboboxItem key={q.id} value={q.id}>
@@ -992,7 +1014,9 @@ export function TerminalEditorSheet({
 
                 <div className="flex items-center justify-between border-t border-border pt-3">
                   <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">{t("editor.primaryHub")}</Label>
+                    <Label className="text-sm font-medium">
+                      {t("editor.primaryHub")}
+                    </Label>
                     <p className="text-xs text-muted-foreground">
                       {t("editor.primaryHubDesc")}
                     </p>
@@ -1008,7 +1032,9 @@ export function TerminalEditorSheet({
 
                 <div className="flex items-center justify-between border-t border-border pt-3">
                   <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">{t("editor.activeStatus")}</Label>
+                    <Label className="text-sm font-medium">
+                      {t("editor.activeStatus")}
+                    </Label>
                     <p className="text-xs text-muted-foreground">
                       {t("editor.activeStatusDesc")}
                     </p>

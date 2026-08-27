@@ -48,3 +48,59 @@ export function earningsFromMinutes(
 ): number {
   return Math.round(minutes * rateXofPerMinute);
 }
+
+export type AffiliationPayConfig = {
+  companyId: string;
+  companyName: string;
+  employmentType?: string;
+  payModel?: "HOURLY" | "PER_TRIP" | "MONTHLY_SALARY";
+  payRateXOF?: number | null;
+};
+
+/**
+ * Phase 7 (Gap #17a) — Computes earnings for an affiliation based on its configured payModel.
+ */
+export function calculateAffiliationEarnings(
+  config: AffiliationPayConfig,
+  metrics: {
+    minutes: number;
+    tripsCompleted: number;
+    daysInPeriod?: number;
+  },
+  fallbackRateXofPerMinute: number = DEFAULT_DRIVER_PAY_RATE_XOF_PER_MINUTE,
+): { amountXOF: number; isEstimated: boolean; rateDescription: string } {
+  if (config.payModel === "MONTHLY_SALARY" && config.payRateXOF != null) {
+    const dailySalary = config.payRateXOF / 30;
+    const days = metrics.daysInPeriod ?? 1;
+    return {
+      amountXOF: Math.round(dailySalary * days),
+      isEstimated: false,
+      rateDescription: `${config.payRateXOF.toLocaleString()} XOF / mois`,
+    };
+  }
+
+  if (config.payModel === "PER_TRIP" && config.payRateXOF != null) {
+    return {
+      amountXOF: metrics.tripsCompleted * config.payRateXOF,
+      isEstimated: false,
+      rateDescription: `${config.payRateXOF.toLocaleString()} XOF / trajet`,
+    };
+  }
+
+  if (config.payRateXOF != null) {
+    const ratePerMin = config.payRateXOF / 60;
+    return {
+      amountXOF: Math.round(metrics.minutes * ratePerMin),
+      isEstimated: false,
+      rateDescription: `${config.payRateXOF.toLocaleString()} XOF / heure`,
+    };
+  }
+
+  // Fallback to platform rate
+  return {
+    amountXOF: Math.round(metrics.minutes * fallbackRateXofPerMinute),
+    isEstimated: true,
+    rateDescription: `${Math.round(fallbackRateXofPerMinute * 60).toLocaleString()} XOF / heure (Est.)`,
+  };
+}
+

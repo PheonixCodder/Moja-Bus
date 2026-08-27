@@ -16,7 +16,8 @@ export type GrantPromoCreditsInput = {
  * marketing incentives, or administrative adjustments.
  */
 export async function grantPromoCredits(input: GrantPromoCreditsInput) {
-  const { prisma, adminId, userId, amountXOF, source, reason, expiresAt } = input;
+  const { prisma, adminId, userId, amountXOF, source, reason, expiresAt } =
+    input;
 
   if (amountXOF <= 0) {
     throw new TRPCError({

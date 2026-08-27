@@ -25,7 +25,7 @@ export default async function BankAccessLogsPage({
       action: params.action || undefined,
       companyId: params.companyId || undefined,
       userId: params.userId || undefined,
-    })
+    }),
   );
 
   return (

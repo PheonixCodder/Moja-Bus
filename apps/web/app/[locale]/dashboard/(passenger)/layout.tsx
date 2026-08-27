@@ -4,7 +4,11 @@ import { Toaster } from "sonner";
 import { redirect } from "next/navigation";
 import { Settings } from "lucide-react";
 
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@moja/ui/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@moja/ui/components/ui/sidebar";
 import { Separator } from "@moja/ui/components/ui/separator";
 import { Button } from "@moja/ui/components/ui/button";
 import { TooltipProvider } from "@moja/ui/components/ui/tooltip";

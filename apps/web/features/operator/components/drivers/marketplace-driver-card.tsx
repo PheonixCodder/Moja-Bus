@@ -13,7 +13,11 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@moja/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@moja/ui/components/ui/avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
@@ -73,10 +77,15 @@ const EMPLOYMENT_LABELS: Record<string, { label: string; color: string }> = {
   },
 };
 
-const DEFAULT_EMPLOYMENT_META = { label: "Intercity", color: "bg-blue-50 text-blue-700 border-blue-200" };
+const DEFAULT_EMPLOYMENT_META = {
+  label: "Intercity",
+  color: "bg-blue-50 text-blue-700 border-blue-200",
+};
 
 function getEmploymentMeta(type?: string) {
-  return (type ? EMPLOYMENT_LABELS[type] : undefined) ?? DEFAULT_EMPLOYMENT_META;
+  return (
+    (type ? EMPLOYMENT_LABELS[type] : undefined) ?? DEFAULT_EMPLOYMENT_META
+  );
 }
 
 function SafetyScoreRing({ score }: { score: number }) {
@@ -89,7 +98,14 @@ function SafetyScoreRing({ score }: { score: number }) {
   return (
     <div className="relative flex items-center justify-center size-10">
       <svg width="40" height="40" className="-rotate-90">
-        <circle cx="20" cy="20" r={r} fill="none" stroke="#e5e7eb" strokeWidth="3" />
+        <circle
+          cx="20"
+          cy="20"
+          r={r}
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth="3"
+        />
         <circle
           cx="20"
           cy="20"
@@ -112,7 +128,9 @@ function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
   return (
     <div className="flex items-center gap-1">
       <Star className="size-3.5 fill-amber-400 text-amber-400" />
-      <span className="text-sm font-bold text-slate-800">{rating.toFixed(1)}</span>
+      <span className="text-sm font-bold text-slate-800">
+        {rating.toFixed(1)}
+      </span>
       <span className="text-xs text-slate-400">({reviews})</span>
     </div>
   );
@@ -120,11 +138,14 @@ function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
 
 // ─── Card Component ───────────────────────────────────────────────────────────
 
-export function MarketplaceDriverCard({ driver, onViewProfile, onSendOffer }: MarketplaceDriverCardProps) {
+export function MarketplaceDriverCard({
+  driver,
+  onViewProfile,
+  onSendOffer,
+}: MarketplaceDriverCardProps) {
   const pref = driver.servicePreference;
   const employmentMeta = getEmploymentMeta(pref?.preferredType);
   const isOnMyRoster = driver.isOnMyRoster === true;
-
 
   const initials = (driver.user.fullName ?? "DR")
     .split(" ")
@@ -145,7 +166,7 @@ export function MarketplaceDriverCard({ driver, onViewProfile, onSendOffer }: Ma
       className={cn(
         "group relative flex flex-col rounded-2xl border bg-white shadow-sm transition-all duration-200",
         "hover:shadow-md hover:border-slate-300 cursor-pointer",
-        pref?.isFeatured && "ring-2 ring-amber-300 ring-offset-1"
+        pref?.isFeatured && "ring-2 ring-amber-300 ring-offset-1",
       )}
       onClick={() => onViewProfile(driver.id)}
     >
@@ -175,14 +196,15 @@ export function MarketplaceDriverCard({ driver, onViewProfile, onSendOffer }: Ma
               <div className="flex items-center gap-1.5 mt-0.5">
                 <BadgeCheck className="size-3.5 text-emerald-500 shrink-0" />
                 <span className="text-[11px] text-slate-500">
-                  Class {driver.licenseCategory} · {driver.yearsOfExperience}yr exp
+                  Class {driver.licenseCategory} · {driver.yearsOfExperience}yr
+                  exp
                 </span>
               </div>
             </div>
             <span
               className={cn(
                 "shrink-0 text-[10px] font-semibold border rounded-full px-2 py-0.5",
-                employmentMeta.color
+                employmentMeta.color,
               )}
             >
               {employmentMeta.label}
@@ -190,7 +212,10 @@ export function MarketplaceDriverCard({ driver, onViewProfile, onSendOffer }: Ma
           </div>
 
           <div className="mt-1.5">
-            <StarRating rating={driver.averageRating} reviews={driver.totalReviews} />
+            <StarRating
+              rating={driver.averageRating}
+              reviews={driver.totalReviews}
+            />
           </div>
           {(driver as any).trustBadges?.length > 0 && (
             <div className="mt-1.5">
@@ -225,7 +250,9 @@ export function MarketplaceDriverCard({ driver, onViewProfile, onSendOffer }: Ma
         {pref?.cityBase && (
           <div className="flex items-center gap-1.5">
             <MapPin className="size-3.5 text-slate-400 shrink-0" />
-            <span className="text-xs text-slate-600 font-medium">{pref.cityBase}</span>
+            <span className="text-xs text-slate-600 font-medium">
+              {pref.cityBase}
+            </span>
           </div>
         )}
         {topRoutes.length > 0 && (

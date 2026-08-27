@@ -12,7 +12,11 @@ import RouteMapPreview, {
 // ─────────────────────────────────────────────────────────
 // Fallback Banner
 // ─────────────────────────────────────────────────────────
-function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }) {
+function EmptyMapBanner({
+  booking,
+}: {
+  booking: PassengerBookingSummary | null;
+}) {
   const t = useTranslations("booking");
   if (!booking) {
     return (
@@ -33,19 +37,37 @@ function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }
             "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.83v58.34h-58.34l-.83-.83V0h58.34zM27 27V12h6v15h15v6H33v15h-6V33H12v-6h15z' fill='%23000000' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E\")",
         }}
       />
-      
+
       <div className="z-10 flex w-full max-w-sm flex-col gap-6 rounded-2xl border bg-background/80 p-6 shadow-sm backdrop-blur-md">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("routeMap.origin")}</span>
-            <span className="font-semibold">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {t("routeMap.origin")}
+            </span>
+            <span className="font-semibold">
+              {formatLocationLabel({
+                cityName: booking.originCityName,
+                municipalityName: booking.originMunicipalityName,
+                quarterName: booking.originQuarterName,
+                isUrban: booking.serviceType === "URBAN",
+              })}
+            </span>
           </div>
           <div className="flex flex-col items-end gap-1 text-right">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("routeMap.destination")}</span>
-            <span className="font-semibold">{formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {t("routeMap.destination")}
+            </span>
+            <span className="font-semibold">
+              {formatLocationLabel({
+                cityName: booking.destinationCityName,
+                municipalityName: booking.destinationMunicipalityName,
+                quarterName: booking.destinationQuarterName,
+                isUrban: booking.serviceType === "URBAN",
+              })}
+            </span>
           </div>
         </div>
-        
+
         <div className="relative flex items-center gap-2">
           <div className="grid size-4 shrink-0 place-items-center rounded-full bg-primary/20">
             <div className="size-1.5 rounded-full bg-primary" />
@@ -59,12 +81,23 @@ function EmptyMapBanner({ booking }: { booking: PassengerBookingSummary | null }
         </div>
 
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{booking.originTerminalName}{booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}</span>
-          <span>{booking.destinationTerminalName}{booking.destinationQuarterName ? ` · ${booking.destinationQuarterName}` : ""}</span>
+          <span>
+            {booking.originTerminalName}
+            {booking.originQuarterName ? ` · ${booking.originQuarterName}` : ""}
+          </span>
+          <span>
+            {booking.destinationTerminalName}
+            {booking.destinationQuarterName
+              ? ` · ${booking.destinationQuarterName}`
+              : ""}
+          </span>
         </div>
       </div>
-      
-      <Badge variant="outline" className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-md">
+
+      <Badge
+        variant="outline"
+        className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-md"
+      >
         {t("routeMap.standardRoute")}
       </Badge>
     </div>
@@ -82,9 +115,7 @@ export default function BookingRouteMap({ booking }: BookingRouteMapProps) {
   if (!booking) return <EmptyMapBanner booking={null} />;
 
   const points: RouteMapPoint[] = (booking.stops ?? [])
-    .filter(
-      (s) => s.latitude != null && s.longitude != null,
-    )
+    .filter((s) => s.latitude != null && s.longitude != null)
     .map((s) => ({
       id: `${s.stopOrder}`,
       name: s.terminalName,
@@ -105,11 +136,25 @@ export default function BookingRouteMap({ booking }: BookingRouteMapProps) {
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 rounded-lg border bg-background/90 p-2 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-2 text-xs">
           <div className="size-2 rounded-full bg-[#9333ea]" />
-          <span className="font-medium">{formatLocationLabel({ cityName: booking.originCityName, municipalityName: booking.originMunicipalityName, quarterName: booking.originQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
+          <span className="font-medium">
+            {formatLocationLabel({
+              cityName: booking.originCityName,
+              municipalityName: booking.originMunicipalityName,
+              quarterName: booking.originQuarterName,
+              isUrban: booking.serviceType === "URBAN",
+            })}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <div className="size-2 rounded-full border-2 border-[#ee237c]" />
-          <span className="font-medium">{formatLocationLabel({ cityName: booking.destinationCityName, municipalityName: booking.destinationMunicipalityName, quarterName: booking.destinationQuarterName, isUrban: booking.serviceType === "URBAN" })}</span>
+          <span className="font-medium">
+            {formatLocationLabel({
+              cityName: booking.destinationCityName,
+              municipalityName: booking.destinationMunicipalityName,
+              quarterName: booking.destinationQuarterName,
+              isUrban: booking.serviceType === "URBAN",
+            })}
+          </span>
         </div>
       </div>
     </div>

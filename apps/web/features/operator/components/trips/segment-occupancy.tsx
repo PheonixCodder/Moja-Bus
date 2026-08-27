@@ -34,7 +34,10 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
       </div>
       <div className="h-1.5 bg-border rounded-full overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-500", color)}
+          className={cn(
+            "h-full rounded-full transition-all duration-500",
+            color,
+          )}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -111,7 +114,10 @@ function SegmentSeatGrid({
               return (
                 <div
                   key={col}
-                  title={t("seatTitle", { label: seat.seat.label, status: statusLabel })}
+                  title={t("seatTitle", {
+                    label: seat.seat.label,
+                    status: statusLabel,
+                  })}
                   className={cn(
                     "w-7 h-7 rounded border text-[9px] font-bold flex items-center justify-center",
                     seatStatus === "booked" &&
@@ -133,19 +139,27 @@ function SegmentSeatGrid({
         <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border">
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-primary border border-primary" />
-            <span className="text-[11px] text-muted-foreground">{t("legend.booked")}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {t("legend.booked")}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-amber-400 border border-amber-500" />
-            <span className="text-[11px] text-muted-foreground">{t("legend.held")}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {t("legend.held")}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-background border border-border" />
-            <span className="text-[11px] text-muted-foreground">{t("legend.available")}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {t("legend.available")}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-slate-200 border border-slate-300" />
-            <span className="text-[11px] text-muted-foreground">{t("legend.blocked")}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {t("legend.blocked")}
+            </span>
           </div>
         </div>
       </div>
@@ -174,11 +188,7 @@ export function SegmentOccupancySection({
     ).length || trip.totalSeats;
 
   if (segments.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground">
-        {t("noSegments")}
-      </p>
-    );
+    return <p className="text-xs text-muted-foreground">{t("noSegments")}</p>;
   }
 
   return (
@@ -199,7 +209,10 @@ export function SegmentOccupancySection({
               </h5>
               {counts.held > 0 ? (
                 <span className="text-[10px] text-muted-foreground">
-                  {t("confirmedHeld", { confirmed: counts.confirmed, held: counts.held })}
+                  {t("confirmedHeld", {
+                    confirmed: counts.confirmed,
+                    held: counts.held,
+                  })}
                 </span>
               ) : null}
             </div>
