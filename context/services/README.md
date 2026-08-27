@@ -12,6 +12,7 @@ This directory contains complete Markdown documentation for every third-party se
 | **Novu** | [`novu/`](./novu/) | Notification channel routing (email, SMS, push, in-app), workflow identifiers, outbox payload contracts, subscriber identity. |
 | **Better Auth** | [`better-auth/`](./better-auth/) | Passwordless OTP flows, session management, multi-tenancy, RBAC plugins, mobile client setup. |
 | **Mapbox & Telemetry** | [`mapbox-telemetry/`](./mapbox-telemetry/) | Mobile tile sets, background GPS pinging, telemetry JWT tokens, Leaflet web fleet map. |
+| **Graphify** | [`graphify/`](./graphify/) | Knowledge graph CLI — query codebase relationships, trace module connections, browse architecture visually. |
 
 ---
 

@@ -11,6 +11,8 @@ This is the **Moja Ride Passenger Mobile App** — Expo, React Native, NativeWin
 5. For payments (checkout): read [../../context/services/paystack/index.md](../../context/services/paystack/index.md).
 6. Check [../../context/plans/](../../context/plans/) for any existing plan before starting new features.
 
+7. **Before exploring unfamiliar source files**: run `graphify query "<question>"` or `graphify path "<A>" "<B>"` — the knowledge graph is faster than grepping. See [`context/services/graphify/index.md`](../../context/services/graphify/index.md) for examples.
+
 ## Key Rules
 - Style with **NativeWind** utility classes only — no `StyleSheet` objects unless required by a native API.
 - Navigation is file-based via **Expo Router** — do not use `react-navigation` `navigate()` calls directly.

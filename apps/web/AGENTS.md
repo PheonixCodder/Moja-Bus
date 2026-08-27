@@ -12,6 +12,8 @@ This is the Moja Ride central web application — Passenger Booking, Operator ER
 6. For domain specs (auth, payments): read [../../context/domain-specs/](../../context/domain-specs/).
 7. Check [../../context/plans/](../../context/plans/) for any existing plan before starting new features.
 
+7. **Before exploring unfamiliar source files**: run `graphify query "<question>"` or `graphify explain "<concept>"` first — the knowledge graph is faster than grepping. See [`context/services/graphify/index.md`](../../context/services/graphify/index.md) for examples.
+
 ## Key Rules
 - This is **not standard Next.js** — APIs and file conventions may differ from common training data. Read `node_modules/next/dist/docs/` when in doubt.
 - All data fetching goes through `trpc/` — no ad-hoc `fetch()` in UI components.

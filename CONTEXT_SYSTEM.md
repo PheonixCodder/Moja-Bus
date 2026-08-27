@@ -139,6 +139,10 @@ context/
 | `/imprint` | After building UI components — updates the relevant `ui-registry.md` |
 | `/review` | After completing a feature — verifies against invariants and standards |
 | `/recover` | When a build breaks or context has drifted — diagnoses before acting |
+| `graphify query "<question>"` | Before reading multiple source files — query the knowledge graph instead |
+| `graphify path "<A>" "<B>"` | Trace how any two modules/concepts connect through the codebase |
+| `graphify explain "<concept>"` | Deep-dive on a single node (class, router, function, pattern) |
+| `graphify . --update` | After doc/markdown changes — refresh those nodes in the graph |
 
 ---
 
@@ -163,3 +167,4 @@ Adding a new app (`apps/[new-app]`) is a 4-step process:
 > 5. **No undocumented components** — Update `ui-registry.md` after every new reusable component.
 > 6. **No stale audit folders** — Delete `context/audits/[feature]/` once all findings are resolved.
 > 7. **No code before a plan** — For non-trivial features, run `/architect` and save to `context/plans/` first.
+> 8. **No grepping before graphify** — When `graphify-out/graph.json` exists, run `graphify query "<question>"` before reading raw source files or grepping. The graph is faster and more accurate.

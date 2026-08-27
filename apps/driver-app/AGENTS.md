@@ -11,6 +11,8 @@ This is the **Moja Ride Driver Mobile App** — Expo, React Native, NativeWind, 
 5. For push notifications: read [../../context/services/novu/index.md](../../context/services/novu/index.md).
 6. Check [../../context/plans/](../../context/plans/) for any existing plan before starting new features.
 
+7. **Before exploring unfamiliar source files**: run `graphify query "<question>"` or `graphify path "<A>" "<B>"` — the knowledge graph is faster than grepping. See [`context/services/graphify/index.md`](../../context/services/graphify/index.md) for examples.
+
 ## Key Rules
 - **NEVER use bare `<div>` elements** — this is React Native. Use `<View>`, `<Text>`, `<Pressable>`.
 - All document uploads go through **presigned S3 PUT URLs** minted server-side via `drivers.presignDoc`. Never upload to a hardcoded URL.

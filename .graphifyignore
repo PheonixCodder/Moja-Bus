@@ -1,0 +1,67 @@
+# ─── Graphify Ignore File ────────────────────────────────────────
+# Same syntax as .gitignore. .gitignore is automatically respected too.
+# This file adds exclusions on top of .gitignore (never re-includes).
+# Keep this lean — only add what .gitignore doesn't already cover.
+
+# ─── Build Output & Dependencies ────────────────────────────────
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+.expo/
+dist/
+build/
+out/
+*.tsbuildinfo
+android/
+ios/
+apps/*/android/
+apps/*/ios/
+
+# ─── Lock Files (too large, zero graph value) ────────────────────
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# ─── Database Migrations (auto-generated SQL/Prisma) ─────────────
+packages/db/migrations/
+
+# ─── Generated / Binary Assets ───────────────────────────────────
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.otf
+*.eot
+*.mp4
+*.mp3
+*.pdf
+*.mbtiles
+*.gpkg
+
+# ─── Legacy / Scratch / Reference Code ───────────────────────────
+legacy-apps-setup/
+app-references/
+ivory_coast_data/
+
+# ─── Graphify Output (don't self-index) ──────────────────────────
+graphify-out/
+
+# ─── OS / Editor Artifacts ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.cursor/
+.vscode/
+
+# ─── Secrets (belt-and-suspenders) ───────────────────────────────
+.env
+.env.*
+google-services.json
+*.json.key

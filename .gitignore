@@ -26,7 +26,6 @@ Thumbs.db
 demo-ui
 legacy-apps-setup
 best-example
-graphify-out
 best-dashboard-setup
 app-2
 old
@@ -34,6 +33,11 @@ app-example
 duolingo-clone
 traveler-app-2
 app-references/*
+
+# Graphify — graphify-out/ IS committed (team mode) so teammates get the graph on pull.
+# Only exclude local-only artifacts inside the output folder.
+graphify-out/cost.json
+graphify-out/cache/
 
 # Migration artifacts
 packages/db/migrate-out.txt
