@@ -21,7 +21,7 @@ if ! command -v "$FOUNDRYCTL" >/dev/null 2>&1; then
   curl -fsSL https://signoz.io/foundry.sh | bash
   export PATH="$HOME/.local/bin:$PATH"
 fi
-"$FOUNDRYCTL" --version >/dev/null 2>&1 || { echo "foundryctl not on PATH after install"; exit 1; }
+"$FOUNDRYCTL" version >/dev/null 2>&1 || { echo "foundryctl not on PATH after install"; exit 1; }
 
 # 2. Write casting.yaml only on a fresh install so later edits survive upgrades.
 if [ ! -f casting.yaml ]; then

@@ -1,12 +1,14 @@
 <!-- BEGIN:context-rules -->
-# Context and Workspace Rules
+# Context & Workspace Rules (Moja Ride)
 
-This workspace uses Context-Driven Development. Before executing any task:
-1. Read the context files in `context/`.
-2. Read the active app-level `AGENTS.md` or `CLAUDE.md` in the directory you are working in.
-3. Restore the current memory state from `memory.md` at the start of the session.
-4. Save memory back to `memory.md` at the end of the session.
-5. Follow `context/build-plan.md`, and update `context/progress-tracker.md` and `context/ui-registry.md` as work lands.
+This repository operates under **Context-Driven Development (CDD)**.
 
-When you touch UI, platform, or library-specific code, check the relevant context sections first. Do not invent new structure when the context already defines one.
+Before executing any task:
+1. Review [CONTEXT_SYSTEM.md](./CONTEXT_SYSTEM.md) for ecosystem protocols.
+2. Read the active app-level context or global context in `context/`.
+3. Restore memory state from `memory.md` at session start.
+4. Save updated memory back to `memory.md` at session end.
+5. Follow `context/build-plan.md`, `context/progress-tracker.md`, and relevant `ui-registry.md` files.
+
+*See [AGENTS.md](./AGENTS.md) and [CONTEXT_SYSTEM.md](./CONTEXT_SYSTEM.md) for complete instructions.*
 <!-- END:context-rules -->

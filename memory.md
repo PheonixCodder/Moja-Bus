@@ -1,4 +1,6 @@
-# Memory — Driver System Release Remediation
+> **Canonical Session Memory** — Updated by `/remember save` at end of every session. Restored by `/remember restore` at start of every session. This is the ONLY memory file in the repo. See [CONTEXT_SYSTEM.md](./CONTEXT_SYSTEM.md) for protocol.
+
+# Memory — Driver System Release Remediation + CDD Ecosystem Restructure
 
 Last updated: 2026-08-25 (ALL 39 phases complete — remediation track closed; staging & release next)
 

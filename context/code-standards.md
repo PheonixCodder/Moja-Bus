@@ -1,23 +1,51 @@
-# Code Standards
+# Code Standards & Engineering Guidelines
 
-## Styling and Framework Conventions
-- Use TypeScript with strict types and explicit return types on exported factories and service boundaries.
-- Keep UI components small, composable, and platform-specific.
-- Passenger and operator web should follow shadcn conventions and shared Tailwind tokens.
-- Passenger mobile should use NativeWind classes and shared theme tokens.
-- Keep admin features inside the operator web role system instead of a separate application.
+## 1. TypeScript & Static Typing
+- Use TypeScript with strict mode enabled.
+- Avoid `any` unless wrapping an untyped external dependency, and always document the exception.
+- Provide explicit return types on exported services, tRPC router procedures, and database helper functions.
+- Keep domain types in `@moja/types` or `@moja/schemas` to enable seamless contract parity across `web`, `traveler-app`, and `driver-app`.
 
-## Naming Conventions
-- Components: PascalCase
-- Hooks and utilities: camelCase
-- Routes and route folders: lowercase with clear domain names
-- Database models and columns: match Prisma and SQL conventions
+---
 
-## Rules and Patterns
-- Keep shared packages pure and free of runtime app dependencies.
-- Use tRPC client procedures (`@/trpc/client`) for all data queries and mutations inside web app views instead of `@moja/api-client` or ad hoc fetch.
-- Use Zod for validation at procedure inputs and DB mutation schemas.
-- Access the database client exclusively via `getPrismaClient()` from `@moja/db` inside tRPC routers and server procedures. Do not import DB client directly on client-side components.
-- Keep passenger web and passenger mobile aligned at the contract level, not by sharing UI code.
-- Avoid `any` unless a third-party type hole cannot be avoided and is documented.
-- Keep user-facing errors clear and operationally useful.
+## 2. Framework & UI Conventions
+- **Web (`apps/web`)**:
+  - Follow shadcn/ui composition conventions with Tailwind CSS.
+  - Separate server components/pages from client components (mark client-side interactives with `'use client'`).
+  - Use `nuqs` for type-safe URL search parameter management.
+  - Access backend state via `@/trpc/client`.
+- **Mobile (`apps/traveler-app` and `apps/driver-app`)**:
+  - Use Expo Router with file-based routing and typed route links.
+  - Style with NativeWind utility classes matching design tokens from `@moja/theme`.
+  - Handle offline and poor network states gracefully with optimistic updates and local caches.
+- **Shared Components (`packages/ui`)**:
+  - Keep shared UI primitive, headless, and accessible.
+  - Never import app-specific business logic or routers inside `@moja/ui`.
+
+---
+
+## 3. API & Procedure Standards (tRPC)
+- Every procedure must validate inputs with Zod schemas.
+- Route procedure authorization must use appropriate middleware:
+  - `publicProcedure`: Unauthenticated public routes (trip search, schedule views).
+  - `protectedProcedure`: Authenticated user required.
+  - `operatorProcedure`: Enforces valid `companyId` tenancy.
+  - `driverProcedure`: Enforces active authenticated driver profile.
+  - `adminProcedure`: Enforces super admin or specific admin staff permission keys.
+- Never write raw SQL queries with `$queryRawUnsafe`. Use Prisma Client models or parameterized `$queryRaw` with typed template literals.
+
+---
+
+## 4. Notifications & Outbox Pattern
+- Transactional messages (cancellations, refunds, delays, verification notices) MUST be enqueued to `NotificationOutbox` inside Prisma `$transaction` blocks.
+- Background worker sweeps the outbox every minute and dispatches to Novu.
+- Use stable, day-bucketed transaction IDs (`txId`) for deduplication where appropriate.
+
+---
+
+## 5. Naming Conventions & Code Style
+- **Files & Directories**: `kebab-case` for general files (e.g. `driver-doc-preview.tsx`, `booking-detail.tsx`).
+- **Components**: `PascalCase` (e.g. `DriverDocPreview`, `BookingCard`).
+- **Functions & Hooks**: `camelCase` (e.g. `useDriverLocation`, `mintDriverDocUrl`).
+- **Database Tables & Fields**: `snake_case` in database, mapped to `camelCase` in Prisma models.
+- **Linting & Formatting**: Follow Biome configuration (`biome check --write`).
