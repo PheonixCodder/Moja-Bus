@@ -32,6 +32,8 @@ interface SearchFormProps {
   initialToQuarter: string;
   initialFromTerminal: string;
   initialToTerminal: string;
+  initialFromTerminalName: string;
+  initialToTerminalName: string;
   initialFromCompanyName: string;
   initialToCompanyName: string;
   initialDate: string;
@@ -45,6 +47,8 @@ interface SearchFormProps {
     toQuarter: string;
     fromTerminal: string;
     toTerminal: string;
+    fromTerminalName: string;
+    toTerminalName: string;
     fromCompanyName: string;
     toCompanyName: string;
     date: string;
@@ -69,6 +73,8 @@ export const SearchForm = memo(function SearchForm({
   initialToQuarter,
   initialFromTerminal,
   initialToTerminal,
+  initialFromTerminalName,
+  initialToTerminalName,
   initialFromCompanyName,
   initialToCompanyName,
   initialDate,
@@ -142,10 +148,20 @@ export const SearchForm = memo(function SearchForm({
 
     // Terminal deep-link: use the stored terminal name + company
     if (initialFromTerminal) {
-      const label = initialFromCompanyName
-        ? `${initialFromTerminal} (${initialFromCompanyName})`
-        : initialFromTerminal;
-      setOrigin((prev) => ({ ...prev, id: originCity.id, text: label }));
+      const label = initialFromTerminalName
+        ? initialFromCompanyName
+          ? `${initialFromTerminalName} (${initialFromCompanyName})`
+          : initialFromTerminalName
+        : `${initialFromTerminal} (${initialFromCompanyName || ""})`;
+      setOrigin((prev) => ({
+        ...prev,
+        id: originCity.id,
+        terminalId: initialFromTerminal,
+        terminalName: initialFromTerminalName,
+        ...(initialFromCompanyName ? { companyName: initialFromCompanyName } : {}),
+        level: "terminal",
+        text: label,
+      }));
       return;
     }
 
@@ -162,18 +178,34 @@ export const SearchForm = memo(function SearchForm({
             .filter(Boolean)
             .join(" ")
         : originCity.name;
-    setOrigin((prev) => ({ ...prev, id: originCity.id, text: label }));
-  }, [originCity, originLabel, initialFromTerminal, initialFromCompanyName]);
+     setOrigin((prev) => ({ ...prev, id: originCity.id, text: label }));
+  }, [
+    originCity,
+    originLabel,
+    initialFromTerminal,
+    initialFromTerminalName,
+    initialFromCompanyName,
+  ]);
 
   useEffect(() => {
     if (!destCity) return;
 
     // Terminal deep-link: use the stored terminal name + company
     if (initialToTerminal) {
-      const label = initialToCompanyName
-        ? `${initialToTerminal} (${initialToCompanyName})`
-        : initialToTerminal;
-      setDestination((prev) => ({ ...prev, id: destCity.id, text: label }));
+      const label = initialToTerminalName
+        ? initialToCompanyName
+          ? `${initialToTerminalName} (${initialToCompanyName})`
+          : initialToTerminalName
+        : `${initialToTerminal} (${initialToCompanyName || ""})`;
+      setDestination((prev) => ({
+        ...prev,
+        id: destCity.id,
+        terminalId: initialToTerminal,
+        terminalName: initialToTerminalName,
+        ...(initialToCompanyName ? { companyName: initialToCompanyName } : {}),
+        level: "terminal",
+        text: label,
+      }));
       return;
     }
 
@@ -191,7 +223,13 @@ export const SearchForm = memo(function SearchForm({
             .join(" ")
         : destCity.name;
     setDestination((prev) => ({ ...prev, id: destCity.id, text: label }));
-  }, [destCity, destLabel, initialToTerminal, initialToCompanyName]);
+  }, [
+    destCity,
+    destLabel,
+    initialToTerminal,
+    initialToTerminalName,
+    initialToCompanyName,
+  ]);
 
   function handleSwap() {
     const swappedOrigin: CityValue = { ...destination };
@@ -229,6 +267,8 @@ export const SearchForm = memo(function SearchForm({
       toQuarter: destination.quarterId ?? "",
       fromTerminal: origin.terminalId ?? "",
       toTerminal: destination.terminalId ?? "",
+      fromTerminalName: origin.terminalName ?? "",
+      toTerminalName: destination.terminalName ?? "",
       fromCompanyName: origin.companyName ?? "",
       toCompanyName: destination.companyName ?? "",
       date,

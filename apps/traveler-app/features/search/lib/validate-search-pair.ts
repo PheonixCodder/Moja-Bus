@@ -9,6 +9,7 @@ export interface SearchPairInput {
   municipalityId?: string;
   quarterId?: string;
   level?: 'city' | 'municipality' | 'quarter' | 'terminal';
+  terminalId?: string;
 }
 
 export type PairValidationError = 'sameCity' | null;
@@ -59,13 +60,29 @@ export function validateSearchPair(
     !!origin.municipalityId &&
     !!destination.municipalityId &&
     origin.municipalityId === destination.municipalityId;
-  if (sameMunicipality) return 'sameCity';
+  if (sameMunicipality) {
+    const bothHaveDistinctQuarters =
+      !!origin.quarterId &&
+      !!destination.quarterId &&
+      origin.quarterId !== destination.quarterId;
+    if (!bothHaveDistinctQuarters) return 'sameCity';
+  }
+
+  if (
+    origin.terminalId &&
+    destination.terminalId &&
+    origin.terminalId === destination.terminalId
+  ) {
+    return 'sameCity';
+  }
 
   const bothCityLevel =
     origin.level !== 'municipality' &&
     origin.level !== 'quarter' &&
+    origin.level !== 'terminal' &&
     destination.level !== 'municipality' &&
-    destination.level !== 'quarter';
+    destination.level !== 'quarter' &&
+    destination.level !== 'terminal';
   if (bothCityLevel) return 'sameCity';
 
   return null;

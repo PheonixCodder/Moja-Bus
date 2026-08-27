@@ -156,6 +156,88 @@ describe("validateSearchPair", () => {
       null,
     );
   });
+
+  it("allows two different terminals in the same city with different quarters", () => {
+    // Terminal A: Quai Vridi Ako (city=Abidjan, muni=Port-Bouët, quarter=Vridi)
+    // Terminal B: Gare de Pinasse Vridi Ako (city=Abidjan, muni=Port-Bouët, quarter=Vridi Gare)
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Quai Vridi Ako (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+        { id: "c1", text: "Gare de Pinasse Vridi Ako (Ako)", municipalityId: "m1", quarterId: "q2", level: "terminal", terminalId: "t2" },
+      ),
+      null,
+    );
+  });
+
+  it("allows two different terminals in the same city with different municipalities", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Terminal A (Co)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+        { id: "c1", text: "Terminal B (Co)", municipalityId: "m2", quarterId: "q2", level: "terminal", terminalId: "t2" },
+      ),
+      null,
+    );
+  });
+
+  it("allows two terminals in the same city with one-sided municipality refinement", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", level: "terminal", terminalId: "t1" },
+        { id: "c1", text: "Terminal B (Ako)", level: "terminal", terminalId: "t2" },
+      ),
+      null,
+    );
+  });
+
+  it("rejects two terminals with the same terminalId (same terminal)", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Quai Vridi Ako (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+        { id: "c1", text: "Quai Vridi Ako (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+      ),
+      "sameCity",
+    );
+  });
+
+  it("rejects two terminals in the same city with same municipality and same quarter", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+        { id: "c1", text: "Terminal B (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t2" },
+      ),
+      "sameCity",
+    );
+  });
+
+  it("allows a terminal paired with a city in the same city", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+        { id: "c1", text: "Abidjan", level: "city" },
+      ),
+      null,
+    );
+  });
+
+  it("allows a terminal paired with a municipality in the same city", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", quarterId: "q1", level: "terminal", terminalId: "t1" },
+        { id: "c1", text: "Abidjan (Bacquipag)", municipalityId: "m2", level: "municipality" },
+      ),
+      null,
+    );
+  });
+
+  it("allows two terminals in different cities", () => {
+    assert.equal(
+      validateSearchPair(
+        { id: "c1", text: "Terminal A (Ako)", municipalityId: "m1", level: "terminal", terminalId: "t1" },
+        { id: "c2", text: "Terminal B (STC)", municipalityId: "m3", level: "terminal", terminalId: "t2" },
+      ),
+      null,
+    );
+  });
 });
 
 describe("isUrban", () => {

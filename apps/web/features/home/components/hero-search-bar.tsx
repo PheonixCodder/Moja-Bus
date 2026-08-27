@@ -102,8 +102,17 @@ export function HeroSearchBar() {
       const destVal = destination.id || destination.text.trim();
       if (!originVal) { toast.error(t("validation.noOrigin")); return; }
       if (!destVal) { toast.error(t("validation.noDestination")); return; }
-      if (originVal === destVal) { toast.error(t("validation.sameCity")); return; }
+      if (originVal === destVal && !origin.terminalId && !destination.terminalId) {
+        toast.error(t("validation.sameCity"));
+        return;
+      }
       const params = new URLSearchParams({ from: originVal, to: destVal, date, passengers: String(travelers) });
+      if (origin.municipalityId) params.set("fromMuni", origin.municipalityId);
+      if (destination.municipalityId) params.set("toMuni", destination.municipalityId);
+      if (origin.quarterId) params.set("fromQuarter", origin.quarterId);
+      if (destination.quarterId) params.set("toQuarter", destination.quarterId);
+      if (origin.terminalId) params.set("fromTerminal", origin.terminalId);
+      if (destination.terminalId) params.set("toTerminal", destination.terminalId);
       router.push(`/search?${params.toString()}`);
     } else {
       toast.info(`${tab.label} booking is coming soon!`);

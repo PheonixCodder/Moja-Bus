@@ -1,23 +1,16 @@
 import type { PlaceLevel } from "./places";
 
-/**
- * Minimal shape shared by every search UI value (CityValue-compatible).
- */
 export interface SearchPairInput {
   id: string;
   text: string;
   municipalityId?: string;
   quarterId?: string;
   level?: PlaceLevel;
+  terminalId?: string;
 }
 
 export type PairValidationError = "sameCity" | null;
 
-/**
- * Normalizes a display name for equality comparison — mirrors the server-side
- * `normalize()` in search.ts/locations.ts (lowercase, strip accents, drop
- * non-alphanumerics) so "San-Pédro" == "San Pedro" == "sanpedro".
- */
 function normalize(str: string): string {
   return str
     .toLowerCase()
@@ -26,19 +19,6 @@ function normalize(str: string): string {
     .replace(/[^a-z0-9]/g, "");
 }
 
-/**
- * Validates an origin/destination pair for a meaningful search.
- *
- * A pair is invalid only when both ends are indistinguishable at every level
- * they specify: identical unresolved names, same city with no refinement on
- * either side, or same municipality/quarter. One-sided refinements
- * (city → municipality, city → quarter) are valid urban searches.
- *
- * City identity is decided by resolved ids when both sides have them; when at
- * least one side is name-based (popular chips, free-typed text) the display
- * texts are normalized and compared instead — closing the hole where a
- * dropdown-picked city (cuid) + same-named chip (id "") slipped past.
- */
 export function validateSearchPair(
   origin: SearchPairInput,
   destination: SearchPairInput,
@@ -68,9 +48,6 @@ export function validateSearchPair(
     !!destination.municipalityId &&
     origin.municipalityId === destination.municipalityId;
   if (sameMunicipality) {
-    // Two different quartiers within the same municipality is a valid
-    // intra-municipality urban search — only block when the refinement
-    // isn't distinct enough (no quarters, or same quarter).
     const bothHaveDistinctQuarters =
       !!origin.quarterId &&
       !!destination.quarterId &&
@@ -78,11 +55,21 @@ export function validateSearchPair(
     if (!bothHaveDistinctQuarters) return "sameCity";
   }
 
+  if (
+    origin.terminalId &&
+    destination.terminalId &&
+    origin.terminalId === destination.terminalId
+  ) {
+    return "sameCity";
+  }
+
   const bothCityLevel =
     origin.level !== "municipality" &&
     origin.level !== "quarter" &&
+    origin.level !== "terminal" &&
     destination.level !== "municipality" &&
-    destination.level !== "quarter";
+    destination.level !== "quarter" &&
+    destination.level !== "terminal";
   if (bothCityLevel) return "sameCity";
 
   return null;

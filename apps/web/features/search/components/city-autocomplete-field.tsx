@@ -14,6 +14,7 @@ export interface CityValue {
   quarterId?: string;
   level?: "city" | "municipality" | "quarter" | "terminal";
   terminalId?: string;
+  terminalName?: string;
   companyName?: string;
   companyId?: string;
 }
@@ -91,6 +92,9 @@ export function CityAutocompleteField({
                     ...(city.quarterId ? { quarterId: city.quarterId } : {}),
                     ...(city.level ? { level: city.level } : {}),
                     ...(city.terminalId ? { terminalId: city.terminalId } : {}),
+                    ...(city.level === "terminal" && city.name
+                      ? { terminalName: city.name }
+                      : {}),
                     ...(city.companyName ? { companyName: city.companyName } : {}),
                     ...(city.companyId ? { companyId: city.companyId } : {}),
                   });
