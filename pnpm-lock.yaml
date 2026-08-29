@@ -692,12 +692,6 @@ importers:
       '@types/leaflet':
         specifier: ^1.9.21
         version: 1.9.21
-      '@types/react-dropzone':
-        specifier: ^5.1.0
-        version: 5.1.0(react@19.2.3)
-      '@types/react-phone-number-input':
-        specifier: ^3.1.37
-        version: 3.1.37(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vercel/og':
         specifier: ^0.11.1
         version: 0.11.1
@@ -5368,14 +5362,6 @@ packages:
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
       '@types/react': ^19.2.0
-
-  '@types/react-dropzone@5.1.0':
-    resolution: {integrity: sha512-VCdDCwSsr1MT2frsVl5p8qH+LWwUGzsaNtGkEQekHviZqK0dmTbiIp2Pzfb8lTkH4oTE2JtBbWnbuM6B4FH80A==}
-    deprecated: This is a stub types definition. react-dropzone provides its own type definitions, so you do not need this installed.
-
-  '@types/react-phone-number-input@3.1.37':
-    resolution: {integrity: sha512-N5/4VjptmOJWs4g5keMxjAuc8yQFr0fM+OSYfT8h0IQVm5kUiLAGNg+TGHy21Xzb1DB/PhDkiWnKcIREgr5VWA==}
-    deprecated: This is a stub types definition. react-phone-number-input provides its own type definitions, so you do not need this installed.
 
   '@types/react-test-renderer@19.1.0':
     resolution: {integrity: sha512-XD0WZrHqjNrxA/MaR9O22w/RNidWR9YZmBdRGI7wcnWGrv/3dA8wKCJ8m63Sn+tLJhcjmuhOi629N66W6kgWzQ==}
@@ -15028,19 +15014,6 @@ snapshots:
   '@types/react-dom@19.2.3(@types/react@19.2.17)':
     dependencies:
       '@types/react': 19.2.17
-
-  '@types/react-dropzone@5.1.0(react@19.2.3)':
-    dependencies:
-      react-dropzone: 15.0.0(react@19.2.3)
-    transitivePeerDependencies:
-      - react
-
-  '@types/react-phone-number-input@3.1.37(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
-    dependencies:
-      react-phone-number-input: 3.4.17(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-    transitivePeerDependencies:
-      - react
-      - react-dom
 
   '@types/react-test-renderer@19.1.0':
     dependencies:
