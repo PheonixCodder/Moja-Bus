@@ -14,7 +14,14 @@ import {
 } from "@moja/ui/components/ui/chart";
 import { format, parseISO } from "date-fns";
 import { useMemo } from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  type TooltipContentProps,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { useTranslations } from "next-intl";
 
@@ -89,7 +96,7 @@ export function BlogViewsChart({ data }: BlogViewsChartProps) {
               style={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
             />
             <ChartTooltip
-              content={({ active, payload }) => {
+              content={({ active, payload }: TooltipContentProps) => {
                 if (!active || !payload?.length) return null;
                 const p = payload[0];
                 if (!p) return null;
