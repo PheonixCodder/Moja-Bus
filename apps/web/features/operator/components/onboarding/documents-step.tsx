@@ -313,15 +313,15 @@ export function DocumentsStep({
 // Inner helper Dropzone component
 function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
   const t = useTranslations("onboarding.documents");
-  const onDropCallback: DropzoneOptions["onDrop"] = useCallback(
-    (acceptedFiles) => {
-      onDrop(acceptedFiles as File[]);
+  const onDropCallback = useCallback(
+    (acceptedFiles: File[]) => {
+      onDrop(acceptedFiles);
     },
     [onDrop],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: onDropCallback,
+    onDrop: onDropCallback as unknown as DropzoneOptions["onDrop"],
     accept: {
       "application/pdf": [".pdf"],
       "image/*": [".jpeg", ".jpg", ".png"],
