@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useDropzone, type FileRejection, type DropEvent } from "react-dropzone";
+import { useDropzone, type DropzoneOptions } from "react-dropzone";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
@@ -313,13 +313,9 @@ export function DocumentsStep({
 // Inner helper Dropzone component
 function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
   const t = useTranslations("onboarding.documents");
-  const onDropCallback = useCallback(
-    (
-      acceptedFiles: File[],
-      _fileRejections: FileRejection[],
-      _event: DropEvent,
-    ) => {
-      onDrop(acceptedFiles);
+  const onDropCallback: DropzoneOptions["onDrop"] = useCallback(
+    (acceptedFiles) => {
+      onDrop(acceptedFiles as File[]);
     },
     [onDrop],
   );
