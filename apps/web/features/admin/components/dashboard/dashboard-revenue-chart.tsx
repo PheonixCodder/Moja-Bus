@@ -29,7 +29,18 @@ interface DashboardRevenueChartProps {
   bookingsCurrent: number;
 }
 
-function CustomTooltip({ active, payload, label, t, currency }: any) {
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  currency,
+}: {
+  active?: boolean;
+  payload?: Array<{ value?: number | string }>;
+  label?: string | number;
+  t?: (key: string) => string;
+  currency?: string;
+}) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-md text-sm">

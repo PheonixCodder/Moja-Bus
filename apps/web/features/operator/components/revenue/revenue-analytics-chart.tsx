@@ -12,6 +12,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  type TooltipContentProps,
   ResponsiveContainer,
 } from "recharts";
 
@@ -79,7 +80,7 @@ export function RevenueAnalyticsChart({
                 dx={-10}
               />
               <Tooltip
-                content={({ active, payload, label }) => {
+                content={({ active, payload, label }: TooltipContentProps) => {
                   if (active && payload && payload.length) {
                     return (
                       <div className="bg-white border rounded-lg shadow-lg p-3">
