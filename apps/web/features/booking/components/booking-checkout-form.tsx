@@ -626,7 +626,7 @@ export function BookingCheckoutForm({
                     <PhoneInput
                       id={`phone-${row.seatId}`}
                       value={row.passengerPhone}
-                      onChange={(val) =>
+                      onChange={(val?: string) =>
                         updateAssignment(row.seatId, {
                           passengerPhone: val || "",
                         })

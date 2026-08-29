@@ -247,7 +247,7 @@ export function PassengerSettingsView({
                       value={phone}
                       countries={getCountries()}
                       defaultCountry={phoneCountry}
-                      onChange={(value) => {
+                      onChange={(value?: string) => {
                         setPhone(value || "");
                         if (phoneError) setPhoneError("");
                       }}

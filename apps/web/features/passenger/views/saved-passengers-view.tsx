@@ -395,7 +395,7 @@ export function SavedPassengersView() {
               <PhoneInput
                 id="sp-phone"
                 value={form.phone}
-                onChange={(val) => setForm((f) => ({ ...f, phone: val || "" }))}
+                onChange={(val?: string) => setForm((f) => ({ ...f, phone: val || "" }))}
                 required
                 className="rounded-xl border-slate-200 h-10 text-sm focus-visible:ring-primary"
               />

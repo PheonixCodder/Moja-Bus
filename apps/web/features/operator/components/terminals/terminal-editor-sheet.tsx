@@ -489,7 +489,7 @@ export function TerminalEditorSheet({
                         <PhoneInput
                           id="capture-phone"
                           value={phone}
-                          onChange={(val) => {
+                          onChange={(val?: string) => {
                             setPhone(val || "");
                             setIsDirty(true);
                           }}
@@ -711,7 +711,7 @@ export function TerminalEditorSheet({
                   <PhoneInput
                     id="phone"
                     value={phone}
-                    onChange={(val) => {
+                    onChange={(val?: string) => {
                       setPhone(val || "");
                       setIsDirty(true);
                     }}

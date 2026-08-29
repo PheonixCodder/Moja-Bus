@@ -71,3 +71,21 @@
 | `apps/web/features/operator/components/drivers/marketplace-driver-card.tsx` | Lines 286, 301 (`<Button onClick>`) | `(e: MouseEvent<HTMLButtonElement>)` | 🟢 Resolved |
 | `apps/web/features/operator/components/terminals/terminal-editor-sheet.tsx` | Line 383 (`onPointerDownOutside`) | `(e: { preventDefault: () => void })` | 🟢 Resolved |
 | `packages/ui/src/components/ui/input-group.tsx` | Line 57 (`<div onClick>`) | `(e: React.MouseEvent<HTMLDivElement>)` | 🟢 Resolved |
+
+---
+
+### Category E: `<PhoneInput>` `onChange` Callbacks
+> **Standard**: `PhoneInput` from `@moja/ui` takes `onChange?: (value: Value) => void` where `Value` is `string | undefined`. All explicit and inline handlers must accept `(value?: string)`.
+
+| File Path | Location / Element | Expected Type | Status |
+| :--- | :--- | :--- | :--- |
+| `apps/web/features/auth/components/passenger-auth-flow.tsx` | Line 570 (`<PhoneInput>`) | `(value?: string)` | 🟢 Resolved |
+| `apps/web/features/passenger/views/passenger-settings-view.tsx` | Line 250 (`<PhoneInput>`) | `(value?: string)` | 🟢 Resolved |
+| `apps/web/features/passenger/views/saved-passengers-view.tsx` | Line 398 (`<PhoneInput>`) | `(val?: string)` | 🟢 Resolved |
+| `apps/web/features/booking/components/booking-checkout-form.tsx` | Line 629 (`<PhoneInput>`) | `(val?: string)` | 🟢 Resolved |
+| `apps/web/features/operator/components/terminals/terminal-editor-sheet.tsx` | Lines 492, 714 (`<PhoneInput>`) | `(val?: string)` | 🟢 Resolved |
+| `apps/web/features/operator/components/onboarding/profile-step.tsx` | Line 207 (`<PhoneInput>`) | `(val: string \| undefined)` | 🟢 Resolved |
+| `apps/web/features/operator/components/onboarding/company-step.tsx` | Line 270 (`<PhoneInput>`) | `(val: string \| undefined)` | 🟢 Resolved |
+| `apps/web/features/operator/settings/components/views/personal-profile-view.tsx` | Lines 148, 208 (`<PhoneInput>`) | `field.onChange` | 🟢 Resolved |
+| `apps/web/features/operator/settings/components/views/company-profile-view.tsx` | Line 134 (`<PhoneInput>`) | `field.onChange` | 🟢 Resolved |
+| `apps/web/features/operator/settings/components/drawers/profile-drawer.tsx` | Line 169 (`<PhoneInput>`) | `field.onChange` | 🟢 Resolved |

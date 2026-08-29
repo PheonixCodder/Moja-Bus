@@ -567,7 +567,7 @@ export function PassengerAuthFlow({
                       <PhoneInput
                         id="operatorPhone"
                         value={operatorCollectedPhone}
-                        onChange={(value) =>
+                        onChange={(value?: string) =>
                           setOperatorCollectedPhone(value ?? "")
                         }
                         required
