@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import {
   Star,
   MapPin,
@@ -283,7 +283,7 @@ export function MarketplaceDriverCard({
           variant="outline"
           size="sm"
           className="flex-1 gap-1.5 h-8 text-xs font-semibold"
-          onClick={(e) => {
+          onClick={(e: MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
             onViewProfile(driver.id);
           }}
@@ -298,7 +298,7 @@ export function MarketplaceDriverCard({
             variant="outline"
             disabled
             className="flex-1 h-8 text-xs font-semibold gap-1.5 bg-slate-50"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
           >
             <BadgeCheck className="size-3.5 text-emerald-600" />
             On Your Roster

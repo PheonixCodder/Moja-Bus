@@ -14,6 +14,7 @@ import { buttonVariants } from "@moja/ui/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import type { MouseEvent } from "react";
 import { useTRPC } from "@/trpc/client";
 
 type Redirect = {
@@ -73,7 +74,7 @@ export function RedirectDeleteDialog({
             {t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={(e) => {
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.preventDefault();
               handleDelete();
             }}

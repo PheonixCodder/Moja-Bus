@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { type RouterOutputs, useTRPC } from "@/trpc/client";
 
@@ -201,7 +201,7 @@ export function CapturePageView({ token, initialInfo }: CapturePageViewProps) {
 
           <form
             className="space-y-4"
-            onSubmit={(e) => {
+            onSubmit={(e: FormEvent<HTMLFormElement>) => {
               e.preventDefault();
               handleShareLocation();
             }}

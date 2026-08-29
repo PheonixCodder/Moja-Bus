@@ -29,6 +29,7 @@ import {
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
+import type { MouseEvent } from "react";
 import type { RouterOutputs } from "@/trpc/client";
 import { useTRPC } from "@/trpc/client";
 import { dispatchSearchParams } from "../lib/search-params";
@@ -177,7 +178,7 @@ function TripCard({
       {/* View full audit link */}
       <Link
         href={`/dashboard/admin/operations/trips/${trip.id}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: MouseEvent<HTMLAnchorElement>) => e.stopPropagation()}
         className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline mt-1"
       >
         <ExternalLink className="size-3" />

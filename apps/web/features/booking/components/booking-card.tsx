@@ -95,7 +95,7 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
     <button
       type="button"
       aria-pressed={active}
-      onClick={(e) => {
+      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
         e.currentTarget.blur();
         onSelect(booking.groupId);
       }}

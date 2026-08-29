@@ -380,7 +380,7 @@ export function TerminalEditorSheet({
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent
         className="max-h-[90vh]"
-        onPointerDownOutside={(e) => {
+        onPointerDownOutside={(e: { preventDefault: () => void }) => {
           if (
             isDirty &&
             !window.confirm("You have unsaved changes. Discard changes?")

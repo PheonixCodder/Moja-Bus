@@ -32,7 +32,7 @@ import { Textarea } from "@moja/ui/components/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, UserMinus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 
@@ -397,7 +397,7 @@ export function DriverRosterActions({
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={removeMutation.isPending}
-              onClick={(e) => {
+              onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 e.preventDefault();
                 removeMutation.mutate({ driverProfileId: driverId });
               }}
