@@ -89,3 +89,23 @@
 | `apps/web/features/operator/settings/components/views/personal-profile-view.tsx` | Lines 148, 208 (`<PhoneInput>`) | `field.onChange` | 🟢 Resolved |
 | `apps/web/features/operator/settings/components/views/company-profile-view.tsx` | Line 134 (`<PhoneInput>`) | `field.onChange` | 🟢 Resolved |
 | `apps/web/features/operator/settings/components/drawers/profile-drawer.tsx` | Line 169 (`<PhoneInput>`) | `field.onChange` | 🟢 Resolved |
+
+---
+
+### Category F: `react-dropzone` `useDropzone` Callbacks
+> **Standard**: `useDropzone` `onDrop` requires matching generic signature `(acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => void`.
+
+| File Path | Location / Element | Expected Type | Status |
+| :--- | :--- | :--- | :--- |
+| `apps/web/features/operator/components/onboarding/documents-step.tsx` | Lines 239, 316 (`useDropzone`) | `(acceptedFiles: File[], _fileRejections: FileRejection[], _event: DropEvent)` | 🟢 Resolved |
+
+---
+
+### Category G: React 19 Legacy Class Component Wrappers
+> **Standard**: Legacy class component default exports (e.g. `react-qr-code`) are wrapped in custom `React.ComponentType` functional wrappers to satisfy React 19 JSX element constructor rules.
+
+| File Path | Location / Element | Expected Type | Status |
+| :--- | :--- | :--- | :--- |
+| `apps/web/components/qr-code.tsx` | Root Wrapper | `React.ComponentType<QRCodeProps>` | 🟢 Resolved |
+| `apps/web/features/booking/components/digital-ticket-card.tsx` | Line 62 (`<QRCode>`) | `QRCodeProps` | 🟢 Resolved |
+| `apps/web/features/dashboard/components/live-boarding-pass.tsx` | Line 49 (`<QRCode>`) | `QRCodeProps` | 🟢 Resolved |
