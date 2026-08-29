@@ -105,7 +105,7 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
           <Checkbox
             aria-label={t("selectAllOperators")}
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) =>
+            onCheckedChange={(value: boolean | "indeterminate") =>
               table.toggleAllPageRowsSelected(!!value)
             }
           />
@@ -116,7 +116,7 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
           <Checkbox
             aria-label={t("selectRow")}
             checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            onCheckedChange={(value: boolean | "indeterminate") => row.toggleSelected(!!value)}
           />
         </div>
       ),

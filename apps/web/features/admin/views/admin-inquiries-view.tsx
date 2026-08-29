@@ -142,7 +142,7 @@ export function AdminInquiriesView() {
             </span>
             <Select
               value={statusFilter}
-              onValueChange={(value) => {
+              onValueChange={(value: string) => {
                 setStatusFilter(value || "All");
                 setPage(1);
               }}
@@ -286,7 +286,7 @@ export function AdminInquiriesView() {
               <span>{t("rowsPerPage")}</span>
               <Select
                 value={`${pageSize}`}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setPageSize(Number(value));
                   setPage(1);
                 }}

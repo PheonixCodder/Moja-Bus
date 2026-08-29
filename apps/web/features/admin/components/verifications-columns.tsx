@@ -88,7 +88,7 @@ export function getCompanyColumns({
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && "indeterminate")
             }
-            onCheckedChange={(value) =>
+            onCheckedChange={(value: boolean | "indeterminate") =>
               table.toggleAllPageRowsSelected(!!value)
             }
           />
@@ -99,7 +99,7 @@ export function getCompanyColumns({
           <Checkbox
             aria-label={`${t("selectRow", { name: row.original.name })}`}
             checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            onCheckedChange={(value: boolean | "indeterminate") => row.toggleSelected(!!value)}
           />
         </div>
       ),

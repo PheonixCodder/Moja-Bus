@@ -143,7 +143,7 @@ export function Travelers({ travelers }: { travelers: TravelerRow[] }) {
           <div className="flex flex-wrap items-center gap-3">
             <Select
               value={params.status}
-              onValueChange={(value) => {
+              onValueChange={(value: string) => {
                 setParams({ status: value as any });
                 table.setPageIndex(0);
               }}

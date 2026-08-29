@@ -71,7 +71,7 @@ export function RevenueAnalyticsChart({
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: "#64748b" }}
-                tickFormatter={(value) =>
+                tickFormatter={(value: number | bigint) =>
                   new Intl.NumberFormat("en-US", {
                     notation: "compact",
                     compactDisplay: "short",

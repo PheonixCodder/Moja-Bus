@@ -93,7 +93,7 @@ export function DashboardRevenueChart({
                   axisLine={false}
                   tickMargin={10}
                   tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                  tickFormatter={(value) =>
+                  tickFormatter={(value: string | number) =>
                     format(
                       new Date(String(value)),
                       revenueTrend.length > 14 ? "d MMM" : "d MMM",

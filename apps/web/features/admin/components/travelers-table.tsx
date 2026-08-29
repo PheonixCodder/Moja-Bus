@@ -119,7 +119,7 @@ export function TravelersTable({ table }: { table: TableType<TravelerRow> }) {
             <span>{t("rowsPerPage")}</span>
             <Select
               value={`${table.getState().pagination.pageSize}`}
-              onValueChange={(value) => table.setPageSize(Number(value))}
+              onValueChange={(value: string) => table.setPageSize(Number(value))}
             >
               <SelectTrigger
                 size="sm"

@@ -84,7 +84,7 @@ export function BlogViewsChart({ data }: BlogViewsChartProps) {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(val) => format(parseISO(val), "MMM d")}
+              tickFormatter={(val: string) => format(parseISO(val), "MMM d")}
               minTickGap={32}
               style={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
             />
@@ -92,7 +92,7 @@ export function BlogViewsChart({ data }: BlogViewsChartProps) {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => `${value}`}
+              tickFormatter={(value: string | number) => `${value}`}
               style={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
             />
             <ChartTooltip

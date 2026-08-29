@@ -92,7 +92,7 @@ export function getTravelerColumns(
           <Checkbox
             aria-label={t("selectAllTravelers")}
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) =>
+            onCheckedChange={(value: boolean | "indeterminate") =>
               table.toggleAllPageRowsSelected(!!value)
             }
           />
@@ -103,7 +103,7 @@ export function getTravelerColumns(
           <Checkbox
             aria-label={t("selectTraveler", { name: row.original.name })}
             checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            onCheckedChange={(value: boolean | "indeterminate") => row.toggleSelected(!!value)}
           />
         </div>
       ),

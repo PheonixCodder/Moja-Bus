@@ -127,14 +127,14 @@ export function TravelInsightsChart({
                 axisLine={false}
                 tickMargin={10}
                 tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                tickFormatter={(v) => `${v}`}
+                tickFormatter={(v: string | number) => `${v}`}
                 width={25}
               />
               <ChartTooltip
                 content={
                   <ChartTooltipContent
                     className="bg-popover text-popover-foreground border border-border"
-                    formatter={(value, name) => (
+                    formatter={(value: any, name: any) => (
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-xs leading-none">
                           {name === "spentXOF"
