@@ -8,5 +8,12 @@
   "manualCheckin": "Manual Check-in",
   "totalPassengers": "Total Passengers",
   "boardedCount": "Boarded",
-  "remaining": "Remaining"
+  "remaining": "Remaining",
+  "title": "Passenger Manifest",
+  "subtitle": "Official boarding list",
+  "progressTitle": "Boarding Progress",
+  "loading": "Loading passenger manifest...",
+  "emptyTitle": "No Passengers Found",
+  "emptySearch": "No passengers match your search.",
+  "emptyNone": "No confirmed bookings for this departure yet."
 }

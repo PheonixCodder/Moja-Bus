@@ -8,5 +8,12 @@
   "manualCheckin": "Enregistrement Manuel",
   "totalPassengers": "Total Passagers",
   "boardedCount": "Embarqués",
-  "remaining": "Restants"
+  "remaining": "Restants",
+  "title": "Manifeste Passagers",
+  "subtitle": "Liste d'embarquement officielle",
+  "progressTitle": "Progression de l'Embarquement",
+  "loading": "Chargement du manifeste passagers...",
+  "emptyTitle": "Aucun Passager Trouvé",
+  "emptySearch": "Aucun passager ne correspond à votre recherche.",
+  "emptyNone": "Aucune réservation confirmée pour ce départ pour l'instant."
 }

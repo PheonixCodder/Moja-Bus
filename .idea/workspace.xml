@@ -5,10 +5,58 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4f1351ad-4d4d-4706-9835-a4271b138320" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deviceManager.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deviceManager.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/traveler-app/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/android/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.opencode/opencode.json" beforeDir="false" afterPath="$PROJECT_DIR$/.opencode/opencode.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/preferences.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/preferences.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/carrier.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/carrier.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/documents.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/documents.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/license.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/license.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/status.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/status.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/earnings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/earnings.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/live.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/live.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/offers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/offers.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/profile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/scanner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/scanner.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/trips.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(tabs)/trips.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/notifications.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/notifications.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/trip/[id]/manifest.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/trip/[id]/manifest.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/babel.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/babel.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/components/notification-bell.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/components/notification-bell.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/global.css" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/global.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/lib/auth-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/lib/auth-client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/lib/i18n.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/lib/i18n.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/lib/trpc.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/lib/trpc.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/earnings.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/earnings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/live.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/live.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/trips.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/trips.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/earnings.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/earnings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/live.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/live.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/passport.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/passport.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/trips.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/trips.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/lib/auth-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/lib/auth-client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/lib/trpc.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/lib/trpc.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eas.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/.graphify_root" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/.graphify_root" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/GRAPH_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/GRAPH_REPORT.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/graph.html" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/graph.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/graph.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/graph.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/memory.md" beforeDir="false" afterPath="$PROJECT_DIR$/memory.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

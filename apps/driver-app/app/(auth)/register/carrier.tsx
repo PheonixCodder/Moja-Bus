@@ -2,32 +2,60 @@ import { useState } from "react";
 import {
 	View,
 	Text,
-	TextInput,
 	TouchableOpacity,
-	ScrollView,
-	ActivityIndicator,
 	Alert,
+	StyleSheet,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
-	ArrowLeft,
-	Building2,
-	CheckCircle,
-	ShieldCheck,
-	Send,
-	Lock,
-} from "lucide-react-native";
+	Building01Icon,
+	CheckmarkCircle02Icon,
+	SentIcon,
+} from "@hugeicons/core-free-icons";
 import {
 	useDriverRegistrationStore,
 	type EmploymentType,
 } from "@/stores/driver-registration";
+import { useWizardGuard } from "@/hooks/use-wizard-guard";
 import { useTRPC } from "@/lib/trpc";
 import { DriverFeedback } from "@/lib/haptics";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ScreenShell } from "@/components/ui/ScreenShell";
+
+const EMPLOYMENT_TYPES: Array<{
+	type: EmploymentType;
+	title: string;
+	desc: string;
+	badge: string;
+}> = [
+	{
+		type: "EXCLUSIVE_INTERCITY",
+		title: "Chauffeur Interurbain Dédié",
+		desc: "Affilié à une compagnie pour des liaisons régulières entre villes.",
+		badge: "Recommandé",
+	},
+	{
+		type: "CONTRACTOR_URBAN",
+		title: "Chauffeur Urbain Contractuel",
+		desc: "Navettes urbaines, lignes express locales et services scolaires/privés.",
+		badge: "Urbain",
+	},
+	{
+		type: "HYBRID",
+		title: "Prestataire Hybride (Intercity & Urbain)",
+		desc: "Disponible pour les deux types d'opérations et missions de relève.",
+		badge: "Flexible",
+	},
+];
 
 export default function RegisterStep4CarrierScreen() {
 	const router = useRouter();
+	useWizardGuard(4);
+
 	const trpc = useTRPC();
 	const store = useDriverRegistrationStore();
 
@@ -36,8 +64,6 @@ export default function RegisterStep4CarrierScreen() {
 		store.employmentType || "EXCLUSIVE_INTERCITY"
 	);
 
-
-	// Register mutation
 	const registerMutation = useMutation(
 		trpc.drivers.registerDriver.mutationOptions()
 	);
@@ -63,213 +89,223 @@ export default function RegisterStep4CarrierScreen() {
 			});
 
 			DriverFeedback.successScan();
-			// Phase 15 (F-DV-05) — honest affiliation outcome instead of silence.
+			store.reset();
+
 			if (!result.affiliated) {
 				Alert.alert(
-					"No Carrier Linked",
+					"Aucun transporteur associé",
 					code.trim()
-						? "Your invite code didn't match an active carrier. Your application was submitted — once verified, operators can find and hire you on the marketplace."
-						: "You submitted without a carrier code. Once verified, operators can find and hire you on the marketplace.",
+						? "Votre code d'invitation ne correspond à aucun transporteur actif. Votre dossier a été soumis — une fois vérifié, les opérateurs pourront vous contacter sur la marketplace."
+						: "Dossier soumis sans code transporteur. Une fois vérifié, vous serez visible par les opérateurs sur la marketplace.",
 				);
 			}
 			router.replace("/(auth)/register/status");
 		} catch (err: any) {
 			DriverFeedback.invalidScan();
-			// Phase 14/16 (F-DV-10) — structured phone-mismatch error parses into
-			// an honest message instead of surfacing the raw code.
 			if (err?.message?.startsWith("PHONE_REVERIFICATION_REQUIRED")) {
 				const parts = err.message.split("::");
 				Alert.alert(
-					"Phone Number Mismatch",
-					`Your account uses ${parts[1] ?? "a different number"}, but you entered ${
-						parts[2] ?? "another number"
-					}. Sign-in codes go to your account number — update it via OTP verification first, or register with the account number.`,
+					"Numéro de téléphone non concordant",
+					`Votre compte utilise ${parts[1] ?? "un autre numéro"}, mais vous avez saisi ${
+						parts[2] ?? "un numéro différent"
+					}. Les codes de connexion sont envoyés à votre numéro de compte.`,
 				);
 			} else {
 				Alert.alert(
-					"Registration Error",
-					err.message || "Failed to submit driver application.",
+					"Erreur d'inscription",
+					err.message || "Échec de l'envoi de votre candidature.",
 				);
 			}
 		}
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-zinc-950">
-			{/* Top Nav Header */}
-			<View className="px-5 py-3 border-b border-zinc-800 bg-zinc-900/60 flex-row items-center justify-between">
-				<TouchableOpacity
-					onPress={() => router.back()}
-					className="size-10 rounded-full bg-zinc-800 items-center justify-center"
-				>
-					<ArrowLeft size={20} color="#fafafa" />
-				</TouchableOpacity>
-				<View className="items-center">
-					<Text className="text-xs font-black text-white uppercase tracking-wider">
-						Driver Onboarding
-					</Text>
-					<Text className="text-[10px] text-zinc-400 font-mono">
-						Step 4 of 4: Carrier Affiliation
-					</Text>
-				</View>
-				<View className="size-10" />
-			</View>
-
-			{/* Progress Indicator */}
-			<View className="h-1 bg-zinc-900 w-full">
-				<View className="h-full bg-rose-600 w-full" />
-			</View>
-
-			<ScrollView className="flex-1 px-5 py-6 space-y-6">
-				{/* Header Intro */}
+		<ScreenShell
+			header={
 				<View>
-					<Text className="text-2xl font-black text-white tracking-tight">
-						Carrier Affiliation
-					</Text>
-					<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
-						Connect your driver passport to your commercial bus carrier or transport company.
-					</Text>
-				</View>
-
-				{/* Employment Type Choice */}
-				<View className="space-y-2.5">
-					<Text className="text-xs font-semibold text-zinc-300">
-						Employment Model
-					</Text>
-
-					{/* Exclusive Intercity */}
-					<TouchableOpacity
-						onPress={() => {
-							DriverFeedback.tap();
-							setEmploymentType("EXCLUSIVE_INTERCITY");
-						}}
-						className={`p-4 rounded-2xl border flex-row items-start justify-between ${
-							employmentType === "EXCLUSIVE_INTERCITY"
-								? "bg-rose-600/10 border-rose-500"
-								: "bg-zinc-900 border-zinc-800"
-						}`}
-					>
-						<View className="flex-1 pr-3">
-							<Text
-								className={`text-sm font-bold ${
-									employmentType === "EXCLUSIVE_INTERCITY"
-										? "text-rose-400"
-										: "text-white"
-								}`}
-							>
-								Exclusive Intercity Carrier
-							</Text>
-							<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
-								Assigned to scheduled long-distance coach routes with guaranteed shifts and carrier benefits.
-							</Text>
-						</View>
-						{employmentType === "EXCLUSIVE_INTERCITY" && (
-							<CheckCircle size={20} color="#e11d48" className="mt-0.5" />
-						)}
-					</TouchableOpacity>
-
-					{/* Urban Contractor */}
-					<TouchableOpacity
-						onPress={() => {
-							DriverFeedback.tap();
-							setEmploymentType("CONTRACTOR_URBAN");
-						}}
-						className={`p-4 rounded-2xl border flex-row items-start justify-between ${
-							employmentType === "CONTRACTOR_URBAN"
-								? "bg-rose-600/10 border-rose-500"
-								: "bg-zinc-900 border-zinc-800"
-						}`}
-					>
-						<View className="flex-1 pr-3">
-							<Text
-								className={`text-sm font-bold ${
-									employmentType === "CONTRACTOR_URBAN"
-										? "text-rose-400"
-										: "text-white"
-								}`}
-							>
-								Urban Contractor
-							</Text>
-							<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
-								Flexible urban loop driver available for high-frequency city shuttles and relief dispatches.
-							</Text>
-						</View>
-						{employmentType === "CONTRACTOR_URBAN" && (
-							<CheckCircle size={20} color="#e11d48" className="mt-0.5" />
-						)}
-					</TouchableOpacity>
-
-					{/* Hybrid */}
-					<TouchableOpacity
-						onPress={() => {
-							DriverFeedback.tap();
-							setEmploymentType("HYBRID");
-						}}
-						className={`p-4 rounded-2xl border flex-row items-start justify-between ${
-							employmentType === "HYBRID"
-								? "bg-rose-600/10 border-rose-500"
-								: "bg-zinc-900 border-zinc-800"
-						}`}
-					>
-						<View className="flex-1 pr-3">
-							<Text
-								className={`text-sm font-bold ${
-									employmentType === "HYBRID"
-										? "text-rose-400"
-										: "text-white"
-								}`}
-							>
-								Hybrid (Intercity & Urban)
-							</Text>
-							<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
-								Available for both long-distance intercity routes and urban shuttle operations.
-							</Text>
-						</View>
-						{employmentType === "HYBRID" && (
-							<CheckCircle size={20} color="#e11d48" className="mt-0.5" />
-						)}
-					</TouchableOpacity>
-				</View>
-
-				{/* Carrier Company Invite Code */}
-				<View className="space-y-1.5 pt-2">
-					<Text className="text-xs font-semibold text-zinc-300">
-						Carrier Company Code / Invite Token (Optional)
-					</Text>
-					<View className="flex-row items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 h-12">
-						<Building2 size={18} color="#71717a" />
-						<TextInput
-							className="flex-1 ml-3 text-white text-sm font-mono"
-							placeholder="e.g. UTB-CI-01"
-							placeholderTextColor="#52525b"
-							autoCapitalize="characters"
-							value={code}
-							onChangeText={setCode}
-						/>
+					<PageHeader
+						title="Inscription Chauffeur"
+						subtitle="Étape 4 sur 4 : Affiliation transporteur"
+						showBack
+					/>
+					<View style={styles.progressTrack}>
+						<View style={[styles.progressBar, { width: "100%" }]} />
 					</View>
-					<Text className="text-[11px] text-zinc-500 leading-relaxed">
-						If provided by your bus operator (e.g. UTB, SBTA, SOTRA), enter it to auto-link your contract.
-					</Text>
 				</View>
-
-				{/* Submit Button */}
-				<TouchableOpacity
+			}
+			footer={
+				<Button
+					title="Soumettre mon dossier officiel"
+					variant="primary"
+					size="lg"
+					loading={registerMutation.isPending}
 					onPress={handleSubmitRegistration}
-					disabled={registerMutation.isPending}
-					className="bg-rose-600 active:bg-rose-700 h-13 rounded-2xl items-center justify-center flex-row gap-2 mt-6 shadow-xl shadow-rose-600/30"
-				>
-					{registerMutation.isPending ? (
-						<ActivityIndicator size="small" color="#ffffff" />
-					) : (
-						<>
-							<Send size={18} color="#ffffff" />
-							<Text className="text-white font-bold text-sm">
-								Submit Application for Review
-							</Text>
-						</>
-					)}
-				</TouchableOpacity>
-			</ScrollView>
-		</SafeAreaView>
+					icon={<HugeiconsIcon icon={SentIcon} size={18} color="#ffffff" />}
+					iconPosition="right"
+				/>
+			}
+		>
+			<View style={styles.formCard}>
+				<Text style={styles.sectionTitle}>Mode de collaboration</Text>
+				<Text style={styles.sectionSubtitle}>
+					Définissez votre modalité d'exercice sur le réseau Moja.
+				</Text>
+
+				<View style={styles.typesList}>
+					{EMPLOYMENT_TYPES.map((item) => {
+						const isSelected = employmentType === item.type;
+						return (
+							<TouchableOpacity
+								key={item.type}
+								onPress={() => {
+									DriverFeedback.tap();
+									setEmploymentType(item.type);
+								}}
+								activeOpacity={0.8}
+								style={[
+									styles.typeCard,
+									isSelected && styles.typeCardSelected,
+								]}
+							>
+								<View style={styles.typeHeader}>
+									<Text style={styles.typeTitle}>{item.title}</Text>
+									<View style={styles.typeRight}>
+										<View style={styles.typeBadge}>
+											<Text style={styles.typeBadgeText}>{item.badge}</Text>
+										</View>
+										{isSelected ? (
+											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color="#ee237c" />
+										) : null}
+									</View>
+								</View>
+								<Text style={styles.typeDesc}>{item.desc}</Text>
+							</TouchableOpacity>
+						);
+					})}
+				</View>
+			</View>
+
+			<View style={styles.formCard}>
+				<View style={styles.carrierHeaderRow}>
+					<Text style={styles.sectionTitle}>Code d'invitation compagnie</Text>
+					<View style={styles.optionalBadge}>
+						<Text style={styles.optionalText}>Optionnel</Text>
+					</View>
+				</View>
+				<Text style={styles.sectionSubtitle}>
+					Si vous êtes déjà recruté par un transporteur partenaire, entrez le code fourni.
+				</Text>
+
+				<View style={styles.inputWrapper}>
+					<Input
+						label="Code Transporteur"
+						placeholder="ex: UTB-CI-9901"
+						value={code}
+						onChangeText={setCode}
+						autoCapitalize="characters"
+						leftIcon={<HugeiconsIcon icon={Building01Icon} size={18} color="#71717a" />}
+					/>
+				</View>
+			</View>
+		</ScreenShell>
 	);
 }
+
+const styles = StyleSheet.create({
+	progressTrack: {
+		height: 4,
+		backgroundColor: "#18181b",
+		width: "100%",
+	},
+	progressBar: {
+		height: "100%",
+		backgroundColor: "#ee237c",
+	},
+	formCard: {
+		backgroundColor: "#18181b",
+		borderWidth: 1,
+		borderColor: "#27272a",
+		borderRadius: 20,
+		padding: 20,
+		gap: 12,
+	},
+	carrierHeaderRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	optionalBadge: {
+		backgroundColor: "rgba(113, 113, 122, 0.2)",
+		paddingHorizontal: 10,
+		paddingVertical: 4,
+		borderRadius: 999,
+	},
+	optionalText: {
+		fontSize: 10,
+		fontWeight: "700",
+		color: "#a1a1aa",
+		textTransform: "uppercase",
+	},
+	sectionTitle: {
+		fontSize: 16,
+		fontWeight: "800",
+		color: "#fafafa",
+		letterSpacing: -0.2,
+	},
+	sectionSubtitle: {
+		fontSize: 12,
+		color: "#a1a1aa",
+		lineHeight: 18,
+	},
+	typesList: {
+		gap: 10,
+		paddingTop: 4,
+	},
+	typeCard: {
+		padding: 14,
+		borderRadius: 16,
+		borderWidth: 1.5,
+		borderColor: "#27272a",
+		backgroundColor: "#09090b",
+		gap: 6,
+	},
+	typeCardSelected: {
+		borderColor: "#ee237c",
+		backgroundColor: "rgba(238, 35, 124, 0.06)",
+	},
+	typeHeader: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	typeTitle: {
+		fontSize: 14,
+		fontWeight: "700",
+		color: "#fafafa",
+		flex: 1,
+	},
+	typeRight: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 8,
+	},
+	typeBadge: {
+		backgroundColor: "#27272a",
+		paddingHorizontal: 8,
+		paddingVertical: 3,
+		borderRadius: 6,
+	},
+	typeBadgeText: {
+		fontSize: 10,
+		fontWeight: "700",
+		color: "#a1a1aa",
+	},
+	typeDesc: {
+		fontSize: 11,
+		color: "#71717a",
+		lineHeight: 16,
+	},
+	inputWrapper: {
+		paddingTop: 4,
+	},
+});

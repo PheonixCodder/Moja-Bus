@@ -1,0 +1,47 @@
+# =========================================================================
+# 1. BLOCK MASSIVE NON-APP ROOT FOLDERS
+# =========================================================================
+ivory_coast_data/
+app-references/
+legacy-apps-setup/
+graphify-out/
+
+# =========================================================================
+# 2. MONOREPO & APP PROTECTION (Ignore other apps during this build)
+# =========================================================================
+# This ignores every other app folder *except* driver-app
+apps/traveler-app/
+apps/web/
+# If you have any other folders inside /apps, add them here
+
+# Ignore deep dependency/cache folders across all sub-apps
+apps/**/node_modules/
+apps/**/.turbo/
+apps/**/.expo/
+
+# =========================================================================
+# 3. GLOBAL DEPENDENCIES & CACHES
+# =========================================================================
+node_modules/
+.yarn/
+.npm/
+.pnpm-store/
+.gradle/
+.turbo/
+.expo/
+
+# =========================================================================
+# 4. NATIVE BUILD ARTIFACTS
+# =========================================================================
+**/android/build/
+**/android/app/build/
+**/android/.gradle/
+**/ios/build/
+**/ios/Pods/
+
+# =========================================================================
+# 5. BINARIES
+# =========================================================================
+**/*.apk
+**/*.aab
+dist/

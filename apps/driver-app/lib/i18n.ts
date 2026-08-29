@@ -1,6 +1,7 @@
 import { getLocales } from "expo-localization";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import enAuth from "../locales/en/auth.json";
 import enTrips from "../locales/en/trips.json";
@@ -24,7 +25,11 @@ import frDispatch from "../locales/fr/dispatch.json";
 import frOffers from "../locales/fr/offers.json";
 import frNotifications from "../locales/fr/notifications.json";
 
+export const USER_LOCALE_STORAGE_KEY = "user-locale";
+export type SupportedLocale = "fr" | "en";
+
 const deviceLanguage = getLocales()?.[0]?.languageCode ?? "fr";
+const initialLanguage = deviceLanguage.startsWith("fr") ? "fr" : "en";
 
 i18n.use(initReactI18next).init({
 	resources: {
@@ -53,15 +58,46 @@ i18n.use(initReactI18next).init({
 			notifications: frNotifications,
 		},
 	},
-	// French-first: drivers in Côte d'Ivoire are primarily Francophone.
-	// Fallback to detected device language, then English.
-	lng: deviceLanguage.startsWith("fr") ? "fr" : deviceLanguage,
+	lng: initialLanguage,
 	fallbackLng: "fr",
-	ns: ["auth", "trips", "live", "scanner", "manifest", "earnings", "passport", "dispatch", "offers", "notifications"],
+	ns: [
+		"auth",
+		"trips",
+		"live",
+		"scanner",
+		"manifest",
+		"earnings",
+		"passport",
+		"dispatch",
+		"offers",
+		"notifications",
+	],
 	defaultNS: "auth",
 	interpolation: {
 		escapeValue: false,
 	},
 });
+
+// Asynchronously load stored user locale preference
+AsyncStorage.getItem(USER_LOCALE_STORAGE_KEY)
+	.then((storedLocale) => {
+		if (storedLocale === "fr" || storedLocale === "en") {
+			if (i18n.language !== storedLocale) {
+				void i18n.changeLanguage(storedLocale);
+			}
+		}
+	})
+	.catch(() => {});
+
+export async function switchLanguage(locale: SupportedLocale) {
+	await i18n.changeLanguage(locale);
+	try {
+		await AsyncStorage.setItem(USER_LOCALE_STORAGE_KEY, locale);
+	} catch {}
+}
+
+export function getCurrentLanguage(): SupportedLocale {
+	return i18n.language.startsWith("fr") ? "fr" : "en";
+}
 
 export default i18n;

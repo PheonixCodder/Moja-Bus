@@ -12,8 +12,14 @@ import {
 const AUTH_STORAGE_PREFIX = "traveler-app";
 const AUTH_COOKIE_STORAGE_KEY = `${AUTH_STORAGE_PREFIX}_cookie`;
 
-const baseURL =
-	process.env["EXPO_PUBLIC_API_URL"] ?? "http://192.168.100.3:3000";
+export function getBaseUrl(): string {
+	if (process.env["EXPO_PUBLIC_API_URL"]) {
+		return process.env["EXPO_PUBLIC_API_URL"];
+	}
+	return "https://moja-bus-web.vercel.app";
+}
+
+const baseURL = getBaseUrl();
 
 export const authClient = createAuthClient({
 	baseURL,

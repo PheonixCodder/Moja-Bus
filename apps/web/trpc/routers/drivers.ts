@@ -97,6 +97,7 @@ import {
   driverProcedure,
   operatorCompanyProcedure,
   protectedProcedure,
+  publicProcedure,
 } from "../init";
 
 // ============================================================================
@@ -391,6 +392,48 @@ type PublicDriverProfileView = {
 };
 
 export const driversRouter = createTRPCRouter({
+  checkDriverAccountStatus: publicProcedure
+    .input(z.object({ phone: z.string().min(8) }))
+    .query(async ({ ctx, input }) => {
+      const normalizedPhone =
+        toE164(input.phone, "+225") ?? input.phone.trim();
+      const user = await ctx.prisma.user.findFirst({
+        where: {
+          OR: [
+            { phoneNumber: normalizedPhone },
+            { phoneNumber: input.phone.trim() },
+          ],
+        },
+        include: {
+          driverProfile: {
+            select: {
+              id: true,
+              verificationStatus: true,
+            },
+          },
+        },
+      });
+
+      if (!user) {
+        return {
+          exists: false,
+          isDriver: false,
+          hasDriverProfile: false,
+          verificationStatus: null,
+        };
+      }
+
+      const hasDriverProfile = !!user.driverProfile;
+      const isDriver = user.role === "DRIVER" || hasDriverProfile;
+
+      return {
+        exists: true,
+        isDriver,
+        hasDriverProfile,
+        verificationStatus: user.driverProfile?.verificationStatus ?? null,
+      };
+    }),
+
   getPermissions: operatorCompanyProcedure.query(({ ctx }) => {
     return {
       canRead: operatorHasPermission(ctx, "drivers:read"),
@@ -1467,15 +1510,17 @@ export const driversRouter = createTRPCRouter({
             "Enter a valid Ivorian phone number (at least 10 digits after +225).",
         });
       }
+      const sessionNormalized = ctx.user.phoneNumber
+        ? toE164(ctx.user.phoneNumber, "+225") ?? ctx.user.phoneNumber
+        : null;
       if (
-        ctx.user.phoneNumber &&
-        ctx.user.phoneNumber !== input.phone &&
-        ctx.user.phoneNumber !== normalizedPhone
+        sessionNormalized &&
+        sessionNormalized !== normalizedPhone
       ) {
         const mask = (p: string) => `${p.slice(0, 5)}••••${p.slice(-2)}`;
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `PHONE_REVERIFICATION_REQUIRED::${mask(ctx.user.phoneNumber)}::${mask(normalizedPhone)}`,
+          message: `PHONE_REVERIFICATION_REQUIRED::${mask(ctx.user.phoneNumber!)}::${mask(normalizedPhone)}`,
         });
       }
 
@@ -1535,19 +1580,30 @@ export const driversRouter = createTRPCRouter({
         });
 
         if (company) {
-          await ctx.prisma.driverCompanyAffiliation.create({
-            data: {
-              driverProfileId: driver.id,
-              companyId: company.id,
-              // Phase 15 (F-DV-05) — the driver's chosen contract type, not a
-              // hardcoded default.
-              employmentType: input.employmentType ?? "EXCLUSIVE_INTERCITY",
-              isActive: true,
-              isVerified: false,
-            },
-          });
-          affiliated = true;
-          companyName = company.name;
+          try {
+            await ctx.prisma.driverCompanyAffiliation.create({
+              data: {
+                driverProfileId: driver.id,
+                companyId: company.id,
+                // Phase 15 (F-DV-05) — the driver's chosen contract type, not a
+                // hardcoded default.
+                employmentType: input.employmentType ?? "EXCLUSIVE_INTERCITY",
+                isActive: true,
+                isVerified: false,
+              },
+            });
+            affiliated = true;
+            companyName = company.name;
+          } catch (err: any) {
+            if (err?.code === "P2002") {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message:
+                  "Vous êtes déjà affilié de manière exclusive à un autre transporteur actif.",
+              });
+            }
+            throw err;
+          }
         }
       }
 

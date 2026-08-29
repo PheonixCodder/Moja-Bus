@@ -8,12 +8,23 @@
   "shiftHistory": "Shift History",
   "cashout": "Mobile Money Cashout",
   "cashoutDetails": "Cashout Details",
-  "noShifts": "No shift history yet",
+  "noShifts": "No shift history",
   "duration": "Duration",
   "earnings_label": "Earnings",
   "tripsCompleted": "Trips Completed",
   "startShift": "Start New Shift",
-  "endShift": "End Shift"
-,
-  "estimationBadge": "Estimation"
+  "endShift": "End Shift",
+  "estimationBadge": "Estimation",
+  "headerTitle": "Earnings & Shift Ledger",
+  "headerSubtitle": "Commercial compensations and verified records",
+  "todayLabel": "Today",
+  "tripsCompletedLabel": "Completed Trips",
+  "shiftOnDuty": "Shift Active",
+  "shiftOffDuty": "Shift Inactive",
+  "shiftStartBtn": "Clock In",
+  "shiftEndBtn": "Clock Out",
+  "carrierBreakdown": "Carrier Breakdown",
+  "recentShifts": "Recent Shift History",
+  "emptyLedger": "No shift history",
+  "emptyLedgerDesc": "Your completed shifts will appear here with hourly counts."
 }

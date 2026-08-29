@@ -16,7 +16,15 @@
   "confirm": "Terminer",
   "cancel": "Annuler",
   "delayReported": "Retard Signalé",
-  "runCompleted": "Course Terminée"
-,
-  "approximateRoute": "Itinéraire approximatif"
+  "runCompleted": "Course Terminée",
+  "approximateRoute": "Itinéraire approximatif",
+  "headerTitle": "Navigation & Télémétrie HUD",
+  "headerSubtitle": "Suivi GPS temps réel haute précision (F-TM-04/05)",
+  "noActiveRunTitle": "Aucune Course Active",
+  "noActiveRunDesc": "Démarrez une course depuis l'onglet 'Trajets' pour lancer le tracking télémétrique et la navigation GPS.",
+  "btnGoToTrips": "Voir les Trajets",
+  "routeProgress": "Progression de l'Itinéraire",
+  "stopsCompleted": "Arrêts Validés",
+  "btnArrive": "Arrivée",
+  "btnDepart": "Départ"
 }

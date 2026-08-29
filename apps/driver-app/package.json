@@ -10,7 +10,8 @@
 		"clean": "rm -rf .expo node_modules",
 		"lint": "biome check app.json metro.config.js biome.jsonc nativewind-env.d.ts package.json tsconfig.json app components constants features hooks lib",
 		"test": "tsx --test __tests__/telemetry-core.test.ts __tests__/mapbox-cache-core.test.ts __tests__/notification-routes.test.ts __tests__/i18n-parity.test.ts",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"eas-build-pre-install": "node ./scripts/eas-build-pre-install.cjs"
 	},
 	"dependencies": {
 		"@better-auth/expo": "^1.6.22",
@@ -27,30 +28,6 @@
 		"@novu/react-native": "^3.18.1",
 		"@react-native-async-storage/async-storage": "2.2.0",
 		"@react-native-community/datetimepicker": "9.1.0",
-		"@rn-primitives/accordion": "^1.5.2",
-		"@rn-primitives/alert-dialog": "^1.5.2",
-		"@rn-primitives/aspect-ratio": "^1.5.2",
-		"@rn-primitives/avatar": "^1.5.2",
-		"@rn-primitives/checkbox": "^1.5.2",
-		"@rn-primitives/collapsible": "^1.5.2",
-		"@rn-primitives/context-menu": "^1.5.2",
-		"@rn-primitives/dialog": "^1.5.2",
-		"@rn-primitives/dropdown-menu": "^1.5.2",
-		"@rn-primitives/hover-card": "^1.5.2",
-		"@rn-primitives/label": "^1.5.2",
-		"@rn-primitives/menubar": "^1.5.2",
-		"@rn-primitives/popover": "^1.5.2",
-		"@rn-primitives/portal": "~1.4.0",
-		"@rn-primitives/progress": "^1.5.2",
-		"@rn-primitives/radio-group": "^1.5.2",
-		"@rn-primitives/select": "^1.5.2",
-		"@rn-primitives/separator": "^1.5.2",
-		"@rn-primitives/slot": "^1.5.2",
-		"@rn-primitives/switch": "^1.5.2",
-		"@rn-primitives/tabs": "^1.5.2",
-		"@rn-primitives/toggle": "^1.5.2",
-		"@rn-primitives/toggle-group": "^1.5.2",
-		"@rn-primitives/tooltip": "^1.5.2",
 		"@rnmapbox/maps": "10.3.5",
 		"@tanstack/react-query": "^5.101.1",
 		"@trpc/client": "^11.18.0",
@@ -103,15 +80,20 @@
 		"rn-international-phone-number": "^0.14.0",
 		"superjson": "^2.2.6",
 		"tailwind-merge": "^3.5.0",
+		"tailwindcss": "^4",
 		"zustand": "^5.0.14"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.26.10",
 		"@biomejs/biome": "^2.3.9",
 		"@moja/typescript": "workspace:*",
-		"@types/react": "19.2.7",
+		"@tailwindcss/postcss": "^4",
+		"@types/react": "~19.2.10",
+		"babel-plugin-module-resolver": "^5.0.3",
 		"babel-preset-expo": "~57.0.5",
-		"tailwindcss": "4.1.11",
-		"typescript": "~5.9.3"
-	}
+		"prettier": "^3.8.3",
+		"prettier-plugin-tailwindcss": "^0.8.0",
+		"typescript": "~6.0.3"
+	},
+	"private": true
 }

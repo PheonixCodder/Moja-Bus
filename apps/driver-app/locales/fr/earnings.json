@@ -13,7 +13,18 @@
   "earnings_label": "Gains",
   "tripsCompleted": "Courses Effectuées",
   "startShift": "Démarrer un Nouveau Service",
-  "endShift": "Terminer le Service"
-,
-  "estimationBadge": "Estimation"
+  "endShift": "Terminer le Service",
+  "estimationBadge": "Estimation",
+  "headerTitle": "Revenus & Registre de Service",
+  "headerSubtitle": "Rémunérations commerciales et relevés vérifiés",
+  "todayLabel": "Aujourd'hui",
+  "tripsCompletedLabel": "Courses Réalisées",
+  "shiftOnDuty": "Service en Cours",
+  "shiftOffDuty": "Service Inactif",
+  "shiftStartBtn": "Prise de Service",
+  "shiftEndBtn": "Fin de Service",
+  "carrierBreakdown": "Répartition par Transporteur",
+  "recentShifts": "Historique Récent des Quarts",
+  "emptyLedger": "Aucun relevé de service",
+  "emptyLedgerDesc": "Vos prises de service achevées apparaîtront ici avec le décompte horaire."
 }

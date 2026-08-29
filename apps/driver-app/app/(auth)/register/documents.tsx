@@ -3,30 +3,35 @@ import { useMutation } from "@tanstack/react-query";
 import {
 	View,
 	Text,
-	TextInput,
-	TouchableOpacity,
-	ScrollView,
 	Image,
 	Alert,
+	TouchableOpacity,
+	StyleSheet,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
-	ArrowLeft,
-	Camera,
-	FileText,
-	ShieldCheck,
-	HeartPulse,
-	ArrowRight,
-} from "lucide-react-native";
+	IdentityCardIcon,
+	HealthIcon,
+	SecurityCheckIcon,
+	ArrowRight01Icon,
+	CheckmarkCircle02Icon,
+} from "@hugeicons/core-free-icons";
 import { useDriverRegistrationStore } from "@/stores/driver-registration";
+import { useWizardGuard } from "@/hooks/use-wizard-guard";
 import { DriverFeedback } from "@/lib/haptics";
 import { useTRPC } from "@/lib/trpc";
 import { uploadCapturedDocument } from "@/lib/driver-doc-upload";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ScreenShell } from "@/components/ui/ScreenShell";
 
 export default function RegisterStep3DocumentsScreen() {
 	const router = useRouter();
+	useWizardGuard(3);
+
 	const {
 		nationalIdNumber,
 		medicalDocUri,
@@ -37,7 +42,6 @@ export default function RegisterStep3DocumentsScreen() {
 
 	const [idInput, setIdInput] = useState(nationalIdNumber);
 	const [medicalUri, setMedicalUri] = useState<string | null>(medicalDocUri);
-	// Phase 15 — uploaded object key (distinct from the local preview URI).
 	const [medicalKey, setMedicalKey] = useState<string | null>(
 		medicalDocUri?.startsWith("documents/") ? medicalDocUri : null,
 	);
@@ -46,7 +50,7 @@ export default function RegisterStep3DocumentsScreen() {
 		DriverFeedback.tap();
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
 		if (status !== "granted") {
-			Alert.alert("Permission Required", "Camera permission is required to capture medical clearance documents.");
+			Alert.alert("Permission requise", "L'accès à la caméra est requis pour photographier votre certificat médical.");
 			return;
 		}
 
@@ -68,8 +72,8 @@ export default function RegisterStep3DocumentsScreen() {
 			});
 			if (!storedKey) {
 				Alert.alert(
-					"Upload Failed",
-					"Check your connection and retake the photo — it must upload before you continue.",
+					"Échec de téléversement",
+					"Vérifiez votre connexion et reprenez la photo avant de continuer.",
 				);
 				return;
 			}
@@ -80,13 +84,13 @@ export default function RegisterStep3DocumentsScreen() {
 
 	const handleNext = () => {
 		if (!idInput.trim()) {
-			Alert.alert("Required Field", "Please enter your National Identity Number (CNI).");
+			Alert.alert("Champ obligatoire", "Veuillez saisir votre numéro national d'identité (CNI).");
 			return;
 		}
 		if (medicalUri && !medicalKey) {
 			Alert.alert(
-				"Document Not Uploaded",
-				"Your medical certificate failed to upload. Retake it or remove it before continuing.",
+				"Document non téléversé",
+				"Votre certificat médical n'a pas pu être envoyé. Reprenez-le ou supprimez-le avant de continuer.",
 			);
 			return;
 		}
@@ -100,108 +104,233 @@ export default function RegisterStep3DocumentsScreen() {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-zinc-950">
-			{/* Top Nav Header */}
-			<View className="px-5 py-3 border-b border-zinc-800 bg-zinc-900/60 flex-row items-center justify-between">
-				<TouchableOpacity
-					onPress={() => router.back()}
-					className="size-10 rounded-full bg-zinc-800 items-center justify-center"
-				>
-					<ArrowLeft size={20} color="#fafafa" />
-				</TouchableOpacity>
-				<View className="items-center">
-					<Text className="text-xs font-black text-white uppercase tracking-wider">
-						Driver Onboarding
-					</Text>
-					<Text className="text-[10px] text-zinc-400 font-mono">
-						Step 3 of 4: Compliance Docs
-					</Text>
-				</View>
-				<View className="size-10" />
-			</View>
-
-			{/* Progress Indicator */}
-			<View className="h-1 bg-zinc-900 w-full">
-				<View className="h-full bg-rose-600 w-3/4" />
-			</View>
-
-			<ScrollView className="flex-1 px-5 py-6 space-y-6">
-				{/* Header Intro — Phase 15: raw <div> crashed Android (Gate-A UI fix) */}
+		<ScreenShell
+			header={
 				<View>
-					<Text className="text-2xl font-black text-white tracking-tight">
-						Compliance Documents
-					</Text>
-					<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
-						National identification and medical fitness records ensure intercity traveler safety.
-					</Text>
-				</View>
-
-				{/* Inputs */}
-				<View className="space-y-4">
-					{/* National ID Number */}
-					<View className="space-y-1.5">
-						<Text className="text-xs font-semibold text-zinc-300">
-							National ID Number (CNI)
-						</Text>
-						<View className="flex-row items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 h-12">
-							<FileText size={18} color="#71717a" />
-							<TextInput
-								className="flex-1 ml-3 text-white text-sm font-mono"
-								placeholder="CI-001928374"
-								placeholderTextColor="#52525b"
-								autoCapitalize="characters"
-								value={idInput}
-								onChangeText={setIdInput}
-							/>
-						</View>
+					<PageHeader
+						title="Documents Légaux"
+						subtitle="Étape 3 sur 4 : CNI et certificat médical"
+						showBack
+					/>
+					<View style={styles.progressTrack}>
+						<View style={[styles.progressBar, { width: "75%" }]} />
 					</View>
+				</View>
+			}
+			footer={
+				<Button
+					title="Continuer vers l'affiliation"
+					variant="primary"
+					size="lg"
+					onPress={handleNext}
+					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
+					iconPosition="right"
+				/>
+			}
+		>
+			<View style={styles.formCard}>
+				<Text style={styles.sectionTitle}>Carte Nationale d'Identité (CNI)</Text>
+				<Text style={styles.sectionSubtitle}>
+					Votre numéro officiel pour la vérification réglementaire en Côte d'Ivoire.
+				</Text>
 
-					{/* Medical Clearance Upload Card */}
-					<View className="space-y-1.5 pt-2">
-						<Text className="text-xs font-semibold text-zinc-300">
-							Medical Fitness Clearance Certificate (Optional)
-						</Text>
+				<View style={styles.inputsList}>
+					<Input
+						label="Numéro CNI / Passeport"
+						placeholder="ex: C0129849201"
+						value={idInput}
+						onChangeText={setIdInput}
+						leftIcon={<HugeiconsIcon icon={IdentityCardIcon} size={18} color="#71717a" />}
+					/>
+				</View>
+			</View>
+
+			<View style={styles.formCard}>
+				<View style={styles.cardHeaderRow}>
+					<Text style={styles.sectionTitle}>Certificat d'Aptitude Médicale</Text>
+					<View style={styles.optionalBadge}>
+						<Text style={styles.optionalText}>Recommandé</Text>
+					</View>
+				</View>
+				<Text style={styles.sectionSubtitle}>
+					Exigé pour les trajets interurbains et autoroutiers longue distance.
+				</Text>
+
+				<View style={styles.uploadWrapper}>
+					{medicalUri ? (
 						<TouchableOpacity
 							onPress={handleCaptureMedical}
-							className="h-36 rounded-2xl bg-zinc-900 border-2 border-dashed border-zinc-800 items-center justify-center overflow-hidden"
+							style={styles.previewBox}
 						>
-							{medicalUri ? (
-								<Image source={{ uri: medicalUri }} className="size-full" resizeMode="cover" />
-							) : (
-								<View className="items-center justify-center space-y-1.5">
-									<HeartPulse size={26} color="#10b981" />
-									<Text className="text-xs font-bold text-white">Upload Medical Certificate</Text>
-									<Text className="text-[10px] text-zinc-500">
-										Annual vision & physical fitness assessment
-									</Text>
-								</View>
-							)}
+							<Image source={{ uri: medicalUri }} style={styles.previewImage} />
+							<View style={styles.previewSuccessTag}>
+								<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
+								<Text style={styles.previewSuccessText}>Document téléversé</Text>
+							</View>
 						</TouchableOpacity>
-					</View>
+					) : (
+						<TouchableOpacity
+							onPress={handleCaptureMedical}
+							activeOpacity={0.8}
+							style={styles.captureBox}
+						>
+							<View style={styles.cameraIconWrap}>
+								<HugeiconsIcon icon={HealthIcon} size={26} color="#ee237c" />
+							</View>
+							<Text style={styles.captureTitle}>Scanner le certificat médical</Text>
+							<Text style={styles.captureHint}>Document officiel datant de moins de 1 an</Text>
+						</TouchableOpacity>
+					)}
 				</View>
+			</View>
 
-				{/* Security Notice */}
-				<View className="bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800/80 flex-row items-start gap-3 mt-4">
-					<ShieldCheck size={20} color="#10b981" className="mt-0.5" />
-					<View className="flex-1">
-						<Text className="text-xs font-bold text-white">
-							End-to-End Encrypted Verification
-						</Text>
-						<Text className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
-							Documents are encrypted and reviewed exclusively by authorized carrier safety officers and transport regulators.
-						</Text>
-					</View>
+			<View style={styles.complianceCard}>
+				<HugeiconsIcon icon={SecurityCheckIcon} size={20} color="#10b981" />
+				<View style={styles.complianceTextWrap}>
+					<Text style={styles.complianceTitle}>Confidentialité Garantie</Text>
+					<Text style={styles.complianceDesc}>
+						Vos pièces justificatives sont chiffrées de bout en bout et conservées conformément à la réglementation ARTCI.
+					</Text>
 				</View>
-
-				{/* Next Button */}
-				<TouchableOpacity
-					onPress={handleNext}
-					className="bg-rose-600 active:bg-rose-700 h-13 rounded-2xl items-center justify-center flex-row gap-2 mt-4 shadow-lg shadow-rose-600/30"
-				>
-					<Text className="text-white font-bold text-sm">Continue to Carrier</Text>
-					<ArrowRight size={18} color="#ffffff" />
-				</TouchableOpacity>
-			</ScrollView>
-		</SafeAreaView>
+			</View>
+		</ScreenShell>
 	);
 }
+
+const styles = StyleSheet.create({
+	progressTrack: {
+		height: 4,
+		backgroundColor: "#18181b",
+		width: "100%",
+	},
+	progressBar: {
+		height: "100%",
+		backgroundColor: "#ee237c",
+		borderTopRightRadius: 4,
+		borderBottomRightRadius: 4,
+	},
+	formCard: {
+		backgroundColor: "#18181b",
+		borderWidth: 1,
+		borderColor: "#27272a",
+		borderRadius: 20,
+		padding: 20,
+		gap: 12,
+	},
+	cardHeaderRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	optionalBadge: {
+		backgroundColor: "rgba(59, 130, 246, 0.15)",
+		paddingHorizontal: 10,
+		paddingVertical: 4,
+		borderRadius: 999,
+	},
+	optionalText: {
+		fontSize: 10,
+		fontWeight: "700",
+		color: "#60a5fa",
+		textTransform: "uppercase",
+	},
+	sectionTitle: {
+		fontSize: 16,
+		fontWeight: "800",
+		color: "#fafafa",
+		letterSpacing: -0.2,
+	},
+	sectionSubtitle: {
+		fontSize: 12,
+		color: "#a1a1aa",
+		lineHeight: 18,
+	},
+	inputsList: {
+		paddingTop: 4,
+	},
+	uploadWrapper: {
+		paddingTop: 4,
+	},
+	captureBox: {
+		height: 120,
+		borderWidth: 1.5,
+		borderStyle: "dashed",
+		borderColor: "#3f3f46",
+		borderRadius: 16,
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor: "#09090b",
+		gap: 6,
+	},
+	cameraIconWrap: {
+		width: 44,
+		height: 44,
+		borderRadius: 22,
+		backgroundColor: "rgba(238, 35, 124, 0.12)",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	captureTitle: {
+		fontSize: 13,
+		fontWeight: "700",
+		color: "#fafafa",
+	},
+	captureHint: {
+		fontSize: 11,
+		color: "#71717a",
+	},
+	previewBox: {
+		position: "relative",
+		height: 130,
+		borderRadius: 16,
+		overflow: "hidden",
+		borderWidth: 1,
+		borderColor: "#27272a",
+	},
+	previewImage: {
+		width: "100%",
+		height: "100%",
+	},
+	previewSuccessTag: {
+		position: "absolute",
+		bottom: 10,
+		right: 10,
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 6,
+		backgroundColor: "rgba(24, 24, 27, 0.9)",
+		paddingHorizontal: 12,
+		paddingVertical: 6,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: "#27272a",
+	},
+	previewSuccessText: {
+		fontSize: 11,
+		fontWeight: "700",
+		color: "#fafafa",
+	},
+	complianceCard: {
+		flexDirection: "row",
+		gap: 12,
+		backgroundColor: "rgba(16, 185, 129, 0.08)",
+		borderWidth: 1,
+		borderColor: "rgba(16, 185, 129, 0.2)",
+		borderRadius: 16,
+		padding: 16,
+	},
+	complianceTextWrap: {
+		flex: 1,
+		gap: 4,
+	},
+	complianceTitle: {
+		fontSize: 13,
+		fontWeight: "700",
+		color: "#10b981",
+	},
+	complianceDesc: {
+		fontSize: 11,
+		color: "#a1a1aa",
+		lineHeight: 16,
+	},
+});

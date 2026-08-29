@@ -1,36 +1,38 @@
-import { useState } from "react";
 import {
 	View,
 	Text,
 	TouchableOpacity,
-	ScrollView,
 	ActivityIndicator,
 	RefreshControl,
 	Linking,
+	StyleSheet,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
-	Clock,
-	CheckCircle,
-	XCircle,
-	ShieldCheck,
-	ShieldAlert,
-	Phone,
-	ArrowRight,
-	RotateCw,
-	LogOut,
-} from "lucide-react-native";
+	Time02Icon,
+	CheckmarkCircle02Icon,
+	CancelCircleIcon,
+	Alert02Icon,
+	Call02Icon,
+	ArrowRight01Icon,
+	RefreshIcon,
+	Logout01Icon,
+} from "@hugeicons/core-free-icons";
 import { useTRPC } from "@/lib/trpc";
 import { authClient } from "@/lib/auth-client";
 import { DriverFeedback } from "@/lib/haptics";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ScreenShell } from "@/components/ui/ScreenShell";
+import { colors } from "@/constants/theme";
 
 export default function RegisterStatusScreen() {
 	const router = useRouter();
 	const trpc = useTRPC();
 
-	// Real tRPC query for verification status
 	const {
 		data: statusData,
 		isLoading,
@@ -38,7 +40,7 @@ export default function RegisterStatusScreen() {
 		refetch,
 	} = useQuery(
 		trpc.drivers.getMyVerificationStatus.queryOptions(undefined, {
-			refetchInterval: 10000, // Poll every 10 seconds while on this screen
+			refetchInterval: 10000,
 		})
 	);
 
@@ -64,238 +66,297 @@ export default function RegisterStatusScreen() {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-zinc-950">
-			<ScrollView
-				contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
-				className="px-6 py-8"
-				refreshControl={
-					<RefreshControl
-						refreshing={isRefetching}
-						onRefresh={() => refetch()}
-						tintColor="#e11d48"
-					/>
-				}
-			>
+		<ScreenShell
+			header={
+				<PageHeader
+					title="Statut du Passeport"
+					subtitle="Contrôle de conformité officiel"
+					showBack={false}
+				/>
+			}
+		>
+			<View style={styles.container}>
 				{isLoading ? (
-					<View className="items-center justify-center space-y-3">
-						<ActivityIndicator size="large" color="#e11d48" />
-						<Text className="text-xs text-zinc-400 font-medium">
-							Checking verification status...
+					<View style={styles.loadingBox}>
+						<ActivityIndicator size="large" color={colors.primary.rose} />
+						<Text style={styles.loadingText}>
+							Vérification du statut de conformité...
 						</Text>
 					</View>
 				) : verificationStatus === "VERIFIED" ? (
 					/* VERIFIED STATE */
-					<View className="items-center text-center space-y-5">
-						<View className="size-20 rounded-3xl bg-emerald-500/10 border-2 border-emerald-500/30 items-center justify-center shadow-xl shadow-emerald-500/20">
-							<CheckCircle size={40} color="#10b981" />
+					<View style={styles.statusBox}>
+						<View style={[styles.iconCircle, styles.iconCircleSuccess]}>
+							<HugeiconsIcon icon={CheckmarkCircle02Icon} size={40} color="#10b981" />
 						</View>
 
-						<View>
-							<Text className="text-2xl font-black text-white text-center">
-								Compliance Cleared!
-							</Text>
-							<Text className="text-xs text-emerald-400 font-semibold text-center mt-1">
-								Driver Career Passport Activated
-							</Text>
-							<Text className="text-xs text-zinc-400 text-center mt-2 max-w-xs leading-relaxed">
-								Your commercial license and background checks have been verified. You can now access your dispatches.
+						<View style={styles.titleGroup}>
+							<Text style={styles.mainTitle}>Conformité Validée !</Text>
+							<Text style={styles.successSub}>Passeport Chauffeur Activé</Text>
+							<Text style={styles.descText}>
+								Votre permis de conduire et vos pièces d'identité ont été vérifiés avec succès. Vous avez accès à vos dispatches.
 							</Text>
 						</View>
 
-						<TouchableOpacity
+						<Button
+							title="Accéder au terminal dispatches"
+							variant="success"
+							size="lg"
 							onPress={handleEnterDashboard}
-							className="w-full bg-emerald-600 active:bg-emerald-700 h-13 rounded-2xl items-center justify-center flex-row gap-2 mt-4 shadow-xl shadow-emerald-600/30"
-						>
-							<Text className="text-white font-black text-sm">
-								Enter Driver Dispatch Terminal
-							</Text>
-							<ArrowRight size={18} color="#ffffff" />
-						</TouchableOpacity>
+							icon={<HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#ffffff" />}
+							iconPosition="right"
+						/>
 					</View>
 				) : verificationStatus === "SUSPENDED" ? (
-				/* SUSPENDED STATE — Phase 06 (F-DV-04): honest surface instead of
-				   falling into the "under review" copy. Read-only access. */
-				<View className="items-center text-center space-y-5">
-					<View className="size-20 rounded-3xl bg-zinc-500/10 border-2 border-zinc-500/30 items-center justify-center">
-						<ShieldAlert size={40} color="#a1a1aa" />
-					</View>
-
-					<View>
-						<Text className="text-2xl font-black text-white text-center">
-							Account Suspended
-						</Text>
-						<Text className="text-xs text-zinc-400 font-semibold text-center mt-1">
-							Driving Privileges Paused
-						</Text>
-						<Text className="text-xs text-zinc-400 text-center mt-2 max-w-xs leading-relaxed">
-							Safety controllers have suspended your account. You can review your trips and career passport, but cannot start runs, check in passengers, or go on duty.
-						</Text>
-					</View>
-
-					<TouchableOpacity
-						onPress={handleContactSupport}
-						className="w-full bg-zinc-800 active:bg-zinc-700 h-13 rounded-2xl items-center justify-center flex-row gap-2"
-					>
-						<Phone size={18} color="#ffffff" />
-						<Text className="text-white font-bold text-sm">
-							Contact Support
-						</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						onPress={handleSignOut}
-						className="w-full border border-zinc-700 h-13 rounded-2xl items-center justify-center flex-row gap-2"
-					>
-						<LogOut size={18} color="#a1a1aa" />
-						<Text className="text-zinc-300 font-bold text-sm">Sign Out</Text>
-					</TouchableOpacity>
-				</View>
-			) : verificationStatus === "REJECTED" ? (
-					/* REJECTED STATE */
-					<View className="items-center text-center space-y-5">
-						<View className="size-20 rounded-3xl bg-rose-500/10 border-2 border-rose-500/30 items-center justify-center shadow-xl shadow-rose-500/20">
-							<XCircle size={40} color="#f43f5e" />
+					/* SUSPENDED STATE */
+					<View style={styles.statusBox}>
+						<View style={[styles.iconCircle, styles.iconCircleError]}>
+							<HugeiconsIcon icon={Alert02Icon} size={40} color="#ef4444" />
 						</View>
 
-						<View>
-							<Text className="text-2xl font-black text-white text-center">
-								Application Needs Attention
+						<View style={styles.titleGroup}>
+							<Text style={styles.mainTitle}>Compte Suspendu</Text>
+							<Text style={styles.errorSub}>Droits de conduite temporairement suspendus</Text>
+							<Text style={styles.descText}>
+								Le service de contrôle de sécurité a suspendu vos accès. Vous pouvez consulter vos antécédents mais vous ne pouvez pas démarrer de courses.
 							</Text>
-							<Text className="text-xs text-rose-400 font-semibold text-center mt-1">
-								Verification Incomplete
-							</Text>
+						</View>
+
+						<Button
+							title="Contacter le Support Sécurité"
+							variant="secondary"
+							size="lg"
+							onPress={handleContactSupport}
+							icon={<HugeiconsIcon icon={Call02Icon} size={20} color="#ffffff" />}
+						/>
+
+						<Button
+							title="Se déconnecter"
+							variant="outline"
+							size="md"
+							onPress={handleSignOut}
+							icon={<HugeiconsIcon icon={Logout01Icon} size={18} color="#a1a1aa" />}
+						/>
+					</View>
+				) : verificationStatus === "REJECTED" ? (
+					/* REJECTED STATE */
+					<View style={styles.statusBox}>
+						<View style={[styles.iconCircle, styles.iconCircleError]}>
+							<HugeiconsIcon icon={CancelCircleIcon} size={40} color="#ef4444" />
+						</View>
+
+						<View style={styles.titleGroup}>
+							<Text style={styles.mainTitle}>Dossier à Rectifier</Text>
+							<Text style={styles.errorSub}>Vérification Incomplète</Text>
 						</View>
 
 						{rejectionReason && (
-							<View className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl w-full">
-								<Text className="text-xs font-bold text-zinc-300">
-									Carrier Review Feedback:
+							<Card className="w-full gap-1 border-[#ef4444]/30">
+								<Text style={styles.rejectionHeader}>
+									Retour du contrôleur transporteur :
 								</Text>
-								<Text className="text-xs text-rose-300 mt-1 leading-relaxed">
+								<Text style={styles.rejectionBody}>
 									{rejectionReason}
 								</Text>
-							</View>
+							</Card>
 						)}
 
-						<TouchableOpacity
+						<Button
+							title="Mettre à jour et renvoyer"
+							variant="primary"
+							size="lg"
 							onPress={() => router.replace("/(auth)/register")}
-							className="w-full bg-rose-600 active:bg-rose-700 h-13 rounded-2xl items-center justify-center flex-row gap-2 shadow-lg shadow-rose-600/30"
-						>
-							<Text className="text-white font-bold text-sm">
-								Update Application & Re-submit
-							</Text>
-						</TouchableOpacity>
-					</View>
-				) : verificationStatus === "EXPIRED" ? (
-					/* EXPIRED STATE — licence document has expired; driver must
-					   re-upload and contact operator for re-verification. */
-					<View className="items-center text-center space-y-5">
-						<View className="size-20 rounded-3xl bg-orange-500/10 border-2 border-orange-500/30 items-center justify-center shadow-xl shadow-orange-500/20">
-							<ShieldAlert size={40} color="#f97316" />
-						</View>
-
-						<View>
-							<Text className="text-2xl font-black text-white text-center">
-								Licence Expiree
-							</Text>
-							<Text className="text-xs text-orange-400 font-semibold text-center mt-1">
-								Documents de conduite expires
-							</Text>
-							<Text className="text-xs text-zinc-400 text-center mt-2 max-w-xs leading-relaxed">
-								Votre permis de conduire a expire. Mettez a jour vos documents et contactez votre operateur pour la re-verification.
-							</Text>
-						</View>
-
-						<TouchableOpacity
-							onPress={() => router.replace("/(auth)/register")}
-							className="w-full bg-orange-600 active:bg-orange-700 h-13 rounded-2xl items-center justify-center flex-row gap-2 shadow-lg shadow-orange-600/30"
-						>
-							<RotateCw size={18} color="#ffffff" />
-							<Text className="text-white font-bold text-sm">
-								Re-upload Documents
-							</Text>
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							onPress={handleContactSupport}
-							className="w-full bg-zinc-900 border border-zinc-800 h-13 rounded-2xl items-center justify-center flex-row gap-2"
-						>
-							<Phone size={18} color="#ffffff" />
-							<Text className="text-white font-bold text-sm">
-								Contact Carrier Dispatch Desk
-							</Text>
-						</TouchableOpacity>
+						/>
 					</View>
 				) : (
 					/* PENDING STATE */
-					<View className="items-center text-center space-y-5">
-						<View className="size-20 rounded-3xl bg-amber-500/10 border-2 border-amber-500/30 items-center justify-center shadow-xl shadow-amber-500/20">
-							<Clock size={40} color="#f59e0b" />
+					<View style={styles.statusBox}>
+						<View style={[styles.iconCircle, styles.iconCirclePending]}>
+							<HugeiconsIcon icon={Time02Icon} size={40} color="#f59e0b" />
 						</View>
 
-						<View>
-							<Text className="text-2xl font-black text-white text-center">
-								Application Under Review
-							</Text>
-							<Text className="text-xs text-amber-400 font-semibold text-center mt-1">
-								Carrier Compliance & Safety Check
-							</Text>
-							<Text className="text-xs text-zinc-400 text-center mt-2.5 max-w-xs leading-relaxed">
-								Your driving license, national ID, and carrier invite credentials are being reviewed by safety controllers. Verification typically takes 2–24 hours.
+						<View style={styles.titleGroup}>
+							<Text style={styles.mainTitle}>Dossier en Cours d'Examen</Text>
+							<Text style={styles.pendingSub}>Contrôle de Conformité & Sécurité</Text>
+							<Text style={styles.descText}>
+								Votre permis de conduire et votre pièce d'identité sont en cours de validation par les contrôleurs. Délai habituel : 2 à 24 heures.
 							</Text>
 						</View>
 
-						<View className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl w-full space-y-2.5">
-							<View className="flex-row items-center justify-between">
-								<Text className="text-xs text-zinc-400">Application Reference</Text>
-								<Text className="text-xs font-mono font-bold text-zinc-200">
-									{statusData?.driver?.id?.slice(0, 12) ?? "SUBMITTED"}
+						<Card className="w-full gap-2.5">
+							<View style={styles.rowBetween}>
+								<Text style={styles.labelMuted}>Référence dossier</Text>
+								<Text style={styles.valueMono}>
+									{statusData?.driver?.id?.slice(0, 12) ?? "EN_COURS"}
 								</Text>
 							</View>
-							<View className="flex-row items-center justify-between">
-								<Text className="text-xs text-zinc-400">License Category</Text>
-								<Text className="text-xs font-bold text-rose-400">
-									Class {statusData?.driver?.licenseCategory ?? "D"} Heavy Commercial
+							<View style={styles.rowBetween}>
+								<Text style={styles.labelMuted}>Catégorie permis</Text>
+								<Text style={styles.valueBrand}>
+									Classe {statusData?.driver?.licenseCategory ?? "D"} Poids Lourd
 								</Text>
 							</View>
-						</View>
+						</Card>
 
-						{/* Action Buttons */}
-						<View className="w-full space-y-2.5 pt-2">
-							<TouchableOpacity
+						<View style={styles.actionsColumn}>
+							<Button
+								title="Actualiser le statut"
+								variant="secondary"
+								size="md"
 								onPress={() => refetch()}
-								className="w-full bg-zinc-900 border border-zinc-800 h-12 rounded-xl items-center justify-center flex-row gap-2 active:bg-zinc-800"
-							>
-								<RotateCw size={16} color="#fafafa" />
-								<Text className="text-xs font-bold text-white">
-									Check Verification Status
-								</Text>
-							</TouchableOpacity>
+								icon={<HugeiconsIcon icon={RefreshIcon} size={18} color="#fafafa" />}
+							/>
 
-							<TouchableOpacity
+							<Button
+								title="Contacter le bureau des dispatches"
+								variant="outline"
+								size="md"
 								onPress={handleContactSupport}
-								className="w-full bg-zinc-900 border border-zinc-800 h-12 rounded-xl items-center justify-center flex-row gap-2 active:bg-zinc-800"
-							>
-								<Phone size={16} color="#38bdf8" />
-								<Text className="text-xs font-bold text-sky-400">
-									Contact Carrier Dispatch Desk
-								</Text>
-							</TouchableOpacity>
+								icon={<HugeiconsIcon icon={Call02Icon} size={18} color="#60a5fa" />}
+							/>
 						</View>
 					</View>
 				)}
 
-				{/* Sign Out Link */}
 				<TouchableOpacity
 					onPress={handleSignOut}
-					className="flex-row items-center justify-center gap-1.5 mt-8"
+					activeOpacity={0.8}
+					style={styles.signOutBtn}
 				>
-					<LogOut size={14} color="#71717a" />
-					<Text className="text-xs text-zinc-500 font-semibold">
-						Switch Account / Sign Out
+					<HugeiconsIcon icon={Logout01Icon} size={14} color="#71717a" />
+					<Text style={styles.signOutText}>
+						Changer de compte / Déconnexion
 					</Text>
 				</TouchableOpacity>
-			</ScrollView>
-		</SafeAreaView>
+			</View>
+		</ScreenShell>
 	);
 }
+
+const styles = StyleSheet.create({
+	container: {
+		gap: 24,
+		paddingVertical: 12,
+	},
+	loadingBox: {
+		alignItems: "center",
+		justifyContent: "center",
+		paddingVertical: 48,
+		gap: 12,
+	},
+	loadingText: {
+		fontSize: 12,
+		color: "#a1a1aa",
+		fontWeight: "500",
+	},
+	statusBox: {
+		alignItems: "center",
+		gap: 20,
+	},
+	iconCircle: {
+		width: 80,
+		height: 80,
+		borderRadius: 28,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	iconCircleSuccess: {
+		backgroundColor: "rgba(16, 185, 129, 0.15)",
+		borderWidth: 2,
+		borderColor: "rgba(16, 185, 129, 0.3)",
+	},
+	iconCircleError: {
+		backgroundColor: "rgba(239, 68, 68, 0.15)",
+		borderWidth: 2,
+		borderColor: "rgba(239, 68, 68, 0.3)",
+	},
+	iconCirclePending: {
+		backgroundColor: "rgba(245, 158, 11, 0.15)",
+		borderWidth: 2,
+		borderColor: "rgba(245, 158, 11, 0.3)",
+	},
+	titleGroup: {
+		alignItems: "center",
+		gap: 6,
+	},
+	mainTitle: {
+		fontSize: 24,
+		fontWeight: "800",
+		color: "#fafafa",
+		textAlign: "center",
+		letterSpacing: -0.5,
+	},
+	successSub: {
+		fontSize: 13,
+		fontWeight: "700",
+		color: "#34d399",
+		textAlign: "center",
+	},
+	errorSub: {
+		fontSize: 13,
+		fontWeight: "700",
+		color: "#f87171",
+		textAlign: "center",
+	},
+	pendingSub: {
+		fontSize: 13,
+		fontWeight: "700",
+		color: "#fbbf24",
+		textAlign: "center",
+	},
+	descText: {
+		fontSize: 12,
+		color: "#a1a1aa",
+		textAlign: "center",
+		lineHeight: 18,
+		maxWidth: 320,
+		marginTop: 4,
+	},
+	rejectionHeader: {
+		fontSize: 12,
+		fontWeight: "700",
+		color: "#d4d4d8",
+	},
+	rejectionBody: {
+		fontSize: 12,
+		color: "#f87171",
+		lineHeight: 18,
+	},
+	rowBetween: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	labelMuted: {
+		fontSize: 12,
+		color: "#a1a1aa",
+	},
+	valueMono: {
+		fontSize: 12,
+		fontFamily: "monospace",
+		fontWeight: "700",
+		color: "#fafafa",
+	},
+	valueBrand: {
+		fontSize: 12,
+		fontWeight: "700",
+		color: "#ee237c",
+	},
+	actionsColumn: {
+		width: "100%",
+		gap: 10,
+		paddingTop: 8,
+	},
+	signOutBtn: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+		gap: 6,
+		paddingVertical: 12,
+	},
+	signOutText: {
+		fontSize: 12,
+		color: "#71717a",
+		fontWeight: "600",
+	},
+});

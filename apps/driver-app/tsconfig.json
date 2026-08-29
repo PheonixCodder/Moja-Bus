@@ -11,7 +11,8 @@
 		"target": "esnext",
 		"jsx": "react-jsx",
 		"moduleDetection": "force",
-		"exactOptionalPropertyTypes": false
+		"exactOptionalPropertyTypes": false,
+		"ignoreDeprecations": "6.0"
 	},
 	"include": [
 		"**/*.ts",

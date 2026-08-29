@@ -1,21 +1,26 @@
-import "../global.css";
-import "../lib/i18n";
+import "@/global.css";
+import "@/lib/i18n";
+
 import { useEffect } from "react";
-import { Stack } from "expo-router";
+import { Stack, router, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as SplashScreen from "expo-splash-screen";
 import Toast from "react-native-toast-message";
 import { NovuProvider } from "@novu/react-native";
 import { useQuery } from "@tanstack/react-query";
 import Constants from "expo-constants";
-import { router } from "expo-router";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
 import { useLoadFonts } from "@/hooks/use-load-fonts";
 import { authClient } from "@/lib/auth-client";
 import { usePushToken } from "@/hooks/use-push-token";
 import { UrgentDispatchGate } from "@/components/urgent-dispatch-gate";
+import { NAV_THEME } from "@/lib/theme";
 
 const isExpoGo = Constants.appOwnership === "expo";
+
+// Prevent splash auto-hide until font assets load
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 interface NotificationTokenResponse {
 	subscriberId: string;
@@ -103,7 +108,7 @@ function NotificationHandler() {
 
 			const notificationListener =
 				Notifications.addNotificationReceivedListener(() => {
-					// Novu cache sync handled by provider — badge updates live
+					// Novu cache sync handled by provider
 				});
 
 			const responseListener =
@@ -123,7 +128,6 @@ function NotificationHandler() {
 					} else if (
 						type === "trip-assigned" ||
 						type === "trip-unassigned" ||
-						// Phase 21 (F-NF-05) — urgent dispatch finally taps through.
 						type === "dispatch-urgent"
 					) {
 						router.push("/(tabs)/trips");
@@ -150,6 +154,12 @@ function NotificationHandler() {
 export default function RootLayout() {
 	const { fontsLoaded, fontsError } = useLoadFonts();
 
+	useEffect(() => {
+		if (fontsLoaded || fontsError) {
+			SplashScreen.hideAsync().catch(() => {});
+		}
+	}, [fontsLoaded, fontsError]);
+
 	if (!fontsLoaded && !fontsError) {
 		return null;
 	}
@@ -158,24 +168,31 @@ export default function RootLayout() {
 		<SafeAreaProvider>
 			<TRPCReactProvider>
 				<AuthenticatedNovuProvider>
-					<StatusBar style="auto" />
-					<Stack screenOptions={{ headerShown: false }}>
-						<Stack.Screen name="index" />
-						<Stack.Screen name="(auth)/login" />
-						<Stack.Screen name="(tabs)" />
-						<Stack.Screen name="notifications" />
-						<Stack.Screen
-							name="trip/[id]/manifest"
-							options={{
-								presentation: "modal",
-								headerShown: true,
-								title: "Passenger Manifest",
-								headerStyle: { backgroundColor: "#09090b" },
-								headerTintColor: "#fafafa",
+					<ThemeProvider value={NAV_THEME}>
+						<StatusBar style="light" />
+						<Stack
+							screenOptions={{
+								headerShown: false,
+								contentStyle: { flex: 1, backgroundColor: "#09090b" },
+								animation: "slide_from_right",
 							}}
-						/>
-					</Stack>
-					<Toast />
+						>
+							<Stack.Screen name="index" />
+							<Stack.Screen name="(auth)/login" />
+							<Stack.Screen name="(auth)/preferences" />
+							<Stack.Screen name="(auth)/register" />
+							<Stack.Screen name="(tabs)" />
+							<Stack.Screen name="notifications" />
+							<Stack.Screen
+								name="trip/[id]/manifest"
+								options={{
+									presentation: "modal",
+									animation: "slide_from_bottom",
+								}}
+							/>
+						</Stack>
+						<Toast />
+					</ThemeProvider>
 				</AuthenticatedNovuProvider>
 			</TRPCReactProvider>
 		</SafeAreaProvider>

@@ -11,5 +11,21 @@
   "vehicle": "Véhicule",
   "startRun": "Démarrer la Course",
   "runActive": "Course Active",
-  "pullToRefresh": "Tirer pour actualiser"
+  "pullToRefresh": "Tirer pour actualiser",
+  "title": "Dispatches Assignés",
+  "subtitleAll": "Tous les modes de service",
+  "subtitleIntercity": "Lignes Interurbaines Directes",
+  "subtitleUrban": "Boucles Urbaines Fréquentes",
+  "modeAll": "Tous",
+  "modeIntercity": "Interurbain",
+  "modeUrban": "Urbain",
+  "tabToday": "Aujourd'hui",
+  "tabUpcoming": "À venir",
+  "tabCompleted": "Terminés",
+  "loadingDispatches": "Chargement des dispatches programmés...",
+  "emptyTitle": "Aucun Dispatch Trouvé",
+  "emptyToday": "Vous n'avez aucun départ assigné aujourd'hui. Consultez vos trajets à venir ou contactez votre dispatcher.",
+  "btnManifest": "Manifeste",
+  "btnResume": "Reprendre",
+  "btnStart": "Démarrer"
 }

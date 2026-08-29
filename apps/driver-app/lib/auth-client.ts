@@ -12,8 +12,14 @@ import {
 const AUTH_STORAGE_PREFIX = "driver-app";
 const AUTH_COOKIE_STORAGE_KEY = `${AUTH_STORAGE_PREFIX}_cookie`;
 
-const baseURL =
-	process.env["EXPO_PUBLIC_API_URL"] ?? "http://localhost:3000";
+export function getBaseUrl(): string {
+	if (process.env["EXPO_PUBLIC_API_URL"]) {
+		return process.env["EXPO_PUBLIC_API_URL"];
+	}
+	return "https://moja-bus-web.vercel.app";
+}
+
+const baseURL = getBaseUrl();
 
 export const authClient = createAuthClient({
 	baseURL,
@@ -60,6 +66,19 @@ export async function ensureAuthCookiesFresh(): Promise<void> {
 	try {
 		await authClient.getSession();
 	} catch {
-		// Ignore errors during cookie refresh
+		// Session check is best-effort.
+	}
+}
+
+export type Session = typeof authClient.$Infer.Session;
+export type User = typeof authClient.$Infer.Session.user;
+
+export const { useSession, signUp, signOut } = authClient;
+
+export async function refreshSession() {
+	const sessionAtom = authClient.$store?.atoms?.["session"];
+	const refetch = sessionAtom?.get()?.refetch;
+	if (refetch) {
+		await refetch();
 	}
 }

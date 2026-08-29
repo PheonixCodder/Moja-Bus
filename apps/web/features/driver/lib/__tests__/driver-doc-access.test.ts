@@ -31,6 +31,7 @@ describe("expectedDriverDocPrefix", () => {
       "driver-license-back",
       "driver-license-front",
       "driver-medical-doc",
+      "driver-selfie",
     ]);
   });
 });
@@ -101,7 +102,7 @@ describe("driverPresignDocSchema", () => {
     assert.throws(() =>
       driverPresignDocSchema.parse({
         driverProfileId: "cktb0000aaaa1234567",
-        docType: "driver-selfie",
+        docType: "invalid-type" as any,
         objectKey: "documents/drivers/x/selfie/u.jpg",
       }),
     );

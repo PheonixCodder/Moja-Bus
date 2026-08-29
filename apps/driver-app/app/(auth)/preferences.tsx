@@ -1,31 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
 	View,
 	Text,
 	TextInput,
 	TouchableOpacity,
-	ScrollView,
 	ActivityIndicator,
 	Alert,
 	Switch,
+	StyleSheet,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
-	MapPin,
-	Route,
-	Briefcase,
-	ChevronRight,
-	CheckCircle,
-	ArrowRight,
-	X,
-	Plus,
-} from "lucide-react-native";
+	Briefcase01Icon,
+	Location01Icon,
+	Route01Icon,
+	CheckmarkCircle02Icon,
+	Cancel01Icon,
+	Add01Icon,
+	ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
 import { useTranslation } from "react-i18next";
 import { useTRPC } from "@/lib/trpc";
 import { DriverFeedback } from "@/lib/haptics";
 import { CIV_CITY_HUBS } from "@moja/schemas";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ScreenShell } from "@/components/ui/ScreenShell";
+import { colors } from "@/constants/theme";
 
 const EMPLOYMENT_OPTIONS = [
 	{
@@ -54,28 +58,29 @@ export default function DriverPreferencesScreen() {
 	const router = useRouter();
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
-	const { t, i18n } = useTranslation("auth");
+	const { i18n } = useTranslation("auth");
 	const isEn = i18n.language === "en";
 
-	// Load existing preferences (if returning to edit)
 	const { data: existingPref, isLoading: isLoadingPref } = useQuery(
 		trpc.drivers.getMyServicePreference.queryOptions()
 	);
 
 	const pref = existingPref?.preference;
 
-	const [isAvailableForHire, setIsAvailableForHire] = useState(
-		pref?.isAvailableForHire ?? false
-	);
-	const [preferredType, setPreferredType] = useState<EmploymentType>(
-		(pref?.preferredType as EmploymentType) ?? "EXCLUSIVE_INTERCITY"
-	);
-	const [cityBase, setCityBase] = useState(pref?.cityBase ?? "");
-	const [showCityPicker, setShowCityPicker] = useState(false);
-	const [routeExperience, setRouteExperience] = useState<string[]>(
-		pref?.routeExperience ?? []
-	);
+	const [isAvailableForHire, setIsAvailableForHire] = useState(false);
+	const [preferredType, setPreferredType] = useState<EmploymentType>("EXCLUSIVE_INTERCITY");
+	const [cityBase, setCityBase] = useState("");
+	const [routeExperience, setRouteExperience] = useState<string[]>([]);
 	const [routeInput, setRouteInput] = useState("");
+
+	useEffect(() => {
+		if (pref) {
+			setIsAvailableForHire(pref.isAvailableForHire ?? false);
+			setPreferredType((pref.preferredType as EmploymentType) ?? "EXCLUSIVE_INTERCITY");
+			setCityBase(pref.cityBase ?? "");
+			setRouteExperience(pref.routeExperience ?? []);
+		}
+	}, [pref]);
 
 	const saveMutation = useMutation(
 		trpc.drivers.setServicePreference.mutationOptions({
@@ -103,241 +108,386 @@ export default function DriverPreferencesScreen() {
 		setRouteExperience((prev) => prev.filter((r) => r !== route));
 	};
 
-	const handleSave = async (skipToApp = false) => {
-		DriverFeedback.tap();
+	const handleSave = async () => {
+		if (!cityBase) {
+			Alert.alert(
+				isEn ? "City Base Required" : "Ville de base requise",
+				isEn
+					? "Please select your primary operating city."
+					: "Veuillez sélectionner votre ville de départ principale."
+			);
+			return;
+		}
+
 		try {
+			DriverFeedback.tap();
 			await saveMutation.mutateAsync({
 				isAvailableForHire,
 				preferredType,
-				cityBase: cityBase.trim() || null,
+				cityBase,
 				routeExperience,
 			});
 			router.replace("/(tabs)/trips");
 		} catch (err: any) {
-			DriverFeedback.invalidScan();
-			Alert.alert("Erreur", err.message || "Impossible de sauvegarder les préférences.");
+			Alert.alert(
+				isEn ? "Save Failed" : "Échec de l'enregistrement",
+				err?.message ?? "Une erreur est survenue."
+			);
 		}
 	};
-
-	const handleSkip = async () => {
-		DriverFeedback.tap();
-		// Save minimal default record so we don't show this screen again
-		try {
-			await saveMutation.mutateAsync({
-				isAvailableForHire: false,
-				preferredType: "EXCLUSIVE_INTERCITY",
-				cityBase: null,
-				routeExperience: [],
-			});
-		} catch {
-			// Ignore skip errors — proceed anyway
-		}
-		router.replace("/(tabs)/trips");
-	};
-
-	if (isLoadingPref) {
-		return (
-			<View className="flex-1 items-center justify-center bg-zinc-950">
-				<ActivityIndicator size="large" color="#e11d48" />
-			</View>
-		);
-	}
 
 	return (
-		<SafeAreaView className="flex-1 bg-zinc-950">
-			{/* Header */}
-			<View className="px-5 py-4 border-b border-zinc-800 bg-zinc-900/60 flex-row items-center justify-between">
-				<View className="flex-1">
-					<Text className="text-lg font-black text-white tracking-tight">
-						Profil Marketplace
-					</Text>
-					<Text className="text-xs text-zinc-400 mt-0.5">
-						Soyez découvert par les opérateurs de bus
-					</Text>
+		<ScreenShell
+			header={
+				<PageHeader
+					title={isEn ? "Driver Preferences" : "Préférences de Service"}
+					subtitle={
+						isEn
+							? "Configure your marketplace availability"
+							: "Configurez votre visibilité sur la marketplace"
+					}
+					showBack={false}
+				/>
+			}
+			footer={
+				<Button
+					title={isEn ? "Save & Continue" : "Enregistrer et Continuer"}
+					variant="primary"
+					size="lg"
+					loading={saveMutation.isPending}
+					onPress={handleSave}
+					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
+					iconPosition="right"
+				/>
+			}
+		>
+			{isLoadingPref ? (
+				<View style={styles.loadingBox}>
+					<ActivityIndicator size="large" color={colors.primary.rose} />
 				</View>
-				<TouchableOpacity
-					onPress={handleSkip}
-					className="px-3 py-1.5 rounded-xl bg-zinc-800 border border-zinc-700"
-				>
-					<Text className="text-xs font-semibold text-zinc-400">
-						{isEn ? "Skip" : "Ignorer"}
-					</Text>
-				</TouchableOpacity>
-			</View>
-
-			<ScrollView className="flex-1 px-5 py-5 space-y-5">
-				{/* Available for Hire Toggle */}
-				<View className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex-row items-center justify-between">
-					<View className="flex-1 pr-4">
-						<Text className="text-sm font-bold text-white">
-							{isEn ? "Available for Hire" : "Disponible pour recrutement"}
-						</Text>
-						<Text className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
-							{isEn
-								? "Let operators discover your profile in the driver marketplace"
-								: "Permettre aux opérateurs de trouver votre profil dans la marketplace"}
-						</Text>
-					</View>
-					<Switch
-						value={isAvailableForHire}
-						onValueChange={(val) => {
-							DriverFeedback.tap();
-							setIsAvailableForHire(val);
-						}}
-						trackColor={{ false: "#3f3f46", true: "#e11d48" }}
-						thumbColor="#ffffff"
-					/>
-				</View>
-
-				{/* Employment Type */}
-				<View className="space-y-2">
-					<View className="flex-row items-center gap-2 mb-1">
-						<Briefcase size={16} color="#71717a" />
-						<Text className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-							{isEn ? "Employment Preference" : "Type d'emploi préféré"}
-						</Text>
-					</View>
-					{EMPLOYMENT_OPTIONS.map((opt) => (
-						<TouchableOpacity
-							key={opt.value}
-							onPress={() => {
-								DriverFeedback.tap();
-								setPreferredType(opt.value);
-							}}
-							className={`p-4 rounded-2xl border flex-row items-start justify-between ${
-								preferredType === opt.value
-									? "bg-rose-600/10 border-rose-500"
-									: "bg-zinc-900 border-zinc-800"
-							}`}
-						>
-							<View className="flex-1 pr-3">
-								<Text
-									className={`text-sm font-bold ${
-										preferredType === opt.value ? "text-rose-400" : "text-white"
-									}`}
-								>
-									{isEn ? opt.labelEn : opt.label}
-								</Text>
-								<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
-									{opt.description}
-								</Text>
+			) : (
+				<View style={styles.formContainer}>
+					{/* Marketplace Availability Card */}
+					<View style={styles.card}>
+						<View style={styles.cardHeaderRow}>
+							<View style={styles.iconTitleRow}>
+								<View style={styles.iconCircle}>
+									<HugeiconsIcon icon={Briefcase01Icon} size={20} color="#ee237c" />
+								</View>
+								<View style={styles.titleWrap}>
+									<Text style={styles.cardTitle}>
+										{isEn ? "Marketplace Availability" : "Disponibilité Recrutement"}
+									</Text>
+									<Text style={styles.cardSubtitle}>
+										{isEn
+											? "Allow carriers to discover and send you trip offers"
+											: "Permettre aux compagnies de vous proposer des missions"}
+									</Text>
+								</View>
 							</View>
-							{preferredType === opt.value && (
-								<CheckCircle size={20} color="#e11d48" />
-							)}
-						</TouchableOpacity>
-					))}
-				</View>
-
-				{/* City Base */}
-				<View className="space-y-2">
-					<View className="flex-row items-center gap-2 mb-1">
-						<MapPin size={16} color="#71717a" />
-						<Text className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-							{isEn ? "Base City / Hub" : "Ville de départ / Hub"}
-						</Text>
-					</View>
-
-					{/* Hub chips only — no free-text input */}
-					<View className="flex-row flex-wrap gap-2">
-						{CIV_CITY_HUBS.map((city) => (
-							<TouchableOpacity
-								key={city}
-								onPress={() => {
+							<Switch
+								value={isAvailableForHire}
+								onValueChange={(val) => {
 									DriverFeedback.tap();
-									setCityBase(cityBase === city ? "" : city);
+									setIsAvailableForHire(val);
 								}}
-								className={`px-3 py-1.5 rounded-xl border ${
-									cityBase === city
-										? "bg-rose-600/15 border-rose-500"
-										: "bg-zinc-900 border-zinc-800"
-								}`}
-							>
-								<Text
-									className={`text-xs font-semibold ${
-										cityBase === city ? "text-rose-400" : "text-zinc-300"
-									}`}
-								>
-									{city}
-								</Text>
-							</TouchableOpacity>
-						))}
-					</View>
-				</View>
-
-				{/* Route Experience */}
-				<View className="space-y-2">
-					<View className="flex-row items-center gap-2 mb-1">
-						<Route size={16} color="#71717a" />
-						<Text className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-							{isEn ? "Route Experience" : "Expérience de routes"}
-						</Text>
-					</View>
-					<Text className="text-xs text-zinc-500 leading-relaxed">
-						{isEn
-							? "Add the city pairs you've driven before (e.g. Abidjan-Bouaké)"
-							: "Ajoutez les trajets que vous avez effectués (ex: Abidjan-Bouaké)"}
-					</Text>
-
-					{/* Route input */}
-					<View className="flex-row items-center gap-2">
-						<View className="flex-1 flex-row items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 h-11">
-							<TextInput
-								className="flex-1 text-white text-sm"
-								placeholder={isEn ? "e.g. Abidjan-Yamoussoukro" : "ex: Abidjan-Yamoussoukro"}
-								placeholderTextColor="#52525b"
-								value={routeInput}
-								onChangeText={setRouteInput}
-								onSubmitEditing={handleAddRoute}
-								returnKeyType="done"
+								trackColor={{ false: "#27272a", true: "#ee237c" }}
+								thumbColor="#fafafa"
 							/>
 						</View>
-						<TouchableOpacity
-							onPress={handleAddRoute}
-							className="size-11 rounded-xl bg-rose-600 items-center justify-center"
-						>
-							<Plus size={18} color="#ffffff" />
-						</TouchableOpacity>
 					</View>
 
-					{/* Route chips */}
-					{routeExperience.length > 0 && (
-						<View className="flex-row flex-wrap gap-2 mt-1">
-							{routeExperience.map((route) => (
-								<View
-									key={route}
-									className="flex-row items-center gap-1.5 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-1.5"
-								>
-									<Text className="text-xs font-semibold text-zinc-200">
-										{route}
-									</Text>
-									<TouchableOpacity onPress={() => handleRemoveRoute(route)}>
-										<X size={14} color="#71717a" />
-									</TouchableOpacity>
-								</View>
-							))}
-						</View>
-					)}
-				</View>
+					{/* Preferred Service Type */}
+					<View style={styles.card}>
+						<Text style={styles.cardTitle}>
+							{isEn ? "Operation Mode" : "Mode d'Opération Principal"}
+						</Text>
+						<Text style={styles.cardSubtitle}>
+							{isEn
+								? "Choose your primary driving engagement"
+								: "Choisissez votre spécialité de conduite"}
+						</Text>
 
-				{/* Save CTA */}
-				<TouchableOpacity
-					onPress={() => handleSave()}
-					disabled={saveMutation.isPending}
-					className="bg-rose-600 active:bg-rose-700 h-13 rounded-2xl items-center justify-center flex-row gap-2 mt-4 mb-8 shadow-xl shadow-rose-600/30"
-				>
-					{saveMutation.isPending ? (
-						<ActivityIndicator size="small" color="#ffffff" />
-					) : (
-						<>
-							<Text className="text-white font-black text-sm">
-								{isEn ? "Save & Enter App" : "Enregistrer et accéder"}
+						<View style={styles.optionsList}>
+							{EMPLOYMENT_OPTIONS.map((opt) => {
+								const isSelected = preferredType === opt.value;
+								return (
+									<TouchableOpacity
+										key={opt.value}
+										onPress={() => {
+											DriverFeedback.tap();
+											setPreferredType(opt.value);
+										}}
+										activeOpacity={0.8}
+										style={[
+											styles.optionCard,
+											isSelected && styles.optionCardSelected,
+										]}
+									>
+										<View style={styles.optionHeader}>
+											<Text
+												style={[
+													styles.optionLabel,
+													isSelected && styles.optionLabelSelected,
+												]}
+											>
+												{isEn ? opt.labelEn : opt.label}
+											</Text>
+											{isSelected ? (
+												<HugeiconsIcon
+													icon={CheckmarkCircle02Icon}
+													size={18}
+													color="#ee237c"
+												/>
+											) : null}
+										</View>
+										<Text style={styles.optionDesc}>{opt.description}</Text>
+									</TouchableOpacity>
+								);
+							})}
+						</View>
+					</View>
+
+					{/* City Base */}
+					<View style={styles.card}>
+						<View style={styles.iconTitleRow}>
+							<HugeiconsIcon icon={Location01Icon} size={18} color="#ee237c" />
+							<Text style={styles.cardTitle}>
+								{isEn ? "Base City (Hub)" : "Ville de Base (Gare Principale)"}
 							</Text>
-							<ArrowRight size={18} color="#ffffff" />
-						</>
-					)}
-				</TouchableOpacity>
-			</ScrollView>
-		</SafeAreaView>
+						</View>
+
+						<View style={styles.hubsWrap}>
+							{CIV_CITY_HUBS.map((city) => {
+								const isSelected = cityBase === city;
+								return (
+									<TouchableOpacity
+										key={city}
+										onPress={() => {
+											DriverFeedback.tap();
+											setCityBase(city);
+										}}
+										activeOpacity={0.8}
+										style={[
+											styles.hubChip,
+											isSelected && styles.hubChipSelected,
+										]}
+									>
+										<Text
+											style={[
+												styles.hubText,
+												isSelected && styles.hubTextSelected,
+											]}
+										>
+											{city}
+										</Text>
+									</TouchableOpacity>
+								);
+							})}
+						</View>
+					</View>
+
+					{/* Route Experience */}
+					<View style={styles.card}>
+						<View style={styles.iconTitleRow}>
+							<HugeiconsIcon icon={Route01Icon} size={18} color="#ee237c" />
+							<Text style={styles.cardTitle}>
+								{isEn ? "Route Experience" : "Itinéraires Maîtrisés"}
+							</Text>
+						</View>
+
+						<View style={styles.routeInputRow}>
+							<TextInput
+								value={routeInput}
+								onChangeText={setRouteInput}
+								placeholder="ex: Abidjan - Bouaké"
+								placeholderTextColor="#52525b"
+								style={styles.routeTextInput}
+							/>
+							<TouchableOpacity
+								onPress={handleAddRoute}
+								style={styles.addRouteBtn}
+							>
+								<HugeiconsIcon icon={Add01Icon} size={18} color="#ffffff" />
+							</TouchableOpacity>
+						</View>
+
+						{routeExperience.length > 0 ? (
+							<View style={styles.routeChipsWrap}>
+								{routeExperience.map((r) => (
+									<View key={r} style={styles.routeChip}>
+										<Text style={styles.routeChipText}>{r}</Text>
+										<TouchableOpacity
+											onPress={() => handleRemoveRoute(r)}
+											style={styles.removeRouteBtn}
+										>
+											<HugeiconsIcon icon={Cancel01Icon} size={12} color="#a1a1aa" />
+										</TouchableOpacity>
+									</View>
+								))}
+							</View>
+						) : null}
+					</View>
+				</View>
+			)}
+		</ScreenShell>
 	);
 }
+
+const styles = StyleSheet.create({
+	loadingBox: {
+		alignItems: "center",
+		justifyContent: "center",
+		paddingVertical: 48,
+	},
+	formContainer: {
+		gap: 16,
+	},
+	card: {
+		backgroundColor: "#18181b",
+		borderWidth: 1,
+		borderColor: "#27272a",
+		borderRadius: 20,
+		padding: 20,
+		gap: 12,
+	},
+	cardHeaderRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	iconTitleRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 10,
+		flex: 1,
+	},
+	iconCircle: {
+		width: 36,
+		height: 36,
+		borderRadius: 12,
+		backgroundColor: "rgba(238, 35, 124, 0.12)",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	titleWrap: {
+		flex: 1,
+		gap: 2,
+	},
+	cardTitle: {
+		fontSize: 15,
+		fontWeight: "800",
+		color: "#fafafa",
+	},
+	cardSubtitle: {
+		fontSize: 12,
+		color: "#a1a1aa",
+		lineHeight: 16,
+	},
+	optionsList: {
+		gap: 10,
+		paddingTop: 4,
+	},
+	optionCard: {
+		padding: 14,
+		borderRadius: 16,
+		borderWidth: 1.5,
+		borderColor: "#27272a",
+		backgroundColor: "#09090b",
+		gap: 4,
+	},
+	optionCardSelected: {
+		borderColor: "#ee237c",
+		backgroundColor: "rgba(238, 35, 124, 0.06)",
+	},
+	optionHeader: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	optionLabel: {
+		fontSize: 14,
+		fontWeight: "700",
+		color: "#fafafa",
+	},
+	optionLabelSelected: {
+		color: "#ee237c",
+	},
+	optionDesc: {
+		fontSize: 11,
+		color: "#71717a",
+		lineHeight: 16,
+	},
+	hubsWrap: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		gap: 8,
+		paddingTop: 4,
+	},
+	hubChip: {
+		paddingHorizontal: 14,
+		paddingVertical: 8,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: "#27272a",
+		backgroundColor: "#09090b",
+	},
+	hubChipSelected: {
+		borderColor: "#ee237c",
+		backgroundColor: "#ee237c",
+	},
+	hubText: {
+		fontSize: 12,
+		fontWeight: "600",
+		color: "#d4d4d8",
+	},
+	hubTextSelected: {
+		color: "#ffffff",
+	},
+	routeInputRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 8,
+	},
+	routeTextInput: {
+		flex: 1,
+		height: 48,
+		borderRadius: 12,
+		borderWidth: 1,
+		borderColor: "#27272a",
+		backgroundColor: "#09090b",
+		paddingHorizontal: 14,
+		color: "#fafafa",
+		fontSize: 14,
+	},
+	addRouteBtn: {
+		width: 48,
+		height: 48,
+		borderRadius: 12,
+		backgroundColor: "#ee237c",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	routeChipsWrap: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		gap: 8,
+		paddingTop: 4,
+	},
+	routeChip: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 6,
+		paddingHorizontal: 10,
+		paddingVertical: 6,
+		borderRadius: 8,
+		backgroundColor: "#27272a",
+	},
+	routeChipText: {
+		fontSize: 12,
+		color: "#fafafa",
+	},
+	removeRouteBtn: {
+		padding: 2,
+	},
+});

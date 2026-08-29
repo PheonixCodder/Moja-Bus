@@ -8,13 +8,13 @@ import {
 	ensureAuthCookiesFresh,
 	getAuthCookieHeader,
 	getExpoOriginHeader,
+	getBaseUrl,
 	syncAuthCookiesFromResponse,
 } from "@/lib/auth-client";
 
 import type { AppRouter } from "../../web/trpc/routers/_app";
 
-const baseURL =
-	process.env["EXPO_PUBLIC_API_URL"] ?? "http://192.168.100.3:3000";
+const baseURL = getBaseUrl();
 
 const SESSION_KEEPALIVE_MS = 4 * 60 * 1000;
 

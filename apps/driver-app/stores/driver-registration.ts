@@ -1,8 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 export type LicenseCategoryType = "B" | "C" | "D" | "E";
 export type EmploymentType = "EXCLUSIVE_INTERCITY" | "CONTRACTOR_URBAN" | "HYBRID";
-
 
 export interface DriverRegistrationState {
   // Step 1: Personal Demographics & Selfie
@@ -49,10 +50,16 @@ const initialState = {
   employmentType: "EXCLUSIVE_INTERCITY" as EmploymentType,
 };
 
-export const useDriverRegistrationStore = create<DriverRegistrationState>(
-  (set) => ({
-    ...initialState,
-    updateData: (data) => set((state) => ({ ...state, ...data })),
-    reset: () => set(initialState),
-  })
+export const useDriverRegistrationStore = create<DriverRegistrationState>()(
+  persist(
+    (set) => ({
+      ...initialState,
+      updateData: (data) => set((state) => ({ ...state, ...data })),
+      reset: () => set(initialState),
+    }),
+    {
+      name: "moja-driver-registration-draft",
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
 );

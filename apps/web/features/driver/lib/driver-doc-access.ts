@@ -17,6 +17,7 @@ export const DRIVER_DOC_TYPES = [
   "driver-license-front",
   "driver-license-back",
   "driver-medical-doc",
+  "driver-selfie",
 ] as const;
 
 export type DriverDocType = (typeof DRIVER_DOC_TYPES)[number];
@@ -26,10 +27,8 @@ export const DRIVER_DOC_SEGMENTS: Record<DriverDocType, string> = {
   "driver-license-front": "license-front",
   "driver-license-back": "license-back",
   "driver-medical-doc": "medical",
+  "driver-selfie": "selfie",
 };
-
-// NOTE: "driver-selfie" is deliberately NOT presignable while nothing
-// produces selfie keys (audit D8=B, Phase 7 owns the identity-photo story).
 
 export const driverPresignDocSchema = z.object({
   driverProfileId: z.string().cuid(),

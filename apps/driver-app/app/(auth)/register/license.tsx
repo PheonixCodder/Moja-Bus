@@ -3,44 +3,46 @@ import { useMutation } from "@tanstack/react-query";
 import {
 	View,
 	Text,
-	TextInput,
-	TouchableOpacity,
-	ScrollView,
 	Image,
 	Alert,
+	TouchableOpacity,
+	StyleSheet,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
-	ArrowLeft,
-	Camera,
-	CreditCard,
-	Calendar,
-	CheckCircle,
-	ArrowRight,
-} from "lucide-react-native";
-import {
-	useDriverRegistrationStore,
-	type LicenseCategoryType,
-} from "@/stores/driver-registration";
+	CreditCardIcon,
+	Calendar01Icon,
+	Camera01Icon,
+	CheckmarkCircle02Icon,
+	ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
+import { useDriverRegistrationStore, type LicenseCategoryType } from "@/stores/driver-registration";
+import { useWizardGuard } from "@/hooks/use-wizard-guard";
 import { DriverFeedback } from "@/lib/haptics";
 import { useTRPC } from "@/lib/trpc";
 import { uploadCapturedDocument } from "@/lib/driver-doc-upload";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ScreenShell } from "@/components/ui/ScreenShell";
 
 const LICENSE_CATEGORIES: Array<{
 	category: LicenseCategoryType;
 	title: string;
 	desc: string;
 }> = [
-	{ category: "D", title: "Class D", desc: "Commercial Passenger Bus & Long-Haul Coach" },
-	{ category: "E", title: "Class E", desc: "Articulated Commercial Bus & Multi-Trailer Coach" },
-	{ category: "C", title: "Class C", desc: "Heavy Commercial Truck & High-Capacity Transport" },
-	{ category: "B", title: "Class B", desc: "Light Commercial Minibus & Inter-Urban Shuttle" },
+	{ category: "D", title: "Catégorie D", desc: "Autobus et Autocars Passagers Longue Distance" },
+	{ category: "E", title: "Catégorie E", desc: "Véhicules Articulés et Convois Commerciaux" },
+	{ category: "C", title: "Catégorie C", desc: "Poids Lourds et Transport Haute Capacité" },
+	{ category: "B", title: "Catégorie B", desc: "Minibus Urbains et Navettes Légères" },
 ];
 
 export default function RegisterStep2LicenseScreen() {
 	const router = useRouter();
+	useWizardGuard(2);
+
 	const {
 		licenseNumber,
 		licenseCategory,
@@ -55,7 +57,6 @@ export default function RegisterStep2LicenseScreen() {
 	const [expiryInput, setExpiryInput] = useState(licenseExpiryDate);
 	const [frontUri, setFrontUri] = useState<string | null>(licenseFrontUri);
 	const [backUri, setBackUri] = useState<string | null>(licenseBackUri);
-	// Phase 15 — server-side object keys (uploaded), distinct from local preview URIs.
 	const [frontKey, setFrontKey] = useState<string | null>(
 		licenseFrontUri?.startsWith("documents/") ? licenseFrontUri : null,
 	);
@@ -69,7 +70,7 @@ export default function RegisterStep2LicenseScreen() {
 		DriverFeedback.tap();
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
 		if (status !== "granted") {
-			Alert.alert("Permission Required", "Camera permission is required to capture your license photo.");
+			Alert.alert("Permission requise", "L'accès à la caméra est nécessaire pour photographier votre permis.");
 			return;
 		}
 
@@ -84,8 +85,6 @@ export default function RegisterStep2LicenseScreen() {
 			if (type === "front") setFrontUri(localUri);
 			else setBackUri(localUri);
 
-			// Phase 15 (F-DV-05) — real upload to private storage; the stored
-			// value becomes the server-side object key, not a device URI.
 			const storedKey = await uploadCapturedDocument({
 				presign: presign.mutateAsync as never,
 				localUri,
@@ -94,203 +93,361 @@ export default function RegisterStep2LicenseScreen() {
 			});
 			if (!storedKey) {
 				Alert.alert(
-					"Upload Failed",
-					"Check your connection and retake the photo — it must upload before you continue.",
+					"Échec de téléversement",
+					"Vérifiez votre connexion et reprenez la photo avant de continuer.",
 				);
 				return;
 			}
 			if (type === "front") setFrontKey(storedKey);
 			else setBackKey(storedKey);
-			updateData(type === "front" ? { licenseFrontUri: storedKey } : { licenseBackUri: storedKey });
 		}
 	};
 
 	const handleNext = () => {
 		if (!numberInput.trim()) {
-			Alert.alert("Required Field", "Please enter your commercial driver license number.");
+			Alert.alert("Champ obligatoire", "Veuillez saisir le numéro de permis de conduire.");
+			return;
+		}
+		if (!expiryInput.trim()) {
+			Alert.alert("Champ obligatoire", "Veuillez indiquer la date d'expiration.");
+			return;
+		}
+
+		const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+		if (!dateRegex.test(expiryInput.trim())) {
+			Alert.alert(
+				"Format invalide",
+				"Veuillez entrer une date au format AAAA-MM-JJ (ex: 2028-12-31)."
+			);
+			return;
+		}
+
+		const parsedDate = new Date(expiryInput.trim());
+		if (isNaN(parsedDate.getTime()) || parsedDate.getTime() < Date.now()) {
+			Alert.alert(
+				"Permis expiré",
+				"La date d'expiration doit être une date future valide."
+			);
+			return;
+		}
+
+		if ((frontUri && !frontKey) || (backUri && !backKey)) {
+			Alert.alert(
+				"Photos non téléversées",
+				"Vos photos de permis n'ont pas pu être envoyées. Reprenez les photos avant de continuer."
+			);
 			return;
 		}
 
 		DriverFeedback.tap();
-		// Phase 15 — a captured photo must have uploaded successfully.
-		if ((frontUri && !frontKey) || (backUri && !backKey)) {
-			Alert.alert(
-				"Document Not Uploaded",
-				"One of your licence photos failed to upload. Retake it before continuing.",
-			);
-			return;
-		}
 		updateData({
 			licenseNumber: numberInput.trim(),
 			licenseCategory: categorySelect,
-			licenseExpiryDate: expiryInput,
-			licenseFrontUri: frontUri,
-			licenseBackUri: backUri,
+			licenseExpiryDate: expiryInput.trim(),
+			licenseFrontUri: frontKey || frontUri,
+			licenseBackUri: backKey || backUri,
 		});
 
 		router.push("/(auth)/register/documents");
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-zinc-950">
-			{/* Top Nav Header */}
-			<View className="px-5 py-3 border-b border-zinc-800 bg-zinc-900/60 flex-row items-center justify-between">
-				<TouchableOpacity
-					onPress={() => router.back()}
-					className="size-10 rounded-full bg-zinc-800 items-center justify-center"
-				>
-					<ArrowLeft size={20} color="#fafafa" />
-				</TouchableOpacity>
-				<View className="items-center">
-					<Text className="text-xs font-black text-white uppercase tracking-wider">
-						Driver Onboarding
-					</Text>
-					<Text className="text-[10px] text-zinc-400 font-mono">
-						Step 2 of 4: Driving License
-					</Text>
-				</View>
-				<View className="size-10" />
-			</View>
-
-			{/* Progress Indicator */}
-			<View className="h-1 bg-zinc-900 w-full">
-				<View className="h-full bg-rose-600 w-2/4" />
-			</View>
-
-			<ScrollView className="flex-1 px-5 py-6 space-y-6">
-				{/* Header Intro */}
+		<ScreenShell
+			header={
 				<View>
-					<Text className="text-2xl font-black text-white tracking-tight">
-						Driving License
-					</Text>
-					<Text className="text-xs text-zinc-400 mt-1 leading-relaxed">
-						Provide your valid Ministry of Transport commercial driver credentials.
-					</Text>
+					<PageHeader
+						title="Permis de Conduire"
+						subtitle="Étape 2 sur 4 : Titre de transport professionnel"
+						showBack
+					/>
+					<View style={styles.progressTrack}>
+						<View style={[styles.progressBar, { width: "50%" }]} />
+					</View>
 				</View>
+			}
+			footer={
+				<Button
+					title="Continuer vers les documents"
+					variant="primary"
+					size="lg"
+					onPress={handleNext}
+					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
+					iconPosition="right"
+				/>
+			}
+		>
+			<View style={styles.formCard}>
+				<Text style={styles.sectionTitle}>Catégorie du permis</Text>
+				<Text style={styles.sectionSubtitle}>
+					Sélectionnez la catégorie principale pour vos missions commerciales.
+				</Text>
 
-				{/* Category Selector */}
-				<View className="space-y-2">
-					<Text className="text-xs font-semibold text-zinc-300">
-						License Category
-					</Text>
-					<View className="space-y-2">
-						{LICENSE_CATEGORIES.map((item) => (
+				<View style={styles.categoriesList}>
+					{LICENSE_CATEGORIES.map((item) => {
+						const isSelected = categorySelect === item.category;
+						return (
 							<TouchableOpacity
 								key={item.category}
 								onPress={() => {
 									DriverFeedback.tap();
 									setCategorySelect(item.category);
 								}}
-								className={`p-3.5 rounded-2xl border flex-row items-center justify-between ${
-									categorySelect === item.category
-										? "bg-rose-600/10 border-rose-500"
-										: "bg-zinc-900 border-zinc-800"
-								}`}
+								activeOpacity={0.8}
+								style={[
+									styles.categoryCard,
+									isSelected && styles.categoryCardSelected,
+								]}
 							>
-								<View className="flex-1 pr-2">
-									<Text
-										className={`text-sm font-bold ${
-											categorySelect === item.category ? "text-rose-400" : "text-white"
-										}`}
-									>
-										{item.title}
-									</Text>
-									<Text className="text-[11px] text-zinc-400 mt-0.5">{item.desc}</Text>
+								<View style={styles.categoryHeader}>
+									<View style={styles.categoryLeft}>
+										<View
+											style={[
+												styles.categoryBadge,
+												isSelected && styles.categoryBadgeSelected,
+											]}
+										>
+											<Text
+												style={[
+													styles.categoryBadgeText,
+													isSelected && styles.categoryBadgeTextSelected,
+												]}
+											>
+												{item.category}
+											</Text>
+										</View>
+										<Text style={styles.categoryTitle}>{item.title}</Text>
+									</View>
+									{isSelected ? (
+										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color="#ee237c" />
+									) : null}
 								</View>
-								{categorySelect === item.category && (
-									<CheckCircle size={18} color="#e11d48" />
-								)}
+								<Text style={styles.categoryDesc}>{item.desc}</Text>
 							</TouchableOpacity>
-						))}
-					</View>
+						);
+					})}
 				</View>
+			</View>
 
-				{/* Inputs */}
-				<View className="space-y-4">
-					{/* License Number */}
-					<View className="space-y-1.5">
-						<Text className="text-xs font-semibold text-zinc-300">
-							License Number
-						</Text>
-						<View className="flex-row items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 h-12">
-							<CreditCard size={18} color="#71717a" />
-							<TextInput
-								className="flex-1 ml-3 text-white text-sm font-mono"
-								placeholder="CI-2024-884920"
-								placeholderTextColor="#52525b"
-								autoCapitalize="characters"
-								value={numberInput}
-								onChangeText={setNumberInput}
-							/>
-						</View>
-					</View>
+			<View style={styles.formCard}>
+				<Text style={styles.sectionTitle}>Numéro et validité</Text>
 
-					{/* License Expiry Date */}
-					<View className="space-y-1.5">
-						<Text className="text-xs font-semibold text-zinc-300">
-							Expiration Date (YYYY-MM-DD)
-						</Text>
-						<View className="flex-row items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 h-12">
-							<Calendar size={18} color="#71717a" />
-							<TextInput
-								className="flex-1 ml-3 text-white text-sm font-mono"
-								placeholder="2028-12-31"
-								placeholderTextColor="#52525b"
-								value={expiryInput}
-								onChangeText={setExpiryInput}
-							/>
-						</View>
-					</View>
+				<View style={styles.inputsList}>
+					<Input
+						label="Numéro de permis officiel"
+						placeholder="ex: CI-0029-482910"
+						value={numberInput}
+						onChangeText={setNumberInput}
+						leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={18} color="#71717a" />}
+					/>
+
+					<Input
+						label="Date d'expiration"
+						placeholder="AAAA-MM-JJ (ex: 2028-12-31)"
+						value={expiryInput}
+						onChangeText={setExpiryInput}
+						leftIcon={<HugeiconsIcon icon={Calendar01Icon} size={18} color="#71717a" />}
+					/>
 				</View>
+			</View>
 
-				{/* Document Capture Cards (Front & Back) */}
-				<View className="space-y-3">
-					<Text className="text-xs font-semibold text-zinc-300">
-						License Photos (Front & Back)
-					</Text>
+			<View style={styles.formCard}>
+				<Text style={styles.sectionTitle}>Photos du permis physique</Text>
+				<Text style={styles.sectionSubtitle}>
+					Photographiez le recto et le verso de votre permis original.
+				</Text>
 
-					<View className="flex-row gap-3">
-						{/* Front */}
-						<TouchableOpacity
-							onPress={() => handleCaptureDocument("front")}
-							className="flex-1 h-32 rounded-2xl bg-zinc-900 border-2 border-dashed border-zinc-800 items-center justify-center overflow-hidden"
-						>
-							{frontUri ? (
-								<Image source={{ uri: frontUri }} className="size-full" resizeMode="cover" />
-							) : (
-								<View className="items-center justify-center space-y-1">
-									<Camera size={22} color="#e11d48" />
-									<Text className="text-[10px] font-bold text-zinc-400">Front Side</Text>
+				<View style={styles.photosRow}>
+					{/* Recto */}
+					<View style={styles.photoCol}>
+						<Text style={styles.photoLabel}>Recto</Text>
+						{frontUri ? (
+							<TouchableOpacity
+								onPress={() => handleCaptureDocument("front")}
+								style={styles.photoPreviewWrap}
+							>
+								<Image source={{ uri: frontUri }} style={styles.photoPreview} />
+								<View style={styles.photoSuccessBadge}>
+									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
 								</View>
-							)}
-						</TouchableOpacity>
+							</TouchableOpacity>
+						) : (
+							<TouchableOpacity
+								onPress={() => handleCaptureDocument("front")}
+								style={styles.photoCaptureBox}
+							>
+								<HugeiconsIcon icon={Camera01Icon} size={22} color="#ee237c" />
+								<Text style={styles.photoCaptureText}>Prendre Recto</Text>
+							</TouchableOpacity>
+						)}
+					</View>
 
-						{/* Back */}
-						<TouchableOpacity
-							onPress={() => handleCaptureDocument("back")}
-							className="flex-1 h-32 rounded-2xl bg-zinc-900 border-2 border-dashed border-zinc-800 items-center justify-center overflow-hidden"
-						>
-							{backUri ? (
-								<Image source={{ uri: backUri }} className="size-full" resizeMode="cover" />
-							) : (
-								<View className="items-center justify-center space-y-1">
-									<Camera size={22} color="#e11d48" />
-									<Text className="text-[10px] font-bold text-zinc-400">Back Side</Text>
+					{/* Verso */}
+					<View style={styles.photoCol}>
+						<Text style={styles.photoLabel}>Verso</Text>
+						{backUri ? (
+							<TouchableOpacity
+								onPress={() => handleCaptureDocument("back")}
+								style={styles.photoPreviewWrap}
+							>
+								<Image source={{ uri: backUri }} style={styles.photoPreview} />
+								<View style={styles.photoSuccessBadge}>
+									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
 								</View>
-							)}
-						</TouchableOpacity>
+							</TouchableOpacity>
+						) : (
+							<TouchableOpacity
+								onPress={() => handleCaptureDocument("back")}
+								style={styles.photoCaptureBox}
+							>
+								<HugeiconsIcon icon={Camera01Icon} size={22} color="#ee237c" />
+								<Text style={styles.photoCaptureText}>Prendre Verso</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				</View>
-
-				{/* Next Button */}
-				<TouchableOpacity
-					onPress={handleNext}
-					className="bg-rose-600 active:bg-rose-700 h-13 rounded-2xl items-center justify-center flex-row gap-2 mt-4 shadow-lg shadow-rose-600/30"
-				>
-					<Text className="text-white font-bold text-sm">Continue to Documents</Text>
-					<ArrowRight size={18} color="#ffffff" />
-				</TouchableOpacity>
-			</ScrollView>
-		</SafeAreaView>
+			</View>
+		</ScreenShell>
 	);
 }
+
+const styles = StyleSheet.create({
+	progressTrack: {
+		height: 4,
+		backgroundColor: "#18181b",
+		width: "100%",
+	},
+	progressBar: {
+		height: "100%",
+		backgroundColor: "#ee237c",
+		borderTopRightRadius: 4,
+		borderBottomRightRadius: 4,
+	},
+	formCard: {
+		backgroundColor: "#18181b",
+		borderWidth: 1,
+		borderColor: "#27272a",
+		borderRadius: 20,
+		padding: 20,
+		gap: 12,
+	},
+	sectionTitle: {
+		fontSize: 16,
+		fontWeight: "800",
+		color: "#fafafa",
+		letterSpacing: -0.2,
+	},
+	sectionSubtitle: {
+		fontSize: 12,
+		color: "#a1a1aa",
+		lineHeight: 18,
+	},
+	categoriesList: {
+		gap: 10,
+		paddingTop: 4,
+	},
+	categoryCard: {
+		padding: 14,
+		borderRadius: 16,
+		borderWidth: 1.5,
+		borderColor: "#27272a",
+		backgroundColor: "#09090b",
+		gap: 6,
+	},
+	categoryCardSelected: {
+		borderColor: "#ee237c",
+		backgroundColor: "rgba(238, 35, 124, 0.06)",
+	},
+	categoryHeader: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	categoryLeft: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 10,
+	},
+	categoryBadge: {
+		width: 32,
+		height: 32,
+		borderRadius: 10,
+		backgroundColor: "#27272a",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	categoryBadgeSelected: {
+		backgroundColor: "#ee237c",
+	},
+	categoryBadgeText: {
+		fontSize: 14,
+		fontWeight: "800",
+		color: "#a1a1aa",
+	},
+	categoryBadgeTextSelected: {
+		color: "#ffffff",
+	},
+	categoryTitle: {
+		fontSize: 14,
+		fontWeight: "700",
+		color: "#fafafa",
+	},
+	categoryDesc: {
+		fontSize: 11,
+		color: "#71717a",
+		paddingLeft: 42,
+	},
+	inputsList: {
+		gap: 16,
+		paddingTop: 4,
+	},
+	photosRow: {
+		flexDirection: "row",
+		gap: 12,
+		paddingTop: 6,
+	},
+	photoCol: {
+		flex: 1,
+		gap: 6,
+	},
+	photoLabel: {
+		fontSize: 12,
+		fontWeight: "600",
+		color: "#d4d4d8",
+	},
+	photoCaptureBox: {
+		height: 100,
+		borderWidth: 1.5,
+		borderStyle: "dashed",
+		borderColor: "#3f3f46",
+		borderRadius: 14,
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor: "#09090b",
+		gap: 6,
+	},
+	photoCaptureText: {
+		fontSize: 11,
+		fontWeight: "700",
+		color: "#fafafa",
+	},
+	photoPreviewWrap: {
+		position: "relative",
+		height: 100,
+		borderRadius: 14,
+		overflow: "hidden",
+		borderWidth: 1,
+		borderColor: "#27272a",
+	},
+	photoPreview: {
+		width: "100%",
+		height: "100%",
+	},
+	photoSuccessBadge: {
+		position: "absolute",
+		top: 6,
+		right: 6,
+		backgroundColor: "#18181b",
+		borderRadius: 999,
+		padding: 3,
+	},
+});
