@@ -1,6 +1,6 @@
 "use client";
 
-import QRCode from "react-qr-code";
+import QRCode from "@/components/qr-code";
 import { useTranslations } from "next-intl";
 import { formatDateWithWeekday } from "@/lib/format-date";
 import {

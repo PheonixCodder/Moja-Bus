@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTranslations, useLocale } from "next-intl";
-import QRCode from "react-qr-code";
+import QRCode from "@/components/qr-code";
 import { ArrowRight, Calendar, Armchair } from "lucide-react";
 import { formatDateWithWeekday } from "@/lib/format-date";
 
