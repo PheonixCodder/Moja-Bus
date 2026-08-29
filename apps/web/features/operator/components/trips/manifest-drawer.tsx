@@ -423,7 +423,7 @@ export function ManifestDrawer({
                       label: `${b.registrationPlate}${b.internalName ? ` \u2014 ${b.internalName}` : ""}`,
                     }))}
                   value={trip.busId ?? ""}
-                  onValueChange={(val) => {
+                  onValueChange={(val: string | null) => {
                     if (val) {
                       assignBusMutation.mutate({
                         id: trip.id,

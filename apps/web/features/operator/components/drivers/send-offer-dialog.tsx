@@ -134,7 +134,7 @@ export function SendOfferDialog({
             <Label htmlFor="offer-type">Employment Model</Label>
             <Select
               value={employmentType}
-              onValueChange={(value: string) =>
+              onValueChange={(value: string | null) =>
                 setEmploymentType(value ?? "EXCLUSIVE_INTERCITY")
               }
             >

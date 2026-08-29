@@ -765,7 +765,7 @@ export function TerminalEditorSheet({
                       label: city.name,
                     }))}
                     value={cityId}
-                    onValueChange={(val) => {
+                    onValueChange={(val: string | null) => {
                       setCityId(val || "");
                       setMunicipalityId("");
                       setQuarterId("");
@@ -825,7 +825,7 @@ export function TerminalEditorSheet({
                             label: m.name,
                           }))}
                           value={municipalityId}
-                          onValueChange={(val) => {
+                          onValueChange={(val: string | null) => {
                             setMunicipalityId(val || "");
                             setQuarterId("");
                             setIsDirty(true);
@@ -888,7 +888,7 @@ export function TerminalEditorSheet({
                       label: q.name,
                     }))}
                     value={quarterId}
-                    onValueChange={(val) => {
+                    onValueChange={(val: string | null) => {
                       setQuarterId(val || "");
                       setIsDirty(true);
                     }}

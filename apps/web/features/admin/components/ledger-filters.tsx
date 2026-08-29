@@ -53,7 +53,7 @@ export function LedgerFilters({
       <div className="flex items-center gap-3 w-full sm:w-auto">
         <Select
           value={sideFilter}
-          onValueChange={(val) => onSideFilterChange(val || "ALL")}
+          onValueChange={(val: string | null) => onSideFilterChange(val || "ALL")}
         >
           <SelectTrigger className="h-10 w-[120px] text-xs font-semibold bg-white border border-slate-200">
             <SelectValue placeholder={t("allSides")} />
@@ -69,7 +69,7 @@ export function LedgerFilters({
 
         <Select
           value={typeFilter}
-          onValueChange={(val) => onTypeFilterChange(val || "ALL")}
+          onValueChange={(val: string | null) => onTypeFilterChange(val || "ALL")}
         >
           <SelectTrigger className="h-10 w-[160px] text-xs font-semibold bg-white border border-slate-200">
             <SelectValue placeholder={t("allTypes")} />

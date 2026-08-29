@@ -211,7 +211,7 @@ export function AdminReferralProgramCard() {
           </div>
           <Select
             value={welcomeCampaignId}
-            onValueChange={(value: string) => setWelcomeCampaignId(value ?? NONE)}
+            onValueChange={(value: string | null) => setWelcomeCampaignId(value ?? NONE)}
           >
             <SelectTrigger>
               <SelectValue placeholder={t("welcomeCampaignNone")} />

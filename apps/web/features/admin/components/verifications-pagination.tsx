@@ -67,7 +67,7 @@ export function VerificationsPagination({
             <span>{t("rowsPerPage")}</span>
             <Select
               value={`${pageSize}`}
-              onValueChange={(value: string) => onPageSizeChange(Number(value))}
+              onValueChange={(value: string | null) => onPageSizeChange(Number(value))}
             >
               <SelectTrigger
                 size="sm"

@@ -433,7 +433,7 @@ export function ScheduleEditDrawer({
                   label: `${b.registrationPlate}${b.internalName ? ` — ${b.internalName}` : ""}`,
                 }))}
                 value={editPreferredBusId}
-                onValueChange={(val) => {
+                onValueChange={(val: string | null) => {
                   if (val) setEditPreferredBusId(val);
                 }}
               >
@@ -663,7 +663,7 @@ export function ScheduleEditDrawer({
                 </Label>
                 <Select
                   value={exceptionType}
-                  onValueChange={(val) =>
+                  onValueChange={(val: string | null) =>
                     setExceptionType(
                       (val ?? "CANCELLED") as
                         | "CANCELLED"
@@ -706,7 +706,7 @@ export function ScheduleEditDrawer({
                 </Label>
                 <Select
                   value={exceptionReason}
-                  onValueChange={(val) =>
+                  onValueChange={(val: string | null) =>
                     setExceptionReason(val ?? "OPERATIONAL")
                   }
                 >

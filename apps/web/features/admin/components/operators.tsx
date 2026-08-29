@@ -138,7 +138,7 @@ export function Operators() {
           <div className="flex flex-wrap items-center gap-3">
             <Select
               value={params.status}
-              onValueChange={(value: string) => {
+              onValueChange={(value: string | null) => {
                 setParams({ status: value as any });
                 table.setPageIndex(0);
               }}

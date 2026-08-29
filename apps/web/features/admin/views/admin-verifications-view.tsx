@@ -147,7 +147,7 @@ export function AdminVerificationsView() {
             </span>
             <Select
               value={statusFilter}
-              onValueChange={(value: string) => {
+              onValueChange={(value: string | null) => {
                 setStatusFilter(value || "PENDING_VERIFICATION");
                 setPage(1);
               }}

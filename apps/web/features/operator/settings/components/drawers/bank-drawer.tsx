@@ -272,7 +272,7 @@ export function BankDrawer({ isOpen, onClose }: BankDrawerProps) {
         <FieldLabel>{t("bankName")} *</FieldLabel>
         <Combobox
           value={form.watch("bankCode") || ""}
-          onValueChange={(val) => {
+          onValueChange={(val: string | null) => {
             if (val) {
               form.setValue("bankCode", val);
               const matched = paystackBanks?.find((b) => b.code === val);

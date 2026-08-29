@@ -197,8 +197,8 @@ export function RedirectFormDialog({
               name="type"
               render={({ field }) => (
                 <Select
-                  onValueChange={(val) =>
-                    field.onChange(parseInt(val as string, 10))
+                  onValueChange={(val: string | null) =>
+                    field.onChange(parseInt(val || "301", 10))
                   }
                   value={field.value.toString()}
                 >

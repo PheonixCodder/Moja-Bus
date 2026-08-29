@@ -92,7 +92,7 @@ export function DispatchFilterBar() {
             ...companies.map((c) => ({ label: c.name, value: c.id })),
           ]}
           value={companyId || "ALL"}
-          onValueChange={(val) => {
+          onValueChange={(val: string | null) => {
             if (val) setParams({ companyId: val === "ALL" ? null : val });
           }}
         >
@@ -117,7 +117,7 @@ export function DispatchFilterBar() {
 
       <Select
         value={status || "ACTIVE"}
-        onValueChange={(val) => {
+        onValueChange={(val: string | null) => {
           if (val) setParams({ status: val });
         }}
       >

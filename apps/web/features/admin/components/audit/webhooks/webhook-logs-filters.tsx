@@ -32,7 +32,7 @@ export function WebhookLogsFilters() {
       <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
         <Select
           value={params.provider}
-          onValueChange={(val) => setParams({ provider: val, page: 1 })}
+          onValueChange={(val: string | null) => setParams({ provider: val ?? "All", page: 1 })}
         >
           <SelectTrigger className="w-[140px] bg-background">
             <SelectValue placeholder={t("provider")} />
@@ -46,7 +46,7 @@ export function WebhookLogsFilters() {
 
         <Select
           value={params.status}
-          onValueChange={(val) => setParams({ status: val, page: 1 })}
+          onValueChange={(val: string | null) => setParams({ status: val ?? "All", page: 1 })}
         >
           <SelectTrigger className="w-[140px] bg-background">
             <SelectValue placeholder={t("allStatuses")} />
