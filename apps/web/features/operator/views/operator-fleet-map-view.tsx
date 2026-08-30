@@ -22,16 +22,24 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
-import type { FleetVehicle } from "@/features/operator/components/fleet-live-map";
+import type { ComponentType } from "react";
+import type {
+  FleetVehicle,
+  FleetLiveMapProps,
+} from "@/features/operator/components/fleet-live-map";
 import { useGatewaySubscription } from "@/lib/gateway-subscription";
 import { useTRPC } from "@/trpc/client";
 
 // Leaflet touches `window` at module load — client-only, matching the
 // route-map-preview pattern.
+// Cast the dynamically imported component to its proper props type.
+// next/dynamic's type inference for the lazy-loaded module's props is
+// unreliable across TypeScript versions, causing Vercel's type checker
+// to see component props as `any`.
 const FleetLiveMap = dynamic(
   () => import("@/features/operator/components/fleet-live-map"),
   { ssr: false, loading: () => <div className="size-full bg-zinc-950" /> },
-);
+) as ComponentType<FleetLiveMapProps>;
 
 export function OperatorFleetMapView() {
   const trpc = useTRPC();

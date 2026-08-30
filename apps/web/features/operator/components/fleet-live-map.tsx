@@ -71,7 +71,7 @@ function vehicleIcon(
   });
 }
 
-interface FleetLiveMapProps {
+export interface FleetLiveMapProps {
   vehicles: FleetVehicle[];
   selectedId: string | null;
   onSelect: (id: string) => void;
