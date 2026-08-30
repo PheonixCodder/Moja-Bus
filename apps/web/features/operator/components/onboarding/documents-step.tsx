@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, type DropzoneOptions } from "react-dropzone";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
@@ -322,7 +322,7 @@ function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
       "image/*": [".jpeg", ".jpg", ".png"],
     },
     maxFiles: 1,
-  });
+  } as DropzoneOptions);
 
   return (
     <div
