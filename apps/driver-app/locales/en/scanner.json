@@ -16,5 +16,20 @@
 	"labelBookingRef": "Booking Ref",
 	"confirmNext": "Confirm & Scan Next",
 	"dismissReturn": "Dismiss & Return to Camera",
-	"fallbackError": "Invalid ticket barcode or cancelled reservation."
+	"fallbackError": "Invalid ticket barcode or cancelled reservation.",
+	"permissionTitle": "Camera Access Required",
+	"permissionSubtitle": "Moja Driver uses the camera to scan and validate passenger QR tickets at boarding gates.",
+	"permissionAllow": "Allow Camera",
+	"syncComplete": "Sync Complete",
+	"syncCompleteMsg": "{{count}} offline scans processed:\n• {{synced}} validated for boarding\n• {{alreadyBoarded}} already recorded\n• {{rejected}} rejected",
+	"syncFailed": "Sync Failed",
+	"syncFailedMsg": "Unable to sync. Try again later.",
+	"offlineCount": "{{count}} scan(s) pending",
+	"offlineSync": "Sync",
+	"offlineSyncing": "Syncing…",
+	"offlinePassengerName": "Pending sync",
+	"offlineErrorMessage": "Device offline. Scan saved locally, will sync when network returns.",
+	"offlineTitle": "Saved Offline",
+	"offlineMsg": "Saved • Passenger allowed to board",
+	"seatPrefix": "Seat"
 }

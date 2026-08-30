@@ -1,5 +1,12 @@
 {
   "passport": "Passeport Chauffeur",
+  "headerTitle": "Passeport Carrière Conducteur",
+  "headerSubtitle": "Identité professionnelle universelle inter-opérateurs Moja Ride",
+  "fallbackName": "Chauffeur Moja",
+  "verifiedBadge": "Chauffeur Commercial Vérifié",
+  "licenseClass": "Classe {{category}} Poids Lourd",
+  "licenseLabel": "Permis : {{number}}",
+  "licenseNA": "N/A",
   "careerStats": "Statistiques de Carrière",
   "safetyIndex": "Indice de Sécurité",
   "totalTrips": "Total des Courses",
@@ -9,10 +16,68 @@
   "verified": "Vérifié",
   "pending": "En Attente de Révision",
   "rejected": "Rejeté",
-  "signOut": "Se Déconnecter",
-  "signOutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
-  "confirm": "Déconnecter",
-  "cancel": "Annuler",
+  "shift": {
+    "title": "État de Prise de Service",
+    "active": "En service ({{minutes}} min actives)",
+    "inactive": "Hors-service / En repos"
+  },
+  "marketplace": {
+    "title": "Disponible pour Embauche",
+    "visible": "Visible par les transporteurs sur la marketplace",
+    "hidden": "Masqué de la marketplace transporteur"
+  },
+  "editProfile": {
+    "title": "Modifier Profil Marketplace",
+    "subtitle": "Ville base, type d'activité, expérience lignes",
+    "base": "Base : {{city}} · {{count}} lignes"
+  },
+  "language": {
+    "title": "Langue d'Affichage / Language",
+    "subtitle": "Français (Côte d'Ivoire) / English",
+    "badge": "FR / EN"
+  },
+  "earnings": {
+    "title": "Aperçu des Gains",
+    "currency": "XOF Monnaie",
+    "today": "XOF Aujourd'hui",
+    "serviceActive": "{{minutes}} min de service",
+    "serviceInactive": "Service inactif",
+    "week": "Semaine : {{amount}} XOF"
+  },
+  "metric": {
+    "rating": "Note",
+    "reviews": "{{count}} avis passagers",
+    "safety": "Sécurité",
+    "safetySub": "Zéro incident noté",
+    "trips": "Trajets",
+    "tripsSub": "Courses achevées",
+    "distance": "Distance",
+    "distanceSub": "km enregistrés"
+  },
+  "carriers": {
+    "title": "Affiliations Transporteurs Actives",
+    "fallback": "Transporteur Commercial",
+    "badge": "Badge : {{number}}",
+    "active": "Actif",
+    "direct": "Transporteur Direct",
+    "contract": "Contrat Chauffeur Agréé",
+    "independent": "Indépendant"
+  },
+  "errors": {
+    "shiftToggle": "Erreur de Service",
+    "shiftToggleMsg": "Impossible de modifier l'état de service.",
+    "call": "Erreur",
+    "callMsg": "Impossible de composer le numéro.",
+    "preference": "Erreur",
+    "preferenceMsg": "Impossible de mettre à jour."
+  },
+  "signOut": {
+    "title": "Déconnexion Chauffeur",
+    "body": "Êtes-vous sûr de vouloir vous déconnecter du terminal chauffeur ?",
+    "cancel": "Annuler",
+    "confirm": "Déconnexion",
+    "button": "Déconnexion du Terminal"
+  },
   "telemetryHealth": "Santé Télémétrie",
   "streaming": "En streaming",
   "idleTracking": "Suivi au ralenti",

@@ -25,27 +25,32 @@ const STATUS_META: Record<
 	WITHDRAWN: { variant: "outline", labelKey: "status.WITHDRAWN" },
 };
 
-const EMPLOYMENT_LABELS: Record<string, string> = {
-	EXCLUSIVE_INTERCITY: "Intercity exclusif",
-	CONTRACTOR_URBAN: "Contractuel urbain",
-	HYBRID: "Hybride",
-};
-
-function timeLeft(expiresAt: string | Date): string | null {
-	const ms = new Date(expiresAt).getTime() - Date.now();
+function timeLeft(expiresAt: string | Date | null | undefined, t: (key: string, opts?: any) => string): string | null {
+	if (!expiresAt) return null;
+	const parsed = new Date(expiresAt).getTime();
+	if (isNaN(parsed)) return null;
+	const ms = parsed - Date.now();
 	if (ms <= 0) return null;
 	const hours = Math.floor(ms / 3600000);
-	if (hours < 48) return `${hours}h`;
-	return `${Math.floor(hours / 24)}j ${hours % 24}h`;
+	if (hours < 48) return t("countdown.hoursOnly", { hours });
+	const days = Math.floor(hours / 24);
+	return t("countdown.daysHours", { days, hours: hours % 24 });
 }
 
-function fmtSalary(n: number): string {
-	return n.toLocaleString("fr-FR");
+
+
+function fmtSalary(n: number | null | undefined, locale: string): string {
+	if (n === null || n === undefined || typeof n !== "number" || isNaN(n)) {
+		return "—";
+	}
+	return n.toLocaleString(locale);
 }
 
-function fmtDate(d: string | Date | null | undefined): string {
+function fmtDate(d: string | Date | null | undefined, locale: string): string {
 	if (!d) return "—";
-	return new Date(d).toLocaleDateString("fr-FR", {
+	const parsed = new Date(d);
+	if (isNaN(parsed.getTime())) return "—";
+	return parsed.toLocaleDateString(locale, {
 		day: "numeric",
 		month: "short",
 		year: "numeric",
@@ -67,14 +72,15 @@ export function OfferCard({
 	onCounter,
 	submitting,
 }: OfferCardProps) {
-	const { t } = useTranslation("offers");
+	const { t, i18n } = useTranslation("offers");
+	const locale = i18n.language;
 
 	const meta = STATUS_META[item.status as string] ?? {
 		variant: "default",
 		labelKey: "status.EXPIRED",
 	};
 	const isLive = item.status === "PENDING" || item.status === "COUNTERED";
-	const countdown = isLive ? timeLeft(item.expiresAt) : null;
+	const countdown = isLive ? timeLeft(item.expiresAt, t) : null;
 	const countered =
 		item.status === "COUNTERED" && item.counterSalaryCFA;
 
@@ -98,7 +104,7 @@ export function OfferCard({
 							{item.carrierName}
 						</Text>
 						<Text style={styles.carrierType}>
-							{EMPLOYMENT_LABELS[item.employmentType] ?? item.employmentType}
+							{t(`employment.${item.employmentType}` as any) ?? item.employmentType}
 						</Text>
 					</View>
 				</View>
@@ -111,7 +117,7 @@ export function OfferCard({
 					<View>
 						<Text style={styles.salaryLabel}>{t("card.salary")}</Text>
 						<Text style={styles.salaryAmount}>
-							{fmtSalary(item.offeredSalaryCFA)}{" "}
+							{fmtSalary(item.offeredSalaryCFA, locale)}{" "}
 							<Text style={styles.salaryUnit}>{t("card.cfaMonthly")}</Text>
 						</Text>
 					</View>
@@ -129,8 +135,8 @@ export function OfferCard({
 							{t("card.counterLabel")}
 						</Text>
 						<Text style={styles.counteredAmount}>
-							{fmtSalary(item.counterSalaryCFA)}{" "}
-							<Text style={styles.counteredUnit}>FCFA / mois</Text>
+							{fmtSalary(item.counterSalaryCFA, locale)}{" "}
+							<Text style={styles.counteredUnit}>{t("card.cfaMonthly")}</Text>
 						</Text>
 					</View>
 				) : null}
@@ -140,12 +146,12 @@ export function OfferCard({
 					<View style={styles.metaItem}>
 						<HugeiconsIcon icon={Calendar01Icon} size={13} color="#71717a" />
 						<Text style={styles.metaText}>
-							{t("card.startDate", { date: fmtDate(item.contractStartDate) })}
+							{t("card.startDate", { date: fmtDate(item.contractStartDate, locale) })}
 						</Text>
 					</View>
 					{item.message ? (
 						<Text style={styles.messageText} numberOfLines={2}>
-							« {item.message} »
+							{t("messageQuote", { message: item.message })}
 						</Text>
 					) : null}
 				</View>
@@ -155,7 +161,7 @@ export function OfferCard({
 			{isLive ? (
 				<View style={styles.actionsRow}>
 					<Button
-						title={t("action.decline")}
+						title={t("actions.decline")}
 						variant="outline"
 						size="sm"
 						icon={<HugeiconsIcon icon={CancelCircleIcon} size={16} color="#ef4444" />}
@@ -166,7 +172,7 @@ export function OfferCard({
 					/>
 					{item.status === "PENDING" ? (
 						<Button
-							title={t("action.counter")}
+							title={t("actions.counter")}
 							variant="secondary"
 							size="sm"
 							disabled={submitting}
@@ -175,7 +181,7 @@ export function OfferCard({
 						/>
 					) : null}
 					<Button
-						title={t("action.accept")}
+						title={t("actions.accept")}
 						variant="primary"
 						size="sm"
 						icon={<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#ffffff" />}

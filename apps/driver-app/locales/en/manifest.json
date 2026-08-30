@@ -15,5 +15,12 @@
   "loading": "Loading passenger manifest...",
   "emptyTitle": "No Passengers Found",
   "emptySearch": "No passengers match your search.",
-  "emptyNone": "No confirmed bookings for this departure yet."
+  "emptyNone": "No confirmed bookings for this departure yet.",
+  "errorLoadingTitle": "Unable to Load Manifest",
+  "errorLoadingMsg": "Failed to retrieve passengers for this run.",
+  "btnRetry": "Retry",
+  "alreadyBoardedMsg": "This passenger has already been scanned and validated on board.",
+  "error": "Error",
+  "checkInErrorMsg": "Unable to mark the passenger as boarded.",
+  "phoneAppErrorMsg": "Unable to open the phone app."
 }

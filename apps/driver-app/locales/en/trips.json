@@ -27,5 +27,17 @@
   "emptyToday": "You have no assigned departures today. Check upcoming trips or contact your dispatcher.",
   "btnManifest": "Manifest",
   "btnResume": "Resume",
-  "btnStart": "Start"
+  "btnStart": "Start",
+  "errorStartTripTitle": "Unable to Start Run",
+  "errorStartTripMsg": "Please try again.",
+  "errorLoadingTitle": "Unable to Load Trips",
+  "errorLoadingMsg": "Please verify your driver account is activated.",
+  "btnRetry": "Retry",
+  "emptyTabMsg": "No trips in the {{tab}} tab.",
+  "defaultOriginTerminal": "Departure Terminal",
+  "defaultDestTerminal": "Arrival Terminal",
+  "noBusAssigned": "No Bus Assigned",
+  "noCarrier": "No Carrier",
+  "departureLabel": "Departure {{time}}",
+  "passengersLabel": "{{count}} / {{total}} Passengers"
 }

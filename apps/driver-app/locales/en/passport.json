@@ -1,5 +1,12 @@
 {
   "passport": "Driver Passport",
+  "headerTitle": "Driver Career Passport",
+  "headerSubtitle": "Universal cross-operator professional identity — Moja Ride",
+  "fallbackName": "Moja Driver",
+  "verifiedBadge": "Verified Commercial Driver",
+  "licenseClass": "Class {{category}} Heavy Vehicle",
+  "licenseLabel": "License: {{number}}",
+  "licenseNA": "N/A",
   "careerStats": "Career Statistics",
   "safetyIndex": "Safety Index",
   "totalTrips": "Total Trips",
@@ -9,11 +16,68 @@
   "verified": "Verified",
   "pending": "Pending Review",
   "rejected": "Rejected",
-  "signOut": "Sign Out",
-  "signOutConfirm": "Are you sure you want to sign out?",
-  "confirm": "Sign Out",
-  "cancel": "Cancel"
-,
+  "shift": {
+    "title": "On-Duty Status",
+    "active": "On duty ({{minutes}} min active)",
+    "inactive": "Off duty / Resting"
+  },
+  "marketplace": {
+    "title": "Available for Hire",
+    "visible": "Visible to carriers on the marketplace",
+    "hidden": "Hidden from carrier marketplace"
+  },
+  "editProfile": {
+    "title": "Edit Marketplace Profile",
+    "subtitle": "Base city, activity type, route experience",
+    "base": "Base: {{city}} · {{count}} routes"
+  },
+  "language": {
+    "title": "Display Language / Language",
+    "subtitle": "French (Ivory Coast) / English",
+    "badge": "FR / EN"
+  },
+  "earnings": {
+    "title": "Earnings Overview",
+    "currency": "XOF Currency",
+    "today": "XOF Today",
+    "serviceActive": "{{minutes}} min on duty",
+    "serviceInactive": "Service inactive",
+    "week": "Week: {{amount}} XOF"
+  },
+  "metric": {
+    "rating": "Rating",
+    "reviews": "{{count}} passenger reviews",
+    "safety": "Safety",
+    "safetySub": "Zero incidents recorded",
+    "trips": "Trips",
+    "tripsSub": "Completed trips",
+    "distance": "Distance",
+    "distanceSub": "km recorded"
+  },
+  "carriers": {
+    "title": "Active Carrier Affiliations",
+    "fallback": "Commercial Carrier",
+    "badge": "Badge: {{number}}",
+    "active": "Active",
+    "direct": "Direct Carrier",
+    "contract": "Approved Driver Contract",
+    "independent": "Independent"
+  },
+  "errors": {
+    "shiftToggle": "Service Error",
+    "shiftToggleMsg": "Unable to update shift status.",
+    "call": "Error",
+    "callMsg": "Unable to dial the number.",
+    "preference": "Error",
+    "preferenceMsg": "Unable to update."
+  },
+  "signOut": {
+    "title": "Driver Sign Out",
+    "body": "Are you sure you want to sign out of the driver terminal?",
+    "cancel": "Cancel",
+    "confirm": "Sign Out",
+    "button": "Sign Out of Terminal"
+  },
   "telemetryHealth": "Telemetry Health",
   "streaming": "Streaming",
   "idleTracking": "Idle Tracking",

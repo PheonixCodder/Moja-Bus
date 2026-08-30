@@ -15,5 +15,12 @@
   "loading": "Chargement du manifeste passagers...",
   "emptyTitle": "Aucun Passager Trouvé",
   "emptySearch": "Aucun passager ne correspond à votre recherche.",
-  "emptyNone": "Aucune réservation confirmée pour ce départ pour l'instant."
+  "emptyNone": "Aucune réservation confirmée pour ce départ pour l'instant.",
+  "errorLoadingTitle": "Impossible de charger le manifeste",
+  "errorLoadingMsg": "Échec de récupération des passagers de cette course.",
+  "btnRetry": "Réessayer",
+  "alreadyBoardedMsg": "Ce passager a déjà été scanné et validé à bord.",
+  "error": "Erreur",
+  "checkInErrorMsg": "Impossible de marquer le passager comme embarqué.",
+  "phoneAppErrorMsg": "Impossible d'ouvrir l'application téléphone."
 }

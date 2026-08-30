@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	Bus01Icon,
@@ -30,10 +31,11 @@ export function TripCard({
 	onStartTrip,
 	isStarting,
 }: TripCardProps) {
+	const { t } = useTranslation("trips");
 	const router = useRouter();
 	const stops = trip.tripStops ?? [];
-	const originStop = stops[0]?.terminal?.name ?? "Gare de départ";
-	const destStop = stops[stops.length - 1]?.terminal?.name ?? "Gare d'arrivée";
+	const originStop = stops[0]?.terminal?.name ?? t("defaultOriginTerminal");
+	const destStop = stops[stops.length - 1]?.terminal?.name ?? t("defaultDestTerminal");
 	const depTime = new Date(trip.departureDate).toLocaleTimeString([], {
 		hour: "2-digit",
 		minute: "2-digit",
@@ -50,10 +52,10 @@ export function TripCard({
 					</View>
 					<View>
 						<Text style={styles.busPlate}>
-							{trip.bus?.registrationPlate ?? "Bus Assigné"}
+							{trip.bus?.registrationPlate ?? t("noBusAssigned")}
 						</Text>
 						<Text style={styles.busSub}>
-							{trip.company?.name ?? "Transporteur"} • {role}
+							{trip.company?.name ?? t("noCarrier")} • {role}
 						</Text>
 					</View>
 				</View>
@@ -86,13 +88,13 @@ export function TripCard({
 				<View style={styles.metaItem}>
 					<HugeiconsIcon icon={Time02Icon} size={15} color="#a1a1aa" />
 					<Text style={styles.metaText}>
-						Départ {depTime}
+						{t("departureLabel", { time: depTime })}
 					</Text>
 				</View>
 				<View style={styles.metaItem}>
 					<HugeiconsIcon icon={UserGroupIcon} size={15} color="#a1a1aa" />
 					<Text style={styles.metaText}>
-						{passengerCount} / {trip.totalSeats} Passagers
+						{t("passengersLabel", { count: passengerCount, total: trip.totalSeats })}
 					</Text>
 				</View>
 			</View>
@@ -100,7 +102,7 @@ export function TripCard({
 			{/* Actions */}
 			<View style={styles.actionsRow}>
 				<Button
-					title="Manifeste"
+					title={t("btnManifest")}
 					variant="outline"
 					size="md"
 					onPress={() => router.push(`/trip/${trip.id}/manifest`)}
@@ -109,7 +111,7 @@ export function TripCard({
 
 				{trip.status !== "ARRIVED" && (
 					<Button
-						title={trip.status === "DEPARTED" ? "Reprendre" : "Démarrer"}
+						title={trip.status === "DEPARTED" ? t("btnResume") : t("btnStart")}
 						variant="primary"
 						size="md"
 						loading={isStarting}

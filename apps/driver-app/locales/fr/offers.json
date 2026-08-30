@@ -35,6 +35,8 @@
 		"dateLabel": "Date de début souhaitée (optionnel)",
 		"noteLabel": "Message à l'opérateur (optionnel)",
 		"notePlaceholder": "Disponibilités, préférences de lignes…",
+		"salaryPlaceholder": "ex: 150 000",
+		"startDatePlaceholder": "AAAA-MM-JJ (facultatif)",
 		"cancel": "Annuler",
 		"submit": "Envoyer"
 	},
@@ -44,9 +46,32 @@
 		"confirm": "Résilier et accepter",
 		"cancel": "Annuler"
 	},
+	"countdown": {
+		"daysHours": "{{days}}j {{hours}}h",
+		"hoursOnly": "{{hours}}h"
+	},
+	"messageQuote": "« {{message}} »",
 	"resolvedAt": "Clôturée le {{date}}",
 	"moreHidden": "offres supplémentaires non affichées",
 	"errors": {
-		"generic": "Une erreur est survenue. Veuillez réessayer."
+		"generic": "Une erreur est survenue. Veuillez réessayer.",
+		"title": "Erreur"
+	},
+	"decline": {
+		"confirmTitle": "Refuser l'offre",
+		"confirmBody": "Vous allez refuser cette offre. Cette action ne peut pas être annulée.",
+		"cancel": "Annuler",
+		"confirm": "Refuser"
+	},
+	"card": {
+		"salary": "Salaire",
+		"cfaMonthly": "FCFA / mois",
+		"counterLabel": "Contre-offre",
+		"startDate": "Début"
+	},
+	"employment": {
+		"EXCLUSIVE_INTERCITY": "Intercity exclusif",
+		"CONTRACTOR_URBAN": "Contractuel urbain",
+		"HYBRID": "Hybride"
 	}
 }

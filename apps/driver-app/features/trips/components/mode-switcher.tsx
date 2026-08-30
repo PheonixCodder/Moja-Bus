@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { DriverFeedback } from "@/lib/haptics";
 
 export type ServiceMode = "ALL" | "INTERCITY" | "URBAN";
@@ -9,13 +10,14 @@ interface ModeSwitcherProps {
 	onModeChange: (mode: ServiceMode) => void;
 }
 
-const MODES: Array<{ key: ServiceMode; label: string }> = [
-	{ key: "ALL", label: "Tous" },
-	{ key: "INTERCITY", label: "Interurbain" },
-	{ key: "URBAN", label: "Urbain" },
-];
-
 export function ModeSwitcher({ mode, onModeChange }: ModeSwitcherProps) {
+	const { t } = useTranslation("trips");
+	const MODES: Array<{ key: ServiceMode; label: string }> = [
+		{ key: "ALL", label: t("modeAll") },
+		{ key: "INTERCITY", label: t("modeIntercity") },
+		{ key: "URBAN", label: t("modeUrban") },
+	];
+
 	return (
 		<View style={styles.container}>
 			{MODES.map((item) => {

@@ -68,8 +68,8 @@ export function TicketResultModal({
 								<HugeiconsIcon icon={CloudSavingDone01Icon} size={28} color="#06b6d4" />
 							</View>
 							<View style={styles.headerTexts}>
-								<Text style={styles.titleText}>Enregistré Hors-Ligne</Text>
-								<Text style={styles.subQueued}>Sauvegardé • Passager autorisé à monter</Text>
+							<Text style={styles.titleText}>{t("offlineTitle")}</Text>
+							<Text style={styles.subQueued}>{t("offlineMsg")}</Text>
 							</View>
 						</View>
 					)}
@@ -116,7 +116,7 @@ export function TicketResultModal({
 									<HugeiconsIcon icon={ArmchairIcon} size={15} color="#71717a" />
 									<Text style={styles.labelText}>{t("labelSeat")}</Text>
 								</View>
-								<Badge variant="brand" label={`Siège ${result.seatNumber}`} />
+								<Badge variant="brand" label={`${t("seatPrefix")} ${result.seatNumber}`} />
 							</View>
 						)}
 

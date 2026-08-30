@@ -27,5 +27,17 @@
   "emptyToday": "Vous n'avez aucun départ assigné aujourd'hui. Consultez vos trajets à venir ou contactez votre dispatcher.",
   "btnManifest": "Manifeste",
   "btnResume": "Reprendre",
-  "btnStart": "Démarrer"
+  "btnStart": "Démarrer",
+  "errorStartTripTitle": "Impossible de démarrer la course",
+  "errorStartTripMsg": "Veuillez réessayer.",
+  "errorLoadingTitle": "Impossible de charger les trajets",
+  "errorLoadingMsg": "Veuillez vérifier que votre compte chauffeur est bien activé.",
+  "btnRetry": "Réessayer",
+  "emptyTabMsg": "Aucun trajet dans l'onglet {{tab}}.",
+  "defaultOriginTerminal": "Gare de départ",
+  "defaultDestTerminal": "Gare d'arrivée",
+  "noBusAssigned": "Bus non assigné",
+  "noCarrier": "Transporteur non assigné",
+  "departureLabel": "Départ {{time}}",
+  "passengersLabel": "{{count}} / {{total}} Passagers"
 }

@@ -100,7 +100,7 @@ export function ProfileView() {
 			DriverFeedback.successScan();
 		} catch (err: any) {
 			DriverFeedback.invalidScan();
-			Alert.alert("Erreur de Service", err.message || "Impossible de modifier l'état de service.");
+			Alert.alert(t("errors.shiftToggle"), err.message || t("errors.shiftToggleMsg"));
 		}
 	};
 
@@ -108,19 +108,19 @@ export function ProfileView() {
 		if (!phone) return;
 		DriverFeedback.tap();
 		Linking.openURL(`tel:${phone}`).catch(() => {
-			Alert.alert("Erreur", "Impossible de composer le numéro.");
+			Alert.alert(t("errors.call"), t("errors.callMsg"));
 		});
 	};
 
 	const handleSignOut = async () => {
 		DriverFeedback.tap();
 		Alert.alert(
-			"Déconnexion Chauffeur",
-			"Êtes-vous sûr de vouloir vous déconnecter du terminal chauffeur ?",
+			t("signOut.title"),
+			t("signOut.body"),
 			[
-				{ text: "Annuler", style: "cancel" },
+				{ text: t("signOut.cancel"), style: "cancel" },
 				{
-					text: "Déconnexion",
+					text: t("signOut.confirm"),
 					style: "destructive",
 					onPress: async () => {
 						try {
@@ -133,7 +133,7 @@ export function ProfileView() {
 		);
 	};
 
-	const driverName = profile?.user?.fullName ?? "Chauffeur Moja";
+	const driverName = profile?.user?.fullName ?? t("fallbackName");
 	const initials = driverName
 		.split(" ")
 		.map((n: string) => n[0])
@@ -145,9 +145,9 @@ export function ProfileView() {
 		<View style={styles.root}>
 			{/* Top Passport Header */}
 			<View style={[styles.headerBar, { paddingTop: insets.top + 12 }]}>
-				<Text style={styles.headerTitle}>Passeport Carrière Conducteur</Text>
+				<Text style={styles.headerTitle}>{t("headerTitle")}</Text>
 				<Text style={styles.headerSubtitle}>
-					Identité professionnelle universelle inter-opérateurs Moja Ride
+					{t("headerSubtitle")}
 				</Text>
 			</View>
 
@@ -172,13 +172,13 @@ export function ProfileView() {
 							<View style={styles.verifiedRow}>
 								<HugeiconsIcon icon={SecurityCheckIcon} size={14} color="#10b981" />
 								<Text style={styles.verifiedText}>
-									{profile?.licenseCategory
-										? `Classe ${profile.licenseCategory} Poids Lourd`
-										: "Chauffeur Commercial Vérifié"}
+							{profile?.licenseCategory
+									? t("licenseClass", { category: profile.licenseCategory })
+									: t("verifiedBadge")}
 								</Text>
 							</View>
 							<Text style={styles.licenseNumber}>
-								Permis : {profile?.licenseNumber ?? "N/A"}
+								{t("licenseLabel", { number: profile?.licenseNumber ?? t("licenseNA") })}
 							</Text>
 						</View>
 					</View>
@@ -186,11 +186,11 @@ export function ProfileView() {
 					{/* Shift On-Duty Toggle */}
 					<View style={styles.toggleRow}>
 						<View style={styles.toggleTextWrap}>
-							<Text style={styles.toggleTitle}>État de Prise de Service</Text>
+							<Text style={styles.toggleTitle}>{t("shift.title")}</Text>
 							<Text style={styles.toggleSub}>
 								{isShiftActive
-									? `En service (${elapsedMinutes} min actives)`
-									: "Hors-service / En repos"}
+									? t("shift.active", { minutes: elapsedMinutes })
+									: t("shift.inactive")}
 							</Text>
 						</View>
 						{toggleShiftMutation.isPending ? (
@@ -210,12 +210,12 @@ export function ProfileView() {
 						<View style={styles.toggleTextWrap}>
 							<View style={styles.toggleIconLabel}>
 								<HugeiconsIcon icon={Briefcase01Icon} size={14} color="#a1a1aa" />
-								<Text style={styles.toggleTitle}>Disponible pour Embauche</Text>
+								<Text style={styles.toggleTitle}>{t("marketplace.title")}</Text>
 							</View>
 							<Text style={styles.toggleSub}>
 								{servicePreference?.isAvailableForHire
-									? "Visible par les transporteurs sur la marketplace"
-									: "Masqué de la marketplace transporteur"}
+									? t("marketplace.visible")
+									: t("marketplace.hidden")}
 							</Text>
 						</View>
 						{setPreferenceMutation.isPending ? (
@@ -235,7 +235,7 @@ export function ProfileView() {
 										DriverFeedback.successScan();
 									} catch (err: any) {
 										DriverFeedback.invalidScan();
-										Alert.alert("Erreur", err.message || "Impossible de mettre à jour.");
+										Alert.alert(t("errors.preference"), err.message || t("errors.preferenceMsg"));
 									}
 								}}
 								trackColor={{ false: "#27272a", true: "#10b981" }}
@@ -257,12 +257,12 @@ export function ProfileView() {
 							<HugeiconsIcon icon={Edit02Icon} size={16} color="#38bdf8" />
 							<View>
 								<Text style={styles.editProfileTitle}>
-									Modifier Profil Marketplace
+									{t("editProfile.title")}
 								</Text>
 								<Text style={styles.editProfileSub}>
 									{servicePreference?.cityBase
-										? `Base : ${servicePreference.cityBase} · ${servicePreference.routeExperience?.length ?? 0} lignes`
-										: "Ville base, type d'activité, expérience lignes"}
+										? t("editProfile.base", { city: servicePreference.cityBase, count: servicePreference.routeExperience?.length ?? 0 })
+										: t("editProfile.subtitle")}
 								</Text>
 							</View>
 						</View>
@@ -282,14 +282,14 @@ export function ProfileView() {
 							<HugeiconsIcon icon={Globe02Icon} size={16} color="#ee237c" />
 							<View>
 								<Text style={[styles.editProfileTitle, { color: "#ee237c" }]}>
-									Langue d'Affichage / Language
+									{t("language.title")}
 								</Text>
 								<Text style={styles.editProfileSub}>
-									Français (Côte d'Ivoire) / English
+									{t("language.subtitle")}
 								</Text>
 							</View>
 						</View>
-						<Badge variant="outline" label="FR / EN" size="sm" />
+						<Badge variant="outline" label={t("language.badge")} size="sm" />
 					</TouchableOpacity>
 				</Card>
 
@@ -298,27 +298,27 @@ export function ProfileView() {
 					<View style={styles.cardHeaderRow}>
 						<View style={styles.cardHeaderLeft}>
 							<HugeiconsIcon icon={Coins01Icon} size={18} color="#f59e0b" />
-							<Text style={styles.cardHeaderTitle}>Aperçu des Gains</Text>
+							<Text style={styles.cardHeaderTitle}>{t("earnings.title")}</Text>
 						</View>
-						<Text style={styles.currencyBadge}>XOF Monnaie</Text>
+						<Text style={styles.currencyBadge}>{t("earnings.currency")}</Text>
 					</View>
 
 					<View style={styles.earningsAmountRow}>
 						<Text style={styles.earningsAmount}>
 							{(earnings?.todayEarningsXof ?? 0).toLocaleString()}
 						</Text>
-						<Text style={styles.earningsSub}>XOF Aujourd'hui</Text>
+						<Text style={styles.earningsSub}>{t("earnings.today")}</Text>
 					</View>
 
 					<View style={styles.earningsMetaRow}>
 						<View style={styles.earningsMetaLeft}>
 							<HugeiconsIcon icon={Clock01Icon} size={13} color="#71717a" />
 							<Text style={styles.earningsMetaText}>
-								{currentShift ? `${elapsedMinutes} min de service` : "Service inactif"}
+								{currentShift ? t("earnings.serviceActive", { minutes: elapsedMinutes }) : t("earnings.serviceInactive")}
 							</Text>
 						</View>
 						<Text style={styles.earningsWeekText}>
-							Semaine : {(earnings?.weekEarningsXof ?? 0).toLocaleString()} XOF
+							{t("earnings.week", { amount: (earnings?.weekEarningsXof ?? 0).toLocaleString() })}
 						</Text>
 					</View>
 				</Card>
@@ -382,54 +382,54 @@ export function ProfileView() {
 					<Card className="flex-1 min-w-[140px] p-4 gap-1">
 						<View style={styles.metricHeader}>
 							<HugeiconsIcon icon={StarIcon} size={18} color="#f59e0b" />
-							<Text style={styles.metricLabel}>Note</Text>
+							<Text style={styles.metricLabel}>{t("metric.rating")}</Text>
 						</View>
 						<Text style={styles.metricValue}>
 							{(earnings?.averageRating ?? 5.0).toFixed(2)}
 						</Text>
 						<Text style={styles.metricSub}>
-							{profile?._count?.reviews ?? 0} avis passagers
+							{t("metric.reviews", { count: profile?._count?.reviews ?? 0 })}
 						</Text>
 					</Card>
 
 					<Card className="flex-1 min-w-[140px] p-4 gap-1">
 						<View style={styles.metricHeader}>
 							<HugeiconsIcon icon={SecurityCheckIcon} size={18} color="#10b981" />
-							<Text style={styles.metricLabel}>Sécurité</Text>
+							<Text style={styles.metricLabel}>{t("metric.safety")}</Text>
 						</View>
 						<Text style={[styles.metricValue, styles.metricSafety]}>
 							{earnings?.safetyScore ?? profile?.safetyScore ?? 98}/100
 						</Text>
-						<Text style={styles.metricSub}>Zéro incident noté</Text>
+						<Text style={styles.metricSub}>{t("metric.safetySub")}</Text>
 					</Card>
 
 					<Card className="flex-1 min-w-[140px] p-4 gap-1">
 						<View style={styles.metricHeader}>
 							<HugeiconsIcon icon={Route01Icon} size={18} color="#38bdf8" />
-							<Text style={styles.metricLabel}>Trajets</Text>
+							<Text style={styles.metricLabel}>{t("metric.trips")}</Text>
 						</View>
 						<Text style={styles.metricValue}>
 							{profile?.totalTripsCompleted ?? earnings?.totalTripsCompleted ?? 0}
 						</Text>
-						<Text style={styles.metricSub}>Courses achevées</Text>
+						<Text style={styles.metricSub}>{t("metric.tripsSub")}</Text>
 					</Card>
 
 					<Card className="flex-1 min-w-[140px] p-4 gap-1">
 						<View style={styles.metricHeader}>
 							<HugeiconsIcon icon={Award01Icon} size={18} color="#a855f7" />
-							<Text style={styles.metricLabel}>Distance</Text>
+							<Text style={styles.metricLabel}>{t("metric.distance")}</Text>
 						</View>
 						<Text style={styles.metricValue}>
 							{Math.round(profile?.totalDistanceKm ?? earnings?.totalDistanceKm ?? 0).toLocaleString()}
 						</Text>
-						<Text style={styles.metricSub}>km enregistrés</Text>
+						<Text style={styles.metricSub}>{t("metric.distanceSub")}</Text>
 					</Card>
 				</View>
 
 				{/* Affiliated Carriers */}
 				<Card className="p-4 gap-3">
 					<Text style={styles.sectionTitle}>
-						Affiliations Transporteurs Actives
+						{t("carriers.title")}
 					</Text>
 
 					{profile?.companyAffiliations && profile.companyAffiliations.length > 0 ? (
@@ -439,10 +439,10 @@ export function ProfileView() {
 									<HugeiconsIcon icon={Building01Icon} size={18} color={colors.primary.rose} />
 									<View style={styles.carrierInfoWrap}>
 										<Text style={styles.carrierName} numberOfLines={1}>
-											{aff.company?.name ?? "Transporteur Commercial"}
+											{aff.company?.name ?? t("carriers.fallback")}
 										</Text>
 										<Text style={styles.carrierBadgeNumber}>
-											Badge : {aff.companyBadgeNumber ?? aff.company?.slug ?? "Actif"}
+											{t("carriers.badge", { number: aff.companyBadgeNumber ?? aff.company?.slug ?? t("carriers.active") })}
 										</Text>
 									</View>
 								</View>
@@ -457,7 +457,7 @@ export function ProfileView() {
 									</TouchableOpacity>
 								)}
 
-								<Badge variant="success" label="Actif" size="sm" />
+								<Badge variant="success" label={t("carriers.active")} size="sm" />
 							</View>
 						))
 					) : (
@@ -465,18 +465,18 @@ export function ProfileView() {
 							<View style={styles.carrierRowLeft}>
 								<HugeiconsIcon icon={Building01Icon} size={18} color={colors.primary.rose} />
 								<View>
-									<Text style={styles.carrierName}>Transporteur Direct</Text>
-									<Text style={styles.carrierBadgeNumber}>Contrat Chauffeur Agréé</Text>
+								<Text style={styles.carrierName}>{t("carriers.direct")}</Text>
+								<Text style={styles.carrierBadgeNumber}>{t("carriers.contract")}</Text>
 								</View>
 							</View>
-							<Badge variant="outline" label="Indépendant" size="sm" />
+							<Badge variant="outline" label={t("carriers.independent")} size="sm" />
 						</View>
 					)}
 				</Card>
 
 				{/* Sign Out Button */}
 				<Button
-					title="Déconnexion du Terminal"
+					title={t("signOut.button")}
 					variant="outline"
 					size="lg"
 					onPress={handleSignOut}

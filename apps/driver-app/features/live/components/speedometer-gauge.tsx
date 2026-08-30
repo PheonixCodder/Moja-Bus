@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
@@ -21,6 +22,7 @@ export function SpeedometerGauge({
 	currentLocation,
 	isOverspeed,
 }: SpeedometerGaugeProps) {
+	const { t } = useTranslation("live");
 	return (
 		<Card
 			className={`p-5 items-center justify-center gap-2 relative overflow-hidden ${
@@ -28,9 +30,9 @@ export function SpeedometerGauge({
 			}`}
 		>
 			<View style={styles.gaugeHeader}>
-				<Text style={styles.gaugeLabel}>Vitesse du Véhicule</Text>
+				<Text style={styles.gaugeLabel}>{t("speedometer.vehicleSpeed")}</Text>
 				{isOverspeed && (
-					<Badge variant="error" label="Limite 110 km/h dépassée" />
+					<Badge variant="error" label={t("speedometer.overspeedBadge")} />
 				)}
 			</View>
 
@@ -48,14 +50,14 @@ export function SpeedometerGauge({
 
 			<View style={styles.instrumentGrid}>
 				<View style={styles.instrumentItem}>
-					<Text style={styles.instrumentLabel}>Cap</Text>
+					<Text style={styles.instrumentLabel}>{t("speedometer.heading")}</Text>
 					<Text style={styles.headingValue}>
 						{currentLocation ? `${Math.round(currentLocation.heading)}°` : "—"}
 					</Text>
 				</View>
 
 				<View style={styles.instrumentItem}>
-					<Text style={styles.instrumentLabel}>Altitude</Text>
+					<Text style={styles.instrumentLabel}>{t("speedometer.altitude")}</Text>
 					<Text style={styles.altitudeValue}>
 						{currentLocation && currentLocation.altitudeMeters
 							? `${Math.round(currentLocation.altitudeMeters)}m`
@@ -64,7 +66,7 @@ export function SpeedometerGauge({
 				</View>
 
 				<View style={styles.instrumentItem}>
-					<Text style={styles.instrumentLabel}>Signal GPS</Text>
+					<Text style={styles.instrumentLabel}>{t("speedometer.gpsSignal")}</Text>
 					<Text
 						style={[
 							styles.signalValue,
@@ -75,7 +77,7 @@ export function SpeedometerGauge({
 					>
 						{currentLocation?.accuracy
 							? `±${Math.round(currentLocation.accuracy)}m`
-							: "Acquisition…"}
+							: t("speedometer.acquiring")}
 					</Text>
 				</View>
 			</View>

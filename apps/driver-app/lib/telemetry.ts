@@ -11,6 +11,8 @@ import {
 	shouldFlagHarshBraking,
 } from "./telemetry-core";
 
+import { getBaseUrl } from "./auth-client";
+
 export const LOCATION_TASK_NAME = "MOJA_DRIVER_LOCATION_TRACKING";
 const OFFLINE_PINGS_KEY = "driver_offline_pings_queue";
 const TELEMETRY_STATE_KEY = "driver_telemetry_state";
@@ -18,8 +20,7 @@ const TELEMETRY_STATE_KEY = "driver_telemetry_state";
 // connection attempts unless a gateway URL is explicitly configured (i.e.
 // when the live-tracking consumer ships and the dormant gateway is hosted).
 const WS_BASE_URL = process.env["EXPO_PUBLIC_WS_URL"];
-const HTTP_BASE_URL =
-	process.env["EXPO_PUBLIC_API_URL"] ?? "http://localhost:3000";
+const HTTP_BASE_URL = getBaseUrl();
 
 const ACTIVE_DRIVER_ID_KEY = "driver_active_profile_id";
 // Exported so surfaces like the QR scanner can bind their requests to the

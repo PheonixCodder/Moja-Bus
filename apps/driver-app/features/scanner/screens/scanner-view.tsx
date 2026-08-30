@@ -98,13 +98,18 @@ export function ScannerView() {
 			await saveOfflineQueue([]);
 			DriverFeedback.successScan();
 
-			Alert.alert(
-				"Synchronisation Terminée",
-				`${offlineQueue.length} scans hors-ligne traités :\n• ${syncedCount} validés pour embarquement\n• ${alreadyBoardedCount} déjà enregistrés\n• ${rejectedCount} rejetés`,
-			);
+		Alert.alert(
+			t("syncComplete"),
+			t("syncCompleteMsg", {
+				count: offlineQueue.length,
+				synced: syncedCount,
+				alreadyBoarded: alreadyBoardedCount,
+				rejected: rejectedCount,
+			}),
+		);
 		} catch (err: any) {
 			DriverFeedback.invalidScan();
-			Alert.alert("Échec de synchronisation", err?.message ?? "Impossible de synchroniser. Réessai ultérieur.");
+			Alert.alert(t("syncFailed"), err?.message ?? t("syncFailedMsg"));
 		} finally {
 			setIsSyncing(false);
 		}
@@ -118,12 +123,12 @@ export function ScannerView() {
 		return (
 			<View style={[styles.permissionContainer, { paddingTop: insets.top + 40 }]}>
 				<HugeiconsIcon icon={QrCode01Icon} size={52} color={colors.primary.rose} />
-				<Text style={styles.permissionTitle}>Accès Caméra Requis</Text>
+				<Text style={styles.permissionTitle}>{t("permissionTitle")}</Text>
 				<Text style={styles.permissionSubtitle}>
-					Moja Driver utilise la caméra pour scanner et valider les billets QR passagers aux portes d'embarquement.
+					{t("permissionSubtitle")}
 				</Text>
 				<Button
-					title="Autoriser la caméra"
+					title={t("permissionAllow")}
 					variant="primary"
 					size="lg"
 					onPress={requestPermission}
@@ -184,9 +189,9 @@ export function ScannerView() {
 				DriverFeedback.successScan();
 				setValidationResult({
 					status: "QUEUED_OFFLINE",
-					passengerName: "Mis en attente de synchronisation",
-					ticketToken: data,
-					errorMessage: "Appareil hors ligne. Scan enregistré localement, synchronisation dès le retour du réseau.",
+				passengerName: t("offlinePassengerName"),
+				ticketToken: data,
+				errorMessage: t("offlineErrorMessage"),
 				});
 			} else {
 				DriverFeedback.invalidScan();
@@ -235,12 +240,12 @@ export function ScannerView() {
 				<View style={styles.offlineBanner}>
 					<View style={styles.offlineLeft}>
 						<HugeiconsIcon icon={CloudSavingDone01Icon} size={18} color="#f59e0b" />
-						<Text style={styles.offlineText}>
-							{offlineQueue.length} {offlineQueue.length === 1 ? "scan" : "scans"} en attente
-						</Text>
+					<Text style={styles.offlineText}>
+						{t("offlineCount", { count: offlineQueue.length })}
+					</Text>
 					</View>
 					<Button
-						title={isSyncing ? "En cours…" : "Synchroniser"}
+						title={isSyncing ? t("offlineSyncing") : t("offlineSync")}
 						variant="warning"
 						size="sm"
 						loading={isSyncing}

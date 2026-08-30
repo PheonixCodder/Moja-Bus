@@ -66,16 +66,16 @@ export function EarningsView() {
 			DriverFeedback.successScan();
 		} catch (err: any) {
 			DriverFeedback.invalidScan();
-			Alert.alert("Erreur de Service", err.message || "Impossible de modifier l'état de service.");
+			Alert.alert(t("errors.shiftToggle"), err.message || t("errors.shiftToggleMsg"));
 		}
 	};
 
 	const handleRequestPayout = () => {
 		DriverFeedback.tap();
 		Alert.alert(
-			"Versement Mobile Money",
-			"Votre transporteur transfère automatiquement vos gains accumulés sur votre portefeuille Mobile Money vérifié (Orange / MTN / Wave) chaque lundi à 08h00 GMT.",
-			[{ text: "Compris", style: "default" }]
+			t("payout.title"),
+			t("payout.body"),
+			[{ text: t("payout.confirm"), style: "default" }]
 		);
 	};
 
@@ -171,7 +171,7 @@ export function EarningsView() {
 								{isShiftActive ? t("shiftOnDuty") : t("shiftOffDuty")}
 							</Text>
 							<Text style={styles.shiftStatusSub}>
-								{isShiftActive ? `Pointé • ${elapsedMinutes} min écoulées` : "Prêt à pointer"}
+								{isShiftActive ? t("shift.activeSub", { minutes: elapsedMinutes }) : t("shift.inactiveSub")}
 							</Text>
 						</View>
 					</View>
@@ -216,7 +216,7 @@ export function EarningsView() {
 											{comp.weekEarningsXof.toLocaleString()} XOF
 										</Text>
 										<Text style={styles.companyMinutes}>
-											{comp.weekMinutes} min cette semaine
+											{t("carrierWeekMinutes", { minutes: comp.weekMinutes })}
 										</Text>
 									</View>
 								</View>
@@ -259,7 +259,7 @@ export function EarningsView() {
 													{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 													{shift.endedAt
 														? ` → ${new Date(shift.endedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-														: " (En cours)"}
+														: t("shift.inProgress")}
 												</Text>
 											</View>
 										</View>
@@ -269,7 +269,7 @@ export function EarningsView() {
 											label={
 												shift.status === "COMPLETED"
 													? `${durationMins ?? 0} min`
-													: "En Cours"
+													: t("shift.statusActive")
 											}
 										/>
 									</View>

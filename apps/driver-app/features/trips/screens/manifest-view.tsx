@@ -62,7 +62,7 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 
 	const handleToggleManualBoarding = async (bookingId: string, currentBoarded: boolean) => {
 		if (currentBoarded) {
-			Alert.alert(t("boarded"), "Ce passager a déjà été scanné et validé à bord.");
+			Alert.alert(t("boarded"), t("alreadyBoardedMsg"));
 			return;
 		}
 
@@ -75,7 +75,7 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 			DriverFeedback.successScan();
 		} catch (err: any) {
 			DriverFeedback.invalidScan();
-			Alert.alert("Erreur", err.message || "Impossible de marquer le passager comme embarqué.");
+			Alert.alert(t("error"), err.message || t("checkInErrorMsg"));
 		}
 	};
 
@@ -83,7 +83,7 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 		if (!phone) return;
 		DriverFeedback.tap();
 		Linking.openURL(`tel:${phone}`).catch(() => {
-			Alert.alert("Erreur", "Impossible d'ouvrir l'application téléphone.");
+			Alert.alert(t("error"), t("phoneAppErrorMsg"));
 		});
 	};
 
@@ -152,13 +152,13 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 					<Card className="py-16 items-center justify-center px-6 text-center gap-3 my-4">
 						<HugeiconsIcon icon={Alert02Icon} size={40} color="#ef4444" />
 						<Text className="text-base font-bold text-[#fafafa] text-center">
-							Impossible de charger le manifeste
+							{t("errorLoadingTitle")}
 						</Text>
 						<Text className="text-xs text-[#a1a1aa] text-center leading-relaxed">
-							{error.message || "Échec de récupération des passagers de cette course."}
+							{error.message || t("errorLoadingMsg")}
 						</Text>
 						<Button
-							title="Réessayer"
+							title={t("btnRetry")}
 							variant="secondary"
 							size="sm"
 							onPress={() => refetch()}

@@ -16,5 +16,20 @@
 	"labelBookingRef": "Référence",
 	"confirmNext": "Confirmer & scanner le suivant",
 	"dismissReturn": "Fermer & revenir à la caméra",
-	"fallbackError": "Code-barres de ticket invalide ou réservation annulée."
+	"fallbackError": "Code-barres de ticket invalide ou réservation annulée.",
+	"permissionTitle": "Accès Caméra Requis",
+	"permissionSubtitle": "Moja Driver utilise la caméra pour scanner et valider les billets QR passagers aux portes d'embarquement.",
+	"permissionAllow": "Autoriser la caméra",
+	"syncComplete": "Synchronisation Terminée",
+	"syncCompleteMsg": "{{count}} scans hors-ligne traités :\n• {{synced}} validés pour embarquement\n• {{alreadyBoarded}} déjà enregistrés\n• {{rejected}} rejetés",
+	"syncFailed": "Échec de synchronisation",
+	"syncFailedMsg": "Impossible de synchroniser. Réessai ultérieur.",
+	"offlineCount": "{{count}} scan(s) en attente",
+	"offlineSync": "Synchroniser",
+	"offlineSyncing": "En cours…",
+	"offlinePassengerName": "Mis en attente de synchronisation",
+	"offlineErrorMessage": "Appareil hors ligne. Scan enregistré localement, synchronisation dès le retour du réseau.",
+	"offlineTitle": "Enregistré Hors-Ligne",
+	"offlineMsg": "Sauvegardé • Passager autorisé à monter",
+	"seatPrefix": "Siège"
 }

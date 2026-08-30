@@ -8,15 +8,16 @@ import {
 	StyleSheet,
 } from "react-native";
 import { DriverFeedback } from "@/lib/haptics";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 
 export const DELAY_REASONS = [
-	{ value: "TRAFFIC", label: "Embouteillage / Circulation" },
-	{ value: "MECHANICAL_ISSUE", label: "Incident Mécanique" },
-	{ value: "POLICE_CHECKPOINT", label: "Contrôle Routier / Barrage" },
-	{ value: "WEATHER", label: "Météo / Intempéries" },
-	{ value: "PASSENGER_DELAY", label: "Attente Passager / Bagages" },
-	{ value: "OTHER", label: "Autre Raison" },
+	{ value: "TRAFFIC", labelKey: "delay.reasons.TRAFFIC" },
+	{ value: "MECHANICAL_ISSUE", labelKey: "delay.reasons.MECHANICAL_ISSUE" },
+	{ value: "POLICE_CHECKPOINT", labelKey: "delay.reasons.POLICE_CHECKPOINT" },
+	{ value: "WEATHER", labelKey: "delay.reasons.WEATHER" },
+	{ value: "PASSENGER_DELAY", labelKey: "delay.reasons.PASSENGER_DELAY" },
+	{ value: "OTHER", labelKey: "delay.reasons.OTHER" },
 ];
 
 interface DelayModalProps {
@@ -44,6 +45,7 @@ export function DelayModal({
 	onSubmit,
 	submitting,
 }: DelayModalProps) {
+	const { t } = useTranslation("live");
 	return (
 		<Modal
 			visible={open}
@@ -54,14 +56,14 @@ export function DelayModal({
 			<View style={styles.backdrop}>
 				<View style={styles.modalSheet}>
 					<View>
-						<Text style={styles.modalTitle}>Signaler un Retard sur la Ligne</Text>
+						<Text style={styles.modalTitle}>{t("delay.title")}</Text>
 						<Text style={styles.modalSubtitle}>
-							Notifie les passagers en attente avec une estimation actualisée en temps réel.
+							{t("delay.subtitle")}
 						</Text>
 					</View>
 
 					<View style={styles.fieldGroup}>
-						<Text style={styles.fieldLabel}>Retard Estimé (Minutes)</Text>
+						<Text style={styles.fieldLabel}>{t("delay.minutesLabel")}</Text>
 						<TextInput
 							style={styles.textInput}
 							keyboardType="number-pad"
@@ -71,7 +73,7 @@ export function DelayModal({
 					</View>
 
 					<View style={styles.fieldGroup}>
-						<Text style={styles.fieldLabel}>Motif du Retard</Text>
+						<Text style={styles.fieldLabel}>{t("delay.reasonLabel")}</Text>
 						<View style={styles.reasonsGrid}>
 							{DELAY_REASONS.map((option) => {
 								const isSelected = delayReason === option.value;
@@ -94,7 +96,7 @@ export function DelayModal({
 												isSelected && styles.reasonTextSelected,
 											]}
 										>
-											{option.label}
+											{t(option.labelKey)}
 										</Text>
 									</TouchableOpacity>
 								);
@@ -103,10 +105,10 @@ export function DelayModal({
 					</View>
 
 					<View style={styles.fieldGroup}>
-						<Text style={styles.fieldLabel}>Précisions complémentaires (optionnel)</Text>
+						<Text style={styles.fieldLabel}>{t("delay.noteLabel")}</Text>
 						<TextInput
 							style={styles.textInput}
-							placeholder="ex: Embouteillage dense vers Toumodi"
+							placeholder={t("delay.notePlaceholder")}
 							placeholderTextColor="#71717a"
 							value={delayNote}
 							onChangeText={onDelayNoteChange}
@@ -115,14 +117,14 @@ export function DelayModal({
 
 					<View style={styles.buttonRow}>
 						<Button
-							title="Annuler"
+							title={t("delay.cancel")}
 							variant="outline"
 							size="md"
 							onPress={onClose}
 							className="flex-1"
 						/>
 						<Button
-							title="Envoyer le signalement"
+							title={t("delay.submit")}
 							variant="primary"
 							size="md"
 							loading={submitting}

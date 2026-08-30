@@ -13,6 +13,7 @@ import enPassport from "../locales/en/passport.json";
 import enDispatch from "../locales/en/dispatch.json";
 import enOffers from "../locales/en/offers.json";
 import enNotifications from "../locales/en/notifications.json";
+import enLanguage from "../locales/en/language.json";
 
 import frAuth from "../locales/fr/auth.json";
 import frTrips from "../locales/fr/trips.json";
@@ -24,6 +25,7 @@ import frPassport from "../locales/fr/passport.json";
 import frDispatch from "../locales/fr/dispatch.json";
 import frOffers from "../locales/fr/offers.json";
 import frNotifications from "../locales/fr/notifications.json";
+import frLanguage from "../locales/fr/language.json";
 
 export const USER_LOCALE_STORAGE_KEY = "user-locale";
 export type SupportedLocale = "fr" | "en";
@@ -44,6 +46,7 @@ i18n.use(initReactI18next).init({
 			dispatch: enDispatch,
 			offers: enOffers,
 			notifications: enNotifications,
+			language: enLanguage,
 		},
 		fr: {
 			auth: frAuth,
@@ -56,6 +59,7 @@ i18n.use(initReactI18next).init({
 			dispatch: frDispatch,
 			offers: frOffers,
 			notifications: frNotifications,
+			language: frLanguage,
 		},
 	},
 	lng: initialLanguage,
@@ -71,6 +75,7 @@ i18n.use(initReactI18next).init({
 		"dispatch",
 		"offers",
 		"notifications",
+		"language",
 	],
 	defaultNS: "auth",
 	interpolation: {

@@ -88,7 +88,7 @@ export function TripsView() {
 			router.push("/(tabs)/live");
 		} catch (err: any) {
 			console.warn("[StartTrip] Error starting run:", err?.message);
-			Alert.alert("Impossible de démarrer la course", err?.message ?? "Veuillez réessayer.");
+			Alert.alert(t("errorStartTripTitle"), err?.message ?? t("errorStartTripMsg"));
 		}
 	};
 
@@ -168,13 +168,13 @@ export function TripsView() {
 					<Card className="py-16 items-center justify-center px-6 text-center gap-3 my-4">
 						<HugeiconsIcon icon={Alert02Icon} size={40} color="#ef4444" />
 						<Text className="text-base font-bold text-[#fafafa] text-center">
-							Impossible de charger les trajets
+							{t("errorLoadingTitle")}
 						</Text>
 						<Text className="text-xs text-[#a1a1aa] text-center leading-relaxed">
-							{error.message || "Veuillez vérifier que votre compte chauffeur est bien activé."}
+							{error.message || t("errorLoadingMsg")}
 						</Text>
 						<Button
-							title="Réessayer"
+							title={t("btnRetry")}
 							variant="secondary"
 							size="sm"
 							onPress={() => refetch()}
@@ -190,7 +190,7 @@ export function TripsView() {
 						<Text className="text-xs text-[#a1a1aa] text-center leading-relaxed max-w-xs">
 							{activeTab === "TODAY"
 								? t("emptyToday")
-								: `Aucun trajet dans l'onglet ${activeTab.toLowerCase()}.`}
+								: t("emptyTabMsg", { tab: activeTab.toLowerCase() })}
 						</Text>
 					</Card>
 				) : (

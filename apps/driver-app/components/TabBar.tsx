@@ -10,7 +10,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
-	withSpring,
+	withTiming,
+	Easing,
 } from "react-native-reanimated";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
@@ -53,9 +54,12 @@ export function TabBar({ state, navigation, pendingOffers = 0 }: any) {
 	);
 
 	useEffect(() => {
-		indicatorX.value = withSpring(
+		indicatorX.value = withTiming(
 			state.index * tabWidth + (tabWidth - CIRCLE_SIZE) / 2,
-			{ damping: 18, stiffness: 160 }
+			{
+				duration: 220,
+				easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+			}
 		);
 	}, [state.index, tabWidth]);
 

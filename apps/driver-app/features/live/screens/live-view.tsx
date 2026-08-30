@@ -61,8 +61,8 @@ export function LiveView() {
 			void stopBackgroundLocationTracking().catch(() => {});
 			setTelemetryAuthToken(null);
 			Alert.alert(
-				"Course Terminée",
-				"Le dispatch a clôturé cette course. Le suivi en direct a été arrêté.",
+				t("tripCompleted"),
+				t("tripCompletedMsg"),
 			);
 		}
 	}, [activeTrip]);
@@ -81,13 +81,13 @@ export function LiveView() {
 				DriverFeedback.successScan();
 				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
 				Alert.alert(
-					"Arrivée confirmée",
-					`Arrivée confirmée à ${res.terminalName}. Suivi et heures estimées mis à jour.`,
+					t("arrivalConfirmed"),
+					t("arrivalConfirmedMsg", { terminal: res.terminalName }),
 				);
 			},
 			onError: (err: any) => {
 				DriverFeedback.invalidScan();
-				Alert.alert("Échec de confirmation", err?.message ?? "Veuillez réessayer.");
+				Alert.alert(t("confirmError"), err?.message ?? t("confirmErrorMsg"));
 			},
 		})
 	);
@@ -98,13 +98,13 @@ export function LiveView() {
 				DriverFeedback.successScan();
 				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
 				Alert.alert(
-					"Départ confirmé",
-					`Départ confirmé de ${res.terminalName}. En route vers la prochaine étape.`,
+					t("departureConfirmed"),
+					t("departureConfirmedMsg", { terminal: res.terminalName }),
 				);
 			},
 			onError: (err: any) => {
 				DriverFeedback.invalidScan();
-				Alert.alert("Échec de confirmation", err?.message ?? "Veuillez réessayer.");
+				Alert.alert(t("confirmError"), err?.message ?? t("confirmErrorMsg"));
 			},
 		})
 	);
@@ -116,13 +116,13 @@ export function LiveView() {
 				setDelayModalOpen(false);
 				setDelayNote("");
 				Alert.alert(
-					"Retard Signalé",
-					"Les passagers de cette ligne ont été notifiés de l'estimation actualisée.",
+					t("delayReported"),
+					t("delayReportedMsg"),
 				);
 			},
 			onError: (err: any) => {
 				DriverFeedback.invalidScan();
-				Alert.alert("Échec du signalement", err?.message ?? "Veuillez réessayer.");
+				Alert.alert(t("delayError"), err?.message ?? t("delayErrorMsg"));
 			},
 		})
 	);
@@ -256,12 +256,12 @@ export function LiveView() {
 		DriverFeedback.warning();
 		if (!activeTrip) return;
 		Alert.alert(
-			"Clôturer la Course",
-			"Ceci termine définitivement la course : le trajet passe à ARRIVÉ pour tous les passagers. Continuer ?",
+			t("endTripTitle"),
+			t("endTripMsg"),
 			[
-				{ text: "Poursuivre la conduite", style: "cancel" },
+				{ text: t("endTripContinue"), style: "cancel" },
 				{
-					text: "Terminer la Course",
+					text: t("endTripConfirm"),
 					style: "destructive",
 					onPress: () => {
 						completingRunRef.current = true;
@@ -275,8 +275,8 @@ export function LiveView() {
 							.catch((err: any) => {
 								console.warn("[EndTrip] Complete failed:", err.message);
 								Alert.alert(
-									"Échec de la clôture",
-									err?.message ?? "Vérifiez votre connexion. Le suivi reste actif.",
+									t("endTripError"),
+									err?.message ?? t("endTripErrorMsg"),
 								);
 							});
 					},
@@ -290,7 +290,7 @@ export function LiveView() {
 		if (!activeTrip) return;
 		const minutes = Number.parseInt(delayMinutes, 10);
 		if (!Number.isFinite(minutes) || minutes < 1 || minutes > 600) {
-			Alert.alert("Retard Invalide", "Saisissez un retard compris entre 1 et 600 minutes.");
+			Alert.alert(t("invalidDelay"), t("invalidDelayMsg"));
 			return;
 		}
 		reportDelayMutation.mutate({
@@ -307,7 +307,7 @@ export function LiveView() {
 		return (
 			<View style={styles.loadingContainer}>
 				<ActivityIndicator size="large" color={colors.primary.rose} />
-				<Text style={styles.loadingText}>Connexion au dispatch en direct...</Text>
+				<Text style={styles.loadingText}>{t("loading")}</Text>
 			</View>
 		);
 	}
@@ -341,11 +341,11 @@ export function LiveView() {
 			<View style={[styles.topLiveBar, { paddingTop: insets.top + 10 }]}>
 				<View style={styles.liveIndicator}>
 					<View style={styles.liveDot} />
-					<Text style={styles.liveTitle}>Télémétrie GPS Active</Text>
+					<Text style={styles.liveTitle}>{t("liveTelemetry")}</Text>
 				</View>
 				<Badge
 					variant="default"
-					label={activeTrip.bus?.registrationPlate ?? "Bus Assigné"}
+					label={activeTrip.bus?.registrationPlate ?? t("assignedBus")}
 				/>
 			</View>
 
@@ -378,15 +378,15 @@ export function LiveView() {
 					<View style={styles.stopsHeader}>
 						<View style={styles.stopsTitleRow}>
 							<HugeiconsIcon icon={Navigation01Icon} size={16} color={colors.primary.rose} />
-							<Text style={styles.stopsTitle}>Progression des Arrêts</Text>
+							<Text style={styles.stopsTitle}>{t("stopProgress")}</Text>
 						</View>
 						{routeIsApproximate ? (
 							<Text style={styles.approxBadge}>{t("approximateRoute")}</Text>
 						) : (
 							<Text style={styles.etaText}>
 								{routeDurationSecs
-									? `ETA: ${Math.max(1, Math.round(routeDurationSecs / 60))} min`
-									: "ETA: —"}
+									? t("etaLabel", { minutes: Math.max(1, Math.round(routeDurationSecs / 60)) })
+									: t("etaNone")}
 							</Text>
 						)}
 					</View>
@@ -419,8 +419,8 @@ export function LiveView() {
 									/>
 									<Text style={styles.waypointLabel}>
 										{isAtWaypoint
-											? "En Gare / Embarquement"
-											: `Arrêt ${currentWaypointIndex + 1} sur ${tripStops.length}`}
+											? t("atTerminal")
+											: t("stopLabel", { current: currentWaypointIndex + 1, total: tripStops.length })}
 									</Text>
 								</View>
 								{distanceToWaypointKm != null && !isAtWaypoint && (
@@ -436,18 +436,18 @@ export function LiveView() {
 							</View>
 
 							<Text style={styles.waypointTerminalName}>
-								{currentWaypoint.terminal?.name ?? `Arrêt #${currentWaypointIndex + 1}`}
+								{currentWaypoint.terminal?.name ?? t("stopDefaultName", { index: currentWaypointIndex + 1 })}
 							</Text>
 							<Text style={styles.waypointHint}>
 								{isAtWaypoint
-									? "Embarquement passagers en cours. Appuyez sur départ lorsque vous quittez la gare."
-									: "Prochain point de passage sur l'itinéraire."}
+									? t("boardingHint")
+									: t("nextStopHint")}
 							</Text>
 
 							{/* Action Button */}
 							{isAtWaypoint ? (
 								<Button
-									title={`Confirmer le départ de ${currentWaypoint.terminal?.name ?? "l'arrêt"}`}
+									title={t("confirmDeparture", { name: currentWaypoint.terminal?.name ?? t("stopDefaultName", { index: currentWaypointIndex + 1 }) })}
 									variant="warning"
 									size="md"
 									loading={recordDepartureMutation.isPending}
@@ -463,7 +463,7 @@ export function LiveView() {
 								/>
 							) : !currentWaypoint.actualArrival ? (
 								<Button
-									title={`Signaler arrivée à ${currentWaypoint.terminal?.name ?? "l'arrêt"}`}
+									title={t("reportArrival", { name: currentWaypoint.terminal?.name ?? t("stopDefaultName", { index: currentWaypointIndex + 1 }) })}
 									variant={isNearWaypoint ? "success" : "primary"}
 									size="md"
 									loading={recordArrivalMutation.isPending}
@@ -482,7 +482,7 @@ export function LiveView() {
 
 					{/* Waypoints Sequence List */}
 					<View style={styles.stopsList}>
-						<Text style={styles.stopsListTitle}>Feuille de Route des Arrêts</Text>
+						<Text style={styles.stopsListTitle}>{t("stopSheetTitle")}</Text>
 						{tripStops.map((stop, idx) => {
 							const isPassed = stop.actualDeparture != null;
 							const isCurrent = stop.id === currentWaypoint?.id;
@@ -520,23 +520,23 @@ export function LiveView() {
 													isPassed ? styles.stopNamePassed : isCurrent ? styles.stopNameCurrent : styles.stopNameDefault,
 												]}
 											>
-												{stop.terminal?.name ?? `Arrêt ${idx + 1}`}
+												{stop.terminal?.name ?? t("stopDefaultName", { index: idx + 1 })}
 											</Text>
 											<Text style={styles.stopTime}>
 												{stop.actualDeparture
-													? `Parti à ${new Date(stop.actualDeparture).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+													? t("stopTimeDeparted", { time: new Date(stop.actualDeparture).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })
 													: stop.actualArrival
-														? `Arrivé à ${new Date(stop.actualArrival).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+														? t("stopTimeArrived", { time: new Date(stop.actualArrival).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })
 														: stop.scheduledArrival
-															? `Prévu : ${new Date(stop.scheduledArrival).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-															: "En attente"}
+															? t("stopTimeScheduled", { time: new Date(stop.scheduledArrival).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })
+															: t("stopTimePending")}
 											</Text>
 										</View>
 									</View>
 
 									<Badge
 										variant={isPassed ? "success" : isCurrent && isArrived ? "warning" : isCurrent ? "brand" : "default"}
-										label={isPassed ? "Passé" : isCurrent && isArrived ? "En Gare" : isCurrent ? "Actuel" : "À venir"}
+										label={isPassed ? t("stopStatusPassed") : isCurrent && isArrived ? t("stopStatusAtTerminal") : isCurrent ? t("stopStatusCurrent") : t("stopStatusUpcoming")}
 										size="sm"
 									/>
 								</View>
@@ -548,7 +548,7 @@ export function LiveView() {
 				{/* In-Trip Emergency / Delay Actions */}
 				<View style={styles.actionButtonsRow}>
 					<Button
-						title="Signaler un retard"
+						title={t("btnReportDelay")}
 						variant="secondary"
 						size="md"
 						onPress={() => {
@@ -560,7 +560,7 @@ export function LiveView() {
 					/>
 
 					<Button
-						title="Clôturer la Course"
+						title={t("btnEndTrip")}
 						variant="destructive"
 						size="md"
 						loading={completeMutation.isPending}

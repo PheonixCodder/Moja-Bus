@@ -35,6 +35,8 @@
 		"dateLabel": "Preferred start date (optional)",
 		"noteLabel": "Message to the operator (optional)",
 		"notePlaceholder": "Availability, route preferences…",
+		"salaryPlaceholder": "e.g. 150,000",
+		"startDatePlaceholder": "YYYY-MM-DD (optional)",
 		"cancel": "Cancel",
 		"submit": "Send"
 	},
@@ -44,9 +46,32 @@
 		"confirm": "Terminate & Accept",
 		"cancel": "Cancel"
 	},
+	"countdown": {
+		"daysHours": "{{days}}d {{hours}}h",
+		"hoursOnly": "{{hours}}h"
+	},
+	"messageQuote": "\"{{message}}\"",
 	"resolvedAt": "Closed on {{date}}",
 	"moreHidden": "more offers not shown",
 	"errors": {
-		"generic": "Something went wrong. Please try again."
+		"generic": "Something went wrong. Please try again.",
+		"title": "Error"
+	},
+	"decline": {
+		"confirmTitle": "Decline Offer",
+		"confirmBody": "You are about to decline this offer. This action cannot be undone.",
+		"cancel": "Cancel",
+		"confirm": "Decline"
+	},
+	"card": {
+		"salary": "Salary",
+		"cfaMonthly": "FCFA / month",
+		"counterLabel": "Counter-offer",
+		"startDate": "Starts"
+	},
+	"employment": {
+		"EXCLUSIVE_INTERCITY": "Exclusive Intercity",
+		"CONTRACTOR_URBAN": "Urban Contractor",
+		"HYBRID": "Hybrid"
 	}
 }

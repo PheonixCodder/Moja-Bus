@@ -26,5 +26,21 @@
   "carrierBreakdown": "Carrier Breakdown",
   "recentShifts": "Recent Shift History",
   "emptyLedger": "No shift history",
-  "emptyLedgerDesc": "Your completed shifts will appear here with hourly counts."
+  "emptyLedgerDesc": "Your completed shifts will appear here with hourly counts.",
+  "errors": {
+    "shiftToggle": "Service Error",
+    "shiftToggleMsg": "Unable to update shift status."
+  },
+  "payout": {
+    "title": "Mobile Money Payout",
+    "body": "Your carrier automatically transfers your accumulated earnings to your verified Mobile Money wallet (Orange / MTN / Wave) every Monday at 08:00 GMT.",
+    "confirm": "Understood"
+  },
+  "shift": {
+    "activeSub": "Clocked in \u2022 {{minutes}} min elapsed",
+    "inactiveSub": "Ready to clock in",
+    "inProgress": "In Progress",
+    "statusActive": "In Progress"
+  },
+  "carrierWeekMinutes": "{{minutes}} min this week"
 }

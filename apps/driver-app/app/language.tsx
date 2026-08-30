@@ -18,25 +18,25 @@ import {
 const LANGUAGES: Array<{
 	code: SupportedLocale;
 	nativeLabel: string;
-	regionLabel: string;
+	regionKey: string;
 	badge: string;
 }> = [
 	{
 		code: "fr",
 		nativeLabel: "Français",
-		regionLabel: "Côte d'Ivoire & Afrique de l'Ouest",
+		regionKey: "regionCI",
 		badge: "Standard",
 	},
 	{
 		code: "en",
 		nativeLabel: "English",
-		regionLabel: "International & West Africa English",
+		regionKey: "regionIntl",
 		badge: "Global",
 	},
 ];
 
 export default function LanguageScreen() {
-	const { t } = useTranslation("auth");
+	const { t } = useTranslation("language");
 	const insets = useSafeAreaInsets();
 	const [currentLocale, setCurrentLocale] = useState<SupportedLocale>(getCurrentLanguage());
 
@@ -50,8 +50,8 @@ export default function LanguageScreen() {
 	return (
 		<View style={styles.root}>
 			<PageHeader
-				title="Langue / Language"
-				subtitle="Choisissez votre langue d'affichage"
+				title={t("title")}
+				subtitle={t("subtitle")}
 				showBack
 			/>
 
@@ -66,10 +66,10 @@ export default function LanguageScreen() {
 				<View style={styles.infoBanner}>
 					<HugeiconsIcon icon={Globe02Icon} size={22} color="#ee237c" />
 					<View style={styles.infoTextWrap}>
-						<Text style={styles.infoTitle}>Langue du Terminal Chauffeur</Text>
-						<Text style={styles.infoDesc}>
-							La modification de la langue s'applique immédiatement à l'ensemble des modules, dispatches, et alertes de navigation.
-						</Text>
+					<Text style={styles.infoTitle}>{t("infoTitle")}</Text>
+					<Text style={styles.infoDesc}>
+						{t("infoDesc")}
+					</Text>
 					</View>
 				</View>
 
@@ -104,7 +104,7 @@ export default function LanguageScreen() {
 												<Text style={styles.langBadgeText}>{lang.badge}</Text>
 											</View>
 										</View>
-										<Text style={styles.langRegion}>{lang.regionLabel}</Text>
+										<Text style={styles.langRegion}>{t(lang.regionKey)}</Text>
 									</View>
 								</View>
 

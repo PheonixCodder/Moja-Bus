@@ -94,7 +94,7 @@ export function OffersView() {
 				);
 			} else {
 				DriverFeedback.invalidScan();
-				Alert.alert(t("error.title"), message || t("error.generic"));
+				Alert.alert(t("errors.title"), message || t("errors.generic"));
 			}
 		},
 	});

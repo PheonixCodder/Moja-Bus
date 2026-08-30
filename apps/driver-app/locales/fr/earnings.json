@@ -26,5 +26,21 @@
   "carrierBreakdown": "Répartition par Transporteur",
   "recentShifts": "Historique Récent des Quarts",
   "emptyLedger": "Aucun relevé de service",
-  "emptyLedgerDesc": "Vos prises de service achevées apparaîtront ici avec le décompte horaire."
+  "emptyLedgerDesc": "Vos prises de service achevées apparaîtront ici avec le décompte horaire.",
+  "errors": {
+    "shiftToggle": "Erreur de Service",
+    "shiftToggleMsg": "Impossible de modifier l'état de service."
+  },
+  "payout": {
+    "title": "Versement Mobile Money",
+    "body": "Votre transporteur transfère automatiquement vos gains accumulés sur votre portefeuille Mobile Money vérifié (Orange / MTN / Wave) chaque lundi à 08h00 GMT.",
+    "confirm": "Compris"
+  },
+  "shift": {
+    "activeSub": "Pointé \u2022 {{minutes}} min écoulées",
+    "inactiveSub": "Prêt à pointer",
+    "inProgress": "En cours",
+    "statusActive": "En Cours"
+  },
+  "carrierWeekMinutes": "{{minutes}} min cette semaine"
 }
