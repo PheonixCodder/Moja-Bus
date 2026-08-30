@@ -2,7 +2,18 @@
 
 import { useQueryState, parseAsStringEnum } from "nuqs";
 import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
+import type { ComponentType, FunctionComponent, ReactNode } from "react";
+import { ErrorBoundary as ErrorBoundaryBase } from "react-error-boundary";
+
+// Cast ErrorBoundary to a properly typed function component for JSX compatibility.
+// react-error-boundary v6.1.2 exports a class component extending React.Component,
+// but Next.js 16's Turbopack type checker on Vercel doesn't resolve the inherited
+// 'props' property on the class, causing TS2786 errors. This cast is safe because
+// ErrorBoundary is only used as a JSX element here, not for its class methods.
+const ErrorBoundary = ErrorBoundaryBase as unknown as FunctionComponent<{
+  FallbackComponent: ComponentType<any>;
+  children?: ReactNode;
+}>;
 import { HealthScore } from "./health-score";
 import { ProfileSection } from "./profile-section";
 import { BankSection } from "./bank-section";
