@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@moja/ui/components/ui/button";
