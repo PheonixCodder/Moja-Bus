@@ -332,7 +332,7 @@ function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
         isDragActive && "border-primary bg-primary/5",
       )}
     >
-      <input {...getInputProps()} />
+      <input {...(getInputProps() as unknown as React.ComponentPropsWithoutRef<"input">)} />
       <UploadCloud className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
       <p className="text-xs font-semibold text-foreground">
         {t("dragAndDrop")}{" "}
