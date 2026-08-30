@@ -22,12 +22,37 @@ import {
 import Toast from "react-native-toast-message";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "@/lib/trpc";
+import { getTrpcClient, useTRPC } from "@/lib/trpc";
 import { AuthShell } from "@/features/auth/components/auth-shell";
 import { AuthButton } from "@/features/auth/components/auth-button";
-import { authClient } from "@/lib/auth-client";
+import { authClient, ensureAuthCookiesFresh } from "@/lib/auth-client";
 import { DriverFeedback } from "@/lib/haptics";
 import { colors } from "@/constants/theme";
+import { useDriverRegistrationStore } from "@/stores/driver-registration";
+
+/**
+ * Maps Better Auth OTP error codes / English messages to French strings.
+ * Better Auth returns English error text; this keeps the UI consistent with
+ * the app's French-first locale.
+ */
+function toFrenchAuthError(message: string | undefined): string {
+	if (!message) return "Une erreur est survenue. Veuillez réessayer.";
+	const m = message.toLowerCase();
+	if (m.includes("invalid otp") || m.includes("invalid code") || m.includes("otp not found"))
+		return "Le code saisi est incorrect ou a expiré.";
+	if (m.includes("otp expired") || m.includes("expired"))
+		return "Ce code a expiré. Veuillez en demander un nouveau.";
+	if (m.includes("too many") || m.includes("rate limit") || m.includes("rate_limit"))
+		return "Trop de tentatives. Veuillez patienter avant de réessayer.";
+	if (m.includes("phone") && m.includes("invalid"))
+		return "Numéro de téléphone invalide.";
+	if (m.includes("user not found") || m.includes("no user"))
+		return "Aucun compte trouvé pour ce numéro.";
+	if (m.includes("network") || m.includes("fetch"))
+		return "Erreur réseau. Vérifiez votre connexion.";
+	// Return the original if no mapping matched — better than hiding it
+	return message;
+}
 
 type AuthStep = "phone" | "otp";
 
@@ -55,19 +80,17 @@ export default function LoginView() {
 	const [isPending, setIsPending] = useState(false);
 	const slideAnim = useRef(new Animated.Value(0)).current;
 
+	// On initial mount only — if already authenticated, let root index resolve driver state.
+	// Using a ref so this never re-fires after isPending drops to false post-OTP.
+	const initialSessionChecked = useRef(false);
 	useEffect(() => {
-		if (!sessionPending && session?.user) {
-			router.replace(destination as any);
+		if (sessionPending) return;
+		if (initialSessionChecked.current) return;
+		initialSessionChecked.current = true;
+		if (session?.user) {
+			router.replace("/");
 		}
-	}, [sessionPending, session?.user, destination, router]);
-
-	if (sessionPending || session?.user) {
-		return (
-			<View style={styles.loadingContainer}>
-				<ActivityIndicator size="large" color="#ee237c" />
-			</View>
-		);
-	}
+	}, [sessionPending]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	function animateForward() {
 		slideAnim.setValue(40);
@@ -93,8 +116,8 @@ export default function LoginView() {
 		if (!localPhone.trim()) {
 			Toast.show({
 				type: "error",
-				text1: t("phoneRequired") || "Numéro requis",
-				text2: t("phoneRequiredMsg") || "Veuillez saisir votre numéro de téléphone",
+				text1: t("phoneRequired"),
+				text2: t("phoneRequiredMsg"),
 			});
 			return;
 		}
@@ -102,23 +125,6 @@ export default function LoginView() {
 		try {
 			setIsPending(true);
 			DriverFeedback.tap();
-
-			// Strict Login Gate: Pre-check if driver account exists before sending OTP
-			const checkResult = await queryClient.fetchQuery(
-				trpc.drivers.checkDriverAccountStatus.queryOptions({
-					phone: formattedPhone,
-				})
-			);
-
-			if (!checkResult.exists || !checkResult.isDriver) {
-				DriverFeedback.invalidScan();
-				Toast.show({
-					type: "error",
-					text1: "Compte chauffeur introuvable",
-					text2: "Ce numéro n'est pas enregistré. Cliquez sur Inscription ci-dessous.",
-				});
-				return;
-			}
 
 			const { error } = await authClient.phoneNumber.sendOtp({
 				phoneNumber: formattedPhone,
@@ -128,8 +134,8 @@ export default function LoginView() {
 				DriverFeedback.invalidScan();
 				Toast.show({
 					type: "error",
-					text1: t("smsFailed") || "Échec d'envoi",
-					text2: error.message || t("smsFailed") || "Impossible d'envoyer le code",
+					text1: t("smsFailed"),
+					text2: toFrenchAuthError(error.message),
 				});
 				return;
 			}
@@ -140,15 +146,15 @@ export default function LoginView() {
 
 			Toast.show({
 				type: "success",
-				text1: t("codeSent") || "Code envoyé",
-				text2: `${t("codeSentMsg") || "Code transmis au"} ${formattedPhone}`,
+				text1: t("codeSent"),
+				text2: `${t("codeSentMsg")} ${formattedPhone}`,
 			});
 		} catch (err: any) {
 			DriverFeedback.invalidScan();
 			Toast.show({
 				type: "error",
-				text1: t("networkError") || "Erreur réseau",
-				text2: err?.message || "Vérifiez votre connexion",
+				text1: t("networkError"),
+				text2: err?.message || t("networkErrorHint"),
 			});
 		} finally {
 			setIsPending(false);
@@ -160,8 +166,8 @@ export default function LoginView() {
 		if (!finalCode || finalCode.length < 6) {
 			Toast.show({
 				type: "error",
-				text1: t("incompleteCode") || "Code incomplet",
-				text2: t("incompleteCodeMsg") || "Veuillez entrer les 6 chiffres",
+				text1: t("incompleteCode"),
+				text2: t("incompleteCodeMsg"),
 			});
 			return;
 		}
@@ -179,20 +185,30 @@ export default function LoginView() {
 				DriverFeedback.invalidScan();
 				Toast.show({
 					type: "error",
-					text1: t("invalidCode") || "Code invalide",
-					text2: result.error.message || "Code OTP incorrect",
+					text1: t("invalidCode"),
+					text2: toFrenchAuthError(result.error.message),
 				});
 				return;
 			}
 
 			DriverFeedback.successScan();
 
+			// Flush auth cookie into memory before making the tRPC call,
+			// otherwise getCookie() may still return empty right after verify.
+			await ensureAuthCookiesFresh();
+
 			// Smart routing based on driver profile verification status
-			const statusData = await queryClient
-				.fetchQuery(trpc.drivers.getMyVerificationStatus.queryOptions())
+			const trpcClient = getTrpcClient();
+			const statusData = await trpcClient.drivers.getMyVerificationStatus
+				.query()
 				.catch(() => null);
 
 			if (!statusData?.driver) {
+				useDriverRegistrationStore.getState().updateData({
+					phone: formattedPhone,
+					currentStep: 1,
+					verifiedAt: new Date().toISOString(),
+				});
 				router.replace("/(auth)/register");
 				return;
 			}
@@ -204,8 +220,8 @@ export default function LoginView() {
 
 			Toast.show({
 				type: "success",
-				text1: t("verificationCleared") || "Vérifié",
-				text2: t("welcomeBack") || "Bienvenue sur Moja Driver",
+				text1: t("verificationCleared"),
+				text2: t("welcomeBack"),
 			});
 
 			router.replace(destination as any);
@@ -213,8 +229,8 @@ export default function LoginView() {
 			DriverFeedback.invalidScan();
 			Toast.show({
 				type: "error",
-				text1: t("networkError") || "Erreur réseau",
-				text2: err?.message || "Erreur lors de la validation",
+				text1: t("networkError"),
+				text2: err?.message || t("validationErrorHint"),
 			});
 		} finally {
 			setIsPending(false);
@@ -223,19 +239,19 @@ export default function LoginView() {
 
 	return (
 		<AuthShell
-			badge="Accès Chauffeur"
-			title={step === "phone" ? t("title") || "Connexion Chauffeur" : t("verifyTitle") || "Vérification OTP"}
+			badge={t("badge")}
+			title={step === "phone" ? t("title") : t("verifyTitle")}
 			description={
 				step === "phone"
-					? t("subtitle") || "Entrez votre numéro pour accéder à vos dispatches et votre HUD de conduite."
-					: `${t("verifySubtitle") || "Entrez le code envoyé au"} ${formattedPhone}`
+					? t("subtitle")
+					: `${t("verifySubtitle")} ${formattedPhone}`
 			}
 			logoSource={require("@/assets/images/icon.png")}
 			footer={
 				<View style={styles.footerRow}>
 					<HugeiconsIcon icon={SecurityCheckIcon} size={16} color="#10b981" />
 					<Text style={styles.footerText}>
-						{t("complianceNote") || "Plateforme certifiée de transport en Côte d'Ivoire"}
+						{t("complianceNote")}
 					</Text>
 				</View>
 			}
@@ -244,7 +260,7 @@ export default function LoginView() {
 				{step === "phone" ? (
 					<View style={styles.stepContainer}>
 						<View style={styles.inputGroup}>
-							<Text style={styles.inputLabel}>{t("phoneLabel") || "Numéro de téléphone"}</Text>
+							<Text style={styles.inputLabel}>{t("phoneLabel")}</Text>
 							<PhoneInput
 								defaultCountry="CI"
 								value={localPhone}
@@ -277,26 +293,20 @@ export default function LoginView() {
 									},
 								}}
 								phoneInputPlaceholderTextColor="#52525b"
-								placeholder={t("phonePlaceholder") || "07 00 00 00 00"}
+								placeholder={t("phonePlaceholder")}
 							/>
 							<Text style={styles.inputHint}>
-								{t("phoneHint") || "Entrez votre numéro enregistré auprès de votre compagnie."}
+								{t("phoneHint")}
 							</Text>
 						</View>
 
 						<AuthButton
-							title={t("sendCode") || "Recevoir le code SMS"}
+							title={t("sendCode")}
 							variant="primary"
 							loading={isPending}
 							onPress={handleSendOtp}
 							icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
 							iconPosition="right"
-						/>
-
-						<AuthButton
-							title={t("registerCta") || "Nouveau chauffeur ? Inscription"}
-							variant="outline"
-							onPress={() => router.push("/(auth)/register" as any)}
 						/>
 					</View>
 				) : (
@@ -310,7 +320,7 @@ export default function LoginView() {
 							style={styles.backButton}
 						>
 							<HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="#a1a1aa" />
-							<Text style={styles.backButtonText}>{t("changePhone") || "Modifier le numéro"}</Text>
+							<Text style={styles.backButtonText}>{t("changePhone")}</Text>
 						</TouchableOpacity>
 
 						<View style={styles.otpWrapper}>
@@ -352,7 +362,7 @@ export default function LoginView() {
 						</View>
 
 						<AuthButton
-							title={t("verifyButton") || "Valider & Démarrer"}
+							title={t("verifyButton")}
 							variant="primary"
 							loading={isPending}
 							onPress={() => handleVerifyOtp()}
@@ -366,8 +376,8 @@ export default function LoginView() {
 							style={styles.resendButton}
 						>
 							<Text style={styles.resendText}>
-								{t("didNotReceive") || "Code non reçu ?"}{" "}
-								<Text style={styles.resendHighlight}>{t("resendCode") || "Renvoyer"}</Text>
+								{t("didNotReceive")}{" "}
+								<Text style={styles.resendHighlight}>{t("resendCode")}</Text>
 							</Text>
 						</TouchableOpacity>
 					</View>

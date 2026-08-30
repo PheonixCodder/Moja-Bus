@@ -28,10 +28,21 @@ export function UrgentDispatchGate() {
 	// Optimistically dismissed tripIds for the current session.
 	const [dismissed, setDismissed] = useState<string[]>([]);
 
+	// Only poll when the driver has a verified profile. Unverified/unregistered
+	// drivers get a 403 from this endpoint which floods the logs and wastes requests.
+	const trpcVStatus = useTRPC();
+	const { data: verificationData } = useQuery(
+		trpcVStatus.drivers.getMyVerificationStatus.queryOptions(undefined, {
+			enabled: !!session?.user,
+			staleTime: 60_000,
+		})
+	);
+	const isVerified = verificationData?.driver?.verificationStatus === "VERIFIED";
+
 	const urgentQuery = useQuery({
 		...trpc.drivers.getMyUrgentDispatches.queryOptions(),
 		refetchInterval: 60_000,
-		enabled: !!session?.user,
+		enabled: !!session?.user && isVerified,
 	});
 
 	const acknowledgeMutation = useMutation(

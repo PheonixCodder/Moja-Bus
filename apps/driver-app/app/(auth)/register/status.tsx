@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
 	View,
 	Text,
@@ -9,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	Time02Icon,
@@ -22,6 +24,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useTRPC } from "@/lib/trpc";
 import { authClient } from "@/lib/auth-client";
+import { useDriverRegistrationStore } from "@/stores/driver-registration";
 import { DriverFeedback } from "@/lib/haptics";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -30,8 +33,13 @@ import { ScreenShell } from "@/components/ui/ScreenShell";
 import { colors } from "@/constants/theme";
 
 export default function RegisterStatusScreen() {
+	const { t } = useTranslation("auth");
 	const router = useRouter();
 	const trpc = useTRPC();
+
+	useEffect(() => {
+		useDriverRegistrationStore.getState().reset();
+	}, []);
 
 	const {
 		data: statusData,
@@ -69,8 +77,8 @@ export default function RegisterStatusScreen() {
 		<ScreenShell
 			header={
 				<PageHeader
-					title="Statut du Passeport"
-					subtitle="Contrôle de conformité officiel"
+					title={t("statusTitle")}
+					subtitle={t("statusSubtitle")}
 					showBack={false}
 				/>
 			}
@@ -80,7 +88,7 @@ export default function RegisterStatusScreen() {
 					<View style={styles.loadingBox}>
 						<ActivityIndicator size="large" color={colors.primary.rose} />
 						<Text style={styles.loadingText}>
-							Vérification du statut de conformité...
+							{t("statusLoading")}
 						</Text>
 					</View>
 				) : verificationStatus === "VERIFIED" ? (
@@ -91,15 +99,15 @@ export default function RegisterStatusScreen() {
 						</View>
 
 						<View style={styles.titleGroup}>
-							<Text style={styles.mainTitle}>Conformité Validée !</Text>
-							<Text style={styles.successSub}>Passeport Chauffeur Activé</Text>
+							<Text style={styles.mainTitle}>{t("statusVerifiedTitle")}</Text>
+							<Text style={styles.successSub}>{t("statusVerifiedSub")}</Text>
 							<Text style={styles.descText}>
-								Votre permis de conduire et vos pièces d'identité ont été vérifiés avec succès. Vous avez accès à vos dispatches.
+								{t("statusVerifiedDesc")}
 							</Text>
 						</View>
 
 						<Button
-							title="Accéder au terminal dispatches"
+							title={t("enterDispatches")}
 							variant="success"
 							size="lg"
 							onPress={handleEnterDashboard}
@@ -115,15 +123,15 @@ export default function RegisterStatusScreen() {
 						</View>
 
 						<View style={styles.titleGroup}>
-							<Text style={styles.mainTitle}>Compte Suspendu</Text>
-							<Text style={styles.errorSub}>Droits de conduite temporairement suspendus</Text>
+							<Text style={styles.mainTitle}>{t("statusSuspendedTitle")}</Text>
+							<Text style={styles.errorSub}>{t("statusSuspendedSub")}</Text>
 							<Text style={styles.descText}>
-								Le service de contrôle de sécurité a suspendu vos accès. Vous pouvez consulter vos antécédents mais vous ne pouvez pas démarrer de courses.
+								{t("statusSuspendedDesc")}
 							</Text>
 						</View>
 
 						<Button
-							title="Contacter le Support Sécurité"
+							title={t("contactSecurity")}
 							variant="secondary"
 							size="lg"
 							onPress={handleContactSupport}
@@ -131,7 +139,7 @@ export default function RegisterStatusScreen() {
 						/>
 
 						<Button
-							title="Se déconnecter"
+							title={t("signOutBtn")}
 							variant="outline"
 							size="md"
 							onPress={handleSignOut}
@@ -146,14 +154,14 @@ export default function RegisterStatusScreen() {
 						</View>
 
 						<View style={styles.titleGroup}>
-							<Text style={styles.mainTitle}>Dossier à Rectifier</Text>
-							<Text style={styles.errorSub}>Vérification Incomplète</Text>
+							<Text style={styles.mainTitle}>{t("statusRejectedTitle")}</Text>
+							<Text style={styles.errorSub}>{t("statusRejectedSub")}</Text>
 						</View>
 
 						{rejectionReason && (
 							<Card className="w-full gap-1 border-[#ef4444]/30">
 								<Text style={styles.rejectionHeader}>
-									Retour du contrôleur transporteur :
+									{t("rejectionHeader")}
 								</Text>
 								<Text style={styles.rejectionBody}>
 									{rejectionReason}
@@ -162,7 +170,7 @@ export default function RegisterStatusScreen() {
 						)}
 
 						<Button
-							title="Mettre à jour et renvoyer"
+							title={t("updateAndResubmit")}
 							variant="primary"
 							size="lg"
 							onPress={() => router.replace("/(auth)/register")}
@@ -176,31 +184,31 @@ export default function RegisterStatusScreen() {
 						</View>
 
 						<View style={styles.titleGroup}>
-							<Text style={styles.mainTitle}>Dossier en Cours d'Examen</Text>
-							<Text style={styles.pendingSub}>Contrôle de Conformité & Sécurité</Text>
+							<Text style={styles.mainTitle}>{t("statusPendingTitle")}</Text>
+							<Text style={styles.pendingSub}>{t("statusPendingSub")}</Text>
 							<Text style={styles.descText}>
-								Votre permis de conduire et votre pièce d'identité sont en cours de validation par les contrôleurs. Délai habituel : 2 à 24 heures.
+								{t("statusPendingDesc")}
 							</Text>
 						</View>
 
 						<Card className="w-full gap-2.5">
 							<View style={styles.rowBetween}>
-								<Text style={styles.labelMuted}>Référence dossier</Text>
+								<Text style={styles.labelMuted}>{t("applicationRef")}</Text>
 								<Text style={styles.valueMono}>
 									{statusData?.driver?.id?.slice(0, 12) ?? "EN_COURS"}
 								</Text>
 							</View>
 							<View style={styles.rowBetween}>
-								<Text style={styles.labelMuted}>Catégorie permis</Text>
+								<Text style={styles.labelMuted}>{t("licenseCategory")}</Text>
 								<Text style={styles.valueBrand}>
-									Classe {statusData?.driver?.licenseCategory ?? "D"} Poids Lourd
+									{t("licenseClassPrefix", { category: statusData?.driver?.licenseCategory ?? "D" })}
 								</Text>
 							</View>
 						</Card>
 
 						<View style={styles.actionsColumn}>
 							<Button
-								title="Actualiser le statut"
+								title={t("refreshStatus")}
 								variant="secondary"
 								size="md"
 								onPress={() => refetch()}
@@ -208,11 +216,11 @@ export default function RegisterStatusScreen() {
 							/>
 
 							<Button
-								title="Contacter le bureau des dispatches"
+								title={t("contactDispatch")}
 								variant="outline"
 								size="md"
 								onPress={handleContactSupport}
-								icon={<HugeiconsIcon icon={Call02Icon} size={18} color="#60a5fa" />}
+								icon={<HugeiconsIcon icon={Call02Icon} size={20} color="#60a5fa" />}
 							/>
 						</View>
 					</View>
@@ -225,7 +233,7 @@ export default function RegisterStatusScreen() {
 				>
 					<HugeiconsIcon icon={Logout01Icon} size={14} color="#71717a" />
 					<Text style={styles.signOutText}>
-						Changer de compte / Déconnexion
+						{t("changeAccount")}
 					</Text>
 				</TouchableOpacity>
 			</View>

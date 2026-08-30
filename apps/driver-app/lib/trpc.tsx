@@ -60,48 +60,63 @@ async function fetchWithAuth(url: URL | RequestInfo, options?: RequestInit) {
 
 		return fetch(url, {
 			...options,
+			credentials: "omit",
 			headers,
 		});
 	};
 
 	let response = await request();
+	await syncAuthCookiesFromResponse(response);
 
 	if (response.status === 401) {
 		await ensureAuthCookiesFresh();
 		response = await request();
+		await syncAuthCookiesFromResponse(response);
 	}
 
-	await syncAuthCookiesFromResponse(response);
 	return response;
 }
 
-const trpcClient = createTRPCClient<AppRouter>({
-	links: [
-		httpBatchLink({
-			url: `${baseURL}/api/trpc`,
-			transformer: superjson,
-			fetch: fetchWithAuth,
-		}),
-	],
-});
+let trpcClient: TRPCClient<AppRouter> | undefined;
 
-export function TRPCReactProvider({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
-	const qc = getQueryClient();
+export function getTrpcClient() {
+	if (!trpcClient) {
+		trpcClient = createTRPCClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					transformer: superjson,
+					url: `${baseURL}/api/trpc`,
+					headers: buildAuthHeaders,
+					fetch: fetchWithAuth,
+				}),
+			],
+		});
+	}
+	return trpcClient;
+}
 
+function AuthSessionKeepAlive() {
 	useEffect(() => {
-		const interval = setInterval(() => {
-			ensureAuthCookiesFresh().catch(() => {});
-		}, SESSION_KEEPALIVE_MS);
-		return () => clearInterval(interval);
+		const refresh = () => {
+			void ensureAuthCookiesFresh();
+		};
+
+		refresh();
+		const intervalId = setInterval(refresh, SESSION_KEEPALIVE_MS);
+		return () => clearInterval(intervalId);
 	}, []);
 
+	return null;
+}
+
+export function TRPCReactProvider({ children }: { children: React.ReactNode }) {
 	return (
-		<QueryClientProvider client={qc}>
-			<TRPCProvider trpcClient={trpcClient} queryClient={qc}>
+		<QueryClientProvider client={getQueryClient()}>
+			<TRPCProvider
+				trpcClient={getTrpcClient() as any}
+				queryClient={getQueryClient()}
+			>
+				<AuthSessionKeepAlive />
 				{children}
 			</TRPCProvider>
 		</QueryClientProvider>

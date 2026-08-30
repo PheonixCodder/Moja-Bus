@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
 	View,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	Camera01Icon,
@@ -29,8 +30,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ScreenShell } from "@/components/ui/ScreenShell";
 
 export default function RegisterStep1Screen() {
+	const { t } = useTranslation("auth");
 	const router = useRouter();
-	const { data: session } = authClient.useSession();
+	const { data: session, isPending: sessionPending } = authClient.useSession();
 	const trpc = useTRPC();
 	const presign = useMutation(trpc.storage.presignUpload.mutationOptions());
 
@@ -39,17 +41,30 @@ export default function RegisterStep1Screen() {
 		phone,
 		yearsOfExperience,
 		profileSelfieUri,
+		profileSelfieLocalPreview,
 		updateData,
 	} = useDriverRegistrationStore();
+
+	const sessionPhone = (session?.user as any)?.phoneNumber || (session?.user as any)?.phone || "";
+	const effectivePhone = phone || sessionPhone || "";
+
+	useEffect(() => {
+		if (effectivePhone) {
+			updateData({
+				currentStep: 1,
+				phone: effectivePhone,
+				verifiedAt: useDriverRegistrationStore.getState().verifiedAt ?? new Date().toISOString(),
+			});
+		}
+	}, [effectivePhone, updateData]);
 
 	const [nameInput, setNameInput] = useState(
 		fullName || (session?.user as any)?.fullName || (session?.user as any)?.name || ""
 	);
-	const [phoneInput, setPhoneInput] = useState(
-		phone || (session?.user as any)?.phoneNumber || ""
-	);
 	const [expInput, setExpInput] = useState(String(yearsOfExperience || 3));
-	const [selfieUri, setSelfieUri] = useState<string | null>(profileSelfieUri);
+	const [selfieUri, setSelfieUri] = useState<string | null>(
+		profileSelfieLocalPreview || (profileSelfieUri && !profileSelfieUri.startsWith("documents/") ? profileSelfieUri : null)
+	);
 	const [selfieKey, setSelfieKey] = useState<string | null>(
 		profileSelfieUri?.startsWith("documents/") ? profileSelfieUri : null
 	);
@@ -58,7 +73,7 @@ export default function RegisterStep1Screen() {
 		DriverFeedback.tap();
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
 		if (status !== "granted") {
-			Alert.alert("Permission requise", "L'accès à la caméra est nécessaire pour la photo d'identité.");
+			Alert.alert(t("cameraPermission"), t("cameraPermissionMsg"));
 			return;
 		}
 
@@ -80,29 +95,32 @@ export default function RegisterStep1Screen() {
 			});
 			if (!storedKey) {
 				Alert.alert(
-					"Échec de téléversement",
-					"Vérifiez votre connexion et reprenez la photo avant de continuer.",
+					t("selfieUploadFailed"),
+					t("selfieUploadFailedMsg"),
 				);
 				return;
 			}
 			setSelfieKey(storedKey);
-			updateData({ profileSelfieUri: storedKey });
+			updateData({
+				profileSelfieUri: storedKey,
+				profileSelfieLocalPreview: localUri,
+			});
 		}
 	};
 
 	const handleNext = () => {
 		if (!nameInput.trim()) {
-			Alert.alert("Champ obligatoire", "Veuillez entrer votre nom complet.");
+			Alert.alert(t("fieldRequired"), t("fullNameRequiredMsg"));
 			return;
 		}
-		if (!phoneInput.trim()) {
-			Alert.alert("Champ obligatoire", "Veuillez entrer votre numéro de téléphone.");
+		if (!effectivePhone.trim()) {
+			Alert.alert(t("fieldRequired"), t("phoneRequiredStep1"));
 			return;
 		}
 		if (selfieUri && !selfieKey) {
 			Alert.alert(
-				"Photo non téléversée",
-				"Votre photo d'identité n'a pas pu être envoyée. Reprenez la photo avant de continuer.",
+				t("selfieNotUploaded"),
+				t("selfieNotUploadedMsg"),
 			);
 			return;
 		}
@@ -110,9 +128,11 @@ export default function RegisterStep1Screen() {
 		DriverFeedback.tap();
 		updateData({
 			fullName: nameInput.trim(),
-			phone: phoneInput.trim(),
+			phone: effectivePhone.trim(),
 			yearsOfExperience: parseInt(expInput, 10) || 1,
 			profileSelfieUri: selfieKey || profileSelfieUri,
+			profileSelfieLocalPreview: selfieUri || profileSelfieLocalPreview,
+			currentStep: 2,
 		});
 
 		router.push("/(auth)/register/license");
@@ -123,9 +143,10 @@ export default function RegisterStep1Screen() {
 			header={
 				<View>
 					<PageHeader
-						title="Inscription Chauffeur"
-						subtitle="Étape 1 sur 4 : Identité personnelle"
+						title={t("step1Title")}
+						subtitle={t("step1Subtitle")}
 						showBack
+						onBack={() => router.replace("/(auth)/login")}
 					/>
 					{/* Progress Indicator */}
 					<View style={styles.progressTrack}>
@@ -135,7 +156,7 @@ export default function RegisterStep1Screen() {
 			}
 			footer={
 				<Button
-					title="Continuer vers le permis"
+					title={t("continueToLicense")}
 					variant="primary"
 					size="lg"
 					onPress={handleNext}
@@ -145,22 +166,29 @@ export default function RegisterStep1Screen() {
 			}
 		>
 			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>Photo d'identité professionnelle</Text>
+				<Text style={styles.sectionTitle}>{t("selfieSectionTitle")}</Text>
 				<Text style={styles.sectionSubtitle}>
-					Une photo nette de votre visage pour votre badge de chauffeur et le manifeste passagers.
+					{t("selfieSectionSubtitle")}
 				</Text>
 
 				<View style={styles.selfieContainer}>
-					{selfieUri ? (
+					{selfieUri || selfieKey ? (
 						<View style={styles.selfieWrapper}>
-							<Image source={{ uri: selfieUri }} style={styles.selfieImage} />
+							{selfieUri ? (
+								<Image source={{ uri: selfieUri }} style={styles.selfieImage} />
+							) : (
+								<View style={[styles.selfieImage, styles.uploadedPlaceholder]}>
+									<HugeiconsIcon icon={Camera01Icon} size={32} color="#10b981" />
+									<Text style={styles.uploadedPlaceholderText}>{t("selfieUploaded", "Photo enregistrée")}</Text>
+								</View>
+							)}
 							<TouchableOpacity
 								onPress={handleTakeSelfie}
 								activeOpacity={0.8}
 								style={styles.retakeButton}
 							>
 								<HugeiconsIcon icon={Camera01Icon} size={16} color="#fafafa" />
-								<Text style={styles.retakeText}>Reprendre</Text>
+								<Text style={styles.retakeText}>{t("retake")}</Text>
 							</TouchableOpacity>
 						</View>
 					) : (
@@ -172,38 +200,39 @@ export default function RegisterStep1Screen() {
 							<View style={styles.cameraIconWrap}>
 								<HugeiconsIcon icon={Camera01Icon} size={28} color="#ee237c" />
 							</View>
-							<Text style={styles.captureText}>Prendre un selfie</Text>
-							<Text style={styles.captureHint}>Format carré, bien éclairé</Text>
+							<Text style={styles.captureText}>{t("takeSelfie")}</Text>
+							<Text style={styles.captureHint}>
+								{t("selfieHint")}
+							</Text>
 						</TouchableOpacity>
 					)}
 				</View>
 			</View>
 
 			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>Informations personnelles</Text>
+				<Text style={styles.sectionTitle}>{t("personalInfoTitle")}</Text>
 
 				<View style={styles.inputsList}>
 					<Input
-						label="Nom complet officiel"
-						placeholder="ex: Ibrahim Touré"
+						label={t("fullNameOfficiel")}
+						placeholder={t("fullNameExample")}
 						value={nameInput}
 						onChangeText={setNameInput}
 						leftIcon={<HugeiconsIcon icon={User02Icon} size={18} color="#71717a" />}
 					/>
 
 					<Input
-						label="Numéro de téléphone (Vérifié)"
-						placeholder="ex: +225 07 00 00 00 00"
+						label={t("phoneVerifiedLabel")}
+						placeholder={t("phoneExample")}
 						keyboardType="phone-pad"
-						value={phoneInput}
+						value={effectivePhone}
 						editable={false}
-						onChangeText={setPhoneInput}
-						leftIcon={<HugeiconsIcon icon={Call02Icon} size={18} color="#71717a" />}
+						leftIcon={<HugeiconsIcon icon={Call02Icon} size={18} color="#10b981" />}
 					/>
 
 					<Input
-						label="Années d'expérience de conduite"
-						placeholder="ex: 5"
+						label={t("experienceLabel")}
+						placeholder={t("experienceExample")}
 						keyboardType="number-pad"
 						value={expInput}
 						onChangeText={setExpInput}
@@ -261,6 +290,19 @@ const styles = StyleSheet.create({
 		borderWidth: 3,
 		borderColor: "#ee237c",
 	},
+	uploadedPlaceholder: {
+		backgroundColor: "#18181b",
+		alignItems: "center",
+		justifyContent: "center",
+		borderWidth: 2,
+		borderColor: "rgba(16, 185, 129, 0.4)",
+		gap: 6,
+	},
+	uploadedPlaceholderText: {
+		fontSize: 10,
+		fontWeight: "700",
+		color: "#10b981",
+	},
 	retakeButton: {
 		flexDirection: "row",
 		alignItems: "center",
@@ -303,6 +345,14 @@ const styles = StyleSheet.create({
 	captureHint: {
 		fontSize: 11,
 		color: "#71717a",
+	},
+	phoneWarning: {
+		fontSize: 11,
+		color: "#f59e0b",
+		lineHeight: 16,
+		marginTop: -4,
+		marginBottom: 8,
+		paddingLeft: 4,
 	},
 	inputsList: {
 		gap: 16,

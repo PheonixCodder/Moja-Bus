@@ -948,9 +948,9 @@
     "semantic_hash": ""
   },
   "apps/driver-app/app/index.tsx": {
-    "mtime": 1788082990.293171,
-    "seen": 1788083411.3530412,
-    "ast_hash": "9a81a65eda6c492c714bc6535ff58ac5",
+    "mtime": 1788016385.35383,
+    "seen": 1788017420.2805114,
+    "ast_hash": "4fd0a8dd3136d963b490a29b6a7c5430",
     "semantic_hash": ""
   },
   "apps/driver-app/app/notifications.tsx": {
@@ -1014,10 +1014,10 @@
     "semantic_hash": ""
   },
   "apps/driver-app/lib/driver-doc-upload.ts": {
-    "mtime": 1788083040.5340526,
-    "seen": 1788083411.3567796,
-    "ast_hash": "b1b086702c3d338196e6dd0c60e6b6cf",
-    "semantic_hash": ""
+    "mtime": 1787687884.5027747,
+    "seen": 1787855978.0392258,
+    "ast_hash": "4d94c977f051eed7d3ca7eda803a1b37",
+    "semantic_hash": "4d94c977f051eed7d3ca7eda803a1b37"
   },
   "apps/driver-app/lib/haptics.ts": {
     "mtime": 1787248937.283285,

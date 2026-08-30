@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
 	View,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	CreditCardIcon,
@@ -28,18 +29,19 @@ import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScreenShell } from "@/components/ui/ScreenShell";
 
-const LICENSE_CATEGORIES: Array<{
+const LICENSE_CATEGORY_KEYS: Array<{
 	category: LicenseCategoryType;
-	title: string;
-	desc: string;
+	titleKey: string;
+	descKey: string;
 }> = [
-	{ category: "D", title: "Catégorie D", desc: "Autobus et Autocars Passagers Longue Distance" },
-	{ category: "E", title: "Catégorie E", desc: "Véhicules Articulés et Convois Commerciaux" },
-	{ category: "C", title: "Catégorie C", desc: "Poids Lourds et Transport Haute Capacité" },
-	{ category: "B", title: "Catégorie B", desc: "Minibus Urbains et Navettes Légères" },
+	{ category: "D", titleKey: "licenseCatD", descKey: "licenseCatDDesc" },
+	{ category: "E", titleKey: "licenseCatE", descKey: "licenseCatEDesc" },
+	{ category: "C", titleKey: "licenseCatC", descKey: "licenseCatCDesc" },
+	{ category: "B", titleKey: "licenseCatB", descKey: "licenseCatBDesc" },
 ];
 
 export default function RegisterStep2LicenseScreen() {
+	const { t } = useTranslation("auth");
 	const router = useRouter();
 	useWizardGuard(2);
 
@@ -48,15 +50,25 @@ export default function RegisterStep2LicenseScreen() {
 		licenseCategory,
 		licenseExpiryDate,
 		licenseFrontUri,
+		licenseFrontLocalPreview,
 		licenseBackUri,
+		licenseBackLocalPreview,
 		updateData,
 	} = useDriverRegistrationStore();
+
+	useEffect(() => {
+		updateData({ currentStep: 2 });
+	}, [updateData]);
 
 	const [numberInput, setNumberInput] = useState(licenseNumber);
 	const [categorySelect, setCategorySelect] = useState<LicenseCategoryType>(licenseCategory || "D");
 	const [expiryInput, setExpiryInput] = useState(licenseExpiryDate);
-	const [frontUri, setFrontUri] = useState<string | null>(licenseFrontUri);
-	const [backUri, setBackUri] = useState<string | null>(licenseBackUri);
+	const [frontUri, setFrontUri] = useState<string | null>(
+		licenseFrontLocalPreview || (licenseFrontUri && !licenseFrontUri.startsWith("documents/") ? licenseFrontUri : null)
+	);
+	const [backUri, setBackUri] = useState<string | null>(
+		licenseBackLocalPreview || (licenseBackUri && !licenseBackUri.startsWith("documents/") ? licenseBackUri : null)
+	);
 	const [frontKey, setFrontKey] = useState<string | null>(
 		licenseFrontUri?.startsWith("documents/") ? licenseFrontUri : null,
 	);
@@ -70,7 +82,7 @@ export default function RegisterStep2LicenseScreen() {
 		DriverFeedback.tap();
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
 		if (status !== "granted") {
-			Alert.alert("Permission requise", "L'accès à la caméra est nécessaire pour photographier votre permis.");
+			Alert.alert(t("cameraPermission"), t("licenseCameraMsg"));
 			return;
 		}
 
@@ -93,31 +105,42 @@ export default function RegisterStep2LicenseScreen() {
 			});
 			if (!storedKey) {
 				Alert.alert(
-					"Échec de téléversement",
-					"Vérifiez votre connexion et reprenez la photo avant de continuer.",
+					t("selfieUploadFailed"),
+					t("selfieUploadFailedMsg"),
 				);
 				return;
 			}
-			if (type === "front") setFrontKey(storedKey);
-			else setBackKey(storedKey);
+			if (type === "front") {
+				setFrontKey(storedKey);
+				updateData({
+					licenseFrontUri: storedKey,
+					licenseFrontLocalPreview: localUri,
+				});
+			} else {
+				setBackKey(storedKey);
+				updateData({
+					licenseBackUri: storedKey,
+					licenseBackLocalPreview: localUri,
+				});
+			}
 		}
 	};
 
 	const handleNext = () => {
 		if (!numberInput.trim()) {
-			Alert.alert("Champ obligatoire", "Veuillez saisir le numéro de permis de conduire.");
+			Alert.alert(t("fieldRequired"), t("licenseNumberRequired"));
 			return;
 		}
 		if (!expiryInput.trim()) {
-			Alert.alert("Champ obligatoire", "Veuillez indiquer la date d'expiration.");
+			Alert.alert(t("fieldRequired"), t("licenseExpiryRequired"));
 			return;
 		}
 
 		const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 		if (!dateRegex.test(expiryInput.trim())) {
 			Alert.alert(
-				"Format invalide",
-				"Veuillez entrer une date au format AAAA-MM-JJ (ex: 2028-12-31)."
+				t("invalidDateFormat"),
+				t("invalidDateFormatMsg")
 			);
 			return;
 		}
@@ -125,16 +148,16 @@ export default function RegisterStep2LicenseScreen() {
 		const parsedDate = new Date(expiryInput.trim());
 		if (isNaN(parsedDate.getTime()) || parsedDate.getTime() < Date.now()) {
 			Alert.alert(
-				"Permis expiré",
-				"La date d'expiration doit être une date future valide."
+				t("licenseExpired"),
+				t("licenseExpiredMsg")
 			);
 			return;
 		}
 
 		if ((frontUri && !frontKey) || (backUri && !backKey)) {
 			Alert.alert(
-				"Photos non téléversées",
-				"Vos photos de permis n'ont pas pu être envoyées. Reprenez les photos avant de continuer."
+				t("photosNotUploaded"),
+				t("photosNotUploadedMsg")
 			);
 			return;
 		}
@@ -144,8 +167,11 @@ export default function RegisterStep2LicenseScreen() {
 			licenseNumber: numberInput.trim(),
 			licenseCategory: categorySelect,
 			licenseExpiryDate: expiryInput.trim(),
-			licenseFrontUri: frontKey || frontUri,
-			licenseBackUri: backKey || backUri,
+			licenseFrontUri: frontKey || licenseFrontUri,
+			licenseFrontLocalPreview: frontUri || licenseFrontLocalPreview,
+			licenseBackUri: backKey || licenseBackUri,
+			licenseBackLocalPreview: backUri || licenseBackLocalPreview,
+			currentStep: 3,
 		});
 
 		router.push("/(auth)/register/documents");
@@ -156,9 +182,10 @@ export default function RegisterStep2LicenseScreen() {
 			header={
 				<View>
 					<PageHeader
-						title="Permis de Conduire"
-						subtitle="Étape 2 sur 4 : Titre de transport professionnel"
+						title={t("step2Title")}
+						subtitle={t("step2Subtitle")}
 						showBack
+						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register")}
 					/>
 					<View style={styles.progressTrack}>
 						<View style={[styles.progressBar, { width: "50%" }]} />
@@ -167,7 +194,7 @@ export default function RegisterStep2LicenseScreen() {
 			}
 			footer={
 				<Button
-					title="Continuer vers les documents"
+					title={t("continueToDocuments")}
 					variant="primary"
 					size="lg"
 					onPress={handleNext}
@@ -177,13 +204,13 @@ export default function RegisterStep2LicenseScreen() {
 			}
 		>
 			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>Catégorie du permis</Text>
+				<Text style={styles.sectionTitle}>{t("licenseCategoryTitle")}</Text>
 				<Text style={styles.sectionSubtitle}>
-					Sélectionnez la catégorie principale pour vos missions commerciales.
+					{t("licenseCategorySubtitle")}
 				</Text>
 
 				<View style={styles.categoriesList}>
-					{LICENSE_CATEGORIES.map((item) => {
+					{LICENSE_CATEGORY_KEYS.map((item) => {
 						const isSelected = categorySelect === item.category;
 						return (
 							<TouchableOpacity
@@ -215,13 +242,13 @@ export default function RegisterStep2LicenseScreen() {
 												{item.category}
 											</Text>
 										</View>
-										<Text style={styles.categoryTitle}>{item.title}</Text>
+										<Text style={styles.categoryTitle}>{t(item.titleKey)}</Text>
 									</View>
 									{isSelected ? (
 										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color="#ee237c" />
 									) : null}
 								</View>
-								<Text style={styles.categoryDesc}>{item.desc}</Text>
+								<Text style={styles.categoryDesc}>{t(item.descKey)}</Text>
 							</TouchableOpacity>
 						);
 					})}
@@ -229,20 +256,20 @@ export default function RegisterStep2LicenseScreen() {
 			</View>
 
 			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>Numéro et validité</Text>
+				<Text style={styles.sectionTitle}>{t("licenseNumberLabel")}</Text>
 
 				<View style={styles.inputsList}>
 					<Input
-						label="Numéro de permis officiel"
-						placeholder="ex: CI-0029-482910"
+						label={t("licenseNumberLabel")}
+						placeholder={t("licenseNumberPlaceholder")}
 						value={numberInput}
 						onChangeText={setNumberInput}
 						leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={18} color="#71717a" />}
 					/>
 
 					<Input
-						label="Date d'expiration"
-						placeholder="AAAA-MM-JJ (ex: 2028-12-31)"
+						label={t("licenseExpiryLabel")}
+						placeholder={t("licenseExpiryPlaceholder")}
 						value={expiryInput}
 						onChangeText={setExpiryInput}
 						leftIcon={<HugeiconsIcon icon={Calendar01Icon} size={18} color="#71717a" />}
@@ -251,21 +278,28 @@ export default function RegisterStep2LicenseScreen() {
 			</View>
 
 			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>Photos du permis physique</Text>
+				<Text style={styles.sectionTitle}>{t("licensePhotosTitle")}</Text>
 				<Text style={styles.sectionSubtitle}>
-					Photographiez le recto et le verso de votre permis original.
+					{t("licensePhotosSubtitle")}
 				</Text>
 
 				<View style={styles.photosRow}>
 					{/* Recto */}
 					<View style={styles.photoCol}>
-						<Text style={styles.photoLabel}>Recto</Text>
-						{frontUri ? (
+						<Text style={styles.photoLabel}>{t("photoFront")}</Text>
+						{frontUri || frontKey ? (
 							<TouchableOpacity
 								onPress={() => handleCaptureDocument("front")}
 								style={styles.photoPreviewWrap}
 							>
-								<Image source={{ uri: frontUri }} style={styles.photoPreview} />
+								{frontUri ? (
+									<Image source={{ uri: frontUri }} style={styles.photoPreview} />
+								) : (
+									<View style={[styles.photoPreview, styles.uploadedBox]}>
+										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color="#10b981" />
+										<Text style={styles.uploadedText}>{t("photoFrontUploaded", "Recto enregistré")}</Text>
+									</View>
+								)}
 								<View style={styles.photoSuccessBadge}>
 									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
 								</View>
@@ -276,20 +310,27 @@ export default function RegisterStep2LicenseScreen() {
 								style={styles.photoCaptureBox}
 							>
 								<HugeiconsIcon icon={Camera01Icon} size={22} color="#ee237c" />
-								<Text style={styles.photoCaptureText}>Prendre Recto</Text>
+								<Text style={styles.photoCaptureText}>{t("takeFront")}</Text>
 							</TouchableOpacity>
 						)}
 					</View>
 
 					{/* Verso */}
 					<View style={styles.photoCol}>
-						<Text style={styles.photoLabel}>Verso</Text>
-						{backUri ? (
+						<Text style={styles.photoLabel}>{t("photoBack")}</Text>
+						{backUri || backKey ? (
 							<TouchableOpacity
 								onPress={() => handleCaptureDocument("back")}
 								style={styles.photoPreviewWrap}
 							>
-								<Image source={{ uri: backUri }} style={styles.photoPreview} />
+								{backUri ? (
+									<Image source={{ uri: backUri }} style={styles.photoPreview} />
+								) : (
+									<View style={[styles.photoPreview, styles.uploadedBox]}>
+										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color="#10b981" />
+										<Text style={styles.uploadedText}>{t("photoBackUploaded", "Verso enregistré")}</Text>
+									</View>
+								)}
 								<View style={styles.photoSuccessBadge}>
 									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
 								</View>
@@ -300,7 +341,7 @@ export default function RegisterStep2LicenseScreen() {
 								style={styles.photoCaptureBox}
 							>
 								<HugeiconsIcon icon={Camera01Icon} size={22} color="#ee237c" />
-								<Text style={styles.photoCaptureText}>Prendre Verso</Text>
+								<Text style={styles.photoCaptureText}>{t("takeBack")}</Text>
 							</TouchableOpacity>
 						)}
 					</View>
@@ -441,6 +482,17 @@ const styles = StyleSheet.create({
 	photoPreview: {
 		width: "100%",
 		height: "100%",
+	},
+	uploadedBox: {
+		backgroundColor: "#18181b",
+		alignItems: "center",
+		justifyContent: "center",
+		gap: 4,
+	},
+	uploadedText: {
+		fontSize: 10,
+		fontWeight: "700",
+		color: "#10b981",
 	},
 	photoSuccessBadge: {
 		position: "absolute",

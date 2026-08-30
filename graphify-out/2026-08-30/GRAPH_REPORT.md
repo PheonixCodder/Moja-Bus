@@ -1,11 +1,11 @@
 # Graph Report - moja-buss  (2026-08-30)
 
 ## Corpus Check
-- 2389 files · ~1,338,962 words
+- 2389 files · ~1,338,905 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 16938 nodes · 28651 edges · 1566 communities (1124 shown, 442 thin omitted)
+- 16938 nodes · 28649 edges · 1537 communities (1095 shown, 442 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 168 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
@@ -16,40 +16,40 @@
 
 ## Community Hubs (Navigation)
 - src/components/ui/button.tsx
-- client.tsx
+- booking-list.tsx
 - src/components/ui/card.tsx
-- sidebar.tsx
+- cn
 - cn
 - src/lib/utils.ts
 - booking-detail.tsx
-- routers/booking.ts
+- signed-access-tokens.ts
 - dependencies
-- routers/payments.ts
+- quote-service.ts
 - screens/search.tsx
 - src/drivers.ts
 - paystack-client.ts
 - verify-claim.mjs
 - 1. Inventory by Pattern & File
-- home.tsx
+- traveler-app/app/(tabs)/_layout.tsx
 - routers/admin-staff.ts
 - db/src/index.ts
 - locations.ts
 - routers/operator.ts
 - nativewind/SKILL.md
 - spinner.tsx
-- OperatorPromotionCreateDialog
+- operator-promotions-view.tsx
 - dependencies
 - dependencies
 - traveler-app/lib/trpc.tsx
 - search-params.ts
 - discounts-admin.ts
 - lib/render-report.mjs
-- booking-hold-service.ts
-- quote-service.ts
+- operator-sent-offers-view.tsx
+- evaluate.ts
 - Milestone Log (newest first)
-- screens/wallet.tsx
+- text.tsx
 - dependencies
-- init.ts
+- screens/notifications.tsx
 - customers.md
 - gates/index.mjs
 - escapeHtml
@@ -70,16 +70,16 @@
 - import-ivory-coast-geo.ts
 - shims.d.ts
 - isTelemetryAuthEnforced
-- OperatorStaffView
+- useStaffPermissions
 - gate-investigations.mjs
 - screens/passengers.tsx
 - telemetry.ts
 - booking-details.tsx
-- payment-service.ts
-- routers/staff.ts
+- routers/payments.ts
+- schemas/src/index.ts
 - Framework Integration
 - Framework Integration
-- getOptionalEnv
+- driver-app/lib/trpc.tsx
 - typescript/package.json
 - globalEnv
 - expo
@@ -89,19 +89,19 @@
 - extract-claims.mjs
 - expo
 - driver-scoring.ts
-- cn
+- travelers-grid.tsx
 - display-labels.mjs
 - Framework Integration
 - sanitizers/index.mjs
 - devDependencies
-- screens/personal-info.tsx
+- profile-hero.tsx
 - storefronts.md
 - paystack-checkout.ts
-- routers/trips.ts
+- redemption-list.ts
 - routers/search.ts
 - Dedicated Virtual Accounts
 - route-normalize.mjs
-- driver-app/lib/trpc.tsx
+- driver-app/app/_layout.tsx
 - verify-and-regen.mjs
 - capture-service.ts
 - schemas/package.json
@@ -113,7 +113,7 @@
 - Skill Creator
 - notification-row.tsx
 - screens/login.tsx
-- booking-read-service.ts
+- routers/booking.ts
 - (passenger)/settings/page.tsx
 - Driver App — Context Overview
 - .claude/skills/organization-best-practices/SKILL.md
@@ -121,7 +121,7 @@
 - ui/package.json
 - generate_review.py
 - users/operators/page.tsx
-- phone-input.tsx
+- revenue/page.tsx
 - driver-check-in-service.ts
 - Virtual Terminal
 - audit-i18n.js
@@ -132,12 +132,12 @@
 - Project Overview
 - scripts/deep-dive.mjs
 - BookingDialog
-- profile-view.tsx
+- manifest-view.tsx
 - blog-detail-view.tsx
 - routers/passenger.ts
 - analyze-count4.js
 - biome.json
-- src/schedules.ts
+- routers/schedules.ts
 - scanner-view.tsx
 - Workflow & Step API Reference
 - trip-segments.ts
@@ -151,7 +151,7 @@
 - lineOf
 - haptics.ts
 - CampaignSettingsEditor
-- Text
+- screens/tickets.tsx
 - scripts/render-report.mjs
 - scan-codebase.mjs
 - collect-sub-agent-outputs.mjs
@@ -159,13 +159,13 @@
 - types.d.ts
 - theme/package.json
 - getAppOrigin
-- enqueueOutboxMessage
+- routers/admin.ts
 - scripts
 - ui/tsconfig.json
 - ui/components.json
-- routers/admin.ts
+- featured-operators-section.tsx
 - traveler-app/components.json
-- PaymentService
+- admin/drivers/marketplace/page.tsx
 - Workflow & Step API Reference
 - telemetry-token.ts
 - .junie/skills/better-auth-security-best-practices/SKILL.md
@@ -180,7 +180,7 @@
 - db/tsconfig.json
 - Payment Requests
 - verify-compute-surface.mjs
-- src/routes.ts
+- promotions/page.tsx
 - dependencies
 - regen-brand-assets.py
 - Vercel CLI with Tokens
@@ -191,7 +191,7 @@
 - compilerOptions
 - Model Queries
 - aggregate_benchmark.py
-- timezone.ts
+- (public)/operators/page.tsx
 - driver-app/constants/theme.ts
 - scripts
 - Graphify — Moja Ride Knowledge Graph
@@ -248,7 +248,7 @@
 - (dashboard)/bookings/page.tsx
 - posthog-react-native
 - transaction-splits.md
-- schemas/src/index.ts
+- Step Options
 - Read
 - Examples
 - Inbox Integration
@@ -361,7 +361,7 @@
 - react-native-web
 - react-native-worklets
 - fr/manifest.json
-- getServerSession
+- Payload Schema
 - operator-fleet-view.tsx
 - account-suspended.ts
 - 3. Step-by-Step Implementation Strategy
@@ -370,11 +370,11 @@
 - search-date-strip.tsx
 - Rules
 - @rn-primitives/menubar
-- operator-booking-service.ts
-- notify.ts
+- 3. Size Bloat & File System Hygiene
+- Payload Schema
 - infoPlist
 - @rn-primitives/toggle
-- process.ts
+- Create
 - 02 — Annotated Findings
 - lib/theme.ts
 - i18n.d.ts
@@ -384,7 +384,7 @@
 - Outline Width (/v5/tailwind/borders/outline-width)
 - 2. Detailed Workflow Specifications
 - Email Templates
-- (passenger)/login/page.tsx
+- Contrast (/v5/tailwind/filters/contrast)
 - wallet-params.ts
 - global.d.ts
 - cron-hygiene.test.ts
@@ -572,7 +572,7 @@
 - Doctrine
 - 6. Rendering Performance
 - Patterns and Guidelines
-- admin-dashboard-view.tsx
+- Hue Rotate (/v5/tailwind/filters/hue-rotate)
 - Email Step
 - Step Conditions
 - Inbox Security
@@ -762,7 +762,7 @@
 - @moja/config
 - Trigger Activation Charge
 - Integration
-- BottomTabInset
+- screens/reviews.tsx
 - UI Registry
 - Frontend Design
 - HTTP Request Step
@@ -811,7 +811,7 @@
 - @opentelemetry/api
 - Authentication
 - orama
-- driversRouter
+- web/features/booking/components/booking-kpi-strip.tsx
 - UI Tokens
 - Step Conditions
 - Dashboard Workflows
@@ -883,7 +883,7 @@
 - Detailed Wizard Steps:
 - 03 — Styling, Theme & Assets Deep Dive
 - 04 — Size Bloat & File Hygiene Deep Dive
-- operator-profile.tsx
+- react
 - server.ts
 - Digest Step
 - Push Step
@@ -929,7 +929,7 @@
 - sharp
 - shiki
 - @tanstack/react-table
-- src/fleet.ts
+- class-variance-authority
 - Flex Direction (/v5/tailwind/flexbox/flex-direction)
 - Support Topics
 - async-cheap-condition-before-await.md
@@ -964,7 +964,7 @@
 - Chat Step
 - In-App Step
 - SMS Step
-- cancel-trip-with-refunds.ts
+- Container (/v5/tailwind/layout/container)
 - Common Patterns
 - Subscriber-Level Preferences
 - 06 — Pre-Release Verification Checklist
@@ -1040,14 +1040,14 @@
 - Mix Blend Mode (/v5/tailwind/effects/mix-blend-mode)
 - Opacity (/v5/tailwind/effects/opacity)
 - Drop Shadow (/v5/tailwind/filters/drop-shadow)
-- routers/schedules.ts
+- Text Underline Offset (/v5/tailwind/typography/text-underline-offset)
 - Invert (/v5/tailwind/filters/invert)
 - List All Preferences
 - plugins
 - Flex Basis (/v5/tailwind/flexbox/flex-basis)
-- admin/staff/page.tsx
+- Common Preference Operations
 - Flex Grow (/v5/tailwind/flexbox/flex-grow)
-- admin-campaigns-view.tsx
+- expo-clipboard
 - Flex Wrap (/v5/tailwind/flexbox/flex-wrap)
 - Flex (/v5/tailwind/flexbox/flex)
 - Gap (/v5/tailwind/flexbox/gap)
@@ -1063,29 +1063,22 @@
 - Justify Self (/v5/tailwind/flexbox/justify-self)
 - driver-app/README.md
 - Place Content (/v5/tailwind/flexbox/place-content)
-- amenities-list.tsx
 - Place Self (/v5/tailwind/flexbox/place-self)
 - Cursor (/v5/tailwind/interactivity/cursor)
 - Pointer Events (/v5/tailwind/interactivity/pointer-events)
-- SnapshotService
 - Scroll Padding (/v5/tailwind/interactivity/scroll-padding)
 - Scroll Snap Align (/v5/tailwind/interactivity/scroll-snap-align)
 - Scroll Snap Stop (/v5/tailwind/interactivity/scroll-snap-stop)
 - Scroll Snap Type (/v5/tailwind/interactivity/scroll-snap-type)
-- checkout-quote.ts
 - User Select (/v5/tailwind/interactivity/user-select)
 - Will Change (/v5/tailwind/interactivity/will-change)
-- staff-activity-section.tsx
-- navigation.ts
 - Isolation (/v5/tailwind/layout/isolation)
 - Object Fit (/v5/tailwind/layout/object-fit)
-- operator/login/page.tsx
 - Overscroll Behavior (/v5/tailwind/layout/overscroll-behavior)
 - Position (/v5/tailwind/layout/position)
 - Top / Right / Bottom / Left (/v5/tailwind/layout/top-right-bottom-left)
 - Visibility (/v5/tailwind/layout/visibility)
 - Z-Index (/v5/tailwind/layout/z-index)
-- (passenger)/page.tsx
 - Height (/v5/tailwind/sizing/height)
 - Max-Height (/v5/tailwind/sizing/max-height)
 - Max-Width (/v5/tailwind/sizing/max-width)
@@ -1098,7 +1091,6 @@
 - Fill (/v5/tailwind/svg/fill)
 - Stroke Width (/v5/tailwind/svg/stroke-width)
 - Stroke (/v5/tailwind/svg/stroke)
-- PassengerAuthFlow
 - Rotate (/v5/tailwind/transforms/rotate)
 - Scale (/v5/tailwind/transforms/scale)
 - Skew (/v5/tailwind/transforms/skew)
@@ -1112,7 +1104,6 @@
 - Font Family (/v5/tailwind/typography/font-family)
 - Font Smoothing (/v5/tailwind/typography/font-smoothing)
 - Font Style (/v5/tailwind/typography/font-style)
-- fleet-live-map.tsx
 - Font Weight (/v5/tailwind/typography/font-weight)
 - Hyphens (/v5/tailwind/typography/hyphens)
 - Letter Spacing (/v5/tailwind/typography/letter-spacing)
@@ -1121,14 +1112,10 @@
 - List Style Image (/v5/tailwind/typography/list-style-image)
 - List Style Position (/v5/tailwind/typography/list-style-position)
 - List Style Type (/v5/tailwind/typography/list-style-type)
-- seat-grid-matrix.tsx
 - Text Color (/v5/tailwind/typography/text-color)
 - Text Decoration Color (/v5/tailwind/typography/text-decoration-color)
 - Text Decoration Style (/v5/tailwind/typography/text-decoration-style)
 - extra
-- isLicenseUsableThrough
-- migrate-drivers-data.ts
-- PricingStep
 - Text Transform (/v5/tailwind/typography/text-transform)
 - Whitespace (/v5/tailwind/typography/whitespace)
 - Word Break (/v5/tailwind/typography/word-break)
@@ -1140,12 +1127,10 @@
 - 11. Monorepo
 - 1. Core Rendering
 - 8. React Compiler
-- InviteSheet
 - graphify reference: GitHub clone and cross-repo merge
 - graphify reference: transcribe video and audio
 - Delay Step
 - Throttle Step
-- Payload Schema
 - 11. Booking & Refund (Models)
 - 14. Idempotency & Error Recovery
 - 7. FinancialAccount & FinancialAccountSnapshot (Models)
@@ -1155,7 +1140,6 @@
 - Resolve Card BIN
 - Delay Step
 - Throttle Step
-- TransferOwnershipDialog
 - graphify reference: GitHub clone and cross-repo merge
 - graphify reference: transcribe video and audio
 - eval-0/with_skill/run-1/outputs/AGENTS.md
@@ -1311,7 +1295,6 @@
 - ui-scrollview-content-inset.md
 - ui-styling.md
 - better-auth
-- TransferOwnershipDialog
 - clsx
 - expo
 - web
@@ -1322,16 +1305,10 @@
 - driver-app/features/auth/components/auth-field.tsx
 - expo-location
 - expo-network
-- Step Options
-- 4. UI Component Library & Root Layout Deficiencies
-- Step Options
-- Read
 - expo-task-manager
 - @expo/vector-icons
 - expo-web-browser
 - @hugeicons/core-free-icons
-- Grayscale (/v5/tailwind/filters/grayscale)
-- Display (/v5/tailwind/layout/display)
 - nativewind
 - react
 - react-dom
@@ -1344,7 +1321,6 @@
 - 03. Driver Verification, Governance, & Document Security Audit
 - rn-international-phone-number
 - 2. Detailed Technical Fix Blueprints
-- Container Queries (/v5/tailwind/plugins/container-queries)
 - @better-auth/expo
 - expo-localization
 - expo-splash-screen
@@ -1400,7 +1376,6 @@
 - @hugeicons/react-native
 - react-native-webview
 - react-native-worklets
-- Text Decoration (/v5/tailwind/typography/text-decoration)
 - @rn-primitives/accordion
 - @rn-primitives/avatar
 - @rn-primitives/checkbox
@@ -1424,19 +1399,15 @@
 - @rn-primitives/alert-dialog
 - @aws-sdk/client-s3
 - @aws-sdk/s3-request-presigner
-- List All Preferences
-- @moja/schemas
 - date-fns
 - @dnd-kit/core
 - @dnd-kit/sortable
-- client-only
 - @hookform/resolvers
 - html5-qrcode
 - ioredis
 - libphonenumber-js
 - @mdxeditor/editor
 - @moja/db
-- embla-carousel-react
 - @moja/ui
 - next
 - next-intl
@@ -1568,59 +1539,59 @@
 ## Import Cycles
 - None detected.
 
-## Communities (1566 total, 442 thin omitted)
+## Communities (1537 total, 442 thin omitted)
 
 ### Community 0 - "src/components/ui/button.tsx"
-Cohesion: 0.06
-Nodes (79): ActivityLogDetailDialogProps, AdminCampaignCreateDialogProps, BenefitType, AdminCampaignsFilterBarProps, BannerFormDialogProps, bannerSchema, FormValues, GRADIENT_PRESETS (+71 more)
-
-### Community 1 - "client.tsx"
 Cohesion: 0.03
-Nodes (125): ActivityLogDetailDialog(), ActivityLogsPagination(), ActivityLogsPaginationProps, ActivityLogsTable(), CHANNEL_COLORS, BankAccessLogsPagination(), BankAccessLogsPaginationProps, BlogAnalyticsContent() (+117 more)
+Nodes (152): AdminPromoCreditsCard(), AdminReferralProgramCard(), ActivityLogDetailDialog(), ActivityLogDetailDialogProps, ActivityLogsPagination(), ActivityLogsPaginationProps, ActivityLogsTable(), CHANNEL_COLORS (+144 more)
+
+### Community 1 - "booking-list.tsx"
+Cohesion: 0.06
+Nodes (36): BlogAnalyticsToolbar(), TripAuditHeader(), TripAuditKpiCards(), TripAuditManifest(), StarRating(), TripAuditReviews(), STATUS_ORDER, stepDone() (+28 more)
 
 ### Community 2 - "src/components/ui/card.tsx"
 Cohesion: 0.02
-Nodes (157): metadata, metadata, metadata, ImageRemoveButtonProps, ImageUploadField(), ImageUploadFieldProps, BlogReadDepthChartProps, chartConfig (+149 more)
+Nodes (182): metadata, metadata, metadata, ImageRemoveButtonProps, ImageUploadField(), ImageUploadFieldProps, BlogAnalyticsContent(), BlogKpiStrip() (+174 more)
 
-### Community 3 - "sidebar.tsx"
-Cohesion: 0.04
-Nodes (87): DashboardSwitcher(), DashboardSwitcherProps, AccessDenied(), AccessDeniedProps, AdminPromoCreditsCard(), AdminReferralProgramCard(), AdminSidebar(), AdminSidebarProps (+79 more)
+### Community 3 - "cn"
+Cohesion: 0.02
+Nodes (207): AdminLayout(), OperatorLayout(), OnboardingLayout(), DashboardLayout(), DashboardSwitcher(), DashboardSwitcherProps, AccessDenied(), AccessDeniedProps (+199 more)
 
 ### Community 4 - "cn"
 Cohesion: 0.03
-Nodes (112): AccordionContent(), AccordionItem(), AccordionTrigger(), Alert(), AlertDescription(), AlertTitle(), AlertDialogAction(), AlertDialogCancel() (+104 more)
+Nodes (106): AccordionContent(), AccordionItem(), AccordionTrigger(), Alert(), AlertDescription(), AlertTitle(), AlertDialogAction(), AlertDialogCancel() (+98 more)
 
 ### Community 5 - "src/lib/utils.ts"
 Cohesion: 0.06
-Nodes (47): DateRange, DispatchFilterBar(), DispatchTripDrawer(), DashboardDateRangePicker(), HeroSearchBarProps, POPULAR, HeroSearchBar(), parseLocalDate() (+39 more)
+Nodes (49): DateRange, DispatchFilterBar(), DispatchTripDrawer(), DashboardDateRangePicker(), DashboardQuickSearch(), dashboardParsers, dashboardSearchParamsCache, Props (+41 more)
 
 ### Community 6 - "booking-detail.tsx"
 Cohesion: 0.12
 Nodes (25): HoldCountdown(), HoldCountdownProps, useCancelBooking(), useCheckoutWithWallet(), useCreateHold(), useInitiatePayment(), useRefundQuote(), useReleaseHold() (+17 more)
 
-### Community 7 - "routers/booking.ts"
-Cohesion: 0.07
-Nodes (42): GET(), localePrefix(), readCookie(), runtime, buildBookingSuccessUrl(), b64url(), CHECKOUT_SESSION_COOKIE, CheckoutSessionPayload (+34 more)
+### Community 7 - "signed-access-tokens.ts"
+Cohesion: 0.17
+Nodes (20): GET(), localePrefix(), readCookie(), runtime, buildBookingSuccessUrl(), b64url(), CHECKOUT_SESSION_COOKIE, CheckoutSessionPayload (+12 more)
 
 ### Community 8 - "dependencies"
 Cohesion: 0.06
-Nodes (35): dependencies, @better-auth/expo, @dnd-kit/utilities, feed, framer-motion, lucide-react, @moja/schemas, @moja/types (+27 more)
+Nodes (35): dependencies, @better-auth/expo, client-only, @dnd-kit/utilities, feed, framer-motion, lucide-react, @moja/schemas (+27 more)
 
-### Community 9 - "routers/payments.ts"
-Cohesion: 0.05
-Nodes (38): ACCOUNT_CLASS, AccountClass, CancellationRefundChannel, canPassengerSelfCancelWithChannel(), computeRefundQuote(), CreatableRefundChannel, isCreatableRefundChannel(), RefundQuoteInput (+30 more)
+### Community 9 - "quote-service.ts"
+Cohesion: 0.17
+Nodes (18): EvalCoupon, EvalCreditLot, CampaignRow, countCompletedBookings(), FINALIZED_ONLY, loadActiveCampaignsForCheckout(), loadCouponByCode(), loadUserCreditLots() (+10 more)
 
 ### Community 10 - "screens/search.tsx"
-Cohesion: 0.04
-Nodes (80): MaxContentWidth, useSeatAvailability(), buildSearchParams(), HomeSearchParams, HomeSearchWidget(), LocationRowProps, POPULAR_ROUTES, PopularRoute (+72 more)
+Cohesion: 0.03
+Nodes (93): MaxContentWidth, HOME_UPCOMING_LIMIT, useSeatAvailability(), ActiveTripCard(), ActiveTripCardProps, buildSearchParams(), HomeSearchParams, HomeSearchWidget() (+85 more)
 
 ### Community 11 - "src/drivers.ts"
-Cohesion: 0.03
-Nodes (99): DriverStatusBadgeProps, driverProcedure, PublicDriverProfileView, AdminListAllOffersInput, AdminListMarketplaceDriversInput, AdminSetDriverMarketplaceStatusInput, AssignDriverToTripInput, canOperateRuns() (+91 more)
+Cohesion: 0.02
+Nodes (150): enqueuePassengerReviewRequest(), enqueueTripCancelled(), enqueueOperatorBusAssigned(), LicenseExpiryBadge(), tripListParamsCache, tripListParsers, cancelTripWithRefunds(), PrismaLike (+142 more)
 
 ### Community 12 - "paystack-client.ts"
-Cohesion: 0.07
-Nodes (34): POST(), runtime, buildPaystackReference(), normalizeAccountName(), PAYSTACK_RECIPIENT_CURRENCY, PaystackBank, paystackCreateTransferRecipient(), paystackErrorMessage() (+26 more)
+Cohesion: 0.05
+Nodes (49): GET(), mapPool(), runtime, POST(), runtime, assertHoldOwnedByUser(), releaseDiscountReservations(), buildPricingBreakdown() (+41 more)
 
 ### Community 13 - "verify-claim.mjs"
 Cohesion: 0.06
@@ -1630,25 +1601,25 @@ Nodes (86): isKnownUrl(), findRecContradictions(), asArray(), buildScriptHasMigr
 Cohesion: 0.12
 Nodes (14): 1. Inventory by Pattern & File, Category A: Base UI `@base-ui/react/select` & `<Combobox>` `onValueChange` Signatures, Category B: Recharts Tooltip, Axis & Formatters, Category C: TanStack Table Checkbox & Row Selection Callbacks, Category D: Next.js `<Link>` & Native Event Handlers, Category E: `<PhoneInput>` `onChange` Callbacks, Category F: `react-dropzone` `useDropzone` Callbacks, Category G: React 19 Legacy Class Component Wrappers (+6 more)
 
-### Community 15 - "home.tsx"
-Cohesion: 0.06
-Nodes (40): CustomTabBar(), getCurvedPath(), iconMap, HOME_UPCOMING_LIMIT, ActiveTripCard(), ActiveTripCardProps, BlogNewsSection(), BlogNewsSectionProps (+32 more)
+### Community 15 - "traveler-app/app/(tabs)/_layout.tsx"
+Cohesion: 0.14
+Nodes (15): CustomTabBar(), getCurvedPath(), iconMap, BlogNewsSection(), BlogNewsSectionProps, BlogPostItem, HomeHeader(), useHomePrefetch() (+7 more)
 
 ### Community 16 - "routers/admin-staff.ts"
 Cohesion: 0.06
-Nodes (58): RoleSheet(), AdminInvitationIdInput, AdminInvitationIdSchema, CreateAdminInvitationSchema, GetAdminActivityLogInput, GetAdminActivityLogSchema, ListAdminStaffInput, ListAdminStaffSchema (+50 more)
+Nodes (64): RoleSheet(), AdminInvitationIdInput, AdminInvitationIdSchema, CreateAdminInvitationSchema, GetAdminActivityLogInput, GetAdminActivityLogSchema, ListAdminStaffInput, ListAdminStaffSchema (+56 more)
 
 ### Community 17 - "db/src/index.ts"
 Cohesion: 0.03
-Nodes (64): GET(), runtime, GET(), runtime, GET(), GET(), runtime, GET() (+56 more)
+Nodes (79): GET(), runtime, GET(), runtime, GET(), runtime, GET(), GET() (+71 more)
 
 ### Community 18 - "locations.ts"
 Cohesion: 0.17
 Nodes (18): buildSearchEntries(), GeocodeInput, geocodePoint(), GeoMunicipality, GeoQuarter, GeoResolveMethod, haversineMeters(), pointInPolygon() (+10 more)
 
 ### Community 19 - "routers/operator.ts"
-Cohesion: 0.04
-Nodes (66): CompanyStepProps, DocumentsStepProps, ProfileStepProps, TermsStepProps, STEP_ORDER, CompanyInitialData, SettingsCompanyFormValues, settingsCompanySchema (+58 more)
+Cohesion: 0.03
+Nodes (81): generateBookingReference(), listUpcomingScheduleTrips(), rebookPassenger(), RebookPassengerInput, RebookPassengerResult, STEP_ORDER, useOperatorOnboarding(), CompanyInitialData (+73 more)
 
 ### Community 20 - "nativewind/SKILL.md"
 Cohesion: 0.04
@@ -1656,11 +1627,11 @@ Nodes (53): Additional Setup Guides, Additional Setup Guides (/v5/getting-starte
 
 ### Community 21 - "spinner.tsx"
 Cohesion: 0.02
-Nodes (155): MenuItem, NavSectionProps, BankAccessLogsFilters(), BankAccessLogsTable(), WebhookLogsFilters(), WebhookLogsTable(), WebhookPayloadDrawer(), WebhookPayloadDrawerProps (+147 more)
+Nodes (164): MenuItem, NavSectionProps, WebhookPayloadDrawer(), WebhookPayloadDrawerProps, Redirect, RedirectDeleteDialogProps, InquiryDetailDrawer(), InquiryDetailDrawerProps (+156 more)
 
-### Community 22 - "OperatorPromotionCreateDialog"
-Cohesion: 0.67
-Nodes (3): OperatorPromotionCreateDialog(), handleOpenChange(), reset()
+### Community 22 - "operator-promotions-view.tsx"
+Cohesion: 0.12
+Nodes (13): OperatorPageHeader(), CreatePromoData, OperatorPromotionCreateDialog(), handleOpenChange(), reset(), PromoDrawerTab, OperatorPromotionOptInsCard(), OperatorPromotionOptInsCardProps (+5 more)
 
 ### Community 23 - "dependencies"
 Cohesion: 0.06
@@ -1668,47 +1639,47 @@ Nodes (33): dependencies, expo-camera, @expo/dom-webview, expo-image-manipulator
 
 ### Community 24 - "dependencies"
 Cohesion: 0.05
-Nodes (39): dependencies, @better-auth/expo, expo, expo-clipboard, expo-haptics, expo-system-ui, @expo/vector-icons, @hugeicons/core-free-icons (+31 more)
+Nodes (39): dependencies, @better-auth/expo, expo, expo-haptics, expo-system-ui, @expo/vector-icons, @hugeicons/core-free-icons, i18next (+31 more)
 
 ### Community 25 - "traveler-app/lib/trpc.tsx"
-Cohesion: 0.05
-Nodes (51): LightTheme, NotificationHandler(), NotificationTokenResponse, PendingReferralApplier(), PublicRouter, PushTokenRegistrar(), RootLayout(), TrpcQuery (+43 more)
+Cohesion: 0.04
+Nodes (57): LightTheme, NotificationHandler(), NotificationTokenResponse, PendingReferralApplier(), PublicRouter, PushTokenRegistrar(), RootLayout(), TrpcQuery (+49 more)
 
 ### Community 26 - "search-params.ts"
-Cohesion: 0.04
-Nodes (58): ActivityLogsPage(), metadata, BankAccessLogsPage(), metadata, metadata, PageProps, WebhookLogsPage(), ContentAnalyticsPage() (+50 more)
+Cohesion: 0.05
+Nodes (55): ActivityLogsPage(), metadata, metadata, metadata, PageProps, metadata, metadata, metadata (+47 more)
 
 ### Community 27 - "discounts-admin.ts"
-Cohesion: 0.06
-Nodes (56): omitUndefined(), displayName(), maskEmail(), maskPhone(), BulkCouponResult, bulkCreateCouponCodes(), generateCouponSuffix(), campaignCreateData() (+48 more)
+Cohesion: 0.07
+Nodes (52): omitUndefined(), BulkCouponResult, bulkCreateCouponCodes(), generateCouponSuffix(), campaignCreateData(), createCampaign(), replaceCampaignScopes(), ScopeInput (+44 more)
 
 ### Community 28 - "lib/render-report.mjs"
 Cohesion: 0.08
 Nodes (62): classifyService(), computeCostCoverage(), escapeCell(), renderCostCoverageMarkdown(), SERVICE_DIMENSION, formatCandidateLabel(), formatCandidateLine(), formatKind() (+54 more)
 
-### Community 29 - "booking-hold-service.ts"
-Cohesion: 0.07
-Nodes (30): generateBookingReference(), isActiveBookingStatus(), segmentsOverlap(), BookingHoldService, SeatPassengerInput, listUpcomingScheduleTrips(), rebookPassenger(), RebookPassengerInput (+22 more)
+### Community 29 - "operator-sent-offers-view.tsx"
+Cohesion: 0.16
+Nodes (8): SentOffersPage(), EMPLOYMENT_LABELS, expiryCountdown(), OfferStatus, OperatorSentOffersView(), sentOffersSearchParams, STATUS_BADGES, STATUS_TABS
 
-### Community 30 - "quote-service.ts"
-Cohesion: 0.09
-Nodes (42): buildChargeQuote(), instrumentFromCampaign(), selectAutoApplyCampaign(), computeTicketDiscount(), feeDiscountForCampaign(), splitFunding(), checkCampaignEligibility(), isCampaignActiveWindow() (+34 more)
+### Community 30 - "evaluate.ts"
+Cohesion: 0.15
+Nodes (24): buildChargeQuote(), instrumentFromCampaign(), selectAutoApplyCampaign(), computeTicketDiscount(), feeDiscountForCampaign(), splitFunding(), checkCampaignEligibility(), isCampaignActiveWindow() (+16 more)
 
 ### Community 31 - "Milestone Log (newest first)"
 Cohesion: 0.04
 Nodes (52): Audit Remediation (Production Blockers), Booking Dialog UX Polish — Centered Seat Map + Stops Timeline (2026-08-02), Commercial lifecycle hardening — Phase 00–07 (2026-08-16), Commercial lifecycle Phase 00 — cancel/refund money safety (2026-08-16), Commercial lifecycle Phase 01 — incentive ledger & referrals (2026-08-16), Commercial lifecycle Phase 02 — schema migrations & data repair (2026-08-16), Commercial lifecycle Phase 03 — hold & payment lifecycle (2026-08-16), Commercial lifecycle Phase 04 — search/quote concurrency (2026-08-16) (+44 more)
 
-### Community 32 - "screens/wallet.tsx"
-Cohesion: 0.08
-Nodes (29): BalanceAllocation(), BalanceAllocationProps, PromoIncentives(), sourceLabel(), SettingsDetails(), SettingsDetailsProps, formatDate(), LedgerEntry (+21 more)
+### Community 32 - "text.tsx"
+Cohesion: 0.03
+Nodes (82): LANGUAGES, LanguageScreen(), handleSwitchLocale(), LocaleCode, persistLocale(), CustomAlert(), CustomAlertProps, SubpageHeader() (+74 more)
 
 ### Community 33 - "dependencies"
 Cohesion: 0.10
-Nodes (21): @base-ui/react, cmdk, dependencies, @base-ui/react, class-variance-authority, clsx, cmdk, @moja/theme (+13 more)
+Nodes (21): @base-ui/react, cmdk, embla-carousel-react, dependencies, @base-ui/react, clsx, cmdk, embla-carousel-react (+13 more)
 
-### Community 34 - "init.ts"
-Cohesion: 0.09
-Nodes (37): handler(), operatorHasPermission(), requireAnyPermission(), requirePermission(), adminProcedure, adminStaffProcedure, clientIpKey(), Context (+29 more)
+### Community 34 - "screens/notifications.tsx"
+Cohesion: 0.24
+Nodes (9): NotificationItem, NotificationRow(), NotificationsView(), timeAgo(), isLocalPath(), NotificationRouteData, resolveNotificationRoute(), RouteEntry (+1 more)
 
 ### Community 35 - "customers.md"
 Cohesion: 0.05
@@ -1731,32 +1702,32 @@ Cohesion: 0.08
 Nodes (44): compareVersion(), HERE, LIBRARY_PATH, libraryForStack(), loadLibrary(), lookupSkillRule(), lookupUrl(), matchesFrameworkVersion() (+36 more)
 
 ### Community 40 - "referral-service.ts"
-Cohesion: 0.16
-Nodes (20): claimCreditGrant(), Db, postPromoCreditGrantLedger(), applyReferralCode(), enqueueReferrerCredit(), ensureReferralCode(), getPublicReferralProgram(), getReferralStats() (+12 more)
+Cohesion: 0.21
+Nodes (17): claimCreditGrant(), applyReferralCode(), enqueueReferrerCredit(), ensureReferralCode(), getPublicReferralProgram(), getReferralStats(), issueRefereeWelcomeCoupon(), listMyInvitees() (+9 more)
 
 ### Community 41 - "vercel.mjs"
 Cohesion: 0.11
 Nodes (45): isDailyQuotaExceeded(), aggregateServicesByName(), baselineStack(), categorizeError(), checkAuth(), checkCliVersion(), checkObservabilityPlusConfiguration(), classifyObservabilityPlusConfiguration() (+37 more)
 
 ### Community 42 - "web/features/booking/components/passenger-seat-map.tsx"
-Cohesion: 0.26
-Nodes (9): isPassengerSeat(), LegendDot(), PassengerSeatMap(), PassengerSeatMapProps, STATUS_STYLES, buildSeatGrid(), getColumnHeaders(), GridSeat (+1 more)
+Cohesion: 0.23
+Nodes (10): isPassengerSeat(), LegendDot(), PassengerSeatMap(), PassengerSeatMapProps, STATUS_STYLES, buildSeatGrid(), getColumnHeaders(), GridSeat (+2 more)
 
 ### Community 43 - "payload-contracts.test.ts"
 Cohesion: 0.05
 Nodes (36): accountRestoredSamples, accountSuspendedSamples, campaignPausedSamples, ContractRow, CONTRACTS, driverAssignmentConflictSamples, payoutFailedSamples, profileUpdatedSamples (+28 more)
 
 ### Community 44 - "useScreenTransition"
-Cohesion: 0.09
-Nodes (23): BookingDetailScreen(), BookingSuccessScreen(), NotificationsScreen(), OperatorsScreen(), OperatorProfileScreen(), PersonalInfoScreen(), ReferralsScreen(), BookingsScreen() (+15 more)
+Cohesion: 0.06
+Nodes (32): BookingDetailScreen(), BookingSuccessScreen(), NotificationsScreen(), OperatorProfileScreen(), PersonalInfoScreen(), PrivacySecurityScreen(), ReferralsScreen(), ReviewsScreen() (+24 more)
 
 ### Community 45 - "Breaking changes"
 Cohesion: 0.05
 Nodes (39): 6. Override the lightningcss version, Animation changes, Breaking changes, Breaking Changes & Prerequisites, Classname changes, `cssInterop` / `remapProps` → Replaced by `styled()`, Deprecations, Dynamic mapping modifier (+31 more)
 
 ### Community 46 - "operator-schedules-view.tsx"
-Cohesion: 0.03
-Nodes (89): metadata, DispatchTripList(), groupTripsByCompany(), SeatFillBar(), STATUS_CONFIG, Trip, TripStatusBadge(), dispatchSearchParams (+81 more)
+Cohesion: 0.04
+Nodes (78): UrbanBadge(), DispatchTripList(), groupTripsByCompany(), SeatFillBar(), STATUS_CONFIG, Trip, TripStatusBadge(), dispatchSearchParams (+70 more)
 
 ### Community 47 - "devDependencies"
 Cohesion: 0.08
@@ -1767,8 +1738,8 @@ Cohesion: 0.25
 Nodes (10): SeatClassFilter, TimeFilterId, SearchMobileFilters(), persistFilters(), restoreFilters(), SearchOffer, SearchPageClient(), SearchPageClientProps (+2 more)
 
 ### Community 49 - "[locale]/page.tsx"
-Cohesion: 0.11
-Nodes (15): Props, HeroSearchBar(), handleSearch(), parseLocalDate(), todayISO(), HomeCta(), DESTINATIONS_DATA, HomeDestinations() (+7 more)
+Cohesion: 0.08
+Nodes (22): BlogLayout(), HomePage(), Props, PublicLayout(), Props, ReferralCodePage(), HomeCta(), DESTINATIONS_DATA (+14 more)
 
 ### Community 50 - "investigation-brief.mjs"
 Cohesion: 0.12
@@ -1786,9 +1757,9 @@ Nodes (15): main(), prisma, ABIDJAN_COMMUNES, bboxOf(), buildSpatialIndex(), Cur
 Cohesion: 0.05
 Nodes (39): @base-ui/react, @base-ui/react/accordion, @base-ui/react/alert-dialog, @base-ui/react/avatar, @base-ui/react/button, @base-ui/react/checkbox, @base-ui/react/collapsible, @base-ui/react/context-menu (+31 more)
 
-### Community 55 - "OperatorStaffView"
-Cohesion: 0.14
-Nodes (3): OperatorStaffPage(), Props, OperatorStaffView()
+### Community 55 - "useStaffPermissions"
+Cohesion: 0.06
+Nodes (29): metadata, AccessDeniedCard(), AccessDeniedCardProps, BookingsList(), OperatorQuickActions(), RevenueHeader(), normalizePathname(), OperatorRouteGuard() (+21 more)
 
 ### Community 56 - "gate-investigations.mjs"
 Cohesion: 0.09
@@ -1800,19 +1771,19 @@ Nodes (32): PassengersScreen(), Badge(), BadgeProps, badgeTextVariants, badgeVar
 
 ### Community 58 - "telemetry.ts"
 Cohesion: 0.08
-Nodes (40): MODES, ModeSwitcher(), ModeSwitcherProps, ServiceMode, styles, styles, TabFilter, TripsView() (+32 more)
+Nodes (41): LiveView(), MODES, ModeSwitcher(), ModeSwitcherProps, ServiceMode, styles, styles, TabFilter (+33 more)
 
 ### Community 59 - "booking-details.tsx"
 Cohesion: 0.03
-Nodes (102): QRCode(), QRCodeComponent, QRCodeProps, UrbanBadge(), RedirectDeleteDialog(), AdminOfflineRefundsView(), BookingCard(), BookingCardProps (+94 more)
+Nodes (114): QRCode(), QRCodeComponent, QRCodeProps, RedirectDeleteDialog(), RouteMapPreview, AdminOfflineRefundsView(), BookingCard(), BookingCardProps (+106 more)
 
-### Community 60 - "payment-service.ts"
-Cohesion: 0.06
-Nodes (41): GET(), runtime, notifyOptedInCampaignStarting(), appendPromoLedgerEntries(), PromoAccounts, SnapshotPromoFields, splitPromoPaymentInstruments(), enqueueBookingConfirmed() (+33 more)
+### Community 60 - "routers/payments.ts"
+Cohesion: 0.04
+Nodes (67): GET(), notifyOptedInCampaignStarting(), Db, postPromoCreditGrantLedger(), appendPromoLedgerEntries(), PromoAccounts, SnapshotPromoFields, splitPromoPaymentInstruments() (+59 more)
 
-### Community 61 - "routers/staff.ts"
-Cohesion: 0.06
-Nodes (56): NavSectionProps, PermissionMatrixProps, CreateInvitationSchema, GetActivityLogInput, GetActivityLogSchema, InvitationIdInput, InvitationIdSchema, ListStaffInput (+48 more)
+### Community 61 - "schemas/src/index.ts"
+Cohesion: 0.02
+Nodes (129): handler(), CaptureMetaProps, CapturePage(), CapturePageProps, createCaptureService(), NavSectionProps, PermissionMatrixProps, CreateInvitationSchema (+121 more)
 
 ### Community 62 - "Framework Integration"
 Cohesion: 0.05
@@ -1822,9 +1793,9 @@ Nodes (39): Action Steps, Channel Steps, CLI Flags, Code Style Tips, Common Pitf
 Cohesion: 0.05
 Nodes (39): Action Steps, Channel Steps, CLI Flags, Code Style Tips, Common Pitfalls, Controls vs Payload, Custom Client, Deployment (+31 more)
 
-### Community 64 - "getOptionalEnv"
+### Community 64 - "driver-app/lib/trpc.tsx"
 Cohesion: 0.12
-Nodes (31): isMutationOriginAllowed(), PermissionContext, createPresignedDownload(), createPresignedUpload(), deleteStorageObject(), notConfigured(), PresignUploadInput, PresignUploadResult (+23 more)
+Nodes (21): TabLayout(), usePendingOffersCount(), ProfileView(), styles, authClient, baseURL, ensureAuthCookiesFresh(), getAuthCookieHeader() (+13 more)
 
 ### Community 65 - "typescript/package.json"
 Cohesion: 0.13
@@ -1862,9 +1833,9 @@ Nodes (36): backgroundColor, foregroundImage, adaptiveIcon, googleServicesFile, 
 Cohesion: 0.10
 Nodes (23): runtime, AnomalyReason, BADGE_THRESHOLDS, BadgeInputs, CLEAN_TRIP_CREDIT, CLEAN_TRIPS_PER_CREDIT, isScoringAnomaly(), MAX_DAILY_PENALTY (+15 more)
 
-### Community 74 - "cn"
-Cohesion: 0.02
-Nodes (190): LocaleSwitcher(), LocaleSwitcherProps, getAvatarTone(), getInitials(), getOperatorColumns(), OperatorRow, searchFilter(), statusMeta (+182 more)
+### Community 74 - "travelers-grid.tsx"
+Cohesion: 0.03
+Nodes (116): Props, LocaleSwitcher(), LocaleSwitcherProps, getAvatarTone(), getInitials(), getOperatorColumns(), OperatorRow, searchFilter() (+108 more)
 
 ### Community 75 - "display-labels.mjs"
 Cohesion: 0.19
@@ -1882,9 +1853,9 @@ Nodes (19): applyDollarStrip(), stripDollarLiterals(), metadata, STRING_FIELDS, 
 Cohesion: 0.13
 Nodes (15): husky, lint-staged, devDependencies, @biomejs/biome, husky, lint-staged, tsx, turbo (+7 more)
 
-### Community 79 - "screens/personal-info.tsx"
-Cohesion: 0.09
-Nodes (30): CustomAlert(), CustomAlertProps, Avatar(), AvatarFallback(), AvatarImage(), getInitials(), PersonalInfoAvatar(), PersonalInfoAvatarProps (+22 more)
+### Community 79 - "profile-hero.tsx"
+Cohesion: 0.36
+Nodes (6): Avatar(), AvatarFallback(), AvatarImage(), ProfileHero(), ProfileHeroProps, getInitials()
 
 ### Community 80 - "storefronts.md"
 Cohesion: 0.05
@@ -1894,9 +1865,9 @@ Nodes (36): Add Products to Storefront, Body Parameters, Body Parameters, Body P
 Cohesion: 0.19
 Nodes (14): CompletePaystackPaymentInput, ConfirmedBookingWithSuccessUrl, buildPaystackNewTransactionConfig(), openPaystackCheckout(), openPaystackPopup(), openPaystackPopupWithFallback(), PAYSTACK_CHECKOUT_LOAD_TIMEOUT_SEC, PaystackNewTransactionConfig (+6 more)
 
-### Community 82 - "routers/trips.ts"
-Cohesion: 0.09
-Nodes (30): enqueuePassengerTripDelayed(), tripListParamsCache, tripListParsers, driverInterval(), DriverTripConflict, findTripConflict(), getDriverTripConflict(), TripConflictCandidate (+22 more)
+### Community 82 - "redemption-list.ts"
+Cohesion: 0.57
+Nodes (5): displayName(), maskEmail(), maskPhone(), listDiscountRedemptions(), ListRedemptionsInput
 
 ### Community 83 - "routers/search.ts"
 Cohesion: 0.06
@@ -1910,9 +1881,9 @@ Nodes (35): Account Limit, Add a split code to an existing dedicated virtual acc
 Cohesion: 0.09
 Nodes (37): byRoute(), gate(), metadata, ratioOverThreshold(), round2(), sumRows(), extractErrors(), extractFromStatusRows() (+29 more)
 
-### Community 86 - "driver-app/lib/trpc.tsx"
-Cohesion: 0.06
-Nodes (43): AuthState, fetchDriverStatus(), IndexScreen(), checkAuth(), NotificationHandler(), NotificationTokenResponse, PublicRouter, PushTokenRegistrar() (+35 more)
+### Community 86 - "driver-app/app/_layout.tsx"
+Cohesion: 0.10
+Nodes (21): NotificationHandler(), NotificationTokenResponse, PublicRouter, PushTokenRegistrar(), RootLayout(), TrpcQuery, TypedTRPC, UrgentDispatchGate() (+13 more)
 
 ### Community 87 - "verify-and-regen.mjs"
 Cohesion: 0.17
@@ -1958,9 +1929,9 @@ Nodes (12): NotificationItem, NotificationRow(), NotificationRowProps, styles, t
 Cohesion: 0.12
 Nodes (18): AuthButton(), AuthButtonProps, AuthField(), AuthFieldProps, AuthShell(), AuthShellProps, styles, AuthError (+10 more)
 
-### Community 98 - "booking-read-service.ts"
-Cohesion: 0.12
-Nodes (15): DigitalTicketCardProps, assertHoldOwnedByUser(), HoldLike, bookingSummaryGroupKey(), HoldAnchor, holdGroupWhere(), normalizePhone(), phonesMatch() (+7 more)
+### Community 98 - "routers/booking.ts"
+Cohesion: 0.05
+Nodes (51): DigitalTicketCardProps, HoldLike, bookingSummaryGroupKey(), HoldAnchor, holdGroupWhere(), normalizePhone(), phonesMatch(), isActiveBookingStatus() (+43 more)
 
 ### Community 99 - "(passenger)/settings/page.tsx"
 Cohesion: 0.08
@@ -1990,9 +1961,9 @@ Nodes (19): build_run(), embed_file(), find_runs(), _find_runs_recursive(), gene
 Cohesion: 0.40
 Nodes (4): AdminOperatorsPage(), metadata, Operators(), AdminOperatorsView()
 
-### Community 106 - "phone-input.tsx"
-Cohesion: 0.10
-Nodes (24): SearchDialog(), SearchItem, EntityResult, OperatorSearchDialog(), operatorSearchItems, SearchItem, useDebounced(), Command() (+16 more)
+### Community 106 - "revenue/page.tsx"
+Cohesion: 0.33
+Nodes (4): OperatorRevenuePage(), Props, revenueSearchParamsCache, OperatorRevenueView()
 
 ### Community 107 - "driver-check-in-service.ts"
 Cohesion: 0.13
@@ -2007,20 +1978,20 @@ Cohesion: 0.09
 Nodes (20): analyzeNode(), args, enMessages, enMissingInFr, FEATURES_DIR, filesToScan, frMessages, fs (+12 more)
 
 ### Community 110 - "live-view.tsx"
-Cohesion: 0.10
-Nodes (23): DELAY_REASONS, DelayModal(), DelayModalProps, styles, LiveView(), styles, DriverNavigationMap(), DriverNavigationMapProps (+15 more)
+Cohesion: 0.08
+Nodes (28): Badge(), BadgeProps, DELAY_REASONS, DelayModal(), DelayModalProps, styles, LiveLocationData, SpeedometerGauge() (+20 more)
 
 ### Community 111 - "en/manifest.json"
-Cohesion: 0.09
-Nodes (24): LANGUAGES, LanguageScreen(), styles, getCurrentLanguage(), SupportedLocale, switchLanguage(), USER_LOCALE_STORAGE_KEY, boarded (+16 more)
+Cohesion: 0.11
+Nodes (17): boarded, boardedCount, callPassenger, emptyNone, emptySearch, emptyTitle, loading, manifest (+9 more)
 
 ### Community 112 - "phone-number.ts"
-Cohesion: 0.23
-Nodes (14): PassengerSettingsView(), phoneErrorMessage(), TranslateFn, getCountryDisplayName(), getParsedCountry(), getPhoneValidationError(), PhoneSaveResult, PhoneValidationError (+6 more)
+Cohesion: 0.07
+Nodes (36): LoginPageProps, OperatorLoginPage(), LoginPage(), LoginPageProps, PassengerAuthFlow(), handleSendCode(), handleVerifyCode(), resolvePostAuthPath() (+28 more)
 
 ### Community 113 - "server.tsx"
 Cohesion: 0.06
-Nodes (23): Props, Props, Props, OperatorDashboardPage(), Props, OperatorRevenuePage(), Props, OperatorOnboardingPage() (+15 more)
+Nodes (24): BookingSuccessPage(), BookingSuccessPageProps, Props, Props, Props, OperatorDashboardPage(), Props, Props (+16 more)
 
 ### Community 114 - "Project Overview"
 Cohesion: 0.06
@@ -2034,13 +2005,13 @@ Nodes (18): escapeODataString(), mergeIntoEvidence(), odataEq(), SCANNER_KINDS, 
 Cohesion: 0.33
 Nodes (4): BookingDialog(), bookingParamsSchema, clampPassengerCount(), MAX_PASSENGERS
 
-### Community 117 - "profile-view.tsx"
-Cohesion: 0.08
-Nodes (28): Badge(), BadgeProps, Card(), CardProps, EarningsView(), styles, LiveLocationData, SpeedometerGauge() (+20 more)
+### Community 117 - "manifest-view.tsx"
+Cohesion: 0.10
+Nodes (19): Card(), CardProps, EarningsView(), styles, EMPLOYMENT_LABELS, fmtDate(), fmtSalary(), OfferCard() (+11 more)
 
 ### Community 118 - "blog-detail-view.tsx"
-Cohesion: 0.12
-Nodes (17): BlogPostPage(), generateMetadata(), getPostBySlug, Props, revalidate, BlogShareButtons(), BlogShareButtonsProps, BlogTelemetry() (+9 more)
+Cohesion: 0.16
+Nodes (12): BlogShareButtons(), BlogShareButtonsProps, BlogTelemetry(), BlogTelemetryProps, READ_THRESHOLDS, BookingCTA(), BookingCTAProps, BlogDetailView() (+4 more)
 
 ### Community 119 - "routers/passenger.ts"
 Cohesion: 0.09
@@ -2054,9 +2025,9 @@ Nodes (20): allFiles, allIssues, allTsxFiles, countKeys, en, fr, fs, getFilesWit
 Cohesion: 0.05
 Nodes (37): source, assist, actions, enabled, css, parser, next, react (+29 more)
 
-### Community 122 - "src/schedules.ts"
-Cohesion: 0.07
-Nodes (26): AddFareInput, addFareSchema, CreateScheduleInput, createScheduleSchema, ExceptionInput, ExceptionReason, exceptionReasonEnum, exceptionSchema (+18 more)
+### Community 122 - "routers/schedules.ts"
+Cohesion: 0.03
+Nodes (94): bookingInclude, CheckInInput, departureRangeForFilter(), ListInput, OperatorBookingService, CalendarWeekdays, CandidateDeparture, getCandidateDepartureDates() (+86 more)
 
 ### Community 123 - "scanner-view.tsx"
 Cohesion: 0.19
@@ -2087,8 +2058,8 @@ Cohesion: 0.06
 Nodes (30): Accessibility, Animation Triggers, Availability, Choosing Animation Style, Common Patterns, Composing Shared Elements with List Identity, Core Concepts, Critical Placement Rule (+22 more)
 
 ### Community 130 - "carousel.tsx"
-Cohesion: 0.19
-Nodes (13): Carousel(), CarouselApi, CarouselContent(), CarouselContext, CarouselContextProps, CarouselItem(), CarouselNext(), CarouselOptions (+5 more)
+Cohesion: 0.11
+Nodes (20): getCellConfig(), GridCell, SeatGridMatrix(), SeatGridMatrixProps, SeatType, Tool, TOOLS, Carousel() (+12 more)
 
 ### Community 131 - "include"
 Cohesion: 0.10
@@ -2103,16 +2074,16 @@ Cohesion: 0.06
 Nodes (47): apply(), COUNT_CLAIM_TYPES, metadata, rewriteCount(), apply(), metadata, apply(), metadata (+39 more)
 
 ### Community 134 - "haptics.ts"
-Cohesion: 0.09
-Nodes (37): EMPLOYMENT_OPTIONS, EmploymentType, styles, EMPLOYMENT_TYPE_KEYS, RegisterStep4CarrierScreen(), styles, RegisterStep3DocumentsScreen(), styles (+29 more)
+Cohesion: 0.11
+Nodes (34): EMPLOYMENT_OPTIONS, EmploymentType, styles, EMPLOYMENT_TYPE_KEYS, RegisterStep4CarrierScreen(), styles, RegisterStep3DocumentsScreen(), styles (+26 more)
 
 ### Community 135 - "CampaignSettingsEditor"
 Cohesion: 0.19
 Nodes (15): AdminCampaignDrawerSettings(), AdminCampaignDrawerSettingsProps, CampaignSettingsEditor(), toggleRoute(), toggleSchedule(), updateRouteIds(), updateScheduleIds(), CampaignSettingsValues (+7 more)
 
-### Community 136 - "Text"
+### Community 136 - "screens/tickets.tsx"
 Cohesion: 0.06
-Nodes (50): TicketScreen(), Text(), BookingCard(), BookingCardProps, STATUS_CONFIG, BookingEmptyState(), BookingFilterTab, BookingFilterTabs() (+42 more)
+Nodes (49): TicketScreen(), BottomTabInset, BookingCard(), BookingCardProps, STATUS_CONFIG, BookingEmptyState(), BookingFilterTab, BookingFilterTabs() (+41 more)
 
 ### Community 137 - "scripts/render-report.mjs"
 Cohesion: 0.14
@@ -2142,9 +2113,9 @@ Nodes (14): description, exports, ./global.css, ./tokens, files, react-native, n
 Cohesion: 0.21
 Nodes (9): GET(), dashboardUrl(), adminPayoutFailedPayloadSchema, adminPayoutFailedWorkflow, passengerReviewRequestPayloadSchema, passengerReviewRequestWorkflow, operatorVerificationApprovedWorkflow, operatorVerificationRejectedWorkflow (+1 more)
 
-### Community 144 - "enqueueOutboxMessage"
-Cohesion: 0.09
-Nodes (41): enqueueCampaignBudgetExhausted(), Tx, DriverRecipient, enqueueDriverTripAssigned(), enqueueDriverTripUnassigned(), enqueueOperatorBusAssigned(), enqueueOperatorDriverAssignmentConflict(), TripDispatchPayload (+33 more)
+### Community 144 - "routers/admin.ts"
+Cohesion: 0.04
+Nodes (91): processExpiringIncentiveReminders(), DISCOUNT_NOVU_WORKFLOWS, notifyCampaignBudgetExhausted(), notifyCreditExpiring(), notifyOperatorCampaignPaused(), notifyReferralAttributed(), notifyReferralRewardPosted(), OutboxClient (+83 more)
 
 ### Community 145 - "scripts"
 Cohesion: 0.04
@@ -2158,17 +2129,17 @@ Nodes (16): compilerOptions, noImplicitAny, paths, exclude, extends, include, @m
 Cohesion: 0.12
 Nodes (16): aliases, components, hooks, lib, ui, utils, iconLibrary, rsc (+8 more)
 
-### Community 148 - "routers/admin.ts"
-Cohesion: 0.10
-Nodes (28): DriverDocPreviewProps, DRIVER_DOC_SEGMENTS, DRIVER_DOC_TYPES, driverDocKeyMatches(), DriverDocType, DriverPresignDocInput, driverPresignDocSchema, expectedDriverDocPrefix() (+20 more)
+### Community 148 - "featured-operators-section.tsx"
+Cohesion: 0.23
+Nodes (11): OperatorsScreen(), FALLBACK_OPERATORS, FeaturedOperatorsSection(), FeaturedOperatorsSectionProps, getInitials(), OperatorCard(), OperatorCardItem, OperatorCardProps (+3 more)
 
 ### Community 149 - "traveler-app/components.json"
 Cohesion: 0.12
 Nodes (15): aliases, components, hooks, lib, ui, utils, rsc, $schema (+7 more)
 
-### Community 150 - "PaymentService"
-Cohesion: 0.11
-Nodes (14): GET(), runtime, GET(), mapPool(), runtime, releaseDiscountReservations(), isTopUpPayment(), PaymentService (+6 more)
+### Community 150 - "admin/drivers/marketplace/page.tsx"
+Cohesion: 0.40
+Nodes (3): AdminDriverMarketplacePage(), metadata, AdminMarketplaceView()
 
 ### Community 151 - "Workflow & Step API Reference"
 Cohesion: 0.06
@@ -2226,9 +2197,9 @@ Nodes (29): Archive Payment Request, Body Parameters, Body Parameters, Body Para
 Cohesion: 0.20
 Nodes (12): checks, DEFAULT_WORK_ROOT, firstUsefulLines(), printResult(), resolveSourceRoot(), runCheck(), runnerCommand(), runSourceCheck() (+4 more)
 
-### Community 165 - "src/routes.ts"
-Cohesion: 0.10
-Nodes (21): terminalFormSchema, TerminalFormValues, resolveRouteServiceType(), ResolveRouteServiceTypeParams, ServiceTypeResolution, baseTerminalSchema, CreateRouteInput, createRouteSchema (+13 more)
+### Community 165 - "promotions/page.tsx"
+Cohesion: 0.40
+Nodes (3): metadata, OperatorPromotionsPage(), OperatorPromotionsView()
 
 ### Community 166 - "dependencies"
 Cohesion: 0.13
@@ -2270,13 +2241,13 @@ Nodes (27): aggregate, Aggregation Operations, Atomic operations, count, create,
 Cohesion: 0.23
 Nodes (12): aggregate_results(), calculate_stats(), generate_benchmark(), generate_markdown(), load_run_results(), main(), Path, Aggregate run results into summary statistics. Returns run_summary with stats… (+4 more)
 
-### Community 176 - "timezone.ts"
-Cohesion: 0.18
-Nodes (20): CalendarWeekdays, CandidateDeparture, getCandidateDepartureDates(), getPreviewDepartureDateStrings(), parseHhMm(), ServiceCalendarLike, ServiceExceptionLike, baseCalendar (+12 more)
+### Community 176 - "(public)/operators/page.tsx"
+Cohesion: 0.50
+Nodes (3): metadata, OperatorsPage(), OperatorListingClient()
 
 ### Community 177 - "driver-app/constants/theme.ts"
-Cohesion: 0.08
-Nodes (24): NotificationBell(), NotificationTokenResponse, PublicRouter, TrpcQuery, TypedTRPC, styles, TabBar(), TabConfig (+16 more)
+Cohesion: 0.06
+Nodes (31): AuthState, fetchDriverStatus(), IndexScreen(), checkAuth(), NotificationBell(), NotificationTokenResponse, PublicRouter, TrpcQuery (+23 more)
 
 ### Community 178 - "scripts"
 Cohesion: 0.13
@@ -2291,8 +2262,8 @@ Cohesion: 0.08
 Nodes (25): devDependencies, @biomejs/biome, @moja/typescript, tailwindcss, @tailwindcss/postcss, @tailwindcss/typography, tsx, @types/ioredis (+17 more)
 
 ### Community 181 - "[locale]/layout.tsx"
-Cohesion: 0.18
-Nodes (7): Props, LangSetter(), PostHogProvider(), Locale, getBaseUrl(), getQueryClient(), TRPCReactProvider()
+Cohesion: 0.16
+Nodes (8): Props, LangSetter(), PostHogProvider(), { Link, useRouter, usePathname, redirect, permanentRedirect }, routing, Locale, config, NOTE: In Next.js 16, the middleware entry point is proxy.ts (not middleware.ts).
 
 ### Community 182 - "Driver Adapters"
 Cohesion: 0.07
@@ -2490,9 +2461,9 @@ Nodes (6): OperatorBookingsPage(), PageProps, Props, bookingListParamsCache, boo
 Cohesion: 0.09
 Nodes (22): Add/Update Subaccount Split, Body Parameters, Body Parameters, Body Parameters, Body Parameters, Create Split, Fetch Split, Headers (+14 more)
 
-### Community 233 - "schemas/src/index.ts"
-Cohesion: 0.10
-Nodes (14): adminGetInquirySchema, adminListInquiriesSchema, adminUpdateInquiryStatusSchema, contactInquiryStatusEnum, SubmitInquiryInput, submitInquirySchema, TripSearchInput, TripSearchResult (+6 more)
+### Community 233 - "Step Options"
+Cohesion: 0.50
+Nodes (4): `disableOutputSanitization`, `providers` (Per-Step Provider Overrides), `skip`, Step Options
 
 ### Community 234 - "Read"
 Cohesion: 0.50
@@ -2716,7 +2687,7 @@ Nodes (9): PassengerSeatMap(), PassengerSeatMapProps, SeatCell(), SeatGridItem, 
 
 ### Community 290 - "prefetch"
 Cohesion: 0.04
-Nodes (41): BookingSuccessPage(), BookingSuccessPageProps, Props, EditPostPage(), metadata, AdminDriverMarketplacePage(), metadata, AdminOperationsPage() (+33 more)
+Nodes (36): BankAccessLogsPage(), WebhookLogsPage(), ContentAnalyticsPage(), EditPostPage(), metadata, RedirectsPage(), SettlementsPage(), AdminMarketingAbusePage() (+28 more)
 
 ### Community 291 - "Branding & Styling Reference"
 Cohesion: 0.10
@@ -2847,20 +2818,20 @@ Cohesion: 0.10
 Nodes (19): Acknowledge the situation honestly, Diagnose before touching code, Do not start rebuilding immediately, Failure Mode 1 — A specific thing is broken, Failure Mode 2 — The session has gone wrong, Failure Mode 3 — The foundation is wrong, Find the root cause, If the fix does not work (+11 more)
 
 ### Community 342 - "auth-server.ts"
-Cohesion: 0.06
-Nodes (41): GET, POST, AuthOtpPayload, AuthOtpType, sendAuthOtp(), auth, AuthUser, collectTrustedOrigins() (+33 more)
+Cohesion: 0.04
+Nodes (76): GET, POST, b64url(), CheckoutQuotePayload, fromB64url(), QUOTE_VERSION, quoteMatchesHoldInput(), quoteSecret() (+68 more)
 
 ### Community 345 - "fr/manifest.json"
-Cohesion: 0.11
-Nodes (17): boarded, boardedCount, callPassenger, emptyNone, emptySearch, emptyTitle, loading, manifest (+9 more)
+Cohesion: 0.09
+Nodes (24): LANGUAGES, LanguageScreen(), styles, getCurrentLanguage(), SupportedLocale, switchLanguage(), USER_LOCALE_STORAGE_KEY, boarded (+16 more)
 
-### Community 346 - "getServerSession"
-Cohesion: 0.15
-Nodes (14): BlogLayout(), OnboardingLayout(), DashboardLayout(), HomePage(), PublicLayout(), Props, ReferralCodePage(), companyLinks (+6 more)
+### Community 346 - "Payload Schema"
+Cohesion: 0.50
+Nodes (4): Payload Schema, With Class Validator, With JSON Schema, With Zod
 
 ### Community 347 - "operator-fleet-view.tsx"
 Cohesion: 0.02
-Nodes (138): AdminCampaignDrawer(), AdminCampaignDrawerProps, AdminCampaignDrawerCoupons(), AdminCampaignDrawerCouponsProps, AdminCampaignDrawerRedemptions(), AdminCampaignDrawerRedemptionsProps, statusVariant(), SeatFillBar() (+130 more)
+Nodes (133): AdminCampaignCreateDialog(), handleOpenChange(), reset(), CreateCampaignData, AdminCampaignDrawer(), AdminCampaignDrawerProps, CampaignDrawerTab, AdminCampaignDrawerCoupons() (+125 more)
 
 ### Community 349 - "3. Step-by-Step Implementation Strategy"
 Cohesion: 0.14
@@ -2878,25 +2849,25 @@ Nodes (7): MONTHS, parseUTCDate(), SearchDateStrip, SearchDateStripProps, todayU
 Cohesion: 0.10
 Nodes (19): Animation (HIGH), Core Rendering (CRITICAL), Creating a New Rule, Design System (MEDIUM), Fonts (LOW), JavaScript (LOW), List Performance (HIGH), Monorepo (LOW) (+11 more)
 
-### Community 355 - "operator-booking-service.ts"
-Cohesion: 0.15
-Nodes (10): bookingInclude, CheckInInput, departureRangeForFilter(), ListInput, OperatorBookingService, endOfAppCalendarDay(), OperatorBookingDetail, OperatorBookingFilter (+2 more)
+### Community 355 - "3. Size Bloat & File System Hygiene"
+Cohesion: 0.50
+Nodes (4): 3. Size Bloat & File System Hygiene, Finding B-01: Rogue Nested Repository in `test-archive-1/`, Finding B-02: Untracked Android Build Caches (111.2 MB), Finding B-03: Inadequate `.gitignore`
 
-### Community 356 - "notify.ts"
-Cohesion: 0.16
-Nodes (16): DISCOUNT_NOVU_WORKFLOWS, notifyCampaignBudgetExhausted(), notifyOperatorCampaignPaused(), notifyReferralAttributed(), notifyReferralRewardPosted(), OutboxClient, Subscriber, triggerSafe() (+8 more)
+### Community 356 - "Payload Schema"
+Cohesion: 0.50
+Nodes (4): Payload Schema, With Class Validator, With JSON Schema, With Zod
 
 ### Community 357 - "infoPlist"
 Cohesion: 0.20
 Nodes (10): ios, NSCameraUsageDescription, NSLocationAlwaysAndWhenInUseUsageDescription, NSLocationWhenInUseUsageDescription, UIBackgroundModes, infoPlist, supportsTablet, fetch (+2 more)
 
-### Community 359 - "process.ts"
-Cohesion: 0.16
-Nodes (11): GET(), runtime, OutboxStatus, retryOutboxMessageAdmin(), OutboxNovuPayload, backoffMs(), parsePayload(), processOutboxBatch() (+3 more)
+### Community 359 - "Create"
+Cohesion: 0.50
+Nodes (4): Create, cURL, Node.js, Python
 
 ### Community 360 - "02 — Annotated Findings"
 Cohesion: 0.20
-Nodes (9): 02 — Annotated Findings, 1. Asset & Branding Deficiencies, 3. Size Bloat & File System Hygiene, Finding A-01: No `assets/` Directory Exists, Finding A-02: Missing `app.json` App Icon & Adaptive Icon, Finding A-03: Missing Splash Screen Configuration, Finding B-01: Rogue Nested Repository in `test-archive-1/`, Finding B-02: Untracked Android Build Caches (111.2 MB) (+1 more)
+Nodes (9): 02 — Annotated Findings, 1. Asset & Branding Deficiencies, 4. UI Component Library & Root Layout Deficiencies, Finding A-01: No `assets/` Directory Exists, Finding A-02: Missing `app.json` App Icon & Adaptive Icon, Finding A-03: Missing Splash Screen Configuration, Finding U-01: Zero Design System Components (`components/ui/`), Finding U-02: Missing `<PortalHost />` and `ThemeProvider` (+1 more)
 
 ### Community 366 - "Outline Width (/v5/tailwind/borders/outline-width)"
 Cohesion: 0.67
@@ -2910,9 +2881,9 @@ Nodes (9): 1. `auth-otp` ([`apps/web/features/notifications/workflows/auth/auth-
 Cohesion: 0.10
 Nodes (19): Configure Nuxt, Define a template, Define a template, Define a template, Email Templates, Install, Install, Install (+11 more)
 
-### Community 369 - "(passenger)/login/page.tsx"
-Cohesion: 0.18
-Nodes (14): LoginPage(), LoginPageProps, AdminLayout(), OperatorLayout(), buildLoginUrl(), getSafeCallbackUrl(), LoginView(), handleContinue() (+6 more)
+### Community 369 - "Contrast (/v5/tailwind/filters/contrast)"
+Cohesion: 0.67
+Nodes (3): Compatibility, Contrast (/v5/tailwind/filters/contrast), Usage
 
 ### Community 411 - "transfer-reciepts.md"
 Cohesion: 0.10
@@ -3542,9 +3513,9 @@ Nodes (12): 6.10 Use React DOM Resource Hints, 6.11 Use useTransition Over Manua
 Cohesion: 0.17
 Nodes (12): Animation Timing, Card Expand/Collapse with `startTransition`, Cross-Fade Without Remount, Exclude Elements with `useOptimistic`, Isolate Elements from Parent Animations, Patterns and Guidelines, Preserve State with Activity, Reusable Animated Collapse (+4 more)
 
-### Community 581 - "admin-dashboard-view.tsx"
-Cohesion: 0.13
-Nodes (10): AdminDashboardPage(), PageProps, AdminDriverMarketplaceWidget(), StatCard, DashboardKpiCards(), DashboardPlatformHealth(), DashboardTreasuryCards(), dashboardSearchParams (+2 more)
+### Community 581 - "Hue Rotate (/v5/tailwind/filters/hue-rotate)"
+Cohesion: 0.67
+Nodes (3): Compatibility, Hue Rotate (/v5/tailwind/filters/hue-rotate), Usage
 
 ### Community 582 - "Email Step"
 Cohesion: 0.17
@@ -3592,7 +3563,7 @@ Nodes (11): Generate the Hash, Go, HMAC Subscriber Hash, How It Works, Inbox Sec
 
 ### Community 593 - "Subscriber CRUD Examples"
 Cohesion: 0.17
-Nodes (11): Bulk Create, Create, cURL, cURL, cURL, Delete, Node.js, Partial Update (+3 more)
+Nodes (11): Bulk Create, cURL, cURL, cURL — Get Subscriber, Delete, Partial Update, Read, Retrieve Single Subscriber (+3 more)
 
 ### Community 594 - "nuqs Best Practices for Next.js"
 Cohesion: 0.17
@@ -3667,8 +3638,8 @@ Cohesion: 0.18
 Nodes (11): Layout-Level ViewTransition, `loading.tsx` as Suspense Boundary, Next.js Implementation Additions, Same-Route Dynamic Segment Transitions, Server Components, Server-Side Filtering with `router.replace`, Setup, Shared Elements Across Routes (+3 more)
 
 ### Community 613 - "src/components/ui/skeleton.tsx"
-Cohesion: 0.05
-Nodes (42): AdminInquiriesPage(), metadata, DriverVerificationsPage(), metadata, LedgerPage(), LedgerPageProps, metadata, AdminMarketingAbusePage() (+34 more)
+Cohesion: 0.07
+Nodes (32): AdminInquiriesPage(), metadata, DriverVerificationsPage(), metadata, LedgerPage(), LedgerPageProps, metadata, metadata (+24 more)
 
 ### Community 615 - "Workflow Templates"
 Cohesion: 0.18
@@ -3864,7 +3835,7 @@ Nodes (10): Common Pitfalls, Conversational Digest Example, Cron-Based Digests, 
 
 ### Community 664 - "Subscriber Preferences Examples"
 Cohesion: 0.20
-Nodes (9): Client-Side Preference Updates, Common Preference Operations, cURL, Disable email at global preference level., Node.js, Opt out of email channel for a specific workflow, Subscriber Preferences Examples, Update Global Preferences (+1 more)
+Nodes (9): Client-Side Preference Updates, cURL, cURL, List All Preferences, Node.js, Node.js, Subscriber Preferences Examples, Update Global Preferences (+1 more)
 
 ### Community 665 - "Single Trigger Examples"
 Cohesion: 0.20
@@ -4290,9 +4261,9 @@ Nodes (6): Body Parameters, Direct Debit, Headers, Headers, Query Parameters, Tr
 Cohesion: 0.29
 Nodes (6): Body Parameters, Fetch Timeout, Headers, Headers, Integration, Update Timeout
 
-### Community 774 - "BottomTabInset"
-Cohesion: 0.05
-Nodes (36): LANGUAGES, LanguageScreen(), handleSwitchLocale(), LocaleCode, persistLocale(), PrivacySecurityScreen(), ReviewsScreen(), SubpageHeader() (+28 more)
+### Community 774 - "screens/reviews.tsx"
+Cohesion: 0.19
+Nodes (9): formatReviewDate(), ReviewsView(), PassengerRouter, SubmitReviewInput, TrpcMutation, TrpcQuery, TypedTRPC, UserReviewDTO (+1 more)
 
 ### Community 775 - "UI Registry"
 Cohesion: 0.29
@@ -4473,10 +4444,6 @@ Nodes (6): 🔍 Phase 2 - Discovery & Search (NEXT - Start Immediately), Sprint 
 ### Community 824 - "Authentication"
 Cohesion: 0.33
 Nodes (5): API keys, Authentication, IP whitelisting, Key management best practices, Test and live modes
-
-### Community 826 - "driversRouter"
-Cohesion: 0.18
-Nodes (15): DriverDetailView(), AffiliationPayConfig, calculateAffiliationEarnings(), DEFAULT_DRIVER_PAY_RATE_XOF_PER_MINUTE, earningsFromMinutes(), mondayStartUtc(), openShiftAccrualMinutes(), utcMidnight() (+7 more)
 
 ### Community 827 - "UI Tokens"
 Cohesion: 0.33
@@ -4758,10 +4725,6 @@ Nodes (6): 03 — Styling, Theme & Assets Deep Dive, 1. NativeWind & Tailwind v4
 Cohesion: 0.29
 Nodes (6): 04 — Size Bloat & File Hygiene Deep Dive, 1. Measured Disk Consumption Breakdown, 2. Root Cause Analysis, 3. Remediation Plan, Cause 1: Rogue Nested Monorepo (`test-archive-1`), Cause 2: Inadequate `.gitignore`
 
-### Community 899 - "operator-profile.tsx"
-Cohesion: 0.17
-Nodes (11): OperatorOverviewTab(), OperatorOverviewTabProps, RoutePreviewItem, OperatorReviewsTab(), OperatorTerminalsTab(), OperatorTerminalsTabProps, TerminalItem, getInitials() (+3 more)
-
 ### Community 900 - "server.ts"
 Cohesion: 0.40
 Nodes (4): handle, nextApp, port, telemetryGateway
@@ -4930,10 +4893,6 @@ Nodes (4): Get Subscriber Preferences, Global Preferences, Subscriber-Level Pref
 Cohesion: 0.33
 Nodes (6): 1. Executive Summary, 2. Audit Document Index, 3. High-Level Summary of Findings, 4. Key Architectural Invariants Verified in Code, Moja Ride — Full Authentication & RBAC System Audit, Surface Breakdown
 
-### Community 946 - "src/fleet.ts"
-Cohesion: 0.13
-Nodes (14): BusStatus, busStatusEnum, CreateBusInput, createBusSchema, CreateCustomLayoutInput, createCustomLayoutSchema, SeatCell, seatCellSchema (+6 more)
-
 ### Community 947 - "Flex Direction (/v5/tailwind/flexbox/flex-direction)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Flex Direction (/v5/tailwind/flexbox/flex-direction), Usage
@@ -5062,9 +5021,9 @@ Nodes (4): Guidelines, In-App Step, See Also, Variables
 Cohesion: 0.50
 Nodes (4): Guidelines, See Also, SMS Step, Variables
 
-### Community 982 - "cancel-trip-with-refunds.ts"
-Cohesion: 0.21
-Nodes (10): enqueueTripCancelled(), cancelTripWithRefunds(), PrismaLike, TripRefundChannel, convergeDriversAfterRunEnd(), DriverRunStateDb, PostRunStatus, resolvePostRunStatus() (+2 more)
+### Community 982 - "Container (/v5/tailwind/layout/container)"
+Cohesion: 0.67
+Nodes (3): Compatibility, Container (/v5/tailwind/layout/container), Usage
 
 ### Community 983 - "Common Patterns"
 Cohesion: 0.50
@@ -5338,9 +5297,9 @@ Nodes (3): Compatibility, Opacity (/v5/tailwind/effects/opacity), Usage
 Cohesion: 0.67
 Nodes (3): Compatibility, Drop Shadow (/v5/tailwind/filters/drop-shadow), Usage
 
-### Community 1059 - "routers/schedules.ts"
-Cohesion: 0.35
-Nodes (13): addAppCalendarDays(), getAppRollingTripWindow(), startOfAppCalendarDay(), generateTripsForSchedule(), assertNoFareOverlap(), checkBusScheduleConflict(), computeScheduleWaypoints(), FareWindowInput (+5 more)
+### Community 1059 - "Text Underline Offset (/v5/tailwind/typography/text-underline-offset)"
+Cohesion: 0.67
+Nodes (3): Compatibility, Text Underline Offset (/v5/tailwind/typography/text-underline-offset), Usage
 
 ### Community 1060 - "Invert (/v5/tailwind/filters/invert)"
 Cohesion: 0.67
@@ -5358,17 +5317,13 @@ Nodes (5): plugins, expo-localization, expo-notifications, expo-router, expo-sta
 Cohesion: 0.67
 Nodes (3): Compatibility, Flex Basis (/v5/tailwind/flexbox/flex-basis), Usage
 
-### Community 1064 - "admin/staff/page.tsx"
-Cohesion: 0.15
-Nodes (3): AdminStaffPage(), metadata, AdminStaffView()
+### Community 1064 - "Common Preference Operations"
+Cohesion: 0.67
+Nodes (3): Common Preference Operations, Disable email at global preference level., Opt out of email channel for a specific workflow
 
 ### Community 1065 - "Flex Grow (/v5/tailwind/flexbox/flex-grow)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Flex Grow (/v5/tailwind/flexbox/flex-grow), Usage
-
-### Community 1066 - "admin-campaigns-view.tsx"
-Cohesion: 0.18
-Nodes (10): AdminCampaignCreateDialog(), handleOpenChange(), reset(), CreateCampaignData, CampaignDrawerTab, AdminCampaignsFilterBar(), AdminCampaignsKpiCards(), AdminCampaignsKpiCardsProps (+2 more)
 
 ### Community 1067 - "Flex Wrap (/v5/tailwind/flexbox/flex-wrap)"
 Cohesion: 0.67
@@ -5430,10 +5385,6 @@ Nodes (4): Audit Index, Core Failure Dimensions, Driver App (`apps/driver-app`) 
 Cohesion: 0.67
 Nodes (3): Compatibility, Place Content (/v5/tailwind/flexbox/place-content), Usage
 
-### Community 1082 - "amenities-list.tsx"
-Cohesion: 0.20
-Nodes (7): AmenitiesListProps, Amenity, AMENITY_ICONS, formatDate(), LedgerEntry, TransactionList(), TransactionListProps
-
 ### Community 1083 - "Place Self (/v5/tailwind/flexbox/place-self)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Place Self (/v5/tailwind/flexbox/place-self), Usage
@@ -5462,10 +5413,6 @@ Nodes (3): Compatibility, Scroll Snap Stop (/v5/tailwind/interactivity/scroll-sn
 Cohesion: 0.67
 Nodes (3): Compatibility, Scroll Snap Type (/v5/tailwind/interactivity/scroll-snap-type), Usage
 
-### Community 1091 - "checkout-quote.ts"
-Cohesion: 0.36
-Nodes (8): b64url(), CheckoutQuotePayload, fromB64url(), QUOTE_VERSION, quoteMatchesHoldInput(), quoteSecret(), signCheckoutQuote(), verifyCheckoutQuote()
-
 ### Community 1092 - "User Select (/v5/tailwind/interactivity/user-select)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Usage, User Select (/v5/tailwind/interactivity/user-select)
@@ -5474,14 +5421,6 @@ Nodes (3): Compatibility, Usage, User Select (/v5/tailwind/interactivity/user-se
 Cohesion: 0.67
 Nodes (3): Compatibility, Usage, Will Change (/v5/tailwind/interactivity/will-change)
 
-### Community 1094 - "staff-activity-section.tsx"
-Cohesion: 0.42
-Nodes (6): StaffActivityItem(), StaffActivityItemProps, StaffActivitySection(), StaffActivitySectionProps, groupActivityByDate(), ActivityLogEntry
-
-### Community 1095 - "navigation.ts"
-Cohesion: 0.33
-Nodes (4): { Link, useRouter, usePathname, redirect, permanentRedirect }, routing, config, NOTE: In Next.js 16, the middleware entry point is proxy.ts (not middleware.ts).
-
 ### Community 1096 - "Isolation (/v5/tailwind/layout/isolation)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Isolation (/v5/tailwind/layout/isolation), Usage
@@ -5489,10 +5428,6 @@ Nodes (3): Compatibility, Isolation (/v5/tailwind/layout/isolation), Usage
 ### Community 1097 - "Object Fit (/v5/tailwind/layout/object-fit)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Object Fit (/v5/tailwind/layout/object-fit), Usage
-
-### Community 1098 - "operator/login/page.tsx"
-Cohesion: 0.32
-Nodes (5): LoginPageProps, OperatorLoginPage(), OperatorLoginView(), OperatorLoginViewProps, redirectIfAuthenticated()
 
 ### Community 1099 - "Overscroll Behavior (/v5/tailwind/layout/overscroll-behavior)"
 Cohesion: 0.67
@@ -5513,10 +5448,6 @@ Nodes (3): Compatibility, Usage, Visibility (/v5/tailwind/layout/visibility)
 ### Community 1103 - "Z-Index (/v5/tailwind/layout/z-index)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Usage, Z-Index (/v5/tailwind/layout/z-index)
-
-### Community 1104 - "(passenger)/page.tsx"
-Cohesion: 0.29
-Nodes (4): PageProps, PassengerDashboardPage(), dashboardParsers, dashboardSearchParamsCache
 
 ### Community 1105 - "Height (/v5/tailwind/sizing/height)"
 Cohesion: 0.67
@@ -5565,10 +5496,6 @@ Nodes (3): Compatibility, Stroke Width (/v5/tailwind/svg/stroke-width), Usage
 ### Community 1116 - "Stroke (/v5/tailwind/svg/stroke)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Stroke (/v5/tailwind/svg/stroke), Usage
-
-### Community 1117 - "PassengerAuthFlow"
-Cohesion: 0.29
-Nodes (6): PassengerAuthFlow(), handleSendCode(), handleVerifyCode(), resolvePostAuthPath(), sendPassengerOtp(), verifyPassengerOtp()
 
 ### Community 1118 - "Rotate (/v5/tailwind/transforms/rotate)"
 Cohesion: 0.67
@@ -5622,10 +5549,6 @@ Nodes (3): Compatibility, Font Smoothing (/v5/tailwind/typography/font-smoothing
 Cohesion: 0.67
 Nodes (3): Compatibility, Font Style (/v5/tailwind/typography/font-style), Usage
 
-### Community 1131 - "fleet-live-map.tsx"
-Cohesion: 0.29
-Nodes (7): ABIDJAN_CENTER, FleetLiveMap(), FleetLiveMapProps, FleetVehicle, vehicleFreshness, vehicleIcon(), FleetLiveMap
-
 ### Community 1132 - "Font Weight (/v5/tailwind/typography/font-weight)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Font Weight (/v5/tailwind/typography/font-weight), Usage
@@ -5658,10 +5581,6 @@ Nodes (3): Compatibility, List Style Position (/v5/tailwind/typography/list-styl
 Cohesion: 0.67
 Nodes (3): Compatibility, List Style Type (/v5/tailwind/typography/list-style-type), Usage
 
-### Community 1140 - "seat-grid-matrix.tsx"
-Cohesion: 0.29
-Nodes (7): getCellConfig(), GridCell, SeatGridMatrix(), SeatGridMatrixProps, SeatType, Tool, TOOLS
-
 ### Community 1141 - "Text Color (/v5/tailwind/typography/text-color)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Text Color (/v5/tailwind/typography/text-color), Usage
@@ -5677,18 +5596,6 @@ Nodes (3): Compatibility, Text Decoration Style (/v5/tailwind/typography/text-de
 ### Community 1144 - "extra"
 Cohesion: 0.50
 Nodes (4): projectId, extra, eas, router
-
-### Community 1145 - "isLicenseUsableThrough"
-Cohesion: 0.33
-Nodes (4): LicenseExpiryBadge(), isLicenseUsableThrough(), licenseExpiryStatus, NOW
-
-### Community 1146 - "migrate-drivers-data.ts"
-Cohesion: 0.48
-Nodes (6): backfillReviewsData(), backfillTripDriverAssignments(), main(), migrateDriverProfilesAndAffiliations(), prisma, recalculateDriverAggregates()
-
-### Community 1147 - "PricingStep"
-Cohesion: 0.70
-Nodes (5): PricingStep(), computeDuration(), getFare(), isAdjacent(), upsertFare()
 
 ### Community 1148 - "Text Transform (/v5/tailwind/typography/text-transform)"
 Cohesion: 0.67
@@ -5734,10 +5641,6 @@ Nodes (3): 1.1 Never Use && with Potentially Falsy Values, 1.2 Wrap Strings in T
 Cohesion: 0.67
 Nodes (3): 8.1 Destructure Functions Early in Render (React Compiler), 8.2 Use .get() and .set() for Reanimated Shared Values (not .value), 8. React Compiler
 
-### Community 1160 - "InviteSheet"
-Cohesion: 0.70
-Nodes (5): InviteSheet(), handleSend(), onRoleChange(), reset(), seedPermissions()
-
 ### Community 1163 - "Delay Step"
 Cohesion: 0.67
 Nodes (3): Common Patterns, Delay Step, See Also
@@ -5745,10 +5648,6 @@ Nodes (3): Common Patterns, Delay Step, See Also
 ### Community 1164 - "Throttle Step"
 Cohesion: 0.67
 Nodes (3): Common Patterns, See Also, Throttle Step
-
-### Community 1166 - "Payload Schema"
-Cohesion: 0.50
-Nodes (4): Payload Schema, With Class Validator, With JSON Schema, With Zod
 
 ### Community 1167 - "11. Booking & Refund (Models)"
 Cohesion: 0.67
@@ -5778,41 +5677,9 @@ Nodes (3): Common Patterns, Delay Step, See Also
 Cohesion: 0.67
 Nodes (3): Common Patterns, See Also, Throttle Step
 
-### Community 1177 - "TransferOwnershipDialog"
-Cohesion: 0.67
-Nodes (3): TransferOwnershipDialog(), handleSendOtp(), startCooldown()
-
-### Community 1334 - "TransferOwnershipDialog"
-Cohesion: 0.67
-Nodes (3): TransferOwnershipDialog(), handleSendOtp(), startCooldown()
-
 ### Community 1337 - "web"
 Cohesion: 0.50
 Nodes (4): web, bundler, favicon, output
-
-### Community 1345 - "Step Options"
-Cohesion: 0.50
-Nodes (4): `disableOutputSanitization`, `providers` (Per-Step Provider Overrides), `skip`, Step Options
-
-### Community 1346 - "4. UI Component Library & Root Layout Deficiencies"
-Cohesion: 0.50
-Nodes (4): 4. UI Component Library & Root Layout Deficiencies, Finding U-01: Zero Design System Components (`components/ui/`), Finding U-02: Missing `<PortalHost />` and `ThemeProvider`, Finding U-03: Missing `components.json`
-
-### Community 1347 - "Step Options"
-Cohesion: 0.50
-Nodes (4): `disableOutputSanitization`, `providers` (Per-Step Provider Overrides), `skip`, Step Options
-
-### Community 1348 - "Read"
-Cohesion: 0.50
-Nodes (4): cURL — Get Subscriber, Read, Retrieve Single Subscriber, Search Subscribers
-
-### Community 1353 - "Grayscale (/v5/tailwind/filters/grayscale)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Grayscale (/v5/tailwind/filters/grayscale), Usage
-
-### Community 1354 - "Display (/v5/tailwind/layout/display)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Display (/v5/tailwind/layout/display), Usage
 
 ### Community 1358 - "2. Critical UI & State Vulnerabilities"
 Cohesion: 0.20
@@ -5825,18 +5692,6 @@ Nodes (9): 03. Driver Verification, Governance, & Document Security Audit, 1. Ve
 ### Community 1366 - "2. Detailed Technical Fix Blueprints"
 Cohesion: 0.20
 Nodes (9): 05. Remediation Blueprint & Action Plan, 1. Remediation Action Plan, 2. Detailed Technical Fix Blueprints, 3. Verification & Test Runbook, Fix 1: Boot & Login Routing Gate ([`apps/driver-app/features/auth/screens/login.tsx`](file:///C:/dev/moja-buss/apps/driver-app/features/auth/screens/login.tsx)), Fix 2: S3 Presigned Upload for Selfie ([`apps/driver-app/app/(auth)/register/index.tsx`](file:///C:/dev/moja-buss/apps/driver-app/app/%28auth%29/register/index.tsx)), Fix 3: Registration Store Persistence & Step Route Guards, Fix 4: Server Phone Normalization & P2002 Error Handling ([`drivers.ts`](file:///C:/dev/moja-buss/apps/web/trpc/routers/drivers.ts)) (+1 more)
-
-### Community 1367 - "Container Queries (/v5/tailwind/plugins/container-queries)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Container Queries (/v5/tailwind/plugins/container-queries), Usage
-
-### Community 1423 - "Text Decoration (/v5/tailwind/typography/text-decoration)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Text Decoration (/v5/tailwind/typography/text-decoration), Usage
-
-### Community 1447 - "List All Preferences"
-Cohesion: 0.67
-Nodes (3): cURL, List All Preferences, Node.js
 
 ### Community 1505 - "(passenger)/bookings/page.tsx"
 Cohesion: 0.22
@@ -5910,17 +5765,17 @@ Nodes (3): Compatibility, Text Indent (/v5/tailwind/typography/text-indent), Usa
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `cn` to `src/components/ui/button.tsx`, `client.tsx`, `src/components/ui/card.tsx`, `sidebar.tsx`, `carousel.tsx`, `src/lib/utils.ts`, `spinner.tsx`, `passenger-tracking-view.tsx`, `search-params.ts`, `prefetch`, `web/features/booking/components/passenger-seat-map.tsx`, `operator-schedules-view.tsx`, `booking-details.tsx`, `search-sort-bar.tsx`, `operator-fleet-view.tsx`, `search-date-strip.tsx`, `(passenger)/settings/page.tsx`, `src/components/ui/skeleton.tsx`, `phone-input.tsx`, `seat-grid-matrix.tsx`, `trip-segments.ts`?**
+- **Why does `cn()` connect `cn` to `src/components/ui/button.tsx`, `booking-list.tsx`, `src/components/ui/card.tsx`, `carousel.tsx`, `src/lib/utils.ts`, `routers/operator.ts`, `spinner.tsx`, `admin/drivers/marketplace/page.tsx`, `operator-promotions-view.tsx`, `search-params.ts`, `passenger-tracking-view.tsx`, `operator-sent-offers-view.tsx`, `web/features/booking/components/passenger-seat-map.tsx`, `operator-schedules-view.tsx`, `[locale]/page.tsx`, `useStaffPermissions`, `booking-details.tsx`, `travelers-grid.tsx`, `search-sort-bar.tsx`, `operator-fleet-view.tsx`, `search-date-strip.tsx`, `(passenger)/settings/page.tsx`, `src/components/ui/skeleton.tsx`, `trip-segments.ts`?**
   _High betweenness centrality (0.009) - this node is a cross-community bridge._
-- **Why does `Button()` connect `src/components/ui/button.tsx` to `client.tsx`, `src/components/ui/card.tsx`, `sidebar.tsx`, `carousel.tsx`, `src/components/ui/skeleton.tsx`, `src/lib/utils.ts`, `booking-details.tsx`, `cn`, `users/operators/page.tsx`, `phone-input.tsx`, `web/features/search/components/search-empty-state.tsx`, `operator-schedules-view.tsx`, `spinner.tsx`, `blog-detail-view.tsx`, `operator-fleet-view.tsx`?**
+- **Why does `Button()` connect `src/components/ui/button.tsx` to `booking-list.tsx`, `src/components/ui/card.tsx`, `cn`, `carousel.tsx`, `src/components/ui/skeleton.tsx`, `src/lib/utils.ts`, `booking-details.tsx`, `travelers-grid.tsx`, `users/operators/page.tsx`, `web/features/search/components/search-empty-state.tsx`, `operator-schedules-view.tsx`, `spinner.tsx`, `blog-detail-view.tsx`, `useStaffPermissions`, `operator-promotions-view.tsx`, `operator-fleet-view.tsx`, `operator-sent-offers-view.tsx`?**
   _High betweenness centrality (0.008) - this node is a cross-community bridge._
-- **Why does `AppRouter` connect `init.ts` to `traveler-app/lib/trpc.tsx`, `server.tsx`, `driver-app/lib/trpc.tsx`, `client.tsx`?**
+- **Why does `AppRouter` connect `schemas/src/index.ts` to `driver-app/lib/trpc.tsx`, `traveler-app/lib/trpc.tsx`, `src/components/ui/button.tsx`, `server.tsx`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **What connects `options`, `results`, `SCRIPT_DIR` to the rest of the system?**
   _8462 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `src/components/ui/button.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.055938467685545896 - nodes in this community are weakly interconnected._
-- **Should `client.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.02933861225318512 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03428988326848249 - nodes in this community are weakly interconnected._
+- **Should `booking-list.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.06453634085213032 - nodes in this community are weakly interconnected._
 - **Should `src/components/ui/card.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.02197720882048246 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.018258849255159217 - nodes in this community are weakly interconnected._

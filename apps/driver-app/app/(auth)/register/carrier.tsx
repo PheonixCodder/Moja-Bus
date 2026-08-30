@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	View,
 	Text,
@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	Building01Icon,
@@ -26,38 +27,43 @@ import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScreenShell } from "@/components/ui/ScreenShell";
 
-const EMPLOYMENT_TYPES: Array<{
+const EMPLOYMENT_TYPE_KEYS: Array<{
 	type: EmploymentType;
-	title: string;
-	desc: string;
-	badge: string;
+	titleKey: string;
+	descKey: string;
+	badgeKey: string;
 }> = [
 	{
 		type: "EXCLUSIVE_INTERCITY",
-		title: "Chauffeur Interurbain Dédié",
-		desc: "Affilié à une compagnie pour des liaisons régulières entre villes.",
-		badge: "Recommandé",
+		titleKey: "employmentExclusiveTitle",
+		descKey: "employmentExclusiveDesc",
+		badgeKey: "employmentExclusiveBadge",
 	},
 	{
 		type: "CONTRACTOR_URBAN",
-		title: "Chauffeur Urbain Contractuel",
-		desc: "Navettes urbaines, lignes express locales et services scolaires/privés.",
-		badge: "Urbain",
+		titleKey: "employmentUrbanTitle",
+		descKey: "employmentUrbanDesc",
+		badgeKey: "employmentUrbanBadge",
 	},
 	{
 		type: "HYBRID",
-		title: "Prestataire Hybride (Intercity & Urbain)",
-		desc: "Disponible pour les deux types d'opérations et missions de relève.",
-		badge: "Flexible",
+		titleKey: "employmentHybridTitle",
+		descKey: "employmentHybridDesc",
+		badgeKey: "employmentHybridBadge",
 	},
 ];
 
 export default function RegisterStep4CarrierScreen() {
+	const { t } = useTranslation("auth");
 	const router = useRouter();
 	useWizardGuard(4);
 
 	const trpc = useTRPC();
 	const store = useDriverRegistrationStore();
+
+	useEffect(() => {
+		store.updateData({ currentStep: 4 });
+	}, []);
 
 	const [code, setCode] = useState(store.carrierCode);
 	const [employmentType, setEmploymentType] = useState<EmploymentType>(
@@ -93,10 +99,10 @@ export default function RegisterStep4CarrierScreen() {
 
 			if (!result.affiliated) {
 				Alert.alert(
-					"Aucun transporteur associé",
+					t("noCarrierTitle"),
 					code.trim()
-						? "Votre code d'invitation ne correspond à aucun transporteur actif. Votre dossier a été soumis — une fois vérifié, les opérateurs pourront vous contacter sur la marketplace."
-						: "Dossier soumis sans code transporteur. Une fois vérifié, vous serez visible par les opérateurs sur la marketplace.",
+						? t("noCarrierMsgWithCode")
+						: t("noCarrierMsgNoCode"),
 				);
 			}
 			router.replace("/(auth)/register/status");
@@ -105,15 +111,16 @@ export default function RegisterStep4CarrierScreen() {
 			if (err?.message?.startsWith("PHONE_REVERIFICATION_REQUIRED")) {
 				const parts = err.message.split("::");
 				Alert.alert(
-					"Numéro de téléphone non concordant",
-					`Votre compte utilise ${parts[1] ?? "un autre numéro"}, mais vous avez saisi ${
-						parts[2] ?? "un numéro différent"
-					}. Les codes de connexion sont envoyés à votre numéro de compte.`,
+					t("phoneMismatchTitle"),
+					t("phoneMismatchMsg", {
+						accountPhone: parts[1] ?? t("otherNumber"),
+						inputPhone: parts[2] ?? t("differentNumber"),
+					}),
 				);
 			} else {
 				Alert.alert(
-					"Erreur d'inscription",
-					err.message || "Échec de l'envoi de votre candidature.",
+					t("submitFailed"),
+					err.message || t("submitFailed"),
 				);
 			}
 		}
@@ -124,9 +131,10 @@ export default function RegisterStep4CarrierScreen() {
 			header={
 				<View>
 					<PageHeader
-						title="Inscription Chauffeur"
-						subtitle="Étape 4 sur 4 : Affiliation transporteur"
+						title={t("step4Title")}
+						subtitle={t("step4Subtitle")}
 						showBack
+						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register/documents")}
 					/>
 					<View style={styles.progressTrack}>
 						<View style={[styles.progressBar, { width: "100%" }]} />
@@ -135,7 +143,7 @@ export default function RegisterStep4CarrierScreen() {
 			}
 			footer={
 				<Button
-					title="Soumettre mon dossier officiel"
+					title={t("submitDossier")}
 					variant="primary"
 					size="lg"
 					loading={registerMutation.isPending}
@@ -146,13 +154,13 @@ export default function RegisterStep4CarrierScreen() {
 			}
 		>
 			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>Mode de collaboration</Text>
+				<Text style={styles.sectionTitle}>{t("employmentModeTitle")}</Text>
 				<Text style={styles.sectionSubtitle}>
-					Définissez votre modalité d'exercice sur le réseau Moja.
+					{t("employmentModeSubtitle")}
 				</Text>
 
 				<View style={styles.typesList}>
-					{EMPLOYMENT_TYPES.map((item) => {
+					{EMPLOYMENT_TYPE_KEYS.map((item) => {
 						const isSelected = employmentType === item.type;
 						return (
 							<TouchableOpacity
@@ -168,17 +176,17 @@ export default function RegisterStep4CarrierScreen() {
 								]}
 							>
 								<View style={styles.typeHeader}>
-									<Text style={styles.typeTitle}>{item.title}</Text>
+									<Text style={styles.typeTitle}>{t(item.titleKey)}</Text>
 									<View style={styles.typeRight}>
 										<View style={styles.typeBadge}>
-											<Text style={styles.typeBadgeText}>{item.badge}</Text>
+											<Text style={styles.typeBadgeText}>{t(item.badgeKey)}</Text>
 										</View>
 										{isSelected ? (
 											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color="#ee237c" />
 										) : null}
 									</View>
 								</View>
-								<Text style={styles.typeDesc}>{item.desc}</Text>
+								<Text style={styles.typeDesc}>{t(item.descKey)}</Text>
 							</TouchableOpacity>
 						);
 					})}
@@ -187,19 +195,19 @@ export default function RegisterStep4CarrierScreen() {
 
 			<View style={styles.formCard}>
 				<View style={styles.carrierHeaderRow}>
-					<Text style={styles.sectionTitle}>Code d'invitation compagnie</Text>
+					<Text style={styles.sectionTitle}>{t("carrierCodeTitle")}</Text>
 					<View style={styles.optionalBadge}>
-						<Text style={styles.optionalText}>Optionnel</Text>
+						<Text style={styles.optionalText}>{t("carrierCodeOptional")}</Text>
 					</View>
 				</View>
 				<Text style={styles.sectionSubtitle}>
-					Si vous êtes déjà recruté par un transporteur partenaire, entrez le code fourni.
+					{t("carrierCodeSubtitle")}
 				</Text>
 
 				<View style={styles.inputWrapper}>
 					<Input
-						label="Code Transporteur"
-						placeholder="ex: UTB-CI-9901"
+						label={t("carrierCodeLabel")}
+						placeholder={t("carrierCodePlaceholder")}
 						value={code}
 						onChangeText={setCode}
 						autoCapitalize="characters"

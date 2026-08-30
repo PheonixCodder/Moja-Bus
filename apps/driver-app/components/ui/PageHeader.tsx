@@ -26,8 +26,11 @@ export function PageHeader({
 
 	const handleBack = () => {
 		DriverFeedback.tap();
-		if (onBack) onBack();
-		else router.back();
+		if (onBack) {
+			onBack();
+		} else if (router.canGoBack()) {
+			router.back();
+		}
 	};
 
 	return (

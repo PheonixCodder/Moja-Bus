@@ -1498,29 +1498,42 @@ export const driversRouter = createTRPCRouter({
 
       // Phase 14/16 (F-DV-10) — identity hygiene. Names and avatars are
       // self-owned: overwrite freely. The account PHONE is canonical contact
-      // data: validate server-side (the +225 lock was client-only), normalize
-      // to E.164, and refuse to silently re-point the account to a different
-      // number without OTP re-verification.
-      const validationError = getPhoneValidationError(input.phone, "+225");
-      const normalizedPhone = toE164(input.phone, "+225");
-      if (validationError || !normalizedPhone) {
+      // data: validate server-side, normalize to E.164, and refuse to silently
+      // re-point the account to a different number without OTP re-verification.
+      const rawInputPhone = input.phone.trim();
+      const sessionPhone = ctx.user.phoneNumber?.trim() || null;
+      const sessionNormalized = sessionPhone
+        ? toE164(sessionPhone, "CI") ?? toE164(sessionPhone) ?? sessionPhone
+        : null;
+
+      // Try normalizing input phone with "CI" or generic E.164
+      let normalizedPhone = toE164(rawInputPhone, "CI") ?? toE164(rawInputPhone);
+      // Fallback: if it's already an E.164 format (+ followed by 8 to 15 digits), accept it
+      if (!normalizedPhone && /^\+[1-9]\d{7,14}$/.test(rawInputPhone)) {
+        normalizedPhone = rawInputPhone;
+      }
+
+      // If phone matches session's verified phone number, it's trusted
+      const isSessionPhoneMatch = Boolean(
+        sessionNormalized &&
+        (sessionNormalized === normalizedPhone || sessionPhone === rawInputPhone)
+      );
+
+      if (!normalizedPhone && !isSessionPhoneMatch) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
             "Enter a valid Ivorian phone number (at least 10 digits after +225).",
         });
       }
-      const sessionNormalized = ctx.user.phoneNumber
-        ? toE164(ctx.user.phoneNumber, "+225") ?? ctx.user.phoneNumber
-        : null;
-      if (
-        sessionNormalized &&
-        sessionNormalized !== normalizedPhone
-      ) {
+
+      const finalPhone = normalizedPhone || sessionNormalized || rawInputPhone;
+
+      if (sessionNormalized && !isSessionPhoneMatch) {
         const mask = (p: string) => `${p.slice(0, 5)}••••${p.slice(-2)}`;
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `PHONE_REVERIFICATION_REQUIRED::${mask(ctx.user.phoneNumber!)}::${mask(normalizedPhone)}`,
+          message: `PHONE_REVERIFICATION_REQUIRED::${mask(sessionPhone!)}::${mask(finalPhone)}`,
         });
       }
 
@@ -1528,7 +1541,7 @@ export const driversRouter = createTRPCRouter({
         where: { id: ctx.user.id },
         data: {
           fullName: input.fullName,
-          ...(ctx.user.phoneNumber ? {} : { phoneNumber: normalizedPhone }),
+          ...(ctx.user.phoneNumber ? {} : { phoneNumber: finalPhone }),
           ...(input.selfieUrl ? { image: input.selfieUrl } : {}),
         },
       });

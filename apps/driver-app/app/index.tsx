@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { View, ActivityIndicator, Image, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect } from "expo-router";
-import { authClient } from "@/lib/auth-client";
+import { authClient, ensureAuthCookiesFresh } from "@/lib/auth-client";
+import { getTrpcClient } from "@/lib/trpc";
+import { useDriverRegistrationStore } from "@/stores/driver-registration";
 import { colors } from "@/constants/theme";
 
 type AuthState =
@@ -13,39 +15,31 @@ type AuthState =
 	| "needs-pref"
 	| "authenticated";
 
-async function fetchDriverStatus(sessionToken: string): Promise<{
+async function fetchDriverStatus(): Promise<{
 	hasProfile: boolean;
 	status: string | null;
 	hasPref: boolean;
 }> {
-	let lastError: unknown = null;
-	for (let attempt = 0; attempt < 2; attempt++) {
-		try {
-			const res = await fetch(
-				`${process.env["EXPO_PUBLIC_API_URL"]}/api/trpc/drivers.getMyVerificationStatus,drivers.getMyServicePreference?batch=1`,
-				{
-					headers: {
-						"Content-Type": "application/json",
-						Cookie: `better-auth.session_token=${sessionToken}`,
-					},
-				}
-			);
-			if (!res.ok) throw new Error(`driver-status-check HTTP ${res.status}`);
-			const json = await res.json();
-			const statusRes = json?.[0]?.result?.data;
-			const prefRes = json?.[1]?.result?.data;
-			return {
-				hasProfile: Boolean(statusRes?.driver),
-				status: statusRes?.driver?.verificationStatus ?? null,
-				hasPref: prefRes?.preference != null,
-			};
-		} catch (err) {
-			lastError = err;
-			if (attempt === 0) await new Promise((r) => setTimeout(r, 400));
-		}
+	try {
+		// Flush auth cookies into memory before making tRPC calls.
+		// On cold boot, SecureStore hasn't been read yet so getCookie()
+		// returns empty, causing a 401 which misidentifies the user as
+		// having no driver profile.
+		await ensureAuthCookiesFresh();
+		const trpc = getTrpcClient();
+		const [statusRes, prefRes] = await Promise.all([
+			trpc.drivers.getMyVerificationStatus.query().catch(() => null),
+			trpc.drivers.getMyServicePreference.query().catch(() => null),
+		]);
+		return {
+			hasProfile: Boolean(statusRes?.driver),
+			status: statusRes?.driver?.verificationStatus ?? null,
+			hasPref: prefRes?.preference != null,
+		};
+	} catch (err) {
+		console.warn("[Boot] status check unavailable:", err);
+		return { hasProfile: false, status: null, hasPref: false };
 	}
-	console.warn("[Boot] status check unavailable — failing open:", lastError);
-	return { hasProfile: true, status: "VERIFIED", hasPref: true };
 }
 
 export default function IndexScreen() {
@@ -63,13 +57,7 @@ export default function IndexScreen() {
 					return;
 				}
 
-				const sessionToken = (session.data as any)?.session?.token ?? "";
-				if (!sessionToken) {
-					setAuthState("unauthenticated");
-					return;
-				}
-
-				const driverData = await fetchDriverStatus(sessionToken);
+				const driverData = await fetchDriverStatus();
 				if (!isMounted) return;
 
 				if (!driverData.hasProfile) {
@@ -101,7 +89,18 @@ export default function IndexScreen() {
 	}
 
 	if (authState === "needs-register") {
-		return <Redirect href="/(auth)/register" />;
+		const { currentStep, verifiedAt } = useDriverRegistrationStore.getState();
+		const stepRoutes = [
+			"/(auth)/register",
+			"/(auth)/register/license",
+			"/(auth)/register/documents",
+			"/(auth)/register/carrier",
+		] as const;
+		const targetRoute =
+			verifiedAt && currentStep > 1
+				? stepRoutes[Math.min(currentStep - 1, stepRoutes.length - 1)]
+				: "/(auth)/register";
+		return <Redirect href={targetRoute as any} />;
 	}
 
 	if (authState === "needs-status") {

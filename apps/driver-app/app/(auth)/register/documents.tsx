@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
 	View,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	IdentityCardIcon,
@@ -29,19 +30,27 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ScreenShell } from "@/components/ui/ScreenShell";
 
 export default function RegisterStep3DocumentsScreen() {
+	const { t } = useTranslation("auth");
 	const router = useRouter();
 	useWizardGuard(3);
 
 	const {
 		nationalIdNumber,
 		medicalDocUri,
+		medicalDocLocalPreview,
 		updateData,
 	} = useDriverRegistrationStore();
+
+	useEffect(() => {
+		updateData({ currentStep: 3 });
+	}, [updateData]);
 	const trpc = useTRPC();
 	const presign = useMutation(trpc.storage.presignUpload.mutationOptions());
 
 	const [idInput, setIdInput] = useState(nationalIdNumber);
-	const [medicalUri, setMedicalUri] = useState<string | null>(medicalDocUri);
+	const [medicalUri, setMedicalUri] = useState<string | null>(
+		medicalDocLocalPreview || (medicalDocUri && !medicalDocUri.startsWith("documents/") ? medicalDocUri : null)
+	);
 	const [medicalKey, setMedicalKey] = useState<string | null>(
 		medicalDocUri?.startsWith("documents/") ? medicalDocUri : null,
 	);
@@ -50,7 +59,7 @@ export default function RegisterStep3DocumentsScreen() {
 		DriverFeedback.tap();
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
 		if (status !== "granted") {
-			Alert.alert("Permission requise", "L'accès à la caméra est requis pour photographier votre certificat médical.");
+			Alert.alert(t("cameraPermission"), t("medicalCameraMsg"));
 			return;
 		}
 
@@ -72,25 +81,28 @@ export default function RegisterStep3DocumentsScreen() {
 			});
 			if (!storedKey) {
 				Alert.alert(
-					"Échec de téléversement",
-					"Vérifiez votre connexion et reprenez la photo avant de continuer.",
+					t("selfieUploadFailed"),
+					t("selfieUploadFailedMsg"),
 				);
 				return;
 			}
 			setMedicalKey(storedKey);
-			updateData({ medicalDocUri: storedKey });
+			updateData({
+				medicalDocUri: storedKey,
+				medicalDocLocalPreview: localUri,
+			});
 		}
 	};
 
 	const handleNext = () => {
 		if (!idInput.trim()) {
-			Alert.alert("Champ obligatoire", "Veuillez saisir votre numéro national d'identité (CNI).");
+			Alert.alert(t("fieldRequired"), t("cniRequired"));
 			return;
 		}
 		if (medicalUri && !medicalKey) {
 			Alert.alert(
-				"Document non téléversé",
-				"Votre certificat médical n'a pas pu être envoyé. Reprenez-le ou supprimez-le avant de continuer.",
+				t("medicalNotUploaded"),
+				t("medicalNotUploadedMsg"),
 			);
 			return;
 		}
@@ -98,6 +110,9 @@ export default function RegisterStep3DocumentsScreen() {
 		DriverFeedback.tap();
 		updateData({
 			nationalIdNumber: idInput.trim(),
+			medicalDocUri: medicalKey || medicalDocUri,
+			medicalDocLocalPreview: medicalUri || medicalDocLocalPreview,
+			currentStep: 4,
 		});
 
 		router.push("/(auth)/register/carrier");
@@ -108,9 +123,10 @@ export default function RegisterStep3DocumentsScreen() {
 			header={
 				<View>
 					<PageHeader
-						title="Documents Légaux"
-						subtitle="Étape 3 sur 4 : CNI et certificat médical"
+						title={t("step3Title")}
+						subtitle={t("step3Subtitle")}
 						showBack
+						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register/license")}
 					/>
 					<View style={styles.progressTrack}>
 						<View style={[styles.progressBar, { width: "75%" }]} />
@@ -119,7 +135,7 @@ export default function RegisterStep3DocumentsScreen() {
 			}
 			footer={
 				<Button
-					title="Continuer vers l'affiliation"
+					title={t("continueToCarrier")}
 					variant="primary"
 					size="lg"
 					onPress={handleNext}
@@ -129,15 +145,15 @@ export default function RegisterStep3DocumentsScreen() {
 			}
 		>
 			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>Carte Nationale d'Identité (CNI)</Text>
+				<Text style={styles.sectionTitle}>{t("cniTitle")}</Text>
 				<Text style={styles.sectionSubtitle}>
-					Votre numéro officiel pour la vérification réglementaire en Côte d'Ivoire.
+					{t("cniSubtitle")}
 				</Text>
 
 				<View style={styles.inputsList}>
 					<Input
-						label="Numéro CNI / Passeport"
-						placeholder="ex: C0129849201"
+						label={t("cniNumberLabel")}
+						placeholder={t("cniNumberPlaceholder")}
 						value={idInput}
 						onChangeText={setIdInput}
 						leftIcon={<HugeiconsIcon icon={IdentityCardIcon} size={18} color="#71717a" />}
@@ -147,25 +163,34 @@ export default function RegisterStep3DocumentsScreen() {
 
 			<View style={styles.formCard}>
 				<View style={styles.cardHeaderRow}>
-					<Text style={styles.sectionTitle}>Certificat d'Aptitude Médicale</Text>
+					<Text style={styles.sectionTitle}>{t("medicalTitle")}</Text>
 					<View style={styles.optionalBadge}>
-						<Text style={styles.optionalText}>Recommandé</Text>
+						<Text style={styles.optionalText}>{t("medicalOptionalBadge")}</Text>
 					</View>
 				</View>
 				<Text style={styles.sectionSubtitle}>
-					Exigé pour les trajets interurbains et autoroutiers longue distance.
+					{t("medicalSubtitle")}
 				</Text>
 
 				<View style={styles.uploadWrapper}>
-					{medicalUri ? (
+					{medicalUri || medicalKey ? (
 						<TouchableOpacity
 							onPress={handleCaptureMedical}
 							style={styles.previewBox}
 						>
-							<Image source={{ uri: medicalUri }} style={styles.previewImage} />
+							{medicalUri ? (
+								<Image source={{ uri: medicalUri }} style={styles.previewImage} />
+							) : (
+								<View style={[styles.previewImage, { backgroundColor: "#18181b", alignItems: "center", justifyContent: "center" }]}>
+									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} color="#10b981" />
+									<Text style={{ fontSize: 11, fontWeight: "700", color: "#10b981", marginTop: 4 }}>
+										{t("medicalUploaded")}
+									</Text>
+								</View>
+							)}
 							<View style={styles.previewSuccessTag}>
 								<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
-								<Text style={styles.previewSuccessText}>Document téléversé</Text>
+								<Text style={styles.previewSuccessText}>{t("medicalUploaded")}</Text>
 							</View>
 						</TouchableOpacity>
 					) : (
@@ -177,8 +202,10 @@ export default function RegisterStep3DocumentsScreen() {
 							<View style={styles.cameraIconWrap}>
 								<HugeiconsIcon icon={HealthIcon} size={26} color="#ee237c" />
 							</View>
-							<Text style={styles.captureTitle}>Scanner le certificat médical</Text>
-							<Text style={styles.captureHint}>Document officiel datant de moins de 1 an</Text>
+							<Text style={styles.captureTitle}>{t("scanMedical")}</Text>
+							<Text style={styles.captureHint}>
+								{t("medicalHint")}
+							</Text>
 						</TouchableOpacity>
 					)}
 				</View>
@@ -187,9 +214,9 @@ export default function RegisterStep3DocumentsScreen() {
 			<View style={styles.complianceCard}>
 				<HugeiconsIcon icon={SecurityCheckIcon} size={20} color="#10b981" />
 				<View style={styles.complianceTextWrap}>
-					<Text style={styles.complianceTitle}>Confidentialité Garantie</Text>
+					<Text style={styles.complianceTitle}>{t("privacyTitle")}</Text>
 					<Text style={styles.complianceDesc}>
-						Vos pièces justificatives sont chiffrées de bout en bout et conservées conformément à la réglementation ARTCI.
+						{t("privacyDesc")}
 					</Text>
 				</View>
 			</View>
@@ -217,6 +244,17 @@ const styles = StyleSheet.create({
 		padding: 20,
 		gap: 12,
 	},
+	sectionTitle: {
+		fontSize: 16,
+		fontWeight: "800",
+		color: "#fafafa",
+		letterSpacing: -0.2,
+	},
+	sectionSubtitle: {
+		fontSize: 12,
+		color: "#a1a1aa",
+		lineHeight: 18,
+	},
 	cardHeaderRow: {
 		flexDirection: "row",
 		alignItems: "center",
@@ -233,17 +271,6 @@ const styles = StyleSheet.create({
 		fontWeight: "700",
 		color: "#60a5fa",
 		textTransform: "uppercase",
-	},
-	sectionTitle: {
-		fontSize: 16,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.2,
-	},
-	sectionSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 18,
 	},
 	inputsList: {
 		paddingTop: 4,
