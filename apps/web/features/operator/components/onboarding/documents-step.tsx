@@ -314,8 +314,8 @@ export function DocumentsStep({
 function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
   const t = useTranslations("onboarding.documents");
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop(acceptedFiles) {
-      onDrop(acceptedFiles as File[]);
+    onDrop: (acceptedFiles: File[]) => {
+      onDrop(acceptedFiles);
     },
     accept: {
       "application/pdf": [".pdf"],
