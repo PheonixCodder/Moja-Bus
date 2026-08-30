@@ -322,7 +322,7 @@ function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
       "image/*": [".jpeg", ".jpg", ".png"],
     },
     maxFiles: 1,
-  } as DropzoneOptions);
+  } as unknown as DropzoneOptions);
 
   return (
     <div
