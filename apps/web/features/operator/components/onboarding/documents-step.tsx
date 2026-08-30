@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useDropzone, type DropzoneOptions } from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
@@ -313,15 +313,10 @@ export function DocumentsStep({
 // Inner helper Dropzone component
 function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
   const t = useTranslations("onboarding.documents");
-  const onDropCallback = useCallback(
-    (acceptedFiles: File[]) => {
-      onDrop(acceptedFiles);
-    },
-    [onDrop],
-  );
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: onDropCallback as unknown as DropzoneOptions["onDrop"],
+    onDrop(acceptedFiles) {
+      onDrop(acceptedFiles as File[]);
+    },
     accept: {
       "application/pdf": [".pdf"],
       "image/*": [".jpeg", ".jpg", ".png"],
