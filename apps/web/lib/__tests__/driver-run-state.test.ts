@@ -8,6 +8,7 @@ import { describe, it } from "node:test";
 import {
   convergeDriversAfterRunEnd,
   resolvePostRunStatus,
+  resolveResumeDutyStatus,
   suspendDriverOperationalState,
 } from "../driver-run-state";
 
@@ -62,6 +63,23 @@ describe("resolvePostRunStatus", () => {
 
   it("parks off-shift drivers OFFLINE", () => {
     assert.equal(resolvePostRunStatus(false), "OFFLINE");
+  });
+});
+
+describe("resolveResumeDutyStatus (Phase 2C / DRV-P1-04)", () => {
+  it("returns ON_TRIP when the driver is actively on a trip", () => {
+    assert.equal(resolveResumeDutyStatus("trip_123", true), "ON_TRIP");
+    assert.equal(resolveResumeDutyStatus("trip_123", false), "ON_TRIP");
+  });
+
+  it("returns AVAILABLE when idle but with an open shift", () => {
+    assert.equal(resolveResumeDutyStatus(null, true), "AVAILABLE");
+    assert.equal(resolveResumeDutyStatus(undefined, true), "AVAILABLE");
+  });
+
+  it("returns OFFLINE when idle without an open shift", () => {
+    assert.equal(resolveResumeDutyStatus(null, false), "OFFLINE");
+    assert.equal(resolveResumeDutyStatus(undefined, false), "OFFLINE");
   });
 });
 

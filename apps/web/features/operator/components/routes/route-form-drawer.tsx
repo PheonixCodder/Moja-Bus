@@ -90,6 +90,7 @@ export function RouteFormDrawer({
   const [originId, setOriginId] = useState("");
   const [destId, setDestId] = useState("");
   const [distanceKm, setDistanceKm] = useState("");
+  const [turnaroundBufferMinutes, setTurnaroundBufferMinutes] = useState("");
   const [waypoints, setWaypoints] = useState<WaypointDraft[]>([]);
   const [addingStop, setAddingStop] = useState(false);
   const [newStopId, setNewStopId] = useState("");
@@ -234,6 +235,9 @@ export function RouteFormDrawer({
     setOriginId(editingRoute.originTerminalId);
     setDestId(editingRoute.destTerminalId);
     setDistanceKm(editingRoute.distanceKm?.toString() ?? "");
+    setTurnaroundBufferMinutes(
+      (editingRoute as any).turnaroundBufferMinutes?.toString() ?? "",
+    );
     setWaypoints(
       (editingRoute.waypoints ?? []).map((wp) => ({
         id: wp.id,
@@ -313,6 +317,11 @@ export function RouteFormDrawer({
       })),
     };
     if (distanceKm) payload.distanceKm = parseFloat(distanceKm);
+    if (turnaroundBufferMinutes) {
+      payload.turnaroundBufferMinutes = parseInt(turnaroundBufferMinutes, 10);
+    } else {
+      payload.turnaroundBufferMinutes = null;
+    }
 
     if (isEditing && editingRouteId) {
       updateMutation.mutate(
@@ -353,6 +362,7 @@ export function RouteFormDrawer({
     setOriginId("");
     setDestId("");
     setDistanceKm("");
+    setTurnaroundBufferMinutes("");
     setWaypoints([]);
     setAddingStop(false);
     setNewStopId("");
@@ -558,7 +568,7 @@ export function RouteFormDrawer({
               </div>
             </div>
 
-            {/* Distance & Duration Grid */}
+            {/* Distance & Turnaround Buffer Grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground">
@@ -571,6 +581,22 @@ export function RouteFormDrawer({
                   placeholder="e.g. 350"
                   value={distanceKm}
                   onChange={(e) => setDistanceKm(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground">
+                  {t("form.turnaroundBufferMinutes") || "Turnaround Buffer (min)"}
+                </Label>
+                <Input
+                  type="number"
+                  min={10}
+                  max={240}
+                  step={5}
+                  placeholder="45"
+                  value={turnaroundBufferMinutes}
+                  onChange={(e) => setTurnaroundBufferMinutes(e.target.value)}
                   className="text-sm"
                 />
               </div>

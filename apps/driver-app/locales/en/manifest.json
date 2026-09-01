@@ -22,5 +22,7 @@
   "alreadyBoardedMsg": "This passenger has already been scanned and validated on board.",
   "error": "Error",
   "checkInErrorMsg": "Unable to mark the passenger as boarded.",
-  "phoneAppErrorMsg": "Unable to open the phone app."
+  "phoneAppErrorMsg": "Unable to open the phone app.",
+  "btnScanQr": "Scan QR",
+  "fabScanQr": "Scan Tickets"
 }

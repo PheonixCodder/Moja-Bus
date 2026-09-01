@@ -28,6 +28,8 @@
   "btnManifest": "Manifest",
   "btnResume": "Resume",
   "btnStart": "Start",
+  "btnBoarding": "Board",
+  "btnScan": "Scan",
   "errorStartTripTitle": "Unable to Start Run",
   "errorStartTripMsg": "Please try again.",
   "errorLoadingTitle": "Unable to Load Trips",
@@ -39,5 +41,9 @@
   "noBusAssigned": "No Bus Assigned",
   "noCarrier": "No Carrier",
   "departureLabel": "Departure {{time}}",
-  "passengersLabel": "{{count}} / {{total}} Passengers"
+  "passengersLabel": "{{count}} / {{total}} Passengers",
+  "btnTakeOver": "Take Over Wheel",
+  "takeoverConfirmTitle": "Take Over Wheel",
+  "takeoverConfirmMsg": "You will take control of driving, navigation, and GPS telemetry transmission for this run.",
+  "takeoverSuccess": "You have taken over driving control."
 }

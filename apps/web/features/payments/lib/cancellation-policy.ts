@@ -39,9 +39,9 @@ export function shouldOpenPaystackForPendingPay(input: {
 }
 
 /**
- * P2-12 — single source of truth for refund math. Consumed by BOTH the
- * cancellation service (execution) and the passenger refund-quote preview,
- * so the dialog can never drift from what the service actually pays.
+ * P2-12 & Wave 1 Security Fix: Single source of truth for refund math.
+ * Consumed by BOTH the cancellation service (execution) and the passenger
+ * refund-quote preview, preventing promo-to-cash laundering.
  */
 export interface RefundQuoteInput {
   farePaid: number;
@@ -49,52 +49,103 @@ export interface RefundQuoteInput {
     seatCount: number;
     subtotalBaseXOF: number;
     operatorNetXOF: number;
+    chargeAmountXOF?: number | null;
+    creditAppliedXOF?: number | null;
+    ticketDiscountXOF?: number | null;
+    commissionXOF?: number | null;
+    convenienceFeeXOF?: number | null;
+    postDiscountSubtotalXOF?: number | null;
+    platformPromoFundedXOF?: number | null;
+    operatorPromoFundedXOF?: number | null;
   } | null;
   /** Seats already cancelled in the same hold group BEFORE this one. */
   cancelledSoFar: number;
   platformCommissionBps: number;
 }
 
-export function computeRefundQuote(input: RefundQuoteInput): {
+export interface RefundQuoteResult {
+  /** Cash refund amount to Moja Wallet or offline cash reimbursement (excludes non-refundable convenience fee). */
   refundAmountXOF: number;
+  /** Cash portion paid by the passenger to be returned to Moja Wallet. */
+  cashRefundXOF: number;
+  /** Promo credits portion to be restored to user's credit balance. */
+  creditRestoreXOF: number;
+  /** Operator net revenue to claw back from escrow/receivable. */
   operatorNetXOF: number;
+  /** Platform commission revenue to claw back. */
   commissionXOF: number;
-} {
+}
+
+export function computeRefundQuote(input: RefundQuoteInput): RefundQuoteResult {
   const { farePaid, pricingSnapshot, cancelledSoFar } = input;
 
-  let proportionalBase = farePaid;
-  let proportionalOperatorNet = farePaid;
-
-  if (pricingSnapshot) {
-    const isLastSeat = cancelledSoFar + 1 === pricingSnapshot.seatCount;
-    const standardBase = Math.round(
-      pricingSnapshot.subtotalBaseXOF / pricingSnapshot.seatCount,
-    );
-    const standardNet = Math.round(
-      pricingSnapshot.operatorNetXOF / pricingSnapshot.seatCount,
-    );
-
-    proportionalBase = isLastSeat
-      ? pricingSnapshot.subtotalBaseXOF - cancelledSoFar * standardBase
-      : standardBase;
-
-    proportionalOperatorNet = isLastSeat
-      ? pricingSnapshot.operatorNetXOF - cancelledSoFar * standardNet
-      : standardNet;
-  } else {
+  if (!pricingSnapshot || pricingSnapshot.seatCount <= 0) {
     const commission = Math.round(
-      (proportionalBase * input.platformCommissionBps) / 10_000,
+      (farePaid * input.platformCommissionBps) / 10_000,
     );
-    proportionalOperatorNet = Math.max(0, proportionalBase - commission);
+    const net = Math.max(0, farePaid - commission);
+    return {
+      refundAmountXOF: Math.max(0, farePaid),
+      cashRefundXOF: Math.max(0, farePaid),
+      creditRestoreXOF: 0,
+      operatorNetXOF: net,
+      commissionXOF: Math.max(0, farePaid - net),
+    };
   }
 
-  // D2 policy: ticket subtotal share only — convenience fee is never refunded.
-  const refundAmountXOF = Math.max(0, proportionalBase);
-  const net = Math.max(0, proportionalOperatorNet);
+  const seatCount = pricingSnapshot.seatCount;
+  const isLastSeat = cancelledSoFar + 1 === seatCount;
+
+  // Calculate total cash pool collected for the ticket portion across the hold group (convenience fee is non-refundable).
+  const postDiscountSubtotal =
+    pricingSnapshot.postDiscountSubtotalXOF ??
+    Math.max(
+      0,
+      pricingSnapshot.subtotalBaseXOF -
+        (pricingSnapshot.ticketDiscountXOF ?? 0),
+    );
+  const totalCreditPool = Math.max(0, pricingSnapshot.creditAppliedXOF ?? 0);
+  const totalCashPool = Math.max(
+    0,
+    postDiscountSubtotal - totalCreditPool,
+  );
+
+  // Proportional allocation per seat with dust absorption on the last seat.
+  const standardCash = Math.round(totalCashPool / seatCount);
+  const cashRefundXOF = isLastSeat
+    ? Math.max(0, totalCashPool - cancelledSoFar * standardCash)
+    : standardCash;
+
+  const standardCredit = Math.round(totalCreditPool / seatCount);
+  const creditRestoreXOF = isLastSeat
+    ? Math.max(0, totalCreditPool - cancelledSoFar * standardCredit)
+    : standardCredit;
+
+  const standardNet = Math.round(pricingSnapshot.operatorNetXOF / seatCount);
+  const operatorNetXOF = isLastSeat
+    ? Math.max(
+        0,
+        pricingSnapshot.operatorNetXOF - cancelledSoFar * standardNet,
+      )
+    : standardNet;
+
+  const totalCommissionPool =
+    pricingSnapshot.commissionXOF ??
+    Math.max(0, pricingSnapshot.subtotalBaseXOF - pricingSnapshot.operatorNetXOF);
+  const standardCommission = Math.round(totalCommissionPool / seatCount);
+  const commissionXOF = isLastSeat
+    ? Math.max(
+        0,
+        totalCommissionPool - cancelledSoFar * standardCommission,
+      )
+    : standardCommission;
 
   return {
-    refundAmountXOF,
-    operatorNetXOF: net,
-    commissionXOF: Math.max(0, refundAmountXOF - net),
+    refundAmountXOF: cashRefundXOF,
+    cashRefundXOF,
+    creditRestoreXOF,
+    operatorNetXOF,
+    commissionXOF,
   };
 }
+

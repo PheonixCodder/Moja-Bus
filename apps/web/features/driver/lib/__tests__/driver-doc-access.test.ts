@@ -115,3 +115,59 @@ describe("driverPresignDocSchema", () => {
     );
   });
 });
+
+describe("canDriverInvokeMutation (Phase 2E / DRV-P1-08)", () => {
+  it("allows VERIFIED drivers to invoke any operational or self-service mutation", async () => {
+    const { canDriverInvokeMutation } = await import(
+      "@/lib/driver-authorization"
+    );
+    assert.equal(canDriverInvokeMutation("VERIFIED", null, "startTrip"), true);
+    assert.equal(canDriverInvokeMutation("VERIFIED", null, "toggleShift"), true);
+    assert.equal(canDriverInvokeMutation("VERIFIED", null, "checkInPassenger"), true);
+    assert.equal(canDriverInvokeMutation("VERIFIED", null, "reportTripDelay"), true);
+    assert.equal(canDriverInvokeMutation("VERIFIED", null, "reportVehicleBreakdown"), true);
+    assert.equal(canDriverInvokeMutation("VERIFIED", null, "respondToOffer"), true);
+  });
+
+  it("allows unverified (PENDING / REJECTED / EXPIRED) idle drivers to invoke ONLY self-service allowlisted mutations", async () => {
+    const { canDriverInvokeMutation } = await import(
+      "@/lib/driver-authorization"
+    );
+    for (const status of ["PENDING", "REJECTED", "EXPIRED"]) {
+      // Allowed self-service mutations
+      assert.equal(canDriverInvokeMutation(status, null, "respondToOffer"), true, `${status} respondToOffer`);
+      assert.equal(canDriverInvokeMutation(status, null, "setServicePreference"), true, `${status} setServicePreference`);
+      assert.equal(canDriverInvokeMutation(status, null, "presignLicenseDoc"), true, `${status} presignLicenseDoc`);
+      assert.equal(canDriverInvokeMutation(status, null, "markMyOffersSeen"), true, `${status} markMyOffersSeen`);
+      assert.equal(canDriverInvokeMutation(status, null, "acknowledgeUrgentDispatch"), true, `${status} acknowledgeUrgentDispatch`);
+
+      // Blocked operational mutations
+      assert.equal(canDriverInvokeMutation(status, null, "startTrip"), false, `${status} startTrip`);
+      assert.equal(canDriverInvokeMutation(status, null, "toggleShift"), false, `${status} toggleShift`);
+      assert.equal(canDriverInvokeMutation(status, null, "checkInPassenger"), false, `${status} checkInPassenger`);
+      assert.equal(canDriverInvokeMutation(status, null, "manualCheckInPassenger"), false, `${status} manualCheckInPassenger`);
+      assert.equal(canDriverInvokeMutation(status, null, "batchSyncCheckIns"), false, `${status} batchSyncCheckIns`);
+      assert.equal(canDriverInvokeMutation(status, null, "recordStopArrival"), false, `${status} recordStopArrival`);
+      assert.equal(canDriverInvokeMutation(status, null, "recordStopDeparture"), false, `${status} recordStopDeparture`);
+      assert.equal(canDriverInvokeMutation(status, null, "reportTripDelay"), false, `${status} reportTripDelay`);
+      assert.equal(canDriverInvokeMutation(status, null, "reportVehicleBreakdown"), false, `${status} reportVehicleBreakdown`);
+      assert.equal(canDriverInvokeMutation(status, null, "handoverTripControl"), false, `${status} handoverTripControl`);
+    }
+  });
+
+  it("permits in-flight safety mutations for mid-run drivers under Phase 06 never-strand invariant", async () => {
+    const { canDriverInvokeMutation } = await import(
+      "@/lib/driver-authorization"
+    );
+    // Driver whose license expired mid-run (currentTripId = "trip-active-123")
+    assert.equal(canDriverInvokeMutation("EXPIRED", "trip-active-123", "completeTrip"), true);
+    assert.equal(canDriverInvokeMutation("EXPIRED", "trip-active-123", "reportTripDelay"), true);
+    assert.equal(canDriverInvokeMutation("EXPIRED", "trip-active-123", "reportVehicleBreakdown"), true);
+    assert.equal(canDriverInvokeMutation("EXPIRED", "trip-active-123", "recordStopArrival"), true);
+    assert.equal(canDriverInvokeMutation("EXPIRED", "trip-active-123", "checkInPassenger"), true);
+
+    // But cannot start NEW trips or clock on NEW shifts
+    assert.equal(canDriverInvokeMutation("EXPIRED", "trip-active-123", "startTrip"), false);
+    assert.equal(canDriverInvokeMutation("EXPIRED", "trip-active-123", "toggleShift"), false);
+  });
+});

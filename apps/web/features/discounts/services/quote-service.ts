@@ -206,6 +206,13 @@ export async function reserveDiscountOnHold(
 
   const postSub = q.preDiscountSubtotalXOF - q.ticketDiscountXOF;
 
+  const existingSnapshot = await tx.pricingSnapshot.findUnique({
+    where: { holdGroupId: input.holdGroupId },
+  });
+  const effectiveOperatorNetXOF = existingSnapshot
+    ? Math.max(0, existingSnapshot.operatorNetXOF - q.operatorFundedXOF)
+    : undefined;
+
   await tx.pricingSnapshot.updateMany({
     where: { holdGroupId: input.holdGroupId },
     data: {
@@ -214,6 +221,11 @@ export async function reserveDiscountOnHold(
       creditAppliedXOF: q.creditAppliedXOF,
       preDiscountSubtotalXOF: q.preDiscountSubtotalXOF,
       postDiscountSubtotalXOF: postSub,
+      chargeAmountXOF: q.chargeAmountXOF,
+      convenienceFeeXOF: Math.max(0, q.convenienceFeeXOF - q.feeDiscountXOF),
+      ...(effectiveOperatorNetXOF !== undefined
+        ? { operatorNetXOF: effectiveOperatorNetXOF }
+        : {}),
       platformPromoFundedXOF: q.platformFundedXOF,
       operatorPromoFundedXOF: q.operatorFundedXOF,
       discountBreakdownJson: q as unknown as Prisma.InputJsonValue,
@@ -243,6 +255,29 @@ export async function reserveDiscountOnHold(
     });
 
     if (inst.campaignId) {
+      if (input.userId) {
+        const campaignMeta = await tx.discountCampaign.findUnique({
+          where: { id: inst.campaignId },
+          select: { maxRedemptionsPerUser: true },
+        });
+        if (campaignMeta?.maxRedemptionsPerUser != null) {
+          const userActiveCount = await tx.discountRedemption.count({
+            where: {
+              campaignId: inst.campaignId,
+              userId: input.userId,
+              status: { in: ["RESERVED", "FINALIZED"] },
+              holdGroupId: { not: input.holdGroupId },
+            },
+          });
+          if (userActiveCount >= campaignMeta.maxRedemptionsPerUser) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "User redemption limit reached for this campaign.",
+            });
+          }
+        }
+      }
+
       const discountTotal = inst.ticketDiscountXOF + inst.feeDiscountXOF;
       if (discountTotal > 0) {
         // Serialize campaign row then conditionally reserve budget.

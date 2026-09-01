@@ -42,5 +42,6 @@
     "inProgress": "En cours",
     "statusActive": "En Cours"
   },
-  "carrierWeekMinutes": "{{minutes}} min cette semaine"
+  "carrierWeekMinutes": "{{minutes}} min cette semaine",
+  "carrierWeekTrips": "{{trips}} courses cette semaine"
 }

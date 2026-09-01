@@ -28,6 +28,8 @@
   "btnManifest": "Manifeste",
   "btnResume": "Reprendre",
   "btnStart": "Démarrer",
+  "btnBoarding": "Embarquer",
+  "btnScan": "Scanner",
   "errorStartTripTitle": "Impossible de démarrer la course",
   "errorStartTripMsg": "Veuillez réessayer.",
   "errorLoadingTitle": "Impossible de charger les trajets",
@@ -39,5 +41,9 @@
   "noBusAssigned": "Bus non assigné",
   "noCarrier": "Transporteur non assigné",
   "departureLabel": "Départ {{time}}",
-  "passengersLabel": "{{count}} / {{total}} Passagers"
+  "passengersLabel": "{{count}} / {{total}} Passagers",
+  "btnTakeOver": "Prendre le relais",
+  "takeoverConfirmTitle": "Prendre le volant",
+  "takeoverConfirmMsg": "Vous allez prendre le contrôle de la conduite, de la navigation et de la transmission GPS pour cette course.",
+  "takeoverSuccess": "Vous avez pris les commandes de la course."
 }

@@ -277,6 +277,46 @@ export const driverShiftToggleSchema = z.object({
 });
 export type DriverShiftToggleInput = z.infer<typeof driverShiftToggleSchema>;
 
+// Phase 2C (DRV-P1-04) — Mandated rest break tracking & RESTING state
+export const driverLogRestBreakSchema = z.object({
+  shiftId: z.string().cuid().optional(),
+  durationMinutes: z.number().int().min(5).max(120).default(30),
+  note: z.string().trim().max(200).optional(),
+});
+export type DriverLogRestBreakInput = z.infer<typeof driverLogRestBreakSchema>;
+
+export const driverResumeDutySchema = z
+  .object({
+    shiftId: z.string().cuid().optional(),
+  })
+  .optional();
+export type DriverResumeDutyInput = z.infer<typeof driverResumeDutySchema>;
+
+// Phase 2D (DRV-P1-07) — Vehicle Breakdown & Emergency Dispatch Protocol
+export const driverBreakdownTypeSchema = z.enum([
+  "ENGINE",
+  "TIRE",
+  "TRANSMISSION",
+  "ELECTRICAL",
+  "BRAKE",
+  "ACCIDENT",
+  "OTHER",
+]);
+export type DriverBreakdownType = z.infer<typeof driverBreakdownTypeSchema>;
+
+export const driverReportVehicleBreakdownSchema = z.object({
+  tripId: z.string().cuid(),
+  breakdownType: driverBreakdownTypeSchema,
+  description: z.string().trim().min(3, "Description is required").max(500),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  accuracyMeters: z.number().optional(),
+  delayMinutes: z.number().int().min(15).max(600).default(60),
+});
+export type DriverReportVehicleBreakdownInput = z.infer<
+  typeof driverReportVehicleBreakdownSchema
+>;
+
 // ============================================
 // PASSENGER REVIEW SCHEMAS (3-WAY RATING)
 // ============================================
@@ -383,6 +423,14 @@ export const driverCompleteTripSchema = z.object({
   // Phase 31 — same ruling for finalOdometerKm.
 });
 export type DriverCompleteTripInput = z.infer<typeof driverCompleteTripSchema>;
+
+export const driverHandoverTripControlSchema = z.object({
+  tripId: z.string().cuid(),
+  targetDriverProfileId: z.string().cuid().optional(),
+});
+export type DriverHandoverTripControlInput = z.infer<
+  typeof driverHandoverTripControlSchema
+>;
 
 export const driverReportDelaySchema = z.object({
   tripId: z.string().cuid(),

@@ -5,11 +5,14 @@ import {
   CLEAN_TRIP_CREDIT,
   CLEAN_TRIPS_PER_CREDIT,
   MAX_DAILY_PENALTY,
+  MAX_PING_ACCURACY_METERS,
   SAFETY_SCORE_CEILING,
   SAFETY_SCORE_START,
 } from "@/lib/driver-scoring";
 import {
+  computeDriverStreaksFromRecords,
   computeSegmentDistanceKm,
+  type CleanStreakTripRecord,
   type ReconcileStopCoordinate,
 } from "@/lib/telemetry-reconcile";
 
@@ -156,47 +159,56 @@ export async function GET(request: Request) {
     }
 
     // ── 4. Clean-streak credit (consecutive anomaly-free completed trips) ─
-    // Phase 29 (F-TM-14): a clean trip requires BOTH at least one persisted
-    // ping AND zero penalized anomalies — silent stretches no longer mint
-    // credit, and LOW_ACCURACY flags neither dirty a trip nor score.
+    // Phase 2A (DRV-P1-01): a clean trip requires:
+    //  a) Driver-specific telemetry binding (p."driverProfileId" = a."driverProfileId")
+    //  b) At least MIN_VALID_PINGS_FOR_CLEAN_TRIP (10) accurate fixes (accuracy <= 50m)
+    //  c) Telemetry span of at least MIN_TELEMETRY_SPAN_MINUTES (10 min)
+    //  d) Zero penalized anomalies (OVERSPEED, HARSH_BRAKING)
     const tripRows: Array<{
       driver: string;
       trip_id: string;
-      has_pings: boolean;
+      valid_pings: number;
+      span_minutes: number;
       dirty: boolean;
     }> = await prisma.$queryRaw`
       SELECT a."driverProfileId" AS driver,
              t."id" AS trip_id,
-      EXISTS (
-                SELECT 1 FROM "driver_location_ping" p
-                WHERE p."tripId" = t."id"
-                  AND p."recordedAt" >= ${pingCutoff}
-              ) AS has_pings,
-              EXISTS (
-                SELECT 1 FROM "driver_location_ping" p
-                WHERE p."tripId" = t."id"
-                  AND p."isAnomaly" = true
-                  AND p."anomalyReason" IN ('OVERSPEED','HARSH_BRAKING')
-                  AND p."recordedAt" >= ${pingCutoff}
-              ) AS dirty
+             COALESCE(stats.valid_pings, 0)::int AS valid_pings,
+             COALESCE(stats.span_minutes, 0)::float AS span_minutes,
+             COALESCE(stats.dirty, false) AS dirty
       FROM "trip_driver_assignment" a
       JOIN "trip" t ON t."id" = a."tripId"
+      LEFT JOIN LATERAL (
+        SELECT COUNT(p."id") FILTER (
+                 WHERE (p."accuracyMeters" IS NULL OR p."accuracyMeters" <= ${MAX_PING_ACCURACY_METERS})
+               ) AS valid_pings,
+               COALESCE(
+                 EXTRACT(EPOCH FROM (MAX(p."recordedAt") - MIN(p."recordedAt"))) / 60,
+                 0
+               ) AS span_minutes,
+               BOOL_OR(
+                 p."isAnomaly" = true AND p."anomalyReason" IN ('OVERSPEED', 'HARSH_BRAKING')
+               ) AS dirty
+        FROM "driver_location_ping" p
+        WHERE p."tripId" = t."id"
+          AND p."driverProfileId" = a."driverProfileId"
+          AND p."recordedAt" >= ${pingCutoff}
+      ) stats ON true
       WHERE t."status" = 'ARRIVED'
       ORDER BY a."driverProfileId",
                t."actualArrival" DESC NULLS LAST,
                t."departureDate" DESC
     `;
 
-    const streakByDriver = new Map<string, number>();
-    const seenStreakEnd = new Set<string>();
-    for (const row of tripRows) {
-      if (seenStreakEnd.has(row.driver)) continue; // streak already broken
-      if (!row.has_pings || row.dirty) {
-        seenStreakEnd.add(row.driver); // current streak ends here
-        continue;
-      }
-      streakByDriver.set(row.driver, (streakByDriver.get(row.driver) ?? 0) + 1);
-    }
+    const streakRecords: CleanStreakTripRecord[] = tripRows.map((r) => ({
+      driverProfileId: r.driver,
+      tripId: r.trip_id,
+      validPingCount: Number(r.valid_pings ?? 0),
+      telemetrySpanMinutes: Number(r.span_minutes ?? 0),
+      hasPenalizedAnomaly: Boolean(r.dirty),
+    }));
+
+    const streakByDriver = computeDriverStreaksFromRecords(streakRecords);
 
     // ── 5. Apply updates ─────────────────────────────────────────────────
     const affectedDriverIds = new Set<string>([

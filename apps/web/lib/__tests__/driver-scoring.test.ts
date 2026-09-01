@@ -6,7 +6,11 @@ import {
   isScoringAnomaly,
   MAX_DAILY_PENALTY,
 } from "../driver-scoring";
-import { computeSegmentDistanceKm } from "../telemetry-reconcile";
+import {
+  computeDriverCleanStreak,
+  computeDriverStreaksFromRecords,
+  computeSegmentDistanceKm,
+} from "../telemetry-reconcile";
 
 /**
  * Phase 29 — scoring-authority + reconcile-math tests.
@@ -124,5 +128,109 @@ describe("computeSegmentDistanceKm — ratio-calibrated segments", () => {
       routeDistanceKm: 100,
     });
     assert.equal(km, 100);
+  });
+});
+
+describe("computeDriverCleanStreak — anti-gaming telemetry gate (Phase 2A / DRV-P1-01)", () => {
+  const cleanTrip = {
+    validPingCount: 50,
+    telemetrySpanMinutes: 45,
+    hasPenalizedAnomaly: false,
+  };
+
+  it("10 consecutive clean runs with telemetry earn a full streak of 10", () => {
+    const trips = Array(10).fill(cleanTrip);
+    const streak = computeDriverCleanStreak(trips);
+    assert.equal(streak, 10);
+  });
+
+  it("terminates streak on a zero-ping (GPS disabled) trip", () => {
+    // 4 recent clean runs, then a silent trip, then 5 older clean runs
+    const trips = [
+      cleanTrip,
+      cleanTrip,
+      cleanTrip,
+      cleanTrip,
+      { validPingCount: 0, telemetrySpanMinutes: 0, hasPenalizedAnomaly: false },
+      cleanTrip,
+      cleanTrip,
+      cleanTrip,
+      cleanTrip,
+      cleanTrip,
+    ];
+    const streak = computeDriverCleanStreak(trips);
+    assert.equal(streak, 4);
+  });
+
+  it("terminates streak on a gate-only (1 ping) burst exploit", () => {
+    const trips = [
+      cleanTrip,
+      cleanTrip,
+      { validPingCount: 1, telemetrySpanMinutes: 0, hasPenalizedAnomaly: false },
+      cleanTrip,
+    ];
+    const streak = computeDriverCleanStreak(trips);
+    assert.equal(streak, 2);
+  });
+
+  it("terminates streak on a short burst (<10 minutes span)", () => {
+    const trips = [
+      cleanTrip,
+      { validPingCount: 20, telemetrySpanMinutes: 3, hasPenalizedAnomaly: false },
+      cleanTrip,
+    ];
+    const streak = computeDriverCleanStreak(trips);
+    assert.equal(streak, 1);
+  });
+
+  it("terminates streak on a penalized anomaly (OVERSPEED / HARSH_BRAKING)", () => {
+    const trips = [
+      cleanTrip,
+      cleanTrip,
+      cleanTrip,
+      { validPingCount: 60, telemetrySpanMinutes: 50, hasPenalizedAnomaly: true },
+      cleanTrip,
+    ];
+    const streak = computeDriverCleanStreak(trips);
+    assert.equal(streak, 3);
+  });
+
+  it("computeDriverStreaksFromRecords isolates multi-driver runs independently", () => {
+    const records = [
+      // Driver A: 2 clean runs
+      {
+        driverProfileId: "drv_a",
+        tripId: "trip_1",
+        validPingCount: 50,
+        telemetrySpanMinutes: 45,
+        hasPenalizedAnomaly: false,
+      },
+      {
+        driverProfileId: "drv_a",
+        tripId: "trip_2",
+        validPingCount: 40,
+        telemetrySpanMinutes: 30,
+        hasPenalizedAnomaly: false,
+      },
+      // Driver B (Relief on same trips): GPS disabled (0 pings)
+      {
+        driverProfileId: "drv_b",
+        tripId: "trip_1",
+        validPingCount: 0,
+        telemetrySpanMinutes: 0,
+        hasPenalizedAnomaly: false,
+      },
+      {
+        driverProfileId: "drv_b",
+        tripId: "trip_2",
+        validPingCount: 0,
+        telemetrySpanMinutes: 0,
+        hasPenalizedAnomaly: false,
+      },
+    ];
+
+    const streaks = computeDriverStreaksFromRecords(records);
+    assert.equal(streaks.get("drv_a"), 2);
+    assert.equal(streaks.get("drv_b"), 0);
   });
 });

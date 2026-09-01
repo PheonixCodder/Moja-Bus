@@ -22,5 +22,7 @@
   "alreadyBoardedMsg": "Ce passager a déjà été scanné et validé à bord.",
   "error": "Erreur",
   "checkInErrorMsg": "Impossible de marquer le passager comme embarqué.",
-  "phoneAppErrorMsg": "Impossible d'ouvrir l'application téléphone."
+  "phoneAppErrorMsg": "Impossible d'ouvrir l'application téléphone.",
+  "btnScanQr": "Scanner QR",
+  "fabScanQr": "Scanner les Billets"
 }

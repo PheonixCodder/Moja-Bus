@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
 	chunkQueue,
+	computeSmoothedSpeed,
+	evaluateOverspeedAlert,
 	nextWsBackoffMs,
 	shouldFlagHarshBraking,
 } from "../lib/telemetry-core";
@@ -78,5 +80,72 @@ describe("nextWsBackoffMs (Phase 09 Option B reconnect budget)", () => {
 	it("exhausts after the per-segment budget", () => {
 		assert.equal(nextWsBackoffMs(6), null);
 		assert.equal(nextWsBackoffMs(0), null);
+	});
+});
+
+describe("computeSmoothedSpeed (Phase 3B / DRV-P2-08)", () => {
+	it("initializes to raw speed when prev is null", () => {
+		assert.equal(computeSmoothedSpeed(80, null), 80);
+	});
+
+	it("snaps to 0 when raw speed is below stationary threshold (<2 km/h)", () => {
+		assert.equal(computeSmoothedSpeed(1.5, 50), 0);
+		assert.equal(computeSmoothedSpeed(0, 30), 0);
+	});
+
+	it("smooths fluctuating GPS speeds with alpha 0.35", () => {
+		// Starting at 80, receiving 100: 0.35 * 100 + 0.65 * 80 = 35 + 52 = 87
+		const s1 = computeSmoothedSpeed(100, 80);
+		assert.equal(Math.round(s1), 87);
+
+		// Next receiving 85: 0.35 * 85 + 0.65 * 87 = 29.75 + 56.55 = 86.3
+		const s2 = computeSmoothedSpeed(85, s1);
+		assert.equal(Math.round(s2), 86);
+	});
+});
+
+describe("evaluateOverspeedAlert (Phase 3B / DRV-P2-16)", () => {
+	const initialArmedState = { isArmed: true, lastAlertTimestamp: 0 };
+
+	it("triggers alert on rising edge over 110 km/h and disarms", () => {
+		const res = evaluateOverspeedAlert(112, initialArmedState, 1000);
+		assert.equal(res.shouldAlert, true);
+		assert.equal(res.nextState.isArmed, false);
+		assert.equal(res.nextState.lastAlertTimestamp, 1000);
+	});
+
+	it("does NOT re-trigger immediately while hovering above limit within cooldown window", () => {
+		const stateAfterAlert = { isArmed: false, lastAlertTimestamp: 1000 };
+		// 5 seconds later (within 15s cooldown)
+		const res = evaluateOverspeedAlert(114, stateAfterAlert, 6000);
+		assert.equal(res.shouldAlert, false);
+		assert.equal(res.nextState.isArmed, false);
+	});
+
+	it("re-triggers after cooldown window (15s) if still overspeeding", () => {
+		const stateAfterAlert = { isArmed: false, lastAlertTimestamp: 1000 };
+		// 16 seconds later
+		const res = evaluateOverspeedAlert(114, stateAfterAlert, 17000);
+		assert.equal(res.shouldAlert, true);
+		assert.equal(res.nextState.isArmed, false);
+		assert.equal(res.nextState.lastAlertTimestamp, 17000);
+	});
+
+	it("re-arms when speed drops below hysteresis band (<= 106 km/h)", () => {
+		const disarmedState = { isArmed: false, lastAlertTimestamp: 1000 };
+		// Drops to 108 (still in hysteresis dead-zone: not re-armed yet)
+		const res1 = evaluateOverspeedAlert(108, disarmedState, 2000);
+		assert.equal(res1.shouldAlert, false);
+		assert.equal(res1.nextState.isArmed, false);
+
+		// Drops to 105 (below 106 km/h: re-arms!)
+		const res2 = evaluateOverspeedAlert(105, disarmedState, 3000);
+		assert.equal(res2.shouldAlert, false);
+		assert.equal(res2.nextState.isArmed, true);
+
+		// Accelerates back to 112: triggers immediately because it was re-armed!
+		const res3 = evaluateOverspeedAlert(112, res2.nextState, 4000);
+		assert.equal(res3.shouldAlert, true);
+		assert.equal(res3.nextState.isArmed, false);
 	});
 });

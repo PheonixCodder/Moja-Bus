@@ -31,5 +31,12 @@
 	"offlineErrorMessage": "Appareil hors ligne. Scan enregistré localement, synchronisation dès le retour du réseau.",
 	"offlineTitle": "Enregistré Hors-Ligne",
 	"offlineMsg": "Sauvegardé • Passager autorisé à monter",
-	"seatPrefix": "Siège"
+	"seatPrefix": "Siège",
+	"targetDeparture": "Départ sélectionné",
+	"switchTrip": "Changer",
+	"allTripsAssigned": "Départs d'aujourd'hui",
+	"noActiveOrUpcomingTrip": "Aucun départ sélectionné",
+	"noUpcomingTodayMsg": "Sélectionnez un départ dans l'onglet Trajets pour lancer l'embarquement.",
+	"openManifest": "Manifeste",
+	"departedActiveBanner": "Course en cours"
 }

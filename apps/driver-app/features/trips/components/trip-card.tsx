@@ -8,6 +8,8 @@ import {
 	Time02Icon,
 	UserGroupIcon,
 	PlayIcon,
+	QrCode01Icon,
+	Navigation03Icon,
 } from "@hugeicons/core-free-icons";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -21,6 +23,8 @@ interface TripCardProps {
 	role: string;
 	onStartTrip: (tripId: string) => void;
 	isStarting?: boolean;
+	onTakeOverTrip?: (tripId: string) => void;
+	isTakingOver?: boolean;
 }
 
 export function TripCard({
@@ -30,6 +34,8 @@ export function TripCard({
 	role,
 	onStartTrip,
 	isStarting,
+	onTakeOverTrip,
+	isTakingOver,
 }: TripCardProps) {
 	const { t } = useTranslation("trips");
 	const router = useRouter();
@@ -41,6 +47,20 @@ export function TripCard({
 		minute: "2-digit",
 		hour12: false,
 	});
+
+	const isDriverRole = role === "PRIMARY" || role === "RELIEF";
+	const isDeparted = trip.status === "DEPARTED";
+	const isBoardable =
+		trip.status === "SCHEDULED" ||
+		trip.status === "BOARDING" ||
+		trip.status === "DELAYED";
+
+	const handleOpenBoardingScanner = () => {
+		router.push({
+			pathname: "/(tabs)/scanner",
+			params: { tripId: trip.id },
+		});
+	};
 
 	return (
 		<Card key={assignmentId} className="p-5 gap-4">
@@ -99,27 +119,63 @@ export function TripCard({
 				</View>
 			</View>
 
-			{/* Actions */}
-			<View style={styles.actionsRow}>
-				<Button
-					title={t("btnManifest")}
-					variant="outline"
-					size="md"
-					onPress={() => router.push(`/trip/${trip.id}/manifest`)}
-					className="flex-1"
-				/>
-
-				{trip.status !== "ARRIVED" && (
+			{/* Actions Row */}
+			<View style={styles.actionsContainer}>
+				<View style={styles.actionsRow}>
 					<Button
-						title={trip.status === "DEPARTED" ? t("btnResume") : t("btnStart")}
-						variant="primary"
+						title={t("btnManifest")}
+						variant="outline"
 						size="md"
-						loading={isStarting}
-						onPress={() => onStartTrip(trip.id)}
-						icon={<HugeiconsIcon icon={PlayIcon} size={16} color="#ffffff" />}
+						onPress={() => router.push(`/trip/${trip.id}/manifest`)}
 						className="flex-1"
 					/>
-				)}
+
+					{(isBoardable || isDeparted) && (
+						<Button
+							title={t("btnBoarding")}
+							variant="secondary"
+							size="md"
+							onPress={handleOpenBoardingScanner}
+							icon={<HugeiconsIcon icon={QrCode01Icon} size={16} color="#fafafa" />}
+							className="flex-1"
+						/>
+					)}
+
+					{isDeparted && role === "RELIEF" && (
+						<Button
+							title={t("btnTakeOver")}
+							variant="primary"
+							size="md"
+							loading={isTakingOver}
+							onPress={() => onTakeOverTrip?.(trip.id)}
+							icon={<HugeiconsIcon icon={Navigation03Icon} size={16} color="#ffffff" />}
+							className="flex-1"
+						/>
+					)}
+
+					{isDeparted && role === "PRIMARY" && (
+						<Button
+							title={t("btnResume")}
+							variant="primary"
+							size="md"
+							onPress={() => router.push("/(tabs)/live")}
+							icon={<HugeiconsIcon icon={Navigation03Icon} size={16} color="#ffffff" />}
+							className="flex-1"
+						/>
+					)}
+
+					{isBoardable && isDriverRole && (
+						<Button
+							title={t("btnStart")}
+							variant="primary"
+							size="md"
+							loading={isStarting}
+							onPress={() => onStartTrip(trip.id)}
+							icon={<HugeiconsIcon icon={PlayIcon} size={16} color="#ffffff" />}
+							className="flex-1"
+						/>
+					)}
+				</View>
 			</View>
 		</Card>
 	);
@@ -207,10 +263,14 @@ const styles = StyleSheet.create({
 		fontWeight: "600",
 		color: "#d4d4d8",
 	},
+	actionsContainer: {
+		width: "100%",
+		gap: 8,
+		paddingTop: 4,
+	},
 	actionsRow: {
 		flexDirection: "row",
 		alignItems: "center",
 		gap: 10,
-		paddingTop: 4,
 	},
 });

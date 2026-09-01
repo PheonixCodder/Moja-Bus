@@ -62,3 +62,84 @@ export function nextWsBackoffMs(attempt: number): number | null {
 
 /** How often the offline queue gets a background drain sweep while tracking. */
 export const FLUSH_SWEEP_INTERVAL_MS = 60_000;
+
+/**
+ * Speedometer EMA Smoothing (Phase 3B / DRV-P2-08).
+ * Alpha = 0.35 provides rapid responsiveness to genuine acceleration while
+ * rejecting GPS multi-path jitter. Speeds below 2.0 km/h snap directly to 0
+ * to prevent drift when vehicle is stationary.
+ */
+export const DEFAULT_SPEED_EMA_ALPHA = 0.35;
+export const STATIONARY_SPEED_THRESHOLD_KMH = 2.0;
+
+export function computeSmoothedSpeed(
+	rawSpeedKmh: number,
+	prevSmoothedKmh: number | null,
+	alpha = DEFAULT_SPEED_EMA_ALPHA,
+	stationaryThresholdKmh = STATIONARY_SPEED_THRESHOLD_KMH,
+): number {
+	if (rawSpeedKmh < stationaryThresholdKmh) {
+		return 0;
+	}
+	if (prevSmoothedKmh == null || prevSmoothedKmh < stationaryThresholdKmh) {
+		return rawSpeedKmh;
+	}
+	const smoothed = alpha * rawSpeedKmh + (1 - alpha) * prevSmoothedKmh;
+	return smoothed < stationaryThresholdKmh ? 0 : smoothed;
+}
+
+/**
+ * Overspeed Alert State Machine with Hysteresis & Rate-Limiting (Phase 3B / DRV-P2-16).
+ * - Limit: 110 km/h highway speed limit
+ * - Hysteresis band: 4 km/h (speed must fall below 106 km/h to re-arm)
+ * - Rate limit: minimum 15 seconds between alerts if sustained overspeed
+ */
+export const HIGHWAY_SPEED_LIMIT_KMH = 110;
+export const OVERSPEED_HYSTERESIS_DELTA_KMH = 4;
+export const OVERSPEED_ALERT_COOLDOWN_MS = 15_000;
+
+export interface OverspeedAlertState {
+	isArmed: boolean;
+	lastAlertTimestamp: number;
+}
+
+export function evaluateOverspeedAlert(
+	currentSpeedKmh: number,
+	state: OverspeedAlertState,
+	now = Date.now(),
+	speedLimitKmh = HIGHWAY_SPEED_LIMIT_KMH,
+	hysteresisDeltaKmh = OVERSPEED_HYSTERESIS_DELTA_KMH,
+	cooldownMs = OVERSPEED_ALERT_COOLDOWN_MS,
+): { shouldAlert: boolean; nextState: OverspeedAlertState } {
+	const resetThreshold = speedLimitKmh - hysteresisDeltaKmh;
+
+	// If speed drops below reset threshold, re-arm the trigger
+	if (currentSpeedKmh <= resetThreshold) {
+		return {
+			shouldAlert: false,
+			nextState: {
+				isArmed: true,
+				lastAlertTimestamp: state.lastAlertTimestamp,
+			},
+		};
+	}
+
+	// If speed exceeds limit
+	if (currentSpeedKmh > speedLimitKmh) {
+		const cooldownElapsed = now - state.lastAlertTimestamp >= cooldownMs;
+		if (state.isArmed || cooldownElapsed) {
+			return {
+				shouldAlert: true,
+				nextState: {
+					isArmed: false,
+					lastAlertTimestamp: now,
+				},
+			};
+		}
+	}
+
+	return {
+		shouldAlert: false,
+		nextState: state,
+	};
+}

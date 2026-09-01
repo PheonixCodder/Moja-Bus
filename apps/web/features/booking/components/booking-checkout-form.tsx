@@ -155,6 +155,9 @@ export function BookingCheckoutForm({
   const releaseHoldMutation = useMutation(
     trpc.booking.releaseHold.mutationOptions(),
   );
+  const checkoutWithWalletMutation = useMutation(
+    trpc.booking.checkoutWithWallet.mutationOptions(),
+  );
   const {
     completePayment,
     isPending: isPaymentPending,
@@ -221,7 +224,10 @@ export function BookingCheckoutForm({
   const walletAvailable = walletBalance?.availableBalance ?? 0;
   const canPayWithWallet =
     isLoggedIn && (isZeroCash || walletAvailable >= totalAmount);
-  const isSubmitting = createHoldMutation.isPending || isPaymentPending;
+  const isSubmitting =
+    createHoldMutation.isPending ||
+    checkoutWithWalletMutation.isPending ||
+    isPaymentPending;
 
   function updateAssignment(seatId: string, patch: Partial<SeatAssignment>) {
     setAssignments((prev) =>
@@ -328,10 +334,25 @@ export function BookingCheckoutForm({
       session?.user?.email ?? `guest-${Date.now()}@mojaride.com`;
 
     try {
-      const confirmed = await completePayment({
-        holdId: holdResult.holdId,
-        payerEmail: customerEmail,
-      });
+      let confirmed: {
+        holdId: string;
+        bookingReferences: string[];
+        ticketTokens: string[];
+        totalAmountXOF?: number;
+        successUrl?: string;
+      } | null = null;
+
+      if (paymentMethod === "WALLET" || isZeroCash) {
+        confirmed = await checkoutWithWalletMutation.mutateAsync({
+          holdId: holdResult.holdId,
+          locale: locale === "fr" ? "fr" : "en",
+        });
+      } else {
+        confirmed = await completePayment({
+          holdId: holdResult.holdId,
+          payerEmail: customerEmail,
+        });
+      }
 
       if (!confirmed) {
         return;

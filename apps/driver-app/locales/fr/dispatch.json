@@ -13,5 +13,7 @@
   "timedOut": "Délai de Dispatch Dépassé",
   "departs": "Départ {{time}}",
   "passengersCount": "{{booked}} / {{total}} Passagers",
-  "busPlate": "Bus {{plate}}"
+  "busPlate": "Bus {{plate}}",
+  "departingNow": "Départ immédiat",
+  "departsIn": "Départ dans {{minutes}} min"
 }

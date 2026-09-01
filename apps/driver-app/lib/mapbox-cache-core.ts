@@ -58,3 +58,45 @@ export function parseCacheEntry<T>(
     return null;
   }
 }
+
+export interface RawTripStopInput {
+	id?: string;
+	stopOrder?: number | null;
+	terminal?: {
+		name?: string | null;
+		latitude?: number | null;
+		longitude?: number | null;
+		isTerminal?: boolean | null;
+	} | null;
+}
+
+export interface RouteCoordinate {
+	latitude: number;
+	longitude: number;
+}
+
+/**
+ * Extracts and sorts valid coordinates from trip stops (Phase 3C / DRV-P2-11).
+ * Filters out null/undefined/non-finite coordinates.
+ */
+export function extractTripCoordinates(
+	stops: readonly RawTripStopInput[] | null | undefined,
+): RouteCoordinate[] {
+	if (!stops || stops.length === 0) return [];
+	return stops
+		.slice()
+		.sort((a, b) => (a.stopOrder ?? 0) - (b.stopOrder ?? 0))
+		.flatMap((stop) => {
+			const lat = stop.terminal?.latitude;
+			const lng = stop.terminal?.longitude;
+			if (
+				typeof lat === "number" &&
+				typeof lng === "number" &&
+				Number.isFinite(lat) &&
+				Number.isFinite(lng)
+			) {
+				return [{ latitude: lat, longitude: lng }];
+			}
+			return [];
+		});
+}

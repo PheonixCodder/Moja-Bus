@@ -812,6 +812,7 @@ export class BookingConfirmationService {
 
       const engine = new AccountingEngine("ORPHANED_PAYMENT_RESCUE", {
         externalPaymentId: payment.id,
+        idempotencyKey: `ORPHAN_RESCUE_${payment.id}`,
         description: `Rescued expired hold ${holdGroup.id} — full amount credited to passenger wallet`,
         metadata: { holdGroupId: holdGroup.id, originalPaymentId: payment.id },
       });

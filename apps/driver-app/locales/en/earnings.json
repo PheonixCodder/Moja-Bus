@@ -42,5 +42,6 @@
     "inProgress": "In Progress",
     "statusActive": "In Progress"
   },
-  "carrierWeekMinutes": "{{minutes}} min this week"
+  "carrierWeekMinutes": "{{minutes}} min this week",
+  "carrierWeekTrips": "{{trips}} trips this week"
 }

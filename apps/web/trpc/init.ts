@@ -310,15 +310,7 @@ const SUSPENDED_DENIED_READS = new Set([
   "getMyUrgentDispatches",
 ]);
 
-/**
- * Phase 14 (F-DV-15) — runtime policy, documented here as the single source:
- * only VERIFIED drivers may take operational actions. PENDING / REJECTED /
- * EXPIRED keep full read access plus the in-flight mutations that Phase 06's
- * never-strand invariant requires once a run has started (complete, report
- * delay) — but they cannot BEGIN operating. Marketplace suspension is a
- * different flag and deliberately does not affect app access (F-DV-15 note).
- */
-const NON_VERIFIED_DENIED_MUTATIONS = new Set(["startTrip", "toggleShift"]);
+import { canDriverInvokeMutation } from "@/lib/driver-authorization";
 
 export const driverProcedure = loadDriverProfile.use(
   ({ ctx, type, path, next }) => {
@@ -332,16 +324,20 @@ export const driverProcedure = loadDriverProfile.use(
             "Your driver account is suspended — you have read-only access. Contact your operator.",
         });
       }
-    } else if (
-      !canOperateRuns(ctx.driver.verificationStatus) &&
-      type === "mutation" &&
-      NON_VERIFIED_DENIED_MUTATIONS.has(procedureName)
-    ) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message:
-          "Your license verification is not approved yet — runs and shifts are locked until an operator verifies your account.",
-      });
+    } else if (type === "mutation") {
+      if (
+        !canDriverInvokeMutation(
+          ctx.driver.verificationStatus,
+          ctx.driver.currentTripId,
+          procedureName,
+        )
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Your license verification is not approved yet — operational actions and starting runs are locked until an operator verifies your account.",
+        });
+      }
     }
 
     return next({ ctx });

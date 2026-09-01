@@ -1390,6 +1390,10 @@ model Route {
 
   status RouteStatus @default(DRAFT)
 
+  /// Custom turnaround buffer in minutes for driver rest & bus turnaround.
+  /// When null, defaults to DRIVER_TURNAROUND_BUFFER_MINUTES (45 min).
+  turnaroundBufferMinutes Int?
+
   waypoints RouteWaypoint[]
   schedules Schedule[]
   campaignScopes CampaignRouteScope[]
@@ -2422,6 +2426,7 @@ model DriverLocationPing {
   @@index([recordedAt])
   @@index([tripId, recordedAt])
   @@index([driverProfileId, recordedAt])
+  @@index([driverProfileId, isAnomaly, recordedAt])
   @@map("driver_location_ping")
 }
 

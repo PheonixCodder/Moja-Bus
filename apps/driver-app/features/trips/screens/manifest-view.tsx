@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
 	View,
 	Text,
@@ -9,6 +9,7 @@ import {
 	Alert,
 	StyleSheet,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -18,6 +19,7 @@ import {
 	User02Icon,
 	Alert02Icon,
 	RefreshIcon,
+	QrCode01Icon,
 } from "@hugeicons/core-free-icons";
 import { useTRPC } from "@/lib/trpc";
 import { DriverFeedback } from "@/lib/haptics";
@@ -33,11 +35,26 @@ interface ManifestViewProps {
 
 export function ManifestView({ tripId }: ManifestViewProps) {
 	const { t } = useTranslation("manifest");
+	const router = useRouter();
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const insets = useSafeAreaInsets();
 
 	const [search, setSearch] = useState("");
+
+	// DRV-P2-15 — 300 ms debounce: TextInput stays instantly reactive while
+	// the manifest query only fires after the driver pauses typing.
+	const [debouncedSearch, setDebouncedSearch] = useState("");
+	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	useEffect(() => {
+		if (debounceRef.current) clearTimeout(debounceRef.current);
+		debounceRef.current = setTimeout(() => {
+			setDebouncedSearch(search);
+		}, 300);
+		return () => {
+			if (debounceRef.current) clearTimeout(debounceRef.current);
+		};
+	}, [search]);
 
 	const {
 		data: manifestData,
@@ -48,7 +65,7 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 	} = useQuery(
 		trpc.drivers.getMyTripManifest.queryOptions({
 			tripId,
-			search: search || undefined,
+			search: debouncedSearch || undefined,
 		})
 	);
 
@@ -119,6 +136,21 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 						/>
 					</View>
 				</View>
+
+				{/* Primary QR Scanner Launcher */}
+				<Button
+					title={t("fabScanQr")}
+					variant="primary"
+					size="md"
+					onPress={() => {
+						DriverFeedback.tap();
+						router.push({
+							pathname: "/(tabs)/scanner",
+							params: { tripId },
+						});
+					}}
+					icon={<HugeiconsIcon icon={QrCode01Icon} size={18} color="#ffffff" />}
+				/>
 
 				{/* Search Field */}
 				<View style={styles.searchBar}>

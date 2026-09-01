@@ -19,6 +19,8 @@ import {
 	Bus01Icon,
 	CheckmarkCircle02Icon,
 	ArrowRight01Icon,
+	Time02Icon,
+	PlayIcon,
 } from "@hugeicons/core-free-icons";
 import { DriverFeedback } from "@/lib/haptics";
 import { useTranslation } from "react-i18next";
@@ -29,7 +31,7 @@ import {
 } from "@/lib/telemetry";
 import { DriverNavigationMap } from "@/features/map/components/driver-navigation-map";
 import type { NavigationStop } from "@/features/map/components/driver-navigation-map";
-import { fetchRouteDirections } from "@/lib/mapbox";
+import { fetchRouteDirections, getCachedRouteDirections } from "@/lib/mapbox";
 import { useTRPC } from "@/lib/trpc";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -37,6 +39,8 @@ import { Badge } from "@/components/ui/Badge";
 import { colors } from "@/constants/theme";
 import { SpeedometerGauge } from "../components/speedometer-gauge";
 import { DelayModal } from "../components/delay-modal";
+import { BreakdownModal } from "../components/breakdown-modal";
+import type { DriverBreakdownType } from "@moja/schemas";
 
 export function LiveView() {
 	const { t } = useTranslation("live");
@@ -127,6 +131,179 @@ export function LiveView() {
 		})
 	);
 
+	const reliefAssignments = useMemo<
+		Array<{
+			role: string;
+			driverProfileId: string;
+			driverProfile: {
+				id: string;
+				user?: { fullName?: string | null };
+				fullName?: string;
+			};
+		}>
+	>(() => {
+		const assignments =
+			(activeTrip as any)?.driverAssignments ??
+			(activeTrip as any)?.tripDriverAssignments ??
+			[];
+		return assignments.filter(
+			(a: any) =>
+				a.role === "RELIEF" &&
+				a.driverProfileId !== profile?.id &&
+				a.driverProfile
+		);
+	}, [activeTrip, profile?.id]);
+
+	const handoverMutation = useMutation(
+		trpc.drivers.handoverTripControl.mutationOptions({
+			onSuccess: async () => {
+				DriverFeedback.successScan();
+				await stopBackgroundLocationTracking();
+				setTelemetryAuthToken(null);
+				queryClient.invalidateQueries();
+				Alert.alert(t("handoverTitle"), t("handoverSuccess"));
+				router.replace("/(tabs)/trips");
+			},
+			onError: (err: any) => {
+				DriverFeedback.invalidScan();
+				Alert.alert(t("confirmError"), err?.message ?? t("confirmErrorMsg"));
+			},
+		})
+	);
+
+	const handleHandoverControl = () => {
+		DriverFeedback.tap();
+		if (!activeTrip) return;
+		if (reliefAssignments.length === 0) {
+			Alert.alert(t("handoverTitle"), t("noReliefAssigned"));
+			return;
+		}
+
+		if (reliefAssignments.length === 1) {
+			const reliefDriver = reliefAssignments[0]?.driverProfile;
+			if (!reliefDriver) return;
+			const driverName =
+				reliefDriver.user?.fullName ??
+				reliefDriver.fullName ??
+				"Conducteur Relais";
+			Alert.alert(
+				t("handoverTitle"),
+				t("handoverConfirmMsg", { name: driverName }),
+				[
+					{ text: t("cancel") || "Annuler", style: "cancel" },
+					{
+						text: t("btnHandover"),
+						style: "destructive",
+						onPress: () => {
+							handoverMutation.mutate({
+								tripId: activeTrip.id,
+								targetDriverProfileId: reliefDriver.id,
+							});
+						},
+					},
+				]
+			);
+		} else {
+			const buttons = reliefAssignments.map((a) => {
+				const name =
+					a.driverProfile.user?.fullName ??
+					a.driverProfile.fullName ??
+					"Conducteur Relais";
+				return {
+					text: name,
+					onPress: () => {
+						handoverMutation.mutate({
+							tripId: activeTrip.id,
+							targetDriverProfileId: a.driverProfile.id,
+						});
+					},
+				};
+			});
+			Alert.alert(
+				t("handoverTitle"),
+				t("handoverSubtitle"),
+				[...buttons, { text: t("cancel") || "Annuler", style: "cancel" }]
+			);
+		}
+	};
+
+	const [restTargetResumeAt, setRestTargetResumeAt] = useState<Date | null>(null);
+	const [restMinutesRemaining, setRestMinutesRemaining] = useState<number>(30);
+
+	const isResting = profile?.status === "RESTING";
+
+	const logRestBreakMutation = useMutation(
+		trpc.drivers.logRestBreak.mutationOptions({
+			onSuccess: (res) => {
+				DriverFeedback.successScan();
+				const resumeTime = new Date(res.targetResumeAt);
+				setRestTargetResumeAt(resumeTime);
+				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
+				Alert.alert(t("restBreakTitle"), t("restBreakSubtitle"));
+			},
+			onError: (err: any) => {
+				DriverFeedback.invalidScan();
+				Alert.alert(t("confirmError"), err?.message ?? t("confirmErrorMsg"));
+			},
+		})
+	);
+
+	const resumeDutyMutation = useMutation(
+		trpc.drivers.resumeDuty.mutationOptions({
+			onSuccess: () => {
+				DriverFeedback.successScan();
+				setRestTargetResumeAt(null);
+				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
+				Alert.alert(t("btnResumeDuty"), t("dutyResumed"));
+			},
+			onError: (err: any) => {
+				DriverFeedback.invalidScan();
+				Alert.alert(t("confirmError"), err?.message ?? t("confirmErrorMsg"));
+			},
+		})
+	);
+
+	useEffect(() => {
+		if (!isResting) {
+			setRestTargetResumeAt(null);
+			return;
+		}
+		if (!restTargetResumeAt) {
+			setRestTargetResumeAt(new Date(Date.now() + 30 * 60_000));
+		}
+		const interval = setInterval(() => {
+			if (restTargetResumeAt) {
+				const diffMs = restTargetResumeAt.getTime() - Date.now();
+				const mins = Math.max(0, Math.ceil(diffMs / 60_000));
+				setRestMinutesRemaining(mins);
+			}
+		}, 1000);
+		return () => clearInterval(interval);
+	}, [isResting, restTargetResumeAt]);
+
+	const handleTakeBreak = () => {
+		DriverFeedback.tap();
+		Alert.alert(
+			t("breakConfirmTitle"),
+			t("breakConfirmMsg"),
+			[
+				{ text: t("cancel") || "Annuler", style: "cancel" },
+				{
+					text: t("btnTakeBreak"),
+					style: "default",
+					onPress: () => {
+						logRestBreakMutation.mutate({ durationMinutes: 30 });
+					},
+				},
+			]
+		);
+	};
+
+	const handleResumeDuty = () => {
+		DriverFeedback.tap();
+		resumeDutyMutation.mutate({});
+	};
+
 	const [currentLocation, setCurrentLocation] = useState<{
 		latitude: number;
 		longitude: number;
@@ -142,6 +319,46 @@ export function LiveView() {
 	const [delayMinutes, setDelayMinutes] = useState("15");
 	const [delayReason, setDelayReason] = useState<string>("TRAFFIC");
 	const [delayNote, setDelayNote] = useState("");
+
+	const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
+	const [breakdownType, setBreakdownType] = useState<DriverBreakdownType>("ENGINE");
+	const [breakdownDesc, setBreakdownDesc] = useState("");
+	const [breakdownDelayMinutes, setBreakdownDelayMinutes] = useState("60");
+	const [isBreakdownReported, setIsBreakdownReported] = useState(false);
+
+	const reportBreakdownMutation = useMutation(
+		trpc.drivers.reportVehicleBreakdown.mutationOptions({
+			onSuccess: () => {
+				DriverFeedback.successScan();
+				setIsBreakdownReported(true);
+				setBreakdownModalOpen(false);
+				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
+				Alert.alert(t("breakdownSuccessTitle"), t("breakdownSuccessMsg"));
+			},
+			onError: (err: any) => {
+				DriverFeedback.invalidScan();
+				Alert.alert(t("confirmError"), err?.message ?? t("confirmErrorMsg"));
+			},
+		})
+	);
+
+	const handleReportBreakdown = () => {
+		DriverFeedback.tap();
+		if (!activeTrip || !currentLocation) {
+			Alert.alert(t("confirmError"), t("breakdownGpsWaiting"));
+			return;
+		}
+		const mins = Number.parseInt(breakdownDelayMinutes, 10) || 60;
+		reportBreakdownMutation.mutate({
+			tripId: activeTrip.id,
+			breakdownType,
+			description: breakdownDesc.trim() || "Panne mécanique signalée par le conducteur",
+			latitude: currentLocation.latitude,
+			longitude: currentLocation.longitude,
+			accuracyMeters: currentLocation.accuracy,
+			delayMinutes: mins,
+		});
+	};
 
 	const isTripActive = activeTrip?.status === "DEPARTED";
 
@@ -238,7 +455,21 @@ export function LiveView() {
 	useEffect(() => {
 		if (!activeTrip || stops.length < 2) return;
 		let cancelled = false;
-		fetchRouteDirections(stops, `trip_${activeTrip.id}`).then((res) => {
+		const cacheKey = `trip_${activeTrip.id}`;
+
+		// Phase 3C (DRV-P2-11) — Mount immediately with cached road geometry
+		// so there is zero initial blank screen or delay in dead-zones.
+		void getCachedRouteDirections(cacheKey, true).then((cached) => {
+			if (!cancelled && cached) {
+				setRouteGeoJson(cached.geoJson);
+				setRouteIsApproximate(cached.isApproximate);
+				setRouteDurationSecs(
+					cached.isApproximate ? null : cached.durationSeconds,
+				);
+			}
+		});
+
+		fetchRouteDirections(stops, cacheKey).then((res) => {
 			if (!cancelled && res) {
 				setRouteGeoJson(res.geoJson);
 				setRouteIsApproximate(res.isApproximate);
@@ -367,10 +598,53 @@ export function LiveView() {
 				]}
 				showsVerticalScrollIndicator={false}
 			>
+				{/* Emergency Breakdown Active Banner */}
+				{isBreakdownReported && (
+					<View style={styles.breakdownBanner}>
+						<View style={styles.breakdownBannerLeft}>
+							<View style={styles.breakdownIconWrap}>
+								<HugeiconsIcon icon={Alert02Icon} size={22} color="#ef4444" />
+							</View>
+							<View style={styles.breakdownTextWrap}>
+								<Text style={styles.breakdownBannerTitle}>{t("breakdownBannerTitle")}</Text>
+								<Text style={styles.breakdownBannerDesc}>{t("breakdownBannerDesc")}</Text>
+							</View>
+						</View>
+					</View>
+				)}
+
+				{/* Mandated Safety Rest Break Banner */}
+				{isResting && (
+					<View style={styles.restBanner}>
+						<View style={styles.restBannerLeft}>
+							<View style={styles.restIconWrap}>
+								<HugeiconsIcon icon={Time02Icon} size={22} color="#38bdf8" />
+							</View>
+							<View style={styles.restBannerTextWrap}>
+								<Text style={styles.restBannerTitle}>{t("restBreakBannerTitle")}</Text>
+								<Text style={styles.restBannerCountdown}>
+									{restMinutesRemaining > 0
+										? t("restBreakRemaining", { minutes: restMinutesRemaining })
+										: t("restBreakOver")}
+								</Text>
+							</View>
+						</View>
+						<Button
+							title={t("btnResumeDuty")}
+							variant="primary"
+							size="sm"
+							loading={resumeDutyMutation.isPending}
+							onPress={handleResumeDuty}
+							icon={<HugeiconsIcon icon={PlayIcon} size={16} color="#ffffff" />}
+						/>
+					</View>
+				)}
+
 				{/* Speedometer Instrument HUD */}
 				<SpeedometerGauge
 					currentLocation={currentLocation as any}
-					isOverspeed={isOverspeed}
+					isOverspeed={!isResting && isOverspeed}
+					isActiveDriving={!isResting && isTripActive}
 				/>
 
 				{/* Waypoint Progression & Stop Checklist */}
@@ -545,8 +819,30 @@ export function LiveView() {
 					</View>
 				</Card>
 
-				{/* In-Trip Emergency / Delay Actions */}
+				{/* In-Trip Operations / Handover / Break / Delay Actions */}
 				<View style={styles.actionButtonsRow}>
+					{!isResting ? (
+						<Button
+							title={t("btnTakeBreak")}
+							variant="secondary"
+							size="md"
+							loading={logRestBreakMutation.isPending}
+							onPress={handleTakeBreak}
+							icon={<HugeiconsIcon icon={Time02Icon} size={18} color="#38bdf8" />}
+							className="flex-1"
+						/>
+					) : (
+						<Button
+							title={t("btnResumeDuty")}
+							variant="primary"
+							size="md"
+							loading={resumeDutyMutation.isPending}
+							onPress={handleResumeDuty}
+							icon={<HugeiconsIcon icon={PlayIcon} size={18} color="#ffffff" />}
+							className="flex-1"
+						/>
+					)}
+
 					<Button
 						title={t("btnReportDelay")}
 						variant="secondary"
@@ -558,6 +854,30 @@ export function LiveView() {
 						icon={<HugeiconsIcon icon={Alert02Icon} size={18} color="#f59e0b" />}
 						className="flex-1"
 					/>
+
+					<Button
+						title={t("btnReportBreakdown")}
+						variant="destructive"
+						size="md"
+						onPress={() => {
+							DriverFeedback.tap();
+							setBreakdownModalOpen(true);
+						}}
+						icon={<HugeiconsIcon icon={Alert02Icon} size={18} color="#ffffff" />}
+						className="flex-1"
+					/>
+
+					{reliefAssignments.length > 0 && (
+						<Button
+							title={t("btnHandover")}
+							variant="outline"
+							size="md"
+							loading={handoverMutation.isPending}
+							onPress={handleHandoverControl}
+							icon={<HugeiconsIcon icon={Navigation01Icon} size={18} color="#38bdf8" />}
+							className="flex-1"
+						/>
+					)}
 
 					<Button
 						title={t("btnEndTrip")}
@@ -582,6 +902,20 @@ export function LiveView() {
 				onDelayNoteChange={setDelayNote}
 				onSubmit={handleReportDelay}
 				submitting={reportDelayMutation.isPending}
+			/>
+
+			<BreakdownModal
+				open={breakdownModalOpen}
+				onClose={() => setBreakdownModalOpen(false)}
+				breakdownType={breakdownType}
+				onBreakdownTypeChange={setBreakdownType}
+				description={breakdownDesc}
+				onDescriptionChange={setBreakdownDesc}
+				delayMinutes={breakdownDelayMinutes}
+				onDelayMinutesChange={setBreakdownDelayMinutes}
+				currentLocation={currentLocation}
+				onSubmit={handleReportBreakdown}
+				submitting={reportBreakdownMutation.isPending}
 			/>
 		</View>
 	);
@@ -825,5 +1159,77 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		gap: 12,
 		paddingBottom: 24,
+	},
+	restBanner: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		backgroundColor: "rgba(56, 189, 248, 0.12)",
+		borderWidth: 1,
+		borderColor: "rgba(56, 189, 248, 0.3)",
+		padding: 14,
+		borderRadius: 16,
+		gap: 12,
+	},
+	restBannerLeft: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 10,
+		flex: 1,
+	},
+	restIconWrap: {
+		padding: 8,
+		borderRadius: 12,
+		backgroundColor: "rgba(56, 189, 248, 0.15)",
+	},
+	restBannerTextWrap: {
+		flex: 1,
+		gap: 2,
+	},
+	restBannerTitle: {
+		fontSize: 13,
+		fontWeight: "700",
+		color: "#fafafa",
+	},
+	restBannerCountdown: {
+		fontSize: 12,
+		fontWeight: "600",
+		color: "#38bdf8",
+	},
+	breakdownBanner: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		backgroundColor: "rgba(239, 68, 68, 0.12)",
+		borderWidth: 1,
+		borderColor: "rgba(239, 68, 68, 0.35)",
+		padding: 14,
+		borderRadius: 16,
+		gap: 12,
+	},
+	breakdownBannerLeft: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 10,
+		flex: 1,
+	},
+	breakdownIconWrap: {
+		padding: 8,
+		borderRadius: 12,
+		backgroundColor: "rgba(239, 68, 68, 0.2)",
+	},
+	breakdownTextWrap: {
+		flex: 1,
+		gap: 2,
+	},
+	breakdownBannerTitle: {
+		fontSize: 13,
+		fontWeight: "800",
+		color: "#ef4444",
+	},
+	breakdownBannerDesc: {
+		fontSize: 12,
+		color: "#d4d4d8",
+		lineHeight: 16,
 	},
 });

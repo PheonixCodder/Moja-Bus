@@ -13,5 +13,7 @@
   "timedOut": "Dispatch Timed Out",
   "departs": "Departs {{time}}",
   "passengersCount": "{{booked}} / {{total}} Passengers",
-  "busPlate": "Bus {{plate}}"
+  "busPlate": "Bus {{plate}}",
+  "departingNow": "Departing now",
+  "departsIn": "Departs in {{minutes}} min"
 }

@@ -194,6 +194,7 @@ export const routesRouter = createTRPCRouter({
           distanceKm: data.distanceKm ?? null,
           serviceType,
           status: data.status,
+          turnaroundBufferMinutes: data.turnaroundBufferMinutes ?? null,
           waypoints: {
             // M13: normalize stopOrder to 1..N (sequential, no gaps). The
             // origin terminal is 0 and the destination is derived as
@@ -382,6 +383,8 @@ export const routesRouter = createTRPCRouter({
       if (data.distanceKm !== undefined)
         updateData["distanceKm"] = data.distanceKm;
       if (data.status !== undefined) updateData["status"] = data.status;
+      if (data.turnaroundBufferMinutes !== undefined)
+        updateData["turnaroundBufferMinutes"] = data.turnaroundBufferMinutes;
       // Reclassify whenever the endpoints may have changed — also covers the
       // case where only waypoints changed but classification could shift. An
       // explicit serviceType toggle is persisted even without a terminal change.

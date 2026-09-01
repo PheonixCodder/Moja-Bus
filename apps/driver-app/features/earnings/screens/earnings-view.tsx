@@ -193,35 +193,62 @@ export function EarningsView() {
 					/>
 				</Card>
 
-				{/* Carrier Compensation Breakdown */}
+				{/* Carrier Compensation Breakdown — DRV-P2-10 */}
 				{earnings?.byCompany && earnings.byCompany.length > 0 && (
 					<View style={styles.sectionWrap}>
 						<Text style={styles.sectionHeader}>{t("carrierBreakdown")}</Text>
-						{earnings.byCompany.map((comp: any) => (
-							<Card key={comp.companyId} className="p-4 gap-2">
-								<View style={styles.companyRow}>
-									<View style={styles.companyLeft}>
-										<View style={styles.companyIconBox}>
-											<HugeiconsIcon icon={Building01Icon} size={16} color={colors.primary.rose} />
+						{earnings.byCompany.map(
+							// Decision 4: inferred tRPC type replaces comp:any
+							(comp: NonNullable<typeof earnings>["byCompany"][number]) => (
+								<Card key={comp.companyId} className="p-4 gap-2">
+									{/* Header row: company icon + name/rate + week amount */}
+									<View style={styles.companyRow}>
+										<View style={styles.companyLeft}>
+											<View style={styles.companyIconBox}>
+												<HugeiconsIcon icon={Building01Icon} size={16} color={colors.primary.rose} />
+											</View>
+											<View style={styles.companyNameWrap}>
+												<Text style={styles.companyName}>{comp.companyName}</Text>
+												<Text style={styles.companyType}>
+													{comp.employmentType?.replace(/_/g, " ")} • {comp.rateDescription}
+												</Text>
+											</View>
 										</View>
-										<View>
-											<Text style={styles.companyName}>{comp.companyName}</Text>
-											<Text style={styles.companyType}>
-												{comp.employmentType?.replace("_", " ")} • {comp.rateDescription}
+
+										<View style={styles.companyRight}>
+											{/* Decision 2: surface isEstimated badge */}
+											{comp.isEstimated && (
+												<Badge
+													variant="warning"
+													label={t("estimationBadge") || "Est."}
+												/>
+											)}
+											<Text style={styles.companyAmount}>
+												{comp.weekEarningsXof.toLocaleString()} XOF
 											</Text>
+											{/* Decision 3: conditional trips vs minutes by payModel */}
+											{comp.payModel === "PER_TRIP" ? (
+												<Text style={styles.companyMinutes}>
+													{t("carrierWeekTrips", { trips: comp.weekTrips })}
+												</Text>
+											) : (
+												<Text style={styles.companyMinutes}>
+													{t("carrierWeekMinutes", { minutes: comp.weekMinutes })}
+												</Text>
+											)}
 										</View>
 									</View>
-									<View style={styles.companyRight}>
-										<Text style={styles.companyAmount}>
-											{comp.weekEarningsXof.toLocaleString()} XOF
-										</Text>
-										<Text style={styles.companyMinutes}>
-											{t("carrierWeekMinutes", { minutes: comp.weekMinutes })}
+
+									{/* Decision 1: today's per-carrier earnings row */}
+									<View style={styles.companyTodayRow}>
+										<Text style={styles.companyTodayLabel}>{t("todayLabel")}</Text>
+										<Text style={styles.companyTodayAmount}>
+											{comp.todayEarningsXof.toLocaleString()} XOF
 										</Text>
 									</View>
-								</View>
-							</Card>
-						))}
+								</Card>
+							),
+						)}
 					</View>
 				)}
 
@@ -461,8 +488,13 @@ const styles = StyleSheet.create({
 		fontSize: 11,
 		color: "#a1a1aa",
 	},
+	companyNameWrap: {
+		flex: 1,
+		gap: 2,
+	},
 	companyRight: {
 		alignItems: "flex-end",
+		gap: 2,
 	},
 	companyAmount: {
 		fontSize: 13,
@@ -473,6 +505,28 @@ const styles = StyleSheet.create({
 	companyMinutes: {
 		fontSize: 10,
 		color: "#71717a",
+	},
+	companyTodayRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		paddingTop: 8,
+		marginTop: 4,
+		borderTopWidth: 1,
+		borderTopColor: "#27272a",
+	},
+	companyTodayLabel: {
+		fontSize: 10,
+		fontWeight: "700",
+		textTransform: "uppercase",
+		letterSpacing: 0.4,
+		color: "#71717a",
+	},
+	companyTodayAmount: {
+		fontSize: 12,
+		fontWeight: "700",
+		fontFamily: "monospace",
+		color: "#a1a1aa",
 	},
 	emptyLedgerTitle: {
 		fontSize: 12,

@@ -1,11 +1,10 @@
+import { type Href, Redirect } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { View, ActivityIndicator, Image, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Redirect } from "expo-router";
+
 import { authClient, ensureAuthCookiesFresh } from "@/lib/auth-client";
 import { getTrpcClient } from "@/lib/trpc";
 import { useDriverRegistrationStore } from "@/stores/driver-registration";
-import { colors } from "@/constants/theme";
 
 type AuthState =
 	| "loading"
@@ -14,6 +13,24 @@ type AuthState =
 	| "needs-status"
 	| "needs-pref"
 	| "authenticated";
+
+const REDIRECT_ROUTES: Record<
+	Exclude<AuthState, "loading" | "needs-register">,
+	Href
+> = {
+	unauthenticated: "/(auth)/login",
+	"needs-status": "/(auth)/register/status",
+	"needs-pref": "/(auth)/preferences",
+	authenticated: "/(tabs)/trips",
+};
+
+/** Registration step routes, indexed by `currentStep - 1`. */
+const REGISTRATION_STEP_ROUTES = [
+	"/(auth)/register",
+	"/(auth)/register/license",
+	"/(auth)/register/documents",
+	"/(auth)/register/carrier",
+] as const;
 
 async function fetchDriverStatus(): Promise<{
 	hasProfile: boolean;
@@ -47,6 +64,7 @@ export default function IndexScreen() {
 
 	useEffect(() => {
 		let isMounted = true;
+
 		async function checkAuth() {
 			try {
 				const session = await authClient.getSession();
@@ -74,6 +92,8 @@ export default function IndexScreen() {
 			}
 		}
 
+		// Small delay lets Better Auth's SecureStore-backed session
+		// initialise on cold boot before the first getSession() call.
 		const timer = setTimeout(() => {
 			checkAuth();
 		}, 100);
@@ -84,65 +104,31 @@ export default function IndexScreen() {
 		};
 	}, []);
 
-	if (authState === "unauthenticated") {
-		return <Redirect href="/(auth)/login" />;
+	// Once the auth state is resolved, hide the native splash screen.
+	useEffect(() => {
+		if (authState !== "loading") {
+			SplashScreen.hideAsync().catch(() => {});
+		}
+	}, [authState]);
+
+	// While auth state is being determined the native splash screen
+	// (kept visible by preventAutoHideAsync in _layout.tsx) covers the
+	// viewport — return null to avoid a flash.
+	if (authState === "loading") {
+		return null;
 	}
 
+	// Resolve the registration step route (resumes at the correct step).
 	if (authState === "needs-register") {
 		const { currentStep, verifiedAt } = useDriverRegistrationStore.getState();
-		const stepRoutes = [
-			"/(auth)/register",
-			"/(auth)/register/license",
-			"/(auth)/register/documents",
-			"/(auth)/register/carrier",
-		] as const;
 		const targetRoute =
 			verifiedAt && currentStep > 1
-				? stepRoutes[Math.min(currentStep - 1, stepRoutes.length - 1)]
+				? REGISTRATION_STEP_ROUTES[
+						Math.min(currentStep - 1, REGISTRATION_STEP_ROUTES.length - 1)
+					]
 				: "/(auth)/register";
-		return <Redirect href={targetRoute as any} />;
+		return <Redirect href={targetRoute as Href} />;
 	}
 
-	if (authState === "needs-status") {
-		return <Redirect href="/(auth)/register/status" />;
-	}
-
-	if (authState === "needs-pref") {
-		return <Redirect href="/(auth)/preferences" />;
-	}
-
-	if (authState === "authenticated") {
-		return <Redirect href="/(tabs)/trips" />;
-	}
-
-	return (
-		<SafeAreaView
-			style={{ flex: 1, backgroundColor: "#09090b" }}
-			className="flex-1 bg-[#09090b]"
-		>
-			<View
-				style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-				className="px-6 gap-4"
-			>
-				<Image
-					source={require("../assets/images/icon.png")}
-					style={{ width: 88, height: 88, borderRadius: 22 }}
-					resizeMode="contain"
-				/>
-				<View className="items-center">
-					<Text className="text-2xl font-bold text-[#fafafa] tracking-tight">
-						Moja Driver
-					</Text>
-					<Text className="text-xs text-[#a1a1aa] mt-1">
-						Portail Chauffeur Professionnel
-					</Text>
-				</View>
-				<ActivityIndicator
-					size="small"
-					color={colors.primary.rose}
-					style={{ marginTop: 24 }}
-				/>
-			</View>
-		</SafeAreaView>
-	);
+	return <Redirect href={REDIRECT_ROUTES[authState]} />;
 }

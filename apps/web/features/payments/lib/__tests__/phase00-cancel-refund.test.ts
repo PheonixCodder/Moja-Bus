@@ -179,3 +179,76 @@ describe("Phase 00 multi-seat refund idempotency keys", () => {
     assert.equal(new Set(keys).size, 3);
   });
 });
+
+describe("Wave 1 split-tender and promo cancellation math", () => {
+  const { computeRefundQuote } = require("../cancellation-policy");
+
+  it("refunds full cash when booking was 100% cash", () => {
+    const quote = computeRefundQuote({
+      farePaid: 10000,
+      pricingSnapshot: {
+        seatCount: 1,
+        subtotalBaseXOF: 10000,
+        operatorNetXOF: 9500,
+        chargeAmountXOF: 10250,
+        convenienceFeeXOF: 250,
+        creditAppliedXOF: 0,
+        ticketDiscountXOF: 0,
+        commissionXOF: 500,
+      },
+      cancelledSoFar: 0,
+      platformCommissionBps: 500,
+    });
+
+    assert.equal(quote.cashRefundXOF, 10000);
+    assert.equal(quote.creditRestoreXOF, 0);
+    assert.equal(quote.operatorNetXOF, 9500);
+    assert.equal(quote.commissionXOF, 500);
+  });
+
+  it("restores promo credits and zero cash when booking was 100% promo credits", () => {
+    const quote = computeRefundQuote({
+      farePaid: 10000,
+      pricingSnapshot: {
+        seatCount: 1,
+        subtotalBaseXOF: 10000,
+        operatorNetXOF: 9500,
+        chargeAmountXOF: 0,
+        convenienceFeeXOF: 0,
+        creditAppliedXOF: 10000,
+        ticketDiscountXOF: 0,
+        commissionXOF: 500,
+      },
+      cancelledSoFar: 0,
+      platformCommissionBps: 500,
+    });
+
+    assert.equal(quote.cashRefundXOF, 0);
+    assert.equal(quote.creditRestoreXOF, 10000);
+    assert.equal(quote.operatorNetXOF, 9500);
+    assert.equal(quote.commissionXOF, 500);
+  });
+
+  it("splits cash and promo credits accurately on split tender", () => {
+    const quote = computeRefundQuote({
+      farePaid: 10000,
+      pricingSnapshot: {
+        seatCount: 1,
+        subtotalBaseXOF: 10000,
+        operatorNetXOF: 9500,
+        chargeAmountXOF: 6250,
+        convenienceFeeXOF: 250,
+        creditAppliedXOF: 4000,
+        ticketDiscountXOF: 0,
+        commissionXOF: 500,
+      },
+      cancelledSoFar: 0,
+      platformCommissionBps: 500,
+    });
+
+    assert.equal(quote.cashRefundXOF, 6000);
+    assert.equal(quote.creditRestoreXOF, 4000);
+    assert.equal(quote.operatorNetXOF, 9500);
+    assert.equal(quote.commissionXOF, 500);
+  });
+});

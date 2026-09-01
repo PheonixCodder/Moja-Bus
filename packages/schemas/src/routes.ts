@@ -109,6 +109,13 @@ export const createRouteSchema = z
     distanceKm: z.coerce.number().min(0).optional().nullable(),
     status: routeStatusEnum.default("ACTIVE"),
     serviceType: serviceTypeEnum.optional(),
+    turnaroundBufferMinutes: z.coerce
+      .number()
+      .int()
+      .min(10, "Minimum turnaround is 10 minutes")
+      .max(240, "Maximum turnaround is 240 minutes")
+      .optional()
+      .nullable(),
     waypoints: z.array(waypointSchema).max(50, "Maximum of 50 stops allowed").default([]),
   })
   .superRefine((data, ctx) => {
@@ -156,6 +163,13 @@ export const updateRouteSchema = z
     distanceKm: z.coerce.number().min(0).optional().nullable(),
     status: routeStatusEnum.optional(),
     serviceType: serviceTypeEnum.optional(),
+    turnaroundBufferMinutes: z.coerce
+      .number()
+      .int()
+      .min(10, "Minimum turnaround is 10 minutes")
+      .max(240, "Maximum turnaround is 240 minutes")
+      .optional()
+      .nullable(),
     waypoints: z.array(waypointSchema).max(50).optional(),
   })
   .superRefine((data, ctx) => {

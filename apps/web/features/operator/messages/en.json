@@ -435,6 +435,7 @@
         "selectDestination": "Select destination terminal…",
         "noTerminalFound": "No terminal found.",
         "distanceKm": "Total distance (km)",
+        "turnaroundBufferMinutes": "Turnaround buffer (min)",
         "stopSequence": "Stop sequence",
         "selectTerminal": "Select a terminal…",
         "add": "Add",

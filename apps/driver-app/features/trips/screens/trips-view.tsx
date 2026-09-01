@@ -29,6 +29,7 @@ import {
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { colors } from "@/constants/theme";
+import { prefetchTripRouteDirections } from "@/lib/mapbox";
 import { ModeSwitcher, type ServiceMode } from "../components/mode-switcher";
 import { TripCard } from "../components/trip-card";
 
@@ -60,8 +61,36 @@ export function TripsView() {
 		refetchInterval: 30_000,
 	});
 
+	// Phase 3C (DRV-P2-11) — Pre-cache route geometries in AsyncStorage
+	// for assigned upcoming trips so live navigation opens with zero lag
+	// and never drops to straight lines in terminal dead-zones.
+	React.useEffect(() => {
+		if (!tripsData?.items || tripsData.items.length === 0) return;
+		for (const item of tripsData.items) {
+			const trip = item.trip;
+			if (trip?.tripStops && trip.tripStops.length >= 2) {
+				void prefetchTripRouteDirections(trip.id, trip.tripStops).catch(
+					(err) => {
+						console.warn(
+							`[RoutePreCache] Background prefetch failed for trip ${trip.id}:`,
+							err?.message,
+						);
+					},
+				);
+			}
+		}
+	}, [tripsData?.items]);
+
 	const startTripMutation = useMutation(
 		trpc.drivers.startTrip.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries();
+			},
+		})
+	);
+
+	const takeOverTripMutation = useMutation(
+		trpc.drivers.handoverTripControl.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries();
 			},
@@ -90,6 +119,45 @@ export function TripsView() {
 			console.warn("[StartTrip] Error starting run:", err?.message);
 			Alert.alert(t("errorStartTripTitle"), err?.message ?? t("errorStartTripMsg"));
 		}
+	};
+
+	const handleTakeOverTrip = (tripId: string) => {
+		DriverFeedback.tap();
+		Alert.alert(
+			t("takeoverConfirmTitle"),
+			t("takeoverConfirmMsg"),
+			[
+				{ text: t("cancel", { ns: "live" }) || "Annuler", style: "cancel" },
+				{
+					text: t("btnTakeOver"),
+					style: "default",
+					onPress: async () => {
+						try {
+							const res = await takeOverTripMutation.mutateAsync({ tripId });
+							if (res.telemetryToken) {
+								setTelemetryAuthToken(res.telemetryToken);
+								setTelemetryReauthHandler(async () => {
+									try {
+										const minted = await queryClient.fetchQuery(
+											trpc.drivers.getTelemetryToken.queryOptions({ tripId }),
+										);
+										setTelemetryAuthToken(minted.telemetryToken);
+										return minted.telemetryToken;
+									} catch {
+										return null;
+									}
+								});
+								await startBackgroundLocationTracking(res.activeDriverProfileId, tripId);
+							}
+							router.push("/(tabs)/live");
+						} catch (err: any) {
+							console.warn("[TakeOverTrip] Error taking over run:", err?.message);
+							Alert.alert(t("errorStartTripTitle"), err?.message ?? t("errorStartTripMsg"));
+						}
+					},
+				},
+			]
+		);
 	};
 
 	const trips = tripsData?.items ?? [];
@@ -203,6 +271,8 @@ export function TripsView() {
 							role={role}
 							onStartTrip={handleStartTrip}
 							isStarting={startTripMutation.isPending}
+							onTakeOverTrip={handleTakeOverTrip}
+							isTakingOver={takeOverTripMutation.isPending}
 						/>
 					))
 				)}

@@ -685,6 +685,7 @@ export class PaymentService {
     await this.prisma.$transaction(async (tx) => {
       const engine = new AccountingEngine("TOP_UP", {
         externalPaymentId: payment.id,
+        idempotencyKey: `TOP_UP_${payment.id}`,
         description: `Wallet top up via Paystack`,
       });
 

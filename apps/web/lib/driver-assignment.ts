@@ -13,12 +13,14 @@ import {
  */
 
 /**
- * Conservative effective speed for duration estimation when a trip has no
- * computed arrival (legacy rows). Slower-than-reality on purpose: an
- * over-long busy window blocks a borderline assignment safely, while an
- * under-estimate would silently allow double-bookings.
+ * Phase 3A (DRV-P2-18) — Conservative effective speed for duration estimation when a trip has no
+ * computed arrival (legacy rows). Slower-than-reality on purpose to prevent false clears,
+ * calibrated to Côte d'Ivoire transit realities:
+ * - 55 km/h on intercity autoroutes.
+ * - 30 km/h in dense urban transit.
  */
-const FALLBACK_EFFECTIVE_SPEED_KMH = 35;
+export const FALLBACK_INTERCITY_SPEED_KMH = 55;
+export const FALLBACK_URBAN_SPEED_KMH = 30;
 
 export function driverInterval(
   departureDate: Date,
@@ -27,6 +29,10 @@ export function driverInterval(
   routeDistanceKm?: number | null,
 ): { startMs: number; endMs: number } {
   const startMs = new Date(departureDate).getTime();
+  const speed =
+    serviceType === "URBAN"
+      ? FALLBACK_URBAN_SPEED_KMH
+      : FALLBACK_INTERCITY_SPEED_KMH;
   const fallbackMinutes =
     serviceType === "URBAN"
       ? URBAN_TRIP_DEFAULT_MINUTES
@@ -34,8 +40,7 @@ export function driverInterval(
   const endMs = estimatedArrival
     ? new Date(estimatedArrival).getTime()
     : routeDistanceKm && routeDistanceKm > 0
-      ? startMs +
-        (routeDistanceKm / FALLBACK_EFFECTIVE_SPEED_KMH) * 60 * 60 * 1000
+      ? startMs + (routeDistanceKm / speed) * 60 * 60 * 1000
       : startMs + fallbackMinutes * 60 * 1000;
   return { startMs, endMs };
 }
@@ -47,13 +52,20 @@ export type DriverTripConflict = {
   busyUntilIso: string;
 };
 
-/** One pre-fetched assignment row handed to findTripConflict (Phase 27). */
+export type TargetTripInterval = {
+  startMs: number;
+  endMs: number;
+  turnaroundBufferMinutes?: number | null | undefined;
+};
+
+/** One pre-fetched assignment row handed to findTripConflict (Phase 27/Phase 3A). */
 export type TripConflictCandidate = {
   tripId: string;
   departureDate: Date;
   estimatedArrival: Date | null | undefined;
   serviceType: string | null | undefined;
   routeDistanceKm: number | null | undefined;
+  turnaroundBufferMinutes?: number | null | undefined;
   originCity: string | null | undefined;
   destCity: string | null | undefined;
   routeName: string | null | undefined;
@@ -62,17 +74,18 @@ export type TripConflictCandidate = {
 };
 
 /**
- * Phase 27 (F-OP-14) — the interval-overlap core shared by BOTH query
+ * Phase 27 (F-OP-14) / Phase 3A (DRV-P2-13) — the interval-overlap core shared by BOTH query
  * strategies (single-driver scan and roster-batch scan): one math source for
- * buffer semantics and conflict selection, so the two paths can never
- * silently diverge. Candidates are consumed in the order given — callers pass
- * deterministic order (departure asc, id asc).
+ * asymmetric route turnaround buffer semantics and conflict selection.
  */
 export function findTripConflict(
-  target: { startMs: number; endMs: number },
+  target: TargetTripInterval,
   candidates: TripConflictCandidate[],
 ): DriverTripConflict | null {
-  const bufferMs = DRIVER_TURNAROUND_BUFFER_MINUTES * 60 * 1000;
+  const targetBufferMinutes =
+    target.turnaroundBufferMinutes ?? DRIVER_TURNAROUND_BUFFER_MINUTES;
+  const targetBufferMs = targetBufferMinutes * 60 * 1000;
+
   for (const row of candidates) {
     const existing = driverInterval(
       row.departureDate,
@@ -80,9 +93,15 @@ export function findTripConflict(
       row.serviceType ?? "INTERCITY",
       row.routeDistanceKm ?? null,
     );
+    const existingBufferMinutes =
+      row.turnaroundBufferMinutes ?? DRIVER_TURNAROUND_BUFFER_MINUTES;
+    const existingBufferMs = existingBufferMinutes * 60 * 1000;
+
+    // Asymmetric overlap condition
     const overlaps =
-      target.startMs < existing.endMs + bufferMs &&
-      existing.startMs < target.endMs + bufferMs;
+      target.startMs < existing.endMs + existingBufferMs &&
+      existing.startMs < target.endMs + targetBufferMs;
+
     if (overlaps) {
       const label =
         row.originCity && row.destCity
@@ -92,7 +111,7 @@ export function findTripConflict(
         tripId: row.tripId,
         routeName: label,
         companyName: row.companyName ?? "",
-        busyUntilIso: new Date(existing.endMs + bufferMs).toISOString(),
+        busyUntilIso: new Date(existing.endMs + existingBufferMs).toISOString(),
       };
     }
   }
@@ -112,15 +131,19 @@ export async function getDriverTripConflict(
     estimatedArrival?: Date | null;
     serviceType: string;
     routeDistanceKm?: number | null;
+    turnaroundBufferMinutes?: number | null;
     excludeTripId?: string;
   },
 ): Promise<DriverTripConflict | null> {
-  const target = driverInterval(
-    opts.departureDate,
-    opts.estimatedArrival,
-    opts.serviceType,
-    opts.routeDistanceKm ?? null,
-  );
+  const target = {
+    ...driverInterval(
+      opts.departureDate,
+      opts.estimatedArrival,
+      opts.serviceType,
+      opts.routeDistanceKm ?? null,
+    ),
+    turnaroundBufferMinutes: opts.turnaroundBufferMinutes,
+  };
 
   const windowStart = new Date(target.startMs - 16 * 60 * 60 * 1000);
   const windowEnd = new Date(target.endMs + 16 * 60 * 60 * 1000);
@@ -136,8 +159,7 @@ export async function getDriverTripConflict(
       },
     },
     // Phase 27 (F-OP-14) — deterministic candidate order: soonest departure
-    // first, id as tiebreaker. Which conflict wins a multi-overlap scan must
-    // not depend on heap/insertion order.
+    // first, id as tiebreaker.
     orderBy: [{ trip: { departureDate: "asc" } }, { id: "asc" }],
     select: {
       tripId: true,
@@ -154,6 +176,7 @@ export async function getDriverTripConflict(
                 select: {
                   name: true,
                   distanceKm: true,
+                  turnaroundBufferMinutes: true,
                   originTerminal: {
                     select: {
                       cityRelation: { select: { name: true } },
@@ -185,6 +208,8 @@ export async function getDriverTripConflict(
       estimatedArrival: row.trip.estimatedArrival,
       serviceType: row.trip.serviceType,
       routeDistanceKm: row.trip.schedule?.route?.distanceKm ?? null,
+      turnaroundBufferMinutes:
+        row.trip.schedule?.route?.turnaroundBufferMinutes ?? null,
       // Label parity with the pre-refactor path: city names come from
       // cityRelation ONLY (never bare terminal names).
       originCity:

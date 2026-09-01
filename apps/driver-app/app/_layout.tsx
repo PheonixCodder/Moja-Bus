@@ -19,7 +19,9 @@ import { NAV_THEME } from "@/lib/theme";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
-// Prevent splash auto-hide until font assets load
+// Prevent splash auto-hide until the boot gate (index.tsx) finishes its
+// async auth/registration checks. The splash is hidden there once the
+// redirect target is known.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 interface NotificationTokenResponse {
@@ -153,12 +155,6 @@ function NotificationHandler() {
 
 export default function RootLayout() {
 	const { fontsLoaded, fontsError } = useLoadFonts();
-
-	useEffect(() => {
-		if (fontsLoaded || fontsError) {
-			SplashScreen.hideAsync().catch(() => {});
-		}
-	}, [fontsLoaded, fontsError]);
 
 	if (!fontsLoaded && !fontsError) {
 		return null;

@@ -181,18 +181,38 @@ export class DriverCheckInService {
       };
     }
 
-    const updated = await this.prisma.booking.update({
-      where: { id: booking.id },
+    const now = new Date();
+    const updateResult = await this.prisma.booking.updateMany({
+      where: {
+        id: booking.id,
+        boardedAt: null,
+      },
       data: {
-        boardedAt: new Date(),
-        checkedInAt: booking.checkedInAt ?? new Date(),
+        boardedAt: now,
+        checkedInAt: booking.checkedInAt ?? now,
       },
     });
+
+    if (updateResult.count === 0) {
+      const fresh = await this.prisma.booking.findUnique({
+        where: { id: booking.id },
+        select: { boardedAt: true },
+      });
+      return {
+        success: false,
+        alreadyBoarded: true,
+        boardedAt: fresh?.boardedAt ?? now,
+        passengerName: booking.passengerName,
+        seatNumber: booking.seat?.label ?? "N/A",
+        bookingReference: booking.bookingReference,
+        message: "Passenger was already scanned and boarded.",
+      };
+    }
 
     return {
       success: true,
       alreadyBoarded: false,
-      boardedAt: updated.boardedAt,
+      boardedAt: now,
       passengerName: booking.passengerName,
       seatNumber: booking.seat?.label ?? "N/A",
       bookingReference: booking.bookingReference,
@@ -231,13 +251,26 @@ export class DriverCheckInService {
       };
     }
 
-    await this.prisma.booking.update({
-      where: { id: booking.id },
+    const now = new Date();
+    const updateResult = await this.prisma.booking.updateMany({
+      where: {
+        id: booking.id,
+        boardedAt: null,
+      },
       data: {
-        boardedAt: new Date(),
-        checkedInAt: booking.checkedInAt ?? new Date(),
+        boardedAt: now,
+        checkedInAt: booking.checkedInAt ?? now,
       },
     });
+
+    if (updateResult.count === 0) {
+      return {
+        success: true,
+        alreadyBoarded: true,
+        passengerName: booking.passengerName,
+        seatNumber: booking.seat?.label ?? "N/A",
+      };
+    }
 
     return {
       success: true,
@@ -304,7 +337,17 @@ export class DriverCheckInService {
 
     await this.assertBoardable(driverProfileId, booking, item.tripId);
 
+    const scannedAt = new Date(item.scannedAt);
+
     if (booking.boardedAt) {
+      // If this newly synced physical scan happened earlier than the stored timestamp,
+      // back-adjust to preserve the true earliest boarding moment.
+      if (scannedAt < booking.boardedAt) {
+        await this.prisma.booking.update({
+          where: { id: booking.id },
+          data: { boardedAt: scannedAt },
+        });
+      }
       return {
         outcome: "ALREADY_BOARDED",
         passengerName: booking.passengerName,
@@ -312,15 +355,36 @@ export class DriverCheckInService {
       };
     }
 
-    // Offline scans keep their original scan time.
-    const scannedAt = new Date(item.scannedAt);
-    await this.prisma.booking.update({
-      where: { id: booking.id },
+    // Atomic Compare-And-Swap (CAS) update
+    const updateResult = await this.prisma.booking.updateMany({
+      where: {
+        id: booking.id,
+        boardedAt: null,
+      },
       data: {
         boardedAt: scannedAt,
         checkedInAt: booking.checkedInAt ?? scannedAt,
       },
     });
+
+    if (updateResult.count === 0) {
+      // Concurrently boarded by another crew member in the millisecond window
+      const fresh = await this.prisma.booking.findUnique({
+        where: { id: booking.id },
+        select: { boardedAt: true },
+      });
+      if (fresh?.boardedAt && scannedAt < fresh.boardedAt) {
+        await this.prisma.booking.update({
+          where: { id: booking.id },
+          data: { boardedAt: scannedAt },
+        });
+      }
+      return {
+        outcome: "ALREADY_BOARDED",
+        passengerName: booking.passengerName,
+        bookingReference: booking.bookingReference,
+      };
+    }
 
     return {
       outcome: "SYNCED",

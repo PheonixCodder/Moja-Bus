@@ -29,6 +29,18 @@ export function resolvePostRunStatus(hasOpenShift: boolean): PostRunStatus {
 }
 
 /**
+ * Phase 2C (DRV-P1-04) — Resolves status when a driver resumes duty after a rest break.
+ * On-trip drivers return to ON_TRIP, idle shift drivers to AVAILABLE, and shiftless drivers to OFFLINE.
+ */
+export function resolveResumeDutyStatus(
+  currentTripId: string | null | undefined,
+  hasOpenShift: boolean,
+): "ON_TRIP" | "AVAILABLE" | "OFFLINE" {
+  if (currentTripId) return "ON_TRIP";
+  return hasOpenShift ? "AVAILABLE" : "OFFLINE";
+}
+
+/**
  * Converge every driver whose currentTripId points at a run that was finished
  * from the outside (operator ARRIVED or CANCELLED): clears currentTripId and
  * forces AVAILABLE/OFFLINE per open-shift state, so no ghost bus survives on

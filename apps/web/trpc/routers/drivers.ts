@@ -9,10 +9,14 @@ import {
   driverCheckInPassengerSchema,
   driverCompleteTripSchema,
   driverGetMyTripsSchema,
+  driverHandoverTripControlSchema,
+  driverLogRestBreakSchema,
   driverManualCheckInSchema,
   driverRecordStopArrivalSchema,
   driverRecordStopDepartureSchema,
   driverReportDelaySchema,
+  driverReportVehicleBreakdownSchema,
+  driverResumeDutySchema,
   driverSelfRegisterSchema,
   // Phase 14/17 (F-DV-07) — shared shift-toggle contract
   driverShiftToggleSchema,
@@ -51,7 +55,10 @@ import { mintDriverDocUrl } from "@/features/driver/lib/driver-doc-mint";
 import { DriverCheckInService } from "@/features/driver/services/driver-check-in-service";
 import { companyOperatorRecipients } from "@/features/notifications/company-recipients";
 import { enqueuePassengerTripDelayed } from "@/features/notifications/outbox/commercial";
-import { enqueueOperatorDriverAssignmentConflict } from "@/features/notifications/outbox/dispatch";
+import {
+  enqueueOperatorDriverAssignmentConflict,
+  enqueueOperatorVehicleBreakdown,
+} from "@/features/notifications/outbox/dispatch";
 import {
   enqueueDriverAffiliationEnded,
   enqueueDriverCounterResolved,
@@ -80,6 +87,7 @@ import {
 } from "@/lib/driver-earnings";
 import {
   resolvePostRunStatus,
+  resolveResumeDutyStatus,
   suspendDriverOperationalState,
 } from "@/lib/driver-run-state";
 import { computeTrustBadges } from "@/lib/driver-scoring";
@@ -1429,6 +1437,20 @@ export const driversRouter = createTRPCRouter({
         currentTrip: {
           include: {
             bus: true,
+            driverAssignments: {
+              include: {
+                driverProfile: {
+                  include: {
+                    user: {
+                      select: {
+                        id: true,
+                        fullName: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
             tripStops: {
               include: { terminal: true },
               orderBy: { stopOrder: "asc" },
@@ -1868,6 +1890,16 @@ export const driversRouter = createTRPCRouter({
                       mode: "insensitive",
                     },
                   },
+                  // DRV-P2-15 — seat label search (e.g. "14B", "A1") so
+                  // drivers can locate a passenger by seat number directly.
+                  {
+                    seat: {
+                      label: {
+                        contains: input.search,
+                        mode: "insensitive",
+                      },
+                    },
+                  },
                 ],
               }
             : {}),
@@ -2175,6 +2207,236 @@ export const driversRouter = createTRPCRouter({
       };
     }),
 
+  /**
+   * Phase 1D (DRV-P0-04) — Mid-route driving control handover / takeover.
+   *
+   * Allows a Primary driver to hand over driving control to an assigned Relief driver,
+   * or allows an assigned Relief driver to take over driving control during a long-haul run.
+   *
+   * Atomically flips `currentTripId` and mints fresh HMAC telemetry tokens for the new driver.
+   */
+  handoverTripControl: driverProcedure
+    .input(driverHandoverTripControlSchema)
+    .mutation(async ({ ctx, input }) => {
+      // 1. Verify caller assignment on tripId
+      const callerAssignment = await ctx.prisma.tripDriverAssignment.findFirst({
+        where: {
+          driverProfileId: ctx.driver.id,
+          tripId: input.tripId,
+        },
+      });
+      if (!callerAssignment) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not assigned to this trip.",
+        });
+      }
+
+      const trip = await ctx.prisma.trip.findUnique({
+        where: { id: input.tripId },
+        select: {
+          id: true,
+          status: true,
+          companyId: true,
+          estimatedArrival: true,
+        },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found." });
+      }
+      if (trip.status !== "DEPARTED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Handover can only take place on an in-progress (DEPARTED) run.",
+        });
+      }
+
+      // Determine who is handing over and who is taking over:
+      let fromDriverId: string;
+      let toDriverId: string;
+
+      if (
+        input.targetDriverProfileId &&
+        input.targetDriverProfileId !== ctx.driver.id
+      ) {
+        // Primary driver initiating handover to a target Relief driver
+        fromDriverId = ctx.driver.id;
+        toDriverId = input.targetDriverProfileId;
+      } else {
+        // Caller is taking over the wheel
+        toDriverId = ctx.driver.id;
+        // Find who currently has currentTripId = tripId
+        const currentActiveDriver = await ctx.prisma.driverProfile.findFirst({
+          where: { currentTripId: input.tripId },
+          select: { id: true },
+        });
+        fromDriverId = currentActiveDriver?.id ?? "";
+      }
+
+      // Verify target driver assignment and eligibility
+      const toAssignment = await ctx.prisma.tripDriverAssignment.findFirst({
+        where: {
+          driverProfileId: toDriverId,
+          tripId: input.tripId,
+          role: { in: ["PRIMARY", "RELIEF"] },
+        },
+        include: {
+          driverProfile: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!toAssignment || !toAssignment.driverProfile) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Target driver is not assigned as a driver (PRIMARY/RELIEF) for this trip.",
+        });
+      }
+
+      if (!canOperateRuns(toAssignment.driverProfile.verificationStatus)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Target driver is not verified to operate runs.",
+        });
+      }
+
+      if (
+        !isLicenseUsableThrough(
+          toAssignment.driverProfile.licenseExpiryDate,
+          trip.estimatedArrival ?? new Date(),
+        )
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Target driver's license expires before the estimated trip arrival.",
+        });
+      }
+
+      // Check open shifts for the departing driver
+      const fromOpenShift =
+        fromDriverId && fromDriverId !== toDriverId
+          ? await ctx.prisma.driverShift.findFirst({
+              where: { driverProfileId: fromDriverId, endedAt: null },
+              select: { id: true },
+            })
+          : null;
+
+      // Atomic database update
+      await ctx.prisma.$transaction(async (tx) => {
+        // Step A: Clear previous driver
+        if (fromDriverId && fromDriverId !== toDriverId) {
+          await tx.driverProfile.update({
+            where: { id: fromDriverId },
+            data: {
+              status: resolvePostRunStatus(!!fromOpenShift),
+              currentTripId: null,
+            },
+          });
+        }
+        // Step B: Set new active driver
+        await tx.driverProfile.update({
+          where: { id: toDriverId },
+          data: {
+            status: "ON_TRIP",
+            currentTripId: input.tripId,
+          },
+        });
+      });
+
+      const isCallerTakingOver = toDriverId === ctx.driver.id;
+
+      return {
+        success: true,
+        tripId: input.tripId,
+        activeDriverProfileId: toDriverId,
+        activeDriverName:
+          toAssignment.driverProfile.user?.fullName ?? "Conducteur",
+        telemetryToken: isCallerTakingOver
+          ? mintTelemetryDispatchTokenWithCompany(toDriverId, {
+              tripId: input.tripId,
+              companyId: trip.companyId,
+            })
+          : null,
+      };
+    }),
+
+  /**
+   * Phase 2C (DRV-P1-04) — Mandated rest break logging.
+   *
+   * Allows an assigned or on-duty driver to record a mandated 30-min (or custom 5-120 min)
+   * rest break during an intercity run or between shifts.
+   *
+   * Transitions DriverProfile.status to "RESTING" while preserving currentTripId.
+   */
+  logRestBreak: driverProcedure
+    .input(driverLogRestBreakSchema)
+    .mutation(async ({ ctx, input }) => {
+      const now = new Date();
+      const durationMinutes = input.durationMinutes;
+      const targetResumeAt = new Date(now.getTime() + durationMinutes * 60_000);
+
+      await ctx.prisma.driverProfile.update({
+        where: { id: ctx.driver.id },
+        data: {
+          status: "RESTING",
+        },
+      });
+
+      return {
+        success: true,
+        status: "RESTING" as const,
+        durationMinutes,
+        breakStartedAt: now.toISOString(),
+        targetResumeAt: targetResumeAt.toISOString(),
+        currentTripId: ctx.driver.currentTripId,
+        note: input.note ?? null,
+      };
+    }),
+
+  /**
+   * Phase 2C (DRV-P1-04) — Resume operational duty from a rest break.
+   *
+   * Resolves driver status back to "ON_TRIP" if currently on a trip,
+   * "AVAILABLE" if an open shift exists, or "OFFLINE".
+   */
+  resumeDuty: driverProcedure
+    .input(driverResumeDutySchema)
+    .mutation(async ({ ctx, input }) => {
+      const openShift = await ctx.prisma.driverShift.findFirst({
+        where: { driverProfileId: ctx.driver.id, endedAt: null },
+        select: { id: true },
+      });
+
+      const nextStatus = resolveResumeDutyStatus(
+        ctx.driver.currentTripId,
+        !!openShift,
+      );
+
+      await ctx.prisma.driverProfile.update({
+        where: { id: ctx.driver.id },
+        data: {
+          status: nextStatus,
+        },
+      });
+
+      return {
+        success: true,
+        status: nextStatus,
+        currentTripId: ctx.driver.currentTripId,
+      };
+    }),
+
   reportTripDelay: driverProcedure
     .input(driverReportDelaySchema)
     .mutation(async ({ ctx, input }) => {
@@ -2430,6 +2692,219 @@ export const driversRouter = createTRPCRouter({
         success: true,
         delayMinutes: input.delayMinutes,
         reason: input.reason,
+      };
+    }),
+
+  /**
+   * Phase 2D (DRV-P1-07) — Vehicle Breakdown & Emergency Dispatch Protocol.
+   *
+   * Submits a roadside mechanical emergency breakdown report with exact GPS fix,
+   * tags the telemetry stream with an emergency anomaly, applies trip delay adjustments,
+   * enqueues high-priority outbox alerts to carrier dispatchers, and notifies passengers.
+   */
+  reportVehicleBreakdown: driverProcedure
+    .input(driverReportVehicleBreakdownSchema)
+    .mutation(async ({ ctx, input }) => {
+      const assignment = await ctx.prisma.tripDriverAssignment.findFirst({
+        where: {
+          driverProfileId: ctx.driver.id,
+          tripId: input.tripId,
+        },
+        include: {
+          driverProfile: {
+            include: {
+              user: {
+                select: { fullName: true, phoneNumber: true },
+              },
+            },
+          },
+        },
+      });
+
+      if (!assignment) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not assigned to this trip.",
+        });
+      }
+
+      const liveTrip = await ctx.prisma.trip.findUnique({
+        where: { id: input.tripId },
+        select: {
+          id: true,
+          status: true,
+          gate: true,
+          departureDate: true,
+          delayMinutes: true,
+          estimatedArrival: true,
+          serviceType: true,
+          companyId: true,
+          bus: {
+            select: { registrationPlate: true },
+          },
+          schedule: {
+            select: {
+              route: {
+                select: {
+                  name: true,
+                  originTerminal: {
+                    include: { cityRelation: true, municipality: true },
+                  },
+                  destTerminal: {
+                    include: { cityRelation: true, municipality: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!liveTrip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found." });
+      }
+
+      if (liveTrip.status !== "DEPARTED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "A roadside breakdown can only be reported on an active, departed run.",
+        });
+      }
+
+      const now = new Date();
+      const delayMinutes = input.delayMinutes;
+
+      // 1. Update trip delay
+      await ctx.prisma.trip.update({
+        where: { id: input.tripId },
+        data: {
+          delayMinutes: { increment: delayMinutes },
+        },
+      });
+
+      // 2. Ingest roadside breakdown anomaly telemetry ping
+      await ctx.prisma.driverLocationPing.create({
+        data: {
+          driverProfileId: ctx.driver.id,
+          tripId: input.tripId,
+          latitude: input.latitude,
+          longitude: input.longitude,
+          accuracyMeters: input.accuracyMeters ?? 10,
+          speedKmh: 0,
+          isAnomaly: true,
+          anomalyReason: `BREAKDOWN: ${input.breakdownType} - ${input.description.slice(0, 100)}`,
+          recordedAt: now,
+        },
+      });
+
+      const originCity =
+        liveTrip.schedule?.route.originTerminal.cityRelation?.name ?? "Départ";
+      const destCity =
+        liveTrip.schedule?.route.destTerminal.cityRelation?.name ?? "Arrivée";
+      const routeName =
+        liveTrip.schedule?.route.name ?? `${originCity} → ${destCity}`;
+      const driverName =
+        assignment.driverProfile.user?.fullName ?? "Chauffeur";
+      const driverPhone =
+        assignment.driverProfile.user?.phoneNumber ?? null;
+
+      // 3. Enqueue high-priority outbox notification to all operator dispatchers of the carrier
+      const operators = await companyOperatorRecipients(
+        ctx.prisma,
+        liveTrip.companyId,
+      );
+      for (const to of operators) {
+        await enqueueOperatorVehicleBreakdown(ctx.prisma as never, {
+          payload: {
+            tripId: input.tripId,
+            busPlate: liveTrip.bus?.registrationPlate ?? null,
+            routeName,
+            originName: originCity,
+            destinationName: destCity,
+            breakdownType: input.breakdownType,
+            description: input.description,
+            latitude: input.latitude,
+            longitude: input.longitude,
+            accuracyMeters: input.accuracyMeters ?? null,
+            driverName,
+            driverPhone,
+            reportedAtIso: now.toISOString(),
+          },
+          to,
+        });
+      }
+
+      // 4. Notify confirmed passengers about roadside assistance coordination
+      const bookings = await ctx.prisma.booking.findMany({
+        where: { tripId: input.tripId, status: "CONFIRMED" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              fullName: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      });
+
+      if (bookings.length > 0) {
+        const originMunicipality =
+          liveTrip.schedule?.route.originTerminal.municipality?.name ?? null;
+        const destinationMunicipality =
+          liveTrip.schedule?.route.destTerminal.municipality?.name ?? null;
+        const newDeparture = new Date(
+          liveTrip.departureDate.getTime() + delayMinutes * 60_000,
+        );
+        const fmt = (d: Date) =>
+          d.toLocaleString("en-US", { timeZone: "Africa/Abidjan" });
+
+        for (const booking of bookings) {
+          const email =
+            booking.user?.email ??
+            (booking.passengerPhone
+              ? `${booking.passengerPhone.replace(/\s+/g, "")}@guest.mojaride.ci`
+              : null);
+          if (!email) continue;
+
+          await enqueuePassengerTripDelayed(ctx.prisma, {
+            tripId: input.tripId,
+            bookingId: booking.id,
+            reportedBy: "DRIVER",
+            email,
+            subscriberId: booking.user?.id ?? email,
+            firstName:
+              (booking.user?.fullName ?? booking.passengerName).split(" ")[0] ??
+              undefined,
+            data: {
+              email,
+              passengerName: booking.user?.fullName ?? booking.passengerName,
+              originCity,
+              destinationCity: destCity,
+              originMunicipality,
+              destinationMunicipality,
+              originalTime: fmt(liveTrip.departureDate),
+              newTime: fmt(newDeparture),
+              delayMinutes,
+              gate: liveTrip.gate ?? undefined,
+              phone:
+                booking.user?.phoneNumber ??
+                booking.passengerPhone ??
+                undefined,
+              bookingReference: booking.bookingReference,
+              reportedBy: "DRIVER" as const,
+            },
+          });
+        }
+      }
+
+      return {
+        success: true,
+        tripId: input.tripId,
+        breakdownType: input.breakdownType,
+        reportedAt: now.toISOString(),
       };
     }),
 
@@ -2886,6 +3361,9 @@ export const driversRouter = createTRPCRouter({
         isEstimated: weekCalc.isEstimated,
         todayMinutes: metrics.today_minutes,
         weekMinutes: metrics.week_minutes,
+        // DRV-P2-10 — per-trip carriers need trip counts, not minutes
+        todayTrips: metrics.today_trips,
+        weekTrips: metrics.week_trips,
         todayEarningsXof: todayCalc.amountXOF,
         weekEarningsXof: weekCalc.amountXOF,
       };
@@ -3648,6 +4126,16 @@ export const driversRouter = createTRPCRouter({
           bus: {
             select: { busType: { select: { requiredLicenseCategory: true } } },
           },
+          schedule: {
+            select: {
+              route: {
+                select: {
+                  distanceKm: true,
+                  turnaroundBufferMinutes: true,
+                },
+              },
+            },
+          },
         },
       });
       if (!trip) {
@@ -3707,17 +4195,21 @@ export const driversRouter = createTRPCRouter({
         ]);
       }
 
-      // Phase 27 (F-OP-14) — batch conflict scan: ONE query fetches every
+      // Phase 27 (F-OP-14) / Phase 3A (DRV-P2-13) — batch conflict scan: ONE query fetches every
       // candidate assignment for the whole roster inside the same ±16 h
       // window the single-driver path uses; overlaps are computed in-process
       // through the SHARED pure core (findTripConflict), so buffer math and
       // conflict selection can never diverge between the two paths.
-      const targetInterval = driverInterval(
-        trip.departureDate,
-        trip.estimatedArrival,
-        trip.serviceType,
-        null,
-      );
+      const targetInterval = {
+        ...driverInterval(
+          trip.departureDate,
+          trip.estimatedArrival,
+          trip.serviceType,
+          trip.schedule?.route?.distanceKm ?? null,
+        ),
+        turnaroundBufferMinutes:
+          trip.schedule?.route?.turnaroundBufferMinutes ?? null,
+      };
       const rosterIds = drivers.map((d: any) => d.id);
       const busyAssignments =
         rosterIds.length > 0
@@ -3752,6 +4244,7 @@ export const driversRouter = createTRPCRouter({
                           select: {
                             name: true,
                             distanceKm: true,
+                            turnaroundBufferMinutes: true,
                             originTerminal: {
                               select: {
                                 cityRelation: { select: { name: true } },
@@ -3782,6 +4275,8 @@ export const driversRouter = createTRPCRouter({
           estimatedArrival: row.trip.estimatedArrival,
           serviceType: row.trip.serviceType,
           routeDistanceKm: row.trip.schedule?.route?.distanceKm ?? null,
+          turnaroundBufferMinutes:
+            row.trip.schedule?.route?.turnaroundBufferMinutes ?? null,
           originCity:
             row.trip.schedule?.route?.originTerminal?.cityRelation?.name ??
             null,
@@ -3968,6 +4463,7 @@ export const driversRouter = createTRPCRouter({
           },
         };
       }),
+      serverTimeIso: new Date().toISOString(),
     };
   }),
 

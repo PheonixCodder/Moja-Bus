@@ -792,10 +792,10 @@
     "semantic_hash": ""
   },
   ".claude/settings.local.json": {
-    "mtime": 1784537765.8356109,
-    "seen": 1787855978.0390704,
-    "ast_hash": "16511f2aa4ae79f0b08dca691edd3e58",
-    "semantic_hash": "16511f2aa4ae79f0b08dca691edd3e58"
+    "mtime": 1788179977.6195867,
+    "seen": 1788181425.3761563,
+    "ast_hash": "317803ca11062d008f7aa03ff4dec0bf",
+    "semantic_hash": ""
   },
   ".husky/post-checkout": {
     "mtime": 1787850090.9547062,
@@ -942,15 +942,15 @@
     "semantic_hash": ""
   },
   "apps/driver-app/app/_layout.tsx": {
-    "mtime": 1787995900.3786201,
-    "seen": 1788011944.1310444,
-    "ast_hash": "a2df427657f9aef31f324af078b0f93e",
+    "mtime": 1788180581.1928556,
+    "seen": 1788181425.3884263,
+    "ast_hash": "7e6437ba6ac135e238d37a7900d8e71b",
     "semantic_hash": ""
   },
   "apps/driver-app/app/index.tsx": {
-    "mtime": 1788090367.193887,
-    "seen": 1788110299.212384,
-    "ast_hash": "ed13d44bb73d52e8c1a8ca5e6ca825b7",
+    "mtime": 1788183245.2229507,
+    "seen": 1788183903.6032746,
+    "ast_hash": "29d79f555c0c82708024abe3d98673fd",
     "semantic_hash": ""
   },
   "apps/driver-app/app/notifications.tsx": {
@@ -1026,9 +1026,9 @@
     "semantic_hash": "f8fd77a2be263d0a3474cd3ad6951817"
   },
   "apps/driver-app/lib/i18n.ts": {
-    "mtime": 1788001912.2669294,
-    "seen": 1788011944.133911,
-    "ast_hash": "4d620a06d49d83a9eb9aa8c5e5b24899",
+    "mtime": 1788113371.668669,
+    "seen": 1788181425.4040413,
+    "ast_hash": "c7eaf6a74c93d0ae0441b695be68eda7",
     "semantic_hash": ""
   },
   "apps/driver-app/lib/mapbox-cache-core.ts": {
@@ -1080,15 +1080,15 @@
     "semantic_hash": "42ee90ba56e0c38a54e92e45c695198b"
   },
   "apps/driver-app/locales/en/earnings.json": {
-    "mtime": 1788002182.8607137,
-    "seen": 1788011944.1359155,
-    "ast_hash": "f22d9567fa810d2fc0f9b412fc093c46",
+    "mtime": 1788112318.3432043,
+    "seen": 1788181425.4084322,
+    "ast_hash": "3eec705d96197411ade79ccd0c09ba08",
     "semantic_hash": ""
   },
   "apps/driver-app/locales/en/live.json": {
-    "mtime": 1788002215.358511,
-    "seen": 1788011944.1359198,
-    "ast_hash": "f88accf329b9955e53dc1edfe348d424",
+    "mtime": 1788112765.0286133,
+    "seen": 1788181425.408442,
+    "ast_hash": "321d98785dae5d6a16bb5de977e75074",
     "semantic_hash": ""
   },
   "apps/driver-app/locales/en/manifest.json": {
@@ -1098,28 +1098,28 @@
     "semantic_hash": ""
   },
   "apps/driver-app/locales/en/notifications.json": {
-    "mtime": 1787687884.5187776,
-    "seen": 1787855978.0396984,
-    "ast_hash": "389741341c8d3764879eab83506a2b0f",
-    "semantic_hash": "389741341c8d3764879eab83506a2b0f"
+    "mtime": 1788113223.886489,
+    "seen": 1788181425.4088745,
+    "ast_hash": "12ce59fca1e0de7d22c4d33b1329840f",
+    "semantic_hash": ""
   },
   "apps/driver-app/locales/en/offers.json": {
-    "mtime": 1787687884.5197825,
-    "seen": 1787855978.0397024,
-    "ast_hash": "e619e4af2c1cd9c5b1313e773bb0efe7",
-    "semantic_hash": "e619e4af2c1cd9c5b1313e773bb0efe7"
+    "mtime": 1788111294.78084,
+    "seen": 1788181425.4088786,
+    "ast_hash": "a051c8ae1ee3206e8c01d415bfc92520",
+    "semantic_hash": ""
   },
   "apps/driver-app/locales/en/passport.json": {
-    "mtime": 1787687884.5207753,
-    "seen": 1787855978.0397067,
-    "ast_hash": "b1f565522c074afa000654f8d2c5c9ae",
-    "semantic_hash": "b1f565522c074afa000654f8d2c5c9ae"
+    "mtime": 1788111821.1086628,
+    "seen": 1788181425.4088821,
+    "ast_hash": "7d3b20a22ae0d3223b5bd7a9ed5c91c3",
+    "semantic_hash": ""
   },
   "apps/driver-app/locales/en/scanner.json": {
-    "mtime": 1787687884.5217776,
-    "seen": 1787855978.0397112,
-    "ast_hash": "0e568b0116134fb30a6f78fe95b0bc1d",
-    "semantic_hash": "0e568b0116134fb30a6f78fe95b0bc1d"
+    "mtime": 1788113201.0426552,
+    "seen": 1788181425.4088852,
+    "ast_hash": "69f1d7b5ef68d521f5418bd30932cb33",
+    "semantic_hash": ""
   },
   "apps/driver-app/locales/en/trips.json": {
     "mtime": 1788107403.02583,
@@ -1140,15 +1140,15 @@
     "semantic_hash": "e3a1b31ac159ebbaffafde2104e65d23"
   },
   "apps/driver-app/locales/fr/earnings.json": {
-    "mtime": 1788002176.5338528,
-    "seen": 1788011944.1382794,
-    "ast_hash": "d0051338bd3bc58c94f2bce614742a5e",
+    "mtime": 1788112321.6932979,
+    "seen": 1788181425.4099991,
+    "ast_hash": "513ef7cbbade625ad5b92dc8e6831874",
     "semantic_hash": ""
   },
   "apps/driver-app/locales/fr/live.json": {
-    "mtime": 1788002211.5511553,
-    "seen": 1788011944.1382842,
-    "ast_hash": "d860e252062e235f5daee7e4990f6b37",
+    "mtime": 1788112785.6116407,
+    "seen": 1788181425.4100096,
+    "ast_hash": "87997258e8394373c9ff4305b78f7cd2",
     "semantic_hash": ""
   },
   "apps/driver-app/locales/fr/manifest.json": {
@@ -1158,28 +1158,28 @@
     "semantic_hash": ""
   },
   "apps/driver-app/locales/fr/notifications.json": {
-    "mtime": 1787687884.5278375,
-    "seen": 1787855978.0397398,
-    "ast_hash": "d19fb248396ea3ba0fbd61039c28876b",
-    "semantic_hash": "d19fb248396ea3ba0fbd61039c28876b"
+    "mtime": 1788113224.330373,
+    "seen": 1788181425.410481,
+    "ast_hash": "98193647a7268bc52fd4f5af62129762",
+    "semantic_hash": ""
   },
   "apps/driver-app/locales/fr/offers.json": {
-    "mtime": 1787687884.5278375,
-    "seen": 1787855978.039744,
-    "ast_hash": "6778575ba688bbdca7a5db1394aaf4f9",
-    "semantic_hash": "6778575ba688bbdca7a5db1394aaf4f9"
+    "mtime": 1788111296.271508,
+    "seen": 1788181425.410486,
+    "ast_hash": "6d321d2ecf943c3ddd6b84f7ac7c01d2",
+    "semantic_hash": ""
   },
   "apps/driver-app/locales/fr/passport.json": {
-    "mtime": 1788002257.6323428,
-    "seen": 1788011944.1388428,
-    "ast_hash": "a4c22a57fd245491972ec4ebd292cc7c",
+    "mtime": 1788111831.2169995,
+    "seen": 1788181425.4104898,
+    "ast_hash": "b0e38177aae6fc8f1371692bba8a7327",
     "semantic_hash": ""
   },
   "apps/driver-app/locales/fr/scanner.json": {
-    "mtime": 1787687884.5298374,
-    "seen": 1787855978.0397522,
-    "ast_hash": "592daf1b360d4aaaa6da7abb6fa27634",
-    "semantic_hash": "592daf1b360d4aaaa6da7abb6fa27634"
+    "mtime": 1788113210.2302144,
+    "seen": 1788181425.4104931,
+    "ast_hash": "5df6a2488971597de739b78063a61255",
+    "semantic_hash": ""
   },
   "apps/driver-app/locales/fr/trips.json": {
     "mtime": 1788107404.403913,
@@ -13806,9 +13806,9 @@
     "semantic_hash": ""
   },
   "memory.md": {
-    "mtime": 1787992403.0497282,
-    "seen": 1788011944.6924176,
-    "ast_hash": "513530212356c6d931d9fae3e3f3d263",
+    "mtime": 1788183648.1471052,
+    "seen": 1788183904.770326,
+    "ast_hash": "4b58b16501ba8cf076a8dfa38b299aac",
     "semantic_hash": ""
   },
   "packages/db/MIGRATIONS.md": {
@@ -13824,9 +13824,9 @@
     "semantic_hash": ""
   },
   "apps/driver-app/app/language.tsx": {
-    "mtime": 1788001921.1705081,
-    "seen": 1788011944.1310477,
-    "ast_hash": "c3c0ea0d281cef1de34ccc24906a5e8a",
+    "mtime": 1788113311.74782,
+    "seen": 1788181425.3884363,
+    "ast_hash": "0a6b5286d918ba9d7ba8b0a78998fead",
     "semantic_hash": ""
   },
   "apps/driver-app/components/TabBar.tsx": {
@@ -13908,27 +13908,27 @@
     "semantic_hash": ""
   },
   "apps/driver-app/features/earnings/screens/earnings-view.tsx": {
-    "mtime": 1788002202.5776026,
-    "seen": 1788011944.131902,
-    "ast_hash": "715ae08e044005a35e90612fe812b0b1",
+    "mtime": 1788112351.188562,
+    "seen": 1788181425.397123,
+    "ast_hash": "364aec07c21729c989bfc300b0becd51",
     "semantic_hash": ""
   },
   "apps/driver-app/features/live/components/delay-modal.tsx": {
-    "mtime": 1788000723.345805,
-    "seen": 1788011944.1319199,
-    "ast_hash": "5e88f23af6e7f1fe9c4fd1ba26075694",
+    "mtime": 1788112935.2587824,
+    "seen": 1788181425.3971283,
+    "ast_hash": "f197315ae8d6b5177b804a0baae93c83",
     "semantic_hash": ""
   },
   "apps/driver-app/features/live/components/speedometer-gauge.tsx": {
-    "mtime": 1788000937.723639,
-    "seen": 1788011944.131928,
-    "ast_hash": "b85b47a1b5691590481561da2568489a",
+    "mtime": 1788112962.8731518,
+    "seen": 1788181425.397132,
+    "ast_hash": "29682ee5dde9cb0d2d528ca885387a45",
     "semantic_hash": ""
   },
   "apps/driver-app/features/live/screens/live-view.tsx": {
-    "mtime": 1788002232.6666894,
-    "seen": 1788011944.1319337,
-    "ast_hash": "3cd76f82c48dbf707c17fe673e53ce3f",
+    "mtime": 1788112891.6606872,
+    "seen": 1788181425.3971379,
+    "ast_hash": "8a9d45f0fe6e89113b6778efeb592fac",
     "semantic_hash": ""
   },
   "apps/driver-app/features/notifications/components/notification-row.tsx": {
@@ -13950,33 +13950,33 @@
     "semantic_hash": ""
   },
   "apps/driver-app/features/offers/components/offer-card.tsx": {
-    "mtime": 1788104281.5570657,
-    "seen": 1788110299.214743,
-    "ast_hash": "5517b6fbb26444f97af2028b130f7b9c",
+    "mtime": 1788111369.4283595,
+    "seen": 1788181425.3988943,
+    "ast_hash": "8589a7d18b7fdbd9a0df45f81a79584d",
     "semantic_hash": ""
   },
   "apps/driver-app/features/offers/screens/offers-view.tsx": {
-    "mtime": 1788000596.757214,
-    "seen": 1788011944.1324348,
-    "ast_hash": "80f66538813c0984abbcc78111940fe2",
+    "mtime": 1788110971.7880826,
+    "seen": 1788181425.3988986,
+    "ast_hash": "754799f32f75a6431b01a0b835c84998",
     "semantic_hash": ""
   },
   "apps/driver-app/features/profile/screens/profile-view.tsx": {
-    "mtime": 1788002084.7983081,
-    "seen": 1788011944.1324394,
-    "ast_hash": "96f36705bc40011eb6a785663505a690",
+    "mtime": 1788111959.790824,
+    "seen": 1788181425.398903,
+    "ast_hash": "7d26427354bac0b76ec7a49fcb18f384",
     "semantic_hash": ""
   },
   "apps/driver-app/features/scanner/components/ticket-result-modal.tsx": {
-    "mtime": 1788000762.444137,
-    "seen": 1788011944.132442,
-    "ast_hash": "abed5e21f1693433eb1d8eb7caac831f",
+    "mtime": 1788113279.8917477,
+    "seen": 1788181425.3989058,
+    "ast_hash": "9f6e6793794c612cf2a647180eec536b",
     "semantic_hash": ""
   },
   "apps/driver-app/features/scanner/screens/scanner-view.tsx": {
-    "mtime": 1788000776.583504,
-    "seen": 1788011944.1324446,
-    "ast_hash": "9fb81f6e905cd79791c684728f221495",
+    "mtime": 1788113264.9690752,
+    "seen": 1788181425.3989098,
+    "ast_hash": "4bff3be46e0eb9d57ec22a118924b1b0",
     "semantic_hash": ""
   },
   "apps/driver-app/features/trips/components/manifest-passenger-row.tsx": {
@@ -14175,6 +14175,18 @@
     "mtime": 1788024884.3413172,
     "seen": 1788080247.111382,
     "ast_hash": "0488869e775da30056ff9b40541c7344",
+    "semantic_hash": ""
+  },
+  "apps/driver-app/locales/en/language.json": {
+    "mtime": 1788113211.7216215,
+    "seen": 1788181425.4084375,
+    "ast_hash": "2835b106a8370bb9fe3c24f7bf68f731",
+    "semantic_hash": ""
+  },
+  "apps/driver-app/locales/fr/language.json": {
+    "mtime": 1788113213.8107486,
+    "seen": 1788181425.4100049,
+    "ast_hash": "c2616f9972083284cf93566c74f7ba28",
     "semantic_hash": ""
   }
 }

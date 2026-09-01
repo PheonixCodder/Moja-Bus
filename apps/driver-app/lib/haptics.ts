@@ -21,4 +21,14 @@ export const DriverFeedback = {
 			await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
 		} catch {}
 	},
+	overspeedAlert: async () => {
+		try {
+			await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+			setTimeout(async () => {
+				try {
+					await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+				} catch {}
+			}, 120);
+		} catch {}
+	},
 };

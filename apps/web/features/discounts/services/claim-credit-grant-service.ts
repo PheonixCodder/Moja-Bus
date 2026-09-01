@@ -172,6 +172,46 @@ export async function claimCreditGrant(
 
   try {
     const lot = await prisma.$transaction(async (tx) => {
+      // Row-level lock on the coupon code to prevent concurrent race conditions
+      await tx.$queryRaw`
+        SELECT id FROM "coupon_code" WHERE id = ${coupon.id} FOR UPDATE
+      `;
+
+      if (campaign.maxRedemptionsPerUser != null) {
+        const userClaims = await tx.creditLot.count({
+          where: {
+            userId: input.userId,
+            source: "PROMO_GRANT",
+            OR: grantKeyPrefixes.map((prefix) => ({
+              grantIdempotencyKey: { startsWith: prefix },
+            })),
+          },
+        });
+        if (userClaims >= campaign.maxRedemptionsPerUser) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You have already claimed the maximum for this campaign",
+          });
+        }
+      }
+
+      if (campaign.maxRedemptionsGlobal != null) {
+        const globalClaims = await tx.creditLot.count({
+          where: {
+            source: "PROMO_GRANT",
+            OR: grantKeyPrefixes.map((prefix) => ({
+              grantIdempotencyKey: { startsWith: prefix },
+            })),
+          },
+        });
+        if (globalClaims >= campaign.maxRedemptionsGlobal) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Campaign redemption cap reached",
+          });
+        }
+      }
+
       const created = await tx.creditLot.create({
         data: {
           userId: input.userId,

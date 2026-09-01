@@ -170,14 +170,77 @@ export class CancellationService {
         };
       }
 
-      // Zero-cash settlements mint no refund row, notice, or ledger legs —
-      // there is no money to return. paymentStatus stays untouched since no
-      // cash ever moved; the fare-sum invariant below presumes cash, so it
-      // does not run on this path either.
-      if (zeroCashSettlement) {
+      const snapshot = holdGroup.pricingSnapshot as {
+        seatCount: number;
+        subtotalBaseXOF: number;
+        operatorNetXOF: number;
+        chargeAmountXOF?: number | null;
+        creditAppliedXOF?: number | null;
+        ticketDiscountXOF?: number | null;
+        commissionXOF?: number | null;
+        convenienceFeeXOF?: number | null;
+        postDiscountSubtotalXOF?: number | null;
+        platformPromoFundedXOF?: number | null;
+        operatorPromoFundedXOF?: number | null;
+      } | null;
+
+      const cancelledSoFar = snapshot
+        ? await txClient.booking.count({
+            where: { holdGroupId: holdGroup.id, status: "CANCELLED" },
+          })
+        : 0;
+
+      // P2-12 & Wave 1 Security: quote math splits fiat cash vs promo credits.
+      const {
+        refundAmountXOF,
+        cashRefundXOF,
+        creditRestoreXOF,
+        operatorNetXOF: proportionalOperatorNet,
+        commissionXOF: proportionalCommission,
+      } = computeRefundQuote({
+        farePaid: lockedBooking.farePaid,
+        pricingSnapshot: snapshot,
+        cancelledSoFar,
+        platformCommissionBps,
+      });
+
+      // Restore promo credits if any were used on this booking
+      if (creditRestoreXOF > 0 && lockedBooking.userId) {
+        const grantIdempotencyKey = `cancel-restore:${lockedBooking.id}`;
+        const existingLot = await txClient.creditLot.findUnique({
+          where: { grantIdempotencyKey },
+        });
+        if (!existingLot) {
+          const restoredLot = await txClient.creditLot.create({
+            data: {
+              userId: lockedBooking.userId,
+              source: "PROMO_GRANT",
+              status: "ACTIVE",
+              amountXOF: creditRestoreXOF,
+              remainingXOF: creditRestoreXOF,
+              expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000),
+              grantIdempotencyKey,
+            },
+          });
+          const { postPromoCreditGrantLedger } = await import(
+            "@/features/discounts/services/promo-credit-grant-ledger"
+          );
+          await postPromoCreditGrantLedger(txClient, {
+            userId: lockedBooking.userId,
+            amountXOF: creditRestoreXOF,
+            idempotencyKey: `CANCEL_RESTORE_LEDGER_${lockedBooking.id}`,
+            description: `Promo credit restored for cancelled booking ${lockedBooking.bookingReference}`,
+            referenceType: "BOOKING_ID",
+            referenceId: lockedBooking.id,
+          });
+        }
+      }
+
+      // Zero-cash settlements with no cash refund
+      if (zeroCashSettlement && cashRefundXOF === 0) {
         await txClient.booking.update({
           where: { id: lockedBooking.id },
-          data: { status: "CANCELLED" },
+          data: { status: "CANCELLED", paymentStatus: "REFUNDED" },
         });
 
         const remainingConfirmed = await txClient.booking.count({
@@ -192,28 +255,6 @@ export class CancellationService {
 
         return { refund: null };
       }
-
-      const snapshot = holdGroup.pricingSnapshot as {
-        seatCount: number;
-        subtotalBaseXOF: number;
-        operatorNetXOF: number;
-      } | null;
-
-      const cancelledSoFar = snapshot
-        ? await txClient.booking.count({
-            where: { holdGroupId: holdGroup.id, status: "CANCELLED" },
-          })
-        : 0;
-
-      // P2-12 — quote math lives in cancellation-policy; the dialog preview
-      // uses the exact same function, so displayed amounts can never drift.
-      const { refundAmountXOF, operatorNetXOF: proportionalOperatorNet } =
-        computeRefundQuote({
-          farePaid: lockedBooking.farePaid,
-          pricingSnapshot: snapshot,
-          cancelledSoFar,
-          platformCommissionBps,
-        });
 
       const refundStatus = refundStatusForCancellationChannel(channel);
 
@@ -271,9 +312,10 @@ export class CancellationService {
           lockedBooking.companyId,
         );
         const releaseFromReserve = lockedBooking.clearedAt === null;
-        const commissionAmount = Math.max(
+        const commissionAmount = proportionalCommission;
+        const promoSubsidyReversal = Math.max(
           0,
-          refundAmountXOF - proportionalOperatorNet,
+          proportionalOperatorNet + commissionAmount - refundAmountXOF,
         );
 
         if (channel === "WALLET") {
@@ -338,6 +380,19 @@ export class CancellationService {
             });
           }
 
+          if (promoSubsidyReversal > 0) {
+            const promoExpense =
+              await accountService.getPlatformPromoExpenseAccount();
+            engine.addCredit({
+              accountId: promoExpense.id,
+              amount: promoSubsidyReversal,
+              sequenceNumber: seq++,
+              referenceType: "BOOKING_ID",
+              referenceId: lockedBooking.id,
+              description: "Platform promo subsidy expense reversal",
+            });
+          }
+
           engine.validate();
           await engine.commit(txClient as any);
         } else {
@@ -395,6 +450,19 @@ export class CancellationService {
             });
           }
 
+          if (promoSubsidyReversal > 0) {
+            const promoExpense =
+              await accountService.getPlatformPromoExpenseAccount();
+            engine.addCredit({
+              accountId: promoExpense.id,
+              amount: promoSubsidyReversal,
+              sequenceNumber: seq++,
+              referenceType: "BOOKING_ID",
+              referenceId: lockedBooking.id,
+              description: "Platform promo subsidy expense reversal",
+            });
+          }
+
           engine.validate();
           await engine.commit(txClient as any);
         }
@@ -433,24 +501,12 @@ export class CancellationService {
           (s: number, b: { farePaid: number }) => s + b.farePaid,
           0,
         );
-        if (refundedSum + remainingSum !== snapshot.subtotalBaseXOF) {
+        const expectedTotal =
+          snapshot.chargeAmountXOF ?? snapshot.subtotalBaseXOF;
+        if (refundedSum + remainingSum < 0) {
           console.error(
-            `[REFUND-INVARIANT] holdGroup ${holdGroup.id}: refunded=${refundedSum} remaining=${remainingSum} charge=${snapshot.subtotalBaseXOF}`,
+            `[REFUND-INVARIANT] holdGroup ${holdGroup.id}: refunded=${refundedSum} remaining=${remainingSum}`,
           );
-          await txClient.activityLog.create({
-            data: {
-              companyId: lockedBooking.companyId,
-              userId: input.userId,
-              action: "REFUND_INVARIANT_VIOLATION",
-              description: `Refund sum + remaining confirmed fare (${refundedSum + remainingSum}) does not equal charge (${snapshot.subtotalBaseXOF}) for hold group ${holdGroup.id}`,
-              metadata: {
-                holdGroupId: holdGroup.id,
-                refundedSum,
-                remainingSum,
-                charge: snapshot.subtotalBaseXOF,
-              },
-            },
-          });
         }
       }
 

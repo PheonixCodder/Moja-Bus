@@ -5,7 +5,50 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4f1351ad-4d4d-4706-9835-a4271b138320" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/tsconfig.base.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.base.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/language.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/language.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/components/TabBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/components/TabBar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/earnings/screens/earnings-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/earnings/screens/earnings-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/live/components/delay-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/live/components/delay-modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/live/components/speedometer-gauge.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/live/components/speedometer-gauge.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/live/screens/live-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/live/screens/live-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/offers/components/offer-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/offers/components/offer-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/offers/screens/offers-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/offers/screens/offers-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/profile/screens/profile-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/profile/screens/profile-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/scanner/components/ticket-result-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/scanner/components/ticket-result-modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/scanner/screens/scanner-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/scanner/screens/scanner-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/trips/components/mode-switcher.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/trips/components/mode-switcher.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/trips/components/trip-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/trips/components/trip-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/trips/screens/manifest-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/trips/screens/manifest-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/trips/screens/trips-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/trips/screens/trips-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/lib/i18n.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/lib/i18n.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/lib/telemetry.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/lib/telemetry.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/earnings.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/earnings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/live.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/live.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/notifications.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/notifications.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/offers.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/offers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/passport.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/passport.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/scanner.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/scanner.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/trips.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/trips.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/earnings.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/earnings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/live.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/live.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/notifications.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/notifications.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/offers.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/offers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/passport.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/passport.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/scanner.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/scanner.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/trips.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/trips.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/.graphify_labels.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/.graphify_labels.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/.graphify_labels.json.sig" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/.graphify_labels.json.sig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/2026-08-30/.graphify_labels.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/2026-08-30/.graphify_labels.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/2026-08-30/GRAPH_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/2026-08-30/GRAPH_REPORT.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/2026-08-30/graph.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/2026-08-30/graph.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/2026-08-30/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/2026-08-30/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/GRAPH_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/GRAPH_REPORT.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/graph.html" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/graph.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/graph.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/graph.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphify-out/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/manifest.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

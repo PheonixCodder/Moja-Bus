@@ -31,5 +31,12 @@
 	"offlineErrorMessage": "Device offline. Scan saved locally, will sync when network returns.",
 	"offlineTitle": "Saved Offline",
 	"offlineMsg": "Saved • Passenger allowed to board",
-	"seatPrefix": "Seat"
+	"seatPrefix": "Seat",
+	"targetDeparture": "Target Departure",
+	"switchTrip": "Switch",
+	"allTripsAssigned": "Today's Departures",
+	"noActiveOrUpcomingTrip": "No Departure Selected",
+	"noUpcomingTodayMsg": "Select a departure from the Trips tab to start boarding.",
+	"openManifest": "Manifest",
+	"departedActiveBanner": "In-Flight Run"
 }

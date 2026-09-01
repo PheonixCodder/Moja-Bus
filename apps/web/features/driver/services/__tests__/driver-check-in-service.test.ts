@@ -33,6 +33,7 @@ type Handlers = {
   findTokenBooking?: (args: unknown) => Promise<unknown>;
   findManualBooking?: (args: unknown) => Promise<unknown>;
   updateBooking?: (args: unknown) => Promise<unknown>;
+  updateManyBooking?: (args: unknown) => Promise<unknown>;
   findAssignment?: (args: unknown) => Promise<unknown>;
 };
 
@@ -43,6 +44,14 @@ function createMockPrisma(handlers: Handlers = {}) {
       findFirst: handlers.findManualBooking ?? (async () => null),
       update:
         handlers.updateBooking ?? (async () => ({ boardedAt: new Date() })),
+      updateMany:
+        handlers.updateManyBooking ??
+        (async (args) => {
+          if (handlers.updateBooking) {
+            await handlers.updateBooking(args);
+          }
+          return { count: 1 };
+        }),
     },
     tripDriverAssignment: {
       // Default: caller holds an assignment (any role — queries are role-blind).
@@ -559,6 +568,109 @@ describe("DriverCheckInService presentation tokens (Phase 02)", () => {
       result.results.map((r) => r.outcome),
       ["REJECTED", "SYNCED"],
     );
+    assert.equal(result.syncedCount, 1);
+  });
+});
+
+describe("DriverCheckInService offline boarding concurrency (Phase 2B / DRV-P1-02)", () => {
+  const SCAN_EARLY = new Date("2026-08-23T06:15:00Z");
+  const SCAN_LATE = new Date("2026-08-23T06:18:00Z");
+
+  it("atomic CAS prevents race condition when two devices sync concurrently", async () => {
+    let updateManyCalls = 0;
+    const prisma = createMockPrisma({
+      findTokenBooking: async () => makeBooking({ boardedAt: null }),
+      updateManyBooking: async () => {
+        updateManyCalls++;
+        // Simulate race condition: first update succeeds, second returns count 0 (already boarded)
+        return { count: updateManyCalls === 1 ? 1 : 0 };
+      },
+    });
+
+    const service = new DriverCheckInService(prisma);
+
+    // Conductor syncs first
+    const resConductor = await service.batchSync(DRIVER_A, [
+      { ticketToken: "tok-abc", scannedAt: SCAN_EARLY },
+    ]);
+    assert.equal(resConductor.results[0]?.outcome, "SYNCED");
+    assert.equal(resConductor.syncedCount, 1);
+
+    // Driver syncs immediately after (in race window)
+    const resDriver = await service.batchSync(DRIVER_B, [
+      { ticketToken: "tok-abc", scannedAt: SCAN_LATE },
+    ]);
+    assert.equal(resDriver.results[0]?.outcome, "ALREADY_BOARDED");
+    assert.equal(resDriver.syncedCount, 0);
+  });
+
+  it("preserves earliest physical timestamp when an earlier offline scan arrives after a later scan", async () => {
+    let backdatedTimestamp: Date | null = null;
+    const prisma = createMockPrisma({
+      // Booking was already synced with the later timestamp 06:18:00
+      findTokenBooking: async () => makeBooking({ boardedAt: SCAN_LATE }),
+      updateBooking: async (args: any) => {
+        backdatedTimestamp = args.data.boardedAt;
+        return { boardedAt: args.data.boardedAt };
+      },
+    });
+
+    const service = new DriverCheckInService(prisma);
+
+    // Conductor's earlier scan (06:15:00) arrives now
+    const result = await service.batchSync(DRIVER_A, [
+      { ticketToken: "tok-abc", scannedAt: SCAN_EARLY },
+    ]);
+
+    assert.equal(result.results[0]?.outcome, "ALREADY_BOARDED");
+    assert.ok(backdatedTimestamp);
+    // Verified: boardedAt was updated to the true earlier scan time (06:15:00)
+    assert.equal((backdatedTimestamp as Date).getTime(), SCAN_EARLY.getTime());
+  });
+
+  it("does not overwrite earlier timestamp when a later scan arrives on an already boarded booking", async () => {
+    let updateCalled = false;
+    const prisma = createMockPrisma({
+      // Booking already has the earlier timestamp 06:15:00
+      findTokenBooking: async () => makeBooking({ boardedAt: SCAN_EARLY }),
+      updateBooking: async () => {
+        updateCalled = true;
+        return {};
+      },
+    });
+
+    const service = new DriverCheckInService(prisma);
+
+    // Later scan (06:18:00) arrives
+    const result = await service.batchSync(DRIVER_B, [
+      { ticketToken: "tok-abc", scannedAt: SCAN_LATE },
+    ]);
+
+    assert.equal(result.results[0]?.outcome, "ALREADY_BOARDED");
+    // Verified: No overwrite occurred
+    assert.equal(updateCalled, false);
+  });
+
+  it("handles duplicate scans of same ticket within single batch payload", async () => {
+    let callCount = 0;
+    const prisma = createMockPrisma({
+      findTokenBooking: async () => makeBooking({ boardedAt: null }),
+      updateManyBooking: async () => {
+        callCount++;
+        // First item in batch updates count 1, second gets count 0
+        return { count: callCount === 1 ? 1 : 0 };
+      },
+    });
+
+    const service = new DriverCheckInService(prisma);
+
+    const result = await service.batchSync(DRIVER_A, [
+      { ticketToken: "tok-abc", scannedAt: SCAN_EARLY },
+      { ticketToken: "tok-abc", scannedAt: SCAN_LATE },
+    ]);
+
+    assert.equal(result.results[0]?.outcome, "SYNCED");
+    assert.equal(result.results[1]?.outcome, "ALREADY_BOARDED");
     assert.equal(result.syncedCount, 1);
   });
 });

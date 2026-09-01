@@ -17,6 +17,10 @@ describe("outbox helpers", () => {
     assert.equal(OUTBOX_TYPES.BOOKING_REFUNDED, "BOOKING_REFUNDED");
     assert.equal(OUTBOX_TYPES.TRIP_CANCELLED, "TRIP_CANCELLED");
     assert.equal(OUTBOX_TYPES.REFERRAL_REWARD, "REFERRAL_REWARD");
+    assert.equal(
+      OUTBOX_TYPES.OPERATOR_VEHICLE_BREAKDOWN,
+      "OPERATOR_VEHICLE_BREAKDOWN",
+    );
   });
 
   it("backoff doubles then caps at 1h", () => {
@@ -24,6 +28,58 @@ describe("outbox helpers", () => {
     assert.equal(backoffMs(2), 60_000);
     assert.equal(backoffMs(3), 120_000);
     assert.equal(backoffMs(20), 60 * 60 * 1000);
+  });
+});
+
+describe("enqueueOperatorVehicleBreakdown (Phase 2D / DRV-P1-07)", () => {
+  it("enqueues roadside breakdown emergency alert with GPS coordinates and driver contact", async () => {
+    const created: any[] = [];
+    const mockDb: any = {
+      outboxMessage: {
+        findUnique: async () => null,
+        create: async (args: any) => {
+          created.push(args);
+          return { id: "outbox-1" };
+        },
+      },
+    };
+
+    const { enqueueOperatorVehicleBreakdown } = await import("../dispatch");
+
+    const result = await enqueueOperatorVehicleBreakdown(mockDb, {
+      payload: {
+        tripId: "trip-breakdown-1",
+        busPlate: "AB-1234-CD",
+        routeName: "Abidjan → Yamoussoukro",
+        originName: "Abidjan",
+        destinationName: "Yamoussoukro",
+        breakdownType: "ENGINE",
+        description: "Surchauffe moteur km 120",
+        latitude: 5.35995,
+        longitude: -4.00826,
+        accuracyMeters: 8,
+        driverName: "Kouassi Jean",
+        driverPhone: "+2250700000000",
+        reportedAtIso: "2026-09-01T10:00:00.000Z",
+      },
+      to: {
+        subscriberId: "op-1",
+        email: "dispatch@carrier.ci",
+        firstName: "Amadou",
+      },
+    });
+
+    assert.equal(result.enqueued, true);
+    assert.equal(created.length, 1);
+    assert.equal(created[0].data.type, "OPERATOR_VEHICLE_BREAKDOWN");
+    assert.equal(
+      created[0].data.payload.workflowId,
+      "operator-vehicle-breakdown",
+    );
+    assert.equal(created[0].data.payload.data.breakdownType, "ENGINE");
+    assert.equal(created[0].data.payload.data.latitude, 5.35995);
+    assert.equal(created[0].data.payload.data.longitude, -4.00826);
+    assert.equal(created[0].data.payload.data.driverName, "Kouassi Jean");
   });
 });
 

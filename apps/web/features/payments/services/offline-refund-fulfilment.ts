@@ -91,6 +91,12 @@ export async function markOfflineRefundVoid(
 ) {
   const refund = await prisma.refund.findUnique({
     where: { id: input.refundId },
+    include: {
+      booking: true,
+      holdGroup: {
+        include: { pricingSnapshot: true },
+      },
+    },
   });
   if (!refund) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Refund not found" });
@@ -102,13 +108,78 @@ export async function markOfflineRefundVoid(
     });
   }
 
-  return prisma.refund.update({
-    where: { id: refund.id },
-    data: {
-      status: "VOIDED",
-      voidedAt: new Date(),
-      voidedByUserId: input.actorUserId,
-      fulfilmentNote: input.note ?? null,
-    },
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.refund.update({
+      where: { id: refund.id },
+      data: {
+        status: "VOIDED",
+        voidedAt: new Date(),
+        voidedByUserId: input.actorUserId,
+        fulfilmentNote: input.note ?? null,
+      },
+    });
+
+    if (refund.amountXOF > 0 && refund.channel === "CASH") {
+      const { AccountingEngine, FinancialAccountService } = await import(
+        "@moja/db"
+      );
+      const accountService = new FinancialAccountService(tx as any);
+      const reimbursementPayable =
+        await accountService.getOfflineRefundPayableAccount();
+
+      const snapshot = refund.holdGroup?.pricingSnapshot;
+      const operatorNet = snapshot
+        ? Math.round(snapshot.operatorNetXOF / snapshot.seatCount)
+        : Math.max(0, refund.amountXOF - Math.round((refund.amountXOF * 500) / 10000));
+      const commission = Math.max(0, refund.amountXOF - operatorNet);
+
+      const engine = new AccountingEngine("REFUND_VOID", {
+        description: `Void reversal for offline cash refund ${refund.id}`,
+        idempotencyKey: `REFUND_VOID_${refund.id}`,
+        metadata: { refundId: refund.id, bookingId: refund.bookingId },
+      });
+
+      let seq = 1;
+      engine.addDebit({
+        accountId: reimbursementPayable.id,
+        amount: refund.amountXOF,
+        sequenceNumber: seq++,
+        referenceType: "REFUND",
+        referenceId: refund.id,
+        description: "Clear offline reimbursement payable on void",
+      });
+
+      if (operatorNet > 0 && refund.booking?.companyId) {
+        const opAcct = await accountService.getOperatorReceivableAccount(
+          refund.booking.companyId,
+        );
+        engine.addCredit({
+          accountId: opAcct.id,
+          amount: operatorNet,
+          sequenceNumber: seq++,
+          referenceType: "REFUND",
+          referenceId: refund.id,
+          description: "Restore operator receivable on refund void",
+        });
+      }
+
+      if (commission > 0) {
+        const platformCommissionAcct =
+          await accountService.getPlatformCommissionRevenueAccount();
+        engine.addCredit({
+          accountId: platformCommissionAcct.id,
+          amount: commission,
+          sequenceNumber: seq++,
+          referenceType: "REFUND",
+          referenceId: refund.id,
+          description: "Restore platform commission on refund void",
+        });
+      }
+
+      engine.validate();
+      await engine.commit(tx as any);
+    }
+
+    return updated;
   });
 }

@@ -1,8 +1,15 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import {
+	computeSmoothedSpeed,
+	evaluateOverspeedAlert,
+	HIGHWAY_SPEED_LIMIT_KMH,
+	type OverspeedAlertState,
+} from "@/lib/telemetry-core";
+import { DriverFeedback } from "@/lib/haptics";
 
 export interface LiveLocationData {
 	latitude: number;
@@ -15,23 +22,64 @@ export interface LiveLocationData {
 
 interface SpeedometerGaugeProps {
 	currentLocation: LiveLocationData | null;
-	isOverspeed: boolean;
+	isOverspeed?: boolean;
+	isActiveDriving?: boolean;
 }
 
 export function SpeedometerGauge({
 	currentLocation,
-	isOverspeed,
+	isOverspeed: externalIsOverspeed,
+	isActiveDriving = true,
 }: SpeedometerGaugeProps) {
 	const { t } = useTranslation("live");
+	const [smoothedSpeed, setSmoothedSpeed] = useState<number | null>(null);
+	const overspeedStateRef = useRef<OverspeedAlertState>({
+		isArmed: true,
+		lastAlertTimestamp: 0,
+	});
+
+	useEffect(() => {
+		if (!currentLocation) {
+			setSmoothedSpeed(null);
+			return;
+		}
+
+		setSmoothedSpeed((prev) => {
+			const next = computeSmoothedSpeed(currentLocation.speedKmh, prev);
+			if (isActiveDriving) {
+				const { shouldAlert, nextState } = evaluateOverspeedAlert(
+					next,
+					overspeedStateRef.current,
+				);
+				overspeedStateRef.current = nextState;
+				if (shouldAlert) {
+					void DriverFeedback.overspeedAlert();
+				}
+			}
+			return next;
+		});
+	}, [currentLocation?.speedKmh, isActiveDriving]);
+
+	const effectiveOverspeed =
+		externalIsOverspeed ??
+		((smoothedSpeed ?? currentLocation?.speedKmh ?? 0) > HIGHWAY_SPEED_LIMIT_KMH);
+
+	const displaySpeed =
+		smoothedSpeed != null
+			? Math.round(smoothedSpeed)
+			: currentLocation
+				? Math.round(currentLocation.speedKmh)
+				: "—";
+
 	return (
 		<Card
 			className={`p-5 items-center justify-center gap-2 relative overflow-hidden ${
-				isOverspeed ? "border-[#ef4444]" : "border-[#27272a]"
+				effectiveOverspeed ? "border-[#ef4444]" : "border-[#27272a]"
 			}`}
 		>
 			<View style={styles.gaugeHeader}>
 				<Text style={styles.gaugeLabel}>{t("speedometer.vehicleSpeed")}</Text>
-				{isOverspeed && (
+				{effectiveOverspeed && (
 					<Badge variant="error" label={t("speedometer.overspeedBadge")} />
 				)}
 			</View>
@@ -40,10 +88,10 @@ export function SpeedometerGauge({
 				<Text
 					style={[
 						styles.speedValue,
-						isOverspeed && styles.speedValueOverspeed,
+						effectiveOverspeed && styles.speedValueOverspeed,
 					]}
 				>
-					{currentLocation ? Math.round(currentLocation.speedKmh) : "—"}
+					{displaySpeed}
 				</Text>
 				<Text style={styles.speedUnit}>km/h</Text>
 			</View>

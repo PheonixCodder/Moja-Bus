@@ -177,3 +177,63 @@ export function enqueueOperatorDriverAssignmentConflict(
     },
   });
 }
+
+export type VehicleBreakdownPayload = {
+  tripId: string;
+  busPlate: string | null;
+  routeName: string;
+  originName: string;
+  destinationName: string;
+  breakdownType: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  accuracyMeters?: number | null;
+  driverName: string;
+  driverPhone?: string | null;
+  reportedAtIso: string;
+};
+
+/**
+ * Phase 2D (DRV-P1-07) — High-priority roadside breakdown emergency notification
+ * to carrier fleet dispatchers. Includes roadside GPS fix for tow/rescue coordination.
+ */
+export function enqueueOperatorVehicleBreakdown(
+  db: Tx,
+  input: {
+    payload: VehicleBreakdownPayload;
+    to: DriverRecipient;
+  },
+) {
+  const { payload } = input;
+  const transactionId = txIdWithRecipient(
+    `operator-vehicle-breakdown-${payload.tripId}-${payload.reportedAtIso}`,
+    input.to,
+  );
+  return enqueueOutboxMessage(db, {
+    type: OUTBOX_TYPES.OPERATOR_VEHICLE_BREAKDOWN,
+    idempotencyKey: transactionId,
+    payload: {
+      workflowId: "operator-vehicle-breakdown",
+      subscriber: input.to,
+      data: {
+        ...(input.to.email ? { email: input.to.email } : {}),
+        firstName: input.to.firstName,
+        tripId: payload.tripId,
+        busPlate: payload.busPlate ?? "Véhicule non assigné",
+        routeName: payload.routeName,
+        originName: payload.originName,
+        destinationName: payload.destinationName,
+        breakdownType: payload.breakdownType,
+        description: payload.description,
+        latitude: payload.latitude,
+        longitude: payload.longitude,
+        accuracyMeters: payload.accuracyMeters ?? null,
+        driverName: payload.driverName,
+        driverPhone: payload.driverPhone ?? null,
+        reportedAtIso: payload.reportedAtIso,
+      },
+      transactionId,
+    },
+  });
+}

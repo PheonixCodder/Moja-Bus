@@ -436,6 +436,7 @@
         "selectDestination": "Sélectionner la gare d'arrivée…",
         "noTerminalFound": "Aucune gare trouvée.",
         "distanceKm": "Distance totale (km)",
+        "turnaroundBufferMinutes": "Délai de rotation (min)",
         "stopSequence": "Ordre des arrêts",
         "selectTerminal": "Sélectionner une gare…",
         "add": "Ajouter",

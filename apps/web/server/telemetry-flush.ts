@@ -1,5 +1,6 @@
-import { getPrismaClient, Prisma } from "@moja/db";
+import { getPrismaClient } from "@moja/db";
 import type { DriverLocationPingInput } from "@moja/schemas";
+import Redis from "ioredis";
 import {
   anomalyPenalty,
   derivePingAnomaly,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/driver-scoring";
 import { logTelemetryEvent } from "@/lib/telemetry-observability";
 import { isGoodReferencePing } from "./telemetry-prev-point";
+import { redisPub } from "./telemetry-redis";
 
 const prisma = getPrismaClient();
 
@@ -38,18 +40,67 @@ export function queueTelemetryPing(ping: DriverLocationPingInput) {
   }
 }
 
+/** In-memory fallback tracker for daily penalties when Redis is absent/memory mode. */
+const IN_MEMORY_DAILY_PENALTIES = new Map<
+  string,
+  { total: number; expiresAt: number }
+>();
+
 /**
- * Phase 18 (P2-11) — persistence core shared by both ingest paths.
+ * Atomic lock-free daily penalty counter.
+ * Uses Redis INCRBY when Redis is active, or an in-memory Map fallback.
+ * Eliminates PostgreSQL `FOR UPDATE` row locks and table scans from the 5-second ingest hot path.
+ */
+async function getAndIncrementDailyPenalty(
+  driverProfileId: string,
+  penalty: number,
+  utcDateString: string,
+): Promise<{ applicablePenalty: number }> {
+  if (penalty <= 0) return { applicablePenalty: 0 };
+
+  const key = `driver:${driverProfileId}:penalty:${utcDateString}`;
+
+  if (redisPub instanceof Redis) {
+    try {
+      const newTotal = await redisPub.incrby(key, penalty);
+      if (newTotal === penalty) {
+        // Set 48-hour expiration on initial creation
+        await redisPub.expire(key, 86400 * 2);
+      }
+      const prevTotal = newTotal - penalty;
+      const allowance = Math.max(0, MAX_DAILY_PENALTY - prevTotal);
+      const applicablePenalty = Math.min(penalty, allowance);
+      return { applicablePenalty };
+    } catch (err) {
+      console.warn(
+        "[Telemetry] Redis daily penalty tracking failed, using in-memory fallback:",
+        err,
+      );
+    }
+  }
+
+  // In-memory atomic fallback
+  const now = Date.now();
+  const entry = IN_MEMORY_DAILY_PENALTIES.get(key);
+  const currentTotal = entry && entry.expiresAt > now ? entry.total : 0;
+  const newTotal = currentTotal + penalty;
+  IN_MEMORY_DAILY_PENALTIES.set(key, {
+    total: newTotal,
+    expiresAt: now + 86400 * 2000,
+  });
+
+  const allowance = Math.max(0, MAX_DAILY_PENALTY - currentTotal);
+  const applicablePenalty = Math.min(penalty, allowance);
+  return { applicablePenalty };
+}
+
+/**
+ * Phase 18 / Phase 1B remediation:
+ * Lock-free, high-throughput telemetry persistence shared by both HTTP and WS ingest paths.
  *
- * - WS gateway: pings arrive via queueTelemetryPing and are drained by
- *   flushTelemetryBuffer (safe there — long-lived node process).
- * - HTTP route: calls this DIRECTLY per request so nothing depends on a
- *   timer outliving a serverless invocation.
- *
- * Persists with server-authoritative anomaly classification (overspeed
- * recomputed from speedKmh; harsh braking from the client detector) and
- * applies daily-capped safety-score penalties in one transaction.
- * Throws on DB failure so callers can decide retry semantics.
+ * Persists raw pings as fast append-only records without PostgreSQL row locks.
+ * Applies real-time daily-capped safety score penalties via Redis atomic counter.
+ * Nightly reconciliation cron (/api/cron/reconcile-driver-stats) remains the self-healing source of truth.
  */
 export async function persistPingBatch(
   pings: DriverLocationPingInput[],
@@ -57,10 +108,7 @@ export async function persistPingBatch(
   if (pings.length === 0) return 0;
   const batch = pings.map((ping) => ({ ping, receivedAt: new Date() }));
 
-  // Normalize anomalies for the whole batch before writing.
-  // Phase 29 (F-TM-14): derivePingAnomaly is the single classification
-  // authority — LOW_ACCURACY fixes are persisted for history but never
-  // score (precedence over overspeed/braking), and never update last-position.
+  // 1. Normalize anomalies across the whole batch
   const normalized = batch.map(({ ping }) => {
     const { isAnomaly, anomalyReason } = derivePingAnomaly(ping);
     return {
@@ -79,85 +127,43 @@ export async function persistPingBatch(
     };
   });
 
-  await prisma.$transaction(async (tx: any) => {
-    // 0. Batch penalties grouped per driver
-    const penaltyByDriver = new Map<string, number>();
-    for (const row of normalized) {
-      if (row._penalty > 0) {
-        penaltyByDriver.set(
-          row.driverProfileId,
-          (penaltyByDriver.get(row.driverProfileId) ?? 0) + row._penalty,
-        );
-      }
-    }
+  // 2. Direct lock-free bulk insert to DriverLocationPing
+  await prisma.driverLocationPing.createMany({
+    data: normalized.map(({ _penalty, ...row }) => row),
+  });
 
-    // 0b. Phase 29 (F-TM-18) — serialize concurrent flushes per driver with
-    //     FOR UPDATE row locks in SORTED id order (deadlock hygiene), so two
-    //     batches can no longer both compute their allowance from the same
-    //     pre-insert snapshot and overshoot the daily cap together.
-    const affectedDriverIds = [
-      ...new Set(
-        normalized.filter((r) => r._penalty > 0).map((r) => r.driverProfileId),
-      ),
-    ].sort();
-
-    // 1. Pre-insert snapshot: penalties already recorded earlier today, so
-    //    the −20/day catastrophe cap holds across batches without
-    //    double-counting the batch we're about to insert.
-    const startOfDay = new Date();
-    startOfDay.setUTCHours(0, 0, 0, 0);
-
-    const priorPenaltyByDriver = new Map<string, number>();
-    if (affectedDriverIds.length > 0) {
-      await tx.$queryRaw`
-        SELECT "id" FROM "driver_profile"
-        WHERE "id" IN (${Prisma.join(affectedDriverIds)})
-        ORDER BY "id"
-        FOR UPDATE
-      `;
-      const priorRows = await tx.driverLocationPing.findMany({
-        where: {
-          driverProfileId: { in: affectedDriverIds },
-          recordedAt: { gte: startOfDay },
-          isAnomaly: true,
-          // LOW_ACCURACY rows carry zero penalty — skip scanning them.
-          anomalyReason: { in: ["OVERSPEED", "HARSH_BRAKING"] },
-        },
-        select: { driverProfileId: true, anomalyReason: true },
-      });
-      for (const row of priorRows) {
-        priorPenaltyByDriver.set(
-          row.driverProfileId,
-          (priorPenaltyByDriver.get(row.driverProfileId) ?? 0) +
-            anomalyPenalty(row.anomalyReason),
-        );
-      }
-    }
-
-    // 2. Bulk insert to DriverLocationPing table (LOW_ACCURACY included —
-    //    history completeness is the point; they simply score nothing).
-    await tx.driverLocationPing.createMany({
-      data: normalized.map(({ _penalty, ...row }) => row),
-    });
-
-    // 3. Safety-score deltas — grouped per driver with a UTC-daily cap
-    for (const [driverId, rawPenalty] of penaltyByDriver.entries()) {
-      const allowance = Math.max(
-        0,
-        MAX_DAILY_PENALTY - (priorPenaltyByDriver.get(driverId) ?? 0),
+  // 3. Batch penalties grouped per driver
+  const penaltyByDriver = new Map<string, number>();
+  for (const row of normalized) {
+    if (row._penalty > 0) {
+      penaltyByDriver.set(
+        row.driverProfileId,
+        (penaltyByDriver.get(row.driverProfileId) ?? 0) + row._penalty,
       );
-      const applicable = Math.min(rawPenalty, allowance);
+    }
+  }
 
-      if (applicable > 0) {
-        await tx.$executeRaw`
-          UPDATE "driver_profile" SET "safetyScore" = GREATEST(0, "safetyScore" - ${Math.round(applicable)}) WHERE "id" = ${driverId}
+  // 4. Apply safety score deltas using atomic Redis daily caps and direct atomic SQL updates
+  if (penaltyByDriver.size > 0) {
+    const utcDateString = new Date().toISOString().slice(0, 10);
+    for (const [driverId, rawPenalty] of penaltyByDriver.entries()) {
+      const { applicablePenalty } = await getAndIncrementDailyPenalty(
+        driverId,
+        rawPenalty,
+        utcDateString,
+      );
+
+      if (applicablePenalty > 0) {
+        await prisma.$executeRaw`
+          UPDATE "driver_profile"
+          SET "safetyScore" = GREATEST(0, "safetyScore" - ${Math.round(applicablePenalty)})
+          WHERE "id" = ${driverId}
         `;
       }
     }
-  });
+  }
 
-  // Phase 29 (F-TM-13) — one structured line per batch describing every
-  // stamped anomaly (disputes answerable from logs).
+  // 5. Log stamped anomalies for auditing
   const stampCounts: Record<string, number> = {};
   for (const row of normalized) {
     if (row.isAnomaly && row.anomalyReason) {
@@ -172,10 +178,7 @@ export async function persistPingBatch(
     });
   }
 
-  // Update latest driver locations. Phase 29 (F-TM-14): only GOOD fixes may
-  // become the driver's last-position reference — a low-accuracy fix must not
-  // feed getLivePositions, HUDs, or serve as a jump-gate anchor. A batch of
-  // exclusively flagged pings leaves the previous position untouched.
+  // 6. Update latest driver coordinates in parallel (only GOOD fixes advance the reference)
   const latestPerDriver = new Map<string, DriverLocationPingInput>();
   for (const item of batch) {
     if (!isGoodReferencePing(item.ping)) continue;
@@ -189,17 +192,21 @@ export async function persistPingBatch(
     }
   }
 
-  for (const [driverId, latest] of latestPerDriver.entries()) {
-    await prisma.driverProfile.update({
-      where: { id: driverId },
-      data: {
-        lastLatitude: latest.latitude,
-        lastLongitude: latest.longitude,
-        lastHeading: latest.heading ?? null,
-        lastSpeedKmh: latest.speedKmh,
-        lastPingAt: new Date(latest.recordedAt),
-      },
-    });
+  if (latestPerDriver.size > 0) {
+    await Promise.all(
+      Array.from(latestPerDriver.entries()).map(([driverId, latest]) =>
+        prisma.driverProfile.update({
+          where: { id: driverId },
+          data: {
+            lastLatitude: latest.latitude,
+            lastLongitude: latest.longitude,
+            lastHeading: latest.heading ?? null,
+            lastSpeedKmh: latest.speedKmh,
+            lastPingAt: new Date(latest.recordedAt),
+          },
+        }),
+      ),
+    );
   }
 
   return batch.length;

@@ -52,6 +52,7 @@ export interface UrgentDispatchPayload {
 interface UrgentDispatchModalProps {
 	visible: boolean;
 	dispatch: UrgentDispatchPayload | null;
+	clockSkewMs?: number;
 	onAccept: (tripId: string) => void;
 	onDecline: (tripId: string) => void;
 }
@@ -59,6 +60,7 @@ interface UrgentDispatchModalProps {
 export function UrgentDispatchModal({
 	visible,
 	dispatch,
+	clockSkewMs = 0,
 	onAccept,
 	onDecline,
 }: UrgentDispatchModalProps) {
@@ -99,6 +101,12 @@ export function UrgentDispatchModal({
 		onDecline(dispatch.tripId);
 	};
 
+	// Skew-corrected departure proximity calculation
+	const trueNowMs = Date.now() + clockSkewMs;
+	const departureDateMs = new Date(dispatch.departureTimeIso).getTime();
+	const minutesToDeparture = Math.round((departureDateMs - trueNowMs) / 60000);
+	const isImminent = minutesToDeparture <= 15;
+
 	return (
 		<Modal visible={visible} transparent animationType="fade">
 			<View style={styles.backdrop}>
@@ -107,7 +115,7 @@ export function UrgentDispatchModal({
 					<View style={styles.header}>
 						<View style={styles.alertBadge}>
 							<AlertTriangle size={16} color="#f59e0b" />
-                        <Text style={styles.alertText}>{t("urgentDispatch")}</Text>
+							<Text style={styles.alertText}>{t("urgentDispatch")}</Text>
 						</View>
 						<View style={styles.countdownContainer}>
 							<Text style={styles.countdownText}>{timeLeft}s</Text>
@@ -120,9 +128,18 @@ export function UrgentDispatchModal({
 							<View style={styles.busIconContainer}>
 								<Bus size={18} color="#e11d48" />
 							</View>
-							<View>
+							<View style={{ flex: 1 }}>
 								<Text style={styles.carrierTitle}>{dispatch.carrierName}</Text>
 								<Text style={styles.busPlateText}>{t("busPlate", { plate: dispatch.busPlate })}</Text>
+							</View>
+							{/* Departure Proximity Pill */}
+							<View style={[styles.proximityPill, isImminent ? styles.proximityPillImminent : styles.proximityPillNormal]}>
+								<Clock size={11} color={isImminent ? "#ef4444" : "#f59e0b"} />
+								<Text style={[styles.proximityPillText, isImminent ? styles.proximityPillTextImminent : styles.proximityPillTextNormal]}>
+									{minutesToDeparture <= 0
+										? t("departingNow")
+										: t("departsIn", { minutes: minutesToDeparture })}
+								</Text>
 							</View>
 						</View>
 
@@ -369,5 +386,32 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "800",
     color: "#ffffff",
+  },
+  proximityPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  proximityPillNormal: {
+    backgroundColor: "rgba(245, 158, 11, 0.1)",
+    borderColor: "rgba(245, 158, 11, 0.3)",
+  },
+  proximityPillImminent: {
+    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    borderColor: "rgba(239, 68, 68, 0.4)",
+  },
+  proximityPillText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  proximityPillTextNormal: {
+    color: "#f59e0b",
+  },
+  proximityPillTextImminent: {
+    color: "#ef4444",
   },
 });

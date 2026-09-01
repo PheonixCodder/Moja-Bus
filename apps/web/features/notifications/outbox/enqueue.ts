@@ -76,6 +76,8 @@ export const OUTBOX_TYPES = {
   PASSENGER_REBOOKED: "PASSENGER_REBOOKED",
   // Phase 37 — post-arrival review request (outbox-migrated)
   PASSENGER_REVIEW_REQUEST: "PASSENGER_REVIEW_REQUEST",
+  // Phase 2D (DRV-P1-07) — roadside vehicle breakdown emergency alert to operators
+  OPERATOR_VEHICLE_BREAKDOWN: "OPERATOR_VEHICLE_BREAKDOWN",
 } as const;
 
 export type OutboxType = (typeof OUTBOX_TYPES)[keyof typeof OUTBOX_TYPES];
