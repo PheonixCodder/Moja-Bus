@@ -25,8 +25,12 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      # prisma.config.ts reads DATABASE_URL; both steps target the shadow DB.
+      # prisma.config.ts reads DATABASE_URL; both steps target the local shadow DB.
+      # DATABASE_URL_DIRECT must also be set because schema.prisma now declares
+      # directUrl = env("DATABASE_URL_DIRECT"). Both point to the same shadow DB
+      # here — the drift job never touches Neon.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/shadow?sslmode=disable
+      DATABASE_URL_DIRECT: postgresql://postgres:postgres@localhost:5432/shadow?sslmode=disable
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
