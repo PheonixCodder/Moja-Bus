@@ -15,5 +15,8 @@ export default defineConfig({
   },
   datasource: {
     url: process.env["DATABASE_URL"],
+    // directUrl bypasses the Neon pooler for migrate/diff/pull commands.
+    // Falls back to DATABASE_URL when unset (production uses a direct db:5432 URL anyway).
+    directUrl: process.env["DATABASE_URL_DIRECT"] ?? process.env["DATABASE_URL"],
   },
 });
