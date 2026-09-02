@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -eu
 
 DIR="${BACKUP_DIR:-/backups}"
 TS=$(date +%F_%H%M%S)
@@ -14,5 +14,21 @@ mv "$TMP_FILE" "$FILE"
 
 echo "[backup] wrote $FILE ($(du -h "$FILE" | cut -f1))"
 
+# Upload to Cloudflare R2 (or any S3-compatible store) if credentials are set
+if [ -n "${S3_ENDPOINT:-}" ] && [ -n "${S3_BUCKET:-}" ] && [ -n "${S3_ACCESS_KEY_ID:-}" ]; then
+  echo "[backup] uploading to R2: s3://${S3_BUCKET}/db-backups/$(basename "$FILE")"
+  AWS_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID}" \
+  AWS_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY}" \
+  aws s3 cp "$FILE" \
+    "s3://${S3_BUCKET}/db-backups/$(basename "$FILE")" \
+    --endpoint-url "${S3_ENDPOINT}" \
+    --region "${S3_REGION:-auto}" \
+    --no-progress
+  echo "[backup] R2 upload complete"
+else
+  echo "[backup] skipping R2 upload (S3_ENDPOINT/S3_BUCKET/S3_ACCESS_KEY_ID not set)"
+fi
+
+# Prune local copies older than retention days
 KEEP="${BACKUP_RETENTION_DAYS:-7}"
 find "$DIR" -name 'moja_*.sql.gz' -mtime +"$KEEP" -delete
