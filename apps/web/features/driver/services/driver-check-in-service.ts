@@ -113,7 +113,7 @@ export class DriverCheckInService {
   ): Promise<void> {
     // 1. Tenancy binding — check if caller is assigned driver (Primary/Relief)
     // or assigned conductor staff member on this trip.
-    const trip = await this.prisma.trip.findUnique({
+    const trip = await this.prisma.trip?.findUnique({
       where: { id: booking.tripId },
       select: {
         driverId: true,

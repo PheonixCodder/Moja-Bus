@@ -57,6 +57,9 @@ function createMockPrisma(handlers: Handlers = {}) {
       // Default: caller holds an assignment (any role — queries are role-blind).
       findFirst: handlers.findAssignment ?? (async () => ({ id: "asg-1" })),
     },
+    trip: {
+      findUnique: async () => null,
+    },
   } as unknown as ConstructorParameters<typeof DriverCheckInService>[0];
 }
 

@@ -1,4 +1,4 @@
-﻿-- Clean up any legacy CONDUCTOR assignments from trip_driver_assignment
+-- Clean up any legacy CONDUCTOR assignments from trip_driver_assignment
 DELETE FROM "trip_driver_assignment" WHERE "role" = 'CONDUCTOR';
 
 -- AlterTable: Add conductorStaffId column to trip
