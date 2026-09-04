@@ -164,7 +164,7 @@ export function TripCard({
 						/>
 					)}
 
-					{isBoardable && isDriverRole && (
+					{isBoardable && role === "PRIMARY" && (
 						<Button
 							title={t("btnStart")}
 							variant="primary"

@@ -1408,6 +1408,61 @@ export const driversRouter = createTRPCRouter({
   // ============================================
 
   getMyProfile: driverProcedure.query(async ({ ctx }) => {
+    const isConductor = Boolean((ctx.driver as any).operatorStaff);
+
+    if (isConductor) {
+      const operator = (ctx.driver as any).operatorStaff;
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.user.id },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phoneNumber: true,
+          image: true,
+          createdAt: true,
+        },
+      });
+
+      return {
+        id: operator.id,
+        userId: ctx.user.id,
+        licenseNumber: "STAFF_CONDUCTOR",
+        licenseCategory: "STAFF",
+        licenseExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        yearsExperience: 0,
+        averageRating: 5.0,
+        totalTrips: 0,
+        totalTripsCompleted: 0,
+        totalDistanceKm: 0,
+        safetyScore: 100,
+        punctualityScore: 100,
+        status: "AVAILABLE",
+        verificationStatus: "VERIFIED",
+        rejectionReason: null,
+        verifiedAt: operator.createdAt,
+        currentTripId: null,
+        user,
+        companyAffiliations: operator.company
+          ? [
+              {
+                id: operator.id,
+                companyId: operator.companyId,
+                driverProfileId: operator.id,
+                company: operator.company,
+                isActive: true,
+              },
+            ]
+          : [],
+        currentTrip: null,
+        _count: {
+          assignedTrips: 0,
+          reviews: 0,
+          shifts: 0,
+        },
+      };
+    }
+
     const driver = await ctx.prisma.driverProfile.findUnique({
       where: { id: ctx.driver.id },
       include: {
@@ -1744,6 +1799,59 @@ export const driversRouter = createTRPCRouter({
         tripWhere.serviceType = serviceType;
       }
 
+      const isConductor = Boolean((ctx.driver as any).operatorStaff);
+
+      if (isConductor) {
+        const trips = await ctx.prisma.trip.findMany({
+          where: {
+            conductorStaffId: ctx.driver.id,
+            ...tripWhere,
+          },
+          skip,
+          take: limit,
+          orderBy: { departureDate: "asc" },
+          include: {
+            bus: {
+              select: {
+                id: true,
+                registrationPlate: true,
+                internalName: true,
+              },
+            },
+            company: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                logoUrl: true,
+              },
+            },
+            tripStops: {
+              include: { terminal: true },
+              orderBy: { stopOrder: "asc" },
+            },
+            _count: {
+              select: {
+                bookings: {
+                  where: { status: { in: ["CONFIRMED", "COMPLETED"] } },
+                },
+              },
+            },
+          },
+        });
+
+        return {
+          items: trips.map((t) => ({
+            assignmentId: `cond-${t.id}`,
+            role: "CONDUCTOR",
+            trip: t,
+            passengerCount: t._count.bookings,
+          })),
+          page,
+          limit,
+        };
+      }
+
       const assignments = await ctx.prisma.tripDriverAssignment.findMany({
         where: {
           driverProfileId: ctx.driver.id,
@@ -1801,6 +1909,49 @@ export const driversRouter = createTRPCRouter({
   getMyTripDetail: driverProcedure
     .input(z.object({ tripId: z.string().cuid() }))
     .query(async ({ ctx, input }) => {
+      const isConductor = Boolean((ctx.driver as any).operatorStaff);
+
+      if (isConductor) {
+        const trip = await ctx.prisma.trip.findFirst({
+          where: {
+            id: input.tripId,
+            conductorStaffId: ctx.driver.id,
+          },
+          include: {
+            bus: true,
+            company: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                logoUrl: true,
+                phone: true,
+              },
+            },
+            tripStops: {
+              include: { terminal: true },
+              orderBy: { stopOrder: "asc" },
+            },
+            _count: {
+              select: {
+                bookings: {
+                  where: { status: { in: ["CONFIRMED", "COMPLETED"] } },
+                },
+              },
+            },
+          },
+        });
+
+        if (!trip) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You are not assigned to this trip.",
+          });
+        }
+
+        return trip;
+      }
+
       const assignment = await ctx.prisma.tripDriverAssignment.findFirst({
         where: {
           driverProfileId: ctx.driver.id,
@@ -1850,19 +2001,38 @@ export const driversRouter = createTRPCRouter({
       z.object({ tripId: z.string().cuid(), search: z.string().optional() }),
     )
     .query(async ({ ctx, input }) => {
-      // Verify driver assignment
-      const assignment = await ctx.prisma.tripDriverAssignment.findFirst({
-        where: {
-          driverProfileId: ctx.driver.id,
-          tripId: input.tripId,
-        },
-      });
+      const isConductor = Boolean((ctx.driver as any).operatorStaff);
 
-      if (!assignment) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You are not authorized to view the manifest for this trip.",
+      if (isConductor) {
+        const trip = await ctx.prisma.trip.findFirst({
+          where: {
+            id: input.tripId,
+            conductorStaffId: ctx.driver.id,
+          },
+          select: { id: true },
         });
+
+        if (!trip) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You are not authorized to view the manifest for this trip.",
+          });
+        }
+      } else {
+        // Verify driver assignment
+        const assignment = await ctx.prisma.tripDriverAssignment.findFirst({
+          where: {
+            driverProfileId: ctx.driver.id,
+            tripId: input.tripId,
+          },
+        });
+
+        if (!assignment) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You are not authorized to view the manifest for this trip.",
+          });
+        }
       }
 
       const bookings = await ctx.prisma.booking.findMany({

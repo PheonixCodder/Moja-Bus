@@ -285,6 +285,60 @@ const loadDriverProfile = protectedProcedure.use(async ({ ctx, next }) => {
   }
 
   if (!driverProfile) {
+    // If the caller is an OPERATOR staff member with role === "CONDUCTOR",
+    // allow them access to crew features (trips, passenger check-in, manifest)
+    // without requiring an external DriverProfile.
+    const operatorStaff = await ctx.prisma.operator.findFirst({
+      where: {
+        userId: ctx.user.id,
+        role: "CONDUCTOR",
+        status: "ACTIVE",
+        deletedAt: null,
+      },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+          },
+        },
+      },
+    });
+
+    if (operatorStaff) {
+      const conductorCrewProfile: any = {
+        id: operatorStaff.id,
+        userId: ctx.user.id,
+        status: "AVAILABLE",
+        verificationStatus: "VERIFIED",
+        currentTripId: null,
+        licenseNumber: "STAFF_CONDUCTOR",
+        licenseCategory: "STAFF",
+        licenseExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        companyAffiliations: operatorStaff.company
+          ? [
+              {
+                id: operatorStaff.id,
+                companyId: operatorStaff.companyId,
+                driverProfileId: operatorStaff.id,
+                company: operatorStaff.company,
+                isActive: true,
+              },
+            ]
+          : [],
+        operatorStaff,
+      };
+
+      return next({
+        ctx: {
+          ...ctx,
+          driver: conductorCrewProfile,
+        },
+      });
+    }
+
     throw new TRPCError({
       code: "FORBIDDEN",
       message:

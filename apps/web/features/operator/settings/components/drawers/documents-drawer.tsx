@@ -178,12 +178,6 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
   };
 
   const handleViewDocument = async (id: string, objectKey: string) => {
-    const newWindow = window.open("about:blank", "_blank");
-    if (!newWindow) {
-      toast.error("Please allow popups to view documents");
-      return;
-    }
-
     try {
       toast.loading("Generating secure link...", { id: "view-doc" });
       const { downloadUrl } = await presignDownloadMutation.mutateAsync({
@@ -194,13 +188,11 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
       toast.dismiss("view-doc");
 
       if (downloadUrl) {
-        newWindow.location.href = downloadUrl;
+        window.open(downloadUrl, "_blank", "noreferrer");
       } else {
-        newWindow.close();
         toast.error("Could not generate document link");
       }
     } catch (err: any) {
-      newWindow.close();
       toast.dismiss("view-doc");
       toast.error(err.message || "Failed to view document");
     }

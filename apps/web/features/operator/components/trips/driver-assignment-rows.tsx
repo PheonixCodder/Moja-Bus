@@ -72,11 +72,22 @@ export function DriverAssignmentRows({
     staleTime: 15_000,
   });
 
+  const conductorsQuery = useQuery({
+    ...trpc.staff.listStaff.queryOptions({
+      role: "CONDUCTOR",
+      status: "ACTIVE",
+      limit: 100,
+    }),
+    enabled: canAssign,
+    staleTime: 30_000,
+  });
+
   function invalidateBoards() {
     void queryClient.invalidateQueries({
       predicate: (q: any) =>
         String(q.queryHash).includes("trips.list") ||
-        String(q.queryHash).includes("listAssignableDrivers"),
+        String(q.queryHash).includes("listAssignableDrivers") ||
+        String(q.queryHash).includes("staff.listStaff"),
     });
   }
 
@@ -99,7 +110,7 @@ export function DriverAssignmentRows({
           assignMutation.mutate({
             tripId,
             driverProfileId: pendingRef.current.driverProfileId,
-            role: pendingRef.current.role,
+            role: pendingRef.current.role as "PRIMARY" | "RELIEF",
             startStopOrder: 0,
             replacePrimary: true,
           });
@@ -120,13 +131,32 @@ export function DriverAssignmentRows({
     onError: (err: any) => toast.error(err?.message || t("failedAssignDriver")),
   });
 
-  const drivers = eligibleQuery.data?.items ?? [];
+  const assignConductorMutation = useMutation({
+    ...trpc.trips.assignConductor.mutationOptions(),
+    onSuccess: () => {
+      toast.success(t("driverAssigned"));
+      invalidateBoards();
+    },
+    onError: (err: any) => toast.error(err?.message || t("failedAssignDriver")),
+  });
 
-  const handleSelect = (role: Role, driverProfileId: string) => {
-    if (!driverProfileId || driverProfileId === "__disabled__") return;
+  const unassignConductorMutation = useMutation({
+    ...trpc.trips.unassignConductor.mutationOptions(),
+    onSuccess: () => {
+      toast.success(t("driverUnassignedToast"));
+      invalidateBoards();
+    },
+    onError: (err: any) => toast.error(err?.message || t("failedAssignDriver")),
+  });
+
+  const drivers = eligibleQuery.data?.items ?? [];
+  const conductors = conductorsQuery.data?.members ?? [];
+
+  const handleSelect = (role: Role, selectedId: string) => {
+    if (!selectedId || selectedId === "__disabled__") return;
 
     const occupant = holders[role];
-    if (occupant && occupant.id !== driverProfileId) {
+    if (occupant && occupant.id !== selectedId) {
       if (
         !window.confirm(
           `${t("replaceConfirmTitle")}\n\n${t("replaceConfirmMessage", { name: occupant.name })}`,
@@ -136,13 +166,21 @@ export function DriverAssignmentRows({
       }
     }
 
-    pendingRef.current = { driverProfileId, role };
+    if (role === "CONDUCTOR") {
+      assignConductorMutation.mutate({
+        tripId,
+        staffId: selectedId,
+      });
+      return;
+    }
+
+    pendingRef.current = { driverProfileId: selectedId, role };
     assignMutation.mutate({
       tripId,
-      driverProfileId,
-      role,
+      driverProfileId: selectedId,
+      role: role as "PRIMARY" | "RELIEF",
       startStopOrder: 0,
-      ...(occupant && occupant.id !== driverProfileId
+      ...(occupant && occupant.id !== selectedId
         ? { replacePrimary: true }
         : {}),
     });
@@ -156,6 +194,8 @@ export function DriverAssignmentRows({
         const cfg = ROLE_CONFIG[role];
         const Icon = cfg.icon;
         const holder = holders[role];
+        const isConductorRow = role === "CONDUCTOR";
+
         return (
           <div key={role} className="flex items-center gap-2">
             <Icon className={cn("size-4 shrink-0", cfg.accent)} />
@@ -175,17 +215,63 @@ export function DriverAssignmentRows({
                   type="button"
                   aria-label={t("unassignAria")}
                   className="ml-0.5 rounded-full p-0.5 hover:bg-emerald-200/60"
-                  onClick={() =>
-                    unassignMutation.mutate({
-                      tripId,
-                      driverProfileId: holder.id,
-                      role,
-                    })
-                  }
+                  onClick={() => {
+                    if (role === "CONDUCTOR") {
+                      unassignConductorMutation.mutate({ tripId });
+                    } else {
+                      unassignMutation.mutate({
+                        tripId,
+                        driverProfileId: holder.id,
+                        role,
+                      });
+                    }
+                  }}
                 >
                   <X className="size-3" />
                 </button>
               </span>
+            ) : isConductorRow ? (
+              <div className="min-w-0 flex-1">
+                <Combobox
+                  items={conductors.map((c) => ({
+                    value: c.id,
+                    label: c.user?.fullName ?? c.user?.email ?? "—",
+                  }))}
+                  value=""
+                  onValueChange={(val) => handleSelect(role, val ?? "")}
+                  disabled={conductorsQuery.isLoading || assignConductorMutation.isPending}
+                >
+                  <ComboboxInput
+                    placeholder={
+                      conductorsQuery.isLoading
+                        ? t("driverSearching")
+                        : t("driverAssignPlaceholder")
+                    }
+                    className="h-8 w-full text-xs"
+                  />
+                  <ComboboxContent>
+                    <ComboboxEmpty>{t("driverNoEligible")}</ComboboxEmpty>
+                    <ComboboxList>
+                      {conductors.map((c) => (
+                        <ComboboxItem
+                          key={c.id}
+                          value={c.id}
+                          className="text-xs"
+                        >
+                          <span className="flex w-full items-center justify-between gap-2">
+                            <span className="truncate">
+                              {c.user?.fullName ?? c.user?.email ?? "—"}
+                            </span>
+                            <span className="shrink-0 text-[10px] text-muted-foreground">
+                              {c.user?.phoneNumber ?? ""}
+                            </span>
+                          </span>
+                        </ComboboxItem>
+                      ))}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </div>
             ) : (
               <div className="min-w-0 flex-1">
                 <Combobox
@@ -223,8 +309,6 @@ export function DriverAssignmentRows({
                         else if (d.conflict) reason = t("conflictBusy");
                         else if (d.rolesOnTrip.length > 0)
                           reason = t("alreadyOnTrip");
-                        // Phase 3 (3.1) — mode mismatch is a soft signal (warning),
-                        // not a hard disable. Operator sees the flag but can still assign.
                         const modeMismatch = !d.modeOk;
 
                         return (

@@ -88,7 +88,7 @@ A driver assigned to an operational trip operates under one of three crew roles 
 | Crew Role | Code Identifier | Responsibilities & System Capabilities |
 | :--- | :--- | :--- |
 | **Primary Driver** | `"PRIMARY"` | Controls the vehicle during the main run. Bound to `Trip.driverId`. Subject to bus license category match (`requiredLicenseCategory`), license expiry check through trip arrival (`isLicenseUsableThrough`), and mode compatibility guard (`CONTRACTOR_URBAN` blocked on `INTERCITY`). Can start/complete trips and stream telemetry. |
-| **Relief Driver** | `"RELIEF"` | Secondary driver for long-haul intercity corridors. Bound to `Trip.reliefDriverId`. Subject to same license and mode checks as Primary. Can view trip manifest and execute boarding. Partial distance credit calculated via stop order segment ratio during nightly stats reconciliation. |
+| **Relief Driver** | `"RELIEF"` | Secondary driver for long-haul intercity corridors. Bound to `Trip.reliefDriverId`. Subject to same license and mode checks as Primary. Can view trip manifest and execute boarding. **Can take over active driving control mid-route** via `drivers.handoverTripControl` (minting fresh telemetry tokens). Partial distance credit calculated via stop order segment ratio during nightly stats reconciliation. |
 | **Conductor** | `"CONDUCTOR"` | Crew member responsible for ticketing, passenger manifest, and boarding. Gated on `verificationStatus === "VERIFIED"`, but **exempt** from commercial driving license checks and vehicle license category matching. Stored exclusively in `TripDriverAssignment` junction. |
 
 ### 2.5 Passenger (`User`)
@@ -168,33 +168,52 @@ export function requireAdminPermission(ctx: { adminStaff: AdminStaff }, key: Adm
 }
 ```
 
-### 5.3 Driver Status Middleware Guard
-Implemented in `apps/web/trpc/init.ts#L323-L349`:
+### 5.3 Driver Status Middleware Guard (Allowlist Model)
+Implemented in `apps/web/trpc/init.ts#L308-L345`, backed by the positive-allowlist engine in `apps/web/lib/driver-authorization.ts`:
+
 ```typescript
-const SUSPENDED_DENIED_READS = new Set(["getTelemetryToken", "getMyUrgentDispatches"]);
-const NON_VERIFIED_DENIED_MUTATIONS = new Set(["startTrip", "toggleShift"]);
+const SUSPENDED_DENIED_READS = new Set([
+  "getTelemetryToken",
+  "getMyUrgentDispatches",
+]);
 
-export const driverProcedure = loadDriverProfile.use(({ ctx, type, path, next }) => {
-  const procedureName = path.split(".").pop() ?? "";
+import { canDriverInvokeMutation } from "@/lib/driver-authorization";
 
-  if (ctx.driver.verificationStatus === "SUSPENDED") {
-    if (type !== "query" || SUSPENDED_DENIED_READS.has(procedureName)) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Your driver account is suspended — you have read-only access. Contact your operator.",
-      });
+export const driverProcedure = loadDriverProfile.use(
+  ({ ctx, type, path, next }) => {
+    const procedureName = path.split(".").pop() ?? "";
+
+    if (ctx.driver.verificationStatus === "SUSPENDED") {
+      if (type !== "query" || SUSPENDED_DENIED_READS.has(procedureName)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Your driver account is suspended — you have read-only access. Contact your operator.",
+        });
+      }
+    } else if (type === "mutation") {
+      if (
+        !canDriverInvokeMutation(
+          ctx.driver.verificationStatus,
+          ctx.driver.currentTripId,
+          procedureName,
+        )
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Your license verification is not approved yet — operational actions and starting runs are locked until an operator verifies your account.",
+        });
+      }
     }
-  } else if (
-    !canOperateRuns(ctx.driver.verificationStatus) &&
-    type === "mutation" &&
-    NON_VERIFIED_DENIED_MUTATIONS.has(procedureName)
-  ) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Your license verification is not approved yet — runs and shifts are locked until an operator verifies your account.",
-    });
-  }
 
-  return next({ ctx });
-});
+    return next({ ctx });
+  },
+);
 ```
+
+Authorization is now resolved by `canDriverInvokeMutation(verificationStatus, currentTripId, procedureName)` (`apps/web/lib/driver-authorization.ts`):
+* **Verified drivers** (`VERIFIED` / `SUSPENDED`): all calls authorized (suspension handled above).
+* **Unverified drivers** (`PENDING`/`REJECTED`/`EXPIRED`): restricted to an **idle allowlist** — `setServicePreference`, `respondToOffer`, `respondToCounterOffer`, `markMyOffersSeen`, `acknowledgeUrgentDispatch`, `presignLicenseDoc`, `updateMyStatus` — unless `currentTripId !== null`, in which case the **in-flight allowlist** opens: `completeTrip`, `reportTripDelay`, `reportVehicleBreakdown`, `logRestBreak`, `resumeDuty`, `recordStopArrival`, `recordStopDeparture`, `handoverTripControl`, `checkInPassenger`, `manualCheckInPassenger`, `batchSyncCheckIns`.
+
+> This replaces the former denylist (`NON_VERIFIED_DENIED_MUTATIONS = ["startTrip","toggleShift"]`) which permitted unverified drivers to invoke `reportTripDelay`/`manualCheckInPassenger`/`recordStopArrival` on trips they were assigned to. *(DRV-P1-08 remediation.)*

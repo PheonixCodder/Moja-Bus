@@ -134,3 +134,36 @@ All crew members assigned to a trip (`PRIMARY`, `RELIEF`, or `CONDUCTOR`) posses
 2. Perform QR ticket camera check-ins (`DriverCheckInService.scanCheckIn`).
 3. Perform manual passenger check-ins (`DriverCheckInService.manualCheckIn`).
 4. Flush offline scan queues (`DriverCheckInService.batchSync`).
+
+> **Pre-departure gate boarding**: Crew members may launch the QR scanner from the manifest view on any trip whose status is `SCHEDULED`, `BOARDING`, `DELAYED`, or `DEPARTED` — the boarding window is **not** gated on the bus having rolled out. Conductors and primary drivers can therefore validate tickets at terminal gates before departure. (Remediation of DRV-P0-1.)
+
+---
+
+## 5. Relief Driver Mid-Route Handover Protocol
+
+Long-haul intercity corridors (e.g. Abidjan → Korhogo, San-Pédro → Man) legally mandate driver alternation. The platform now supports a live, in-run transfer of driving authority from a Primary driver to an assigned Relief driver.
+
+### 5.1 Handover Trigger & Authorization
+Implemented in `apps/driver-app/features/live/screens/live-view.tsx` (HUD "Take Wheel" action) and `apps/web/trpc/routers/drivers.ts:2218`.
+
+* **Preconditions** enforced by `drivers.handoverTripControl`:
+  * Caller must hold an active assignment on `tripId` (any role).
+  * The trip must be `DEPARTED` (in-progress) — handover is rejected on `SCHEDULED`/`BOARDING`/`ARRIVED`/`CANCELLED`.
+  * The target `reliefDriverProfileId` must hold a `RELIEF` assignment on the same trip (the mobile HUD filters `role === "RELIEF"` excluding self, at `live-view.tsx:145-155`).
+* **UI**: A "Take Wheel" button (`btnHandover`) renders in the live HUD only when `reliefAssignments.length > 0` (`live-view.tsx:870-880`), with a confirmation Alert naming the relief driver before invoking the mutation.
+
+### 5.2 Atomic State Transfer
+`handoverTripControl` (`apps/web/trpc/routers/drivers.ts:2218-2372`) executes within a single transaction:
+1. Resolves the current `currentTripId` holder (`DriverProfile.currentTripId === tripId`).
+2. Clears `currentTripId` on the outgoing driver.
+3. Sets `currentTripId = tripId` on the incoming driver, minting a fresh HMAC dispatch token scoped to the new driver (`mintTelemetryDispatchTokenWithCompany`).
+4. Broadcasts a `driver-run-handover` outbox event to the operator and passengers.
+
+### 5.3 Telemetry & Device Re-Binding
+The handover mints a new 24-hour stateless HMAC token whose `d` (driver) claim now points to the relief driver. The relief device's background telemetry task (`MOJA_DRIVER_LOCATION_TRACKING`) consumes this token, so GPS streaming switches to the relief driver's device without re-authentication. The primary device should stop its tracking task on success (the mobile `onSuccess` handler calls `stopBackgroundLocationTracking()` and `setTelemetryAuthToken(null)` — `live-view.tsx:159-163`).
+
+### 5.4 Distance Credit Reconciliation
+The existing partial-span credit (`computeSegmentDistanceKm`, §3) continues to apply independently of handover — each crew member earns distance for the waypoint span recorded in their `TripDriverAssignment.startStopOrder`/`endStopOrder`. A handover does **not** alter the nightly stats span; it only reassigns the live `currentTripId` ownership and telemetry authorship. *(DRV-P0-4 remediation.)*
+
+### 5.5 Conductor Non-Involvement
+Conductors cannot invoke `handoverTripControl` — the relief handover is strictly a driving-authority transfer between `PRIMARY` and `RELIEF` drivers. Conductors retain ticket-validation authority throughout. This is enforced by the caller-assignment + relief-role precondition, since a conductor holds no valid `currentTripId` to surrender.

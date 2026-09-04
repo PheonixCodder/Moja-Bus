@@ -30,6 +30,11 @@ All procedures in this section authenticate using `driverProcedure` (`apps/web/t
   * *Type*: Mutation
   * *Input*: `setDriverServicePreferenceSchema` (`isAvailableForHire`, `preferredType`, `cityBase`, `routeExperience`, `bio`).
   * *Output*: `{ success: true, preference }`.
+* **`drivers.getTelemetryToken`**
+  * *Type*: Query
+  * *Input*: `z.object({ tripId?: z.string().cuid() })`.
+  * *Output*: `{ token: string }` — a signed, stateless HMAC dispatch token bound to the driver's current trip (or latest on-duty trip).
+  * *Notes*: Used by the mobile background GPS task to authenticate telemetry frames on `POST /api/v1/telemetry/ping` (HTTP) or the WebSocket gateway `/api/ws/telemetry`. Token encodes `{ role: "driver", d: driverProfileId, t: tripId, c: companyId, exp }` and is verified in $O(1)$ via `timingSafeEqual`.
 
 ---
 
@@ -58,7 +63,28 @@ All procedures in this section authenticate using `driverProcedure` (`apps/web/t
   * *Type*: Mutation
   * *Input*: `reportTripDelaySchema` (`tripId`, `delayMinutes`, `reason`, `note`).
   * *Output*: `{ success: true }`.
-  * *Side Effects*: Updates `Trip.status = "DELAYED"`, logs `DriverLocationPing` with `anomalyReason = "DELAY"`, revalidates downstream driver conflicts.
+  * *Side Effects*: Updates `Trip.status = "DELAYED"`, logs `DriverLocationPing` with `anomalyReason = "DELAY"`, revalidates downstream driver conflicts via `operator-driver-assignment-conflict` outbox event.
+  * *Notes*: Delay persistence mirrors the Operator ERP formula exactly (cumulative `delayMinutes`, status transition only on pre-departure runs, time-shift re-evaluation). *(DRV-P1-07 / Phase 17.)*
+* **`drivers.handoverTripControl`**
+  * *Type*: Mutation
+  * *Input*: `driverHandoverTripControlSchema` (`tripId: z.string().cuid()`, `targetDriverProfileId: z.string().cuid()`).
+  * *Output*: `{ success: true, telemetryToken, fromDriverProfileId, toDriverProfileId }`.
+  * *Side Effects*: Atomically flips `DriverProfile.currentTripId` from the outgoing Primary driver to the assigned Relief driver (`currentTripId = null` on the giver, `currentTripId = tripId` on the receiver), mints a fresh HMAC telemetry dispatch token for the relief device, and enqueues a `driver-run-handover` outbox event. Only permitted when the trip is `DEPARTED` and the target holds a `RELIEF` crew assignment. *(DRV-P0-4 — Phase 1D remediation.)*
+* **`drivers.logRestBreak`**
+  * *Type*: Mutation
+  * *Input*: `driverLogRestBreakSchema` (`tripId?: z.string().cuid()`, `durationMinutes: z.number().int().min(5).max(120)`, `note?: z.string()`).
+  * *Output*: `{ success: true, status: "RESTING", breakStartedAt, targetResumeAt, currentTripId }`.
+  * *Side Effects*: Transitions `DriverProfile.status` to `"RESTING"` while preserving `currentTripId` (no-shift-drop invariant). *(DRV-P1-04 — Phase 2C remediation.)*
+* **`drivers.resumeDuty`**
+  * *Type*: Mutation
+  * *Input*: `driverResumeDutySchema` (`tripId?: z.string().cuid()`).
+  * *Output*: `{ success: true, status: "ON_TRIP" | "AVAILABLE" | "OFFLINE" }`.
+  * *Side Effects*: Resolves `DriverProfile.status` from `RESTING` back to `ON_TRIP` (if `currentTripId` set), `AVAILABLE` (if open shift), or `OFFLINE`. *(Phase 2C remediation.)*
+* **`drivers.reportVehicleBreakdown`**
+  * *Type*: Mutation
+  * *Input*: `driverReportVehicleBreakdownSchema` (`tripId: z.string().cuid()`, `note?: z.string()`).
+  * *Output*: `{ success: true, delayMinutes, assignmentId }`.
+  * *Side Effects*: Submits a roadside emergency with the driver's exact GPS fix, tags the telemetry stream with an `EMERGENCY_BREAKDOWN` anomaly, applies trip delay adjustments, and enqueues high-priority `operator-vehicle-breakdown` outbox alerts to carrier dispatchers and passengers. *(DRV-P1-07 remediation.)*
 
 ---
 
@@ -96,6 +122,22 @@ All procedures in this section authenticate using `driverProcedure` (`apps/web/t
   * *Input*: `respondToOfferSchema` (`offerId`, `action: "ACCEPT" | "DECLINE" | "COUNTER"`, `counterSalaryCFA?`, `counterStartDate?`, `note?`, `confirmExclusiveSwitch?: boolean`).
   * *Output*: `{ success: true, offer }`.
   * *Side Effects*: On accept, enforces One-Active-Exclusive rule and creates `DriverCompanyAffiliation`.
+
+---
+
+## 2.5 Urgent Dispatch Procedures (`driverProcedure`)
+
+### 2.5.1 Departure & Acknowledgment
+* **`drivers.getMyUrgentDispatches`**
+  * *Type*: Query
+  * *Input*: `void`
+  * *Output*: `{ items: Array<{ tripId, assignmentRole, dispatch: UrgentDispatchPayload, ackAt: DateTime? }>, serverTimeIso: string }`.
+  * *Notes*: Returns upcoming runs departing within the 2-hour `URGENT_DISPATCH_WINDOW_HOURS` that the driver has not yet acknowledged. Excludes assignments where `TripDriverAssignment.urgentDispatchAckAt !== null`. The `serverTimeIso` field immunizes the mobile countdown against device clock skew (positive value ⇒ phone clock lags server). *(DRV-P0-3 remediation.)*
+* **`drivers.acknowledgeUrgentDispatch`**
+  * *Type*: Mutation
+  * *Input*: `z.object({ tripId: z.string().cuid() })`
+  * *Output*: `{ success: true }`
+  * *Side Effects*: Stamps `TripDriverAssignment.urgentDispatchAckAt = now()`, permanently suppressing re-firing of the modal across device reinstalls/re-logins.
 
 ---
 

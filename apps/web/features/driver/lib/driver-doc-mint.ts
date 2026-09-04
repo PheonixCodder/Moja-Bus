@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import {
   type DriverPresignDocInput,
+  DRIVER_DOC_SEGMENTS,
   driverDocKeyMatches,
 } from "@/features/driver/lib/driver-doc-access";
 import { createPresignedDownload } from "@/lib/storage";
@@ -47,7 +48,23 @@ export async function mintDriverDocUrl(
     });
   }
 
-  if (!driverDocKeyMatches(driver.userId, input.docType, input.objectKey)) {
+  // Primary check: key belongs to this driver's own namespace.
+  // Fallback: key is under *any* driver namespace but with the correct
+  // doc-type segment. This covers documents uploaded by an operator on
+  // behalf of a driver (before the driver's userId is known), where the key
+  // lands under the uploading operator's userId rather than the driver's.
+  // The company-affiliation gate above already prevents cross-company access.
+  const segment = DRIVER_DOC_SEGMENTS[input.docType];
+  const isOwnKey = driverDocKeyMatches(
+    driver.userId,
+    input.docType,
+    input.objectKey,
+  );
+  const isOperatorUploadedKey =
+    input.objectKey.startsWith("documents/drivers/") &&
+    input.objectKey.includes(`/${segment}/`);
+
+  if (!isOwnKey && !isOperatorUploadedKey) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Document does not belong to this driver.",

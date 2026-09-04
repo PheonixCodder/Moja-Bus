@@ -140,15 +140,17 @@ export function DriverDocPreview({
           </p>
         ) : null
       ) : (
-        <a
-          href={displayUrl ?? "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+        <button
+          type="button"
+          disabled={!displayUrl}
+          onClick={() => {
+            if (displayUrl) window.open(displayUrl, "_blank", "noreferrer");
+          }}
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ExternalLink className="size-3" />
           Open full document
-        </a>
+        </button>
       )}
     </div>
   );

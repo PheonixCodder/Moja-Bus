@@ -4,9 +4,12 @@ import { useTRPC } from "@/lib/trpc";
 import { authClient } from "@/lib/auth-client";
 import { TabBar } from "@/components/TabBar";
 
+import { useUserModeStore } from "@/stores/user-mode";
+
 /** Live badge: number of PENDING/COUNTERED offers awaiting the driver. */
 function usePendingOffersCount(): number {
 	const { data: session } = authClient.useSession();
+	const roleMode = useUserModeStore((s) => s.roleMode);
 	const trpc = useTRPC();
 	const { data } = useQuery({
 		...trpc.drivers.getMyOffers.queryOptions({
@@ -15,20 +18,22 @@ function usePendingOffersCount(): number {
 			limit: 1,
 		}),
 		refetchInterval: 30_000,
-		enabled: !!session?.user,
+		enabled: !!session?.user && roleMode !== "CONDUCTOR",
 	});
 	return data?.total ?? 0;
 }
 
 export default function TabLayout() {
 	const pendingOffers = usePendingOffersCount();
+	const roleMode = useUserModeStore((s) => s.roleMode);
+	const isConductor = roleMode === "CONDUCTOR";
 
 	return (
 		<Tabs
 			screenOptions={{
 				headerShown: false,
 			}}
-			tabBar={(props) => <TabBar {...props} pendingOffers={pendingOffers} />}
+			tabBar={(props) => <TabBar {...props} pendingOffers={pendingOffers} isConductor={isConductor} />}
 		>
 			<Tabs.Screen
 				name="trips"
@@ -40,12 +45,14 @@ export default function TabLayout() {
 				name="offers"
 				options={{
 					title: "Offres",
+					href: isConductor ? null : "/(tabs)/offers",
 				}}
 			/>
 			<Tabs.Screen
 				name="live"
 				options={{
 					title: "En direct",
+					href: isConductor ? null : "/(tabs)/live",
 				}}
 			/>
 			<Tabs.Screen

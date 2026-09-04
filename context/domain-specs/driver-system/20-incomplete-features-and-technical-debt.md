@@ -10,8 +10,9 @@ This document provides a transparent, zero-hallucination inventory of all partia
 
 ### 2.1 Dormant WebSocket Telemetry Transport
 * **Current State**: The mobile client contains scaffolding for WebSocket streaming in `apps/driver-app/lib/telemetry.ts` when `EXPO_PUBLIC_WS_URL` is defined.
-* **Code Gap**: The production backend in `apps/web` primarily receives coordinates over the HTTP REST endpoint `POST /api/v1/telemetry/ping`. The WebSocket gateway server is not deployed in default environments, meaning all telemetry defaults to HTTP chunked batching.
-* **Impact**: Higher HTTP connection overhead on high-frequency highway tracking.
+* **Current State**: The WebSocket gateway is now fully deployed and in use. The backend runs a production `TelemetryWebSocketGateway` (`apps/web/server/telemetry-ws.ts`) handling `upgrade` requests on `/api/ws/telemetry` and `/api/ws` (`apps/web/server.ts:28`), with per-client room subscription (`trip:{tripId}:telemetry` / `operator:{companyId}:fleet`), IP-gated handshakes, and HMAC claim enforcement (line 83, 184). A dedicated `runner-ws` image is built in the `Dockerfile`, the Caddy ingress exposes `wss://`, and the mobile client subscribes via `apps/driver-app/lib/gateway-subscription.ts`. Stop-progress broadcasts already publish over WS (`apps/web/trpc/routers/drivers.ts:2969, 3065`).
+* **Note**: HTTP `POST /api/v1/telemetry/ping` is retained as a stateless fallback when the WS connection is unavailable.
+* **Classification**: `RESOLVED — no longer half-baked.`
 
 ### 2.2 Unused / Catalog-Only IAM Permission Keys
 * **`drivers:assign`** (`packages/schemas/src/permissions.ts#L84-L88`):
@@ -21,8 +22,8 @@ This document provides a transparent, zero-hallucination inventory of all partia
   * Catalog-only key. Telemetry ingest authorization relies on stateless HMAC dispatch tokens minted on trip start, not IAM user keys.
 
 ### 2.3 Partial Conductor Manifest Delegation
-* **Current State**: `TripDriverAssignment` supports `role = "CONDUCTOR"`, and `isConductor` skips driving license checks in `trips.assignDriver`.
-* **Code Gap**: While conductors can scan tickets and view manifests, they cannot start a trip on behalf of a driver if the primary driver's phone is dead, unless the conductor also has the mobile driver app configured. Conductor-specific workflow views are currently co-located inside the general driver app.
+* **Current State**: `TripDriverAssignment` supports `role = "CONDUCTOR"`, and `isConductor` skips driving license checks in `trips.assignDriver`. The mobile manifest view (`features/trips/screens/manifest-view.tsx`) now exposes an unconditional **QR Scanner launcher** for any `SCHEDULED`/`BOARDING`/`DELAYED`/`DEPARTED` trip, so conductors can validate tickets at terminal gates before departure (P0-1 remediation).
+* **Remaining Gap**: A conductor still cannot *start a trip* (mint the telemetry dispatch token / flip `Trip.status` to `DEPARTED`) on behalf of a driver whose device is dead — that action remains restricted to the Primary/Relief crew via `drivers.startTrip`. Conductor-specific workflow views are co-located inside the general driver app.
 
 ---
 

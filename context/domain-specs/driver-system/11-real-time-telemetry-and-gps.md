@@ -33,6 +33,8 @@ sequenceDiagram
     end
 ```
 
+> **Transport**: The primary high-frequency path is now the deployed WebSocket gateway (`TelemetryWebSocketGateway`, `server/telemetry-ws.ts`) reached at `wss://{host}/api/ws/telemetry`, with `POST /api/v1/telemetry/ping` as the HTTP fallback. Both paths converge on `persistPingBatch` (`telemetry-flush.ts:105`) and the same Redis rooms (`trip:{tripId}:telemetry`, `operator:{companyId}:fleet`).
+
 ---
 
 ## 2. Mobile Collection & Adaptive Tracking
@@ -111,11 +113,13 @@ flowchart TD
 
 Implemented in `apps/web/server/telemetry-flush.ts` and `apps/web/app/api/v1/telemetry/ping/route.ts`:
 
-### 5.1 Synchronous Batch Persistence (`persistPingBatch`)
-1. Classifies anomalies server-authoritatively (`OVERSPEED`, `HARSH_BRAKING`, `LOW_ACCURACY`).
-2. Calculates safety penalties capped at $-20$ points per UTC day per driver.
-3. Inserts records into `DriverLocationPing` table.
-4. Updates `DriverProfile` latest telemetry coordinates (`lastLatitude`, `lastLongitude`, `lastHeading`, `lastSpeedKmh`, `lastPingAt`) using only trustworthy fixes.
+### 5.1 Atomic, Lock-Free Batch Persistence (`persistPingBatch`)
+Implemented in `apps/web/server/telemetry-flush.ts:105` (shared by the HTTP ping route and the WebSocket gateway `processTelemetryFrame`):
+1. Classifies anomalies server-authoritatively (`OVERSPEED`, `HARSH_BRAKING`, `LOW_ACCURACY`, `DELAY`).
+2. **Calculates safety penalties capped at $-20$ per UTC day per driver** via an atomic Redis `INCRBY` counter (`getAndIncrementDailyPenalty`, `telemetry-flush.ts:54`) — **no `SELECT ... FOR UPDATE` lock** is taken on `driver_profile`. A 48-hour key TTL auto-resets the daily bucket. *(Removes the P0-2 telemetry row-lock storm.)*
+3. Bulk-inserts records into `DriverLocationPing` via `createMany` (append-only, no row locks).
+4. Applies the capped penalty to `DriverProfile.safetyScore` with a lock-free `UPDATE ... SET safetyScore = GREATEST(0, safetyScore - N) WHERE id = ?` only when `applicablePenalty > 0` (`telemetry-flush.ts:157`).
+5. Updates `DriverProfile` latest coordinates (`lastLatitude`, `lastLongitude`, `lastHeading`, `lastSpeedKmh`, `lastPingAt`) using **non-locking** `prisma.driverProfile.update` for trustworthy fixes only (`isGoodReferencePing`), in parallel across drivers.
 
 ### 5.2 Real-Time Redis Broadcasting
 For each valid ping associated with a trip:

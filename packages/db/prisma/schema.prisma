@@ -782,6 +782,9 @@ model Operator {
   onboardingProgress OperatorOnboarding?
   onboardingEvents   OperatorOnboardingEvent[]
 
+  // Trips assigned to this staff member as a Conductor
+  tripsConducted Trip[] @relation("TripAssignedConductor")
+
   // Personal Details
   dateOfBirth          DateTime?
   nationalIdNumber     String?
@@ -1588,6 +1591,10 @@ model Trip {
   reliefDriverId String?
   reliefDriver   DriverProfile? @relation("TripReliefDriver", fields: [reliefDriverId], references: [id], onDelete: SetNull)
 
+  // Conductor (Operator Staff - Optional Boarding/Check-in Staff)
+  conductorStaffId String?
+  conductorStaff   Operator? @relation("TripAssignedConductor", fields: [conductorStaffId], references: [id], onDelete: SetNull)
+
   // Schedule-derived but stored immutably on trip creation
   departureDate DateTime // full timestamp: 2025-08-15T06:00:00Z
 
@@ -1632,6 +1639,7 @@ model Trip {
   @@index([busId])
   @@index([driverId])
   @@index([reliefDriverId])
+  @@index([conductorStaffId])
   @@index([status])
   @@index([serviceType])
   @@index([departureDate])
@@ -2383,7 +2391,7 @@ model TripDriverAssignment {
   driverProfileId String
   driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
 
-  role            String        @default("PRIMARY") // PRIMARY | RELIEF | CONDUCTOR
+  role            String        @default("PRIMARY") // PRIMARY | RELIEF only. (Conductors are assigned via Trip.conductorStaffId)
   assignedAt      DateTime      @default(now())
   assignedByStaffId String?
   // Phase 31 (F-DV-14) — server-side urgent-dispatch acknowledgement so the

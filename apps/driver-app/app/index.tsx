@@ -59,8 +59,12 @@ async function fetchDriverStatus(): Promise<{
 	}
 }
 
+import Toast from "react-native-toast-message";
+import { useUserModeStore } from "@/stores/user-mode";
+
 export default function IndexScreen() {
 	const [authState, setAuthState] = useState<AuthState>("loading");
+	const setRoleMode = useUserModeStore((s) => s.setRoleMode);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -70,23 +74,64 @@ export default function IndexScreen() {
 				const session = await authClient.getSession();
 				if (!isMounted) return;
 
-				if (!session?.data?.user) {
+				const user = session?.data?.user as any;
+				if (!user) {
 					setAuthState("unauthenticated");
 					return;
 				}
 
-				const driverData = await fetchDriverStatus();
-				if (!isMounted) return;
+				// 1. DRIVER role path
+				if (user.role === "DRIVER") {
+					setRoleMode("DRIVER");
+					const driverData = await fetchDriverStatus();
+					if (!isMounted) return;
 
-				if (!driverData.hasProfile) {
-					setAuthState("needs-register");
-				} else if (driverData.status !== "VERIFIED") {
-					setAuthState("needs-status");
-				} else if (!driverData.hasPref) {
-					setAuthState("needs-pref");
-				} else {
-					setAuthState("authenticated");
+					if (!driverData.hasProfile) {
+						setAuthState("needs-register");
+					} else if (driverData.status !== "VERIFIED") {
+						setAuthState("needs-status");
+					} else if (!driverData.hasPref) {
+						setAuthState("needs-pref");
+					} else {
+						setAuthState("authenticated");
+					}
+					return;
 				}
+
+				// 2. OPERATOR role path (allowed ONLY if staff role is CONDUCTOR)
+				if (user.role === "OPERATOR") {
+					const trpc = getTrpcClient();
+					try {
+						const perms = await trpc.staff.getMyPermissions.query();
+						if (perms?.role === "CONDUCTOR") {
+							setRoleMode("CONDUCTOR");
+							setAuthState("authenticated");
+							return;
+						}
+					} catch {
+						// Fall through to refusal
+					}
+
+					Toast.show({
+						type: "error",
+						text1: "Accès refusé",
+						text2: "Ce compte administrateur/gestionnaire doit être utilisé sur le portail web Moja Ride.",
+						visibilityTime: 5000,
+					});
+					await authClient.signOut();
+					setAuthState("unauthenticated");
+					return;
+				}
+
+				// 3. Any other role (TRAVELER, ADMIN)
+				Toast.show({
+					type: "error",
+					text1: "Accès refusé",
+					text2: "Accès réservé à l'équipage de bord (Chauffeurs et Convoyeurs).",
+					visibilityTime: 5000,
+				});
+				await authClient.signOut();
+				setAuthState("unauthenticated");
 			} catch {
 				if (isMounted) setAuthState("unauthenticated");
 			}
@@ -102,7 +147,7 @@ export default function IndexScreen() {
 			isMounted = false;
 			clearTimeout(timer);
 		};
-	}, []);
+	}, [setRoleMode]);
 
 	// Once the auth state is resolved, hide the native splash screen.
 	useEffect(() => {

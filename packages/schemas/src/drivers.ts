@@ -213,7 +213,7 @@ export function canOperateRuns(verificationStatus: string): boolean {
 export const assignDriverToTripSchema = z.object({
   tripId: z.string().cuid(),
   driverProfileId: z.string().cuid(),
-  role: z.enum(["PRIMARY", "RELIEF", "CONDUCTOR"]).default("PRIMARY"),
+  role: z.enum(["PRIMARY", "RELIEF"]).default("PRIMARY"),
   startStopOrder: z.number().int().min(0).default(0),
   endStopOrder: z.number().int().min(1).optional(),
   /** Required when replacing an existing PRIMARY with a different driver. */
@@ -224,10 +224,25 @@ export type AssignDriverToTripInput = z.infer<typeof assignDriverToTripSchema>;
 export const unassignDriverFromTripSchema = z.object({
   tripId: z.string().cuid(),
   driverProfileId: z.string().cuid(),
-  role: z.enum(["PRIMARY", "RELIEF", "CONDUCTOR"]).default("PRIMARY"),
+  role: z.enum(["PRIMARY", "RELIEF"]).default("PRIMARY"),
 });
 export type UnassignDriverFromTripInput = z.infer<
   typeof unassignDriverFromTripSchema
+>;
+
+export const assignConductorToTripSchema = z.object({
+  tripId: z.string().cuid(),
+  staffId: z.string().cuid(),
+});
+export type AssignConductorToTripInput = z.infer<
+  typeof assignConductorToTripSchema
+>;
+
+export const unassignConductorFromTripSchema = z.object({
+  tripId: z.string().cuid(),
+});
+export type UnassignConductorFromTripInput = z.infer<
+  typeof unassignConductorFromTripSchema
 >;
 
 export const listAssignableDriversSchema = z.object({

@@ -2,6 +2,7 @@ import { Prisma } from "@moja/db";
 import {
   assignBusSchema,
   assignDriverToTripSchema,
+  assignConductorToTripSchema,
   cancelTripSchema,
   DRIVER_TURNAROUND_BUFFER_MINUTES,
   delayTripSchema,
@@ -12,6 +13,7 @@ import {
   URBAN_TRIP_DEFAULT_MINUTES,
   URGENT_DISPATCH_WINDOW_HOURS,
   unassignDriverFromTripSchema,
+  unassignConductorFromTripSchema,
 } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -408,6 +410,15 @@ export const tripsRouter = createTRPCRouter({
                 },
               },
             },
+            conductorStaff: {
+              select: {
+                id: true,
+                role: true,
+                user: {
+                  select: { fullName: true, phoneNumber: true, image: true },
+                },
+              },
+            },
             driverAssignments: {
               select: {
                 role: true,
@@ -535,6 +546,19 @@ export const tripsRouter = createTRPCRouter({
             },
           },
           reliefDriver: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                  phoneNumber: true,
+                  image: true,
+                },
+              },
+            },
+          },
+          conductorStaff: {
             include: {
               user: {
                 select: {
@@ -1832,49 +1856,43 @@ export const tripsRouter = createTRPCRouter({
         });
       }
 
-      // Phase 3 (F3) — CONDUCTOR gate exemption: conductors don't drive, so
-      // licence-class and mode rules don't apply. Only VERIFIED is required.
-      const isConductor = role === "CONDUCTOR";
+      // License gate — CI ordering B < C < D < E vs the bus type requirement
+      const requiredLicense = trip.bus?.busType?.requiredLicenseCategory;
+      if (
+        requiredLicense &&
+        !licenseMeetsRequirement(driver.licenseCategory, requiredLicense)
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `License mismatch: this bus (${trip.bus?.busType?.name ?? "type"}) requires class ${requiredLicense}; driver holds ${driver.licenseCategory}.`,
+        });
+      }
 
-      if (!isConductor) {
-        // License gate — CI ordering B < C < D < E vs the bus type requirement
-        const requiredLicense = trip.bus?.busType?.requiredLicenseCategory;
-        if (
-          requiredLicense &&
-          !licenseMeetsRequirement(driver.licenseCategory, requiredLicense)
-        ) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `License mismatch: this bus (${trip.bus?.busType?.name ?? "type"}) requires class ${requiredLicense}; driver holds ${driver.licenseCategory}.`,
-          });
-        }
+      // Phase 14 (F-OP-03) — licence must be valid THROUGH the run: a licence
+      // expiring mid-trip is exactly as unusable as an expired one.
+      const licenceThrough = trip.estimatedArrival ?? trip.departureDate;
+      if (!isLicenseUsableThrough(driver.licenseExpiryDate, licenceThrough)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot assign driver: their license expires ${driver.licenseExpiryDate ? new Date(driver.licenseExpiryDate).toISOString().slice(0, 10) : "before"} this trip ends (${licenceThrough.toISOString().slice(0, 10)}).`,
+        });
+      }
 
-        // Phase 14 (F-OP-03) — licence must be valid THROUGH the run: a licence
-        // expiring mid-trip is exactly as unusable as an expired one.
-        const licenceThrough = trip.estimatedArrival ?? trip.departureDate;
-        if (!isLicenseUsableThrough(driver.licenseExpiryDate, licenceThrough)) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Cannot assign driver: their license expires ${driver.licenseExpiryDate ? new Date(driver.licenseExpiryDate).toISOString().slice(0, 10) : "before"} this trip ends (${licenceThrough.toISOString().slice(0, 10)}).`,
-          });
-        }
-
-        // Phase 3 (3.1 / D1) — mode-compatibility guard:
-        // CONTRACTOR_URBAN driver on INTERCITY trip = hard block.
-        // EXCLUSIVE_INTERCITY on URBAN = soft warn (operator sees it in the
-        // combobox but is not blocked server-side — asymmetric-permissive).
-        const employmentType =
-          driver.companyAffiliations?.[0]?.employmentType ?? null;
-        if (
-          employmentType === "CONTRACTOR_URBAN" &&
-          trip.serviceType === "INTERCITY"
-        ) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message:
-              "Cannot assign an urban contractor to an intercity trip. Change the driver's employment type or choose a different driver.",
-          });
-        }
+      // Phase 3 (3.1 / D1) — mode-compatibility guard:
+      // CONTRACTOR_URBAN driver on INTERCITY trip = hard block.
+      // EXCLUSIVE_INTERCITY on URBAN = soft warn (operator sees it in the
+      // combobox but is not blocked server-side — asymmetric-permissive).
+      const employmentType =
+        driver.companyAffiliations?.[0]?.employmentType ?? null;
+      if (
+        employmentType === "CONTRACTOR_URBAN" &&
+        trip.serviceType === "INTERCITY"
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Cannot assign an urban contractor to an intercity trip. Change the driver's employment type or choose a different driver.",
+        });
       }
 
       const recipient: DriverRecipient = {
@@ -1985,14 +2003,6 @@ export const tripsRouter = createTRPCRouter({
             where: { id: tripId },
             data: { reliefDriverId: driverProfileId },
           });
-        } else {
-          // CONDUCTOR — junction-only record
-          if (existingSameDriver) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "This driver already has a role on this trip.",
-            });
-          }
         }
 
         // Double-booking engine — cross-company interval overlap w/ turnaround buffer
@@ -2243,6 +2253,77 @@ export const tripsRouter = createTRPCRouter({
               : {}),
           },
         });
+      });
+
+      return { success: true };
+    }),
+
+  assignConductor: operatorCompanyProcedure
+    .input(assignConductorToTripSchema)
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "trips:dispatch");
+      const { tripId, staffId } = input;
+
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: tripId, companyId: ctx.companyId, archivedAt: null },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      }
+
+      if (!["SCHEDULED", "DELAYED", "BOARDING"].includes(trip.status)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot assign conductor to a ${trip.status.toLowerCase()} trip.`,
+        });
+      }
+
+      const staff = await ctx.prisma.operator.findFirst({
+        where: {
+          id: staffId,
+          companyId: ctx.companyId,
+          status: "ACTIVE",
+          deletedAt: null,
+        },
+      });
+      if (!staff) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Staff member not found or inactive",
+        });
+      }
+
+      await ctx.prisma.trip.update({
+        where: { id: tripId },
+        data: { conductorStaffId: staffId },
+      });
+
+      return { success: true };
+    }),
+
+  unassignConductor: operatorCompanyProcedure
+    .input(unassignConductorFromTripSchema)
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "trips:dispatch");
+      const { tripId } = input;
+
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: tripId, companyId: ctx.companyId, archivedAt: null },
+      });
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      }
+
+      if (!["SCHEDULED", "DELAYED", "BOARDING"].includes(trip.status)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot unassign conductor from a ${trip.status.toLowerCase()} trip.`,
+        });
+      }
+
+      await ctx.prisma.trip.update({
+        where: { id: tripId },
+        data: { conductorStaffId: null },
       });
 
       return { success: true };

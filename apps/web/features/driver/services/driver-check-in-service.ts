@@ -111,17 +111,33 @@ export class DriverCheckInService {
     booking: CheckInBookingView,
     sentTripId?: string | undefined,
   ): Promise<void> {
-    // 1. Tenancy binding — row existence IS the active assignment
-    // (unassignDriver deletes rows; there is no isActive flag).
-    const assignment = await this.prisma.tripDriverAssignment.findFirst({
-      where: { driverProfileId, tripId: booking.tripId },
-      select: { id: true },
+    // 1. Tenancy binding — check if caller is assigned driver (Primary/Relief)
+    // or assigned conductor staff member on this trip.
+    const trip = await this.prisma.trip.findUnique({
+      where: { id: booking.tripId },
+      select: {
+        driverId: true,
+        reliefDriverId: true,
+        conductorStaffId: true,
+      },
     });
-    if (!assignment) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You are not assigned to this trip.",
+
+    const isDirectCrew =
+      trip?.driverId === driverProfileId ||
+      trip?.reliefDriverId === driverProfileId ||
+      trip?.conductorStaffId === driverProfileId;
+
+    if (!isDirectCrew) {
+      const assignment = await this.prisma.tripDriverAssignment.findFirst({
+        where: { driverProfileId, tripId: booking.tripId },
+        select: { id: true },
       });
+      if (!assignment) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not assigned to this trip.",
+        });
+      }
     }
 
     // 2. Declared intent must match the ticket's own trip identity.

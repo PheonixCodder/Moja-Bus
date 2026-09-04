@@ -63,12 +63,6 @@ function DocumentRow({ doc }: { doc: any }) {
       return;
     }
 
-    const newWindow = window.open("about:blank", "_blank", "noreferrer");
-    if (!newWindow) {
-      // Fallback if blocked
-      return;
-    }
-
     try {
       setOpening(true);
       const { downloadUrl } = await downloadMutation.mutateAsync({
@@ -76,12 +70,10 @@ function DocumentRow({ doc }: { doc: any }) {
         documentId: doc.id,
       });
       if (downloadUrl) {
-        newWindow.location.href = downloadUrl;
-      } else {
-        newWindow.close();
+        window.open(downloadUrl, "_blank", "noreferrer");
       }
     } catch (e) {
-      newWindow.close();
+      // error handled silently; button re-enables via finally
     } finally {
       setOpening(false);
     }

@@ -221,13 +221,12 @@ export function TripCard({
                     name: trip.reliefDriver.user.fullName ?? "—",
                   }
                 : null,
-              CONDUCTOR:
-                (trip as any).driverAssignments
-                  ?.filter((a: any) => a.role === "CONDUCTOR")
-                  .map((a: any) => ({
-                    id: a.driverProfileId,
-                    name: a.driverProfile?.user?.fullName ?? "—",
-                  }))[0] ?? null,
+              CONDUCTOR: (trip as any).conductorStaff
+                ? {
+                    id: (trip as any).conductorStaff.id,
+                    name: (trip as any).conductorStaff.user?.fullName ?? "—",
+                  }
+                : null,
             }}
           />
 

@@ -6,6 +6,18 @@ Last updated: 2026-08-25 (ALL 39 phases complete — remediation track closed; s
 
 ## State
 
+- **🏁 UNIFIED DRIVER & STAFF CONDUCTOR ARCHITECTURE COMPLETE ✅ (2026-09-03)**:
+  - **Scope**: Replaced duplicate relief marketplaces with a clean 2-driver system (Primary & optional Relief) and integrated Conductors into the existing Operator Staff system (`Operator.role === "CONDUCTOR"`).
+  - **Key Implementations Shipped**:
+    1. *Prisma Migration*: Added `Trip.conductorStaffId` referencing `Operator.id`, created standard migration `20260903063849_add_trip_conductor_staff/migration.sql`.
+    2. *Schemas & Routers*: Restricted `assignDriverToTripSchema` to `PRIMARY | RELIEF`; added `assignConductor` and `unassignConductor` tRPC mutations; updated `DriverCheckInService` to authorize `trip.conductorStaffId`.
+    3. *Conductor Authentication & Query Pipeline*: Enhanced `loadDriverProfile` in `trpc/init.ts` to recognize active staff conductors without requiring external `DriverProfile` records; updated `getMyTrips`, `getMyTripDetail`, and `getMyTripManifest` in `drivers.ts` to query conducted runs directly.
+    4. *Operator Dashboard UI*: Updated `trips.list` and `trips.getById` includes; wired conductor avatar badge in `trip-card.tsx`; decoupled conductor combobox in `driver-assignment-rows.tsx` to list active operator conductor staff.
+    5. *Mobile Driver App (`apps/driver-app`)*: Built role-based entry gate in `app/index.tsx` routing `DRIVER` and `CONDUCTOR` staff, while blocking managers/passengers; hid *En direct* HUD and *Offres* tabs for conductors; restricted trip-start actions to Primary drivers.
+  - **Verification Proof**:
+    - `packages/schemas`: All 86 unit tests passed.
+    - `apps/web`: `tsc --noEmit` passed with 0 errors.
+    - `apps/driver-app`: `tsc --noEmit` passed with 0 errors.
 - **🏁 FINANCIAL & CHECKOUT REMEDIATION: WAVE 3 COMPLETE ✅ (2026-08-31)**:
   - **Scope**: Fixed offline refund void reversals on the double-entry ledger, expired credit lot reconciliation cron sweep, and claim concurrency row-level locking.
   - **Key Remediations Shipped**:

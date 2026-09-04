@@ -44,10 +44,13 @@ const TABS: TabConfig[] = [
 	{ name: "profile", labelKey: "profile", icon: User02Icon },
 ];
 
-export function TabBar({ state, navigation, pendingOffers = 0 }: any) {
+export function TabBar({ state, navigation, pendingOffers = 0, isConductor = false }: any) {
 	const insets = useSafeAreaInsets();
 	const { t } = useTranslation(["common", "trips", "offers"]);
-	const tabWidth = SCREEN_WIDTH / TABS.length;
+	const activeTabs = isConductor
+		? TABS.filter((tab) => tab.name !== "offers" && tab.name !== "live")
+		: TABS;
+	const tabWidth = SCREEN_WIDTH / activeTabs.length;
 
 	const indicatorX = useSharedValue(
 		state.index * tabWidth + (tabWidth - CIRCLE_SIZE) / 2
